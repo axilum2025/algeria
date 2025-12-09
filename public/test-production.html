@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Production - Axilum AI</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            max-width: 800px;
+            width: 100%;
+            padding: 40px;
+        }
+        h1 {
+            color: #667eea;
+            margin-bottom: 10px;
+            font-size: 2em;
+        }
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 1.1em;
+        }
+        .test-section {
+            margin-bottom: 30px;
+            padding: 20px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+        }
+        .test-section h2 {
+            color: #764ba2;
+            margin-bottom: 15px;
+            font-size: 1.3em;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            color: #333;
+            font-weight: 600;
+        }
+        input, textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 1em;
+            transition: border-color 0.3s;
+        }
+        input:focus, textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+        button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 12px 30px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s;
+            width: 100%;
+        }
+        button:hover {
+            transform: translateY(-2px);
+        }
+        button:active {
+            transform: translateY(0);
+        }
+        button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+        .result {
+            margin-top: 15px;
+            padding: 15px;
+            border-radius: 8px;
+            display: none;
+        }
+        .result.success {
+            background: #d4edda;
+            border: 2px solid #c3e6cb;
+            color: #155724;
+        }
+        .result.error {
+            background: #f8d7da;
+            border: 2px solid #f5c6cb;
+            color: #721c24;
+        }
+        .result.info {
+            background: #d1ecf1;
+            border: 2px solid #bee5eb;
+            color: #0c5460;
+        }
+        .result pre {
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            margin-top: 10px;
+            background: rgba(0,0,0,0.05);
+            padding: 10px;
+            border-radius: 5px;
+        }
+        .status {
+            display: inline-block;
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-weight: 600;
+            font-size: 0.9em;
+        }
+        .status.online {
+            background: #d4edda;
+            color: #155724;
+        }
+        .status.offline {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        .info-box {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        .info-box strong {
+            color: #667eea;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🧪 Test Production - Axilum AI</h1>
+        <p class="subtitle">Testez toutes les fonctionnalités de l'application déployée sur Azure</p>
+
+        <div class="info-box">
+            <strong>URL Production :</strong> https://proud-mushroom-019836d03.3.azurestaticapps.net<br>
+            <strong>Status API :</strong> <span class="status" id="apiStatus">Vérification...</span>
+        </div>
+
+        <!-- Test 1: API Agent IA -->
+        <div class="test-section">
+            <h2>🤖 Test 1: Agent IA</h2>
+            <div class="form-group">
+                <label for="aiMessage">Message à l'agent :</label>
+                <textarea id="aiMessage" placeholder="Ex: Explique-moi ce qu'est l'intelligence artificielle">Explique-moi ce qu'est l'intelligence artificielle en 50 mots.</textarea>
+            </div>
+            <button onclick="testAI()">Tester l'Agent IA</button>
+            <div id="aiResult" class="result"></div>
+        </div>
+
+        <!-- Test 2: Email Verification -->
+        <div class="test-section">
+            <h2>📧 Test 2: Authentification Email</h2>
+            <div class="form-group">
+                <label for="email">Email :</label>
+                <input type="email" id="email" placeholder="test@example.com" value="test@example.com">
+            </div>
+            <div class="form-group">
+                <label for="name">Nom :</label>
+                <input type="text" id="name" placeholder="Test User" value="Test User">
+            </div>
+            <button onclick="sendVerificationEmail()">Envoyer Code de Vérification</button>
+            <div id="emailResult" class="result"></div>
+
+            <div style="margin-top: 20px;">
+                <div class="form-group">
+                    <label for="verificationCode">Code de vérification (6 chiffres) :</label>
+                    <input type="text" id="verificationCode" placeholder="123456" maxlength="6">
+                </div>
+                <button onclick="verifyCode()">Vérifier le Code</button>
+                <div id="verifyResult" class="result"></div>
+            </div>
+        </div>
+
+        <!-- Test 3: Protection Anti-Hallucination -->
+        <div class="test-section">
+            <h2>🛡️ Test 3: Protection Anti-Hallucination</h2>
+            <div class="form-group">
+                <label for="factCheckMessage">Message à vérifier :</label>
+                <textarea id="factCheckMessage" placeholder="Ex: La tour Eiffel mesure 300 mètres">La tour Eiffel mesure exactement 324 mètres de hauteur.</textarea>
+            </div>
+            <button onclick="testFactCheck()">Tester avec Fact-Checking</button>
+            <div id="factCheckResult" class="result"></div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE_URL = 'https://proud-mushroom-019836d03.3.azurestaticapps.net/api';
+
+        // Vérifier le statut de l'API au chargement
+        window.addEventListener('load', async () => {
+            try {
+                const response = await fetch(`${API_BASE_URL}/invoke`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ message: 'ping' })
+                });
+                
+                const statusEl = document.getElementById('apiStatus');
+                if (response.ok) {
+                    statusEl.textContent = '✅ En ligne';
+                    statusEl.className = 'status online';
+                } else {
+                    statusEl.textContent = '⚠️ Erreur ' + response.status;
+                    statusEl.className = 'status offline';
+                }
+            } catch (error) {
+                const statusEl = document.getElementById('apiStatus');
+                statusEl.textContent = '❌ Hors ligne';
+                statusEl.className = 'status offline';
+            }
+        });
+
+        // Test 1: Agent IA
+        async function testAI() {
+            const resultDiv = document.getElementById('aiResult');
+            const message = document.getElementById('aiMessage').value;
+            
+            if (!message) {
+                showResult(resultDiv, 'error', 'Veuillez entrer un message');
+                return;
+            }
+
+            showResult(resultDiv, 'info', '⏳ Envoi de la requête à l\'agent IA...');
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/invoke`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ message })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    showResult(resultDiv, 'success', 
+                        `✅ Réponse reçue !\n\n${data.response}\n\n` +
+                        `Tokens utilisés: ${data.usage?.total_tokens || 'N/A'}\n` +
+                        `Temps: ${data.processingTime || 'N/A'}`
+                    );
+                } else {
+                    showResult(resultDiv, 'error', 
+                        `❌ Erreur ${response.status}\n\n${JSON.stringify(data, null, 2)}`
+                    );
+                }
+            } catch (error) {
+                showResult(resultDiv, 'error', `❌ Erreur réseau: ${error.message}`);
+            }
+        }
+
+        // Test 2: Email Verification
+        async function sendVerificationEmail() {
+            const resultDiv = document.getElementById('emailResult');
+            const email = document.getElementById('email').value;
+            const name = document.getElementById('name').value;
+
+            if (!email) {
+                showResult(resultDiv, 'error', 'Veuillez entrer un email');
+                return;
+            }
+
+            showResult(resultDiv, 'info', '⏳ Envoi du code de vérification...');
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/send-verification-email`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, name })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    let message = '✅ Code de vérification envoyé !';
+                    if (data.code) {
+                        message += `\n\n🔑 Code (mode dev): ${data.code}`;
+                        document.getElementById('verificationCode').value = data.code;
+                    } else {
+                        message += '\n\n📧 Vérifiez votre boîte email pour le code.';
+                    }
+                    showResult(resultDiv, 'success', message);
+                } else {
+                    showResult(resultDiv, 'error', 
+                        `❌ Erreur ${response.status}\n\n${JSON.stringify(data, null, 2)}`
+                    );
+                }
+            } catch (error) {
+                showResult(resultDiv, 'error', `❌ Erreur réseau: ${error.message}`);
+            }
+        }
+
+        async function verifyCode() {
+            const resultDiv = document.getElementById('verifyResult');
+            const email = document.getElementById('email').value;
+            const code = document.getElementById('verificationCode').value;
+
+            if (!email || !code) {
+                showResult(resultDiv, 'error', 'Veuillez entrer un email et un code');
+                return;
+            }
+
+            if (code.length !== 6) {
+                showResult(resultDiv, 'error', 'Le code doit contenir 6 chiffres');
+                return;
+            }
+
+            showResult(resultDiv, 'info', '⏳ Vérification du code...');
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/verify-code`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, code })
+                });
+
+                const data = await response.json();
+
+                if (response.ok && data.success) {
+                    showResult(resultDiv, 'success', 
+                        `✅ Code vérifié avec succès !\n\n${JSON.stringify(data, null, 2)}`
+                    );
+                } else {
+                    showResult(resultDiv, 'error', 
+                        `❌ Code invalide ou expiré\n\n${JSON.stringify(data, null, 2)}`
+                    );
+                }
+            } catch (error) {
+                showResult(resultDiv, 'error', `❌ Erreur réseau: ${error.message}`);
+            }
+        }
+
+        // Test 3: Fact-Checking
+        async function testFactCheck() {
+            const resultDiv = document.getElementById('factCheckResult');
+            const message = document.getElementById('factCheckMessage').value;
+
+            if (!message) {
+                showResult(resultDiv, 'error', 'Veuillez entrer un message');
+                return;
+            }
+
+            showResult(resultDiv, 'info', '⏳ Vérification des faits en cours...');
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/invoke`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        message,
+                        enableFactChecking: true 
+                    })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    let result = `✅ Réponse avec fact-checking !\n\n${data.response}`;
+                    
+                    if (data.factCheckResults) {
+                        result += `\n\n🔍 Résultats du fact-checking:\n${JSON.stringify(data.factCheckResults, null, 2)}`;
+                    }
+                    
+                    if (data.hallucinationScore !== undefined) {
+                        result += `\n\n📊 Score d'hallucination: ${data.hallucinationScore}`;
+                    }
+
+                    showResult(resultDiv, 'success', result);
+                } else {
+                    showResult(resultDiv, 'error', 
+                        `❌ Erreur ${response.status}\n\n${JSON.stringify(data, null, 2)}`
+                    );
+                }
+            } catch (error) {
+                showResult(resultDiv, 'error', `❌ Erreur réseau: ${error.message}`);
+            }
+        }
+
+        function showResult(element, type, message) {
+            element.className = `result ${type}`;
+            element.innerHTML = `<pre>${message}</pre>`;
+            element.style.display = 'block';
+        }
+    </script>
+</body>
+</html>

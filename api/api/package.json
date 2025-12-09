@@ -1,0 +1,19 @@
+{
+  "name": "axilum-api",
+  "version": "1.0.0",
+  "description": "Azure Functions API for Axilum Agent",
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "scripts": {
+    "start": "func start",
+    "test": "echo \"No tests yet\""
+  },
+  "dependencies": {
+    "@azure/communication-email": "^1.0.0",
+    "@azure/data-tables": "^13.2.2",
+    "@sendgrid/mail": "^7.7.0",
+    "axios": "^1.6.0"
+  },
+  "devDependencies": {}
+}

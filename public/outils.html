@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Outils - Axilum AI</title>
+    <style>
+        :root {
+            --bg-primary: #FAFBFC;
+            --bg-secondary: #F4F6F8;
+            --text-primary: #1F2937;
+            --text-secondary: #6B7280;
+            --border-color: #E5E7EB;
+            --accent: #3B82F6;
+        }
+
+        [data-theme="dark"] {
+            --bg-primary: #111827;
+            --bg-secondary: #1F2937;
+            --text-primary: #F9FAFB;
+            --text-secondary: #9CA3AF;
+            --border-color: #374151;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            padding: 20px;
+        }
+
+        .header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 20px 0;
+            border-bottom: 1px solid var(--border-color);
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            font-size: 24px;
+            font-weight: 700;
+        }
+
+        .back-btn {
+            padding: 10px 20px;
+            background: var(--accent);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .back-btn:hover {
+            opacity: 0.9;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .column {
+            background: var(--bg-secondary);
+            border-radius: 12px;
+            padding: 24px;
+            border: 1px solid var(--border-color);
+        }
+
+        .column h2 {
+            font-size: 20px;
+            margin-bottom: 16px;
+            color: var(--text-primary);
+        }
+
+        .tool-item {
+            padding: 16px;
+            background: var(--bg-primary);
+            border-radius: 8px;
+            margin-bottom: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: 1px solid var(--border-color);
+        }
+
+        .tool-item:hover:not(.disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.2);
+            border-color: var(--accent);
+        }
+
+        .tool-item.disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .tool-title {
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .tool-desc {
+            font-size: 14px;
+            color: var(--text-secondary);
+        }
+
+        @media (max-width: 768px) {
+            .grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🛠️ Outils</h1>
+        <a href="/" class="back-btn">← Retour</a>
+    </div>
+
+    <div class="grid">
+        <div class="column">
+            <h2>FREE</h2>
+            <div class="tool-item" onclick="window.location.href='/?action=translate&plan=free'">
+                <div class="tool-title">🌐 Traduction</div>
+                <div class="tool-desc">Traduction rapide avec Groq Llama 3.3</div>
+            </div>
+            <div class="tool-item" onclick="window.location.href='/?action=tts'">
+                <div class="tool-title">🔊 Synthèse vocale</div>
+                <div class="tool-desc">Lecture de texte à voix haute (TTS local)</div>
+            </div>
+        </div>
+
+        <div class="column">
+            <h2>PRO</h2>
+            <div class="tool-item" onclick="window.location.href='/?action=translate&plan=pro'">
+                <div class="tool-title">🌐 Traduction PRO</div>
+                <div class="tool-desc">Traduction premium avec GPT-4o</div>
+            </div>
+            <div class="tool-item disabled">
+                <div class="tool-title">🏷️ Extraction Entités</div>
+                <div class="tool-desc">Extraction d'entités et données structurées (à venir)</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Sync theme with main app
+        const theme = localStorage.getItem('theme') || 'light';
+        document.body.setAttribute('data-theme', theme);
+    </script>
+</body>
+</html>

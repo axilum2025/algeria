@@ -1,0 +1,44 @@
+name: Deploy Axilum AI to Azure
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  build_and_deploy:
+    runs-on: ubuntu-latest
+    name: Build and Deploy
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: true
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Verify files before deploy
+        run: |
+          echo "=== Checking index.html title ==="
+          grep -o "<title>.*</title>" index.html
+          echo "=== File size ==="
+          ls -lh index.html
+          echo "=== version.json ==="
+          cat version.json || echo "version.json not found"
+
+      - name: Clean Deploy to Azure Static Web Apps
+        uses: Azure/static-web-apps-deploy@v1
+        env:
+          AZURE_VISION_KEY: ${{ secrets.AZURE_VISION_KEY }}
+          AZURE_VISION_ENDPOINT: ${{ secrets.AZURE_VISION_ENDPOINT }}
+        with:
+          azure_static_web_apps_api_token: ${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN }}
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          action: "upload"
+          app_location: "public"
+          api_location: "api"
+          output_location: ""
+          skip_app_build: true
+          deployment_environment: "production"

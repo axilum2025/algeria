@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test API Axilum</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+        }
+        #response {
+            margin-top: 20px;
+            padding: 20px;
+            background: #f0f0f0;
+            border-radius: 8px;
+            white-space: pre-wrap;
+        }
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+        input {
+            width: 100%;
+            padding: 10px;
+            font-size: 16px;
+            margin: 10px 0;
+        }
+        .error {
+            background: #ffe0e0;
+            color: #c00;
+        }
+        .success {
+            background: #e0ffe0;
+            color: #060;
+        }
+    </style>
+</head>
+<body>
+    <h1>🧪 Test API Axilum</h1>
+    <input type="text" id="message" placeholder="Tapez votre message ici..." value="Bonjour, pouvez-vous me tester ?">
+    <button onclick="testAPI()">Tester l'API</button>
+    <div id="response"></div>
+
+    <script>
+        async function testAPI() {
+            const message = document.getElementById('message').value;
+            const responseDiv = document.getElementById('response');
+            
+            responseDiv.textContent = '⏳ Envoi de la requête...';
+            responseDiv.className = '';
+            
+            try {
+                console.log('Calling API:', 'http://localhost:7071/api/agents/axilum/invoke');
+                
+                const response = await fetch('http://localhost:7071/api/agents/axilum/invoke', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ message: message })
+                });
+                
+                console.log('Response status:', response.status);
+                
+                const data = await response.json();
+                console.log('Response data:', data);
+                
+                if (response.ok) {
+                    responseDiv.className = 'success';
+                    responseDiv.textContent = '✅ Succès!\n\n' + JSON.stringify(data, null, 2);
+                } else {
+                    responseDiv.className = 'error';
+                    responseDiv.textContent = '❌ Erreur!\n\n' + JSON.stringify(data, null, 2);
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                responseDiv.className = 'error';
+                responseDiv.textContent = '❌ Erreur de connexion:\n\n' + error.message;
+            }
+        }
+    </script>
+</body>
+</html>
