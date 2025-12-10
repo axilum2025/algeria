@@ -1,0 +1,16 @@
+{
+  "name": "axilum-dev",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Dev server for Axilum: serves static files and exposes API handlers locally",
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "scripts": {
+    "dev": "node dev-server.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "cors": "^2.8.5"
+  }
+}
