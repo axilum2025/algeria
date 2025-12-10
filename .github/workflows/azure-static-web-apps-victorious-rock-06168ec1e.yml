@@ -1,4 +1,11 @@
 name: Azure Static Web Apps CI/CD
+# ⚠️ IMPORTANT: Before first deployment, configure the secret:
+# 1. Go to https://portal.azure.com
+# 2. Find your Static Web App "victorious-rock" 
+# 3. Click "Manage deployment token"
+# 4. Copy the token
+# 5. Go to https://github.com/axilum2025/Axilum/settings/secrets/actions
+# 6. Create secret: Name=AZURE_STATIC_WEB_APPS_API_TOKEN, Value=<your-token>
 
 on:
   push:
@@ -35,7 +42,7 @@ jobs:
         id: builddeploy
         uses: Azure/static-web-apps-deploy@v1
         with:
-          azure_static_web_apps_api_token: ${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN_VICTORIOUS_ROCK_06168EC1E }}
+          azure_static_web_apps_api_token: ${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN }}
           repo_token: ${{ secrets.GITHUB_TOKEN }}
           action: "upload"
           app_location: "public"
@@ -50,14 +57,23 @@ jobs:
           echo "Deployment Status: ${{ job.status }}"
           echo "App Location: public"
           echo "API Location: api"
-          echo "Token Status: $([ -z '${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN_VICTORIOUS_ROCK_06168EC1E }}' ] && echo '❌ NOT SET' || echo '✅ CONFIGURED')"
           echo ""
-          echo "If deployment failed, check:"
-          echo "1. Secret AZURE_STATIC_WEB_APPS_API_TOKEN_VICTORIOUS_ROCK_06168EC1E exists and is valid"
-          echo "2. Azure Static Web App name is 'victorious-rock-06168ec1e'"
-          echo "3. Paths: public/ and api/ exist in repo"
           if [ "${{ job.status }}" == "success" ]; then
-            echo "✅ Deployment successful! Check https://portal.azure.com"
+            echo "✅ Deployment successful!"
+            echo "View your app in Azure Portal: https://portal.azure.com"
+          else
+            echo "❌ Deployment failed. Check the error above."
+            echo ""
+            echo "Common issues:"
+            echo "1. Secret AZURE_STATIC_WEB_APPS_API_TOKEN not configured"
+            echo "   → Get token from Azure Portal > Static Web App > Manage deployment token"
+            echo "   → Add to GitHub: Settings > Secrets > AZURE_STATIC_WEB_APPS_API_TOKEN"
+            echo ""
+            echo "2. Token expired or invalid"
+            echo "   → Regenerate token in Azure Portal"
+            echo ""
+            echo "3. App name mismatch"
+            echo "   → Verify app is named 'victorious-rock' in Azure"
           fi
 
   close_pull_request_job:
@@ -69,5 +85,5 @@ jobs:
         id: closepullrequest
         uses: Azure/static-web-apps-deploy@v1
         with:
-          azure_static_web_apps_api_token: ${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN_VICTORIOUS_ROCK_06168EC1E }}
+          azure_static_web_apps_api_token: ${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN }}
           action: "close"
