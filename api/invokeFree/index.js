@@ -179,11 +179,7 @@ module.exports = async function (context, req) {
                 freePlan: true,
                 model: 'llama-3.3-70b',
                 provider: 'Groq',
-                tokensUsed: data.usage?.total_tokens || 0,
-                promptTokens: data.usage?.prompt_tokens || 0,
-                completionTokens: data.usage?.completion_tokens || 0,
-                qualityScore: 85,
-                advancedFeatures: false
+                tokensUsed: data.usage?.total_tokens || 0
             }
         };
         
