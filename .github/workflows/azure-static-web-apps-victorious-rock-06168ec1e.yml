@@ -35,7 +35,7 @@ jobs:
           echo "=== version.json ==="
           cat configs/version.json || echo "version.json not found"
           echo "=== API structure ==="
-          ls -la api/api/invoke/ 2>/dev/null | head -5 || echo "API functions found"
+          ls -la api/invoke/ 2>/dev/null | head -5 || echo "API functions found"
           echo "=== Public files ==="
           ls -la public/ | head -10
       - name: Build And Deploy
@@ -46,7 +46,7 @@ jobs:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
           action: "upload"
           app_location: "public"
-          api_location: "api/api"
+          api_location: "api"
           output_location: ""
           skip_app_build: true
       - name: Deployment Summary
@@ -56,7 +56,7 @@ jobs:
           echo "====================="
           echo "Deployment Status: ${{ job.status }}"
           echo "App Location: public"
-          echo "API Location: api/api"
+          echo "API Location: api"
           echo ""
           if [ "${{ job.status }}" == "success" ]; then
             echo "✅ Deployment successful!"

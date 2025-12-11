@@ -1,6 +1,6 @@
 # Node modules
 node_modules/
-/api/api/node_modules/
+/api/node_modules/
 
 # Azure Functions
 .env

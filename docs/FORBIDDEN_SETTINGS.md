@@ -48,7 +48,7 @@ Vous **POUVEZ** utiliser :
 
 ### ❌ CE QU'IL NE FAUT PAS FAIRE
 
-1. ❌ Ne **JAMAIS** créer `api/api/local.settings.json` et le committer
+1. ❌ Ne **JAMAIS** créer `api/local.settings.json` et le committer
 2. ❌ Ne **JAMAIS** ajouter `AzureWebJobsStorage` dans Azure Portal
 3. ❌ Ne **JAMAIS** ajouter `FUNCTIONS_WORKER_RUNTIME` dans Azure Portal
 4. ❌ Ne **JAMAIS** copier des exemples de configuration Azure Functions standalone

@@ -80,7 +80,7 @@ Une fois le déploiement réussi :
 ```
 Axilum/
 ├── public/           ← Site statique (HTML, CSS, JS)
-├── api/api/          ← Fonctions Azure (Node.js)
+├── api/              ← Fonctions Azure (Node.js)
 │   ├── invoke/       ← Agent IA conversationnel
 │   ├── generateImage/← Génération d'images
 │   ├── sendVerificationEmail/ ← Emails

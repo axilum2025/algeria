@@ -19,7 +19,7 @@ if (fs.existsSync(publicDir)) {
   console.warn('Warning: public directory not found at', publicDir);
 }
 
-// Dynamically load Azure Function style handlers from api/api/<fn>/index.js
+// Dynamically load Azure Function style handlers from api/<fn>/index.js
 const apiRoot = path.join(__dirname, 'api', 'api');
 if (fs.existsSync(apiRoot)) {
   const entries = fs.readdirSync(apiRoot, { withFileTypes: true })
