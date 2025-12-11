@@ -1,10 +1,10 @@
-// 💎 PLAN PRO - GPT-4 via OpenRouter (Simple et Multi-Modèles)
-// OpenRouter : Accès à GPT-4, Claude, et 100+ modèles avec une seule API
-// Modèle : openai/gpt-4o-mini (rapide et économique)
-// Endpoint : https://openrouter.ai/api/v1
+// 💎 PLAN PRO - GPT-5 mini via Azure OpenAI (Version Simple)
+// Azure OpenAI API
+// Modèle : gpt-5-mini
+// Endpoint : https://axilimopenai.cognitiveservices.azure.com
 
 module.exports = async function (context, req) {
-    context.log('💎 PRO PLAN - GPT-4 Request (OpenRouter)');
+    context.log('💎 PRO PLAN - GPT-5 mini Request (Simple Version)');
 
     // CORS
     if (req.method === 'OPTIONS') {
@@ -33,23 +33,23 @@ module.exports = async function (context, req) {
 
         const startTime = Date.now();
         
-        // OpenRouter API configuration (compatible OpenAI, accès à tous les modèles)
-        const apiKey = process.env.APPSETTING_OPENROUTER_API_KEY || process.env.OPENROUTER_API_KEY;
+        // Azure OpenAI configuration
+        const apiKey = process.env.AZURE_AI_API_KEY;
+        const endpoint = 'https://axilimopenai.cognitiveservices.azure.com';
+        const deployment = 'gpt-5-mini';
+        const apiVersion = '2024-12-01-preview';
         
         if (!apiKey) {
-            context.log.error('⚠️ OPENROUTER_API_KEY not configured');
+            context.log.error('⚠️ AZURE_AI_API_KEY not configured');
             context.res = {
-                status: 200,
+                status: 500,
                 headers: { 
                     'Content-Type': 'application/json',
-                    'Access-Control-Allow-Origin': '*',
-                    'Access-Control-Allow-Methods': 'POST, OPTIONS',
-                    'Access-Control-Allow-Headers': 'Content-Type'
+                    'Access-Control-Allow-Origin': '*'
                 },
                 body: {
-                    error: "OpenRouter API Key not configured",
-                    hint: "1. Créez un compte sur https://openrouter.ai/\n2. Obtenez votre clé API\n3. Ajoutez OPENROUTER_API_KEY dans Azure Static Web App → Configuration",
-                    help: "OpenRouter donne accès à GPT-4, Claude, et 100+ modèles avec une seule clé",
+                    error: "Azure OpenAI API Key not configured",
+                    hint: "Please configure AZURE_AI_API_KEY in Azure Static Web App settings",
                     responseTime: `${Date.now() - startTime}ms`
                 }
             };
@@ -96,43 +96,40 @@ Réponds de manière claire, précise et professionnelle en français.
             content: userMessage
         });
 
-        context.log(`📨 Sending request to OpenRouter - ${messages.length} messages`);
+        context.log(`📨 Sending request to Azure OpenAI - ${messages.length} messages`);
 
-        // Appel à OpenRouter (format compatible OpenAI)
-        const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${apiKey}`,
-                'HTTP-Referer': 'https://nice-river-096898203.3.azurestaticapps.net',
-                'X-Title': 'Axilum AI'
-            },
-            body: JSON.stringify({
-                model: 'openai/gpt-4o-mini', // Modèle rapide et économique
-                messages: messages,
-                max_tokens: 4000,
-                temperature: 0.7
-            })
-        });
+        // Appel à Azure OpenAI
+        const response = await fetch(
+            `${endpoint}/openai/deployments/${deployment}/chat/completions?api-version=${apiVersion}`,
+            {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'api-key': apiKey
+                },
+                body: JSON.stringify({
+                    messages: messages,
+                    max_completion_tokens: 4000,
+                    temperature: 0.7
+                })
+            }
+        );
 
         if (!response.ok) {
             const errorText = await response.text();
-            context.log.error('❌ OpenRouter Error:', response.status, errorText);
+            context.log.error('❌ Azure OpenAI Error:', response.status, errorText);
             
             context.res = {
-                status: 200,
+                status: response.status,
                 headers: { 
                     'Content-Type': 'application/json',
-                    'Access-Control-Allow-Origin': '*',
-                    'Access-Control-Allow-Methods': 'POST, OPTIONS',
-                    'Access-Control-Allow-Headers': 'Content-Type'
+                    'Access-Control-Allow-Origin': '*'
                 },
                 body: {
-                    error: `OpenRouter Error: ${response.status}`,
+                    error: `Azure OpenAI Error: ${response.status}`,
                     details: errorText,
-                    hint: response.status === 401 ? "Vérifiez que OPENROUTER_API_KEY est correcte" : 
-                          response.status === 402 ? "Crédit insuffisant sur OpenRouter. Ajoutez du crédit sur https://openrouter.ai/" :
-                          "Erreur lors de l'appel à OpenRouter",
+                    endpoint: endpoint,
+                    deployment: deployment,
                     responseTime: `${Date.now() - startTime}ms`
                 }
             };
@@ -158,30 +155,20 @@ Réponds de manière claire, précise et professionnelle en français.
                 model: 'gpt-5-mini',
                 tokensUsed: data.usage?.total_tokens || 0
             }
-        };4o-mini',
-                provider: 'OpenRouter
+        };
 
     } catch (error) {
         context.log.error('❌ Error in invoke function:', error);
-        context.log.error('Error details:', {
-            message: error.message,
-            stack: error.stack,
-            name: error.name
-        });
-        
         context.res = {
-            status: 200, // Changé en 200 pour éviter les problèmes CORS
+            status: 500,
             headers: { 
                 'Content-Type': 'application/json',
-                'Access-Control-Allow-Origin': '*',
-                'Access-Control-Allow-Methods': 'POST, OPTIONS',
-                'Access-Control-Allow-Headers': 'Content-Type'
+                'Access-Control-Allow-Origin': '*'
             },
             body: {
                 error: "Internal server error",
                 message: error.message,
-                details: error.stack,
-                hint: "Vérifiez que AZURE_AI_API_KEY est configurée dans Azure Static Web App"
+                stack: error.stack
             }
         };
     }
