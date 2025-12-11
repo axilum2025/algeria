@@ -34,12 +34,14 @@ module.exports = async function (context, req) {
         const startTime = Date.now();
         
         // Azure OpenAI configuration
-        const apiKey = process.env.AZURE_AI_API_KEY;
+        // Dans Azure Static Web Apps, les variables ont le préfixe APPSETTING_
+        const apiKey = process.env.APPSETTING_AZURE_AI_API_KEY || process.env.AZURE_AI_API_KEY;
         const endpoint = 'https://axilimopenai.cognitiveservices.azure.com';
         const deployment = 'gpt-5-mini';
         const apiVersion = '2024-12-01-preview';
         
         context.log('🔍 Checking API Key...', apiKey ? 'API Key found' : 'API Key MISSING');
+        context.log('🔍 Available env keys:', Object.keys(process.env).filter(k => k.includes('AZURE')).join(', '));
         
         if (!apiKey) {
             context.log.error('⚠️ AZURE_AI_API_KEY not configured');
