@@ -2465,7 +2465,24 @@
                 data.responseTime = requestTime;
                 data.cached = isCached;
                 
-                // 🛡️ Vérifier la protection contre hallucinations
+                // � VÉRIFIER SI ERREUR DE L'API
+                if (data.error) {
+                    console.error('❌ Erreur de l\'API:', data.error);
+                    let errorMessage = `❌ **Erreur**: ${data.error}\n\n`;
+                    if (data.hint) errorMessage += `💡 **Solution**: ${data.hint}\n\n`;
+                    if (data.details) errorMessage += `📋 **Détails**: ${data.details}`;
+                    addMessage(errorMessage, 'bot', data);
+                    return;
+                }
+                
+                // Vérifier que response existe
+                if (!data.response) {
+                    console.error('❌ Pas de réponse dans data:', data);
+                    addMessage('❌ Erreur: L\'API n\'a pas retourné de réponse', 'bot', data);
+                    return;
+                }
+                
+                // �🛡️ Vérifier la protection contre hallucinations
                 if (data.protection && data.protection.should_intervene) {
                     showProtectionAlert(data.protection);
                 }
