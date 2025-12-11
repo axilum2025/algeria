@@ -144,8 +144,8 @@ module.exports = async function (context, req) {
         }
 
         const apiKey = process.env.AZURE_AI_API_KEY;
-        const endpoint = 'https://saidzeghidi-2025-1-resource.cognitiveservices.azure.com';
-        const deploymentName = 'gpt-5.1-chat';
+        const endpoint = 'https://axilimopenai.cognitiveservices.azure.com';
+        const deploymentName = 'gpt-5-mini';
 
         if (!apiKey) {
             context.log.error('AZURE_AI_API_KEY not configured');
@@ -454,8 +454,8 @@ Sois rigoureux dans tes calculs !`;
         context.log(`📝 Conversation context: ${messages.length} messages sent to API (including system prompt)`);
         
         // ÉTAPE 2 : Appeler Azure OpenAI avec l'historique complet
-        // Note: GPT-5.1 ne supporte pas encore logprobs, donc désactivé temporairement
-        const response = await fetch(`${endpoint}/openai/deployments/${deploymentName}/chat/completions?api-version=2024-08-01-preview`, {
+        // Note: GPT-5-mini ne supporte pas encore logprobs, donc désactivé temporairement
+        const response = await fetch(`${endpoint}/openai/deployments/${deploymentName}/chat/completions?api-version=2024-12-01-preview`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -533,7 +533,7 @@ Réponds en JSON uniquement :
 Si tout est correct, retourne : {"incorrect_claims": [], "validation_score": 1.0}`;
         
         try {
-            const validationResponse = await fetch(`${endpoint}/openai/deployments/${deploymentName}/chat/completions?api-version=2024-08-01-preview`, {
+            const validationResponse = await fetch(`${endpoint}/openai/deployments/${deploymentName}/chat/completions?api-version=2024-12-01-preview`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
