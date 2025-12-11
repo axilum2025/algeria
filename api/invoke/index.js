@@ -163,7 +163,7 @@ module.exports = async function (context, req) {
         // 🚀 PERFORMANCE : Démarrer le timer
         const startTime = Date.now();
         
-        context.log('Using GPT-5.1 with hallucination detection');
+        context.log('Using GPT-5 mini with hallucination detection');
         context.log('Message length:', userMessage.length);
         
         // 🚀 CACHE CHECK : Vérifier si la réponse est déjà en cache
