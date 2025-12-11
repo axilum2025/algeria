@@ -157,7 +157,11 @@ Réponds de manière claire, précise et professionnelle en français.
                 proPlan: true,
                 model: 'gpt-4o-mini',
                 provider: 'OpenRouter',
-                tokensUsed: data.usage?.total_tokens || 0
+                tokensUsed: data.usage?.total_tokens || 0,
+                promptTokens: data.usage?.prompt_tokens || 0,
+                completionTokens: data.usage?.completion_tokens || 0,
+                qualityScore: 95,
+                advancedFeatures: true
             }
         };
 
