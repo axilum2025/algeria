@@ -238,10 +238,9 @@ Sois concis et utile.${contextFromSearch}`
                 promptTokens: data.usage?.prompt_tokens || 0,
                 completionTokens: data.usage?.completion_tokens || 0,
                 qualityScore: 95,
-                advancedFeatures: true,
+                advancedFeatures: false,
                 hallucinationIndex: hallucinationAnalysis.hi,
-                contextHistoryRatio: hallucinationAnalysis.chr,
-                factCheckSources: factCheckResults ? factCheckResults.length : 0
+                contextHistoryRatio: hallucinationAnalysis.chr
             }
         };
         
@@ -260,10 +259,10 @@ Sois concis et utile.${contextFromSearch}`
                 'Access-Control-Allow-Origin': '*'
             },
             body: {
-                response: "Je suis Axilum AI en mode gratuit. Comment puis-je vous aider ?\n\n---\n💡 *Mode Gratuit - Upgrade vers Pro pour GPT-4o premium*",
+                response: "Je suis Axilum AI en mode gratuit. Comment puis-je vous aider ?\n\n---\n💡 *Mode Gratuit - Essayez le mode PRO pour plus de fonctionnalités*",
                 hallucinationIndex: 0,
                 contextHistoryRatio: 0,
-                responseTime: '0ms',. Comment puis-je vous aider ?
+                responseTime: '0ms',
                 freePlan: true,
                 error: false
             }
