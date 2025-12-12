@@ -1,11 +1,11 @@
-// 💎 PLAN PRO - Llama 3.3 70B via OpenRouter + Fonctions Azure
-// OpenRouter : Accès au même modèle que FREE
-// Modèle : meta-llama/llama-3.3-70b-instruct (gratuit)
+// 💎 PLAN PRO - Llama 3.3 70B via Groq + Fonctions Azure
+// Groq : Même API que FREE (gratuit et rapide)
+// Modèle : llama-3.3-70b-versatile
 // Différence : Fonctions Azure (Images, Documents, Fact Check)
-// Endpoint : https://openrouter.ai/api/v1
+// Endpoint : https://api.groq.com/openai/v1
 
 module.exports = async function (context, req) {
-    context.log('💎 PRO PLAN - Llama 3.3 70B Request (OpenRouter + Azure Functions)');
+    context.log('💎 PRO PLAN - Llama 3.3 70B Request (Groq + Azure Functions)');
 
     // CORS
     if (req.method === 'OPTIONS') {
@@ -41,11 +41,11 @@ module.exports = async function (context, req) {
             return null;
         });
         
-        // OpenRouter API configuration (compatible OpenAI, accès à tous les modèles)
-        const apiKey = process.env.APPSETTING_OPENROUTER_API_KEY || process.env.OPENROUTER_API_KEY;
+        // Groq API configuration (même API que FREE)
+        const apiKey = process.env.APPSETTING_GROQ_API_KEY || process.env.GROQ_API_KEY;
         
         if (!apiKey) {
-            context.log.error('⚠️ OPENROUTER_API_KEY not configured');
+            context.log.error('⚠️ GROQ_API_KEY not configured');
             context.res = {
                 status: 200,
                 headers: { 
@@ -55,9 +55,8 @@ module.exports = async function (context, req) {
                     'Access-Control-Allow-Headers': 'Content-Type'
                 },
                 body: {
-                    error: "OpenRouter API Key not configured",
-                    hint: "1. Créez un compte sur https://openrouter.ai/\n2. Obtenez votre clé API\n3. Ajoutez OPENROUTER_API_KEY dans Azure Static Web App → Configuration",
-                    help: "OpenRouter donne accès à GPT-4, Claude, et 100+ modèles avec une seule clé",
+                    error: "Groq API Key not configured",
+                    hint: "Contactez l'administrateur pour configurer GROQ_API_KEY",
                     responseTime: `${Date.now() - startTime}ms`
                 }
             };
@@ -108,19 +107,17 @@ Si l'utilisateur demande une fonctionnalité Pro, informe-le des capacités disp
             content: userMessage
         });
 
-        context.log(`📨 Sending request to OpenRouter - ${messages.length} messages`);
+        context.log(`📨 Sending request to Groq - ${messages.length} messages`);
 
-        // Appel à OpenRouter (format compatible OpenAI)
-        const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+        // Appel à Groq (même API que FREE)
+        const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'Authorization': `Bearer ${apiKey}`,
-                'HTTP-Referer': 'https://nice-river-096898203.3.azurestaticapps.net',
-                'X-Title': 'Axilum AI'
+                'Authorization': `Bearer ${apiKey}`
             },
             body: JSON.stringify({
-                model: 'meta-llama/llama-3.3-70b-instruct:free', // Même modèle que FREE
+                model: 'llama-3.3-70b-versatile', // Même modèle que FREE
                 messages: messages,
                 max_tokens: 4000,
                 temperature: 0.7
@@ -129,7 +126,7 @@ Si l'utilisateur demande une fonctionnalité Pro, informe-le des capacités disp
 
         if (!response.ok) {
             const errorText = await response.text();
-            context.log.error('❌ OpenRouter Error:', response.status, errorText);
+            context.log.error('❌ Groq Error:', response.status, errorText);
             
             context.res = {
                 status: 200,
@@ -140,11 +137,11 @@ Si l'utilisateur demande une fonctionnalité Pro, informe-le des capacités disp
                     'Access-Control-Allow-Headers': 'Content-Type'
                 },
                 body: {
-                    error: `OpenRouter Error: ${response.status}`,
+                    error: `Groq Error: ${response.status}`,
                     details: errorText,
-                    hint: response.status === 401 ? "Vérifiez que OPENROUTER_API_KEY est correcte" : 
-                          response.status === 402 ? "Crédit insuffisant sur OpenRouter. Ajoutez du crédit sur https://openrouter.ai/" :
-                          "Erreur lors de l'appel à OpenRouter",
+                    hint: response.status === 401 ? "Vérifiez que GROQ_API_KEY est correcte" : 
+                          response.status === 429 ? "Limite de requêtes dépassée. Réessayez dans quelques secondes." :
+                          "Erreur lors de l'appel à Groq",
                     responseTime: `${Date.now() - startTime}ms`
                 }
             };
@@ -182,12 +179,12 @@ Si l'utilisateur demande une fonctionnalité Pro, informe-le des capacités disp
                 'Content-Type': 'application/json',
                 'Access-Control-Allow-Origin': '*'
             },
-            body: {llama-3.3-70b
+            body: {
                 response: finalResponse,
                 responseTime: `${responseTime}ms`,
                 proPlan: true,
-                model: 'gpt-4o-mini',
-                provider: 'OpenRouter',
+                model: 'llama-3.3-70b',
+                provider: 'Groq',
                 tokensUsed: data.usage?.total_tokens || 0,
                 promptTokens: data.usage?.prompt_tokens || 0,
                 completionTokens: data.usage?.completion_tokens || 0,
@@ -219,7 +216,7 @@ Si l'utilisateur demande une fonctionnalité Pro, informe-le des capacités disp
                 error: "Internal server error",
                 message: error.message,
                 details: error.stack,
-                hint: "Vérifiez que OPENROUTER_API_KEY est configurée dans Azure Static Web App"
+                hint: "Vérifiez que GROQ_API_KEY est configurée dans Azure Static Web App"
             }
         };
     }
