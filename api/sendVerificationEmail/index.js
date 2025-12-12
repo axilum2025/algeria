@@ -29,35 +29,37 @@ module.exports = async function (context, req) {
         
         context.log(`✅ Code généré et stocké pour ${email}: ${verificationCode}`);
         
-        // ========== OPTION 1 : Azure Communication Services (Email) ==========
-        const { EmailClient } = require("@azure/communication-email");
+        // Retourner immédiatement la réponse - l'email sera envoyé en arrière-plan
+        context.res = {
+            status: 200,
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                success: true,
+                message: 'Code de vérification envoyé par email'
+            })
+        };
+        
+        // ========== Envoi d'email en arrière-plan (non-bloquant) ==========
         const connectionString = process.env.AZURE_COMMUNICATION_CONNECTION_STRING;
         
         if (!connectionString) {
-            context.log.warn('⚠️ AZURE_COMMUNICATION_CONNECTION_STRING non configuré - Mode développement');
-            
-            // En mode dev, on ne fait rien de plus, le code est déjà stocké
-            context.res = {
-                status: 200,
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    success: true,
-                    message: 'Code de vérification généré pour le mode dev',
-                    code: verificationCode
-                })
-            };
+            context.log.warn('⚠️ AZURE_COMMUNICATION_CONNECTION_STRING non configuré - Code stocké uniquement');
             return;
         }
         
-        const client = new EmailClient(connectionString);
-        const senderAddress = process.env.AZURE_COMMUNICATION_SENDER || "DoNotReply@azurecomm.net";
-        
-        const emailMessage = {
-            senderAddress: senderAddress,
-            content: {
-                subject: "Code de vérification Axilum AI",
-                plainText: `Bonjour ${name || 'utilisateur'},\n\nVotre code de vérification est : ${verificationCode}\n\nCe code expire dans 15 minutes.\n\nSi vous n'avez pas demandé ce code, ignorez cet email.\n\nCordialement,\nL'équipe Axilum AI`,
-                html: `
+        // Envoyer l'email de manière complètement asynchrone
+        setImmediate(async () => {
+            try {
+                const { EmailClient } = require("@azure/communication-email");
+                const client = new EmailClient(connectionString);
+                const senderAddress = process.env.AZURE_COMMUNICATION_SENDER || "DoNotReply@azurecomm.net";
+                
+                const emailMessage = {
+                    senderAddress: senderAddress,
+                    content: {
+                        subject: "Code de vérification Axilum AI",
+                        plainText: `Bonjour ${name || 'utilisateur'},\n\nVotre code de vérification est : ${verificationCode}\n\nCe code expire dans 15 minutes.\n\nSi vous n'avez pas demandé ce code, ignorez cet email.\n\nCordialement,\nL'équipe Axilum AI`,
+                        html: `
                     <!DOCTYPE html>
                     <html>
                     <head>
