@@ -100,33 +100,33 @@ module.exports = async function (context, req) {
             }
         };
         
-        // Envoyer le message via ACS Email
-        const poller = await client.beginSend(emailMessage);
-        const result = await poller.pollUntilDone();
+        // Envoyer le message via ACS Email de manière asynchrone
+        // On ne wait pas pollUntilDone() car ça peut prendre 2+ minutes
+        context.log(`📤 Démarrage de l'envoi d'email à ${email}...`);
         
-        context.log(`✅ Email envoyé à ${email} via Azure Communication Services`);
-        context.log('ACS send result:', result);
-
-        // If DEBUG_EMAIL_LOGS is set, include the ACS result (messageId/status) in the response for debugging
-        const debugEnabled = process.env.DEBUG_EMAIL_LOGS === 'true';
-
-        // En production, on ne retourne pas le code. Optionally return ACS result when debugging.
+        const poller = await client.beginSend(emailMessage);
+        
+        context.log(`✅ Email en cours d'envoi (ID: ${poller.getOperationState().id})`);
+        
+        // Retourner immédiatement sans attendre la fin de l'envoi
+        // L'email sera envoyé en arrière-plan par Azure Communication Services
         context.res = {
             status: 200,
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(
-                debugEnabled
-                    ? {
-                          success: true,
-                          message: 'Code de vérification envoyé par email',
-                          acsResult: result
-                      }
-                    : {
-                          success: true,
-                          message: 'Code de vérification envoyé par email'
-                      }
-            )
+            body: JSON.stringify({
+                success: true,
+                message: 'Code de vérification envoyé par email'
+            })
         };
+        
+        // Continuer l'envoi en arrière-plan (non-bloquant)
+        poller.pollUntilDone()
+            .then(result => {
+                context.log(`✅ Email envoyé avec succès à ${email}:`, result.status);
+            })
+            .catch(err => {
+                context.log.error(`❌ Erreur envoi email différé à ${email}:`, err.message);
+            });
         
     } catch (error) {
         context.log.error('❌ Erreur envoi email:', error);

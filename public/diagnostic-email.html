@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Diagnostic Email - Axilum AI</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 800px;
+            width: 100%;
+            padding: 40px;
+        }
+        
+        h1 {
+            color: #667eea;
+            margin-bottom: 10px;
+            font-size: 32px;
+        }
+        
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 16px;
+        }
+        
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-bottom: 20px;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+        
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+        
+        .result {
+            background: #f5f5f5;
+            border-radius: 10px;
+            padding: 20px;
+            margin-top: 20px;
+            display: none;
+        }
+        
+        .result.show {
+            display: block;
+        }
+        
+        .result h2 {
+            color: #333;
+            margin-bottom: 15px;
+            font-size: 20px;
+        }
+        
+        .status-card {
+            background: white;
+            border-left: 4px solid #667eea;
+            padding: 15px;
+            margin-bottom: 15px;
+            border-radius: 5px;
+        }
+        
+        .status-card h3 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 16px;
+        }
+        
+        .status-card pre {
+            background: #f0f0f0;
+            padding: 10px;
+            border-radius: 5px;
+            overflow-x: auto;
+            font-size: 13px;
+            line-height: 1.5;
+        }
+        
+        .status-ok {
+            border-left-color: #4caf50;
+        }
+        
+        .status-warning {
+            border-left-color: #ff9800;
+        }
+        
+        .status-error {
+            border-left-color: #f44336;
+        }
+        
+        .badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            margin-left: 10px;
+        }
+        
+        .badge-ok {
+            background: #4caf50;
+            color: white;
+        }
+        
+        .badge-error {
+            background: #f44336;
+            color: white;
+        }
+        
+        .badge-warning {
+            background: #ff9800;
+            color: white;
+        }
+        
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+            color: #667eea;
+        }
+        
+        .loading.show {
+            display: block;
+        }
+        
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 10px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .code {
+            font-family: 'Courier New', monospace;
+            background: #f0f0f0;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-size: 13px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔍 Diagnostic Email</h1>
+        <p class="subtitle">Vérifiez la configuration de l'envoi d'emails pour Axilum AI</p>
+        
+        <button class="btn" onclick="runDiagnostic()">🚀 Lancer le diagnostic</button>
+        
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <p>Analyse en cours...</p>
+        </div>
+        
+        <div class="result" id="result">
+            <h2>📊 Résultats du diagnostic</h2>
+            <div id="diagnosticContent"></div>
+        </div>
+    </div>
+    
+    <script>
+        async function runDiagnostic() {
+            const loading = document.getElementById('loading');
+            const result = document.getElementById('result');
+            const content = document.getElementById('diagnosticContent');
+            
+            // Afficher le loading
+            loading.classList.add('show');
+            result.classList.remove('show');
+            
+            try {
+                const response = await fetch('/api/diagnostic-email');
+                const data = await response.json();
+                
+                // Masquer le loading
+                loading.classList.remove('show');
+                
+                // Construire le HTML des résultats
+                let html = '';
+                
+                // Résumé général
+                if (data.summary) {
+                    const statusClass = data.summary.ready ? 'status-ok' : 'status-error';
+                    const badgeClass = data.summary.ready ? 'badge-ok' : 'badge-error';
+                    html += `
+                        <div class="status-card ${statusClass}">
+                            <h3>📋 Résumé <span class="badge ${badgeClass}">${data.summary.status}</span></h3>
+                            ${data.summary.issues && data.summary.issues.length > 0 ? 
+                                '<p><strong>Problèmes détectés:</strong></p><ul>' + 
+                                data.summary.issues.map(issue => '<li>' + issue + '</li>').join('') + 
+                                '</ul>' : 
+                                '<p>✅ Aucun problème détecté</p>'
+                            }
+                        </div>
+                    `;
+                }
+                
+                // Variables d'environnement
+                if (data.environment) {
+                    const hasConnectionString = data.environment.AZURE_COMMUNICATION_CONNECTION_STRING;
+                    const statusClass = hasConnectionString ? 'status-ok' : 'status-error';
+                    html += `
+                        <div class="status-card ${statusClass}">
+                            <h3>🔧 Variables d'environnement</h3>
+                            <pre>${JSON.stringify(data.environment, null, 2)}</pre>
+                        </div>
+                    `;
+                }
+                
+                // Packages
+                if (data.packages) {
+                    const allInstalled = Object.values(data.packages).every(v => v.includes('✅'));
+                    const statusClass = allInstalled ? 'status-ok' : 'status-error';
+                    html += `
+                        <div class="status-card ${statusClass}">
+                            <h3>📦 Packages installés</h3>
+                            <pre>${JSON.stringify(data.packages, null, 2)}</pre>
+                        </div>
+                    `;
+                }
+                
+                // Tests
+                if (data.test) {
+                    const testOk = data.test.emailClient && data.test.emailClient.includes('✅');
+                    const statusClass = testOk ? 'status-ok' : 'status-warning';
+                    html += `
+                        <div class="status-card ${statusClass}">
+                            <h3>🧪 Tests de connexion</h3>
+                            <pre>${JSON.stringify(data.test, null, 2)}</pre>
+                        </div>
+                    `;
+                }
+                
+                // Instructions si problème
+                if (data.summary && !data.summary.ready) {
+                    html += `
+                        <div class="status-card status-warning">
+                            <h3>💡 Solutions</h3>
+                            <p><strong>Pour résoudre les problèmes:</strong></p>
+                            <ol style="margin-left: 20px; margin-top: 10px;">
+                                <li>Allez sur <a href="https://portal.azure.com" target="_blank">Azure Portal</a></li>
+                                <li>Ouvrez <strong>Static Web Apps</strong> → <strong>nice-river-096898203</strong></li>
+                                <li>Menu <strong>Configuration</strong> → <strong>Application settings</strong></li>
+                                <li>Ajoutez les variables:
+                                    <ul style="margin-left: 20px; margin-top: 5px;">
+                                        <li><span class="code">AZURE_COMMUNICATION_CONNECTION_STRING</span></li>
+                                        <li><span class="code">AZURE_COMMUNICATION_SENDER</span></li>
+                                    </ul>
+                                </li>
+                                <li>Cliquez sur <strong>Save</strong> et attendez 2-3 minutes</li>
+                            </ol>
+                            <p style="margin-top: 15px;">📚 Voir le guide complet: <a href="/docs/CONFIGURE_EMAIL_NOW.md" target="_blank">CONFIGURE_EMAIL_NOW.md</a></p>
+                        </div>
+                    `;
+                }
+                
+                content.innerHTML = html;
+                result.classList.add('show');
+                
+            } catch (error) {
+                loading.classList.remove('show');
+                content.innerHTML = `
+                    <div class="status-card status-error">
+                        <h3>❌ Erreur</h3>
+                        <p>${error.message}</p>
+                        <p style="margin-top: 10px;"><strong>Détails:</strong></p>
+                        <pre>${error.stack || 'Aucun détail disponible'}</pre>
+                    </div>
+                `;
+                result.classList.add('show');
+            }
+        }
+        
+        // Lancer le diagnostic automatiquement au chargement
+        window.addEventListener('load', () => {
+            setTimeout(runDiagnostic, 500);
+        });
+    </script>
+</body>
+</html>
