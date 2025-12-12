@@ -3449,68 +3449,67 @@
         // Office Pro - Utilisation ultra-simple via chat
         function openOfficePro() {
             const content = `
-                <div style="padding: 24px;">
-                    <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 24px; border-radius: 16px; color: white; margin-bottom: 24px; box-shadow: 0 8px 16px rgba(102, 126, 234, 0.2);">
-                        <h3 style="margin: 0 0 12px 0; font-size: 24px; font-weight: 700;">Office Pro</h3>
-                        <p style="margin: 0; opacity: 0.95; font-size: 15px; line-height: 1.5;">
+                <div style="padding: 28px; max-width: 600px; margin: 0 auto;">
+                    <div style="background: linear-gradient(135deg, rgba(59, 130, 246, 0.12) 0%, rgba(99, 102, 241, 0.12) 100%); padding: 22px; border-radius: 14px; margin-bottom: 22px; border: 1px solid rgba(59, 130, 246, 0.25); box-shadow: 0 4px 12px rgba(59, 130, 246, 0.1);">
+                        <p style="margin: 0; color: var(--text-primary); font-size: 15px; line-height: 1.7; font-weight: 500;">
                             Gérez votre calendrier, tâches et planning directement en parlant. Simple, rapide, efficace.
                         </p>
                     </div>
 
-                    <div style="background: linear-gradient(135deg, rgba(59, 130, 246, 0.1) 0%, rgba(99, 102, 241, 0.1) 100%); padding: 18px; border-radius: 12px; margin-bottom: 20px; border: 1px solid rgba(59, 130, 246, 0.2);">
-                        <h4 style="margin: 0 0 8px 0; color: var(--text-primary); font-size: 15px; font-weight: 600;">Utilisation ultra-simple</h4>
-                        <p style="margin: 0; color: var(--text-secondary); line-height: 1.6; font-size: 14px;">
+                    <div style="background: linear-gradient(135deg, rgba(16, 185, 129, 0.08) 0%, rgba(59, 130, 246, 0.08) 100%); padding: 20px; border-radius: 14px; margin-bottom: 22px; border: 1px solid rgba(59, 130, 246, 0.2);">
+                        <h4 style="margin: 0 0 10px 0; color: var(--text-primary); font-size: 16px; font-weight: 600;">Utilisation ultra-simple</h4>
+                        <p style="margin: 0; color: var(--text-secondary); line-height: 1.7; font-size: 14px;">
                             Parlez naturellement dans le chat. L'IA comprend vos demandes et agit instantanément.
                         </p>
                     </div>
 
-                    <div style="display: grid; gap: 14px; margin-bottom: 20px;">
-                        <div style="background: var(--bg-secondary); padding: 16px; border-radius: 12px; border-left: 4px solid #3B82F6; transition: all 0.2s;">
-                            <div style="font-weight: 600; color: var(--text-primary); margin-bottom: 8px; font-size: 15px;">Calendrier</div>
-                            <div style="color: var(--text-secondary); font-size: 13px; line-height: 1.8;">
-                                <div style="margin-bottom: 4px;">"Montre mon calendrier de la semaine"</div>
-                                <div style="margin-bottom: 4px;">"Crée une réunion demain à 14h"</div>
-                                <div>"Suis-je libre vendredi matin ?"</div>
+                    <div style="display: grid; gap: 16px; margin-bottom: 22px;">
+                        <div style="background: var(--bg-secondary); padding: 18px; border-radius: 14px; border-left: 4px solid #3B82F6; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05); transition: transform 0.2s, box-shadow 0.2s;">
+                            <div style="font-weight: 600; color: var(--text-primary); margin-bottom: 10px; font-size: 16px;">Calendrier</div>
+                            <div style="color: var(--text-secondary); font-size: 13px; line-height: 1.9;">
+                                <div style="margin-bottom: 5px; padding-left: 8px;">"Montre mon calendrier de la semaine"</div>
+                                <div style="margin-bottom: 5px; padding-left: 8px;">"Crée une réunion demain à 14h"</div>
+                                <div style="padding-left: 8px;">"Suis-je libre vendredi matin ?"</div>
                             </div>
                         </div>
 
-                        <div style="background: var(--bg-secondary); padding: 16px; border-radius: 12px; border-left: 4px solid #10B981; transition: all 0.2s;">
-                            <div style="font-weight: 600; color: var(--text-primary); margin-bottom: 8px; font-size: 15px;">Tâches</div>
-                            <div style="color: var(--text-secondary); font-size: 13px; line-height: 1.8;">
-                                <div style="margin-bottom: 4px;">"Ajoute 'Appeler le client' à mes tâches"</div>
-                                <div style="margin-bottom: 4px;">"Montre mes tâches du jour"</div>
-                                <div>"Marque la tâche X comme terminée"</div>
+                        <div style="background: var(--bg-secondary); padding: 18px; border-radius: 14px; border-left: 4px solid #10B981; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05); transition: transform 0.2s, box-shadow 0.2s;">
+                            <div style="font-weight: 600; color: var(--text-primary); margin-bottom: 10px; font-size: 16px;">Tâches</div>
+                            <div style="color: var(--text-secondary); font-size: 13px; line-height: 1.9;">
+                                <div style="margin-bottom: 5px; padding-left: 8px;">"Ajoute 'Appeler le client' à mes tâches"</div>
+                                <div style="margin-bottom: 5px; padding-left: 8px;">"Montre mes tâches du jour"</div>
+                                <div style="padding-left: 8px;">"Marque la tâche X comme terminée"</div>
                             </div>
                         </div>
 
-                        <div style="background: var(--bg-secondary); padding: 16px; border-radius: 12px; border-left: 4px solid #F59E0B; transition: all 0.2s;">
-                            <div style="font-weight: 600; color: var(--text-primary); margin-bottom: 8px; font-size: 15px;">Planning</div>
-                            <div style="color: var(--text-secondary); font-size: 13px; line-height: 1.8;">
-                                <div style="margin-bottom: 4px;">"Planifie ma semaine de travail"</div>
-                                <div style="margin-bottom: 4px;">"Quels sont mes rendez-vous aujourd'hui ?"</div>
-                                <div>"Propose des créneaux pour une réunion"</div>
+                        <div style="background: var(--bg-secondary); padding: 18px; border-radius: 14px; border-left: 4px solid #F59E0B; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05); transition: transform 0.2s, box-shadow 0.2s;">
+                            <div style="font-weight: 600; color: var(--text-primary); margin-bottom: 10px; font-size: 16px;">Planning</div>
+                            <div style="color: var(--text-secondary); font-size: 13px; line-height: 1.9;">
+                                <div style="margin-bottom: 5px; padding-left: 8px;">"Planifie ma semaine de travail"</div>
+                                <div style="margin-bottom: 5px; padding-left: 8px;">"Quels sont mes rendez-vous aujourd'hui ?"</div>
+                                <div style="padding-left: 8px;">"Propose des créneaux pour une réunion"</div>
                             </div>
                         </div>
                     </div>
 
-                    <div style="padding: 18px; background: linear-gradient(135deg, rgba(16, 185, 129, 0.08) 0%, rgba(59, 130, 246, 0.08) 100%); border-radius: 12px; border: 1px solid rgba(59, 130, 246, 0.2);">
-                        <div style="font-weight: 600; color: var(--text-primary); margin-bottom: 8px; font-size: 15px;">Comment ça marche</div>
-                        <p style="margin: 0; color: var(--text-secondary); font-size: 14px; line-height: 1.6;">
+                    <div style="padding: 20px; background: linear-gradient(135deg, rgba(16, 185, 129, 0.08) 0%, rgba(59, 130, 246, 0.08) 100%); border-radius: 14px; border: 1px solid rgba(59, 130, 246, 0.2); margin-bottom: 26px;">
+                        <div style="font-weight: 600; color: var(--text-primary); margin-bottom: 10px; font-size: 16px;">Comment ça marche</div>
+                        <p style="margin: 0; color: var(--text-secondary); font-size: 14px; line-height: 1.7;">
                             Fermez cette fenêtre et parlez simplement dans le chat. L'IA détecte automatiquement vos demandes et vous aide instantanément.
                         </p>
                     </div>
 
-                    <div style="display: flex; gap: 10px; margin-top: 24px;">
-                        <button class="new-chat-btn" onclick="closeGenericModal(); setTimeout(() => document.getElementById('messageInput').focus(), 300);" style="flex: 1; font-weight: 600;">
+                    <div style="display: flex; gap: 12px; margin-top: 26px;">
+                        <button class="new-chat-btn" onclick="closeGenericModal(); setTimeout(() => document.getElementById('messageInput').focus(), 300);" style="flex: 2.5; font-weight: 600; font-size: 15px; padding: 14px 24px; box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);">
                             Commencer à parler
                         </button>
-                        <button class="new-chat-btn" style="background: var(--bg-secondary); color: var(--text-primary); font-weight: 500; border: 1px solid var(--border-color);" onclick="closeGenericModal()">
+                        <button class="new-chat-btn" style="flex: 1; background: var(--bg-secondary); color: var(--text-primary); font-weight: 500; border: 1px solid var(--border-color); font-size: 14px; padding: 14px 20px;" onclick="closeGenericModal()">
                             Fermer
                         </button>
                     </div>
                 </div>
             `;
-            showGenericModal('Office Pro', content);
+            showGenericModal('', content);
         }
 
         // Outil TTS (FREE)
