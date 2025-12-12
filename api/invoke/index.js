@@ -1,6 +1,6 @@
 // 💎 PLAN PRO - Llama 3.3 70B via Groq + Fonctions Azure + RAG
 
-const { analyzeHallucination } = require('./utils/hallucinationDetector');
+const { analyzeHallucination } = require('../utils/hallucinationDetector');
 
 // Fonction RAG - Recherche Brave
 async function searchBrave(query, apiKey) {
