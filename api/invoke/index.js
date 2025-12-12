@@ -1,10 +1,11 @@
-// 💎 PLAN PRO - GPT-4 via OpenRouter (Simple et Multi-Modèles)
-// OpenRouter : Accès à GPT-4, Claude, et 100+ modèles avec une seule API
-// Modèle : openai/gpt-4o-mini (rapide et économique)
+// 💎 PLAN PRO - Llama 3.3 70B via OpenRouter + Fonctions Azure
+// OpenRouter : Accès au même modèle que FREE
+// Modèle : meta-llama/llama-3.3-70b-instruct (gratuit)
+// Différence : Fonctions Azure (Images, Documents, Fact Check)
 // Endpoint : https://openrouter.ai/api/v1
 
 module.exports = async function (context, req) {
-    context.log('💎 PRO PLAN - GPT-4 Request (OpenRouter)');
+    context.log('💎 PRO PLAN - Llama 3.3 70B Request (OpenRouter + Azure Functions)');
 
     // CORS
     if (req.method === 'OPTIONS') {
@@ -71,13 +72,17 @@ module.exports = async function (context, req) {
         const messages = [
             {
                 role: "system",
-                content: `Tu es Axilum AI, un assistant intelligent et serviable propulsé par Azure OpenAI GPT-5 mini. 
+                content: `Tu es Axilum AI Plan PRO, un assistant intelligent propulsé par Llama 3.3 70B.
 Réponds de manière claire, précise et professionnelle en français.
 
-**Capacités Pro** :
-- Conversations avancées et contextuelles
-- Analyse approfondie et raisonnement
-- Réponses détaillées et structurées`
+**Capacités exclusives Plan PRO** :
+✅ Analyse d'images (Azure Vision)
+✅ Génération d'images (DALL-E 3)
+✅ Résumé de documents PDF/DOCX
+✅ Vérification des faits (Google Fact Check)
+✅ Historique étendu (20 messages)
+
+Si l'utilisateur demande une fonctionnalité Pro, informe-le des capacités disponibles.`
             }
         ];
 
@@ -115,7 +120,7 @@ Réponds de manière claire, précise et professionnelle en français.
                 'X-Title': 'Axilum AI'
             },
             body: JSON.stringify({
-                model: 'openai/gpt-4o-mini', // Modèle rapide et économique
+                model: 'meta-llama/llama-3.3-70b-instruct:free', // Même modèle que FREE
                 messages: messages,
                 max_tokens: 4000,
                 temperature: 0.7
@@ -177,7 +182,7 @@ Réponds de manière claire, précise et professionnelle en français.
                 'Content-Type': 'application/json',
                 'Access-Control-Allow-Origin': '*'
             },
-            body: {
+            body: {llama-3.3-70b
                 response: finalResponse,
                 responseTime: `${responseTime}ms`,
                 proPlan: true,
