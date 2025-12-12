@@ -4120,6 +4120,8 @@
         let currentUtterance = null;
         let voiceState = 'idle'; // idle, listening, thinking, speaking
         let isPaused = false; // Mis en pause par commande vocale
+        let voiceInputTimer = null; // Timer pour attendre la fin de l'énoncé
+        let lastTranscript = ''; // Dernier transcript pour éviter les doublons
 
         // Initialiser la reconnaissance vocale
         function initVoiceRecognition() {
@@ -4146,33 +4148,48 @@
                     // Afficher la transcription en temps réel
                     updateVoiceStatus(`"${transcript}"`);
 
-                    // Si résultat final, traiter
+                    // Annuler le timer précédent
+                    if (voiceInputTimer) {
+                        clearTimeout(voiceInputTimer);
+                    }
+
+                    // Si résultat final OU si on a suffisamment de texte
                     if (event.results[event.results.length - 1].isFinal) {
-                        // Vérifier les commandes vocales
-                        if (transcriptLower.includes('arrête') || transcriptLower.includes('arrêter')) {
-                            // Arrêter complètement le mode vocal
-                            toggleVoiceMode();
-                            return;
-                        }
-                        
-                        if (transcriptLower.includes('pause')) {
-                            // Mettre en pause
-                            isPaused = true;
-                            stopVoiceListening();
-                            if (voiceSynthesis.speaking) {
-                                voiceSynthesis.cancel();
+                        // Attendre 1,5 secondes de silence avant de traiter
+                        // Cela permet à l'utilisateur de continuer à parler
+                        voiceInputTimer = setTimeout(() => {
+                            // Éviter de traiter le même transcript deux fois
+                            if (transcript === lastTranscript) {
+                                return;
                             }
-                            voiceState = 'idle';
-                            updateVoiceOrbState('idle');
-                            updateVoiceStatus('⏸️ En pause - Cliquez pour reprendre');
-                            showToast('⏸️ Mode vocal en pause', '');
-                            return;
-                        }
-                        
-                        // Sinon traiter comme message normal
-                        if (!isPaused) {
-                            handleVoiceMessage(transcript);
-                        }
+                            lastTranscript = transcript;
+
+                            // Vérifier les commandes vocales
+                            if (transcriptLower.includes('arrête') || transcriptLower.includes('arrêter')) {
+                                // Arrêter complètement le mode vocal
+                                toggleVoiceMode();
+                                return;
+                            }
+                            
+                            if (transcriptLower.includes('pause')) {
+                                // Mettre en pause
+                                isPaused = true;
+                                stopVoiceListening();
+                                if (voiceSynthesis.speaking) {
+                                    voiceSynthesis.cancel();
+                                }
+                                voiceState = 'idle';
+                                updateVoiceOrbState('idle');
+                                updateVoiceStatus('⏸️ En pause - Cliquez pour reprendre');
+                                showToast('⏸️ Mode vocal en pause', '');
+                                return;
+                            }
+                            
+                            // Sinon traiter comme message normal
+                            if (!isPaused) {
+                                handleVoiceMessage(transcript);
+                            }
+                        }, 1500); // Attendre 1,5 secondes de silence
                     }
                 };
 
@@ -4231,6 +4248,12 @@
                 voiceContainer.classList.remove('active');
                 inputContainer.classList.remove('voice-hidden');
                 
+                // Annuler le timer en cours
+                if (voiceInputTimer) {
+                    clearTimeout(voiceInputTimer);
+                    voiceInputTimer = null;
+                }
+                
                 // Arrêter l'écoute
                 stopVoiceListening();
                 
@@ -4240,6 +4263,7 @@
                 }
 
                 voiceState = 'idle';
+                lastTranscript = ''; // Réinitialiser
                 showToast('Mode vocal désactivé', '');
             }
         }
