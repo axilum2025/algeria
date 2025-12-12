@@ -95,40 +95,26 @@ module.exports = async function (context, req) {
                         </div>
                     </body>
                     </html>
-                `
-            },
-            recipients: {
-                to: [{ address: email }]
-            }
-        };
-        
-        // Envoyer le message via ACS Email de manière asynchrone
-        // On ne wait pas pollUntilDone() car ça peut prendre 2+ minutes
-        context.log(`📤 Démarrage de l'envoi d'email à ${email}...`);
-        
-        const poller = await client.beginSend(emailMessage);
-        
-        context.log(`✅ Email en cours d'envoi (ID: ${poller.getOperationState().id})`);
-        
-        // Retourner immédiatement sans attendre la fin de l'envoi
-        // L'email sera envoyé en arrière-plan par Azure Communication Services
-        context.res = {
-            status: 200,
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                success: true,
-                message: 'Code de vérification envoyé par email'
-            })
-        };
-        
-        // Continuer l'envoi en arrière-plan (non-bloquant)
-        poller.pollUntilDone()
-            .then(result => {
+                        `
+                    },
+                    recipients: {
+                        to: [{ address: email }]
+                    }
+                };
+                
+                context.log(`📤 Tentative d'envoi d'email à ${email}...`);
+                
+                const poller = await client.beginSend(emailMessage);
+                context.log(`✅ Email démarré (ID: ${poller.getOperationState().id})`);
+                
+                // Attendre en arrière-plan
+                const result = await poller.pollUntilDone();
                 context.log(`✅ Email envoyé avec succès à ${email}:`, result.status);
-            })
-            .catch(err => {
-                context.log.error(`❌ Erreur envoi email différé à ${email}:`, err.message);
-            });
+                
+            } catch (emailError) {
+                context.log.error(`❌ Erreur lors de l'envoi d'email en arrière-plan:`, emailError.message);
+            }
+        });
         
     } catch (error) {
         context.log.error('❌ Erreur envoi email:', error);
