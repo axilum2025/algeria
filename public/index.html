@@ -1654,6 +1654,14 @@
                     <span class="menu-item-text">Text Pro</span>
                     <span class="badge neutral" style="margin-left:auto;">PRO</span>
                 </button>
+                <!-- Excel Pro (Assistant Excel expert) -->
+                <button class="menu-item" onclick="openExcelPro()" style="padding-left:30px;" title="Excel Pro - Assistant Excel expert (PRO)">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"/>
+                    </svg>
+                    <span class="menu-item-text">Excel Pro</span>
+                    <span class="badge neutral" style="margin-left:auto;">PRO</span>
+                </button>
             </div>
             
             <!-- Section Outils (dépliable) -->
@@ -3605,6 +3613,91 @@
                     <div style="display: flex; gap: 12px; margin-top: 26px;">
                         <button class="new-chat-btn" onclick="closeGenericModal(); setTimeout(() => document.getElementById('messageInput').focus(), 300);" style="flex: 2.5; font-weight: 600; font-size: 15px; padding: 14px 24px; box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);">
                             Commencer à utiliser
+                        </button>
+                        <button class="new-chat-btn" style="flex: 1; background: var(--bg-secondary); color: var(--text-primary); font-weight: 500; border: 1px solid var(--border-color); font-size: 14px; padding: 14px 20px;" onclick="closeGenericModal()">
+                            Fermer
+                        </button>
+                    </div>
+                </div>
+            `;
+            showGenericModal('', content);
+        }
+
+        // Excel Pro - Assistant Excel expert (3 piliers)
+        function openExcelPro() {
+            const content = `
+                <div style="padding: 28px; max-width: 700px; margin: 0 auto;">
+                    <div style="background: linear-gradient(135deg, rgba(16, 185, 129, 0.12) 0%, rgba(34, 197, 94, 0.12) 100%); padding: 22px; border-radius: 14px; margin-bottom: 22px; border: 1px solid rgba(16, 185, 129, 0.25); box-shadow: 0 4px 12px rgba(16, 185, 129, 0.1);">
+                        <p style="margin: 0; color: var(--text-primary); font-size: 15px; line-height: 1.7; font-weight: 500;">
+                            Votre assistant expert Excel. Formules, analyses, visualisations et automatisation simplifiées.
+                        </p>
+                    </div>
+
+                    <div style="background: linear-gradient(135deg, rgba(16, 185, 129, 0.08) 0%, rgba(59, 130, 246, 0.08) 100%); padding: 20px; border-radius: 14px; margin-bottom: 22px; border: 1px solid rgba(59, 130, 246, 0.2);">
+                        <h4 style="margin: 0 0 10px 0; color: var(--text-primary); font-size: 16px; font-weight: 600;">Utilisation ultra-simple</h4>
+                        <p style="margin: 0; color: var(--text-secondary); line-height: 1.7; font-size: 14px;">
+                            Demandez ce que vous voulez faire dans Excel. L'IA génère les formules, explique les fonctions et vous guide.
+                        </p>
+                    </div>
+
+                    <div style="margin-bottom: 22px;">
+                        <div style="background: linear-gradient(135deg, #3B82F6 0%, #2563EB 100%); padding: 16px; border-radius: 12px; margin-bottom: 14px; color: white; box-shadow: 0 4px 12px rgba(59, 130, 246, 0.2);">
+                            <div style="font-weight: 600; font-size: 17px; margin-bottom: 12px;">🔧 Pilier 1 : Formules & Calculs</div>
+                            <div style="font-size: 13px; line-height: 1.8; opacity: 0.95;">
+                                <div style="margin-bottom: 4px;">• <strong>Générateur de formules</strong> : "Crée une formule pour calculer la moyenne"</div>
+                                <div style="margin-bottom: 4px;">• <strong>Explicateur</strong> : "Explique cette formule : =SOMME.SI(A1:A10;">100")"</div>
+                                <div>• <strong>50+ fonctions</strong> : SOMME, MOYENNE, SI, RECHERCHEV, NB.SI, etc.</div>
+                            </div>
+                        </div>
+
+                        <div style="background: linear-gradient(135deg, #10B981 0%, #059669 100%); padding: 16px; border-radius: 12px; margin-bottom: 14px; color: white; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.2);">
+                            <div style="font-weight: 600; font-size: 17px; margin-bottom: 12px;">📊 Pilier 2 : Analyse & Visualisation</div>
+                            <div style="font-size: 13px; line-height: 1.8; opacity: 0.95;">
+                                <div style="margin-bottom: 4px;">• <strong>Conseils de graphiques</strong> : "Quel graphique pour des ventes mensuelles ?"</div>
+                                <div style="margin-bottom: 4px;">• <strong>Tableaux croisés</strong> : "Comment créer un tableau croisé dynamique ?"</div>
+                                <div>• <strong>Analyse guidée</strong> : Comprendre vos données rapidement</div>
+                            </div>
+                        </div>
+
+                        <div style="background: linear-gradient(135deg, #F59E0B 0%, #D97706 100%); padding: 16px; border-radius: 12px; color: white; box-shadow: 0 4px 12px rgba(245, 158, 11, 0.2);">
+                            <div style="font-weight: 600; font-size: 17px; margin-bottom: 12px;">⚡ Pilier 3 : Automatisation & Productivité</div>
+                            <div style="font-size: 13px; line-height: 1.8; opacity: 0.95;">
+                                <div style="margin-bottom: 4px;">• <strong>Templates prêts</strong> : Budget, planning, tableaux de bord</div>
+                                <div style="margin-bottom: 4px;">• <strong>Automatisation</strong> : "Comment automatiser ce calcul ?"</div>
+                                <div>• <strong>Bonnes pratiques</strong> : Optimisation et organisation</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div style="background: var(--bg-secondary); padding: 18px; border-radius: 12px; margin-bottom: 22px; border: 1px solid var(--border-color);">
+                        <div style="font-weight: 600; color: var(--text-primary); margin-bottom: 12px; font-size: 15px;">Exemples de demandes</div>
+                        <div style="display: grid; gap: 8px;">
+                            <div style="color: var(--text-secondary); font-size: 13px; padding: 8px; background: var(--bg-primary); border-radius: 8px; border-left: 3px solid #3B82F6;">
+                                "Comment faire une somme conditionnelle ?"
+                            </div>
+                            <div style="color: var(--text-secondary); font-size: 13px; padding: 8px; background: var(--bg-primary); border-radius: 8px; border-left: 3px solid #10B981;">
+                                "Explique la fonction RECHERCHEV"
+                            </div>
+                            <div style="color: var(--text-secondary); font-size: 13px; padding: 8px; background: var(--bg-primary); border-radius: 8px; border-left: 3px solid #F59E0B;">
+                                "Quel graphique pour comparer des ventes ?"
+                            </div>
+                            <div style="color: var(--text-secondary); font-size: 13px; padding: 8px; background: var(--bg-primary); border-radius: 8px; border-left: 3px solid #8B5CF6;">
+                                "Pourquoi ma formule renvoie #N/A ?"
+                            </div>
+                        </div>
+                    </div>
+
+                    <div style="padding: 18px; background: linear-gradient(135deg, rgba(16, 185, 129, 0.08) 0%, rgba(59, 130, 246, 0.08) 100%); border-radius: 14px; border: 1px solid rgba(16, 185, 129, 0.2); margin-bottom: 26px;">
+                        <div style="font-weight: 600; color: var(--text-primary); margin-bottom: 8px; font-size: 15px;">Version actuelle : Phase 1 MVP</div>
+                        <p style="margin: 0; color: var(--text-secondary); font-size: 13px; line-height: 1.7;">
+                            <strong>Disponible maintenant :</strong> Générateur de formules basiques, explicateur, 50 fonctions essentielles, conseils de visualisation.<br>
+                            <strong>Prochainement :</strong> 500+ fonctions, Power Query guidé, templates avancés, optimisation de performance.
+                        </p>
+                    </div>
+
+                    <div style="display: flex; gap: 12px; margin-top: 26px;">
+                        <button class="new-chat-btn" onclick="closeGenericModal(); setTimeout(() => document.getElementById('messageInput').focus(), 300);" style="flex: 2.5; font-weight: 600; font-size: 15px; padding: 14px 24px; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);">
+                            Commencer avec Excel Pro
                         </button>
                         <button class="new-chat-btn" style="flex: 1; background: var(--bg-secondary); color: var(--text-primary); font-weight: 500; border: 1px solid var(--border-color); font-size: 14px; padding: 14px 20px;" onclick="closeGenericModal()">
                             Fermer
