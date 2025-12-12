@@ -5051,20 +5051,34 @@
             }
             
             // Stocker les données temporairement
-            pendingUser = {
+            const newUser = {
                 id: Date.now().toString(),
                 name,
                 email,
-                password, // Dans un vrai système, hashé !
+                password,
                 createdAt: Date.now(),
-                emailVerified: false
+                emailVerified: true,
+                role: 'free'
             };
             
-            // Envoyer le code par email via API
-            sendVerificationEmail(name, email);
+            users.push(newUser);
+            localStorage.setItem('users', JSON.stringify(users));
+            
+            currentUser = { id: newUser.id, name: newUser.name, email: newUser.email, role: newUser.role };
+            localStorage.setItem('currentUser', JSON.stringify(currentUser));
+            
+            closeSignupModal();
+            showToast(`🎉 Bienvenue ${name} ! Votre compte est créé.`, 'success');
             updateUIForAuth();
             
-            // Créer une nouvelle conversation pour ce user
+            newConversation();
+            localStorage.setItem('currentUser', JSON.stringify(currentUser));
+            
+            closeSignupModal();
+            showToast(`🎉 Bienvenue ${name} ! Votre compte est créé.`, 'success');
+            updateUIForAuth();
+            
+            newConversation();
             newConversation();
         }
 
