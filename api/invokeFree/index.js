@@ -42,7 +42,7 @@ module.exports = async function (context, req) {
             
             // Réponses prédéfinies pour les cas communs
             const lowerMessage = userMessage.toLowerCase();
-            let fallbackResponse = "Bonjour ! Je suis Axilum AI en mode gratuit.";
+            let fallbackResponse = "Bonjour ! Je suis Axilum AI.";
             
             if (lowerMessage.includes('bonjour') || lowerMessage.includes('salut') || lowerMessage.includes('hello')) {
                 fallbackResponse = "Bonjour ! Je suis Axilum AI, votre assistant intelligent en mode gratuit. Comment puis-je vous aider aujourd'hui ?";
@@ -80,12 +80,9 @@ module.exports = async function (context, req) {
         const messages = [
             {
                 role: "system",
-                content: `Tu es Axilum AI, un assistant intelligent et serviable. Réponds de manière claire, concise et précise en français.
-
-**Génération d'images** : Tu peux générer des images gratuitement via Pollinations.ai
-- Quand l'utilisateur demande une image, réponds avec : "Je génère l'image : [description détaillée]"
-- Le système détectera automatiquement et générera l'image
-- Exemples : "génère une image de...", "crée une photo de...", "dessine-moi..."`
+                content: `Tu es Axilum AI, un assistant intelligent et serviable.
+Réponds de manière naturelle, claire et professionnelle en français.
+Sois concis et utile.`
             }
         ];
 
@@ -212,7 +209,7 @@ module.exports = async function (context, req) {
                 response: "Je suis Axilum AI en mode gratuit. Comment puis-je vous aider ?\n\n---\n💡 *Mode Gratuit - Upgrade vers Pro pour GPT-4o premium*",
                 hallucinationIndex: 0,
                 contextHistoryRatio: 0,
-                responseTime: '0ms',
+                responseTime: '0ms',. Comment puis-je vous aider ?
                 freePlan: true,
                 error: false
             }
