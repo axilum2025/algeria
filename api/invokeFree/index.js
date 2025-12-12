@@ -144,9 +144,12 @@ Sois concis et utile.${contextFromSearch}`
             } else if (msg.type === 'bot' && msg.content) {
                 const cleanContent = msg.content
                     .replace(/\n*---[\s\S]*/g, '')
-                    .replace(/\n*💡.*Mode Gratuit.*\n*/gi, '')
+                    .replace(/\n*💡.*\n*/gi, '')
                     .trim();
-                messages.push({ role: "assistant", content: cleanContent });
+                // Ajouter seulement si le contenu n'est pas vide après nettoyage
+                if (cleanContent && cleanContent.length > 0) {
+                    messages.push({ role: "assistant", content: cleanContent });
+                }
             }
         });
 
