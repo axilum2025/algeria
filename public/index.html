@@ -2692,12 +2692,7 @@
                 }
                 
                 // Métriques de qualité
-                if (data.qualityScore) {
-                    metrics.quality.push({
-                        icon: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>', 
-                        label: 'Qualité', 
-                        value: `${data.qualityScore}%`, 
-                        color: '#10B981'
+                // Métriques de qualité
                 
                 // Confiance moyenne basée sur HI et CHR
                 if (data.hallucinationIndex !== undefined && data.contextHistoryRatio !== undefined) {
@@ -2711,6 +2706,12 @@
                         label: 'Confiance', 
                         value: `${confidence.toFixed(0)}%`, 
                         color: confColor
+                    });
+                }
+                
+                if (data.response && data.response.includes('HI:')) {
+                    const hiMatch = data.response.match(/HI: ([0-9.]+)%/);
+                    const chrMatch = data.response.match(/CHR: ([0-9.]+)%/);
                     
                     if (hiMatch) {
                         const hiValue = parseFloat(hiMatch[1]);
