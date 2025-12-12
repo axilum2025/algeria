@@ -393,6 +393,7 @@
             animation: fadeIn 0.3s ease-out;
             display: flex;
             flex-direction: column;
+            position: relative;
         }
 
         @keyframes fadeIn {
@@ -948,42 +949,42 @@
         
         /* 🎨 Metrics icon styling */
         .metrics-icon {
+            position: absolute;
+            bottom: 8px;
+            right: 8px;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: var(--bg-secondary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            color: var(--text-secondary);
+            opacity: 0.7;
+            z-index: 10;
             box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-            position: absolute !important;
-            bottom: 8px !important;
-            right: 8px !important;
-            width: 32px !important;
-            height: 32px !important;
-            border-radius: 50% !important;
-            background: var(--bg-secondary) !important;
-            display: flex !important;
-            align-items: center !important;
-            justify-content: center !important;
-            cursor: pointer !important;
-            transition: all 0.2s !important;
-            color: var(--text-secondary) !important;
-            opacity: 0.7 !important;
-            z-index: 10 !important;
         }
         
         .metrics-icon:hover {
-            opacity: 1 !important;
-            transform: scale(1.15) !important;
-            background: var(--accent) !important;
-            color: white !important;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.2) !important;
+            opacity: 1;
+            transform: scale(1.1);
+            background: var(--accent);
+            color: white;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
         }
         
         .metrics-icon:active {
-            transform: scale(0.95) !important;
+            transform: scale(0.95);
         }
         
-        /* Responsive - plus visible sur desktop */
+        /* Desktop: légèrement plus grand et visible */
         @media (min-width: 769px) {
             .metrics-icon {
-                width: 36px !important;
-                height: 36px !important;
-                opacity: 0.8 !important;
+                width: 34px;
+                height: 34px;
+                opacity: 0.75;
             }
         }
 
