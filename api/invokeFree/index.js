@@ -217,8 +217,22 @@ Sois concis et utile.${contextFromSearch}`
         context.log('Response length:', aiResponse.length);
         context.log('Processing time:', processingTime + 'ms');
 
-        // �️ Analyse anti-hallucination avec modèles GRATUITS (Groq/Gemini)
-        const hallucinationAnalysis = await analyzeHallucination(aiResponse, userMessage);
+        // Analyse anti-hallucination avec modèles GRATUITS (Groq/Gemini)
+        let hallucinationAnalysis;
+        try {
+            hallucinationAnalysis = await analyzeHallucination(aiResponse, userMessage);
+        } catch (analysisError) {
+            context.log.warn('Hallucination analysis failed, using defaults:', analysisError.message);
+            hallucinationAnalysis = {
+                hi: 0,
+                chr: 0,
+                claims: [],
+                counts: {},
+                sources: [],
+                warning: null,
+                method: 'fallback-error'
+            };
+        }
         
         // Convertir en pourcentage (0-1 → 0-100)
         const hiPercent = (hallucinationAnalysis.hi * 100).toFixed(1);
