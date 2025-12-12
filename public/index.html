@@ -2761,6 +2761,42 @@
                 }
             }
 
+            // 🔊 Ajouter bouton TTS pour les messages bot
+            if (type === 'bot' && displayText && displayText.length > 0) {
+                const ttsButton = document.createElement('button');
+                ttsButton.className = 'tts-button';
+                ttsButton.innerHTML = `
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/>
+                        <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"/>
+                    </svg>
+                `;
+                ttsButton.title = 'Écouter ce message';
+                ttsButton.style.cssText = 'position: absolute; bottom: 8px; right: 44px; width: 28px; height: 28px; border-radius: 50%; background: var(--bg-secondary); border: none; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s; color: var(--text-secondary); opacity: 0.6;';
+                
+                ttsButton.addEventListener('mouseenter', function() {
+                    this.style.opacity = '1';
+                    this.style.transform = 'scale(1.1)';
+                    this.style.background = 'var(--accent)';
+                    this.style.color = 'white';
+                });
+                
+                ttsButton.addEventListener('mouseleave', function() {
+                    this.style.opacity = '0.6';
+                    this.style.transform = 'scale(1)';
+                    this.style.background = 'var(--bg-secondary)';
+                    this.style.color = 'var(--text-secondary)';
+                });
+                
+                ttsButton.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    speakText(displayText);
+                });
+                
+                messageWrapper.style.position = 'relative';
+                messageWrapper.appendChild(ttsButton);
+            }
+
             chatMessages.appendChild(messageWrapper);
             chatMessages.scrollTop = chatMessages.scrollHeight;
         }
@@ -3423,13 +3459,50 @@
                 const input = document.getElementById('ttsInput');
                 const text = input ? input.value.trim() : '';
                 if (!text) { showToast('Veuillez saisir un texte', 'warning'); return; }
-                const utter = new SpeechSynthesisUtterance(text);
-                utter.lang = 'fr-FR';
-                window.speechSynthesis.cancel();
-                window.speechSynthesis.speak(utter);
+                speakText(text);
                 closeGenericModal();
             } catch (e) {
                 showToast(`Erreur TTS: ${e.message || 'inconnue'}`, 'error');
+            }
+        }
+
+        // 🔊 Fonction pour lire un texte à voix haute
+        function speakText(text) {
+            try {
+                if (!text || text.length === 0) {
+                    showToast('Aucun texte à lire', 'warning');
+                    return;
+                }
+                
+                // Arrêter toute lecture en cours
+                window.speechSynthesis.cancel();
+                
+                // Créer et configurer la synthèse vocale
+                const utterance = new SpeechSynthesisUtterance(text);
+                utterance.lang = 'fr-FR';
+                utterance.rate = 1.0; // Vitesse normale
+                utterance.pitch = 1.0; // Tonalité normale
+                utterance.volume = 1.0; // Volume maximum
+                
+                // Événements pour feedback visuel
+                utterance.onstart = () => {
+                    showToast('🔊 Lecture en cours...', 'info');
+                };
+                
+                utterance.onend = () => {
+                    console.log('TTS terminé');
+                };
+                
+                utterance.onerror = (e) => {
+                    console.error('Erreur TTS:', e);
+                    showToast('Erreur lors de la lecture', 'error');
+                };
+                
+                // Lancer la synthèse vocale
+                window.speechSynthesis.speak(utterance);
+            } catch (e) {
+                console.error('Erreur TTS:', e);
+                showToast(`Erreur TTS: ${e.message}`, 'error');
             }
         }
 
