@@ -1646,6 +1646,14 @@
                     <span class="menu-item-text">Office Pro</span>
                     <span class="badge neutral" style="margin-left:auto;">PRO</span>
                 </button>
+                <!-- Text Pro (Traitement de texte professionnel) -->
+                <button class="menu-item" onclick="openTextPro()" style="padding-left:30px;" title="Text Pro - Traitement de texte professionnel (PRO)">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                    </svg>
+                    <span class="menu-item-text">Text Pro</span>
+                    <span class="badge neutral" style="margin-left:auto;">PRO</span>
+                </button>
             </div>
             
             <!-- Section Outils (dépliable) -->
@@ -1659,14 +1667,6 @@
                 </svg>
             </button>
             <div id="toolsContent" style="display:none; padding-left:20px;">
-                <button class="menu-item" onclick="openTranslationTool('FREE')" style="padding-left:30px;" title="Traduction (FREE)">
-                    <span class="menu-item-text">🌐 Traduction</span>
-                    <span class="badge" style="background:#10B981; color:white; padding:2px 8px; border-radius:4px; font-size:10px; margin-left:auto;">FREE</span>
-                </button>
-                <button class="menu-item" onclick="openTranslationTool('PRO')" style="padding-left:30px;" title="Traduction (PRO)">
-                    <span class="menu-item-text">🌐 Traduction PRO</span>
-                    <span class="badge neutral" style="margin-left:auto;">PRO</span>
-                </button>
             </div>
         </div>
     </div>
@@ -3502,6 +3502,109 @@
                     <div style="display: flex; gap: 12px; margin-top: 26px;">
                         <button class="new-chat-btn" onclick="closeGenericModal(); setTimeout(() => document.getElementById('messageInput').focus(), 300);" style="flex: 2.5; font-weight: 600; font-size: 15px; padding: 14px 24px; box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);">
                             Commencer à parler
+                        </button>
+                        <button class="new-chat-btn" style="flex: 1; background: var(--bg-secondary); color: var(--text-primary); font-weight: 500; border: 1px solid var(--border-color); font-size: 14px; padding: 14px 20px;" onclick="closeGenericModal()">
+                            Fermer
+                        </button>
+                    </div>
+                </div>
+            `;
+            showGenericModal('', content);
+        }
+
+        // Text Pro - Traitement de texte professionnel
+        function openTextPro() {
+            const content = `
+                <div style="padding: 28px; max-width: 650px; margin: 0 auto;">
+                    <div style="background: linear-gradient(135deg, rgba(59, 130, 246, 0.12) 0%, rgba(99, 102, 241, 0.12) 100%); padding: 22px; border-radius: 14px; margin-bottom: 22px; border: 1px solid rgba(59, 130, 246, 0.25); box-shadow: 0 4px 12px rgba(59, 130, 246, 0.1);">
+                        <p style="margin: 0; color: var(--text-primary); font-size: 15px; line-height: 1.7; font-weight: 500;">
+                            Outils professionnels de traitement de texte. Traduction, réécriture, correction, résumé et bien plus.
+                        </p>
+                    </div>
+
+                    <div style="background: linear-gradient(135deg, rgba(16, 185, 129, 0.08) 0%, rgba(59, 130, 246, 0.08) 100%); padding: 20px; border-radius: 14px; margin-bottom: 22px; border: 1px solid rgba(59, 130, 246, 0.2);">
+                        <h4 style="margin: 0 0 10px 0; color: var(--text-primary); font-size: 16px; font-weight: 600;">Utilisation ultra-simple</h4>
+                        <p style="margin: 0; color: var(--text-secondary); line-height: 1.7; font-size: 14px;">
+                            Parlez naturellement dans le chat. L'IA détecte vos demandes et applique automatiquement les traitements.
+                        </p>
+                    </div>
+
+                    <div style="display: grid; gap: 14px; margin-bottom: 22px;">
+                        <div style="background: var(--bg-secondary); padding: 16px; border-radius: 12px; border-left: 4px solid #3B82F6; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);">
+                            <div style="font-weight: 600; color: var(--text-primary); margin-bottom: 8px; font-size: 15px;">Traduction Professionnelle</div>
+                            <div style="color: var(--text-secondary); font-size: 13px; line-height: 1.8;">
+                                <div style="padding-left: 8px; margin-bottom: 4px;">"Traduis ce texte en anglais professionnel"</div>
+                                <div style="padding-left: 8px;">"Traduis en espagnol en gardant le ton formel"</div>
+                            </div>
+                        </div>
+
+                        <div style="background: var(--bg-secondary); padding: 16px; border-radius: 12px; border-left: 4px solid #10B981; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);">
+                            <div style="font-weight: 600; color: var(--text-primary); margin-bottom: 8px; font-size: 15px;">Réécriture & Reformulation</div>
+                            <div style="color: var(--text-secondary); font-size: 13px; line-height: 1.8;">
+                                <div style="padding-left: 8px; margin-bottom: 4px;">"Réécris ce texte de façon plus formelle"</div>
+                                <div style="padding-left: 8px;">"Rends ce message plus convivial"</div>
+                            </div>
+                        </div>
+
+                        <div style="background: var(--bg-secondary); padding: 16px; border-radius: 12px; border-left: 4px solid #F59E0B; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);">
+                            <div style="font-weight: 600; color: var(--text-primary); margin-bottom: 8px; font-size: 15px;">Correction Avancée</div>
+                            <div style="color: var(--text-secondary); font-size: 13px; line-height: 1.8;">
+                                <div style="padding-left: 8px; margin-bottom: 4px;">"Corrige l'orthographe et la grammaire"</div>
+                                <div style="padding-left: 8px;">"Améliore le style de ce texte"</div>
+                            </div>
+                        </div>
+
+                        <div style="background: var(--bg-secondary); padding: 16px; border-radius: 12px; border-left: 4px solid #8B5CF6; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);">
+                            <div style="font-weight: 600; color: var(--text-primary); margin-bottom: 8px; font-size: 15px;">Résumé Intelligent</div>
+                            <div style="color: var(--text-secondary); font-size: 13px; line-height: 1.8;">
+                                <div style="padding-left: 8px; margin-bottom: 4px;">"Résume ce texte en 3 points clés"</div>
+                                <div style="padding-left: 8px;">"Fais un résumé exécutif de ce rapport"</div>
+                            </div>
+                        </div>
+
+                        <div style="background: var(--bg-secondary); padding: 16px; border-radius: 12px; border-left: 4px solid #EC4899; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);">
+                            <div style="font-weight: 600; color: var(--text-primary); margin-bottom: 8px; font-size: 15px;">Génération de Contenu</div>
+                            <div style="color: var(--text-secondary); font-size: 13px; line-height: 1.8;">
+                                <div style="padding-left: 8px; margin-bottom: 4px;">"Écris un email professionnel de demande de congé"</div>
+                                <div style="padding-left: 8px;">"Rédige une lettre de motivation"</div>
+                            </div>
+                        </div>
+
+                        <div style="background: var(--bg-secondary); padding: 16px; border-radius: 12px; border-left: 4px solid #06B6D4; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);">
+                            <div style="font-weight: 600; color: var(--text-primary); margin-bottom: 8px; font-size: 15px;">Analyse de Texte</div>
+                            <div style="color: var(--text-secondary); font-size: 13px; line-height: 1.8;">
+                                <div style="padding-left: 8px; margin-bottom: 4px;">"Analyse le sentiment de ce message"</div>
+                                <div style="padding-left: 8px;">"Extrais les mots-clés principaux"</div>
+                            </div>
+                        </div>
+
+                        <div style="background: var(--bg-secondary); padding: 16px; border-radius: 12px; border-left: 4px solid #F97316; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);">
+                            <div style="font-weight: 600; color: var(--text-primary); margin-bottom: 8px; font-size: 15px;">Transformation de Format</div>
+                            <div style="color: var(--text-secondary); font-size: 13px; line-height: 1.8;">
+                                <div style="padding-left: 8px; margin-bottom: 4px;">"Transforme cette liste en paragraphe structuré"</div>
+                                <div style="padding-left: 8px;">"Convertis ces notes en email formel"</div>
+                            </div>
+                        </div>
+
+                        <div style="background: var(--bg-secondary); padding: 16px; border-radius: 12px; border-left: 4px solid #14B8A6; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);">
+                            <div style="font-weight: 600; color: var(--text-primary); margin-bottom: 8px; font-size: 15px;">Enrichissement</div>
+                            <div style="color: var(--text-secondary); font-size: 13px; line-height: 1.8;">
+                                <div style="padding-left: 8px; margin-bottom: 4px;">"Enrichis ce texte avec du vocabulaire professionnel"</div>
+                                <div style="padding-left: 8px;">"Améliore cette phrase avec des synonymes"</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div style="padding: 20px; background: linear-gradient(135deg, rgba(16, 185, 129, 0.08) 0%, rgba(59, 130, 246, 0.08) 100%); border-radius: 14px; border: 1px solid rgba(59, 130, 246, 0.2); margin-bottom: 26px;">
+                        <div style="font-weight: 600; color: var(--text-primary); margin-bottom: 10px; font-size: 16px;">Comment ça marche</div>
+                        <p style="margin: 0; color: var(--text-secondary); font-size: 14px; line-height: 1.7;">
+                            Collez votre texte dans le chat et demandez ce que vous voulez faire. L'IA applique automatiquement le traitement et vous retourne le résultat.
+                        </p>
+                    </div>
+
+                    <div style="display: flex; gap: 12px; margin-top: 26px;">
+                        <button class="new-chat-btn" onclick="closeGenericModal(); setTimeout(() => document.getElementById('messageInput').focus(), 300);" style="flex: 2.5; font-weight: 600; font-size: 15px; padding: 14px 24px; box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);">
+                            Commencer à utiliser
                         </button>
                         <button class="new-chat-btn" style="flex: 1; background: var(--bg-secondary); color: var(--text-primary); font-weight: 500; border: 1px solid var(--border-color); font-size: 14px; padding: 14px 20px;" onclick="closeGenericModal()">
                             Fermer
