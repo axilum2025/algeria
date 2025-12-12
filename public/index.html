@@ -4122,14 +4122,14 @@
         let isPaused = false; // Mis en pause par commande vocale
         let voiceInputTimer = null; // Timer pour attendre la fin de l'énoncé
         let lastTranscript = ''; // Dernier transcript pour éviter les doublons
-        let finalTranscript = ''; // Accumule uniquement les résultats finaux
+        let recognitionStartIndex = 0; // Index de départ pour éviter les répétitions
 
         // Initialiser la reconnaissance vocale
         function initVoiceRecognition() {
             if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
                 const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
                 voiceRecognition = new SpeechRecognition();
-                voiceRecognition.continuous = true;
+                voiceRecognition.continuous = false; // DÉSACTIVER le mode continu pour éviter accumulation
                 voiceRecognition.interimResults = true;
                 voiceRecognition.lang = 'fr-FR';
 
@@ -4140,70 +4140,56 @@
                         return;
                     }
 
-                    // Séparer les résultats finaux des intermédiaires
-                    let interimTranscript = '';
-                    for (let i = event.resultIndex; i < event.results.length; i++) {
-                        const transcript = event.results[i][0].transcript;
-                        if (event.results[i].isFinal) {
-                            finalTranscript += transcript + ' ';
-                        } else {
-                            interimTranscript += transcript;
-                        }
-                    }
+                    // Prendre seulement le dernier résultat pour éviter accumulation
+                    const lastResult = event.results[event.results.length - 1];
+                    const transcript = lastResult[0].transcript;
+                    const isFinal = lastResult.isFinal;
                     
-                    // Afficher le transcript complet (final + interim)
-                    const displayTranscript = (finalTranscript + interimTranscript).trim();
-                    updateVoiceStatus(`"${displayTranscript}"`);
+                    // Afficher la transcription en temps réel
+                    updateVoiceStatus(`"${transcript}"`);
 
                     // Annuler le timer précédent
                     if (voiceInputTimer) {
                         clearTimeout(voiceInputTimer);
                     }
 
-                    // Si on a un résultat final
-                    if (event.results[event.results.length - 1].isFinal) {
-                        // Attendre 1,5 secondes de silence avant de traiter
-                        // Cela permet à l'utilisateur de continuer à parler
-                        voiceInputTimer = setTimeout(() => {
-                            const fullTranscript = finalTranscript.trim();
-                            
-                            // Éviter de traiter le même transcript deux fois
-                            if (fullTranscript === lastTranscript || !fullTranscript) {
-                                return;
-                            }
-                            lastTranscript = fullTranscript;
-                            
-                            const transcriptLower = fullTranscript.toLowerCase();
+                    // Si résultat final
+                    if (isFinal) {
+                        const transcriptTrimmed = transcript.trim();
+                        
+                        // Éviter de traiter le même transcript deux fois
+                        if (transcriptTrimmed === lastTranscript || !transcriptTrimmed) {
+                            return;
+                        }
+                        
+                        lastTranscript = transcriptTrimmed;
+                        const transcriptLower = transcriptTrimmed.toLowerCase();
 
-                            // Vérifier les commandes vocales
-                            if (transcriptLower.includes('arrête') || transcriptLower.includes('arrêter')) {
-                                // Arrêter complètement le mode vocal
-                                toggleVoiceMode();
-                                return;
+                        // Vérifier les commandes vocales
+                        if (transcriptLower.includes('arrête') || transcriptLower.includes('arrêter')) {
+                            // Arrêter complètement le mode vocal
+                            toggleVoiceMode();
+                            return;
+                        }
+                        
+                        if (transcriptLower.includes('pause')) {
+                            // Mettre en pause
+                            isPaused = true;
+                            stopVoiceListening();
+                            if (voiceSynthesis.speaking) {
+                                voiceSynthesis.cancel();
                             }
-                            
-                            if (transcriptLower.includes('pause')) {
-                                // Mettre en pause
-                                isPaused = true;
-                                stopVoiceListening();
-                                if (voiceSynthesis.speaking) {
-                                    voiceSynthesis.cancel();
-                                }
-                                voiceState = 'idle';
-                                updateVoiceOrbState('idle');
-                                updateVoiceStatus('⏸️ En pause - Cliquez pour reprendre');
-                                showToast('⏸️ Mode vocal en pause', '');
-                                return;
-                            }
-                            
-                            // Sinon traiter comme message normal
-                            if (!isPaused) {
-                                handleVoiceMessage(fullTranscript);
-                            }
-                            
-                            // Réinitialiser le transcript final
-                            finalTranscript = '';
-                        }, 1500); // Attendre 1,5 secondes de silence
+                            voiceState = 'idle';
+                            updateVoiceOrbState('idle');
+                            updateVoiceStatus('⏸️ En pause - Cliquez pour reprendre');
+                            showToast('⏸️ Mode vocal en pause', '');
+                            return;
+                        }
+                        
+                        // Sinon traiter comme message normal
+                        if (!isPaused) {
+                            handleVoiceMessage(transcriptTrimmed);
+                        }
                     }
                 };
 
@@ -4251,7 +4237,6 @@
 
                 // Démarrer l'écoute
                 isPaused = false;
-                finalTranscript = ''; // Réinitialiser
                 lastTranscript = '';
                 setTimeout(() => {
                     startVoiceListening();
@@ -4270,8 +4255,7 @@
                     voiceInputTimer = null;
                 }
                 
-                // Réinitialiser les transcripts
-                finalTranscript = '';
+                // Réinitialiser le transcript
                 lastTranscript = '';
                 
                 // Arrêter l'écoute
