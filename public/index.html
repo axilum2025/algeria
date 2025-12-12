@@ -4122,6 +4122,7 @@
         let isPaused = false; // Mis en pause par commande vocale
         let voiceInputTimer = null; // Timer pour attendre la fin de l'énoncé
         let lastTranscript = ''; // Dernier transcript pour éviter les doublons
+        let finalTranscript = ''; // Accumule uniquement les résultats finaux
 
         // Initialiser la reconnaissance vocale
         function initVoiceRecognition() {
@@ -4139,30 +4140,40 @@
                         return;
                     }
 
-                    const transcript = Array.from(event.results)
-                        .map(result => result[0].transcript)
-                        .join('');
+                    // Séparer les résultats finaux des intermédiaires
+                    let interimTranscript = '';
+                    for (let i = event.resultIndex; i < event.results.length; i++) {
+                        const transcript = event.results[i][0].transcript;
+                        if (event.results[i].isFinal) {
+                            finalTranscript += transcript + ' ';
+                        } else {
+                            interimTranscript += transcript;
+                        }
+                    }
                     
-                    const transcriptLower = transcript.toLowerCase().trim();
-                    
-                    // Afficher la transcription en temps réel
-                    updateVoiceStatus(`"${transcript}"`);
+                    // Afficher le transcript complet (final + interim)
+                    const displayTranscript = (finalTranscript + interimTranscript).trim();
+                    updateVoiceStatus(`"${displayTranscript}"`);
 
                     // Annuler le timer précédent
                     if (voiceInputTimer) {
                         clearTimeout(voiceInputTimer);
                     }
 
-                    // Si résultat final OU si on a suffisamment de texte
+                    // Si on a un résultat final
                     if (event.results[event.results.length - 1].isFinal) {
                         // Attendre 1,5 secondes de silence avant de traiter
                         // Cela permet à l'utilisateur de continuer à parler
                         voiceInputTimer = setTimeout(() => {
+                            const fullTranscript = finalTranscript.trim();
+                            
                             // Éviter de traiter le même transcript deux fois
-                            if (transcript === lastTranscript) {
+                            if (fullTranscript === lastTranscript || !fullTranscript) {
                                 return;
                             }
-                            lastTranscript = transcript;
+                            lastTranscript = fullTranscript;
+                            
+                            const transcriptLower = fullTranscript.toLowerCase();
 
                             // Vérifier les commandes vocales
                             if (transcriptLower.includes('arrête') || transcriptLower.includes('arrêter')) {
@@ -4187,8 +4198,11 @@
                             
                             // Sinon traiter comme message normal
                             if (!isPaused) {
-                                handleVoiceMessage(transcript);
+                                handleVoiceMessage(fullTranscript);
                             }
+                            
+                            // Réinitialiser le transcript final
+                            finalTranscript = '';
                         }, 1500); // Attendre 1,5 secondes de silence
                     }
                 };
@@ -4237,6 +4251,8 @@
 
                 // Démarrer l'écoute
                 isPaused = false;
+                finalTranscript = ''; // Réinitialiser
+                lastTranscript = '';
                 setTimeout(() => {
                     startVoiceListening();
                 }, 300);
@@ -4254,6 +4270,10 @@
                     voiceInputTimer = null;
                 }
                 
+                // Réinitialiser les transcripts
+                finalTranscript = '';
+                lastTranscript = '';
+                
                 // Arrêter l'écoute
                 stopVoiceListening();
                 
@@ -4263,7 +4283,6 @@
                 }
 
                 voiceState = 'idle';
-                lastTranscript = ''; // Réinitialiser
                 showToast('Mode vocal désactivé', '');
             }
         }
