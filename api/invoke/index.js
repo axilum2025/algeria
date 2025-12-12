@@ -1,5 +1,7 @@
 // 💎 PLAN PRO - Llama 3.3 70B via Groq + Fonctions Azure + RAG
 
+const { analyzeHallucination } = require('./utils/hallucinationDetector');
+
 // Fonction RAG - Recherche Brave
 async function searchBrave(query, apiKey) {
     if (!apiKey) return null;
@@ -112,8 +114,28 @@ Sois concis et utile.${contextFromSearch}`
         const aiResponse = data.choices[0].message.content;
         const responseTime = Date.now() - startTime;
 
-        const hallucinationAnalysis = analyzeHallucination(aiResponse);
-        const metricsText = `\n\n---\n📊 **Métriques de Fiabilité**\nHI: ${hallucinationAnalysis.hi.toFixed(1)}% | CHR: ${hallucinationAnalysis.chr.toFixed(1)}%\n💡 *Plan Pro - ${data.usage?.total_tokens || 0} tokens utilisés*`;
+        // 🛡️ Analyse anti-hallucination avec modèles GRATUITS (Groq/Gemini)
+        const hallucinationAnalysis = await analyzeHallucination(aiResponse, userMessage);
+        
+        // Convertir en pourcentage (0-1 → 0-100)
+        const hiPercent = (hallucinationAnalysis.hi * 100).toFixed(1);
+        const chrPercent = (hallucinationAnalysis.chr * 100).toFixed(1);
+        
+        // Formatter les métriques
+        let metricsText = `\n\n---\n📊 **Métriques de Fiabilité**\nHI: ${hiPercent}% | CHR: ${chrPercent}%`;
+        
+        // Ajouter warning si risque élevé
+        if (hallucinationAnalysis.warning) {
+            metricsText += `\n${hallucinationAnalysis.warning}`;
+        }
+        
+        // Ajouter sources si disponibles
+        if (hallucinationAnalysis.sources && hallucinationAnalysis.sources.length > 0) {
+            metricsText += `\n\n📚 Sources: ${hallucinationAnalysis.sources.join(', ')}`;
+        }
+        
+        metricsText += `\n💡 *Plan Pro - ${data.usage?.total_tokens || 0} tokens utilisés*`;
+        
         const finalResponse = aiResponse + metricsText;
 
         context.res = {
@@ -130,8 +152,12 @@ Sois concis et utile.${contextFromSearch}`
                 completionTokens: data.usage?.completion_tokens || 0,
                 qualityScore: 95,
                 advancedFeatures: true,
-                hallucinationIndex: hallucinationAnalysis.hi,
-                contextHistoryRatio: hallucinationAnalysis.chr
+                hallucinationIndex: parseFloat(hiPercent),
+                contextHistoryRatio: parseFloat(chrPercent),
+                hallucinationClaims: hallucinationAnalysis.claims || [],
+                hallucinationCounts: hallucinationAnalysis.counts || {},
+                hallucinationSources: hallucinationAnalysis.sources || [],
+                hallucinationMethod: hallucinationAnalysis.method || 'unknown'
             }
         };
     } catch (error) {
@@ -139,41 +165,3 @@ Sois concis et utile.${contextFromSearch}`
         context.res = { status: 200, headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }, body: { error: error.message } };
     }
 };
-
-function analyzeHallucination(text) {
-    if (!text || text.length === 0) return { hi: 0, chr: 0 };
-
-    const absoluteWords = ['toujours', 'jamais', 'absolument', 'certainement', 'forcément', 'obligatoirement', 'impossible', 'aucun doute', 'sans aucun doute', 'à 100%', 'totalement', 'complètement', 'définitivement'];
-    const nuanceWords = ['peut-être', 'probablement', 'généralement', 'souvent', 'parfois', 'il semble', 'il semblerait', 'possiblement', 'éventuellement', 'dans certains cas', 'habituellement', 'en général', 'typiquement'];
-    const sourceWords = ['selon', "d'après", 'source', 'étude', 'recherche', 'rapport', 'article', 'données', 'statistique', 'référence'];
-    
-    let absoluteCount = 0, nuanceCount = 0, sourceCount = 0;
-    
-    absoluteWords.forEach(word => {
-        const matches = text.match(new RegExp(`\\b${word}\\b`, 'gi'));
-        if (matches) absoluteCount += matches.length;
-    });
-    
-    nuanceWords.forEach(word => {
-        const matches = text.match(new RegExp(`\\b${word}\\b`, 'gi'));
-        if (matches) nuanceCount += matches.length;
-    });
-    
-    sourceWords.forEach(word => {
-        const matches = text.match(new RegExp(`\\b${word}\\b`, 'gi'));
-        if (matches) sourceCount += matches.length;
-    });
-    
-    const wordCount = text.split(/\s+/).length;
-    const absoluteRatio = (absoluteCount / wordCount) * 100;
-    const nuanceRatio = (nuanceCount / wordCount) * 100;
-    const sourceRatio = (sourceCount / wordCount) * 100;
-    
-    let hi = absoluteRatio * 10 - nuanceRatio * 5 - sourceRatio * 3;
-    hi = Math.max(0, Math.min(100, hi));
-    
-    let chr = (nuanceRatio + sourceRatio) * 5;
-    chr = Math.max(0, Math.min(100, 100 - chr));
-    
-    return { hi: hi, chr: chr };
-}
