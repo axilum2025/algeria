@@ -2445,7 +2445,52 @@
         
         // Get current endpoint based on plan
         function getEndpoint() {
-            return currentPlan === 'free' ? AGENT_ENDPOINT_FREE : AGENT_ENDPOINT_PRO;
+            // 🧪 A/B TESTING: Tester architecture V2 sur un pourcentage d'utilisateurs
+            const V2_ROLLOUT_PERCENTAGE = 0; // 0% = désactivé, 10 = 10%, 100 = 100%
+            
+            // Vérifier si cet utilisateur fait partie du test V2
+            const useV2 = shouldUseV2(V2_ROLLOUT_PERCENTAGE);
+            
+            if (useV2) {
+                // Architecture V2 (scalable)
+                return currentPlan === 'free' ? '/api/invokeFree-v2' : '/api/invoke-v2';
+            } else {
+                // Architecture V1 (actuelle)
+                return currentPlan === 'free' ? AGENT_ENDPOINT_FREE : AGENT_ENDPOINT_PRO;
+            }
+        }
+        
+        // Détermine si cet utilisateur doit utiliser V2
+        function shouldUseV2(percentage) {
+            if (percentage === 0) return false;
+            if (percentage === 100) return true;
+            
+            // Hash stable basé sur user ID ou session
+            const userId = currentUser?.id || sessionStorage.getItem('sessionId') || createSessionId();
+            const hash = simpleHash(userId);
+            
+            return (hash % 100) < percentage;
+        }
+        
+        // Créer un ID de session persistant
+        function createSessionId() {
+            let sessionId = sessionStorage.getItem('sessionId');
+            if (!sessionId) {
+                sessionId = 'session_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+                sessionStorage.setItem('sessionId', sessionId);
+            }
+            return sessionId;
+        }
+        
+        // Hash simple pour distribution stable
+        function simpleHash(str) {
+            let hash = 0;
+            for (let i = 0; i < str.length; i++) {
+                const char = str.charCodeAt(i);
+                hash = ((hash << 5) - hash) + char;
+                hash = hash & hash; // Convert to 32bit integer
+            }
+            return Math.abs(hash);
         }
 
         // State
@@ -2749,7 +2794,14 @@
             try {
                 const requestStart = Date.now();
                 const endpoint = getEndpoint();
+                const isV2 = endpoint.includes('-v2');
+                
                 console.log(`🎯 Using ${currentPlan.toUpperCase()} endpoint:`, endpoint);
+                if (isV2) {
+                    console.log('🧪 Architecture V2 (scalable) utilisée');
+                } else {
+                    console.log('📊 Architecture V1 (actuelle) utilisée');
+                }
                 
                 const response = await fetch(endpoint, {
                     method: 'POST',
@@ -3011,6 +3063,16 @@
                         label: 'Modèle', 
                         value: data.model, 
                         color: '#8B5CF6'
+                    });
+                }
+                
+                // 🧪 Architecture V2 indicator
+                if (data.functionsUsed !== undefined || data.contextTokensEstimated !== undefined) {
+                    metrics.performance.push({
+                        icon: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>', 
+                        label: 'Archi', 
+                        value: 'V2 🚀', 
+                        color: '#10B981'
                     });
                 }
                 
