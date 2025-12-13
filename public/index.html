@@ -3651,15 +3651,125 @@
                 return { handled: true, response };
             }
             
-            // VÉRIFIER DISPONIBILITÉ
+            // VÉRIFIER DISPONIBILITÉ (avec jours spécifiques)
             if (lowerMsg.match(/libre|disponible|occup[ée]/i)) {
-                const todayEvents = getTodayEvents();
+                // Détecter le jour spécifique
+                const dayMap = {
+                    'lundi': 1, 'mardi': 2, 'mercredi': 3, 'jeudi': 4, 'vendredi': 5, 'samedi': 6, 'dimanche': 0,
+                    'aujourd': -1, 'demain': -2
+                };
                 
-                if (todayEvents.length === 0) {
-                    return { handled: true, response: "✅ Vous êtes libre aujourd'hui ! Aucun événement programmé." };
-                } else {
-                    return { handled: true, response: `❌ Vous avez ${todayEvents.length} événement(s) aujourd'hui. Consultez votre calendrier pour plus de détails.` };
+                let targetDate = new Date();
+                let dayName = "aujourd'hui";
+                
+                for (const [day, dayNum] of Object.entries(dayMap)) {
+                    if (lowerMsg.includes(day)) {
+                        if (dayNum === -1) {
+                            // aujourd'hui
+                            dayName = "aujourd'hui";
+                        } else if (dayNum === -2) {
+                            // demain
+                            targetDate.setDate(targetDate.getDate() + 1);
+                            dayName = "demain";
+                        } else {
+                            // Jour spécifique de la semaine
+                            const currentDay = targetDate.getDay();
+                            let daysToAdd = dayNum - currentDay;
+                            if (daysToAdd <= 0) daysToAdd += 7; // Si le jour est passé, prendre la semaine prochaine
+                            targetDate.setDate(targetDate.getDate() + daysToAdd);
+                            dayName = day;
+                        }
+                        break;
+                    }
                 }
+                
+                // Détecter matin/après-midi/soir
+                let timeSlot = "toute la journée";
+                if (lowerMsg.includes('matin')) timeSlot = "matin";
+                else if (lowerMsg.includes('apr[èe]s[-\\s]?midi') || lowerMsg.includes('aprem')) timeSlot = "après-midi";
+                else if (lowerMsg.includes('soir')) timeSlot = "soir";
+                
+                const targetDateStr = targetDate.toISOString().split('T')[0];
+                const dayEvents = userEvents.filter(e => {
+                    const eventDate = new Date(e.startDate).toISOString().split('T')[0];
+                    return eventDate === targetDateStr;
+                });
+                
+                if (dayEvents.length === 0) {
+                    return { handled: true, response: `✅ Vous êtes libre ${dayName}${timeSlot !== "toute la journée" ? " " + timeSlot : ""} ! Aucun événement programmé.` };
+                } else {
+                    let response = `📅 ${dayName.charAt(0).toUpperCase() + dayName.slice(1)}, vous avez ${dayEvents.length} événement(s):\n\n`;
+                    dayEvents.forEach(event => {
+                        const time = new Date(event.startDate).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+                        response += `🕐 ${time} - ${event.title}\n`;
+                    });
+                    return { handled: true, response };
+                }
+            }
+            
+            // PROPOSER DES CRÉNEAUX LIBRES
+            if (lowerMsg.match(/propose|sugg[èe]re.*cr[ée]neaux?|quand.*libre|cr[ée]neaux? disponibles?/i)) {
+                const today = new Date();
+                const slots = [];
+                
+                // Vérifier les 7 prochains jours
+                for (let i = 0; i < 7; i++) {
+                    const checkDate = new Date(today);
+                    checkDate.setDate(today.getDate() + i);
+                    const dateStr = checkDate.toISOString().split('T')[0];
+                    
+                    const dayEvents = userEvents.filter(e => {
+                        const eventDate = new Date(e.startDate).toISOString().split('T')[0];
+                        return eventDate === dateStr;
+                    });
+                    
+                    if (dayEvents.length === 0) {
+                        const dayName = checkDate.toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' });
+                        slots.push(`✅ ${dayName} - Libre toute la journée`);
+                    }
+                }
+                
+                if (slots.length === 0) {
+                    return { handled: true, response: "📅 Votre semaine est bien chargée ! Tous les jours ont des événements. Essayez de consulter les détails pour trouver des plages horaires libres." };
+                }
+                
+                let response = "📅 **Créneaux disponibles cette semaine:**\n\n";
+                response += slots.slice(0, 5).join('\n');
+                
+                return { handled: true, response };
+            }
+            
+            // PLANIFIER LA SEMAINE
+            if (lowerMsg.match(/planifie.*semaine|organise.*semaine|planning.*semaine/i)) {
+                const activeTasks = userTasks.filter(t => !t.completed && !t.dueDate);
+                const weekEvents = getWeekEvents();
+                
+                let response = "📋 **Planning de la semaine:**\n\n";
+                
+                // Afficher les événements existants
+                if (weekEvents.length > 0) {
+                    response += "📅 **Événements programmés:**\n";
+                    weekEvents.forEach(event => {
+                        const date = new Date(event.startDate).toLocaleDateString('fr-FR', { weekday: 'short', day: 'numeric' });
+                        const time = new Date(event.startDate).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+                        response += `• ${date} ${time} - ${event.title}\n`;
+                    });
+                    response += "\n";
+                }
+                
+                // Suggérer d'ajouter des dates aux tâches
+                if (activeTasks.length > 0) {
+                    response += `📝 **Tâches à planifier (${activeTasks.length}):**\n`;
+                    response += "Vous avez des tâches sans date d'échéance:\n";
+                    activeTasks.slice(0, 5).forEach((task, index) => {
+                        response += `${index + 1}. ${task.title}\n`;
+                    });
+                    response += "\n💡 Astuce: Dites 'Ajoute une date à la tâche X' pour les planifier !";
+                } else {
+                    response += "✅ Toutes vos tâches sont planifiées !";
+                }
+                
+                return { handled: true, response };
             }
             
             // Commande non reconnue comme TO DO
