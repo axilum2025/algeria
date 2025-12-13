@@ -2044,28 +2044,35 @@
     <div class="modal" id="forgotPasswordModal">
         <div class="modal-content" style="max-width: 450px;">
             <div class="modal-header">
-                <div class="modal-title">Mot de passe oublié</div>
+                <div class="modal-title">Réinitialiser le mot de passe</div>
                 <button class="close-modal" onclick="closeForgotPasswordModal()">×</button>
             </div>
             <div class="modal-body" style="padding: 24px;">
-                <div style="text-align: center; margin-bottom: 24px;">
+                <div style="text-align: center; margin-bottom: 20px;">
                     <svg style="width: 48px; height: 48px; margin: 0 auto 12px; display: block; color: var(--accent);" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"></path>
                     </svg>
                     <p style="color: var(--text-secondary); font-size: 14px; line-height: 1.6;">
-                        Entrez votre email et nous vous enverrons un nouveau mot de passe.
+                        Entrez votre email et choisissez un nouveau mot de passe
                     </p>
                 </div>
                 <form id="forgotPasswordForm" onsubmit="handleForgotPassword(event)">
-                    <div style="margin-bottom: 24px;">
+                    <div style="margin-bottom: 20px;">
                         <label style="display: block; margin-bottom: 8px; font-weight: 500; color: var(--text-primary);">Email</label>
                         <input type="email" id="forgotPasswordEmail" required 
                             style="width: 100%; padding: 12px; border: 1px solid var(--border-color); border-radius: 8px; background: var(--bg-secondary); color: var(--text-primary); font-size: 14px;" 
                             placeholder="john@example.com">
                     </div>
+                    <div style="margin-bottom: 24px;">
+                        <label style="display: block; margin-bottom: 8px; font-weight: 500; color: var(--text-primary);">Nouveau mot de passe</label>
+                        <input type="password" id="forgotPasswordNew" required minlength="6"
+                            style="width: 100%; padding: 12px; border: 1px solid var(--border-color); border-radius: 8px; background: var(--bg-secondary); color: var(--text-primary); font-size: 14px;" 
+                            placeholder="Minimum 6 caractères">
+                        <p style="margin-top: 6px; color: var(--text-secondary); font-size: 12px;">Minimum 6 caractères</p>
+                    </div>
                     <button type="submit" 
                         style="width: 100%; padding: 12px; background: var(--accent); color: white; border: none; border-radius: 8px; font-weight: 600; font-size: 14px; cursor: pointer; transition: opacity 0.2s;">
-                        Réinitialiser le mot de passe
+                        Changer le mot de passe
                     </button>
                 </form>
                 <div style="text-align: center; margin-top: 16px;">
