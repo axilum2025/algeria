@@ -23,14 +23,25 @@ function detectFunctions(userMessage) {
     const message = userMessage.toLowerCase();
     const functions = [];
     
-    // Détection par mots-clés
+    // Détection par mots-clés (ordre de priorité)
     const patterns = {
-        searchWeb: /cherche|recherche|trouve|infos? sur|google/i,
+        // ✅ Nouvelles fonctions développées
+        excelAssistant: /excel|formule|tableau|spreadsheet|cellule|colonne|somme|moyenne/i,
+        translate: /traduis|traduction|translate|en anglais|en français|en espagnol|langue/i,
+        taskManager: /tâche|to-?do|rappelle|note|ajoute.*liste|gérer.*tâche/i,
+        
+        // 🖼️ Fonctions existantes
         generateImage: /génère|crée|dessine|image|photo|illustration/i,
-        calendar: /calendrier|rendez-vous|réunion|planning|disponible/i,
-        task: /tâche|to-?do|rappelle|note|ajoute.*liste/i,
-        translate: /traduis|traduction|en anglais|en français/i,
-        analyzeDocument: /analyse.*document|extrait.*données|ocr/i
+        analyzeImage: /analyse.*image|décris.*image|que vois-tu|reconnaissance/i,
+        searchWeb: /cherche|recherche|trouve|infos? sur|google|brave/i,
+        calendar: /calendrier|rendez-vous|réunion|planning|disponible|événement/i,
+        analyzeDocument: /analyse.*document|extrait.*données|ocr|pdf|scan/i,
+        
+        // 📧 Fonctions communication
+        sendEmail: /envoie|envoi|mail|email|message/i,
+        
+        // 🔢 Calculs et données
+        calculate: /calcul|combien|résultat|équation|mathématique/i
     };
     
     for (const [func, pattern] of Object.entries(patterns)) {
