@@ -25,9 +25,14 @@ module.exports = async function (context, req) {
         
         // Stocker le token avec expiration 24h
         if (token) {
-            const expiresAt = Date.now() + (24 * 60 * 60 * 1000); // 24 heures
-            await storeCode(token, email, expiresAt);
-            context.log(`💾 Token stocké pour ${email}, expire dans 24h`);
+            try {
+                const expiresAt = Date.now() + (24 * 60 * 60 * 1000); // 24 heures
+                await storeCode(token, email, expiresAt);
+                context.log(`💾 Token stocké pour ${email}, expire dans 24h`);
+            } catch (storageError) {
+                context.log.error(`⚠️ Erreur stockage token (continuons quand même):`, storageError.message);
+                // On continue quand même pour envoyer l'email
+            }
         }
         
         // ========== Envoi d'email ==========
