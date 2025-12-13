@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "description": "Azure Functions API for Axilum Agent",
   "engines": {
-    "node": ">=20.0.0"
+    "node": ">=18.0.0"
   },
   "scripts": {
     "start": "func start",
