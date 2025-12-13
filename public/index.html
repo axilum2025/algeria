@@ -2459,6 +2459,10 @@
         let currentUser = JSON.parse(localStorage.getItem('currentUser') || 'null');
         let users = JSON.parse(localStorage.getItem('users') || '[]');
         
+        // 📅 Système To Do - Tâches et Calendrier
+        let userTasks = JSON.parse(localStorage.getItem('userTasks') || '[]');
+        let userEvents = JSON.parse(localStorage.getItem('userEvents') || '[]');
+        
         // Email Verification
         let pendingUser = null;
 
@@ -2681,6 +2685,17 @@
             const input = document.getElementById('userInput');
             const message = input.value.trim();
             if (!message) return;
+
+            // 📅 DÉTECTION AUTOMATIQUE DES COMMANDES TO DO
+            const todoResult = detectAndHandleTodoCommand(message);
+            if (todoResult.handled) {
+                addMessage(message, 'user');
+                addMessage(todoResult.response, 'bot');
+                input.value = '';
+                adjustTextareaHeight();
+                saveMessage(message, { response: todoResult.response });
+                return;
+            }
 
             // Fermer la sidebar automatiquement
             closeSidebar();
@@ -3397,6 +3412,260 @@
             localStorage.setItem('conversations', JSON.stringify(conversations));
         }
 
+        // 📅 SYSTÈME TO DO - Gestion des tâches et événements
+        
+        function saveTasks() {
+            localStorage.setItem('userTasks', JSON.stringify(userTasks));
+        }
+        
+        function saveEvents() {
+            localStorage.setItem('userEvents', JSON.stringify(userEvents));
+        }
+        
+        // Ajouter une tâche
+        function addTask(title, dueDate = null, priority = 'normal') {
+            const task = {
+                id: Date.now(),
+                title: title,
+                completed: false,
+                createdAt: new Date().toISOString(),
+                dueDate: dueDate,
+                priority: priority, // 'low', 'normal', 'high'
+                userId: currentUser?.email || 'guest'
+            };
+            userTasks.push(task);
+            saveTasks();
+            return task;
+        }
+        
+        // Marquer tâche comme terminée
+        function completeTask(taskId) {
+            const task = userTasks.find(t => t.id === taskId);
+            if (task) {
+                task.completed = true;
+                task.completedAt = new Date().toISOString();
+                saveTasks();
+                return true;
+            }
+            return false;
+        }
+        
+        // Supprimer une tâche
+        function deleteTask(taskId) {
+            userTasks = userTasks.filter(t => t.id !== taskId);
+            saveTasks();
+        }
+        
+        // Obtenir tâches du jour
+        function getTodayTasks() {
+            const today = new Date().toISOString().split('T')[0];
+            return userTasks.filter(t => {
+                if (!t.dueDate) return false;
+                const taskDate = new Date(t.dueDate).toISOString().split('T')[0];
+                return taskDate === today && !t.completed;
+            });
+        }
+        
+        // Ajouter un événement au calendrier
+        function addEvent(title, startDate, endDate = null, description = '') {
+            const event = {
+                id: Date.now(),
+                title: title,
+                startDate: startDate,
+                endDate: endDate || startDate,
+                description: description,
+                createdAt: new Date().toISOString(),
+                userId: currentUser?.email || 'guest'
+            };
+            userEvents.push(event);
+            saveEvents();
+            return event;
+        }
+        
+        // Supprimer un événement
+        function deleteEvent(eventId) {
+            userEvents = userEvents.filter(e => e.id !== eventId);
+            saveEvents();
+        }
+        
+        // Obtenir événements du jour
+        function getTodayEvents() {
+            const today = new Date().toISOString().split('T')[0];
+            return userEvents.filter(e => {
+                const eventDate = new Date(e.startDate).toISOString().split('T')[0];
+                return eventDate === today;
+            });
+        }
+        
+        // Obtenir événements de la semaine
+        function getWeekEvents() {
+            const today = new Date();
+            const weekEnd = new Date(today.getTime() + 7 * 24 * 60 * 60 * 1000);
+            return userEvents.filter(e => {
+                const eventDate = new Date(e.startDate);
+                return eventDate >= today && eventDate <= weekEnd;
+            });
+        }
+        
+        // Vérifier disponibilité
+        function isAvailable(date, startTime, endTime) {
+            const checkDate = new Date(date).toISOString().split('T')[0];
+            const conflicts = userEvents.filter(e => {
+                const eventDate = new Date(e.startDate).toISOString().split('T')[0];
+                return eventDate === checkDate;
+            });
+            return conflicts.length === 0;
+        }
+        
+        // 🤖 DÉTECTION INTELLIGENTE DES COMMANDES TO DO
+        function detectAndHandleTodoCommand(message) {
+            const lowerMsg = message.toLowerCase();
+            
+            // AJOUTER UNE TÂCHE
+            if (lowerMsg.match(/ajoute|cr[ée]e.*t[aâ]che|nouvelle t[aâ]che|note|rappel/i)) {
+                // Extraire le titre de la tâche
+                let taskTitle = message.replace(/(ajoute|cr[ée]e|nouvelle|t[aâ]che|note|rappel|à|mes|ma|une|un)/gi, '').trim();
+                
+                if (taskTitle.length < 3) {
+                    return { handled: true, response: "❓ Quelle tâche voulez-vous ajouter ? Exemple: 'Ajoute appeler le client à mes tâches'" };
+                }
+                
+                const task = addTask(taskTitle);
+                return { 
+                    handled: true, 
+                    response: `✅ Tâche ajoutée: "${task.title}"\n\n📋 Vous avez maintenant ${userTasks.filter(t => !t.completed).length} tâche(s) active(s).` 
+                };
+            }
+            
+            // MONTRER LES TÂCHES
+            if (lowerMsg.match(/montre|affiche|liste.*t[aâ]ches?|mes t[aâ]ches|t[aâ]ches? du jour/i)) {
+                const activeTasks = userTasks.filter(t => !t.completed);
+                
+                if (activeTasks.length === 0) {
+                    return { handled: true, response: "✅ Aucune tâche en cours ! Vous êtes à jour. 🎉" };
+                }
+                
+                let response = `📋 **Vos tâches** (${activeTasks.length}):\n\n`;
+                activeTasks.forEach((task, index) => {
+                    const priority = task.priority === 'high' ? '🔴' : task.priority === 'low' ? '🔵' : '🟡';
+                    response += `${index + 1}. ${priority} ${task.title}`;
+                    if (task.dueDate) {
+                        const dueDate = new Date(task.dueDate);
+                        response += ` (📅 ${dueDate.toLocaleDateString('fr-FR')})`;
+                    }
+                    response += `\n`;
+                });
+                
+                return { handled: true, response };
+            }
+            
+            // MARQUER TÂCHE COMME TERMINÉE
+            if (lowerMsg.match(/termin[ée]|fait|compl[ée]t[ée]|marque.*fait/i)) {
+                const activeTasks = userTasks.filter(t => !t.completed);
+                
+                if (activeTasks.length === 0) {
+                    return { handled: true, response: "Vous n'avez pas de tâches en cours." };
+                }
+                
+                // Tenter d'extraire le numéro de tâche
+                const numMatch = message.match(/\\d+/);
+                if (numMatch) {
+                    const taskNum = parseInt(numMatch[0]) - 1;
+                    if (taskNum >= 0 && taskNum < activeTasks.length) {
+                        completeTask(activeTasks[taskNum].id);
+                        return { handled: true, response: `✅ Tâche "${activeTasks[taskNum].title}" marquée comme terminée !` };
+                    }
+                }
+                
+                // Sinon marquer la première tâche
+                completeTask(activeTasks[0].id);
+                return { handled: true, response: `✅ Tâche "${activeTasks[0].title}" marquée comme terminée !` };
+            }
+            
+            // AJOUTER UN ÉVÉNEMENT / RDV
+            if (lowerMsg.match(/cr[ée]e.*r[ée]union|rendez[- ]vous|[ée]v[ée]nement|planifie/i)) {
+                // Extraire les détails basiques
+                let eventTitle = message.replace(/(cr[ée]e|nouvelle|un|une|r[ée]union|rendez[- ]vous|[ée]v[ée]nement|à)/gi, '').trim();
+                
+                // Détection de date simple
+                const tomorrow = lowerMsg.includes('demain');
+                const today = lowerMsg.includes('aujourd');
+                
+                let startDate = new Date();
+                if (tomorrow) {
+                    startDate.setDate(startDate.getDate() + 1);
+                    eventTitle = eventTitle.replace(/demain/gi, '').trim();
+                } else if (!today) {
+                    // Date par défaut aujourd'hui
+                }
+                
+                // Détection d'heure
+                const timeMatch = message.match(/(\\d{1,2})h(\\d{2})?/);
+                if (timeMatch) {
+                    startDate.setHours(parseInt(timeMatch[1]));
+                    if (timeMatch[2]) startDate.setMinutes(parseInt(timeMatch[2]));
+                }
+                
+                if (eventTitle.length < 3) {
+                    eventTitle = "Réunion";
+                }
+                
+                const event = addEvent(eventTitle, startDate.toISOString());
+                const dateStr = new Date(event.startDate).toLocaleString('fr-FR');
+                
+                return { 
+                    handled: true, 
+                    response: `📅 Événement créé: "${event.title}"\n🕐 Date: ${dateStr}\n\n✅ Ajouté à votre calendrier !` 
+                };
+            }
+            
+            // MONTRER LE CALENDRIER
+            if (lowerMsg.match(/calendrier|emploi du temps|planning|rendez[- ]vous|[ée]v[ée]nements/i)) {
+                const todayEvents = getTodayEvents();
+                const weekEvents = getWeekEvents();
+                
+                let response = "";
+                
+                if (todayEvents.length > 0) {
+                    response += `📅 **Aujourd'hui** (${todayEvents.length}):\n\n`;
+                    todayEvents.forEach(event => {
+                        const time = new Date(event.startDate).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+                        response += `🕐 ${time} - ${event.title}\n`;
+                    });
+                    response += "\n";
+                }
+                
+                if (weekEvents.length > todayEvents.length) {
+                    response += `📆 **Cette semaine** (${weekEvents.length} événements):\n\n`;
+                    weekEvents.forEach(event => {
+                        const date = new Date(event.startDate).toLocaleDateString('fr-FR');
+                        const time = new Date(event.startDate).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+                        response += `• ${date} à ${time} - ${event.title}\n`;
+                    });
+                }
+                
+                if (response === "") {
+                    response = "📅 Votre calendrier est vide. Aucun événement programmé pour le moment.";
+                }
+                
+                return { handled: true, response };
+            }
+            
+            // VÉRIFIER DISPONIBILITÉ
+            if (lowerMsg.match(/libre|disponible|occup[ée]/i)) {
+                const todayEvents = getTodayEvents();
+                
+                if (todayEvents.length === 0) {
+                    return { handled: true, response: "✅ Vous êtes libre aujourd'hui ! Aucun événement programmé." };
+                } else {
+                    return { handled: true, response: `❌ Vous avez ${todayEvents.length} événement(s) aujourd'hui. Consultez votre calendrier pour plus de détails.` };
+                }
+            }
+            
+            // Commande non reconnue comme TO DO
+            return { handled: false };
+        }
+
     function saveMessage(userMsg, botData) {
         // S'assurer qu'une conversation existe
         if (!currentConversationId) {
@@ -3739,65 +4008,114 @@
 
         // Office Pro - Utilisation ultra-simple via chat
         function openOfficePro() {
+            // Rafraîchir les données
+            const activeTasks = userTasks.filter(t => !t.completed);
+            const completedTasks = userTasks.filter(t => t.completed);
+            const todayEvents = getTodayEvents();
+            const weekEvents = getWeekEvents();
+            
+            let tasksHTML = '';
+            if (activeTasks.length === 0) {
+                tasksHTML = '<div style="padding: 20px; text-align: center; color: var(--text-secondary);">✅ Aucune tâche en cours</div>';
+            } else {
+                activeTasks.forEach((task, index) => {
+                    const priority = task.priority === 'high' ? '🔴' : task.priority === 'low' ? '🔵' : '🟡';
+                    const dueStr = task.dueDate ? new Date(task.dueDate).toLocaleDateString('fr-FR') : '';
+                    tasksHTML += `
+                        <div style="display: flex; align-items: center; padding: 12px; background: var(--bg-secondary); border-radius: 8px; margin-bottom: 8px; border-left: 3px solid ${task.priority === 'high' ? '#EF4444' : task.priority === 'low' ? '#3B82F6' : '#F59E0B'};">
+                            <span style="flex: 1; color: var(--text-primary);">${priority} ${task.title}</span>
+                            ${dueStr ? `<span style="color: var(--text-secondary); font-size: 12px; margin-right: 12px;">📅 ${dueStr}</span>` : ''}
+                            <button onclick="completeTaskUI(${task.id})" style="padding: 6px 12px; background: #10B981; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 12px;">✓ Fait</button>
+                        </div>
+                    `;
+                });
+            }
+            
+            let eventsHTML = '';
+            if (todayEvents.length === 0) {
+                eventsHTML = '<div style="padding: 20px; text-align: center; color: var(--text-secondary);">📅 Aucun événement aujourd\'hui</div>';
+            } else {
+                todayEvents.forEach(event => {
+                    const time = new Date(event.startDate).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+                    eventsHTML += `
+                        <div style="padding: 12px; background: var(--bg-secondary); border-radius: 8px; margin-bottom: 8px; border-left: 3px solid #3B82F6;">
+                            <div style="font-weight: 600; color: var(--text-primary); margin-bottom: 4px;">${event.title}</div>
+                            <div style="color: var(--text-secondary); font-size: 13px;">🕐 ${time}</div>
+                        </div>
+                    `;
+                });
+            }
+            
             const content = `
-                <div style="padding: 28px; max-width: 600px; margin: 0 auto;">
-                    <div style="background: linear-gradient(135deg, rgba(59, 130, 246, 0.12) 0%, rgba(99, 102, 241, 0.12) 100%); padding: 22px; border-radius: 14px; margin-bottom: 22px; border: 1px solid rgba(59, 130, 246, 0.25); box-shadow: 0 4px 12px rgba(59, 130, 246, 0.1);">
-                        <p style="margin: 0; color: var(--text-primary); font-size: 15px; line-height: 1.7; font-weight: 500;">
-                            Gérez votre calendrier, tâches et planning directement en parlant. Simple, rapide, efficace.
-                        </p>
-                    </div>
-
-                    <div style="background: linear-gradient(135deg, rgba(16, 185, 129, 0.08) 0%, rgba(59, 130, 246, 0.08) 100%); padding: 20px; border-radius: 14px; margin-bottom: 22px; border: 1px solid rgba(59, 130, 246, 0.2);">
-                        <h4 style="margin: 0 0 10px 0; color: var(--text-primary); font-size: 16px; font-weight: 600;">Utilisation ultra-simple</h4>
-                        <p style="margin: 0; color: var(--text-secondary); line-height: 1.7; font-size: 14px;">
-                            Parlez naturellement dans le chat. L'IA comprend vos demandes et agit instantanément.
-                        </p>
-                    </div>
-
-                    <div style="display: grid; gap: 16px; margin-bottom: 22px;">
-                        <div style="background: var(--bg-secondary); padding: 18px; border-radius: 14px; border-left: 4px solid #3B82F6; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05); transition: transform 0.2s, box-shadow 0.2s;">
-                            <div style="font-weight: 600; color: var(--text-primary); margin-bottom: 10px; font-size: 16px;">Calendrier</div>
-                            <div style="color: var(--text-secondary); font-size: 13px; line-height: 1.9;">
-                                <div style="margin-bottom: 5px; padding-left: 8px;">"Montre mon calendrier de la semaine"</div>
-                                <div style="margin-bottom: 5px; padding-left: 8px;">"Crée une réunion demain à 14h"</div>
-                                <div style="padding-left: 8px;">"Suis-je libre vendredi matin ?"</div>
-                            </div>
+                <div style="padding: 20px; max-width: 800px; margin: 0 auto;">
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 16px; margin-bottom: 24px;">
+                        <div style="background: linear-gradient(135deg, #3B82F6 0%, #2563EB 100%); padding: 20px; border-radius: 12px; color: white; text-align: center;">
+                            <div style="font-size: 32px; font-weight: 700;">${activeTasks.length}</div>
+                            <div style="opacity: 0.9;">Tâches actives</div>
                         </div>
-
-                        <div style="background: var(--bg-secondary); padding: 18px; border-radius: 14px; border-left: 4px solid #10B981; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05); transition: transform 0.2s, box-shadow 0.2s;">
-                            <div style="font-weight: 600; color: var(--text-primary); margin-bottom: 10px; font-size: 16px;">Tâches</div>
-                            <div style="color: var(--text-secondary); font-size: 13px; line-height: 1.9;">
-                                <div style="margin-bottom: 5px; padding-left: 8px;">"Ajoute 'Appeler le client' à mes tâches"</div>
-                                <div style="margin-bottom: 5px; padding-left: 8px;">"Montre mes tâches du jour"</div>
-                                <div style="padding-left: 8px;">"Marque la tâche X comme terminée"</div>
-                            </div>
+                        <div style="background: linear-gradient(135deg, #10B981 0%, #059669 100%); padding: 20px; border-radius: 12px; color: white; text-align: center;">
+                            <div style="font-size: 32px; font-weight: 700;">${completedTasks.length}</div>
+                            <div style="opacity: 0.9;">Tâches terminées</div>
                         </div>
-
-                        <div style="background: var(--bg-secondary); padding: 18px; border-radius: 14px; border-left: 4px solid #F59E0B; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05); transition: transform 0.2s, box-shadow 0.2s;">
-                            <div style="font-weight: 600; color: var(--text-primary); margin-bottom: 10px; font-size: 16px;">Planning</div>
-                            <div style="color: var(--text-secondary); font-size: 13px; line-height: 1.9;">
-                                <div style="margin-bottom: 5px; padding-left: 8px;">"Planifie ma semaine de travail"</div>
-                                <div style="margin-bottom: 5px; padding-left: 8px;">"Quels sont mes rendez-vous aujourd'hui ?"</div>
-                                <div style="padding-left: 8px;">"Propose des créneaux pour une réunion"</div>
-                            </div>
+                        <div style="background: linear-gradient(135deg, #F59E0B 0%, #D97706 100%); padding: 20px; border-radius: 12px; color: white; text-align: center;">
+                            <div style="font-size: 32px; font-weight: 700;">${weekEvents.length}</div>
+                            <div style="opacity: 0.9;">Événements cette semaine</div>
                         </div>
                     </div>
-
-                    <div style="padding: 20px; background: linear-gradient(135deg, rgba(16, 185, 129, 0.08) 0%, rgba(59, 130, 246, 0.08) 100%); border-radius: 14px; border: 1px solid rgba(59, 130, 246, 0.2); margin-bottom: 26px;">
-                        <div style="font-weight: 600; color: var(--text-primary); margin-bottom: 10px; font-size: 16px;">Comment ça marche</div>
+                    
+                    <div style="background: var(--bg-secondary); padding: 20px; border-radius: 12px; margin-bottom: 20px;">
+                        <h3 style="margin: 0 0 16px 0; color: var(--text-primary); display: flex; align-items: center; gap: 8px;">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M9 11l3 3L22 4"/>
+                                <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>
+                            </svg>
+                            Mes Tâches
+                        </h3>
+                        ${tasksHTML}
+                    </div>
+                    
+                    <div style="background: var(--bg-secondary); padding: 20px; border-radius: 12px; margin-bottom: 20px;">
+                        <h3 style="margin: 0 0 16px 0; color: var(--text-primary); display: flex; align-items: center; gap: 8px;">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+                                <line x1="16" y1="2" x2="16" y2="6"/>
+                                <line x1="8" y1="2" x2="8" y2="6"/>
+                                <line x1="3" y1="10" x2="21" y2="10"/>
+                            </svg>
+                            Aujourd'hui
+                        </h3>
+                        ${eventsHTML}
+                    </div>
+                    
+                    <div style="background: linear-gradient(135deg, rgba(59, 130, 246, 0.08) 0%, rgba(99, 102, 241, 0.08) 100%); padding: 20px; border-radius: 12px; border: 1px solid rgba(59, 130, 246, 0.2);">
+                        <h4 style="margin: 0 0 10px 0; color: var(--text-primary); font-size: 16px;">💬 Commandes vocales</h4>
                         <p style="margin: 0; color: var(--text-secondary); font-size: 14px; line-height: 1.7;">
-                            Fermez cette fenêtre et parlez simplement dans le chat. L'IA détecte automatiquement vos demandes et vous aide instantanément.
+                            Dites simplement:<br>
+                            • "Ajoute acheter du pain à mes tâches"<br>
+                            • "Montre mes tâches"<br>
+                            • "Crée une réunion demain à 14h"<br>
+                            • "Montre mon calendrier"<br>
+                            • "Suis-je libre aujourd'hui ?"
                         </p>
                     </div>
-
-                    <div style="display: flex; gap: 12px; margin-top: 26px;">
-                        <button class="new-chat-btn" onclick="closeGenericModal(); setTimeout(() => document.getElementById('messageInput').focus(), 300);" style="flex: 2.5; font-weight: 600; font-size: 15px; padding: 14px 24px; box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);">
-                            Commencer à parler
-                        </button>
-                        <button class="new-chat-btn" style="flex: 1; background: var(--bg-secondary); color: var(--text-primary); font-weight: 500; border: 1px solid var(--border-color); font-size: 14px; padding: 14px 20px;" onclick="closeGenericModal()">
+                    
+                    <div style="text-align: center; margin-top: 20px;">
+                        <button class="new-chat-btn" onclick="closeGenericModal()" style="padding: 12px 32px;">
                             Fermer
                         </button>
                     </div>
+                </div>
+            `;
+            
+            showGenericModal('📋 To Do - Calendrier & Tâches', content);
+        }
+        
+        // Fonction helper pour compléter une tâche depuis l'UI
+        function completeTaskUI(taskId) {
+            completeTask(taskId);
+            showToast('✅ Tâche terminée !', 'success');
+            openOfficePro(); // Rafraîchir l'affichage
+        }
                 </div>
             `;
             showGenericModal('', content);
