@@ -30,21 +30,19 @@ module.exports = async function (context, req) {
             context.log(`💾 Token stocké pour ${email}, expire dans 24h`);
         }
         
-        // Retourner immédiatement
-        context.res = {
-            status: 200,
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                success: true,
-                message: 'Email envoyé'
-            })
-        };
-        
-        // ========== Envoi d'email en arrière-plan ==========
+        // ========== Envoi d'email ==========
         const apiKey = process.env.SENDGRID_API_KEY;
         
         if (!apiKey) {
-            context.log.warn('⚠️ SENDGRID_API_KEY non configuré');
+            context.log.error('❌ SENDGRID_API_KEY non configuré');
+            context.res = {
+                status: 500,
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ 
+                    error: 'Configuration email manquante',
+                    success: false
+                })
+            };
             return;
         }
         
@@ -107,14 +105,31 @@ module.exports = async function (context, req) {
         
         context.log(`📤 Envoi d'email à ${email}...`);
         
-        // Envoyer en arrière-plan
-        sgMail.send(emailMessage)
-            .then(() => {
-                context.log(`✅ Email envoyé à ${email}`);
-            })
-            .catch(err => {
-                context.log.error(`❌ Erreur SendGrid:`, err.message);
-            });
+        // Envoyer l'email et attendre
+        try {
+            await sgMail.send(emailMessage);
+            context.log(`✅ Email envoyé à ${email}`);
+            
+            context.res = {
+                status: 200,
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    success: true,
+                    message: 'Email envoyé avec succès'
+                })
+            };
+        } catch (sendError) {
+            context.log.error(`❌ Erreur SendGrid:`, sendError.response?.body || sendError.message);
+            context.res = {
+                status: 500,
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ 
+                    error: 'Erreur envoi email',
+                    details: sendError.message,
+                    success: false
+                })
+            };
+        }
         
     } catch (error) {
         context.log.error('❌ Erreur:', error.message);
