@@ -5051,13 +5051,16 @@
             }
             
             // Créer l'utilisateur
+            const verificationCode = Math.floor(100000 + Math.random() * 900000).toString(); // Code 6 chiffres
             const newUser = {
                 id: Date.now().toString(),
                 name,
                 email,
                 password,
                 createdAt: Date.now(),
-                emailVerified: false, // À vérifier par email
+                emailVerified: false,
+                verificationCode: verificationCode,
+                codeExpiresAt: Date.now() + (24 * 60 * 60 * 1000), // 24 heures
                 role: 'free'
             };
             
@@ -5069,18 +5072,15 @@
             localStorage.setItem('currentUser', JSON.stringify(currentUser));
             
             closeSignupModal();
-            showToast(`🎉 Bienvenue ${name} ! Un email de vérification a été envoyé.`, 'success');
-            updateUIForAuth();
-            newConversation();
-            
-            // Envoyer l'email de vérification en arrière-plan (ne bloque pas)
-            sendVerificationEmailWithToken(name, email);
-            
-            closeSignupModal();
-            showToast(`🎉 Bienvenue ${name} ! Votre compte est créé.`, 'success');
+            showToast(`🎉 Bienvenue ${name} ! Un email avec votre code de vérification a été envoyé.`, 'success');
             updateUIForAuth();
             
-            newConversation();
+            // Envoyer l'email de vérification en arrière-plan
+            sendVerificationEmail(name, email, verificationCode);
+            
+            // Afficher le modal de vérification
+            setTimeout(() => showVerificationModal(email), 1000);
+            
             newConversation();
         }
 
@@ -5170,15 +5170,8 @@
         }
         
         // Envoyer email de vérification avec lien (token)
-        async function sendVerificationEmailWithToken(name, email) {
+        async function sendVerificationEmail(name, email, verificationCode) {
             try {
-                // Générer un token unique
-                const token = generateVerificationToken();
-                const verifyLink = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
-                    ? `http://localhost:3000/verify-email.html?token=${token}`
-                    : `${window.location.origin}/verify-email.html?token=${token}`;
-                
-                // Construire le message avec le lien
                 const emailApiEndpoint = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
                     ? 'http://localhost:7071/api/send-verification-email'
                     : '/api/send-verification-email';
@@ -5189,9 +5182,7 @@
                     body: JSON.stringify({ 
                         name, 
                         email,
-                        verifyLink,
-                        token,
-                        isVerificationLink: true
+                        verificationCode
                     })
                 });
 
@@ -5204,10 +5195,6 @@
                 console.error('⚠️ Erreur envoi email:', error);
             }
         }
-        
-        async function sendVerificationEmail(name, email) {
-            try {
-                showToast('📧 Envoi du code de vérification...', '');
 
                 const emailApiEndpoint = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
                     ? 'http://localhost:7071/api/send-verification-email'
@@ -5241,22 +5228,16 @@
             }
         }
         
-        function showVerificationModal(devCode = null) {
+        function showVerificationModal(email) {
             const modal = document.getElementById('verificationModal');
             const displayCodeElement = document.getElementById('displayedCode');
             const displayCodeContainer = displayCodeElement.closest('div[style*="background: rgba(59, 130, 246, 0.1)"]');
             
-            document.getElementById('verificationEmail').textContent = pendingUser.email;
+            document.getElementById('verificationEmail').textContent = email;
             document.getElementById('verificationCode').value = '';
             
-            // Afficher le code uniquement en mode développement
-            if (devCode) {
-                displayCodeElement.textContent = devCode;
-                displayCodeContainer.style.display = 'block';
-            } else {
-                // Mode production - masquer le code
-                displayCodeContainer.style.display = 'none';
-            }
+            // Masquer le code en production (sera envoyé par email)
+            displayCodeContainer.style.display = 'none';
             
             modal.classList.add('show');
             
@@ -5264,7 +5245,6 @@
             setTimeout(() => {
                 document.getElementById('verificationCode').focus();
             }, 100);
-            
         }
         
         function closeVerificationModal() {
@@ -5277,10 +5257,37 @@
             event.preventDefault();
             
             const enteredCode = document.getElementById('verificationCode').value.trim();
-            const email = pendingUser.email;
-
-            // Appeler l'API pour vérifier le code côté serveur
-            await verifyCodeOnServer(email, enteredCode);
+            
+            // Chercher l'utilisateur avec cet email
+            const user = users.find(u => u.email === currentUser.email && !u.emailVerified);
+            
+            if (!user) {
+                showToast('❌ Utilisateur non trouvé', 'error');
+                return;
+            }
+            
+            // Vérifier l'expiration
+            if (Date.now() > user.codeExpiresAt) {
+                showToast('❌ Code expiré. Demandez un nouveau code.', 'error');
+                return;
+            }
+            
+            // Vérifier le code
+            if (enteredCode === user.verificationCode) {
+                // Code correct !
+                user.emailVerified = true;
+                delete user.verificationCode;
+                delete user.codeExpiresAt;
+                localStorage.setItem('users', JSON.stringify(users));
+                
+                closeVerificationModal();
+                showToast(`✅ Email vérifié ! Bienvenue ${user.name} !`, 'success');
+            } else {
+                // Code incorrect
+                showToast('❌ Code de vérification incorrect', 'error');
+                document.getElementById('verificationCode').value = '';
+                document.getElementById('verificationCode').focus();
+            }
         }
 
         async function verifyCodeOnServer(email, code) {
@@ -5334,22 +5341,32 @@
         }
         
         async function resendVerificationCode() {
-            if (!pendingUser) return;
+            if (!currentUser) return;
+            
+            const user = users.find(u => u.email === currentUser.email);
+            if (!user) return;
             
             showToast('📧 Renvoi du code...', '');
             
             try {
-                await sendVerificationEmail(pendingUser.name, pendingUser.email);
+                // Générer nouveau code
+                const newCode = Math.floor(100000 + Math.random() * 900000).toString();
+                user.verificationCode = newCode;
+                user.codeExpiresAt = Date.now() + (24 * 60 * 60 * 1000);
+                localStorage.setItem('users', JSON.stringify(users));
+                
+                // Envoyer par email
+                await sendVerificationEmail(user.name, user.email, newCode);
                 document.getElementById('verificationCode').value = '';
+                showToast('✅ Nouveau code envoyé !', 'success');
             } catch (error) {
                 showToast('❌ Erreur lors du renvoi', 'error');
             }
         }
         
         function cancelVerification() {
-            pendingUser = null;
             closeVerificationModal();
-            showToast('Inscription annulée.', '');
+            showToast('Vous pourrez vérifier votre email plus tard.', '');
         }
 
         // ========== AUTHENTICATION & USER MGMT ==========

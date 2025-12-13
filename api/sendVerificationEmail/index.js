@@ -10,7 +10,7 @@ module.exports = async function (context, req) {
     context.log('📧 Send Verification Email function triggered');
     
     try {
-        const { email, name, verifyLink, token, isVerificationLink } = req.body;
+        const { email, name, verificationCode } = req.body;
         
         if (!email) {
             context.res = {
@@ -21,14 +21,16 @@ module.exports = async function (context, req) {
             return;
         }
         
-        context.log(`✅ Préparation d'email pour ${email}`);
-        
-        // Stocker le token avec expiration 24h
-        if (token) {
-            const expiresAt = Date.now() + (24 * 60 * 60 * 1000); // 24 heures
-            await storeCode(token, email, expiresAt);
-            context.log(`💾 Token stocké pour ${email}, expire dans 24h`);
+        if (!verificationCode) {
+            context.res = {
+                status: 400,
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ error: 'Code de vérification requis' })
+            };
+            return;
         }
+        
+        context.log(`✅ Envoi du code ${verificationCode} à ${email}`);
         
         // ========== Envoi d'email ==========
         const apiKey = process.env.SENDGRID_API_KEY;
@@ -52,8 +54,8 @@ module.exports = async function (context, req) {
         const emailMessage = {
             to: email,
             from: process.env.SENDGRID_SENDER || 'noreply@axilum.ai',
-            subject: 'Vérifiez votre email Axilum AI',
-            text: `Bonjour ${name || 'utilisateur'},\n\nBienvenue sur Axilum AI !\n\nCliquez sur le lien ci-dessous pour vérifier votre adresse email:\n${verifyLink}\n\nCe lien expire dans 24 heures.\n\nSi vous n'avez pas créé ce compte, ignorez cet email.\n\nCordialement,\nL'équipe Axilum AI`,
+            subject: 'Votre code de vérification Axilum AI',
+            text: `Bonjour ${name || 'utilisateur'},\n\nBienvenue sur Axilum AI !\n\nVotre code de vérification est :\n\n${verificationCode}\n\nCe code expire dans 24 heures.\n\nSi vous n'avez pas créé ce compte, ignorez cet email.\n\nCordialement,\nL'équipe Axilum AI`,
             html: `
                 <!DOCTYPE html>
                 <html>
@@ -79,16 +81,17 @@ module.exports = async function (context, req) {
                         </div>
                         <div class="content">
                             <p>Bonjour <strong>${name || 'utilisateur'}</strong>,</p>
-                            <p>Bienvenue sur <strong>Axilum AI</strong> ! Pour finaliser la création de votre compte, veuillez vérifier votre adresse email en cliquant sur le bouton ci-dessous:</p>
+                            <p>Bienvenue sur <strong>Axilum AI</strong> ! Pour finaliser la création de votre compte, entrez ce code de vérification dans l'application :</p>
                             
-                            <div class="button-box">
-                                <a href="${verifyLink}" class="button">✅ Vérifier mon email</a>
+                            <div style="text-align: center; margin: 40px 0;">
+                                <div style="font-size: 48px; font-weight: bold; letter-spacing: 8px; color: #667eea; background: white; padding: 20px; border-radius: 10px; display: inline-block;">
+                                    ${verificationCode}
+                                </div>
                             </div>
                             
-                            <p>Ou copiez et collez ce lien dans votre navigateur:</p>
-                            <div class="link-text">${verifyLink}</div>
+                            <p style="text-align: center; color: #666; font-size: 14px;">Entrez ce code dans l'application pour vérifier votre email</p>
                             
-                            <p style="margin-top: 20px;"><span class="timer">⏰ Ce lien expire dans 24 heures.</span></p>
+                            <p style="margin-top: 20px;"><span class="timer">⏰ Ce code expire dans 24 heures.</span></p>
                             
                             <p>Si vous n'avez pas créé ce compte, vous pouvez ignorer cet email en toute sécurité.</p>
                             
