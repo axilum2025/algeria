@@ -3049,7 +3049,7 @@
                 }
             }
 
-            // 🔊 Ajouter bouton TTS pour les messages bot
+            // 🔊 Ajouter bouton TTS pour les messages bot (apparaît après l'écriture)
             if (type === 'bot' && displayText && displayText.length > 0) {
                 const ttsButton = document.createElement('button');
                 ttsButton.className = 'tts-button';
@@ -3062,7 +3062,14 @@
                     </svg>
                 `;
                 ttsButton.title = 'Écouter ce message';
-                ttsButton.style.cssText = 'position: absolute; bottom: 8px; left: 8px; width: 28px; height: 28px; border-radius: 50%; background: var(--bg-secondary); border: none; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s; color: var(--text-secondary); opacity: 0.6;';
+                // Initialement caché (opacity: 0)
+                ttsButton.style.cssText = 'position: absolute; bottom: 8px; left: 8px; width: 28px; height: 28px; border-radius: 50%; background: var(--bg-secondary); border: none; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.3s ease; color: var(--text-secondary); opacity: 0; pointer-events: none;';
+                
+                // Faire apparaître le bouton après 300ms (après l'écriture)
+                setTimeout(() => {
+                    ttsButton.style.opacity = '0.6';
+                    ttsButton.style.pointerEvents = 'auto';
+                }, 300);
                 
                 ttsButton.addEventListener('mouseenter', function() {
                     this.style.opacity = '1';
