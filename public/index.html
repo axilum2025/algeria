@@ -4852,7 +4852,7 @@
 
                     // Si modifications, recharger les tâches
                     if (data.tasksModified > 0) {
-                        showToast(\`✅ \${data.tasksModified} tâche(s) modifiée(s)\`, 'success');
+                        showToast('✅ ' + data.tasksModified + ' tâche(s) modifiée(s)', 'success');
                         await loadTodoTasks(); // Recharger
                         renderTodoMainView();
                     }
