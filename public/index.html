@@ -4580,39 +4580,81 @@
                         padding: 8px !important;
                     }
                     
+                    /* Conteneur principal sans overflow-y sur mobile */
+                    #todoMainArea {
+                        overflow-y: visible !important;
+                        overflow-x: visible !important;
+                        padding: 12px !important;
+                    }
+                    
                     /* Kanban en scroll horizontal sur mobile */
                     #kanbanContainer {
                         display: flex !important;
-                        overflow-x: auto !important;
+                        overflow-x: scroll !important;
                         overflow-y: hidden !important;
                         gap: 12px !important;
-                        padding-bottom: 16px;
+                        padding: 8px 4px 20px 4px !important;
+                        margin: 0 -12px !important;
+                        width: calc(100% + 24px) !important;
                         -webkit-overflow-scrolling: touch;
+                        scroll-behavior: smooth;
                     }
                     
                     .kanban-column {
-                        min-width: 280px !important;
-                        flex-shrink: 0;
-                        height: calc(100vh - 140px) !important;
+                        min-width: 85vw !important;
+                        max-width: 85vw !important;
+                        flex-shrink: 0 !important;
+                        height: calc(100vh - 160px) !important;
+                        margin-left: 4px;
                     }
                     
-                    /* Scrollbar personnalisé pour Kanban horizontal */
+                    .kanban-column:first-child {
+                        margin-left: 12px !important;
+                    }
+                    
+                    .kanban-column:last-child {
+                        margin-right: 12px !important;
+                    }
+                    
+                    /* Scrollbar toujours visible sur mobile */
                     #kanbanContainer::-webkit-scrollbar {
-                        height: 8px;
+                        height: 12px !important;
+                        display: block !important;
                     }
                     
                     #kanbanContainer::-webkit-scrollbar-track {
-                        background: var(--bg-secondary);
-                        border-radius: 4px;
+                        background: rgba(30, 41, 59, 0.5) !important;
+                        border-radius: 6px !important;
+                        margin: 0 12px;
                     }
                     
                     #kanbanContainer::-webkit-scrollbar-thumb {
-                        background: var(--border-color);
-                        border-radius: 4px;
+                        background: #3B82F6 !important;
+                        border-radius: 6px !important;
+                        border: 2px solid rgba(30, 41, 59, 0.5);
                     }
                     
                     #kanbanContainer::-webkit-scrollbar-thumb:hover {
-                        background: #3B82F6;
+                        background: #2563EB !important;
+                    }
+                    
+                    /* Indicateur visuel de scroll */
+                    #kanbanContainer::after {
+                        content: '→';
+                        position: fixed;
+                        right: 20px;
+                        top: 50%;
+                        transform: translateY(-50%);
+                        font-size: 24px;
+                        color: #3B82F6;
+                        opacity: 0.5;
+                        pointer-events: none;
+                        animation: slideHint 1.5s ease-in-out infinite;
+                    }
+                    
+                    @keyframes slideHint {
+                        0%, 100% { transform: translateY(-50%) translateX(0); opacity: 0.5; }
+                        50% { transform: translateY(-50%) translateX(5px); opacity: 0.8; }
                     }
                 }
                 
@@ -4623,7 +4665,12 @@
                     }
                     
                     .kanban-column {
-                        min-width: 240px !important;
+                        min-width: 90vw !important;
+                        max-width: 90vw !important;
+                    }
+                    
+                    #kanbanContainer::-webkit-scrollbar {
+                        height: 10px !important;
                     }
                 }
             `;
