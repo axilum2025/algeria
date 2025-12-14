@@ -4427,6 +4427,8 @@
         let todoCategory = 'all'; // all, work, personal, studies
         let selectedTask = null;
         let detailsPanelOpen = false;
+        let notificationsEnabled = localStorage.getItem('todoNotificationsEnabled') === 'true';
+        let notificationCheckInterval = null;
 
         // Office Pro - Interface complète To Do AI
         function openOfficePro() {
@@ -4464,6 +4466,12 @@
                             </svg>
                             <input type="text" placeholder="Rechercher..." onkeyup="filterTodoSearch(this.value)" style="padding: 8px 12px 8px 40px; border-radius: 8px; border: 1px solid var(--border-color); background: var(--bg-secondary); color: var(--text-primary); font-size: 14px; width: 250px; outline: none;">
                         </div>
+                        <button id="notificationToggle" onclick="toggleNotifications()" style="padding: 8px; background: ${notificationsEnabled ? 'rgba(59, 130, 246, 0.1)' : 'transparent'}; color: ${notificationsEnabled ? '#3B82F6' : 'var(--text-secondary)'}; border: 1px solid var(--border-color); border-radius: 8px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; gap: 6px;" title="${notificationsEnabled ? 'Notifications activées' : 'Activer les notifications'}">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
+                                <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+                            </svg>
+                        </button>
                         <button onclick="showAddTaskModal()" style="padding: 8px 16px; background: #3B82F6; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 14px; display: flex; align-items: center; gap: 6px; transition: all 0.2s;" onmouseover="this.style.background='#2563EB'" onmouseout="this.style.background='#3B82F6'">
                             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                                 <line x1="12" y1="5" x2="12" y2="19"/>
@@ -4540,12 +4548,137 @@
             renderTodoFilters();
             renderTodoCategories();
             renderTodoMainView();
+            
+            // Démarrer la vérification des notifications si activées
+            if (notificationsEnabled) {
+                startNotificationCheck();
+            }
         }
 
         function closeTodoAi() {
             closeGenericModal();
             selectedTask = null;
             detailsPanelOpen = false;
+            stopNotificationCheck();
+        }
+
+        // Système de notifications
+        async function toggleNotifications() {
+            if (!notificationsEnabled) {
+                // Demander la permission
+                if (!('Notification' in window)) {
+                    showToast('❌ Notifications non supportées par ce navigateur', 'error');
+                    return;
+                }
+                
+                const permission = await Notification.requestPermission();
+                if (permission === 'granted') {
+                    notificationsEnabled = true;
+                    localStorage.setItem('todoNotificationsEnabled', 'true');
+                    showToast('🔔 Notifications activées !', 'success');
+                    startNotificationCheck();
+                    updateNotificationButton();
+                } else {
+                    showToast('❌ Permission refusée', 'error');
+                }
+            } else {
+                notificationsEnabled = false;
+                localStorage.setItem('todoNotificationsEnabled', 'false');
+                showToast('🔕 Notifications désactivées', 'info');
+                stopNotificationCheck();
+                updateNotificationButton();
+            }
+        }
+
+        function updateNotificationButton() {
+            const btn = document.getElementById('notificationToggle');
+            if (btn) {
+                btn.style.background = notificationsEnabled ? 'rgba(59, 130, 246, 0.1)' : 'transparent';
+                btn.style.color = notificationsEnabled ? '#3B82F6' : 'var(--text-secondary)';
+                btn.title = notificationsEnabled ? 'Notifications activées' : 'Activer les notifications';
+            }
+        }
+
+        function toggleTaskNotification(taskId, enabled) {
+            const task = userTasks.find(t => t.id === taskId);
+            if (task) {
+                task.notifyEnabled = enabled;
+                localStorage.setItem('userTasks', JSON.stringify(userTasks));
+                showToast(enabled ? '🔔 Notification activée pour cette tâche' : '🔕 Notification désactivée', 'info');
+                
+                if (enabled && !notificationsEnabled) {
+                    setTimeout(() => {
+                        showToast('💡 Activez les notifications globales en haut', 'info');
+                    }, 1000);
+                }
+            }
+        }
+
+        function startNotificationCheck() {
+            if (notificationCheckInterval) return;
+            
+            // Vérifier toutes les minutes
+            notificationCheckInterval = setInterval(() => {
+                checkTaskNotifications();
+            }, 60000); // 1 minute
+            
+            // Vérification immédiate
+            checkTaskNotifications();
+        }
+
+        function stopNotificationCheck() {
+            if (notificationCheckInterval) {
+                clearInterval(notificationCheckInterval);
+                notificationCheckInterval = null;
+            }
+        }
+
+        function checkTaskNotifications() {
+            if (!notificationsEnabled) return;
+            
+            const now = new Date();
+            const notifiedTasks = JSON.parse(localStorage.getItem('notifiedTasks') || '[]');
+            
+            userTasks.forEach(task => {
+                if (!task.dueDate || task.completed || !task.notifyEnabled) return;
+                if (notifiedTasks.includes(task.id)) return; // Déjà notifié
+                
+                const dueDate = new Date(task.dueDate);
+                const timeDiff = dueDate - now;
+                const minutesDiff = Math.floor(timeDiff / 60000);
+                
+                // Notifier 15 minutes avant
+                if (minutesDiff <= 15 && minutesDiff >= 0) {
+                    sendTaskNotification(task);
+                    notifiedTasks.push(task.id);
+                    localStorage.setItem('notifiedTasks', JSON.stringify(notifiedTasks));
+                }
+            });
+        }
+
+        function sendTaskNotification(task) {
+            if (!('Notification' in window) || Notification.permission !== 'granted') return;
+            
+            const priorityEmoji = task.priority === 'high' ? '🔴' : task.priority === 'medium' ? '🟡' : '🔵';
+            const timeStr = new Date(task.dueDate).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+            
+            const notification = new Notification(`${priorityEmoji} Tâche à venir`, {
+                body: `${task.title}\n⏰ Dans 15 minutes (${timeStr})`,
+                icon: '/favicon.ico',
+                badge: '/favicon.ico',
+                tag: `task-${task.id}`,
+                requireInteraction: false,
+                silent: false
+            });
+            
+            notification.onclick = function() {
+                window.focus();
+                showTaskDetails(task.id);
+                notification.close();
+            };
+            
+            // Auto-close après 10 secondes
+            setTimeout(() => notification.close(), 10000);
         }
 
         function renderTodoFilters() {
@@ -5098,6 +5231,22 @@
                     </div>
                 ` : ''}
 
+                ${selectedTask.dueDate && !selectedTask.completed ? `
+                    <div style="margin-top: 16px; padding: 12px; background: var(--bg-secondary); border-radius: 8px; border: 1px solid var(--border-color);">
+                        <label style="display: flex; align-items: center; gap: 10px; cursor: pointer;">
+                            <input type="checkbox" ${selectedTask.notifyEnabled ? 'checked' : ''} onchange="toggleTaskNotification(${selectedTask.id}, this.checked)" style="width: 18px; height: 18px; cursor: pointer;">
+                            <div style="flex: 1;">
+                                <div style="color: var(--text-primary); font-size: 13px; font-weight: 600; margin-bottom: 2px;">Me notifier</div>
+                                <div style="color: var(--text-secondary); font-size: 12px;">Recevoir une notification 15 min avant</div>
+                            </div>
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--text-secondary)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
+                                <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+                            </svg>
+                        </label>
+                    </div>
+                ` : ''}
+                
                 <div style="display: flex; gap: 8px; margin-top: 24px; padding-top: 20px; border-top: 1px solid var(--border-color);">
                     <button onclick="toggleTaskComplete(${selectedTask.id})" style="flex: 1; padding: 10px; background: ${selectedTask.completed ? 'rgba(245, 158, 11, 0.1)' : 'rgba(16, 185, 129, 0.1)'}; color: ${selectedTask.completed ? '#F59E0B' : '#10B981'}; border: 1px solid ${selectedTask.completed ? 'rgba(245, 158, 11, 0.3)' : 'rgba(16, 185, 129, 0.3)'}; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 13px; display: flex; align-items: center; justify-content: center; gap: 6px; transition: all 0.2s;">
                         ${selectedTask.completed ? 
