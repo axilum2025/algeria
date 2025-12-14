@@ -4697,7 +4697,7 @@
             try {
                 // Envoyer toutes les tâches localStorage au serveur (REMPLACER complètement)
                 const tasks = userTasks.map(task => ({
-                    id: task.id,
+                    id: task.id || Date.now().toString() + Math.random().toString(36).substr(2, 9),
                     title: task.title,
                     description: task.description || '',
                     priority: task.priority || 'medium',
@@ -4733,7 +4733,7 @@
                 const response = await fetch('/api/tasks/list');
                 const data = await response.json();
                 
-                if (data.tasks && data.tasks.length > 0) {
+                if (data.tasks) {
                     // REMPLACER complètement userTasks par les tâches du serveur
                     userTasks = data.tasks.map(serverTask => ({
                         id: serverTask.id,
@@ -4752,8 +4752,11 @@
                     }));
 
                     localStorage.setItem('userTasks', JSON.stringify(userTasks));
-                    console.log('✅ Tâches synchronisées depuis serveur:', userTasks.length);
+                    console.log('✅ Tâches synchronisées depuis serveur:', userTasks.length, 'tâches');
                 } else {
+                    // Aucune tâche = vider la liste
+                    userTasks = [];
+                    localStorage.setItem('userTasks', JSON.stringify(userTasks));
                     console.log('ℹ️ Aucune tâche sur le serveur');
                 }
             } catch (error) {
