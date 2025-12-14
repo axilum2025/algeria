@@ -4911,7 +4911,12 @@
                 // Synchroniser les tâches localStorage vers serveur avant commande
                 await syncTasksToServer();
 
-                const response = await fetch('/api/taskManager/smart-command', {
+                // DÉVELOPPEMENT LOCAL - Pointer vers le serveur local Azure Functions
+                const apiUrl = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' 
+                    ? 'http://localhost:7071/api/tasks/smart-command'
+                    : '/api/taskManager/smart-command';
+
+                const response = await fetch(apiUrl, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ command: command })
