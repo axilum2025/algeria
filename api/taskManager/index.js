@@ -386,13 +386,23 @@ CAPACITÉS:
 FORMAT DE RÉPONSE JSON:
 {
   "response": "Réponse conversationnelle à l'utilisateur",
-  "action": "organize|suggest|modify|analyze|info",
+  "action": "organize|suggest|modify|analyze|create|delete|info",
   "changes": [
     {
       "taskId": "123",
       "updates": {"deadline": "2025-12-15", "priority": "high"}
     }
   ],
+  "created": [
+    {
+      "title": "Nouvelle tâche",
+      "priority": "normal",
+      "deadline": "2025-12-15",
+      "category": "travail",
+      "estimatedTime": "1h"
+    }
+  ],
+  "deleted": ["taskId1", "taskId2"],
   "suggestions": [
     {
       "taskId": "456",
@@ -418,6 +428,15 @@ Commande: "Qu'est-ce que je dois faire maintenant ?"
 
 Commande: "Déplace la réunion à demain"
 → Trouve tâche avec "réunion", change deadline à demain
+
+Commande: "Crée une tâche: Appeler Marie demain à 14h"
+→ Crée nouvelle tâche avec title="Appeler Marie", deadline=demain 14h
+
+Commande: "Supprime les tâches terminées"
+→ Supprime toutes les tâches avec status="completed"
+
+Commande: "Marque la première tâche comme terminée"
+→ Change status à "completed" pour la première tâche
 
 Commande: "Qu'est-ce qui est urgent ?"
 → Liste tâches urgentes ou avec deadline proche
@@ -467,6 +486,9 @@ RÈGLES:
 
     // Appliquer les changements suggérés par l'IA
     let updatedTasks = [...tasks];
+    let tasksModified = 0;
+
+    // 1. Modifier les tâches existantes
     if (result.changes && result.changes.length > 0) {
         result.changes.forEach(change => {
             const taskIndex = updatedTasks.findIndex(t => t.id === change.taskId);
@@ -476,8 +498,44 @@ RÈGLES:
                     ...change.updates,
                     updatedAt: new Date().toISOString()
                 };
+                tasksModified++;
             }
         });
+    }
+
+    // 2. Créer de nouvelles tâches
+    if (result.created && result.created.length > 0) {
+        result.created.forEach(newTask => {
+            const task = {
+                id: Date.now().toString() + Math.random().toString(36).substr(2, 9),
+                title: newTask.title,
+                priority: newTask.priority || 'normal',
+                deadline: newTask.deadline || null,
+                category: newTask.category || 'personnel',
+                status: newTask.status || 'pending',
+                estimatedTime: newTask.estimatedTime || null,
+                subtasks: newTask.subtasks || [],
+                createdAt: new Date().toISOString(),
+                updatedAt: new Date().toISOString()
+            };
+            updatedTasks.push(task);
+            tasksModified++;
+        });
+    }
+
+    // 3. Supprimer des tâches
+    if (result.deleted && result.deleted.length > 0) {
+        result.deleted.forEach(taskId => {
+            const taskIndex = updatedTasks.findIndex(t => t.id === taskId);
+            if (taskIndex !== -1) {
+                updatedTasks.splice(taskIndex, 1);
+                tasksModified++;
+            }
+        });
+    }
+
+    // Sauvegarder si modifications
+    if (tasksModified > 0) {
         await saveTasks(userId, updatedTasks);
     }
 
@@ -491,9 +549,11 @@ RÈGLES:
             response: result.response,
             action: result.action,
             changes: result.changes || [],
+            created: result.created || [],
+            deleted: result.deleted || [],
             suggestions: result.suggestions || [],
             insights: result.insights || {},
-            tasksModified: result.changes?.length || 0,
+            tasksModified: tasksModified,
             tokensUsed: aiData.usage?.total_tokens || 0
         }
     };

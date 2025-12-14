@@ -4938,7 +4938,22 @@
 
                     // Si modifications, recharger les tâches
                     if (data.tasksModified > 0) {
-                        showToast('✅ ' + data.tasksModified + ' tâche(s) modifiée(s)', 'success');
+                        let message = '';
+                        const actions = [];
+                        
+                        if (data.created && data.created.length > 0) {
+                            actions.push(`${data.created.length} créée(s)`);
+                        }
+                        if (data.changes && data.changes.length > 0) {
+                            actions.push(`${data.changes.length} modifiée(s)`);
+                        }
+                        if (data.deleted && data.deleted.length > 0) {
+                            actions.push(`${data.deleted.length} supprimée(s)`);
+                        }
+                        
+                        message = '✅ Tâche(s): ' + actions.join(', ');
+                        showToast(message, 'success');
+                        
                         // Synchroniser les modifications depuis le serveur
                         await syncTasksFromServer();
                         renderTodoMainView();
