@@ -4420,115 +4420,534 @@
             }
         }
 
-        // Office Pro - Utilisation ultra-simple via chat
+        // ===== TO DO AI - Système complet de gestion de tâches =====
+        
+        let todoView = 'list'; // list, kanban, calendar
+        let todoFilter = 'all'; // all, today, week, priority
+        let todoCategory = 'all'; // all, work, personal, studies
+        let selectedTask = null;
+        let detailsPanelOpen = false;
+
+        // Office Pro - Interface complète To Do AI
         function openOfficePro() {
-            // Rafraîchir les données
-            const activeTasks = userTasks.filter(t => !t.completed);
-            const completedTasks = userTasks.filter(t => t.completed);
-            const todayEvents = getTodayEvents();
-            const weekEvents = getWeekEvents();
+            // Créer l'interface en plein écran
+            const modal = document.getElementById('genericModal');
+            modal.style.display = 'flex';
+            modal.style.backgroundColor = '#0F172A';
+            modal.style.zIndex = '10000';
+            modal.style.position = 'fixed';
+            modal.style.top = '0';
+            modal.style.left = '0';
+            modal.style.right = '0';
+            modal.style.bottom = '0';
+            modal.style.padding = '0';
+            modal.style.margin = '0';
+            modal.style.flexDirection = 'column';
             
-            let tasksHTML = '';
-            if (activeTasks.length === 0) {
-                tasksHTML = '<div style="padding: 20px; text-align: center; color: var(--text-secondary);">✅ Aucune tâche en cours</div>';
-            } else {
-                activeTasks.forEach((task, index) => {
-                    const priority = task.priority === 'high' ? '🔴' : task.priority === 'low' ? '🔵' : '🟡';
-                    const dueStr = task.dueDate ? new Date(task.dueDate).toLocaleDateString('fr-FR') : '';
-                    tasksHTML += `
-                        <div style="display: flex; align-items: center; padding: 12px; background: var(--bg-secondary); border-radius: 8px; margin-bottom: 8px; border-left: 3px solid ${task.priority === 'high' ? '#EF4444' : task.priority === 'low' ? '#3B82F6' : '#F59E0B'};">
-                            <span style="flex: 1; color: var(--text-primary);">${priority} ${task.title}</span>
-                            ${dueStr ? `<span style="color: var(--text-secondary); font-size: 12px; margin-right: 12px;">📅 ${dueStr}</span>` : ''}
-                            <button onclick="completeTaskUI(${task.id})" style="padding: 6px 12px; background: #10B981; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 12px;">✓ Fait</button>
-                        </div>
-                    `;
-                });
-            }
-            
-            let eventsHTML = '';
-            if (todayEvents.length === 0) {
-                eventsHTML = '<div style="padding: 20px; text-align: center; color: var(--text-secondary);">📅 Aucun événement aujourd\'hui</div>';
-            } else {
-                todayEvents.forEach(event => {
-                    const time = new Date(event.startDate).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
-                    eventsHTML += `
-                        <div style="padding: 12px; background: var(--bg-secondary); border-radius: 8px; margin-bottom: 8px; border-left: 3px solid #3B82F6;">
-                            <div style="font-weight: 600; color: var(--text-primary); margin-bottom: 4px;">${event.title}</div>
-                            <div style="color: var(--text-secondary); font-size: 13px;">🕐 ${time}</div>
-                        </div>
-                    `;
-                });
-            }
-            
-            const content = `
-                <div style="padding: 20px; max-width: 800px; margin: 0 auto;">
-                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 16px; margin-bottom: 24px;">
-                        <div style="background: linear-gradient(135deg, #3B82F6 0%, #2563EB 100%); padding: 20px; border-radius: 12px; color: white; text-align: center;">
-                            <div style="font-size: 32px; font-weight: 700;">${activeTasks.length}</div>
-                            <div style="opacity: 0.9;">Tâches actives</div>
-                        </div>
-                        <div style="background: linear-gradient(135deg, #10B981 0%, #059669 100%); padding: 20px; border-radius: 12px; color: white; text-align: center;">
-                            <div style="font-size: 32px; font-weight: 700;">${completedTasks.length}</div>
-                            <div style="opacity: 0.9;">Tâches terminées</div>
-                        </div>
-                        <div style="background: linear-gradient(135deg, #F59E0B 0%, #D97706 100%); padding: 20px; border-radius: 12px; color: white; text-align: center;">
-                            <div style="font-size: 32px; font-weight: 700;">${weekEvents.length}</div>
-                            <div style="opacity: 0.9;">Événements cette semaine</div>
-                        </div>
-                    </div>
-                    
-                    <div style="background: var(--bg-secondary); padding: 20px; border-radius: 12px; margin-bottom: 20px;">
-                        <h3 style="margin: 0 0 16px 0; color: var(--text-primary); display: flex; align-items: center; gap: 8px;">
-                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            modal.innerHTML = `
+                <!-- Header -->
+                <div style="background: linear-gradient(135deg, #3B82F6 0%, #2563EB 100%); padding: 16px 24px; display: flex; align-items: center; justify-content: space-between; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                    <div style="display: flex; align-items: center; gap: 16px;">
+                        <div style="display: flex; align-items: center; gap: 10px; color: white; font-size: 24px; font-weight: 700;">
+                            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
                                 <path d="M9 11l3 3L22 4"/>
                                 <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>
                             </svg>
-                            Mes Tâches
-                        </h3>
-                        ${tasksHTML}
+                            To Do AI
+                        </div>
+                        <div style="background: rgba(255,255,255,0.2); padding: 6px 12px; border-radius: 20px; color: white; font-size: 12px; font-weight: 600;">
+                            ✨ Powered by Llama 3.3 70B
+                        </div>
                     </div>
-                    
-                    <div style="background: var(--bg-secondary); padding: 20px; border-radius: 12px; margin-bottom: 20px;">
-                        <h3 style="margin: 0 0 16px 0; color: var(--text-primary); display: flex; align-items: center; gap: 8px;">
-                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
-                                <line x1="16" y1="2" x2="16" y2="6"/>
-                                <line x1="8" y1="2" x2="8" y2="6"/>
-                                <line x1="3" y1="10" x2="21" y2="10"/>
+                    <div style="display: flex; align-items: center; gap: 12px;">
+                        <div style="position: relative;">
+                            <input type="text" placeholder="🔍 Rechercher..." onkeyup="filterTodoSearch(this.value)" style="padding: 8px 36px 8px 36px; border-radius: 20px; border: none; background: rgba(255,255,255,0.9); color: #1F2937; font-size: 14px; width: 250px;">
+                        </div>
+                        <button onclick="showAddTaskModal()" style="padding: 8px 20px; background: white; color: #3B82F6; border: none; border-radius: 20px; cursor: pointer; font-weight: 600; font-size: 14px; display: flex; align-items: center; gap: 6px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
                             </svg>
-                            Aujourd'hui
-                        </h3>
-                        ${eventsHTML}
-                    </div>
-                    
-                    <div style="background: linear-gradient(135deg, rgba(59, 130, 246, 0.08) 0%, rgba(99, 102, 241, 0.08) 100%); padding: 20px; border-radius: 12px; border: 1px solid rgba(59, 130, 246, 0.2);">
-                        <h4 style="margin: 0 0 10px 0; color: var(--text-primary); font-size: 16px;">💬 Commandes vocales</h4>
-                        <p style="margin: 0; color: var(--text-secondary); font-size: 14px; line-height: 1.7;">
-                            Dites simplement:<br>
-                            • "Ajoute acheter du pain à mes tâches"<br>
-                            • "Montre mes tâches"<br>
-                            • "Crée une réunion demain à 14h"<br>
-                            • "Montre mon calendrier"<br>
-                            • "Suis-je libre aujourd'hui ?"
-                        </p>
-                    </div>
-                    
-                    <div style="text-align: center; margin-top: 20px;">
-                        <button class="new-chat-btn" onclick="closeGenericModal()" style="padding: 12px 32px;">
-                            Fermer
+                            Ajouter
                         </button>
+                        <button onclick="closeTodoAi()" style="padding: 8px 12px; background: rgba(255,255,255,0.2); color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 18px;">✕</button>
+                    </div>
+                </div>
+
+                <!-- Main Container -->
+                <div style="flex: 1; display: flex; overflow: hidden;">
+                    <!-- Sidebar -->
+                    <div style="width: 260px; background: #1E293B; border-right: 1px solid #334155; overflow-y: auto; padding: 20px;">
+                        <!-- Vues -->
+                        <div style="margin-bottom: 24px;">
+                            <h3 style="margin-bottom: 12px; color: #94A3B8; font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">VUES</h3>
+                            <button onclick="switchTodoView('list')" id="viewList" class="sidebar-btn" style="width: 100%; padding: 10px 12px; text-align: left; border: none; background: rgba(59, 130, 246, 0.15); color: #3B82F6; border-radius: 8px; cursor: pointer; font-size: 14px; display: flex; align-items: center; gap: 10px; margin-bottom: 4px;">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/>
+                                </svg>
+                                Liste
+                            </button>
+                            <button onclick="switchTodoView('kanban')" id="viewKanban" class="sidebar-btn" style="width: 100%; padding: 10px 12px; text-align: left; border: none; background: transparent; color: #F1F5F9; border-radius: 8px; cursor: pointer; font-size: 14px; display: flex; align-items: center; gap: 10px; margin-bottom: 4px;">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/>
+                                </svg>
+                                Kanban
+                            </button>
+                            <button onclick="switchTodoView('calendar')" id="viewCalendar" class="sidebar-btn" style="width: 100%; padding: 10px 12px; text-align: left; border: none; background: transparent; color: #F1F5F9; border-radius: 8px; cursor: pointer; font-size: 14px; display: flex; align-items: center; gap: 10px; margin-bottom: 4px;">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/>
+                                </svg>
+                                Calendrier
+                            </button>
+                        </div>
+
+                        <!-- Filtres -->
+                        <div id="todoFilters"></div>
+
+                        <!-- Catégories -->
+                        <div id="todoCategories"></div>
+                    </div>
+
+                    <!-- Main Area -->
+                    <div id="todoMainArea" style="flex: 1; overflow-y: auto; padding: 24px; background: #0F172A;">
+                        <!-- Contenu dynamique -->
+                    </div>
+
+                    <!-- Details Panel (hidden by default) -->
+                    <div id="todoDetailsPanel" style="width: 0; background: #1E293B; border-left: 1px solid #334155; padding: 0; overflow: hidden; transition: all 0.3s;">
+                        <!-- Task details -->
                     </div>
                 </div>
             `;
-            
-            showGenericModal('📋 To Do - Calendrier & Tâches', content);
+
+            renderTodoFilters();
+            renderTodoCategories();
+            renderTodoMainView();
         }
-        
-        // Fonction helper pour compléter une tâche depuis l'UI
+
+        function closeTodoAi() {
+            closeGenericModal();
+            selectedTask = null;
+            detailsPanelOpen = false;
+        }
+
+        function renderTodoFilters() {
+            const filters = document.getElementById('todoFilters');
+            const activeTasks = userTasks.filter(t => !t.completed);
+            const todayTasks = activeTasks.filter(t => {
+                if (!t.dueDate) return false;
+                const today = new Date().toDateString();
+                return new Date(t.dueDate).toDateString() === today;
+            });
+            const weekTasks = activeTasks.filter(t => {
+                if (!t.dueDate) return false;
+                const weekFromNow = new Date();
+                weekFromNow.setDate(weekFromNow.getDate() + 7);
+                return new Date(t.dueDate) <= weekFromNow;
+            });
+            const priorityTasks = activeTasks.filter(t => t.priority === 'high');
+
+            filters.innerHTML = `
+                <div style="margin-bottom: 24px;">
+                    <h3 style="margin-bottom: 12px; color: #94A3B8; font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">FILTRES</h3>
+                    <button onclick="switchTodoFilter('all')" class="sidebar-btn" style="width: 100%; padding: 10px 12px; text-align: left; border: none; background: ${todoFilter === 'all' ? 'rgba(59, 130, 246, 0.15)' : 'transparent'}; color: ${todoFilter === 'all' ? '#3B82F6' : '#F1F5F9'}; border-radius: 8px; cursor: pointer; font-size: 14px; display: flex; align-items: center; gap: 10px; margin-bottom: 4px;">
+                        📋 Toutes les tâches
+                        <span style="margin-left: auto; background: rgba(59, 130, 246, 0.2); padding: 2px 8px; border-radius: 10px; font-size: 12px;">${activeTasks.length}</span>
+                    </button>
+                    <button onclick="switchTodoFilter('today')" class="sidebar-btn" style="width: 100%; padding: 10px 12px; text-align: left; border: none; background: ${todoFilter === 'today' ? 'rgba(59, 130, 246, 0.15)' : 'transparent'}; color: ${todoFilter === 'today' ? '#3B82F6' : '#F1F5F9'}; border-radius: 8px; cursor: pointer; font-size: 14px; display: flex; align-items: center; gap: 10px; margin-bottom: 4px;">
+                        ☀️ Aujourd'hui
+                        <span style="margin-left: auto; background: rgba(59, 130, 246, 0.2); padding: 2px 8px; border-radius: 10px; font-size: 12px;">${todayTasks.length}</span>
+                    </button>
+                    <button onclick="switchTodoFilter('week')" class="sidebar-btn" style="width: 100%; padding: 10px 12px; text-align: left; border: none; background: ${todoFilter === 'week' ? 'rgba(59, 130, 246, 0.15)' : 'transparent'}; color: ${todoFilter === 'week' ? '#3B82F6' : '#F1F5F9'}; border-radius: 8px; cursor: pointer; font-size: 14px; display: flex; align-items: center; gap: 10px; margin-bottom: 4px;">
+                        📅 Cette semaine
+                        <span style="margin-left: auto; background: rgba(59, 130, 246, 0.2); padding: 2px 8px; border-radius: 10px; font-size: 12px;">${weekTasks.length}</span>
+                    </button>
+                    <button onclick="switchTodoFilter('priority')" class="sidebar-btn" style="width: 100%; padding: 10px 12px; text-align: left; border: none; background: ${todoFilter === 'priority' ? 'rgba(59, 130, 246, 0.15)' : 'transparent'}; color: ${todoFilter === 'priority' ? '#3B82F6' : '#F1F5F9'}; border-radius: 8px; cursor: pointer; font-size: 14px; display: flex; align-items: center; gap: 10px; margin-bottom: 4px;">
+                        ⭐ Prioritaires
+                        <span style="margin-left: auto; background: rgba(59, 130, 246, 0.2); padding: 2px 8px; border-radius: 10px; font-size: 12px;">${priorityTasks.length}</span>
+                    </button>
+                </div>
+            `;
+        }
+
+        function renderTodoCategories() {
+            const categories = document.getElementById('todoCategories');
+            const categoriesCount = {};
+            userTasks.filter(t => !t.completed).forEach(task => {
+                const cat = task.category || 'Autre';
+                categoriesCount[cat] = (categoriesCount[cat] || 0) + 1;
+            });
+
+            const categoryIcons = {
+                'Travail': '💼',
+                'Personnel': '🏠',
+                'Études': '📚',
+                'Sport': '💪',
+                'Santé': '🏥',
+                'Autre': '📌'
+            };
+
+            let html = '<div style="margin-bottom: 24px;"><h3 style="margin-bottom: 12px; color: #94A3B8; font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">CATÉGORIES</h3>';
+            
+            Object.keys(categoriesCount).forEach(cat => {
+                html += `
+                    <button onclick="switchTodoCategory('${cat}')" class="sidebar-btn" style="width: 100%; padding: 10px 12px; text-align: left; border: none; background: ${todoCategory === cat ? 'rgba(59, 130, 246, 0.15)' : 'transparent'}; color: ${todoCategory === cat ? '#3B82F6' : '#F1F5F9'}; border-radius: 8px; cursor: pointer; font-size: 14px; display: flex; align-items: center; gap: 10px; margin-bottom: 4px;">
+                        ${categoryIcons[cat] || '📌'} ${cat}
+                        <span style="margin-left: auto; background: rgba(59, 130, 246, 0.2); padding: 2px 8px; border-radius: 10px; font-size: 12px;">${categoriesCount[cat]}</span>
+                    </button>
+                `;
+            });
+
+            html += '</div>';
+            categories.innerHTML = html;
+        }
+
+        function renderTodoMainView() {
+            const mainArea = document.getElementById('todoMainArea');
+            
+            if (todoView === 'list') {
+                renderListView(mainArea);
+            } else if (todoView === 'kanban') {
+                renderKanbanView(mainArea);
+            } else if (todoView === 'calendar') {
+                renderCalendarView(mainArea);
+            }
+        }
+
+        function renderListView(container) {
+            const tasks = getFilteredTasks();
+            
+            if (tasks.length === 0) {
+                container.innerHTML = `
+                    <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; color: #94A3B8; text-align: center;">
+                        <svg width="80" height="80" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="opacity: 0.3; margin-bottom: 16px;">
+                            <path d="M9 11l3 3L22 4"/>
+                            <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>
+                        </svg>
+                        <h3 style="margin-bottom: 8px; font-size: 20px; color: #F1F5F9;">Aucune tâche</h3>
+                        <p style="font-size: 14px; margin-bottom: 20px;">Ajoutez une nouvelle tâche pour commencer</p>
+                        <button onclick="showAddTaskModal()" style="padding: 10px 24px; background: #3B82F6; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600;">+ Créer une tâche</button>
+                    </div>
+                `;
+                return;
+            }
+
+            let html = '<div>';
+            tasks.forEach(task => {
+                html += renderTaskCard(task);
+            });
+            html += '</div>';
+            
+            container.innerHTML = html;
+        }
+
+        function renderTaskCard(task) {
+            const priorityColor = task.priority === 'high' ? '#EF4444' : task.priority === 'medium' ? '#F59E0B' : '#3B82F6';
+            const priorityLabel = task.priority === 'high' ? '🔴 Urgent' : task.priority === 'medium' ? '🟡 Normal' : '🔵 Basse';
+            const dueStr = task.dueDate ? new Date(task.dueDate).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' }) : '';
+            
+            return `
+                <div onclick="showTaskDetails(${task.id})" style="padding: 16px; background: #1E293B; border-radius: 12px; border-left: 4px solid ${priorityColor}; cursor: pointer; transition: all 0.2s; margin-bottom: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);" 
+                     onmouseover="this.style.boxShadow='0 4px 12px rgba(0,0,0,0.15)'" 
+                     onmouseout="this.style.boxShadow='0 1px 3px rgba(0,0,0,0.1)'">
+                    <div style="display: flex; align-items: start; gap: 12px;">
+                        <div onclick="event.stopPropagation(); toggleTaskComplete(${task.id})" style="margin-top: 2px; width: 20px; height: 20px; border: 2px solid #D1D5DB; border-radius: 6px; cursor: pointer; flex-shrink: 0; display: flex; align-items: center; justify-content: center; ${task.completed ? 'background: #10B981; border-color: #10B981;' : ''}">
+                            ${task.completed ? '✓' : ''}
+                        </div>
+                        <div style="flex: 1;">
+                            <div style="font-weight: 600; color: #F1F5F9; margin-bottom: 6px; font-size: 15px; ${task.completed ? 'text-decoration: line-through; opacity: 0.6;' : ''}">${task.title}</div>
+                            <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap; font-size: 13px; color: #94A3B8;">
+                                <span>${priorityLabel}</span>
+                                ${dueStr ? `<span>📅 ${dueStr}</span>` : ''}
+                                ${task.category ? `<span>🏷️ ${task.category}</span>` : ''}
+                                ${task.subtasks && task.subtasks.length > 0 ? `<span>📋 ${task.subtasks.filter(s => s.completed).length}/${task.subtasks.length}</span>` : ''}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderKanbanView(container) {
+            const allTasks = getFilteredTasks();
+            const todoTasks = allTasks.filter(t => !t.completed && !t.inProgress);
+            const inProgressTasks = allTasks.filter(t => t.inProgress && !t.completed);
+            const completedTasks = userTasks.filter(t => t.completed);
+
+            container.innerHTML = `
+                <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; height: 100%;">
+                    <div style="background: #1E293B; border-radius: 12px; padding: 16px; overflow-y: auto;">
+                        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; position: sticky; top: 0; background: #1E293B; z-index: 1; padding-bottom: 12px;">
+                            <div style="font-size: 16px; font-weight: 600; display: flex; align-items: center; gap: 8px; color: #F1F5F9;">
+                                📋 À faire
+                            </div>
+                            <span style="background: rgba(59, 130, 246, 0.2); padding: 4px 10px; border-radius: 10px; font-size: 13px; color: #3B82F6;">${todoTasks.length}</span>
+                        </div>
+                        ${todoTasks.map(t => renderTaskCard(t)).join('')}
+                    </div>
+
+                    <div style="background: #1E293B; border-radius: 12px; padding: 16px; overflow-y: auto;">
+                        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; position: sticky; top: 0; background: #1E293B; z-index: 1; padding-bottom: 12px;">
+                            <div style="font-size: 16px; font-weight: 600; display: flex; align-items: center; gap: 8px; color: #F1F5F9;">
+                                ⚡ En cours
+                            </div>
+                            <span style="background: rgba(245, 158, 11, 0.2); padding: 4px 10px; border-radius: 10px; font-size: 13px; color: #F59E0B;">${inProgressTasks.length}</span>
+                        </div>
+                        ${inProgressTasks.map(t => renderTaskCard(t)).join('')}
+                    </div>
+
+                    <div style="background: #1E293B; border-radius: 12px; padding: 16px; overflow-y: auto;">
+                        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; position: sticky; top: 0; background: #1E293B; z-index: 1; padding-bottom: 12px;">
+                            <div style="font-size: 16px; font-weight: 600; display: flex; align-items: center; gap: 8px; color: #F1F5F9;">
+                                ✅ Terminé
+                            </div>
+                            <span style="background: rgba(16, 185, 129, 0.2); padding: 4px 10px; border-radius: 10px; font-size: 13px; color: #10B981;">${completedTasks.length}</span>
+                        </div>
+                        ${completedTasks.slice(0, 10).map(t => renderTaskCard(t)).join('')}
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderCalendarView(container) {
+            const events = getTodayEvents();
+            const weekEvents = getWeekEvents();
+            const tasksWithDates = userTasks.filter(t => t.dueDate && !t.completed);
+
+            container.innerHTML = `
+                <div style="max-width: 900px; margin: 0 auto;">
+                    <h2 style="color: #F1F5F9; margin-bottom: 24px; font-size: 24px;">📅 Calendrier & Événements</h2>
+                    
+                    <!-- Aujourd'hui -->
+                    <div style="background: #1E293B; padding: 20px; border-radius: 12px; margin-bottom: 20px;">
+                        <h3 style="margin: 0 0 16px 0; color: #F1F5F9; font-size: 18px;">☀️ Aujourd'hui - ${new Date().toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' })}</h3>
+                        ${events.length === 0 ? '<p style="color: #94A3B8; margin: 0;">Aucun événement aujourd\'hui</p>' : events.map(e => `
+                            <div style="padding: 12px; background: rgba(59, 130, 246, 0.1); border-radius: 8px; margin-bottom: 8px; border-left: 3px solid #3B82F6;">
+                                <div style="font-weight: 600; color: #F1F5F9; margin-bottom: 4px;">${e.title}</div>
+                                <div style="color: #94A3B8; font-size: 13px;">🕐 ${new Date(e.startDate).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}</div>
+                            </div>
+                        `).join('')}
+                    </div>
+
+                    <!-- Cette semaine -->
+                    <div style="background: #1E293B; padding: 20px; border-radius: 12px; margin-bottom: 20px;">
+                        <h3 style="margin: 0 0 16px 0; color: #F1F5F9; font-size: 18px;">📅 Cette semaine</h3>
+                        ${tasksWithDates.length === 0 ? '<p style="color: #94A3B8; margin: 0;">Aucune tâche programmée</p>' : tasksWithDates.slice(0, 5).map(t => renderTaskCard(t)).join('')}
+                    </div>
+                </div>
+            `;
+        }
+
+        function getFilteredTasks() {
+            let tasks = userTasks.filter(t => !t.completed);
+
+            if (todoFilter === 'today') {
+                const today = new Date().toDateString();
+                tasks = tasks.filter(t => t.dueDate && new Date(t.dueDate).toDateString() === today);
+            } else if (todoFilter === 'week') {
+                const weekFromNow = new Date();
+                weekFromNow.setDate(weekFromNow.getDate() + 7);
+                tasks = tasks.filter(t => t.dueDate && new Date(t.dueDate) <= weekFromNow);
+            } else if (todoFilter === 'priority') {
+                tasks = tasks.filter(t => t.priority === 'high');
+            }
+
+            if (todoCategory !== 'all') {
+                tasks = tasks.filter(t => t.category === todoCategory);
+            }
+
+            return tasks;
+        }
+
+        function switchTodoView(view) {
+            todoView = view;
+            
+            // Update sidebar buttons
+            document.querySelectorAll('#todoMainArea').forEach(el => el.remove());
+            
+            renderTodoMainView();
+            
+            // Visual feedback
+            ['list', 'kanban', 'calendar'].forEach(v => {
+                const btn = document.getElementById('view' + v.charAt(0).toUpperCase() + v.slice(1));
+                if (btn) {
+                    btn.style.background = v === view ? 'rgba(59, 130, 246, 0.15)' : 'transparent';
+                    btn.style.color = v === view ? '#3B82F6' : '#F1F5F9';
+                }
+            });
+        }
+
+        function switchTodoFilter(filter) {
+            todoFilter = filter;
+            renderTodoFilters();
+            renderTodoMainView();
+        }
+
+        function switchTodoCategory(category) {
+            todoCategory = category;
+            renderTodoCategories();
+            renderTodoMainView();
+        }
+
+        function showAddTaskModal() {
+            const description = prompt('📝 Décrivez votre tâche (l\'IA va l\'analyser):\n\nExemple: "Appeler le client urgent lundi 10h pour le projet"');
+            if (!description) return;
+
+            showToast('🤖 Analyse de la tâche en cours...', 'info');
+
+            // Appel à l'API taskManager
+            fetch('/api/tasks/smart-add', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    description: description,
+                    userId: 'current-user'
+                })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.task) {
+                    // Ajouter la tâche avec les données parsées par l'IA
+                    addTask(data.task.title, data.task.priority, data.task.dueDate, data.task.category);
+                    showToast('✅ Tâche créée avec succès !', 'success');
+                    renderTodoFilters();
+                    renderTodoCategories();
+                    renderTodoMainView();
+                } else {
+                    throw new Error('Format de réponse invalide');
+                }
+            })
+            .catch(error => {
+                console.error('Erreur API:', error);
+                // Fallback: création simple
+                addTask(description, 'medium', null, 'Autre');
+                showToast('✅ Tâche créée (mode simple)', 'success');
+                renderTodoFilters();
+                renderTodoCategories();
+                renderTodoMainView();
+            });
+        }
+
+        function toggleTaskComplete(taskId) {
+            const task = userTasks.find(t => t.id === taskId);
+            if (task) {
+                task.completed = !task.completed;
+                localStorage.setItem('userTasks', JSON.stringify(userTasks));
+                showToast(task.completed ? '✅ Tâche terminée !' : '🔄 Tâche réactivée', 'success');
+                renderTodoFilters();
+                renderTodoCategories();
+                renderTodoMainView();
+            }
+        }
+
+        function showTaskDetails(taskId) {
+            selectedTask = userTasks.find(t => t.id === taskId);
+            if (!selectedTask) return;
+
+            const panel = document.getElementById('todoDetailsPanel');
+            panel.style.width = '400px';
+            panel.style.padding = '24px';
+            detailsPanelOpen = true;
+
+            const dueStr = selectedTask.dueDate ? new Date(selectedTask.dueDate).toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }) : 'Non définie';
+            const priorityLabel = selectedTask.priority === 'high' ? '🔴 Urgente' : selectedTask.priority === 'medium' ? '🟡 Normale' : '🔵 Basse';
+
+            panel.innerHTML = `
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+                    <h3 style="margin: 0; color: #F1F5F9; font-size: 18px;">Détails</h3>
+                    <button onclick="closeTaskDetails()" style="background: none; border: none; color: #94A3B8; font-size: 20px; cursor: pointer; padding: 4px;">✕</button>
+                </div>
+
+                <div style="margin-bottom: 24px;">
+                    <h4 style="color: #F1F5F9; font-size: 16px; margin-bottom: 8px; font-weight: 600;">${selectedTask.title}</h4>
+                    <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                        <span style="background: rgba(59, 130, 246, 0.2); padding: 4px 12px; border-radius: 12px; font-size: 12px; color: #3B82F6;">${priorityLabel}</span>
+                        ${selectedTask.category ? `<span style="background: rgba(99, 102, 241, 0.2); padding: 4px 12px; border-radius: 12px; font-size: 12px; color: #818CF8;">🏷️ ${selectedTask.category}</span>` : ''}
+                    </div>
+                </div>
+
+                <div style="margin-bottom: 20px;">
+                    <div style="color: #94A3B8; font-size: 13px; margin-bottom: 4px;">📅 Échéance</div>
+                    <div style="color: #F1F5F9; font-size: 14px;">${dueStr}</div>
+                </div>
+
+                ${selectedTask.description ? `
+                    <div style="margin-bottom: 20px;">
+                        <div style="color: #94A3B8; font-size: 13px; margin-bottom: 4px;">📝 Description</div>
+                        <div style="color: #F1F5F9; font-size: 14px; line-height: 1.6;">${selectedTask.description}</div>
+                    </div>
+                ` : ''}
+
+                ${selectedTask.subtasks && selectedTask.subtasks.length > 0 ? `
+                    <div style="margin-bottom: 20px;">
+                        <div style="color: #94A3B8; font-size: 13px; margin-bottom: 8px;">✓ Sous-tâches (${selectedTask.subtasks.filter(s => s.completed).length}/${selectedTask.subtasks.length})</div>
+                        ${selectedTask.subtasks.map(st => `
+                            <div style="padding: 8px; background: rgba(59, 130, 246, 0.05); border-radius: 6px; margin-bottom: 6px; display: flex; align-items: center; gap: 8px;">
+                                <div style="width: 16px; height: 16px; border: 2px solid #94A3B8; border-radius: 4px; flex-shrink: 0; ${st.completed ? 'background: #10B981; border-color: #10B981;' : ''}"></div>
+                                <span style="color: #F1F5F9; font-size: 13px; ${st.completed ? 'text-decoration: line-through; opacity: 0.6;' : ''}">${st.title}</span>
+                            </div>
+                        `).join('')}
+                    </div>
+                ` : ''}
+
+                <div style="display: flex; gap: 8px; margin-top: 24px;">
+                    <button onclick="toggleTaskComplete(${selectedTask.id})" style="flex: 1; padding: 10px; background: ${selectedTask.completed ? '#F59E0B' : '#10B981'}; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 14px;">
+                        ${selectedTask.completed ? '🔄 Réactiver' : '✓ Marquer comme fait'}
+                    </button>
+                    <button onclick="deleteTaskConfirm(${selectedTask.id})" style="padding: 10px; background: rgba(239, 68, 68, 0.1); color: #EF4444; border: 1px solid rgba(239, 68, 68, 0.3); border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 14px;">🗑️</button>
+                </div>
+            `;
+        }
+
+        function closeTaskDetails() {
+            const panel = document.getElementById('todoDetailsPanel');
+            panel.style.width = '0';
+            panel.style.padding = '0';
+            detailsPanelOpen = false;
+            selectedTask = null;
+        }
+
+        function deleteTaskConfirm(taskId) {
+            if (confirm('⚠️ Supprimer cette tâche définitivement ?')) {
+                deleteTask(taskId);
+                closeTaskDetails();
+                showToast('🗑️ Tâche supprimée', 'info');
+                renderTodoFilters();
+                renderTodoCategories();
+                renderTodoMainView();
+            }
+        }
+
+        function filterTodoSearch(query) {
+            if (!query) {
+                renderTodoMainView();
+                return;
+            }
+
+            const filtered = userTasks.filter(t => 
+                t.title.toLowerCase().includes(query.toLowerCase()) ||
+                (t.description && t.description.toLowerCase().includes(query.toLowerCase())) ||
+                (t.category && t.category.toLowerCase().includes(query.toLowerCase()))
+            );
+
+            const mainArea = document.getElementById('todoMainArea');
+            if (filtered.length === 0) {
+                mainArea.innerHTML = `
+                    <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; color: #94A3B8; text-align: center;">
+                        <svg width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="opacity: 0.3; margin-bottom: 16px;">
+                            <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+                        </svg>
+                        <h3 style="margin-bottom: 8px; font-size: 18px; color: #F1F5F9;">Aucun résultat</h3>
+                        <p style="font-size: 14px;">Essayez avec d'autres mots-clés</p>
+                    </div>
+                `;
+            } else {
+                mainArea.innerHTML = '<div>' + filtered.map(t => renderTaskCard(t)).join('') + '</div>';
+            }
+        }
+
+        // Fonction helper pour compléter une tâche depuis l'UI (legacy support)
         function completeTaskUI(taskId) {
-            completeTask(taskId);
-            showToast('✅ Tâche terminée !', 'success');
-            openOfficePro(); // Rafraîchir l'affichage
+            toggleTaskComplete(taskId);
         }
 
         // Text Pro - Traitement de texte professionnel
