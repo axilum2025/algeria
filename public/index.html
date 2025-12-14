@@ -4777,6 +4777,12 @@
         }
 
         function showAiAssistantPanel() {
+            // Supprimer panneau existant
+            const existingPanel = document.getElementById('aiAssistantPanel');
+            if (existingPanel) {
+                existingPanel.remove();
+            }
+
             // Vérifier que les tâches sont prêtes
             if (!userTasks || userTasks.length === 0) {
                 showToast('ℹ️ Ajoutez des tâches d\'abord', 'info');
@@ -4785,7 +4791,7 @@
             const panel = document.createElement('div');
             panel.id = 'aiAssistantPanel';
             panel.innerHTML = `
-                <div style="position: fixed; bottom: 80px; right: 20px; width: 380px; max-height: 500px; background: var(--bg-primary); border: 1px solid var(--border-color); border-radius: 16px; box-shadow: 0 12px 32px rgba(0,0,0,0.15); z-index: 2000; display: flex; flex-direction: column; overflow: hidden;">
+                <div style="position: fixed; bottom: 80px; right: 20px; width: 380px; max-height: 500px; background: var(--bg-primary); border: 1px solid var(--border-color); border-radius: 16px; box-shadow: 0 12px 32px rgba(0,0,0,0.15); z-index: 20000; display: flex; flex-direction: column; overflow: hidden;">
                     <!-- Header -->
                     <div style="padding: 16px; background: linear-gradient(135deg, #8B5CF6 0%, #6D28D9 100%); color: white; display: flex; align-items: center; justify-content: space-between;">
                         <div style="display: flex; align-items: center; gap: 10px;">
