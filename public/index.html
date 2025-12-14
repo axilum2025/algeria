@@ -4728,34 +4728,26 @@
                 const response = await fetch('/api/tasks/list');
                 const data = await response.json();
                 
-                if (data.tasks && data.tasks.length > 0) {
-                    // Convertir format serveur -> localStorage
-                    data.tasks.forEach(serverTask => {
-                        const existingIndex = userTasks.findIndex(t => t.id === serverTask.id);
-                        
-                        const localTask = {
-                            id: serverTask.id,
-                            title: serverTask.title,
-                            description: serverTask.description || '',
-                            priority: serverTask.priority || 'medium',
-                            dueDate: serverTask.deadline || serverTask.dueDate || null,
-                            category: serverTask.category || 'personnel',
-                            completed: serverTask.status === 'completed',
-                            inProgress: serverTask.status === 'in-progress',
-                            estimatedTime: serverTask.estimatedTime || null,
-                            createdAt: serverTask.createdAt || new Date().toISOString(),
-                            notificationEnabled: true
-                        };
-
-                        if (existingIndex >= 0) {
-                            userTasks[existingIndex] = localTask;
-                        } else {
-                            userTasks.push(localTask);
-                        }
-                    });
+                if (data.tasks) {
+                    // REMPLACER complètement userTasks par les tâches du serveur
+                    userTasks = data.tasks.map(serverTask => ({
+                        id: serverTask.id,
+                        title: serverTask.title,
+                        description: serverTask.description || '',
+                        priority: serverTask.priority || 'medium',
+                        dueDate: serverTask.deadline || serverTask.dueDate || null,
+                        category: serverTask.category || 'personnel',
+                        completed: serverTask.status === 'completed',
+                        inProgress: serverTask.status === 'in-progress',
+                        estimatedTime: serverTask.estimatedTime || null,
+                        createdAt: serverTask.createdAt || new Date().toISOString(),
+                        notificationEnabled: true
+                    }));
 
                     localStorage.setItem('userTasks', JSON.stringify(userTasks));
-                    console.log('✅ Tâches synchronisées depuis serveur:', data.tasks.length);
+                    console.log('✅ Tâches synchronisées depuis serveur:', userTasks.length);
+                } else {
+                    console.log('ℹ️ Aucune tâche sur le serveur');
                 }
             } catch (error) {
                 console.error('❌ Erreur récupération serveur:', error);

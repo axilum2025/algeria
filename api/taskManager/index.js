@@ -178,18 +178,30 @@ Output: {"title":"Acheter du lait","priority":"low","category":"personnel",...}`
 }
 
 /**
- * Créer une tâche manuellement
+ * Créer une tâche manuellement (ou mettre à jour si existe)
  */
 async function createTask(context, req, userId) {
     const task = {
-        id: Date.now().toString(),
+        id: req.body.id || Date.now().toString(),
         ...req.body,
         status: req.body.status || 'pending',
-        createdAt: new Date().toISOString()
+        createdAt: req.body.createdAt || new Date().toISOString(),
+        updatedAt: new Date().toISOString()
     };
 
     const tasks = await getTasks(userId);
-    tasks.push(task);
+    
+    // Chercher si la tâche existe déjà (par ID)
+    const existingIndex = tasks.findIndex(t => t.id === task.id);
+    
+    if (existingIndex >= 0) {
+        // Mettre à jour la tâche existante
+        tasks[existingIndex] = task;
+    } else {
+        // Ajouter nouvelle tâche
+        tasks.push(task);
+    }
+    
     await saveTasks(userId, tasks);
 
     context.res = {
