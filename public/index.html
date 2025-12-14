@@ -4734,8 +4734,8 @@
                 const response = await fetch('/api/tasks/list');
                 const data = await response.json();
                 
-                if (data.tasks) {
-                    // REMPLACER complètement userTasks par les tâches du serveur
+                if (data.tasks && data.tasks.length > 0) {
+                    // Serveur a des tâches - les charger
                     userTasks = data.tasks.map(serverTask => ({
                         id: serverTask.id,
                         title: serverTask.title,
@@ -4755,13 +4755,18 @@
                     localStorage.setItem('userTasks', JSON.stringify(userTasks));
                     console.log('✅ Tâches synchronisées depuis serveur:', userTasks.length, 'tâches');
                 } else {
-                    // Aucune tâche = vider la liste
-                    userTasks = [];
-                    localStorage.setItem('userTasks', JSON.stringify(userTasks));
-                    console.log('ℹ️ Aucune tâche sur le serveur');
+                    // Serveur vide - envoyer les tâches locales au serveur
+                    if (userTasks.length > 0) {
+                        console.log('📤 Serveur vide, envoi des tâches locales:', userTasks.length);
+                        await syncTasksToServer();
+                    } else {
+                        console.log('ℹ️ Aucune tâche locale ni sur serveur');
+                    }
                 }
             } catch (error) {
                 console.error('❌ Erreur récupération serveur:', error);
+                // En cas d'erreur, garder les tâches locales
+                console.log('💾 Conservation des tâches locales:', userTasks.length);
             }
         }
 
