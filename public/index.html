@@ -4691,6 +4691,7 @@
 
         // Assistant IA Conversationnel
         let aiAssistantOpen = false;
+        let aiAssistantMinimized = false;
 
         // Synchronisation localStorage <-> Serveur
         async function syncTasksToServer() {
@@ -4767,9 +4768,42 @@
         function toggleAiAssistant() {
             aiAssistantOpen = !aiAssistantOpen;
             if (aiAssistantOpen) {
+                aiAssistantMinimized = false;
                 showAiAssistantPanel();
             } else {
                 hideAiAssistantPanel();
+            }
+        }
+
+        function minimizeAiAssistant() {
+            aiAssistantMinimized = !aiAssistantMinimized;
+            const panel = document.getElementById('aiAssistantPanel');
+            if (!panel) return;
+            
+            const content = panel.querySelector('div');
+            if (!content) return;
+            
+            if (aiAssistantMinimized) {
+                // Réduire à juste le header
+                content.style.maxHeight = 'auto';
+                const messages = document.getElementById('aiChatMessages');
+                const inputArea = messages?.nextElementSibling;
+                if (messages) messages.style.display = 'none';
+                if (inputArea) inputArea.style.display = 'none';
+                content.style.cursor = 'pointer';
+                content.onclick = (e) => {
+                    if (e.target.closest('button')) return; // Ignorer clics sur boutons
+                    minimizeAiAssistant();
+                };
+            } else {
+                // Restaurer
+                content.style.maxHeight = '500px';
+                const messages = document.getElementById('aiChatMessages');
+                const inputArea = messages?.nextElementSibling;
+                if (messages) messages.style.display = 'flex';
+                if (inputArea) inputArea.style.display = 'flex';
+                content.style.cursor = 'default';
+                content.onclick = null;
             }
         }
 
@@ -4797,12 +4831,19 @@
                                 <div style="font-size: 11px; color: var(--text-secondary);">Gestion intelligente</div>
                             </div>
                         </div>
-                        <button onclick="toggleAiAssistant()" style="background: var(--bg-secondary); border: 1px solid var(--border-color); color: var(--text-secondary); border-radius: 6px; cursor: pointer; padding: 6px; display: flex; align-items: center; justify-content: center; transition: all 0.2s;" onmouseover="this.style.background='var(--bg-hover)'; this.style.color='var(--text-primary)'" onmouseout="this.style.background='var(--bg-secondary)'; this.style.color='var(--text-secondary)'">
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                                <line x1="18" y1="6" x2="6" y2="18"/>
-                                <line x1="6" y1="6" x2="18" y2="18"/>
-                            </svg>
-                        </button>
+                        <div style="display: flex; gap: 6px;">
+                            <button onclick="minimizeAiAssistant()" style="background: var(--bg-secondary); border: 1px solid var(--border-color); color: var(--text-secondary); border-radius: 6px; cursor: pointer; padding: 6px 8px; display: flex; align-items: center; justify-content: center; transition: all 0.2s;" onmouseover="this.style.background='var(--bg-hover)'; this.style.color='var(--text-primary)'" onmouseout="this.style.background='var(--bg-secondary)'; this.style.color='var(--text-secondary)'" title="Réduire">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                    <line x1="5" y1="12" x2="19" y2="12"/>
+                                </svg>
+                            </button>
+                            <button onclick="toggleAiAssistant()" style="background: var(--bg-secondary); border: 1px solid var(--border-color); color: var(--text-secondary); border-radius: 6px; cursor: pointer; padding: 6px; display: flex; align-items: center; justify-content: center; transition: all 0.2s;" onmouseover="this.style.background='var(--bg-hover)'; this.style.color='var(--text-primary)'" onmouseout="this.style.background='var(--bg-secondary)'; this.style.color='var(--text-secondary)'" title="Fermer">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                    <line x1="18" y1="6" x2="6" y2="18"/>
+                                    <line x1="6" y1="6" x2="18" y2="18"/>
+                                </svg>
+                            </button>
+                        </div>
                     </div>
 
                     <!-- Conversation -->
