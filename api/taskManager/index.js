@@ -42,11 +42,14 @@ module.exports = async function (context, req) {
             case 'smart-command':
                 return await smartCommand(context, req, userId);
             
+            case 'sync':
+                return await syncTasks(context, req, userId);
+            
             default:
                 context.res = {
                     status: 400,
                     headers: { 'Content-Type': 'application/json' },
-                    body: { error: "Unknown action. Use: create, list, update, delete, smart-add, smart-command" }
+                    body: { error: "Unknown action. Use: create, list, update, delete, smart-add, smart-command, sync" }
                 };
         }
 
@@ -337,6 +340,38 @@ async function deleteTask(context, req, userId) {
 }
 
 /**
+ * Synchronisation complète - Remplace toutes les tâches serveur par celles du client
+ */
+async function syncTasks(context, req, userId) {
+    const { tasks } = req.body;
+
+    if (!Array.isArray(tasks)) {
+        context.res = {
+            status: 400,
+            headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
+            body: { error: "Tasks array is required" }
+        };
+        return;
+    }
+
+    // Remplacer complètement les tâches du serveur
+    await saveTasks(userId, tasks);
+
+    context.res = {
+        status: 200,
+        headers: {
+            'Content-Type': 'application/json',
+            'Access-Control-Allow-Origin': '*'
+        },
+        body: {
+            message: "Synchronisation réussie",
+            taskCount: tasks.length,
+            tasks: tasks
+        }
+    };
+}
+
+/**
  * Commande intelligente - Assistant conversationnel
  * Exemples: "Organise ma semaine", "Qu'est-ce que je dois faire maintenant?", "Déplace ça à demain"
  */
@@ -521,6 +556,7 @@ RÈGLES:
             const task = {
                 id: Date.now().toString() + Math.random().toString(36).substr(2, 9),
                 title: newTask.title,
+                description: newTask.description || '',
                 priority: newTask.priority || 'normal',
                 deadline: newTask.deadline || null,
                 category: newTask.category || 'personnel',

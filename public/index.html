@@ -4695,7 +4695,7 @@
         // Synchronisation localStorage <-> Serveur
         async function syncTasksToServer() {
             try {
-                // Envoyer toutes les tâches localStorage au serveur
+                // Envoyer toutes les tâches localStorage au serveur (REMPLACER complètement)
                 const tasks = userTasks.map(task => ({
                     id: task.id,
                     title: task.title,
@@ -4705,19 +4705,24 @@
                     category: task.category || 'personnel',
                     status: task.completed ? 'completed' : (task.inProgress ? 'in-progress' : 'pending'),
                     estimatedTime: task.estimatedTime || null,
-                    createdAt: task.createdAt || new Date().toISOString()
+                    subtasks: task.subtasks || [],
+                    createdAt: task.createdAt || new Date().toISOString(),
+                    updatedAt: task.updatedAt || new Date().toISOString()
                 }));
 
-                // Envoyer chaque tâche au serveur (création)
-                for (const task of tasks) {
-                    await fetch('/api/tasks/create', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify(task)
-                    });
-                }
+                // Synchronisation complète (REMPLACE toutes les tâches serveur)
+                const response = await fetch('/api/tasks/sync', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ tasks: tasks })
+                });
 
-                console.log('✅ Synchronisation terminée:', tasks.length, 'tâches');
+                if (response.ok) {
+                    const data = await response.json();
+                    console.log('✅ Synchronisation terminée:', data.taskCount, 'tâches');
+                } else {
+                    console.error('❌ Erreur sync serveur:', response.status);
+                }
             } catch (error) {
                 console.error('❌ Erreur sync:', error);
             }
@@ -4728,7 +4733,7 @@
                 const response = await fetch('/api/tasks/list');
                 const data = await response.json();
                 
-                if (data.tasks) {
+                if (data.tasks && data.tasks.length > 0) {
                     // REMPLACER complètement userTasks par les tâches du serveur
                     userTasks = data.tasks.map(serverTask => ({
                         id: serverTask.id,
@@ -4740,7 +4745,9 @@
                         completed: serverTask.status === 'completed',
                         inProgress: serverTask.status === 'in-progress',
                         estimatedTime: serverTask.estimatedTime || null,
+                        subtasks: serverTask.subtasks || [],
                         createdAt: serverTask.createdAt || new Date().toISOString(),
+                        updatedAt: serverTask.updatedAt || new Date().toISOString(),
                         notificationEnabled: true
                     }));
 
