@@ -4481,7 +4481,7 @@
                 </div>
 
                 <!-- Main Container -->
-                <div style="flex: 1; display: flex; overflow: hidden;">
+                <div style="flex: 1; display: flex; overflow: hidden; position: relative;">
                     <!-- Sidebar -->
                     <div style="width: 240px; background: var(--bg-sidebar); border-right: 1px solid var(--border-color); overflow-y: auto; padding: 16px;">
                         <!-- Vues -->
@@ -4530,8 +4530,8 @@
                         <!-- Contenu dynamique -->
                     </div>
 
-                    <!-- Details Panel (hidden by default) -->
-                    <div id="todoDetailsPanel" style="width: 0; background: var(--bg-sidebar); border-left: 1px solid var(--border-color); padding: 0; overflow: hidden; transition: all 0.3s;">
+                    <!-- Details Panel (overlay absolu) -->
+                    <div id="todoDetailsPanel" style="position: absolute; right: 0; top: 0; bottom: 0; width: 0; background: var(--bg-sidebar); border-left: 1px solid var(--border-color); padding: 0; overflow-y: auto; overflow-x: hidden; transition: all 0.3s; box-shadow: -4px 0 12px rgba(0, 0, 0, 0.15); z-index: 100;">
                         <!-- Task details -->
                     </div>
                 </div>
@@ -4952,9 +4952,19 @@
             if (!selectedTask) return;
 
             const panel = document.getElementById('todoDetailsPanel');
-            panel.style.width = '380px';
+            panel.style.width = '420px';
             panel.style.padding = '20px';
             detailsPanelOpen = true;
+            
+            // Add backdrop
+            let backdrop = document.getElementById('todoDetailsBackdrop');
+            if (!backdrop) {
+                backdrop = document.createElement('div');
+                backdrop.id = 'todoDetailsBackdrop';
+                backdrop.onclick = closeTaskDetails;
+                panel.parentElement.appendChild(backdrop);
+            }
+            backdrop.style.cssText = 'position: absolute; inset: 0; background: rgba(0, 0, 0, 0.4); z-index: 99; transition: opacity 0.3s; opacity: 1;';
 
             const dueStr = selectedTask.dueDate ? new Date(selectedTask.dueDate).toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }) : 'Non définie';
             const priorityLabel = selectedTask.priority === 'high' ? 'Urgente' : selectedTask.priority === 'medium' ? 'Normale' : 'Basse';
@@ -5060,6 +5070,13 @@
             panel.style.padding = '0';
             detailsPanelOpen = false;
             selectedTask = null;
+            
+            // Remove backdrop
+            const backdrop = document.getElementById('todoDetailsBackdrop');
+            if (backdrop) {
+                backdrop.style.opacity = '0';
+                setTimeout(() => backdrop.remove(), 300);
+            }
         }
 
         function deleteTaskConfirm(taskId) {
