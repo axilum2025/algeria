@@ -4678,6 +4678,13 @@
                 }
             `;
             document.head.appendChild(style);
+            
+            // Synchroniser les tâches au chargement
+            setTimeout(() => {
+                syncTasksFromServer().then(() => {
+                    renderTodoMainView();
+                });
+            }, 500);
         }
 
         function closeTodoAi() {
@@ -4690,6 +4697,76 @@
         // Assistant IA Conversationnel
         let aiAssistantOpen = false;
 
+        // Synchronisation localStorage <-> Serveur
+        async function syncTasksToServer() {
+            try {
+                // Envoyer toutes les tâches localStorage au serveur
+                const tasks = userTasks.map(task => ({
+                    id: task.id,
+                    title: task.title,
+                    description: task.description || '',
+                    priority: task.priority || 'medium',
+                    deadline: task.dueDate || null,
+                    category: task.category || 'personnel',
+                    status: task.completed ? 'completed' : (task.inProgress ? 'in-progress' : 'pending'),
+                    estimatedTime: task.estimatedTime || null,
+                    createdAt: task.createdAt || new Date().toISOString()
+                }));
+
+                // Envoyer chaque tâche au serveur (création)
+                for (const task of tasks) {
+                    await fetch('/api/taskManager/create', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(task)
+                    });
+                }
+
+                console.log('✅ Synchronisation terminée:', tasks.length, 'tâches');
+            } catch (error) {
+                console.error('❌ Erreur sync:', error);
+            }
+        }
+
+        async function syncTasksFromServer() {
+            try {
+                const response = await fetch('/api/taskManager/list');
+                const data = await response.json();
+                
+                if (data.tasks && data.tasks.length > 0) {
+                    // Convertir format serveur -> localStorage
+                    data.tasks.forEach(serverTask => {
+                        const existingIndex = userTasks.findIndex(t => t.id === serverTask.id);
+                        
+                        const localTask = {
+                            id: serverTask.id,
+                            title: serverTask.title,
+                            description: serverTask.description || '',
+                            priority: serverTask.priority || 'medium',
+                            dueDate: serverTask.deadline || serverTask.dueDate || null,
+                            category: serverTask.category || 'personnel',
+                            completed: serverTask.status === 'completed',
+                            inProgress: serverTask.status === 'in-progress',
+                            estimatedTime: serverTask.estimatedTime || null,
+                            createdAt: serverTask.createdAt || new Date().toISOString(),
+                            notificationEnabled: true
+                        };
+
+                        if (existingIndex >= 0) {
+                            userTasks[existingIndex] = localTask;
+                        } else {
+                            userTasks.push(localTask);
+                        }
+                    });
+
+                    localStorage.setItem('userTasks', JSON.stringify(userTasks));
+                    console.log('✅ Tâches synchronisées depuis serveur:', data.tasks.length);
+                }
+            } catch (error) {
+                console.error('❌ Erreur récupération serveur:', error);
+            }
+        }
+
         function toggleAiAssistant() {
             aiAssistantOpen = !aiAssistantOpen;
             if (aiAssistantOpen) {
@@ -4700,6 +4777,11 @@
         }
 
         function showAiAssistantPanel() {
+            // Vérifier que les tâches sont prêtes
+            if (!userTasks || userTasks.length === 0) {
+                showToast('ℹ️ Ajoutez des tâches d\'abord', 'info');
+            }
+            
             const panel = document.createElement('div');
             panel.id = 'aiAssistantPanel';
             panel.innerHTML = `
@@ -4801,6 +4883,9 @@
             messagesContainer.scrollTop = messagesContainer.scrollHeight;
 
             try {
+                // Synchroniser les tâches localStorage vers serveur avant commande
+                await syncTasksToServer();
+
                 const response = await fetch('/api/taskManager/smart-command', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -4853,8 +4938,8 @@
                     // Si modifications, recharger les tâches
                     if (data.tasksModified > 0) {
                         showToast('✅ ' + data.tasksModified + ' tâche(s) modifiée(s)', 'success');
-                        // Les tâches sont gérées côté serveur pour l'instant
-                        // TODO: Synchroniser avec localStorage si nécessaire
+                        // Synchroniser les modifications depuis le serveur
+                        await syncTasksFromServer();
                         renderTodoMainView();
                     }
                 }
