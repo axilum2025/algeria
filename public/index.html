@@ -4478,7 +4478,7 @@
                                 <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
                             </svg>
                         </button>
-                        <button id="addTaskBtn" onclick="showAddTaskModal()" style="padding: 8px 16px; background: #3B82F6; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 14px; display: flex; align-items: center; gap: 6px; transition: all 0.2s; white-space: nowrap;" onmouseover="this.style.background='#2563EB'" onmouseout="this.style.background='#3B82F6'">
+                        <button id="addTaskBtn" onclick="showAddTaskModal()" style="padding: 8px 16px; background: var(--accent); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 14px; display: flex; align-items: center; gap: 6px; transition: all 0.2s; white-space: nowrap;" onmouseover="this.style.opacity='0.9'" onmouseout="this.style.opacity='1'">
                             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                                 <line x1="12" y1="5" x2="12" y2="19"/>
                                 <line x1="5" y1="12" x2="19" y2="12"/>
@@ -4501,7 +4501,7 @@
                         <!-- Vues -->
                         <div style="margin-bottom: 24px;">
                             <h3 style="margin-bottom: 8px; color: var(--text-secondary); font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.8px;">Vues</h3>
-                            <button onclick="switchTodoView('list')" id="viewList" class="sidebar-btn" style="width: 100%; padding: 8px 12px; text-align: left; border: none; background: rgba(59, 130, 246, 0.1); color: #3B82F6; border-radius: 8px; cursor: pointer; font-size: 14px; display: flex; align-items: center; gap: 10px; margin-bottom: 4px; transition: all 0.2s;">
+                            <button onclick="switchTodoView('list')" id="viewList" class="sidebar-btn" style="width: 100%; padding: 8px 12px; text-align: left; border: none; background: rgba(59, 130, 246, 0.1); color: var(--accent); border-radius: 8px; cursor: pointer; font-size: 14px; display: flex; align-items: center; gap: 10px; margin-bottom: 4px; transition: all 0.2s;">
                                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                     <line x1="8" y1="6" x2="21" y2="6"/>
                                     <line x1="8" y1="12" x2="21" y2="12"/>
@@ -5064,7 +5064,7 @@
             const btn = document.getElementById('notificationToggle');
             if (btn) {
                 btn.style.background = notificationsEnabled ? 'rgba(59, 130, 246, 0.1)' : 'transparent';
-                btn.style.color = notificationsEnabled ? '#3B82F6' : 'var(--text-secondary)';
+                btn.style.color = notificationsEnabled ? 'var(--accent)' : 'var(--text-secondary)';
                 btn.title = notificationsEnabled ? 'Notifications activées' : 'Activer les notifications';
             }
         }
@@ -5073,7 +5073,8 @@
             const task = userTasks.find(t => t.id === taskId);
             if (task) {
                 task.notifyEnabled = enabled;
-                localStorage.setItem('userTasks', JSON.stringify(userTasks));
+                task.notificationEnabled = enabled;
+                saveTasks();
                 showToast(enabled ? '🔔 Notification activée pour cette tâche' : '🔕 Notification désactivée', 'info');
                 
                 if (enabled && !notificationsEnabled) {
