@@ -4556,6 +4556,17 @@
             
             // Ajouter styles responsive
             addTodoResponsiveStyles();
+            
+            // Event listener pour les boutons de navigation Kanban
+            setTimeout(() => {
+                const kanbanContainer = document.getElementById('kanbanContainer');
+                if (kanbanContainer) {
+                    kanbanContainer.addEventListener('scroll', updateKanbanNavButtons);
+                    if (todoView === 'kanban' && window.innerWidth <= 768) {
+                        updateKanbanNavButtons();
+                    }
+                }
+            }, 100);
         }
         
         function addTodoResponsiveStyles() {
@@ -4636,25 +4647,6 @@
                     
                     #kanbanContainer::-webkit-scrollbar-thumb:hover {
                         background: #2563EB !important;
-                    }
-                    
-                    /* Indicateur visuel de scroll */
-                    #kanbanContainer::after {
-                        content: '→';
-                        position: fixed;
-                        right: 20px;
-                        top: 50%;
-                        transform: translateY(-50%);
-                        font-size: 24px;
-                        color: #3B82F6;
-                        opacity: 0.5;
-                        pointer-events: none;
-                        animation: slideHint 1.5s ease-in-out infinite;
-                    }
-                    
-                    @keyframes slideHint {
-                        0%, 100% { transform: translateY(-50%) translateX(0); opacity: 0.5; }
-                        50% { transform: translateY(-50%) translateX(5px); opacity: 0.8; }
                     }
                 }
                 
@@ -5005,46 +4997,60 @@
             const completedTasks = userTasks.filter(t => t.completed);
 
             container.innerHTML = `
-                <div id="kanbanContainer" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; height: 100%;">
-                    <div class="kanban-column" style="background: var(--bg-secondary); border-radius: 12px; padding: 16px; overflow-y: auto; border: 1px solid var(--border-color);">
-                        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; position: sticky; top: 0; background: var(--bg-secondary); z-index: 1; padding-bottom: 12px; border-bottom: 1px solid var(--border-color);">
-                            <div style="font-size: 14px; font-weight: 600; display: flex; align-items: center; gap: 8px; color: var(--text-primary);">
-                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                    <circle cx="12" cy="12" r="10"/>
-                                </svg>
-                                À faire
+                <div style="position: relative;">
+                    <div id="kanbanContainer" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; height: 100%;">
+                        <div class="kanban-column" style="background: var(--bg-secondary); border-radius: 12px; padding: 16px; overflow-y: auto; border: 1px solid var(--border-color);">
+                            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; position: sticky; top: 0; background: var(--bg-secondary); z-index: 1; padding-bottom: 12px; border-bottom: 1px solid var(--border-color);">
+                                <div style="font-size: 14px; font-weight: 600; display: flex; align-items: center; gap: 8px; color: var(--text-primary);">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <circle cx="12" cy="12" r="10"/>
+                                    </svg>
+                                    À faire
+                                </div>
+                                <span style="background: rgba(59, 130, 246, 0.1); color: #3B82F6; padding: 4px 10px; border-radius: 8px; font-size: 12px; font-weight: 600;">${todoTasks.length}</span>
                             </div>
-                            <span style="background: rgba(59, 130, 246, 0.1); color: #3B82F6; padding: 4px 10px; border-radius: 8px; font-size: 12px; font-weight: 600;">${todoTasks.length}</span>
+                            ${todoTasks.map(t => renderTaskCard(t)).join('')}
                         </div>
-                        ${todoTasks.map(t => renderTaskCard(t)).join('')}
-                    </div>
 
-                    <div class="kanban-column" style="background: var(--bg-secondary); border-radius: 12px; padding: 16px; overflow-y: auto; border: 1px solid var(--border-color);">
-                        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; position: sticky; top: 0; background: var(--bg-secondary); z-index: 1; padding-bottom: 12px; border-bottom: 1px solid var(--border-color);">
-                            <div style="font-size: 14px; font-weight: 600; display: flex; align-items: center; gap: 8px; color: var(--text-primary);">
-                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                    <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
-                                </svg>
-                                En cours
+                        <div class="kanban-column" style="background: var(--bg-secondary); border-radius: 12px; padding: 16px; overflow-y: auto; border: 1px solid var(--border-color);">
+                            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; position: sticky; top: 0; background: var(--bg-secondary); z-index: 1; padding-bottom: 12px; border-bottom: 1px solid var(--border-color);">
+                                <div style="font-size: 14px; font-weight: 600; display: flex; align-items: center; gap: 8px; color: var(--text-primary);">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
+                                    </svg>
+                                    En cours
+                                </div>
+                                <span style="background: rgba(245, 158, 11, 0.1); color: #F59E0B; padding: 4px 10px; border-radius: 8px; font-size: 12px; font-weight: 600;">${inProgressTasks.length}</span>
                             </div>
-                            <span style="background: rgba(245, 158, 11, 0.1); color: #F59E0B; padding: 4px 10px; border-radius: 8px; font-size: 12px; font-weight: 600;">${inProgressTasks.length}</span>
+                            ${inProgressTasks.map(t => renderTaskCard(t)).join('')}
                         </div>
-                        ${inProgressTasks.map(t => renderTaskCard(t)).join('')}
-                    </div>
 
-                    <div class="kanban-column" style="background: var(--bg-secondary); border-radius: 12px; padding: 16px; overflow-y: auto; border: 1px solid var(--border-color);">
-                        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; position: sticky; top: 0; background: var(--bg-secondary); z-index: 1; padding-bottom: 12px; border-bottom: 1px solid var(--border-color);">
-                            <div style="font-size: 14px; font-weight: 600; display: flex; align-items: center; gap: 8px; color: var(--text-primary);">
-                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
-                                    <polyline points="22 4 12 14.01 9 11.01"/>
-                                </svg>
-                                Terminé
+                        <div class="kanban-column" style="background: var(--bg-secondary); border-radius: 12px; padding: 16px; overflow-y: auto; border: 1px solid var(--border-color);">
+                            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; position: sticky; top: 0; background: var(--bg-secondary); z-index: 1; padding-bottom: 12px; border-bottom: 1px solid var(--border-color);">
+                                <div style="font-size: 14px; font-weight: 600; display: flex; align-items: center; gap: 8px; color: var(--text-primary);">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+                                        <polyline points="22 4 12 14.01 9 11.01"/>
+                                    </svg>
+                                    Terminé
+                                </div>
+                                <span style="background: rgba(16, 185, 129, 0.1); color: #10B981; padding: 4px 10px; border-radius: 8px; font-size: 12px; font-weight: 600;">${completedTasks.length}</span>
                             </div>
-                            <span style="background: rgba(16, 185, 129, 0.1); color: #10B981; padding: 4px 10px; border-radius: 8px; font-size: 12px; font-weight: 600;">${completedTasks.length}</span>
+                            ${completedTasks.slice(0, 10).map(t => renderTaskCard(t)).join('')}
                         </div>
-                        ${completedTasks.slice(0, 10).map(t => renderTaskCard(t)).join('')}
                     </div>
+                    
+                    <!-- Boutons de navigation mobile -->
+                    <button id="kanbanNavLeft" onclick="scrollKanban('left')" style="display: none; position: fixed; left: 8px; top: 50%; transform: translateY(-50%); width: 40px; height: 40px; background: rgba(59, 130, 246, 0.9); color: white; border: none; border-radius: 50%; cursor: pointer; z-index: 1000; box-shadow: 0 4px 12px rgba(0,0,0,0.3); align-items: center; justify-content: center;">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="15 18 9 12 15 6"/>
+                        </svg>
+                    </button>
+                    <button id="kanbanNavRight" onclick="scrollKanban('right')" style="display: none; position: fixed; right: 8px; top: 50%; transform: translateY(-50%); width: 40px; height: 40px; background: rgba(59, 130, 246, 0.9); color: white; border: none; border-radius: 50%; cursor: pointer; z-index: 1000; box-shadow: 0 4px 12px rgba(0,0,0,0.3); align-items: center; justify-content: center;">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="9 18 15 12 9 6"/>
+                        </svg>
+                    </button>
                 </div>
             `;
         }
@@ -5153,6 +5159,53 @@
             
             // Re-render the main view with new selected view
             renderTodoMainView();
+            
+            // Activer les boutons de navigation si vue Kanban sur mobile
+            if (view === 'kanban' && window.innerWidth <= 768) {
+                setTimeout(updateKanbanNavButtons, 100);
+            }
+        }
+        
+        function scrollKanban(direction) {
+            const container = document.getElementById('kanbanContainer');
+            if (!container) return;
+            
+            const scrollAmount = container.offsetWidth * 0.85; // Scroll une colonne
+            const currentScroll = container.scrollLeft;
+            
+            if (direction === 'left') {
+                container.scrollTo({
+                    left: Math.max(0, currentScroll - scrollAmount),
+                    behavior: 'smooth'
+                });
+            } else {
+                container.scrollTo({
+                    left: currentScroll + scrollAmount,
+                    behavior: 'smooth'
+                });
+            }
+            
+            setTimeout(updateKanbanNavButtons, 300);
+        }
+        
+        function updateKanbanNavButtons() {
+            const container = document.getElementById('kanbanContainer');
+            const leftBtn = document.getElementById('kanbanNavLeft');
+            const rightBtn = document.getElementById('kanbanNavRight');
+            
+            if (!container || !leftBtn || !rightBtn) return;
+            if (window.innerWidth > 768) {
+                leftBtn.style.display = 'none';
+                rightBtn.style.display = 'none';
+                return;
+            }
+            
+            const maxScroll = container.scrollWidth - container.clientWidth;
+            const currentScroll = container.scrollLeft;
+            
+            // Afficher/masquer selon la position
+            leftBtn.style.display = currentScroll > 10 ? 'flex' : 'none';
+            rightBtn.style.display = currentScroll < maxScroll - 10 ? 'flex' : 'none';
         }
 
         function switchTodoFilter(filter) {
