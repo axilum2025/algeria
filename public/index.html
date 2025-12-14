@@ -4783,23 +4783,36 @@
             const content = panel.querySelector('div');
             if (!content) return;
             
+            const header = content.querySelector('div[style*="padding: 16px"]');
+            const headerTitle = header?.querySelector('div[style*="display: flex; align-items: center; gap: 10px"]');
+            const messages = document.getElementById('aiChatMessages');
+            const inputArea = messages?.nextElementSibling;
+            
             if (aiAssistantMinimized) {
-                // Réduire à juste le header
-                content.style.maxHeight = 'auto';
-                const messages = document.getElementById('aiChatMessages');
-                const inputArea = messages?.nextElementSibling;
+                // Réduire à juste les boutons
+                content.style.width = 'auto';
+                content.style.bottom = '100px';
+                if (header) {
+                    header.style.padding = '8px';
+                    header.style.minHeight = 'auto';
+                }
+                if (headerTitle) headerTitle.style.display = 'none';
                 if (messages) messages.style.display = 'none';
                 if (inputArea) inputArea.style.display = 'none';
                 content.style.cursor = 'pointer';
                 content.onclick = (e) => {
-                    if (e.target.closest('button')) return; // Ignorer clics sur boutons
+                    if (e.target.closest('button')) return;
                     minimizeAiAssistant();
                 };
             } else {
                 // Restaurer
-                content.style.maxHeight = '500px';
-                const messages = document.getElementById('aiChatMessages');
-                const inputArea = messages?.nextElementSibling;
+                content.style.width = '380px';
+                content.style.bottom = '80px';
+                if (header) {
+                    header.style.padding = '16px 20px';
+                    header.style.minHeight = '';
+                }
+                if (headerTitle) headerTitle.style.display = 'flex';
                 if (messages) messages.style.display = 'flex';
                 if (inputArea) inputArea.style.display = 'flex';
                 content.style.cursor = 'default';
