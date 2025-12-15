@@ -4,9 +4,20 @@ node_modules/
 
 # Azure Functions
 .env
+.env.*
+.env.local
+.env.azure
+.env.production
+.env.development
 local.settings.json
 
 # Logs
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+
+# Secrets
+secrets/
+*.pem
+*.key
+*.cert
