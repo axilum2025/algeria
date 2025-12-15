@@ -98,6 +98,16 @@
             width: 250px;
         }
 
+        .search-input::placeholder {
+            color: #6B7280;
+        }
+
+        .search-input:focus {
+            outline: none;
+            background: white;
+            box-shadow: 0 0 0 2px rgba(255,255,255,0.4);
+        }
+
         .btn-add {
             padding: 8px 20px;
             background: white;
@@ -152,6 +162,10 @@
             padding: 20px;
         }
 
+        body.light-mode .sidebar {
+            box-shadow: 1px 0 3px rgba(0,0,0,0.05);
+        }
+
         .sidebar-section {
             margin-bottom: 24px;
         }
@@ -186,9 +200,18 @@
             background: rgba(59, 130, 246, 0.1);
         }
 
+        body.light-mode .sidebar-btn:hover {
+            background: rgba(59, 130, 246, 0.08);
+        }
+
         .sidebar-btn.active {
             background: rgba(59, 130, 246, 0.15);
             color: var(--primary-color);
+        }
+
+        body.light-mode .sidebar-btn.active {
+            background: rgba(59, 130, 246, 0.12);
+            font-weight: 600;
         }
 
         .sidebar-count {
@@ -197,6 +220,12 @@
             padding: 2px 8px;
             border-radius: 10px;
             font-size: 12px;
+        }
+
+        body.light-mode .sidebar-count {
+            background: rgba(59, 130, 246, 0.15);
+            color: var(--primary-color);
+            font-weight: 600;
         }
 
         .main-area {
@@ -216,8 +245,18 @@
             box-shadow: 0 1px 3px rgba(0,0,0,0.1);
         }
 
+        body.light-mode .task-card {
+            border: 1px solid var(--border-color);
+            box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+        }
+
         .task-card:hover {
             box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+
+        body.light-mode .task-card:hover {
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+            border-color: var(--primary-color);
         }
 
         .task-header {
@@ -275,6 +314,11 @@
             padding: 16px;
         }
 
+        body.light-mode .kanban-column {
+            border: 1px solid var(--border-color);
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        }
+
         .kanban-header {
             display: flex;
             align-items: center;
@@ -296,6 +340,10 @@
             border-left: 1px solid var(--border-color);
             padding: 24px;
             overflow-y: auto;
+        }
+
+        body.light-mode .details-panel {
+            box-shadow: -1px 0 3px rgba(0,0,0,0.05);
         }
 
         .empty-state {
