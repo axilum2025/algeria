@@ -28,10 +28,11 @@ az appservice plan create \
   --sku F1 \
   --is-linux
 
+
 # Créer la Web App
 az webapp create \
-  --name axilum-app \
-  --resource-group axilum-rg \
+  --name Axilum \
+  --resource-group AxilumRessources \
   --plan axilum-plan \
   --runtime "NODE|20-lts"
 ```
@@ -39,8 +40,8 @@ az webapp create \
 #### 2. Récupérer le Publish Profile
 ```bash
 az webapp deployment list-publishing-profiles \
-  --name axilum-app \
-  --resource-group axilum-rg \
+  --name Axilum \
+  --resource-group AxilumRessources \
   --xml
 ```
 
@@ -51,7 +52,7 @@ az webapp deployment list-publishing-profiles \
 
 #### 4. Modifier le workflow
 Éditer `.github/workflows/azure-app-service-deploy.yml` :
-- Changer `AZURE_WEBAPP_NAME` avec votre nom d'app
+- Changer `AZURE_WEBAPP_NAME` à `Axilum`
 
 #### 5. Pousser vers GitHub
 Le déploiement se fera automatiquement !
@@ -226,8 +227,8 @@ Après avoir choisi une solution, n'oubliez pas d'ajouter vos variables d'enviro
 ```bash
 # Pour App Service ou Container Apps
 az webapp config appsettings set \
-  --name axilum-app \
-  --resource-group axilum-rg \
+  --name Axilum \
+  --resource-group AxilumRessources \
   --settings \
     SENDGRID_API_KEY="your-key" \
     AZURE_STORAGE_ACCOUNT="your-account" \
