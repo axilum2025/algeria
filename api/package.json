@@ -6,7 +6,6 @@
     "node": ">=18.0.0"
   },
   "scripts": {
-    "start": "func start",
     "test": "echo \"No tests yet\""
   },
   "dependencies": {

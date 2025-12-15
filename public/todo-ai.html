@@ -23,6 +23,14 @@
             --danger-color: #EF4444;
         }
 
+        body.light-mode {
+            --bg-primary: #F8FAFC;
+            --bg-secondary: #FFFFFF;
+            --text-primary: #1E293B;
+            --text-secondary: #64748B;
+            --border-color: #E2E8F0;
+        }
+
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
             background: var(--bg-primary);
@@ -90,6 +98,16 @@
             width: 250px;
         }
 
+        .search-input::placeholder {
+            color: #6B7280;
+        }
+
+        .search-input:focus {
+            outline: none;
+            background: white;
+            box-shadow: 0 0 0 2px rgba(255,255,255,0.4);
+        }
+
         .btn-add {
             padding: 8px 20px;
             background: white;
@@ -103,6 +121,21 @@
             align-items: center;
             gap: 6px;
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .btn-theme {
+            padding: 8px 12px;
+            background: rgba(255,255,255,0.2);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 20px;
+            transition: background 0.2s;
+        }
+
+        .btn-theme:hover {
+            background: rgba(255,255,255,0.3);
         }
 
         .btn-close {
@@ -127,6 +160,10 @@
             border-right: 1px solid var(--border-color);
             overflow-y: auto;
             padding: 20px;
+        }
+
+        body.light-mode .sidebar {
+            box-shadow: 1px 0 3px rgba(0,0,0,0.05);
         }
 
         .sidebar-section {
@@ -163,9 +200,18 @@
             background: rgba(59, 130, 246, 0.1);
         }
 
+        body.light-mode .sidebar-btn:hover {
+            background: rgba(59, 130, 246, 0.08);
+        }
+
         .sidebar-btn.active {
             background: rgba(59, 130, 246, 0.15);
             color: var(--primary-color);
+        }
+
+        body.light-mode .sidebar-btn.active {
+            background: rgba(59, 130, 246, 0.12);
+            font-weight: 600;
         }
 
         .sidebar-count {
@@ -174,6 +220,12 @@
             padding: 2px 8px;
             border-radius: 10px;
             font-size: 12px;
+        }
+
+        body.light-mode .sidebar-count {
+            background: rgba(59, 130, 246, 0.15);
+            color: var(--primary-color);
+            font-weight: 600;
         }
 
         .main-area {
@@ -193,8 +245,18 @@
             box-shadow: 0 1px 3px rgba(0,0,0,0.1);
         }
 
+        body.light-mode .task-card {
+            border: 1px solid var(--border-color);
+            box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+        }
+
         .task-card:hover {
             box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+
+        body.light-mode .task-card:hover {
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+            border-color: var(--primary-color);
         }
 
         .task-header {
@@ -252,6 +314,11 @@
             padding: 16px;
         }
 
+        body.light-mode .kanban-column {
+            border: 1px solid var(--border-color);
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        }
+
         .kanban-header {
             display: flex;
             align-items: center;
@@ -273,6 +340,10 @@
             border-left: 1px solid var(--border-color);
             padding: 24px;
             overflow-y: auto;
+        }
+
+        body.light-mode .details-panel {
+            box-shadow: -1px 0 3px rgba(0,0,0,0.05);
         }
 
         .empty-state {
@@ -339,6 +410,7 @@
                     </svg>
                     Ajouter
                 </button>
+                <button class="btn-theme" onclick="toggleTheme()" id="themeToggle">🌙</button>
                 <button class="btn-close" onclick="window.close()">✕</button>
             </div>
         </div>
@@ -420,6 +492,33 @@
     </div>
 
     <script>
+        // Theme Toggle
+        function toggleTheme() {
+            const body = document.body;
+            const themeToggle = document.getElementById('themeToggle');
+            
+            body.classList.toggle('light-mode');
+            
+            if (body.classList.contains('light-mode')) {
+                themeToggle.textContent = '☀️';
+                localStorage.setItem('theme', 'light');
+            } else {
+                themeToggle.textContent = '🌙';
+                localStorage.setItem('theme', 'dark');
+            }
+        }
+
+        // Load saved theme
+        window.addEventListener('DOMContentLoaded', () => {
+            const savedTheme = localStorage.getItem('theme');
+            const themeToggle = document.getElementById('themeToggle');
+            
+            if (savedTheme === 'light') {
+                document.body.classList.add('light-mode');
+                themeToggle.textContent = '☀️';
+            }
+        });
+
         function showAddTaskModal() {
             alert('Fonctionnalité To-Do AI complète - À intégrer dans Axilum');
         }
