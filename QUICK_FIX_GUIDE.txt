@@ -1,0 +1,144 @@
+╔══════════════════════════════════════════════════════════════════════════════╗
+║                 🔴 PROBLÈME VARIABLES INTERDITES - SOLUTION                  ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+📋 RÉSUMÉ DU PROBLÈME
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+❌ Ces variables causent l'échec du déploiement:
+   • AzureWebJobsStorage
+   • FUNCTIONS_WORKER_RUNTIME
+   • AzureWebJobsStorageConnectionString
+   • WEBSITE_NODE_DEFAULT_VERSION
+
+💡 Raison: Azure Static Web Apps gère automatiquement les Functions.
+   Ces variables sont pour Azure Functions STANDALONE seulement !
+
+╔══════════════════════════════════════════════════════════════════════════════╗
+║                          ✅ SOLUTION EN 3 ÉTAPES                             ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+┌─ ÉTAPE 1: CRÉER NOUVELLE APPLICATION PROPRE ──────────────────────────────┐
+│                                                                             │
+│  Option A - Script Automatique (RECOMMANDÉ) 🚀                            │
+│  ─────────────────────────────────────────                                 │
+│  export GITHUB_TOKEN=ghp_votre_token_github_ici                           │
+│  ./scripts/create-new-static-app.sh Axilum2030-v2                         │
+│                                                                             │
+│  Option B - Commande Manuelle                                              │
+│  ─────────────────────────                                                 │
+│  az staticwebapp create \                                                  │
+│    --name Axilum2030-v2 \                                                  │
+│    --resource-group Axilum2030_group \                                     │
+│    --location westus2 \                                                    │
+│    --source https://github.com/axilum2025/Axilum2030 \                    │
+│    --branch main \                                                         │
+│    --app-location "public" \                                               │
+│    --api-location "api" \                                                  │
+│    --output-location "" \                                                  │
+│    --token ghp_votre_token_github_ici \                                   │
+│    --sku Free                                                              │
+│                                                                             │
+│  Option C - Portail Azure                                                  │
+│  ──────────────────────                                                    │
+│  https://portal.azure.com → Créer → Static Web App                        │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+┌─ ÉTAPE 2: CONFIGURER LE SECRET GITHUB ────────────────────────────────────┐
+│                                                                             │
+│  1. Récupérer le token de déploiement:                                     │
+│     az staticwebapp secrets list \                                         │
+│       --name Axilum2030-v2 \                                               │
+│       --resource-group Axilum2030_group \                                  │
+│       --query "properties.apiKey" -o tsv                                   │
+│                                                                             │
+│  2. Ajouter dans GitHub:                                                   │
+│     https://github.com/axilum2025/Axilum2030/settings/secrets/actions     │
+│     Nom: AZURE_STATIC_WEB_APPS_API_TOKEN_AXILUM2030_V2                    │
+│     Valeur: (le token de l'étape 1)                                        │
+│                                                                             │
+│  3. Mettre à jour le workflow:                                             │
+│     Fichier: .github/workflows/azure-static-web-apps-*.yml                │
+│     Ligne à modifier:                                                      │
+│     azure_static_web_apps_api_token: ${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN_AXILUM2030_V2 }}
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+┌─ ÉTAPE 3: CONFIGURER LES VARIABLES (AUTORISÉES SEULEMENT) ────────────────┐
+│                                                                             │
+│  1. Créer .env.azure avec vos clés API:                                    │
+│                                                                             │
+│     ✅ AUTORISÉES:                                                         │
+│     ─────────────                                                          │
+│     GROQ_API_KEY=...                                                       │
+│     AZURE_STORAGE_CONNECTION_STRING=...                                    │
+│     AZURE_COMMUNICATION_CONNECTION_STRING=...                              │
+│     AZURE_COMMUNICATION_SENDER=...                                         │
+│     BRAVE_API_KEY=...                                                      │
+│     AZURE_VISION_ENDPOINT=...                                              │
+│     AZURE_VISION_KEY=...                                                   │
+│     GEMINI_API_KEY=...                                                     │
+│     GOOGLE_FACT_CHECK_API_KEY=...                                          │
+│     SENDGRID_API_KEY=...                                                   │
+│     SENDGRID_SENDER=...                                                    │
+│                                                                             │
+│     ❌ INTERDITES (NE PAS AJOUTER):                                        │
+│     ───────────────────────────────                                        │
+│     AzureWebJobsStorage                                                    │
+│     FUNCTIONS_WORKER_RUNTIME                                               │
+│     AzureWebJobsStorageConnectionString                                    │
+│     WEBSITE_NODE_DEFAULT_VERSION                                           │
+│                                                                             │
+│  2. Exécuter le script de configuration:                                   │
+│     ./configure-azure-env.sh                                               │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+╔══════════════════════════════════════════════════════════════════════════════╗
+║                           📚 FICHIERS UTILES                                 ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+📖 FIX_FORBIDDEN_VARIABLES.md      → Guide complet étape par étape
+🧹 scripts/clean-forbidden-settings.sh → Nettoyer variables interdites
+🚀 scripts/create-new-static-app.sh    → Créer nouvelle app proprement
+⚙️  configure-azure-env.sh              → Configurer variables autorisées
+📋 ENVIRONMENT_VARIABLES.md        → Liste complète des variables
+
+╔══════════════════════════════════════════════════════════════════════════════╗
+║                            🔍 VÉRIFICATION                                   ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+✅ Vérifier qu'aucune variable interdite n'est configurée:
+   az staticwebapp appsettings list \
+     --name Axilum2030-v2 \
+     --resource-group Axilum2030_group \
+     --query "properties" -o json | jq 'keys'
+
+✅ Vérifier le déploiement sur GitHub Actions:
+   https://github.com/axilum2025/Axilum2030/actions
+
+✅ Tester l'application:
+   curl https://votre-app.azurestaticapps.net/api/diagnosticEmail
+
+╔══════════════════════════════════════════════════════════════════════════════╗
+║                          🆘 EN CAS DE PROBLÈME                               ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+Si l'erreur persiste:
+
+1. Nettoyer les variables interdites:
+   ./scripts/clean-forbidden-settings.sh Axilum2030-v2
+
+2. Vérifier le workflow GitHub:
+   cat .github/workflows/azure-static-web-apps-*.yml
+
+3. Consulter la documentation complète:
+   cat FIX_FORBIDDEN_VARIABLES.md
+
+═══════════════════════════════════════════════════════════════════════════════
+
+💡 RAPPEL: Azure Static Web Apps gère AUTOMATIQUEMENT les Functions.
+   Ne configurez JAMAIS les variables AzureWebJobs* ou FUNCTIONS_*
+
+═══════════════════════════════════════════════════════════════════════════════
