@@ -6610,6 +6610,23 @@
             reader.readAsArrayBuffer(file);
         }
 
+        // Mettre à jour valeur cellule (DOIT être définie AVANT renderExcelPreview)
+        function updateCellValue(rowIdx, colIdx, newValue) {
+            if (rowIdx === -1) {
+                // Mettre à jour en-tête
+                excelColumns[colIdx] = newValue;
+            } else {
+                // Mettre à jour cellule de données
+                if (!excelSheetData[rowIdx]) {
+                    excelSheetData[rowIdx] = [];
+                }
+                excelSheetData[rowIdx][colIdx] = newValue;
+            }
+            
+            // Afficher confirmation subtile
+            console.log(`Cellule [${rowIdx}, ${colIdx}] mise à jour: "${newValue}"`);
+        }
+
         function renderExcelPreview() {
             const container = document.getElementById('excelTablePreview');
             
@@ -6639,23 +6656,6 @@
             
             document.getElementById('excelRowCount').textContent = `${excelSheetData.length} lignes`;
             document.getElementById('excelColCount').textContent = `${excelColumns.length} colonnes`;
-        }
-        
-        // Mettre à jour valeur cellule
-        function updateCellValue(rowIdx, colIdx, newValue) {
-            if (rowIdx === -1) {
-                // Mettre à jour en-tête
-                excelColumns[colIdx] = newValue;
-            } else {
-                // Mettre à jour cellule de données
-                if (!excelSheetData[rowIdx]) {
-                    excelSheetData[rowIdx] = [];
-                }
-                excelSheetData[rowIdx][colIdx] = newValue;
-            }
-            
-            // Afficher confirmation subtile
-            console.log(`Cellule [${rowIdx}, ${colIdx}] mise à jour: "${newValue}"`);
         }
         
         // Ajouter ligne vide
