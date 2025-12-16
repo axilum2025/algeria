@@ -406,6 +406,17 @@
                 transform: translateY(0);
             }
         }
+        
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
 
         .message-header {
             display: none;
@@ -6188,7 +6199,108 @@
                                 <div style="margin-top: 16px; display: flex; gap: 16px; align-items: center; color: var(--text-secondary); font-size: 13px; font-weight: 600;">
                                     <span id="excelRowCount" style="background: rgba(99,102,241,0.1); padding: 6px 12px; border-radius: 8px;"></span>
                                     <span id="excelColCount" style="background: rgba(139,92,246,0.1); padding: 6px 12px; border-radius: 8px;"></span>
-                                    <span style="color: var(--text-secondary); font-size: 12px; font-weight: 500;">💡 Cliquez sur les cellules pour les éditer</span>
+                                    <button onclick="toggleCommandHelp()" style="background: linear-gradient(135deg, #6366F1, #8B5CF6); border: none; color: white; padding: 6px 14px; border-radius: 8px; cursor: pointer; font-size: 12px; font-weight: 700; display: flex; align-items: center; gap: 6px; transition: all 0.2s; box-shadow: 0 2px 8px rgba(99,102,241,0.25);" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 12px rgba(99,102,241,0.35)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 2px 8px rgba(99,102,241,0.25)'">
+                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                                        Commandes IA
+                                    </button>
+                                </div>
+                                
+                                <!-- 🤖 PANNEAU D'AIDE COMMANDES IA -->
+                                <div id="commandHelpPanel" style="display: none; margin-top: 16px; background: linear-gradient(135deg, rgba(99,102,241,0.05), rgba(139,92,246,0.05)); border: 2px solid rgba(99,102,241,0.2); border-radius: 16px; padding: 20px; animation: slideDown 0.3s ease;">
+                                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                                        <h4 style="margin: 0; color: var(--text-primary); font-size: 16px; font-weight: 800; display: flex; align-items: center; gap: 8px;">
+                                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#6366F1" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                                            Commandes en Langage Naturel
+                                        </h4>
+                                        <button onclick="toggleCommandHelp()" style="background: rgba(255,255,255,0.2); border: 1px solid rgba(99,102,241,0.3); color: var(--text-primary); width: 28px; height: 28px; border-radius: 8px; cursor: pointer; font-size: 18px; font-weight: 700; display: flex; align-items: center; justify-content: center;">×</button>
+                                    </div>
+                                    
+                                    <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px;">
+                                        <!-- ➕ Ajouter -->
+                                        <div style="background: rgba(16,185,129,0.08); border: 1px solid rgba(16,185,129,0.2); border-radius: 10px; padding: 12px;">
+                                            <div style="color: #10B981; font-weight: 800; font-size: 13px; margin-bottom: 8px; display: flex; align-items: center; gap: 6px;">
+                                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                                                AJOUTER
+                                            </div>
+                                            <div style="font-size: 11px; color: var(--text-secondary); line-height: 1.5;">
+                                                • "Ajoute une ligne avec Marie, 30, Paris"<br>
+                                                • "Nouvelle colonne nommée Total"<br>
+                                                • "Insère une ligne vide"
+                                            </div>
+                                        </div>
+                                        
+                                        <!-- ❌ Supprimer -->
+                                        <div style="background: rgba(239,68,68,0.08); border: 1px solid rgba(239,68,68,0.2); border-radius: 10px; padding: 12px;">
+                                            <div style="color: #EF4444; font-weight: 800; font-size: 13px; margin-bottom: 8px; display: flex; align-items: center; gap: 6px;">
+                                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                                                SUPPRIMER
+                                            </div>
+                                            <div style="font-size: 11px; color: var(--text-secondary); line-height: 1.5;">
+                                                • "Supprime la ligne 3"<br>
+                                                • "Enlève les lignes vides"<br>
+                                                • "Supprime les doublons"
+                                            </div>
+                                        </div>
+                                        
+                                        <!-- 🔄 Modifier -->
+                                        <div style="background: rgba(245,158,11,0.08); border: 1px solid rgba(245,158,11,0.2); border-radius: 10px; padding: 12px;">
+                                            <div style="color: #F59E0B; font-weight: 800; font-size: 13px; margin-bottom: 8px; display: flex; align-items: center; gap: 6px;">
+                                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="3"/><path d="M12 1v6m0 6v6"/></svg>
+                                                MODIFIER
+                                            </div>
+                                            <div style="font-size: 11px; color: var(--text-secondary); line-height: 1.5;">
+                                                • "Change toutes les cellules vides en N/A"<br>
+                                                • "Remplace Paris par Lyon"<br>
+                                                • "Nettoie les espaces"
+                                            </div>
+                                        </div>
+                                        
+                                        <!-- ↕️ Trier -->
+                                        <div style="background: rgba(139,92,246,0.08); border: 1px solid rgba(139,92,246,0.2); border-radius: 10px; padding: 12px;">
+                                            <div style="color: #8B5CF6; font-weight: 800; font-size: 13px; margin-bottom: 8px; display: flex; align-items: center; gap: 6px;">
+                                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><polyline points="5 12 12 5 19 12"/></svg>
+                                                TRIER
+                                            </div>
+                                            <div style="font-size: 11px; color: var(--text-secondary); line-height: 1.5;">
+                                                • "Trie par colonne Age"<br>
+                                                • "Classe par Nom décroissant"<br>
+                                                • "Ordonne selon Ventes"
+                                            </div>
+                                        </div>
+                                        
+                                        <!-- 📊 Calculer -->
+                                        <div style="background: rgba(99,102,241,0.08); border: 1px solid rgba(99,102,241,0.2); border-radius: 10px; padding: 12px;">
+                                            <div style="color: #6366F1; font-weight: 800; font-size: 13px; margin-bottom: 8px; display: flex; align-items: center; gap: 6px;">
+                                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="9" y1="3" x2="9" y2="21"/></svg>
+                                                CALCULER
+                                            </div>
+                                            <div style="font-size: 11px; color: var(--text-secondary); line-height: 1.5;">
+                                                • "Calcule la somme de colonne Prix"<br>
+                                                • "Moyenne pour Ventes"<br>
+                                                • "Maximum de colonne Age"
+                                            </div>
+                                        </div>
+                                        
+                                        <!-- 🧹 Nettoyer -->
+                                        <div style="background: rgba(236,72,153,0.08); border: 1px solid rgba(236,72,153,0.2); border-radius: 10px; padding: 12px;">
+                                            <div style="color: #EC4899; font-weight: 800; font-size: 13px; margin-bottom: 8px; display: flex; align-items: center; gap: 6px;">
+                                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M3 6h18M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg>
+                                                NETTOYER
+                                            </div>
+                                            <div style="font-size: 11px; color: var(--text-secondary); line-height: 1.5;">
+                                                • "Nettoie les doublons"<br>
+                                                • "Enlève les espaces"<br>
+                                                • "Supprime les lignes vides"
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div style="margin-top: 14px; padding: 12px; background: rgba(99,102,241,0.1); border-radius: 10px; border-left: 4px solid #6366F1;">
+                                        <div style="font-size: 11px; color: var(--text-secondary); line-height: 1.6;">
+                                            <strong style="color: #6366F1; font-weight: 800;">💡 Astuce Pro :</strong> Tapez vos commandes en langage naturel dans le chat. L'IA détecte et exécute automatiquement les actions !
+                                        </div>
+                                    </div>
+                                </div>
                                 </div>
                             </div>
 
@@ -6581,6 +6693,235 @@
                 showToast('✅ Ligne supprimée', 'success');
             }
         }
+        
+        // 🤖 EXÉCUTION AUTOMATIQUE DES COMMANDES EN LANGAGE NATUREL
+        function executeExcelCommand(message) {
+            const msg = message.toLowerCase().trim();
+            
+            // ➕ AJOUTER UNE LIGNE
+            if (msg.match(/ajoute?.*ligne|nouvelle ligne|insère.*ligne/i)) {
+                const match = msg.match(/avec\s+(.+)|:(.+)/);
+                if (match) {
+                    const values = (match[1] || match[2])
+                        .split(/[,;|]/)
+                        .map(v => v.trim());
+                    
+                    if (values.length <= excelColumns.length) {
+                        const newRow = new Array(excelColumns.length).fill('');
+                        values.forEach((val, idx) => {
+                            newRow[idx] = val;
+                        });
+                        excelSheetData.push(newRow);
+                        renderExcelPreview();
+                        addExcelChatMessage(\`✅ Ligne ajoutée avec succès : \${values.join(', ')}\`, 'assistant');
+                        return true;
+                    }
+                }
+                
+                // Ligne vide par défaut
+                const newRow = new Array(excelColumns.length).fill('');
+                excelSheetData.push(newRow);
+                renderExcelPreview();
+                addExcelChatMessage('✅ Ligne vide ajoutée. Cliquez sur les cellules pour les modifier.', 'assistant');
+                return true;
+            }
+            
+            // ➕ AJOUTER UNE COLONNE
+            if (msg.match(/ajoute?.*colonne|nouvelle colonne|insère.*colonne/i)) {
+                const match = msg.match(/(?:nommée?|appelée?|avec nom)\s+["']?([^"',]+)["']?/i);
+                const colName = match ? match[1].trim() : \`Colonne\${excelColumns.length + 1}\`;
+                
+                excelColumns.push(colName);
+                excelSheetData.forEach(row => row.push(''));
+                renderExcelPreview();
+                addExcelChatMessage(\`✅ Colonne "\${colName}" ajoutée avec succès.\`, 'assistant');
+                return true;
+            }
+            
+            // ❌ SUPPRIMER DES LIGNES
+            if (msg.match(/supprime?.*ligne|efface.*ligne|delete.*ligne/i)) {
+                const rowMatch = msg.match(/ligne\s+(\d+)/i);
+                if (rowMatch) {
+                    const rowIdx = parseInt(rowMatch[1]) - 1;
+                    if (rowIdx >= 0 && rowIdx < excelSheetData.length) {
+                        excelSheetData.splice(rowIdx, 1);
+                        renderExcelPreview();
+                        addExcelChatMessage(\`✅ Ligne \${rowIdx + 1} supprimée.\`, 'assistant');
+                        return true;
+                    }
+                }
+                
+                // Supprimer lignes vides
+                if (msg.match(/vides?|vierges?/i)) {
+                    const before = excelSheetData.length;
+                    excelSheetData = excelSheetData.filter(row => 
+                        row.some(cell => cell && cell.toString().trim() !== '')
+                    );
+                    const removed = before - excelSheetData.length;
+                    renderExcelPreview();
+                    addExcelChatMessage(\`✅ \${removed} ligne(s) vide(s) supprimée(s).\`, 'assistant');
+                    return true;
+                }
+            }
+            
+            // 🔄 MODIFIER DES CELLULES
+            if (msg.match(/change|modifie|remplace/i)) {
+                // Remplacer toutes les valeurs vides
+                if (msg.match(/vides?|blanches?|vierges?/i)) {
+                    const match = msg.match(/(?:en|par|avec)\s+["']?([^"']+)["']?/i);
+                    const replacement = match ? match[1].trim() : 'N/A';
+                    
+                    let count = 0;
+                    excelSheetData.forEach(row => {
+                        row.forEach((cell, idx) => {
+                            if (!cell || cell.toString().trim() === '') {
+                                row[idx] = replacement;
+                                count++;
+                            }
+                        });
+                    });
+                    
+                    renderExcelPreview();
+                    addExcelChatMessage(\`✅ \${count} cellule(s) vide(s) remplacée(s) par "\${replacement}".\`, 'assistant');
+                    return true;
+                }
+                
+                // Remplacer une valeur spécifique
+                const replaceMatch = msg.match(/["']?([^"']+)["']?\s+(?:en|par)\s+["']?([^"']+)["']?/i);
+                if (replaceMatch) {
+                    const oldVal = replaceMatch[1].trim();
+                    const newVal = replaceMatch[2].trim();
+                    
+                    let count = 0;
+                    excelSheetData.forEach(row => {
+                        row.forEach((cell, idx) => {
+                            if (cell && cell.toString().toLowerCase() === oldVal.toLowerCase()) {
+                                row[idx] = newVal;
+                                count++;
+                            }
+                        });
+                    });
+                    
+                    renderExcelPreview();
+                    addExcelChatMessage(\`✅ \${count} cellule(s) "\${oldVal}" remplacée(s) par "\${newVal}".\`, 'assistant');
+                    return true;
+                }
+            }
+            
+            // 📊 CALCULS AUTOMATIQUES
+            if (msg.match(/calcule?|somme|total|moyenne|max|min/i)) {
+                const colMatch = msg.match(/(?:de|pour)\s+(?:la\s+)?colonne\s+["']?([^"',]+)["']?/i);
+                if (colMatch) {
+                    const colName = colMatch[1].trim();
+                    const colIdx = excelColumns.findIndex(c => c.toLowerCase() === colName.toLowerCase());
+                    
+                    if (colIdx !== -1) {
+                        const values = excelSheetData
+                            .map(row => parseFloat(row[colIdx]))
+                            .filter(v => !isNaN(v));
+                        
+                        if (values.length > 0) {
+                            let result = '';
+                            if (msg.match(/somme|total/i)) {
+                                result = \`Somme: \${values.reduce((a, b) => a + b, 0).toFixed(2)}\`;
+                            } else if (msg.match(/moyenne/i)) {
+                                result = \`Moyenne: \${(values.reduce((a, b) => a + b, 0) / values.length).toFixed(2)}\`;
+                            } else if (msg.match(/max/i)) {
+                                result = \`Maximum: \${Math.max(...values).toFixed(2)}\`;
+                            } else if (msg.match(/min/i)) {
+                                result = \`Minimum: \${Math.min(...values).toFixed(2)}\`;
+                            }
+                            
+                            addExcelChatMessage(\`📊 \${result} pour la colonne "\${excelColumns[colIdx]}"\`, 'assistant');
+                            return true;
+                        }
+                    }
+                }
+            }
+            
+            // 🔍 FILTRER LES DONNÉES
+            if (msg.match(/filtre|affiche|montre.*seulement|où/i)) {
+                const condMatch = msg.match(/où\s+(.+)/i);
+                if (condMatch) {
+                    addExcelChatMessage(\`🔍 Filtrage détecté. Pour filtrer les données, utilisez les formules Excel comme FILTER() ou créez un nouveau tableau. Voulez-vous que je génère la formule pour vous ?\`, 'assistant');
+                    return true;
+                }
+            }
+            
+            // 🧹 NETTOYER LES DONNÉES
+            if (msg.match(/nettoie|nettoyer|enlève?\s+duplicat|doublons/i)) {
+                if (msg.match(/duplicat|doublons/i)) {
+                    const before = excelSheetData.length;
+                    const seen = new Set();
+                    excelSheetData = excelSheetData.filter(row => {
+                        const key = row.join('|');
+                        if (seen.has(key)) return false;
+                        seen.add(key);
+                        return true;
+                    });
+                    const removed = before - excelSheetData.length;
+                    renderExcelPreview();
+                    addExcelChatMessage(\`✅ \${removed} ligne(s) dupliquée(s) supprimée(s).\`, 'assistant');
+                    return true;
+                }
+                
+                if (msg.match(/espaces/i)) {
+                    excelSheetData.forEach(row => {
+                        row.forEach((cell, idx) => {
+                            if (cell && typeof cell === 'string') {
+                                row[idx] = cell.trim();
+                            }
+                        });
+                    });
+                    renderExcelPreview();
+                    addExcelChatMessage('✅ Espaces supprimés dans toutes les cellules.', 'assistant');
+                    return true;
+                }
+            }
+            
+            // 🔢 FORMATER LES NOMBRES
+            if (msg.match(/formate?.*(?:nombre|prix|pourcentage|date)/i)) {
+                addExcelChatMessage('💡 Pour formater les cellules, utilisez les formules Excel:\n• Prix: =TEXTE(A1;"#,##0.00 €")\n• Pourcentage: =TEXTE(A1;"0.00%")\n• Date: =TEXTE(A1;"JJ/MM/AAAA")', 'assistant');
+                return true;
+            }
+            
+            // ↕️ TRIER LES DONNÉES
+            if (msg.match(/trie|tri|classe|ordonne/i)) {
+                const colMatch = msg.match(/(?:par|selon)\s+(?:la\s+)?colonne\s+["']?([^"',]+)["']?/i);
+                if (colMatch) {
+                    const colName = colMatch[1].trim();
+                    const colIdx = excelColumns.findIndex(c => c.toLowerCase() === colName.toLowerCase());
+                    
+                    if (colIdx !== -1) {
+                        const isDesc = msg.match(/décroissant|descendant|inverse/i);
+                        
+                        excelSheetData.sort((a, b) => {
+                            const valA = a[colIdx];
+                            const valB = b[colIdx];
+                            
+                            // Essayer de comparer comme nombres
+                            const numA = parseFloat(valA);
+                            const numB = parseFloat(valB);
+                            
+                            if (!isNaN(numA) && !isNaN(numB)) {
+                                return isDesc ? numB - numA : numA - numB;
+                            }
+                            
+                            // Comparaison texte
+                            const strA = valA?.toString() || '';
+                            const strB = valB?.toString() || '';
+                            return isDesc ? strB.localeCompare(strA) : strA.localeCompare(strB);
+                        });
+                        
+                        renderExcelPreview();
+                        addExcelChatMessage(\`✅ Données triées par "\${excelColumns[colIdx]}" \${isDesc ? 'décroissant' : 'croissant'}.\`, 'assistant');
+                        return true;
+                    }
+                }
+            }
+            
+            return false; // Aucune commande détectée
+        }
 
         function excelAiAction(actionType) {
             showToast('🤖 Traitement IA en cours...', 'info');
@@ -6661,6 +7002,15 @@
                 sendExcelChatMessage();
             }
         }
+        
+        function toggleCommandHelp() {
+            const panel = document.getElementById('commandHelpPanel');
+            if (panel.style.display === 'none') {
+                panel.style.display = 'block';
+            } else {
+                panel.style.display = 'none';
+            }
+        }
 
         function sendExcelChatMessage() {
             const input = document.getElementById('excelChatInput');
@@ -6670,6 +7020,13 @@
             addExcelChatMessage(message, 'user');
             input.value = '';
             excelAiProcessing = true;
+            
+            // 🎯 DÉTECTION ET EXÉCUTION DES COMMANDES DIRECTES
+            const commandExecuted = executeExcelCommand(message);
+            if (commandExecuted) {
+                excelAiProcessing = false;
+                return; // Commande exécutée, pas besoin d'appeler l'API
+            }
             
             // Préparer le contexte des données avec informations avancées
             const dataContext = excelSheetData.length > 0 ? `

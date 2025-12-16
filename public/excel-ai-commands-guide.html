@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🤖 Excel AI - Guide des Commandes IA</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #333;
+            padding: 40px 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 24px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        
+        h1 {
+            text-align: center;
+            font-size: 48px;
+            font-weight: 900;
+            background: linear-gradient(135deg, #6366F1, #8B5CF6, #EC4899);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 16px;
+        }
+        
+        .subtitle {
+            text-align: center;
+            font-size: 20px;
+            color: #666;
+            margin-bottom: 40px;
+        }
+        
+        .category {
+            margin-bottom: 40px;
+            padding: 24px;
+            border-radius: 16px;
+            border: 2px solid;
+        }
+        
+        .category.add { border-color: #10B981; background: rgba(16,185,129,0.05); }
+        .category.delete { border-color: #EF4444; background: rgba(239,68,68,0.05); }
+        .category.modify { border-color: #F59E0B; background: rgba(245,158,11,0.05); }
+        .category.sort { border-color: #8B5CF6; background: rgba(139,92,246,0.05); }
+        .category.calc { border-color: #6366F1; background: rgba(99,102,241,0.05); }
+        .category.clean { border-color: #EC4899; background: rgba(236,72,153,0.05); }
+        
+        .category h2 {
+            font-size: 28px;
+            font-weight: 800;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .category.add h2 { color: #10B981; }
+        .category.delete h2 { color: #EF4444; }
+        .category.modify h2 { color: #F59E0B; }
+        .category.sort h2 { color: #8B5CF6; }
+        .category.calc h2 { color: #6366F1; }
+        .category.clean h2 { color: #EC4899; }
+        
+        .command {
+            background: white;
+            padding: 16px 20px;
+            border-radius: 12px;
+            margin-bottom: 12px;
+            border-left: 4px solid;
+            font-family: 'Courier New', monospace;
+            font-size: 15px;
+            font-weight: 600;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        }
+        
+        .category.add .command { border-left-color: #10B981; color: #10B981; }
+        .category.delete .command { border-left-color: #EF4444; color: #EF4444; }
+        .category.modify .command { border-left-color: #F59E0B; color: #F59E0B; }
+        .category.sort .command { border-left-color: #8B5CF6; color: #8B5CF6; }
+        .category.calc .command { border-left-color: #6366F1; color: #6366F1; }
+        .category.clean .command { border-left-color: #EC4899; color: #EC4899; }
+        
+        .tip {
+            background: linear-gradient(135deg, #6366F1, #8B5CF6);
+            color: white;
+            padding: 24px;
+            border-radius: 16px;
+            margin-top: 40px;
+            text-align: center;
+            font-size: 18px;
+            font-weight: 600;
+        }
+        
+        .demo {
+            background: #F9FAFB;
+            padding: 32px;
+            border-radius: 16px;
+            margin-top: 40px;
+        }
+        
+        .demo h3 {
+            font-size: 24px;
+            font-weight: 800;
+            margin-bottom: 20px;
+            color: #1F2937;
+        }
+        
+        .demo-step {
+            background: white;
+            padding: 16px;
+            border-radius: 12px;
+            margin-bottom: 12px;
+            border-left: 4px solid #6366F1;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+        
+        .demo-step .number {
+            background: linear-gradient(135deg, #6366F1, #8B5CF6);
+            color: white;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            font-size: 18px;
+        }
+        
+        .demo-step .text {
+            flex: 1;
+            font-size: 15px;
+            color: #374151;
+        }
+        
+        .result {
+            background: #10B981;
+            color: white;
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 700;
+            display: inline-block;
+            margin-top: 8px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🤖 Excel AI - Commandes IA</h1>
+        <p class="subtitle">Contrôlez votre tableau Excel avec des commandes en langage naturel !</p>
+        
+        <!-- ➕ AJOUTER -->
+        <div class="category add">
+            <h2>➕ AJOUTER</h2>
+            <div class="command">Ajoute une ligne avec Alice, 28, Paris</div>
+            <div class="command">Nouvelle ligne avec données X, Y, Z</div>
+            <div class="command">Insère une ligne vide</div>
+            <div class="command">Ajoute colonne nommée Email</div>
+            <div class="command">Nouvelle colonne appelée Total</div>
+        </div>
+        
+        <!-- ❌ SUPPRIMER -->
+        <div class="category delete">
+            <h2>❌ SUPPRIMER</h2>
+            <div class="command">Supprime la ligne 3</div>
+            <div class="command">Efface la ligne 5</div>
+            <div class="command">Enlève les lignes vides</div>
+            <div class="command">Supprime les doublons</div>
+        </div>
+        
+        <!-- 🔄 MODIFIER -->
+        <div class="category modify">
+            <h2>🔄 MODIFIER</h2>
+            <div class="command">Change toutes les cellules vides en N/A</div>
+            <div class="command">Remplace Paris par Lyon</div>
+            <div class="command">Modifie "Ancien" en "Nouveau"</div>
+            <div class="command">Nettoie les espaces</div>
+        </div>
+        
+        <!-- ↕️ TRIER -->
+        <div class="category sort">
+            <h2>↕️ TRIER</h2>
+            <div class="command">Trie par colonne Age</div>
+            <div class="command">Classe par Nom décroissant</div>
+            <div class="command">Ordonne selon Ventes</div>
+        </div>
+        
+        <!-- 📊 CALCULER -->
+        <div class="category calc">
+            <h2>📊 CALCULER</h2>
+            <div class="command">Calcule la somme de colonne Prix</div>
+            <div class="command">Moyenne pour Ventes</div>
+            <div class="command">Maximum de colonne Age</div>
+            <div class="command">Minimum de Salaire</div>
+        </div>
+        
+        <!-- 🧹 NETTOYER -->
+        <div class="category clean">
+            <h2>🧹 NETTOYER</h2>
+            <div class="command">Nettoie les doublons</div>
+            <div class="command">Enlève les duplicatas</div>
+            <div class="command">Nettoie les espaces</div>
+        </div>
+        
+        <!-- 🎯 DÉMO COMPLÈTE -->
+        <div class="demo">
+            <h3>🎯 Exemple Complet : Créer un Tableau de A à Z</h3>
+            
+            <div class="demo-step">
+                <div class="number">1</div>
+                <div class="text">
+                    <strong>Cliquez sur "Créer classeur vide"</strong>
+                    <div class="result">✅ Tableau vide créé</div>
+                </div>
+            </div>
+            
+            <div class="demo-step">
+                <div class="number">2</div>
+                <div class="text">
+                    <strong>Tapez:</strong> "Ajoute colonne nommée Nom"
+                    <div class="result">✅ Colonne "Nom" ajoutée</div>
+                </div>
+            </div>
+            
+            <div class="demo-step">
+                <div class="number">3</div>
+                <div class="text">
+                    <strong>Tapez:</strong> "Ajoute colonne Age"
+                    <div class="result">✅ Colonne "Age" ajoutée</div>
+                </div>
+            </div>
+            
+            <div class="demo-step">
+                <div class="number">4</div>
+                <div class="text">
+                    <strong>Tapez:</strong> "Ajoute colonne Ville"
+                    <div class="result">✅ Colonne "Ville" ajoutée</div>
+                </div>
+            </div>
+            
+            <div class="demo-step">
+                <div class="number">5</div>
+                <div class="text">
+                    <strong>Tapez:</strong> "Ajoute ligne avec Alice, 28, Paris"
+                    <div class="result">✅ Ligne ajoutée avec succès</div>
+                </div>
+            </div>
+            
+            <div class="demo-step">
+                <div class="number">6</div>
+                <div class="text">
+                    <strong>Tapez:</strong> "Ajoute ligne avec Bob, 35, Lyon"
+                    <div class="result">✅ Ligne ajoutée avec succès</div>
+                </div>
+            </div>
+            
+            <div class="demo-step">
+                <div class="number">7</div>
+                <div class="text">
+                    <strong>Tapez:</strong> "Ajoute ligne avec Charlie, 22, Marseille"
+                    <div class="result">✅ Ligne ajoutée avec succès</div>
+                </div>
+            </div>
+            
+            <div class="demo-step">
+                <div class="number">8</div>
+                <div class="text">
+                    <strong>Tapez:</strong> "Trie par Age"
+                    <div class="result">✅ Données triées par "Age" croissant</div>
+                </div>
+            </div>
+            
+            <div class="demo-step">
+                <div class="number">9</div>
+                <div class="text">
+                    <strong>Tapez:</strong> "Calcule la moyenne de Age"
+                    <div class="result">📊 Moyenne: 28.33 pour la colonne "Age"</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="tip">
+            💡 <strong>Astuce Pro :</strong> Toutes ces commandes s'exécutent instantanément, sans appel serveur !<br>
+            Tapez simplement vos instructions en français naturel dans le chat.
+        </div>
+    </div>
+</body>
+</html>
