@@ -6026,6 +6026,15 @@
             }
         }
         
+        function toggleAiChat() {
+            const chatPanel = document.getElementById('aiChatPanel');
+            if (chatPanel.style.display === 'none' || !chatPanel.style.display) {
+                chatPanel.style.display = 'flex';
+            } else {
+                chatPanel.style.display = 'none';
+            }
+        }
+        
         function toggleExcelUploadZone() {
             const uploadZone = document.getElementById('excelUploadZone');
             if (uploadZone.style.display === 'none' || !uploadZone.style.display) {
@@ -6384,9 +6393,13 @@
                                     <div style="font-size: 12px; color: rgba(255,255,255,0.85); font-weight: 400; line-height: 1.4;">KPI financiers, ratios d'analyse, graphiques dynamiques et reporting automatisé</div>
                                 </button>
                                 
-                                <button onclick="loadTemplate('hr'); toggleTemplatesSidebar();" style="width: 100%; padding: 16px; background: rgba(255,255,255,0.12); border: 1px solid rgba(255,255,255,0.2); border-radius: 12px; color: white; cursor: pointer; font-weight: 600; font-size: 14px; transition: all 0.2s; text-align: left;" onmouseover="this.style.background='rgba(255,255,255,0.22)'; this.style.transform='translateX(-4px)'" onmouseout="this.style.background='rgba(255,255,255,0.12)'; this.style.transform='translateX(0)'">
+                                <button onclick="loadTemplate('hr'); toggleTemplatesSidebar();" style="width: 100%; padding: 16px; background: rgba(255,255,255,0.12); border: 1px solid rgba(255,255,255,0.2); border-radius: 12px; color: white; cursor: pointer; font-weight: 600; font-size: 14px; transition: all 0.2s; text-align: left; margin-bottom: 12px;" onmouseover="this.style.background='rgba(255,255,255,0.22)'; this.style.transform='translateX(-4px)'" onmouseout="this.style.background='rgba(255,255,255,0.12)'; this.style.transform='translateX(0)'">
                                     <div style="font-weight: 700; margin-bottom: 6px; font-size: 15px;">Gestion RH</div>
                                     <div style="font-size: 12px; color: rgba(255,255,255,0.85); font-weight: 400; line-height: 1.4;">Base de données employés, gestion des congés, calcul de paie et évaluation des performances</div>
+                                </button>
+                                
+                                <button onclick="toggleAiChat(); toggleTemplatesSidebar();" style="width: 100%; padding: 16px; background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.3); border-radius: 12px; color: white; cursor: pointer; font-weight: 600; font-size: 14px; transition: all 0.2s; text-align: left;" onmouseover="this.style.background='rgba(255,255,255,0.32)'; this.style.transform='translateX(-4px)'" onmouseout="this.style.background='rgba(255,255,255,0.2)'; this.style.transform='translateX(0)'">
+                                    <div style="font-weight: 700; font-size: 15px;">Ask The AI</div>
                                 </button>
                             </div>
                         </div>
@@ -6515,7 +6528,7 @@
                         <!-- Sidebar droite Modern -->
                         <div style="display: flex; flex-direction: column; gap: 20px;">
                             <!-- Chat "Ask The AI" Premium -->
-                            <div style="background: linear-gradient(135deg, rgba(99,102,241,0.03) 0%, rgba(139,92,246,0.03) 100%); border: 1px solid var(--border-color); border-radius: 20px; padding: 24px; display: flex; flex-direction: column; height: 550px; box-shadow: 0 4px 16px rgba(0,0,0,0.06);">
+                            <div id="aiChatPanel" style="display: none; background: linear-gradient(135deg, rgba(99,102,241,0.03) 0%, rgba(139,92,246,0.03) 100%); border: 1px solid var(--border-color); border-radius: 20px; padding: 24px; flex-direction: column; height: 550px; box-shadow: 0 4px 16px rgba(0,0,0,0.06);">
                                 <div style="display: flex; align-items: center; gap: 14px; margin-bottom: 20px; padding-bottom: 18px; border-bottom: 1px solid var(--border-color);">
                                     <div style="flex: 1;">
                                         <h3 style="margin: 0; color: var(--text-primary); font-size: 15px; font-weight: 700; letter-spacing: -0.2px;">Ask The AI</h3>
@@ -6524,24 +6537,39 @@
                                 </div>
                                 <div id="excelChatMessages" style="flex: 1; overflow-y: auto; margin-bottom: 16px; display: flex; flex-direction: column; gap: 12px; padding-right: 8px;">
                                     <div style="padding: 12px; background: linear-gradient(135deg, rgba(99,102,241,0.08), rgba(139,92,246,0.08)); border-radius: 12px; border-left: 3px solid #6366F1;">
-                                        <p style="margin: 0 0 6px; color: var(--text-primary); font-size: 10px; font-weight: 700; letter-spacing: -0.2px;">🎯 AI Management - 4 Expertises</p>
+                                        <p style="margin: 0 0 8px; color: var(--text-primary); font-size: 10px; font-weight: 700; letter-spacing: -0.2px; display: flex; align-items: center; gap: 6px;">
+                                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/></svg>
+                                            AI Management - 4 Expertises
+                                        </p>
                                         <p style="margin: 0; color: var(--text-secondary); font-size: 9px; line-height: 1.5; font-weight: 500;">
-                                            <strong>📊 Excel AI Expert</strong><br>
+                                            <strong style="display: flex; align-items: center; gap: 4px; margin-bottom: 2px;">
+                                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#6366F1" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+                                                Excel AI Expert
+                                            </strong>
                                             • Formules modernes (XLOOKUP, FILTER, LET)<br>
                                             • Power Query & Power Pivot<br>
                                             • Analyse prédictive & audit<br><br>
                                             
-                                            <strong>📅 Planning Projet</strong><br>
+                                            <strong style="display: flex; align-items: center; gap: 4px; margin-bottom: 2px;">
+                                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#8B5CF6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                                                Planning Projet
+                                            </strong>
                                             • Gantt, tâches & jalons<br>
                                             • Allocation ressources<br>
                                             • Chemin critique<br><br>
                                             
-                                            <strong>💰 Tableau de Bord Financier</strong><br>
+                                            <strong style="display: flex; align-items: center; gap: 4px; margin-bottom: 2px;">
+                                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#EC4899" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+                                                Tableau de Bord Financier
+                                            </strong>
                                             • KPI financiers & ratios<br>
                                             • Graphiques & reporting<br>
                                             • Prévisions budgétaires<br><br>
                                             
-                                            <strong>👥 Gestion RH</strong><br>
+                                            <strong style="display: flex; align-items: center; gap: 4px; margin-bottom: 2px;">
+                                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#14B8A6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                                                Gestion RH
+                                            </strong>
                                             • Base employés & congés<br>
                                             • Calcul de paie<br>
                                             • Évaluation performances
