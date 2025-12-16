@@ -5998,6 +5998,262 @@
         let excelChatHistory = [];
         let excelAiProcessing = false;
 
+        // ⚠️ FONCTIONS EXCEL - DOIVENT ÊTRE DÉFINIES AVANT openExcelPro() car appelées dans les onclick/onblur
+        
+        function closeExcelAi() {
+            const overlay = document.getElementById('excelAiOverlay');
+            if (overlay) {
+                overlay.style.animation = 'fadeOut 0.3s ease';
+                setTimeout(() => overlay.remove(), 300);
+            }
+        }
+        
+        function toggleTemplatesMenu() {
+            const menu = document.getElementById('templatesMenu');
+            if (menu.style.display === 'none' || !menu.style.display) {
+                menu.style.display = 'block';
+            } else {
+                menu.style.display = 'none';
+            }
+        }
+        
+        function addExcelRow() {
+            const newRow = new Array(excelColumns.length).fill('');
+            excelSheetData.push(newRow);
+            renderExcelPreview();
+            showToast('✅ Ligne ajoutée', 'success');
+        }
+        
+        function addExcelColumn() {
+            excelColumns.push(`Colonne ${excelColumns.length + 1}`);
+            excelSheetData.forEach(row => row.push(''));
+            renderExcelPreview();
+            showToast('✅ Colonne ajoutée', 'success');
+        }
+        
+        function sendExcelChatMessage() {
+            const input = document.getElementById('excelChatInput');
+            const message = input.value.trim();
+            if (!message || excelAiProcessing) return;
+            
+            addExcelChatMessage(message, 'user');
+            input.value = '';
+            excelAiProcessing = true;
+            
+            const commandExecuted = executeExcelCommand(message);
+            if (commandExecuted) {
+                excelAiProcessing = false;
+                return;
+            }
+            
+            showToast('🤖 Traitement en cours...', 'info');
+            excelAiProcessing = false;
+            addExcelChatMessage('Fonction en cours de développement. Utilisez les commandes directes.', 'bot');
+        }
+        
+        function exportExcel() {
+            showToast('💾 Création du fichier Excel...', 'info');
+            
+            try {
+                const wb = XLSX.utils.book_new();
+                const fullData = [excelColumns, ...excelSheetData];
+                const ws = XLSX.utils.aoa_to_sheet(fullData);
+                XLSX.utils.book_append_sheet(wb, ws, "Feuille1");
+                
+                const fileName = excelCurrentFile?.name || 'Export_Excel_AI.xlsx';
+                XLSX.writeFile(wb, fileName);
+                
+                showToast(`✅ Fichier "${fileName}" téléchargé !`, 'success');
+            } catch (error) {
+                console.error('Erreur export Excel:', error);
+                showToast('❌ Erreur lors de l\'export', 'error');
+            }
+        }
+        
+        function excelAiAction(actionType) {
+            showToast('🤖 Action IA: ' + actionType, 'info');
+        }
+        
+        function quickAction(actionType) {
+            const actions = {
+                'optimize': 'Analyse ce fichier et propose des optimisations',
+                'explain': 'Explique-moi la structure de ce fichier',
+                'audit': 'Effectue un audit qualité',
+                'beginner': 'Explique-moi ce fichier simplement'
+            };
+            
+            const message = actions[actionType];
+            if (message) {
+                document.getElementById('excelChatInput').value = message;
+                sendExcelChatMessage();
+            }
+        }
+        
+        function toggleCommandHelp() {
+            const panel = document.getElementById('commandHelpPanel');
+            if (panel.style.display === 'none') {
+                panel.style.display = 'block';
+            } else {
+                panel.style.display = 'none';
+            }
+        }
+        
+        function createEmptyWorkbook() {
+            excelCurrentFile = { name: 'Nouveau_Classeur.xlsx' };
+            excelColumns = ['Colonne A', 'Colonne B', 'Colonne C', 'Colonne D', 'Colonne E'];
+            excelSheetData = [
+                ['', '', '', '', ''],
+                ['', '', '', '', ''],
+                ['', '', '', '', ''],
+                ['', '', '', '', ''],
+                ['', '', '', '', '']
+            ];
+            
+            renderExcelPreview();
+            document.getElementById('excelUploadZone').style.display = 'none';
+            document.getElementById('excelPreviewContainer').style.display = 'block';
+            document.getElementById('excelQuickActions').style.display = 'block';
+            document.getElementById('excelActionsContainer').style.display = 'block';
+            document.getElementById('excelExportBtn').style.display = 'flex';
+            document.getElementById('excelFileName').textContent = 'Nouveau_Classeur.xlsx';
+            
+            showToast('✅ Classeur vide créé avec succès !', 'success');
+            addExcelChatMessage('🎉 Classeur vide créé! Vous pouvez maintenant ajouter vos données.', 'bot');
+        }
+        
+        function handleExcelUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            excelCurrentFile = file;
+            showToast('📊 Analyse du fichier Excel...', 'info');
+            
+            const reader = new FileReader();
+            
+            reader.onload = function(e) {
+                try {
+                    const data = new Uint8Array(e.target.result);
+                    const workbook = XLSX.read(data, { type: 'array' });
+                    
+                    const firstSheetName = workbook.SheetNames[0];
+                    const worksheet = workbook.Sheets[firstSheetName];
+                    
+                    const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, defval: '' });
+                    
+                    if (jsonData.length > 0) {
+                        excelColumns = jsonData[0];
+                        excelSheetData = jsonData.slice(1);
+                    } else {
+                        excelColumns = ['Colonne A', 'Colonne B', 'Colonne C'];
+                        excelSheetData = [['', '', '']];
+                    }
+                    
+                    renderExcelPreview();
+                    document.getElementById('excelUploadZone').style.display = 'none';
+                    document.getElementById('excelPreviewContainer').style.display = 'block';
+                    document.getElementById('excelQuickActions').style.display = 'block';
+                    document.getElementById('excelActionsContainer').style.display = 'block';
+                    document.getElementById('excelExportBtn').style.display = 'flex';
+                    document.getElementById('excelFileName').textContent = file.name;
+                    
+                    showToast(`✅ Fichier "${file.name}" chargé avec ${excelSheetData.length} lignes !`, 'success');
+                    addExcelChatMessage(`📊 Fichier chargé: ${file.name}`, 'bot');
+                } catch (error) {
+                    console.error('Erreur lecture Excel:', error);
+                    showToast('❌ Erreur lecture du fichier Excel', 'error');
+                }
+            };
+            
+            reader.readAsArrayBuffer(file);
+        }
+        
+        function updateCellValue(rowIdx, colIdx, newValue) {
+            if (rowIdx === -1) {
+                excelColumns[colIdx] = newValue;
+            } else {
+                if (!excelSheetData[rowIdx]) {
+                    excelSheetData[rowIdx] = [];
+                }
+                excelSheetData[rowIdx][colIdx] = newValue;
+            }
+            console.log(`Cellule [${rowIdx}, ${colIdx}] mise à jour: "${newValue}"`);
+        }
+
+        function renderExcelPreview() {
+            const container = document.getElementById('excelTablePreview');
+            
+            let html = '<table style="width: 100%; border-collapse: collapse; background: var(--bg-primary);">';
+            
+            html += '<thead><tr>';
+            excelColumns.forEach((col, colIdx) => {
+                html += `<th contenteditable="true" class="excel-cell" data-row="-1" data-col="${colIdx}" style="padding: 12px; background: linear-gradient(135deg, #6366F1, #8B5CF6); color: white; font-weight: 600; text-align: left; border: 1px solid rgba(255,255,255,0.1);" onblur="updateCellValue(-1, ${colIdx}, this.textContent)">${col}</th>`;
+            });
+            html += '</tr></thead>';
+            
+            html += '<tbody>';
+            excelSheetData.forEach((row, rowIdx) => {
+                html += `<tr style="background: ${rowIdx % 2 === 0 ? 'var(--bg-primary)' : 'var(--bg-secondary)'};">`;
+                row.forEach((cell, colIdx) => {
+                    const cellValue = cell || '';
+                    const isEmpty = !cellValue || cellValue.toString().trim() === '';
+                    html += `<td contenteditable="true" class="excel-cell" data-row="${rowIdx}" data-col="${colIdx}" style="padding: 10px; border: 1px solid var(--border-color); color: ${isEmpty ? '#999' : 'var(--text-primary)'}; font-size: 13px;" onfocus="this.classList.add('editing')" onblur="this.classList.remove('editing'); updateCellValue(${rowIdx}, ${colIdx}, this.textContent)">${cellValue}</td>`;
+                });
+                html += '</tr>';
+            });
+            html += '</tbody></table>';
+            
+            container.innerHTML = html;
+            
+            document.getElementById('excelRowCount').textContent = `${excelSheetData.length} lignes`;
+            document.getElementById('excelColCount').textContent = `${excelColumns.length} colonnes`;
+        }
+        
+        function addExcelChatMessage(text, sender) {
+            const container = document.getElementById('excelChatMessages');
+            
+            if (container.children.length === 1 && excelChatHistory.length === 0) {
+                container.innerHTML = '';
+            }
+            
+            const isBot = sender === 'bot';
+            const bgColor = isBot ? 'rgba(16,185,129,0.1)' : 'rgba(59,130,246,0.1)';
+            const borderColor = isBot ? '#10B981' : '#3B82F6';
+            
+            const msgDiv = document.createElement('div');
+            msgDiv.style.cssText = `padding: 12px; background: ${bgColor}; border-radius: 8px; border-left: 3px solid ${borderColor};`;
+            msgDiv.innerHTML = `
+                <div style="color: var(--text-secondary); font-size: 11px; font-weight: 600; margin-bottom: 4px;">${isBot ? 'Excel AI' : 'Vous'}</div>
+                <div style="color: var(--text-primary); font-size: 13px; line-height: 1.5; white-space: pre-line;">${text}</div>
+            `;
+            
+            container.appendChild(msgDiv);
+            container.scrollTop = container.scrollHeight;
+            
+            excelChatHistory.push({ sender, text, time: new Date() });
+        }
+        
+        function executeExcelCommand(message) {
+            const msg = message.toLowerCase().trim();
+            
+            if (msg.match(/ajoute?.*ligne|nouvelle ligne/i)) {
+                const newRow = new Array(excelColumns.length).fill('');
+                excelSheetData.push(newRow);
+                renderExcelPreview();
+                addExcelChatMessage('✅ Ligne ajoutée.', 'assistant');
+                return true;
+            }
+            
+            if (msg.match(/ajoute?.*colonne|nouvelle colonne/i)) {
+                excelColumns.push(`Colonne ${excelColumns.length + 1}`);
+                excelSheetData.forEach(row => row.push(''));
+                renderExcelPreview();
+                addExcelChatMessage('✅ Colonne ajoutée.', 'assistant');
+                return true;
+            }
+            
+            return false;
+        }
+
         // Excel AI - Interface complète
         function openExcelPro() {
             const overlay = document.createElement('div');
@@ -6412,16 +6668,8 @@
             });
         }
 
-        function closeExcelAi() {
-            const overlay = document.getElementById('excelAiOverlay');
-            if (overlay) {
-                overlay.style.animation = 'fadeOut 0.3s ease';
-                setTimeout(() => overlay.remove(), 300);
-            }
-        }
-        
-        // Toggle menu modèles
-        function toggleTemplatesMenu() {
+        // Toggle menu modèles (DUPLIQUÉ - sera supprimé)
+        function toggleTemplatesMenu_OLD() {
             const menu = document.getElementById('templatesMenu');
             if (menu.style.display === 'none' || !menu.style.display) {
                 menu.style.display = 'block';
