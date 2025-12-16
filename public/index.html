@@ -1777,6 +1777,9 @@
             pointer-events: none;
         }
     </style>
+    
+    <!-- SheetJS pour manipulation Excel réelle -->
+    <script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
 </head>
 <body data-theme="light">
     <!-- Header -->
@@ -6006,9 +6009,6 @@
             `;
             
             overlay.innerHTML = `
-                <!-- Charger SheetJS pour manipulation Excel réelle -->
-                <script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
-                
                 <style>
                     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
                     #excelAiOverlay * { font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; }
