@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Test Excel AI</title>
+    <script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
+</head>
+<body>
+    <h1>Test Excel AI</h1>
+    <button onclick="alert('Button works!')">Test Button</button>
+    <button onclick="testXLSX()">Test XLSX</button>
+    
+    <script>
+        function testXLSX() {
+            if (typeof XLSX !== 'undefined') {
+                alert('✅ XLSX is loaded! Version: ' + XLSX.version);
+            } else {
+                alert('❌ XLSX is NOT loaded!');
+            }
+        }
+        
+        console.log('Script loaded');
+        console.log('XLSX available:', typeof XLSX !== 'undefined');
+    </script>
+</body>
+</html>
