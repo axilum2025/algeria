@@ -6,7 +6,7 @@
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
-    <title>Axilum AI - Assistant Intelligent v2.0-MINT-BUILD-202512161939</title>
+    <title>Axilum AI - Assistant Intelligent v2.0-MINT-BUILD-202512162005</title>
     <style>
         :root {
             --bg-primary: #FAFBFC;
@@ -6303,6 +6303,27 @@
                                 <p style="margin: 0; color: rgba(255,255,255,0.95); font-size: 14px; font-weight: 600; letter-spacing: 0.3px;">Analyse Avancée • Formules Modernes • Audit Automatique</p>
                             </div>
                         </div>
+                        
+                        <!-- Modèles Avancés - Liste défilante -->
+                        <div style="max-height: 180px; overflow-y: auto; background: rgba(255,255,255,0.08); border-radius: 12px; padding: 12px; margin-top: 16px; border: 1px solid rgba(255,255,255,0.12);">
+                            <div style="color: rgba(255,255,255,0.7); font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 10px;">📊 Modèles Professionnels</div>
+                            
+                            <button onclick="loadTemplate('schedule')" style="width: 100%; padding: 10px 12px; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.15); border-radius: 8px; color: white; cursor: pointer; font-weight: 600; font-size: 13px; transition: all 0.2s; text-align: left; margin-bottom: 8px;" onmouseover="this.style.background='rgba(255,255,255,0.18)'" onmouseout="this.style.background='rgba(255,255,255,0.1)'">
+                                <div style="font-weight: 700; margin-bottom: 3px;">📅 Planning Projet</div>
+                                <div style="font-size: 11px; color: rgba(255,255,255,0.8); font-weight: 400;">Gantt, tâches, ressources</div>
+                            </button>
+                            
+                            <button onclick="loadTemplate('finance')" style="width: 100%; padding: 10px 12px; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.15); border-radius: 8px; color: white; cursor: pointer; font-weight: 600; font-size: 13px; transition: all 0.2s; text-align: left; margin-bottom: 8px;" onmouseover="this.style.background='rgba(255,255,255,0.18)'" onmouseout="this.style.background='rgba(255,255,255,0.1)'">
+                                <div style="font-weight: 700; margin-bottom: 3px;">💰 Tableau de Bord Financier</div>
+                                <div style="font-size: 11px; color: rgba(255,255,255,0.8); font-weight: 400;">KPI, ratios, graphiques</div>
+                            </button>
+                            
+                            <button onclick="loadTemplate('hr')" style="width: 100%; padding: 10px 12px; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.15); border-radius: 8px; color: white; cursor: pointer; font-weight: 600; font-size: 13px; transition: all 0.2s; text-align: left;" onmouseover="this.style.background='rgba(255,255,255,0.18)'" onmouseout="this.style.background='rgba(255,255,255,0.1)'">
+                                <div style="font-weight: 700; margin-bottom: 3px;">👥 Gestion RH</div>
+                                <div style="font-size: 11px; color: rgba(255,255,255,0.8); font-weight: 400;">Employés, congés, paie</div>
+                            </button>
+                        </div>
+                        
                         <button onclick="closeExcelAi()" style="width: 44px; height: 44px; background: rgba(255,255,255,0.15); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.25); border-radius: 12px; color: white; cursor: pointer; font-weight: 700; transition: all 0.2s; font-size: 14px; display: flex; align-items: center; justify-content: center;" onmouseover="this.style.background='rgba(255,255,255,0.28)'; this.style.transform='rotate(90deg)'" onmouseout="this.style.background='rgba(255,255,255,0.15)'; this.style.transform='rotate(0deg)'" title="Fermer">
                             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
                         </button>
@@ -6327,51 +6348,24 @@
                                             Choisir modèles ▼
                                         </button>
                                         
-                                        <!-- Menu Modèles -->
+                                        <!-- Menu Modèles - Simplifié -->
                                         <div id="templatesMenu" style="display: none; position: absolute; top: calc(100% + 6px); right: 0; background: rgba(255,255,255,0.98); border: 1px solid rgba(0,0,0,0.08); border-radius: 10px; padding: 6px; min-width: 240px; box-shadow: 0 4px 16px rgba(0,0,0,0.08); z-index: 1000; backdrop-filter: blur(10px);">
-                                            <div style="padding: 6px 10px; color: var(--text-secondary); font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">Modèles disponibles</div>
+                                            <div style="padding: 6px 10px; color: var(--text-secondary); font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">Modèles de base</div>
                                             
-                                            <button onclick="loadTemplate('budget')" style="width: 100%; padding: 8px 10px; background: transparent; border: none; border-radius: 6px; color: var(--text-primary); cursor: pointer; font-weight: 600; font-size: 13px; transition: all 0.2s; text-align: left;" onmouseover="this.style.background='rgba(99,102,241,0.06)'" onmouseout="this.style.background='transparent'">
-                                                <div style="font-weight: 700; margin-bottom: 2px;">Budget Personnel</div>
+                                            <button onclick="loadTemplate('budget')" style="width: 100%; padding: 8px 10px; background: transparent; border: none; border-radius: 6px; color: var(--text-primary); cursor: pointer; font-weight: 600; font-size: 13px; transition: all 0.2s; text-align: left;" onmouseover="this.style.background='rgba(168,220,195,0.1)'" onmouseout="this.style.background='transparent'">
+                                                <div style="font-weight: 700; margin-bottom: 2px;">💰 Budget Personnel</div>
                                                 <div style="font-size: 11px; color: var(--text-secondary); font-weight: 400;">Revenus, dépenses, épargne</div>
                                             </button>
                                             
-                                            <button onclick="loadTemplate('sales')" style="width: 100%; padding: 8px 10px; background: transparent; border: none; border-radius: 6px; color: var(--text-primary); cursor: pointer; font-weight: 600; font-size: 13px; transition: all 0.2s; text-align: left;" onmouseover="this.style.background='rgba(99,102,241,0.06)'" onmouseout="this.style.background='transparent'">
-                                                <div style="font-weight: 700; margin-bottom: 2px;">Suivi des Ventes</div>
+                                            <button onclick="loadTemplate('sales')" style="width: 100%; padding: 8px 10px; background: transparent; border: none; border-radius: 6px; color: var(--text-primary); cursor: pointer; font-weight: 600; font-size: 13px; transition: all 0.2s; text-align: left;" onmouseover="this.style.background='rgba(168,220,195,0.1)'" onmouseout="this.style.background='transparent'">
+                                                <div style="font-weight: 700; margin-bottom: 2px;">📈 Suivi des Ventes</div>
                                                 <div style="font-size: 11px; color: var(--text-secondary); font-weight: 400;">Pipeline, KPI, objectifs</div>
                                             </button>
                                             
-                                            <button onclick="loadTemplate('inventory')" style="width: 100%; padding: 8px 10px; background: transparent; border: none; border-radius: 6px; color: var(--text-primary); cursor: pointer; font-weight: 600; font-size: 13px; transition: all 0.2s; text-align: left;" onmouseover="this.style.background='rgba(99,102,241,0.06)'" onmouseout="this.style.background='transparent'">
-                                                <div style="font-weight: 700; margin-bottom: 2px;">Gestion Stock</div>
-                                                    <div style="font-weight: 700; margin-bottom: 2px;">Gestion Stock</div>
-                                                    <div style="font-size: 12px; color: var(--text-secondary); font-weight: 500;">Inventaire, réapprovisionnement</div>
-                                                </div>
+                                            <button onclick="loadTemplate('inventory')" style="width: 100%; padding: 8px 10px; background: transparent; border: none; border-radius: 6px; color: var(--text-primary); cursor: pointer; font-weight: 600; font-size: 13px; transition: all 0.2s; text-align: left;" onmouseover="this.style.background='rgba(168,220,195,0.1)'" onmouseout="this.style.background='transparent'">
+                                                <div style="font-weight: 700; margin-bottom: 2px;">📦 Gestion Stock</div>
+                                                <div style="font-size: 11px; color: var(--text-secondary); font-weight: 400;">Inventaire, réapprovisionnement</div>
                                             </button>
-                                            
-                                            <button onclick="loadTemplate('schedule')" style="width: 100%; padding: 12px 14px; background: transparent; border: none; border-radius: 10px; color: var(--text-primary); cursor: pointer; font-weight: 600; font-size: 14px; display: flex; align-items: center; gap: 12px; transition: all 0.2s; text-align: left;" onmouseover="this.style.background='rgba(99,102,241,0.1)'" onmouseout="this.style.background='transparent'">
-                                                <div style="width: 36px; height: 36px; background: linear-gradient(135deg, #EC4899, #F43F5E); border-radius: 8px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
-                                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-                                                </div>
-                                                <div style="flex: 1;">
-                                                    <div style="font-weight: 700; margin-bottom: 2px;">Planning Projet</div>
-                                                    <div style="font-size: 12px; color: var(--text-secondary); font-weight: 500;">Gantt, tâches, ressources</div>
-                                                </div>
-                                            </button>
-                                            
-                                            <button onclick="loadTemplate('finance')" style="width: 100%; padding: 12px 14px; background: transparent; border: none; border-radius: 10px; color: var(--text-primary); cursor: pointer; font-weight: 600; font-size: 14px; display: flex; align-items: center; gap: 12px; transition: all 0.2s; text-align: left;" onmouseover="this.style.background='rgba(99,102,241,0.1)'" onmouseout="this.style.background='transparent'">
-                                                <div style="width: 36px; height: 36px; background: linear-gradient(135deg, #8B5CF6, #A855F7); border-radius: 8px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
-                                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="20" x2="12" y2="10"/><line x1="18" y1="20" x2="18" y2="4"/><line x1="6" y1="20" x2="6" y2="16"/></svg>
-                                                </div>
-                                                <div style="flex: 1;">
-                                                    <div style="font-weight: 700; margin-bottom: 2px;">Tableau de Bord Financier</div>
-                                                    <div style="font-size: 12px; color: var(--text-secondary); font-weight: 500;">KPI, ratios, graphiques</div>
-                                                </div>
-                                            </button>
-                                            
-                                            <button onclick="loadTemplate('hr')" style="width: 100%; padding: 12px 14px; background: transparent; border: none; border-radius: 10px; color: var(--text-primary); cursor: pointer; font-weight: 600; font-size: 14px; display: flex; align-items: center; gap: 12px; transition: all 0.2s; text-align: left;" onmouseover="this.style.background='rgba(99,102,241,0.1)'" onmouseout="this.style.background='transparent'">
-                                                <div style="width: 36px; height: 36px; background: linear-gradient(135deg, #14B8A6, #06B6D4); border-radius: 8px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
-                                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-                                                </div>
                                                 <div style="flex: 1;">
                                                     <div style="font-weight: 700; margin-bottom: 2px;">Gestion RH</div>
                                                     <div style="font-size: 12px; color: var(--text-secondary); font-weight: 500;">Employés, congés, paie</div>
