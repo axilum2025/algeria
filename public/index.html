@@ -5965,89 +5965,332 @@
             showGenericModal('', content);
         }
 
-        // Excel Pro - Assistant Excel expert (3 piliers)
+        // Excel AI - Variables globales
+        let excelCurrentFile = null;
+        let excelSheetData = [];
+        let excelColumns = [];
+        let excelActionHistory = [];
+        let excelChatHistory = [];
+
+        // Excel AI - Interface complète
         function openExcelPro() {
-            const content = `
-                <div style="padding: 28px; max-width: 700px; margin: 0 auto;">
-                    <div style="background: linear-gradient(135deg, rgba(16, 185, 129, 0.12) 0%, rgba(34, 197, 94, 0.12) 100%); padding: 22px; border-radius: 14px; margin-bottom: 22px; border: 1px solid rgba(16, 185, 129, 0.25); box-shadow: 0 4px 12px rgba(16, 185, 129, 0.1);">
-                        <p style="margin: 0; color: var(--text-primary); font-size: 15px; line-height: 1.7; font-weight: 500;">
-                            Votre assistant expert Excel. Formules, analyses, visualisations et automatisation simplifiées.
-                        </p>
-                    </div>
-
-                    <div style="background: linear-gradient(135deg, rgba(16, 185, 129, 0.08) 0%, rgba(59, 130, 246, 0.08) 100%); padding: 20px; border-radius: 14px; margin-bottom: 22px; border: 1px solid rgba(59, 130, 246, 0.2);">
-                        <h4 style="margin: 0 0 10px 0; color: var(--text-primary); font-size: 16px; font-weight: 600;">Utilisation ultra-simple</h4>
-                        <p style="margin: 0; color: var(--text-secondary); line-height: 1.7; font-size: 14px;">
-                            Demandez ce que vous voulez faire dans Excel. L'IA génère les formules, explique les fonctions et vous guide.
-                        </p>
-                    </div>
-
-                    <div style="margin-bottom: 22px;">
-                        <div style="background: linear-gradient(135deg, #3B82F6 0%, #2563EB 100%); padding: 16px; border-radius: 12px; margin-bottom: 14px; color: white; box-shadow: 0 4px 12px rgba(59, 130, 246, 0.2);">
-                            <div style="font-weight: 600; font-size: 17px; margin-bottom: 12px;">🔧 Pilier 1 : Formules & Calculs</div>
-                            <div style="font-size: 13px; line-height: 1.8; opacity: 0.95;">
-                                <div style="margin-bottom: 4px;">• <strong>Générateur de formules</strong> : "Crée une formule pour calculer la moyenne"</div>
-                                <div style="margin-bottom: 4px;">• <strong>Explicateur</strong> : "Explique cette formule : =SOMME.SI(A1:A10;">100")"</div>
-                                <div>• <strong>50+ fonctions</strong> : SOMME, MOYENNE, SI, RECHERCHEV, NB.SI, etc.</div>
+            const overlay = document.createElement('div');
+            overlay.id = 'excelAiOverlay';
+            overlay.style.cssText = `
+                position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+                background: var(--bg-primary); z-index: 10000; overflow: auto;
+                animation: fadeIn 0.3s ease;
+            `;
+            
+            overlay.innerHTML = `
+                <div style="min-height: 100vh; padding: 20px;">
+                    <!-- Header -->
+                    <div style="max-width: 1400px; margin: 0 auto 24px; display: flex; align-items: center; justify-content: space-between; background: linear-gradient(135deg, #10B981 0%, #059669 100%); padding: 20px 24px; border-radius: 12px; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.2);">
+                        <div style="display: flex; align-items: center; gap: 16px;">
+                            <svg fill="none" stroke="white" viewBox="0 0 24 24" style="width: 32px; height: 32px;">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"/>
+                            </svg>
+                            <div>
+                                <h2 style="margin: 0; color: white; font-size: 24px; font-weight: 700;">Excel AI</h2>
+                                <p style="margin: 0; color: rgba(255,255,255,0.9); font-size: 14px;">Assistant intelligent pour vos feuilles de calcul</p>
                             </div>
                         </div>
-
-                        <div style="background: linear-gradient(135deg, #10B981 0%, #059669 100%); padding: 16px; border-radius: 12px; margin-bottom: 14px; color: white; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.2);">
-                            <div style="font-weight: 600; font-size: 17px; margin-bottom: 12px;">📊 Pilier 2 : Analyse & Visualisation</div>
-                            <div style="font-size: 13px; line-height: 1.8; opacity: 0.95;">
-                                <div style="margin-bottom: 4px;">• <strong>Conseils de graphiques</strong> : "Quel graphique pour des ventes mensuelles ?"</div>
-                                <div style="margin-bottom: 4px;">• <strong>Tableaux croisés</strong> : "Comment créer un tableau croisé dynamique ?"</div>
-                                <div>• <strong>Analyse guidée</strong> : Comprendre vos données rapidement</div>
-                            </div>
-                        </div>
-
-                        <div style="background: linear-gradient(135deg, #F59E0B 0%, #D97706 100%); padding: 16px; border-radius: 12px; color: white; box-shadow: 0 4px 12px rgba(245, 158, 11, 0.2);">
-                            <div style="font-weight: 600; font-size: 17px; margin-bottom: 12px;">⚡ Pilier 3 : Automatisation & Productivité</div>
-                            <div style="font-size: 13px; line-height: 1.8; opacity: 0.95;">
-                                <div style="margin-bottom: 4px;">• <strong>Templates prêts</strong> : Budget, planning, tableaux de bord</div>
-                                <div style="margin-bottom: 4px;">• <strong>Automatisation</strong> : "Comment automatiser ce calcul ?"</div>
-                                <div>• <strong>Bonnes pratiques</strong> : Optimisation et organisation</div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div style="background: var(--bg-secondary); padding: 18px; border-radius: 12px; margin-bottom: 22px; border: 1px solid var(--border-color);">
-                        <div style="font-weight: 600; color: var(--text-primary); margin-bottom: 12px; font-size: 15px;">Exemples de demandes</div>
-                        <div style="display: grid; gap: 8px;">
-                            <div style="color: var(--text-secondary); font-size: 13px; padding: 8px; background: var(--bg-primary); border-radius: 8px; border-left: 3px solid #3B82F6;">
-                                "Comment faire une somme conditionnelle ?"
-                            </div>
-                            <div style="color: var(--text-secondary); font-size: 13px; padding: 8px; background: var(--bg-primary); border-radius: 8px; border-left: 3px solid #10B981;">
-                                "Explique la fonction RECHERCHEV"
-                            </div>
-                            <div style="color: var(--text-secondary); font-size: 13px; padding: 8px; background: var(--bg-primary); border-radius: 8px; border-left: 3px solid #F59E0B;">
-                                "Quel graphique pour comparer des ventes ?"
-                            </div>
-                            <div style="color: var(--text-secondary); font-size: 13px; padding: 8px; background: var(--bg-primary); border-radius: 8px; border-left: 3px solid #8B5CF6;">
-                                "Pourquoi ma formule renvoie #N/A ?"
-                            </div>
-                        </div>
-                    </div>
-
-                    <div style="padding: 18px; background: linear-gradient(135deg, rgba(16, 185, 129, 0.08) 0%, rgba(59, 130, 246, 0.08) 100%); border-radius: 14px; border: 1px solid rgba(16, 185, 129, 0.2); margin-bottom: 26px;">
-                        <div style="font-weight: 600; color: var(--text-primary); margin-bottom: 8px; font-size: 15px;">Version actuelle : Phase 1 MVP</div>
-                        <p style="margin: 0; color: var(--text-secondary); font-size: 13px; line-height: 1.7;">
-                            <strong>Disponible maintenant :</strong> Générateur de formules basiques, explicateur, 50 fonctions essentielles, conseils de visualisation.<br>
-                            <strong>Prochainement :</strong> 500+ fonctions, Power Query guidé, templates avancés, optimisation de performance.
-                        </p>
-                    </div>
-
-                    <div style="display: flex; gap: 12px; margin-top: 26px;">
-                        <button class="new-chat-btn" onclick="closeGenericModal(); setTimeout(() => document.getElementById('messageInput').focus(), 300);" style="flex: 2.5; font-weight: 600; font-size: 15px; padding: 14px 24px; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);">
-                            Commencer avec Excel Pro
+                        <button onclick="closeExcelAi()" style="padding: 10px 20px; background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.3); border-radius: 8px; color: white; cursor: pointer; font-weight: 600; transition: all 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.3)'" onmouseout="this.style.background='rgba(255,255,255,0.2)'">
+                            ✕ Fermer
                         </button>
-                        <button class="new-chat-btn" style="flex: 1; background: var(--bg-secondary); color: var(--text-primary); font-weight: 500; border: 1px solid var(--border-color); font-size: 14px; padding: 14px 20px;" onclick="closeGenericModal()">
-                            Fermer
-                        </button>
+                    </div>
+
+                    <div style="max-width: 1400px; margin: 0 auto; display: grid; grid-template-columns: 1fr 400px; gap: 20px;">
+                        <!-- Zone principale -->
+                        <div style="display: flex; flex-direction: column; gap: 20px;">
+                            <!-- Upload Zone -->
+                            <div id="excelUploadZone" style="background: var(--bg-secondary); border: 2px dashed var(--border-color); border-radius: 12px; padding: 40px; text-align: center; cursor: pointer; transition: all 0.3s;" onclick="document.getElementById('excelFileInput').click()" onmouseover="this.style.borderColor='#10B981'; this.style.background='rgba(16,185,129,0.05)'" onmouseout="this.style.borderColor='var(--border-color)'; this.style.background='var(--bg-secondary)'">
+                                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" style="width: 64px; height: 64px; margin: 0 auto 16px; color: #10B981;">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
+                                </svg>
+                                <h3 style="margin: 0 0 8px; color: var(--text-primary); font-size: 18px;">Importer un fichier Excel</h3>
+                                <p style="margin: 0; color: var(--text-secondary); font-size: 14px;">Glissez-déposez ou cliquez pour sélectionner un fichier .xlsx</p>
+                                <input type="file" id="excelFileInput" accept=".xlsx,.xls" style="display: none;" onchange="handleExcelUpload(event)">
+                            </div>
+
+                            <!-- Preview Table -->
+                            <div id="excelPreviewContainer" style="display: none; background: var(--bg-secondary); border-radius: 12px; padding: 20px; border: 1px solid var(--border-color);">
+                                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px;">
+                                    <h3 style="margin: 0; color: var(--text-primary); font-size: 16px; font-weight: 600;">📊 Aperçu de la feuille</h3>
+                                    <span id="excelFileName" style="color: var(--text-secondary); font-size: 13px;"></span>
+                                </div>
+                                <div id="excelTablePreview" style="overflow-x: auto; border-radius: 8px; border: 1px solid var(--border-color);"></div>
+                                <div style="margin-top: 12px; display: flex; gap: 12px; align-items: center; color: var(--text-secondary); font-size: 13px;">
+                                    <span id="excelRowCount"></span>
+                                    <span>•</span>
+                                    <span id="excelColCount"></span>
+                                </div>
+                            </div>
+
+                            <!-- Actions IA -->
+                            <div id="excelActionsContainer" style="display: none;">
+                                <h3 style="margin: 0 0 16px; color: var(--text-primary); font-size: 16px; font-weight: 600;">🤖 Actions IA</h3>
+                                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px;">
+                                    <button onclick="excelAiAction('clean')" class="excel-action-btn" style="padding: 16px; background: linear-gradient(135deg, #3B82F6, #2563EB); border: none; border-radius: 10px; color: white; cursor: pointer; font-weight: 600; display: flex; flex-direction: column; align-items: center; gap: 8px; transition: transform 0.2s, box-shadow 0.2s;" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 16px rgba(59,130,246,0.3)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='none'">
+                                        <span style="font-size: 24px;">🧹</span>
+                                        <span>Nettoyer données</span>
+                                    </button>
+                                    <button onclick="excelAiAction('duplicates')" class="excel-action-btn" style="padding: 16px; background: linear-gradient(135deg, #F59E0B, #D97706); border: none; border-radius: 10px; color: white; cursor: pointer; font-weight: 600; display: flex; flex-direction: column; align-items: center; gap: 8px; transition: transform 0.2s, box-shadow 0.2s;" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 16px rgba(245,158,11,0.3)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='none'">
+                                        <span style="font-size: 24px;">🔍</span>
+                                        <span>Détecter doublons</span>
+                                    </button>
+                                    <button onclick="excelAiAction('kpi')" class="excel-action-btn" style="padding: 16px; background: linear-gradient(135deg, #10B981, #059669); border: none; border-radius: 10px; color: white; cursor: pointer; font-weight: 600; display: flex; flex-direction: column; align-items: center; gap: 8px; transition: transform 0.2s, box-shadow 0.2s;" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 16px rgba(16,185,129,0.3)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='none'">
+                                        <span style="font-size: 24px;">📊</span>
+                                        <span>Résumer KPI</span>
+                                    </button>
+                                    <button onclick="excelAiAction('formulas')" class="excel-action-btn" style="padding: 16px; background: linear-gradient(135deg, #8B5CF6, #7C3AED); border: none; border-radius: 10px; color: white; cursor: pointer; font-weight: 600; display: flex; flex-direction: column; align-items: center; gap: 8px; transition: transform 0.2s, box-shadow 0.2s;" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 16px rgba(139,92,246,0.3)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='none'">
+                                        <span style="font-size: 24px;">🔢</span>
+                                        <span>Générer formules</span>
+                                    </button>
+                                    <button onclick="excelAiAction('charts')" class="excel-action-btn" style="padding: 16px; background: linear-gradient(135deg, #EC4899, #DB2777); border: none; border-radius: 10px; color: white; cursor: pointer; font-weight: 600; display: flex; flex-direction: column; align-items: center; gap: 8px; transition: transform 0.2s, box-shadow 0.2s;" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 16px rgba(236,72,153,0.3)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='none'">
+                                        <span style="font-size: 24px;">📈</span>
+                                        <span>Créer graphiques</span>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Sidebar droite -->
+                        <div style="display: flex; flex-direction: column; gap: 20px;">
+                            <!-- Chat "Ask your sheet" -->
+                            <div style="background: var(--bg-secondary); border-radius: 12px; padding: 20px; border: 1px solid var(--border-color); display: flex; flex-direction: column; height: 500px;">
+                                <h3 style="margin: 0 0 16px; color: var(--text-primary); font-size: 16px; font-weight: 600;">💬 Ask your sheet</h3>
+                                <div id="excelChatMessages" style="flex: 1; overflow-y: auto; margin-bottom: 16px; display: flex; flex-direction: column; gap: 12px;">
+                                    <div style="padding: 12px; background: rgba(59,130,246,0.1); border-radius: 8px; border-left: 3px solid #3B82F6;">
+                                        <p style="margin: 0; color: var(--text-secondary); font-size: 13px;">💡 Posez des questions sur vos données :</p>
+                                        <p style="margin: 8px 0 0; color: var(--text-secondary); font-size: 12px; opacity: 0.8;">
+                                            • "Quelle est la moyenne de la colonne Ventes ?"<br>
+                                            • "Combien de lignes vides ?"<br>
+                                            • "Suggère-moi des analyses"
+                                        </p>
+                                    </div>
+                                </div>
+                                <div style="display: flex; gap: 8px;">
+                                    <input id="excelChatInput" type="text" placeholder="Posez votre question..." style="flex: 1; padding: 10px 12px; background: var(--bg-primary); border: 1px solid var(--border-color); border-radius: 8px; color: var(--text-primary); font-size: 14px;" onkeypress="if(event.key==='Enter') sendExcelChatMessage()">
+                                    <button onclick="sendExcelChatMessage()" style="padding: 10px 16px; background: #10B981; border: none; border-radius: 8px; color: white; cursor: pointer; font-weight: 600;" onmouseover="this.style.background='#059669'" onmouseout="this.style.background='#10B981'">
+                                        ➤
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Historique -->
+                            <div style="background: var(--bg-secondary); border-radius: 12px; padding: 20px; border: 1px solid var(--border-color);">
+                                <h3 style="margin: 0 0 16px; color: var(--text-primary); font-size: 16px; font-weight: 600;">📜 Historique</h3>
+                                <div id="excelHistoryList" style="display: flex; flex-direction: column; gap: 8px; max-height: 200px; overflow-y: auto;">
+                                    <p style="margin: 0; color: var(--text-secondary); font-size: 13px; text-align: center; padding: 20px;">Aucune action pour le moment</p>
+                                </div>
+                            </div>
+
+                            <!-- Export -->
+                            <button id="excelExportBtn" onclick="exportExcel()" style="display: none; padding: 14px; background: linear-gradient(135deg, #10B981, #059669); border: none; border-radius: 10px; color: white; cursor: pointer; font-weight: 600; font-size: 15px; box-shadow: 0 4px 12px rgba(16,185,129,0.3); transition: transform 0.2s;" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='translateY(0)'">
+                                💾 Télécharger Excel modifié
+                            </button>
+                        </div>
                     </div>
                 </div>
             `;
-            showGenericModal('', content);
+            
+            document.body.appendChild(overlay);
+        }
+
+        function closeExcelAi() {
+            const overlay = document.getElementById('excelAiOverlay');
+            if (overlay) {
+                overlay.style.animation = 'fadeOut 0.3s ease';
+                setTimeout(() => overlay.remove(), 300);
+            }
+        }
+
+        function handleExcelUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            excelCurrentFile = file;
+            
+            // Simuler le chargement (en production, utiliser SheetJS/xlsx library)
+            showToast('📊 Analyse du fichier Excel...', 'info');
+            
+            setTimeout(() => {
+                // Données de démonstration
+                excelColumns = ['ID', 'Nom', 'Email', 'Ventes', 'Date'];
+                excelSheetData = [
+                    ['1', 'Alice Martin', 'alice@example.com', '15000', '2025-01-15'],
+                    ['2', 'Bob Durant', 'bob@example.com', '22000', '2025-01-16'],
+                    ['3', 'Claire Dubois', 'claire@example.com', '18500', '2025-01-17'],
+                    ['4', 'David Bernard', '', '12000', '2025-01-18'],
+                    ['5', 'Emma Lambert', 'emma@example.com', '25000', '2025-01-19']
+                ];
+
+                renderExcelPreview();
+                document.getElementById('excelUploadZone').style.display = 'none';
+                document.getElementById('excelPreviewContainer').style.display = 'block';
+                document.getElementById('excelActionsContainer').style.display = 'block';
+                document.getElementById('excelExportBtn').style.display = 'block';
+                document.getElementById('excelFileName').textContent = file.name;
+                
+                showToast('✅ Fichier chargé avec succès !', 'success');
+            }, 1000);
+        }
+
+        function renderExcelPreview() {
+            const container = document.getElementById('excelTablePreview');
+            
+            let html = '<table style="width: 100%; border-collapse: collapse; background: var(--bg-primary);">';
+            
+            // Header
+            html += '<thead><tr>';
+            excelColumns.forEach(col => {
+                html += `<th style="padding: 12px; background: #10B981; color: white; font-weight: 600; text-align: left; border: 1px solid rgba(255,255,255,0.1);">${col}</th>`;
+            });
+            html += '</tr></thead>';
+            
+            // Rows (max 10 pour l'aperçu)
+            html += '<tbody>';
+            excelSheetData.slice(0, 10).forEach((row, idx) => {
+                html += `<tr style="background: ${idx % 2 === 0 ? 'var(--bg-primary)' : 'var(--bg-secondary)'};">`;
+                row.forEach(cell => {
+                    const isEmpty = !cell || cell.trim() === '';
+                    html += `<td style="padding: 10px; border: 1px solid var(--border-color); color: ${isEmpty ? '#EF4444' : 'var(--text-primary)'}; font-size: 13px;">${isEmpty ? '(vide)' : cell}</td>`;
+                });
+                html += '</tr>';
+            });
+            html += '</tbody></table>';
+            
+            container.innerHTML = html;
+            
+            document.getElementById('excelRowCount').textContent = `${excelSheetData.length} lignes`;
+            document.getElementById('excelColCount').textContent = `${excelColumns.length} colonnes`;
+        }
+
+        function excelAiAction(actionType) {
+            showToast('🤖 Traitement IA en cours...', 'info');
+            
+            const actions = {
+                'clean': {
+                    title: '🧹 Nettoyage des données',
+                    description: 'Suppression des espaces, standardisation des formats',
+                    result: '3 cellules nettoyées, 1 valeur vide détectée'
+                },
+                'duplicates': {
+                    title: '🔍 Détection des doublons',
+                    description: 'Analyse des lignes identiques',
+                    result: 'Aucun doublon détecté dans ce jeu de données'
+                },
+                'kpi': {
+                    title: '📊 Résumé KPI',
+                    description: 'Calcul des indicateurs clés',
+                    result: 'Ventes totales: 92 500€ | Moyenne: 18 500€ | Max: 25 000€'
+                },
+                'formulas': {
+                    title: '🔢 Génération de formules',
+                    description: 'Suggestions de formules pertinentes',
+                    result: 'Formule suggérée: =SOMME(D2:D6) pour total des ventes'
+                },
+                'charts': {
+                    title: '📈 Création de graphiques',
+                    description: 'Analyse et visualisation recommandées',
+                    result: 'Graphique en barres recommandé pour comparer les ventes par personne'
+                }
+            };
+            
+            const action = actions[actionType];
+            
+            setTimeout(() => {
+                // Ajouter à l'historique
+                excelActionHistory.unshift({
+                    time: new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }),
+                    ...action
+                });
+                
+                updateExcelHistory();
+                showToast(`✅ ${action.title} terminé !`, 'success');
+                
+                // Ajouter au chat
+                addExcelChatMessage(`Action effectuée: ${action.title}\n\n${action.result}`, 'bot');
+            }, 1500);
+        }
+
+        function updateExcelHistory() {
+            const container = document.getElementById('excelHistoryList');
+            
+            if (excelActionHistory.length === 0) {
+                container.innerHTML = '<p style="margin: 0; color: var(--text-secondary); font-size: 13px; text-align: center; padding: 20px;">Aucune action pour le moment</p>';
+                return;
+            }
+            
+            container.innerHTML = excelActionHistory.map(action => `
+                <div style="padding: 10px; background: var(--bg-primary); border-radius: 6px; border-left: 3px solid #10B981;">
+                    <div style="color: var(--text-primary); font-size: 12px; font-weight: 600; margin-bottom: 4px;">${action.title}</div>
+                    <div style="color: var(--text-secondary); font-size: 11px;">${action.time}</div>
+                </div>
+            `).join('');
+        }
+
+        function sendExcelChatMessage() {
+            const input = document.getElementById('excelChatInput');
+            const message = input.value.trim();
+            if (!message) return;
+            
+            addExcelChatMessage(message, 'user');
+            input.value = '';
+            
+            showToast('🤖 Analyse en cours...', 'info');
+            
+            // Simuler réponse IA
+            setTimeout(() => {
+                let response = '';
+                
+                if (message.toLowerCase().includes('moyenne')) {
+                    response = '📊 La moyenne de la colonne Ventes est de **18 500€**.\n\nCalculée sur 5 entrées (15k, 22k, 18.5k, 12k, 25k).';
+                } else if (message.toLowerCase().includes('vide')) {
+                    response = '🔍 J\'ai détecté **1 cellule vide** dans la colonne Email (ligne 4 - David Bernard).\n\nVoulez-vous que je la marque pour correction ?';
+                } else if (message.toLowerCase().includes('analyse') || message.toLowerCase().includes('suggère')) {
+                    response = '💡 **Analyses suggérées:**\n\n1. Tendance des ventes par date (graphique linéaire)\n2. Top 3 performers (graphique en barres)\n3. Taux de complétude des emails (95%)\n4. Segmentation par tranche de ventes';
+                } else {
+                    response = `✅ Compris ! Pour "${message}", je vous suggère de:\n\n1. Vérifier les colonnes concernées\n2. Utiliser les actions IA disponibles\n3. Consulter l'historique pour les modifications`;
+                }
+                
+                addExcelChatMessage(response, 'bot');
+            }, 1000);
+        }
+
+        function addExcelChatMessage(text, sender) {
+            const container = document.getElementById('excelChatMessages');
+            
+            // Retirer le message d'accueil si premier message
+            if (container.children.length === 1 && excelChatHistory.length === 0) {
+                container.innerHTML = '';
+            }
+            
+            const isBot = sender === 'bot';
+            const bgColor = isBot ? 'rgba(16,185,129,0.1)' : 'rgba(59,130,246,0.1)';
+            const borderColor = isBot ? '#10B981' : '#3B82F6';
+            
+            const msgDiv = document.createElement('div');
+            msgDiv.style.cssText = `padding: 12px; background: ${bgColor}; border-radius: 8px; border-left: 3px solid ${borderColor};`;
+            msgDiv.innerHTML = `
+                <div style="color: var(--text-secondary); font-size: 11px; font-weight: 600; margin-bottom: 4px;">${isBot ? '🤖 Excel AI' : '👤 Vous'}</div>
+                <div style="color: var(--text-primary); font-size: 13px; line-height: 1.5; white-space: pre-line;">${text}</div>
+            `;
+            
+            container.appendChild(msgDiv);
+            container.scrollTop = container.scrollHeight;
+            
+            excelChatHistory.push({ sender, text, time: new Date() });
+        }
+
+        function exportExcel() {
+            showToast('💾 Préparation du téléchargement...', 'info');
+            
+            setTimeout(() => {
+                showToast('✅ Fichier exporté ! (fonction de démo)', 'success');
+                // En production: utiliser SheetJS pour générer le fichier .xlsx
+            }, 1000);
         }
 
         // Outil TTS (FREE)
