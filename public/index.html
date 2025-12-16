@@ -1786,7 +1786,7 @@
     <div class="header">
         <div class="header-left">
             <button class="menu-btn" onclick="toggleSidebar()">☰</button>
-            <div class="logo" id="logo">AI Management</div>
+            <div class="logo" id="logo">Axilum AI</div>
         </div>
         <div class="header-right">
             <!-- Plan Selector -->
@@ -2199,15 +2199,15 @@
     <div class="modal" id="aboutModal">
         <div class="modal-content" style="max-width: 700px;">
             <div class="modal-header">
-                <div class="modal-title">À propos d'AI Management</div>
+                <div class="modal-title">À propos d'Axilum AI</div>
                 <button class="close-modal" onclick="closeAboutModal()">×</button>
             </div>
             <div style="padding: 20px;">
                 <!-- Introduction -->
                 <div class="about-intro">
                     <p>
-                        <strong>AI Management</strong> est votre <strong>assistant professionnel intelligent</strong> spécialisé dans 4 domaines d'expertise : Excel AI Expert, Planning Projet, Tableau de Bord Financier et Gestion RH. 
-                        Notre système avancé analyse en temps réel la fiabilité de chaque réponse grâce à des métriques révolutionnaires.
+                        <strong>Axilum AI</strong> est la <strong>première et seule IA</strong> qui détecte et vous protège activement contre les hallucinations. 
+                        Notre système breveté analyse en temps réel la fiabilité de chaque réponse grâce à des métriques révolutionnaires.
                     </p>
                 </div>
 
@@ -2533,7 +2533,7 @@
             
             // Animation du logo
             const logoEl = document.getElementById('logo');
-            const logoText = 'AI Management';
+            const logoText = 'Axilum AI';
             
             // Créer les spans pour chaque lettre
             logoEl.innerHTML = '';
@@ -2969,7 +2969,7 @@
             const time = now.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
 
             let avatarEmoji = type === 'user' ? '👤' : '🤖';
-            let senderName = type === 'user' ? 'Vous' : 'AI Management';
+            let senderName = type === 'user' ? 'Vous' : 'Axilum AI';
             let avatarClass = type === 'user' ? 'user-avatar' : 'bot-avatar';
 
             // 🎨 Vérifier si c'est une image générée
@@ -6073,7 +6073,8 @@
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ 
                         message,
-                        conversationId: 'excel-ai-expert',
+                        conversationId: 'ai-management',
+                        chatType: 'ai-management',
                         history: []
                     })
                 });
