@@ -6,7 +6,7 @@
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
-    <title>Axilum AI - Assistant Intelligent v2.0-MINT-BUILD-202512162005</title>
+    <title>Axilum AI - Assistant Intelligent v2.0-MINT-BUILD-202512162012</title>
     <style>
         :root {
             --bg-primary: #FAFBFC;
@@ -6017,6 +6017,15 @@
             }
         }
         
+        function toggleTemplatesSidebar() {
+            const sidebar = document.getElementById('templatesSidebar');
+            if (sidebar.style.right === '0px') {
+                sidebar.style.right = '-380px';
+            } else {
+                sidebar.style.right = '0px';
+            }
+        }
+        
         function addExcelRow() {
             const newRow = new Array(excelColumns.length).fill('');
             excelSheetData.push(newRow);
@@ -6298,30 +6307,52 @@
                                     <rect x="3" y="14" width="7" height="7"/>
                                 </svg>
                             </div>
-                            <div>
+                            <div style="flex: 1;">
                                 <h2 style="margin: 0; color: white; font-size: 20px; font-weight: 700; letter-spacing: -0.5px; text-shadow: 0 2px 4px rgba(0,0,0,0.1);">Excel AI Expert</h2>
                                 <p style="margin: 0; color: rgba(255,255,255,0.95); font-size: 14px; font-weight: 600; letter-spacing: 0.3px;">Analyse Avancée • Formules Modernes • Audit Automatique</p>
                             </div>
+                            
+                            <!-- Bouton Modèles Professionnels -->
+                            <button onclick="toggleTemplatesSidebar()" style="width: 44px; height: 44px; background: rgba(255,255,255,0.15); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.25); border-radius: 12px; color: white; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; flex-shrink: 0;" onmouseover="this.style.background='rgba(255,255,255,0.28)'" onmouseout="this.style.background='rgba(255,255,255,0.15)'" title="Modèles Professionnels">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                    <rect x="3" y="3" width="7" height="7"/>
+                                    <rect x="14" y="3" width="7" height="7"/>
+                                    <rect x="14" y="14" width="7" height="7"/>
+                                    <rect x="3" y="14" width="7" height="7"/>
+                                </svg>
+                            </button>
                         </div>
                         
-                        <!-- Modèles Avancés - Liste défilante -->
-                        <div style="max-height: 180px; overflow-y: auto; background: rgba(255,255,255,0.08); border-radius: 12px; padding: 12px; margin-top: 16px; border: 1px solid rgba(255,255,255,0.12);">
-                            <div style="color: rgba(255,255,255,0.7); font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 10px;">📊 Modèles Professionnels</div>
+                        <!-- Sidebar Modèles Professionnels -->
+                        <div id="templatesSidebar" style="position: fixed; top: 0; right: -380px; width: 380px; height: 100vh; background: linear-gradient(135deg, rgba(99,102,241,0.98) 0%, rgba(139,92,246,0.98) 100%); backdrop-filter: blur(20px); box-shadow: -4px 0 24px rgba(0,0,0,0.2); z-index: 10000; transition: right 0.3s cubic-bezier(0.4, 0, 0.2, 1); display: flex; flex-direction: column;">
+                            <!-- En-tête Sidebar -->
+                            <div style="padding: 24px; border-bottom: 1px solid rgba(255,255,255,0.15); display: flex; align-items: center; justify-content: space-between;">
+                                <div>
+                                    <h3 style="margin: 0 0 4px; color: white; font-size: 18px; font-weight: 700; letter-spacing: -0.3px;">📊 Modèles Professionnels</h3>
+                                    <p style="margin: 0; color: rgba(255,255,255,0.8); font-size: 13px; font-weight: 500;">Templates prêts à l'emploi</p>
+                                </div>
+                                <button onclick="toggleTemplatesSidebar()" style="width: 36px; height: 36px; background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.25); border-radius: 10px; color: white; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center;" onmouseover="this.style.background='rgba(255,255,255,0.28)'; this.style.transform='rotate(90deg)'" onmouseout="this.style.background='rgba(255,255,255,0.15)'; this.style.transform='rotate(0deg)'">
+                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                                </button>
+                            </div>
                             
-                            <button onclick="loadTemplate('schedule')" style="width: 100%; padding: 10px 12px; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.15); border-radius: 8px; color: white; cursor: pointer; font-weight: 600; font-size: 13px; transition: all 0.2s; text-align: left; margin-bottom: 8px;" onmouseover="this.style.background='rgba(255,255,255,0.18)'" onmouseout="this.style.background='rgba(255,255,255,0.1)'">
-                                <div style="font-weight: 700; margin-bottom: 3px;">📅 Planning Projet</div>
-                                <div style="font-size: 11px; color: rgba(255,255,255,0.8); font-weight: 400;">Gantt, tâches, ressources</div>
-                            </button>
-                            
-                            <button onclick="loadTemplate('finance')" style="width: 100%; padding: 10px 12px; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.15); border-radius: 8px; color: white; cursor: pointer; font-weight: 600; font-size: 13px; transition: all 0.2s; text-align: left; margin-bottom: 8px;" onmouseover="this.style.background='rgba(255,255,255,0.18)'" onmouseout="this.style.background='rgba(255,255,255,0.1)'">
-                                <div style="font-weight: 700; margin-bottom: 3px;">💰 Tableau de Bord Financier</div>
-                                <div style="font-size: 11px; color: rgba(255,255,255,0.8); font-weight: 400;">KPI, ratios, graphiques</div>
-                            </button>
-                            
-                            <button onclick="loadTemplate('hr')" style="width: 100%; padding: 10px 12px; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.15); border-radius: 8px; color: white; cursor: pointer; font-weight: 600; font-size: 13px; transition: all 0.2s; text-align: left;" onmouseover="this.style.background='rgba(255,255,255,0.18)'" onmouseout="this.style.background='rgba(255,255,255,0.1)'">
-                                <div style="font-weight: 700; margin-bottom: 3px;">👥 Gestion RH</div>
-                                <div style="font-size: 11px; color: rgba(255,255,255,0.8); font-weight: 400;">Employés, congés, paie</div>
-                            </button>
+                            <!-- Liste Modèles -->
+                            <div style="flex: 1; overflow-y: auto; padding: 20px;">
+                                <button onclick="loadTemplate('schedule'); toggleTemplatesSidebar();" style="width: 100%; padding: 16px; background: rgba(255,255,255,0.12); border: 1px solid rgba(255,255,255,0.2); border-radius: 12px; color: white; cursor: pointer; font-weight: 600; font-size: 14px; transition: all 0.2s; text-align: left; margin-bottom: 12px;" onmouseover="this.style.background='rgba(255,255,255,0.22)'; this.style.transform='translateX(-4px)'" onmouseout="this.style.background='rgba(255,255,255,0.12)'; this.style.transform='translateX(0)'">
+                                    <div style="font-weight: 700; margin-bottom: 6px; font-size: 15px;">📅 Planning Projet</div>
+                                    <div style="font-size: 12px; color: rgba(255,255,255,0.85); font-weight: 400; line-height: 1.4;">Diagramme de Gantt, gestion des tâches, allocation des ressources et suivi des jalons</div>
+                                </button>
+                                
+                                <button onclick="loadTemplate('finance'); toggleTemplatesSidebar();" style="width: 100%; padding: 16px; background: rgba(255,255,255,0.12); border: 1px solid rgba(255,255,255,0.2); border-radius: 12px; color: white; cursor: pointer; font-weight: 600; font-size: 14px; transition: all 0.2s; text-align: left; margin-bottom: 12px;" onmouseover="this.style.background='rgba(255,255,255,0.22)'; this.style.transform='translateX(-4px)'" onmouseout="this.style.background='rgba(255,255,255,0.12)'; this.style.transform='translateX(0)'">
+                                    <div style="font-weight: 700; margin-bottom: 6px; font-size: 15px;">💰 Tableau de Bord Financier</div>
+                                    <div style="font-size: 12px; color: rgba(255,255,255,0.85); font-weight: 400; line-height: 1.4;">KPI financiers, ratios d'analyse, graphiques dynamiques et reporting automatisé</div>
+                                </button>
+                                
+                                <button onclick="loadTemplate('hr'); toggleTemplatesSidebar();" style="width: 100%; padding: 16px; background: rgba(255,255,255,0.12); border: 1px solid rgba(255,255,255,0.2); border-radius: 12px; color: white; cursor: pointer; font-weight: 600; font-size: 14px; transition: all 0.2s; text-align: left;" onmouseover="this.style.background='rgba(255,255,255,0.22)'; this.style.transform='translateX(-4px)'" onmouseout="this.style.background='rgba(255,255,255,0.12)'; this.style.transform='translateX(0)'">
+                                    <div style="font-weight: 700; margin-bottom: 6px; font-size: 15px;">👥 Gestion RH</div>
+                                    <div style="font-size: 12px; color: rgba(255,255,255,0.85); font-weight: 400; line-height: 1.4;">Base de données employés, gestion des congés, calcul de paie et évaluation des performances</div>
+                                </button>
+                            </div>
                         </div>
                         
                         <button onclick="closeExcelAi()" style="width: 44px; height: 44px; background: rgba(255,255,255,0.15); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.25); border-radius: 12px; color: white; cursor: pointer; font-weight: 700; transition: all 0.2s; font-size: 14px; display: flex; align-items: center; justify-content: center;" onmouseover="this.style.background='rgba(255,255,255,0.28)'; this.style.transform='rotate(90deg)'" onmouseout="this.style.background='rgba(255,255,255,0.15)'; this.style.transform='rotate(0deg)'" title="Fermer">
