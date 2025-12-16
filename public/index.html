@@ -6082,7 +6082,15 @@
                 if (!response.ok) throw new Error('Erreur API');
                 
                 const data = await response.json();
-                const aiResponse = data.response || data.message || 'Désolé, je n\'ai pas pu traiter votre demande.';
+                let aiResponse = data.response || data.message || 'Désolé, je n\'ai pas pu traiter votre demande.';
+                
+                // Nettoyer les métriques HI/CHR et métadonnées
+                aiResponse = aiResponse
+                    .replace(/\n*---[\s\S]*$/g, '')  // Supprimer tout après ---
+                    .replace(/\n*📊.*?Métriques.*?\n.*?HI:.*?CHR:.*?\n*/gi, '')  // Supprimer métriques
+                    .replace(/\n*📚.*?Sources:.*?\n*/gi, '')  // Supprimer sources
+                    .replace(/\n*💡.*?Plan.*?tokens.*?\n*/gi, '')  // Supprimer infos tokens
+                    .trim();
                 
                 addExcelChatMessage(aiResponse, 'bot');
                 showToast('✅ Réponse générée', 'success');
@@ -6257,10 +6265,10 @@
             const borderColor = isBot ? '#10B981' : '#3B82F6';
             
             const msgDiv = document.createElement('div');
-            msgDiv.style.cssText = `padding: 12px; background: ${bgColor}; border-radius: 8px; border-left: 3px solid ${borderColor};`;
+            msgDiv.style.cssText = `padding: 10px; background: ${bgColor}; border-radius: 8px; border-left: 3px solid ${borderColor};`;
             msgDiv.innerHTML = `
-                <div style="color: var(--text-secondary); font-size: 10px; font-weight: 600; margin-bottom: 4px;">${isBot ? 'AI Management' : 'Vous'}</div>
-                <div style="color: var(--text-primary); font-size: 12px; line-height: 1.5; white-space: pre-line;">${text}</div>
+                <div style="color: var(--text-secondary); font-size: 9px; font-weight: 600; margin-bottom: 3px;">${isBot ? 'AI Management' : 'Vous'}</div>
+                <div style="color: var(--text-primary); font-size: 10px; line-height: 1.5; white-space: pre-line;">${text}</div>
             `;
             
             container.appendChild(msgDiv);
