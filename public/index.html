@@ -4437,7 +4437,7 @@
             // Créer l'interface en plein écran
             const modal = document.getElementById('genericModal');
             modal.style.display = 'flex';
-            modal.style.backgroundColor = '#0F172A';
+            modal.style.backgroundColor = 'var(--bg-primary)';
             modal.style.zIndex = '10000';
             modal.style.position = 'fixed';
             modal.style.top = '0';
@@ -5078,8 +5078,14 @@
             if (task) {
                 task.notifyEnabled = enabled;
                 task.notificationEnabled = enabled;
-                saveTasks();
+                // Sauvegarder dans localStorage
+                localStorage.setItem('userTasks', JSON.stringify(userTasks));
                 showToast(enabled ? '🔔 Notification activée pour cette tâche' : '🔕 Notification désactivée', 'info');
+                
+                // Rafraîchir le panneau de détails si ouvert
+                if (detailsPanelOpen && selectedTask && selectedTask.id === id) {
+                    showTaskDetails(id);
+                }
                 
                 if (enabled && !notificationsEnabled) {
                     setTimeout(() => {
@@ -5671,8 +5677,13 @@
         }
 
         function showTaskDetails(taskId) {
-            selectedTask = userTasks.find(t => t.id === taskId);
-            if (!selectedTask) return;
+            // Convertir taskId en number si nécessaire pour la comparaison
+            const id = typeof taskId === 'string' ? parseInt(taskId) : taskId;
+            selectedTask = userTasks.find(t => t.id === id || t.id === taskId);
+            if (!selectedTask) {
+                console.error('Tâche non trouvée:', taskId, 'Type:', typeof taskId);
+                return;
+            }
 
             const panel = document.getElementById('todoDetailsPanel');
             panel.style.width = '420px';
