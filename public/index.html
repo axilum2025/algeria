@@ -5995,6 +5995,9 @@
             `;
             
             overlay.innerHTML = `
+                <!-- Charger SheetJS pour manipulation Excel réelle -->
+                <script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
+                
                 <style>
                     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
                     #excelAiOverlay * { font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; }
@@ -6008,6 +6011,30 @@
                             opacity: 1;
                             transform: translateY(0);
                         }
+                    }
+                    
+                    /* Styles pour cellules éditables */
+                    .excel-cell {
+                        padding: 8px;
+                        border: 1px solid var(--border-color);
+                        min-width: 100px;
+                        cursor: text;
+                        transition: all 0.2s;
+                    }
+                    
+                    .excel-cell:hover {
+                        background: rgba(99,102,241,0.05);
+                        border-color: #6366F1;
+                    }
+                    
+                    .excel-cell:focus {
+                        outline: 2px solid #6366F1;
+                        background: white;
+                    }
+                    
+                    .excel-cell.editing {
+                        background: #FEF3C7;
+                        border-color: #F59E0B;
                     }
                 </style>
                 <div style="min-height: 100vh; padding: 20px;">
@@ -6145,12 +6172,23 @@
                             <div id="excelPreviewContainer" style="display: none; background: var(--bg-secondary); border-radius: 16px; padding: 24px; border: 1px solid var(--border-color); box-shadow: 0 2px 8px rgba(0,0,0,0.05);">
                                 <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px;">
                                     <h3 style="margin: 0; color: var(--text-primary); font-size: 18px; font-weight: 700;">Aperçu des données</h3>
-                                    <span id="excelFileName" style="color: var(--text-secondary); font-size: 13px; background: rgba(99,102,241,0.1); padding: 6px 12px; border-radius: 8px; font-weight: 600;"></span>
+                                    <div style="display: flex; align-items: center; gap: 12px;">
+                                        <button onclick="addExcelRow()" style="padding: 8px 14px; background: linear-gradient(135deg, #10B981, #14B8A6); border: none; border-radius: 8px; color: white; cursor: pointer; font-weight: 600; font-size: 12px; display: flex; align-items: center; gap: 6px; transition: all 0.2s;" title="Ajouter une ligne">
+                                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                                            Ligne
+                                        </button>
+                                        <button onclick="addExcelColumn()" style="padding: 8px 14px; background: linear-gradient(135deg, #6366F1, #8B5CF6); border: none; border-radius: 8px; color: white; cursor: pointer; font-weight: 600; font-size: 12px; display: flex; align-items: center; gap: 6px; transition: all 0.2s;" title="Ajouter une colonne">
+                                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                                            Colonne
+                                        </button>
+                                        <span id="excelFileName" style="color: var(--text-secondary); font-size: 13px; background: rgba(99,102,241,0.1); padding: 6px 12px; border-radius: 8px; font-weight: 600;"></span>
+                                    </div>
                                 </div>
                                 <div id="excelTablePreview" style="overflow-x: auto; border-radius: 12px; border: 1px solid var(--border-color);"></div>
                                 <div style="margin-top: 16px; display: flex; gap: 16px; align-items: center; color: var(--text-secondary); font-size: 13px; font-weight: 600;">
                                     <span id="excelRowCount" style="background: rgba(99,102,241,0.1); padding: 6px 12px; border-radius: 8px;"></span>
                                     <span id="excelColCount" style="background: rgba(139,92,246,0.1); padding: 6px 12px; border-radius: 8px;"></span>
+                                    <span style="color: var(--text-secondary); font-size: 12px; font-weight: 500;">💡 Cliquez sur les cellules pour les éditer</span>
                                 </div>
                             </div>
 
@@ -6427,31 +6465,48 @@
             if (!file) return;
 
             excelCurrentFile = file;
-            
-            // Simuler le chargement (en production, utiliser SheetJS/xlsx library)
             showToast('📊 Analyse du fichier Excel...', 'info');
             
-            setTimeout(() => {
-                // Données de démonstration
-                excelColumns = ['ID', 'Nom', 'Email', 'Ventes', 'Date'];
-                excelSheetData = [
-                    ['1', 'Alice Martin', 'alice@example.com', '15000', '2025-01-15'],
-                    ['2', 'Bob Durant', 'bob@example.com', '22000', '2025-01-16'],
-                    ['3', 'Claire Dubois', 'claire@example.com', '18500', '2025-01-17'],
-                    ['4', 'David Bernard', '', '12000', '2025-01-18'],
-                    ['5', 'Emma Lambert', 'emma@example.com', '25000', '2025-01-19']
-                ];
-
-                renderExcelPreview();
-                document.getElementById('excelUploadZone').style.display = 'none';
-                document.getElementById('excelPreviewContainer').style.display = 'block';
-                document.getElementById('excelQuickActions').style.display = 'block';
-                document.getElementById('excelActionsContainer').style.display = 'block';
-                document.getElementById('excelExportBtn').style.display = 'flex';
-                document.getElementById('excelFileName').textContent = file.name;
-                
-                showToast('✅ Fichier chargé avec succès !', 'success');
-            }, 1000);
+            // Utiliser SheetJS pour lire le vrai fichier Excel
+            const reader = new FileReader();
+            
+            reader.onload = function(e) {
+                try {
+                    const data = new Uint8Array(e.target.result);
+                    const workbook = XLSX.read(data, { type: 'array' });
+                    
+                    // Prendre la première feuille
+                    const firstSheetName = workbook.SheetNames[0];
+                    const worksheet = workbook.Sheets[firstSheetName];
+                    
+                    // Convertir en JSON
+                    const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, defval: '' });
+                    
+                    if (jsonData.length > 0) {
+                        excelColumns = jsonData[0]; // Première ligne = en-têtes
+                        excelSheetData = jsonData.slice(1); // Reste = données
+                    } else {
+                        excelColumns = ['Colonne A', 'Colonne B', 'Colonne C'];
+                        excelSheetData = [['', '', '']];
+                    }
+                    
+                    renderExcelPreview();
+                    document.getElementById('excelUploadZone').style.display = 'none';
+                    document.getElementById('excelPreviewContainer').style.display = 'block';
+                    document.getElementById('excelQuickActions').style.display = 'block';
+                    document.getElementById('excelActionsContainer').style.display = 'block';
+                    document.getElementById('excelExportBtn').style.display = 'flex';
+                    document.getElementById('excelFileName').textContent = file.name;
+                    
+                    showToast(`✅ Fichier "${file.name}" chargé avec ${excelSheetData.length} lignes !`, 'success');
+                    addExcelChatMessage(`📊 **Fichier chargé:** ${file.name}\n\n${excelSheetData.length} lignes × ${excelColumns.length} colonnes\n\nVous pouvez maintenant:\n• Cliquer sur les cellules pour les éditer\n• Utiliser les actions IA\n• Me demander d'ajouter/modifier des données`, 'bot');
+                } catch (error) {
+                    console.error('Erreur lecture Excel:', error);
+                    showToast('❌ Erreur lecture du fichier Excel', 'error');
+                }
+            };
+            
+            reader.readAsArrayBuffer(file);
         }
 
         function renderExcelPreview() {
@@ -6459,20 +6514,21 @@
             
             let html = '<table style="width: 100%; border-collapse: collapse; background: var(--bg-primary);">';
             
-            // Header avec gradient moderne
+            // Header avec gradient moderne - ÉDITABLE
             html += '<thead><tr>';
-            excelColumns.forEach(col => {
-                html += `<th style="padding: 12px; background: linear-gradient(135deg, #6366F1, #8B5CF6); color: white; font-weight: 600; text-align: left; border: 1px solid rgba(255,255,255,0.1);">${col}</th>`;
+            excelColumns.forEach((col, colIdx) => {
+                html += `<th contenteditable="true" class="excel-cell" data-row="-1" data-col="${colIdx}" style="padding: 12px; background: linear-gradient(135deg, #6366F1, #8B5CF6); color: white; font-weight: 600; text-align: left; border: 1px solid rgba(255,255,255,0.1);" onblur="updateCellValue(-1, ${colIdx}, this.textContent)">${col}</th>`;
             });
             html += '</tr></thead>';
             
-            // Rows (max 10 pour l'aperçu)
+            // Rows - TOUTES ÉDITABLES
             html += '<tbody>';
-            excelSheetData.slice(0, 10).forEach((row, idx) => {
-                html += `<tr style="background: ${idx % 2 === 0 ? 'var(--bg-primary)' : 'var(--bg-secondary)'};">`;
-                row.forEach(cell => {
-                    const isEmpty = !cell || cell.trim() === '';
-                    html += `<td style="padding: 10px; border: 1px solid var(--border-color); color: ${isEmpty ? '#EF4444' : 'var(--text-primary)'}; font-size: 13px;">${isEmpty ? '(vide)' : cell}</td>`;
+            excelSheetData.forEach((row, rowIdx) => {
+                html += `<tr style="background: ${rowIdx % 2 === 0 ? 'var(--bg-primary)' : 'var(--bg-secondary)'};">`;
+                row.forEach((cell, colIdx) => {
+                    const cellValue = cell || '';
+                    const isEmpty = !cellValue || cellValue.toString().trim() === '';
+                    html += `<td contenteditable="true" class="excel-cell" data-row="${rowIdx}" data-col="${colIdx}" style="padding: 10px; border: 1px solid var(--border-color); color: ${isEmpty ? '#999' : 'var(--text-primary)'}; font-size: 13px;" onblur="updateCellValue(${rowIdx}, ${colIdx}, this.textContent)" onfocus="this.classList.add('editing')" onblur="this.classList.remove('editing')">${cellValue}</td>`;
                 });
                 html += '</tr>';
             });
@@ -6482,6 +6538,48 @@
             
             document.getElementById('excelRowCount').textContent = `${excelSheetData.length} lignes`;
             document.getElementById('excelColCount').textContent = `${excelColumns.length} colonnes`;
+        }
+        
+        // Mettre à jour valeur cellule
+        function updateCellValue(rowIdx, colIdx, newValue) {
+            if (rowIdx === -1) {
+                // Mettre à jour en-tête
+                excelColumns[colIdx] = newValue;
+            } else {
+                // Mettre à jour cellule de données
+                if (!excelSheetData[rowIdx]) {
+                    excelSheetData[rowIdx] = [];
+                }
+                excelSheetData[rowIdx][colIdx] = newValue;
+            }
+            
+            // Afficher confirmation subtile
+            console.log(`Cellule [${rowIdx}, ${colIdx}] mise à jour: "${newValue}"`);
+        }
+        
+        // Ajouter ligne vide
+        function addExcelRow() {
+            const newRow = new Array(excelColumns.length).fill('');
+            excelSheetData.push(newRow);
+            renderExcelPreview();
+            showToast('✅ Ligne ajoutée', 'success');
+        }
+        
+        // Ajouter colonne vide
+        function addExcelColumn() {
+            excelColumns.push(`Colonne ${excelColumns.length + 1}`);
+            excelSheetData.forEach(row => row.push(''));
+            renderExcelPreview();
+            showToast('✅ Colonne ajoutée', 'success');
+        }
+        
+        // Supprimer ligne sélectionnée
+        function deleteExcelRow(rowIdx) {
+            if (confirm(`Supprimer la ligne ${rowIdx + 1} ?`)) {
+                excelSheetData.splice(rowIdx, 1);
+                renderExcelPreview();
+                showToast('✅ Ligne supprimée', 'success');
+            }
         }
 
         function excelAiAction(actionType) {
@@ -6757,12 +6855,42 @@ ${dataContext}`;
         }
 
         function exportExcel() {
-            showToast('💾 Préparation du téléchargement...', 'info');
+            showToast('💾 Création du fichier Excel...', 'info');
             
-            setTimeout(() => {
-                showToast('✅ Fichier exporté ! (fonction de démo)', 'success');
-                // En production: utiliser SheetJS pour générer le fichier .xlsx
-            }, 1000);
+            try {
+                // Créer un nouveau workbook
+                const wb = XLSX.utils.book_new();
+                
+                // Préparer les données: en-têtes + données
+                const fullData = [excelColumns, ...excelSheetData];
+                
+                // Créer la feuille de calcul
+                const ws = XLSX.utils.aoa_to_sheet(fullData);
+                
+                // Ajouter des styles aux en-têtes (si supporté)
+                const range = XLSX.utils.decode_range(ws['!ref']);
+                for (let col = range.s.c; col <= range.e.c; col++) {
+                    const cellAddress = XLSX.utils.encode_cell({ r: 0, c: col });
+                    if (!ws[cellAddress]) continue;
+                    ws[cellAddress].s = {
+                        font: { bold: true, color: { rgb: "FFFFFF" } },
+                        fill: { fgColor: { rgb: "6366F1" } }
+                    };
+                }
+                
+                // Ajouter la feuille au workbook
+                XLSX.utils.book_append_sheet(wb, ws, "Feuille1");
+                
+                // Générer le fichier et télécharger
+                const fileName = excelCurrentFile?.name || 'Export_Excel_AI.xlsx';
+                XLSX.writeFile(wb, fileName);
+                
+                showToast(`✅ Fichier "${fileName}" téléchargé !`, 'success');
+                addExcelChatMessage(`📥 **Export réussi!**\n\nFichier: ${fileName}\nFormat: .xlsx (Excel)\n${excelSheetData.length} lignes × ${excelColumns.length} colonnes`, 'bot');
+            } catch (error) {
+                console.error('Erreur export Excel:', error);
+                showToast('❌ Erreur lors de l\'export', 'error');
+            }
         }
 
         // Outil TTS (FREE)
