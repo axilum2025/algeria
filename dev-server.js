@@ -20,7 +20,9 @@ if (fs.existsSync(publicDir)) {
 }
 
 // Dynamically load Azure Function style handlers from api/<fn>/index.js
-const apiRoot = path.join(__dirname, 'api', 'api');
+const apiRoot = path.join(__dirname, 'api');
+const routeMap = {}; // Map custom routes to handlers
+
 if (fs.existsSync(apiRoot)) {
   const entries = fs.readdirSync(apiRoot, { withFileTypes: true })
     .filter(d => d.isDirectory())
@@ -28,22 +30,39 @@ if (fs.existsSync(apiRoot)) {
 
   entries.forEach(name => {
     const handlerPath = path.join(apiRoot, name, 'index.js');
+    const functionJsonPath = path.join(apiRoot, name, 'function.json');
+    
     if (fs.existsSync(handlerPath)) {
       try {
         const handler = require(handlerPath);
-        const route = `/api/${name}`;
-        console.log(`Mounting ${route} -> ${handlerPath}`);
+        let route = `/api/${name}`;
+        
+        // Check if there's a custom route in function.json
+        if (fs.existsSync(functionJsonPath)) {
+          const functionConfig = JSON.parse(fs.readFileSync(functionJsonPath, 'utf8'));
+          const httpBinding = functionConfig.bindings?.find(b => b.type === 'httpTrigger');
+          if (httpBinding && httpBinding.route) {
+            route = `/api/${httpBinding.route}`;
+          }
+        }
+        
+        // Convert Azure Function route syntax to Express
+        // Example: "tasks/{action?}" -> "tasks/:action?"
+        const expressRoute = route.replace(/{([^}]+)}/g, ':$1');
+        
+        console.log(`Mounting ${expressRoute} -> ${handlerPath}`);
+        routeMap[expressRoute] = { handler, name };
 
-        app.all(route, async (req, res) => {
-          const logFn = (...args) => console.log('[info]', ...args);
-          logFn.info = (...args) => console.log('[info]', ...args);
-          logFn.warn = (...args) => console.warn('[warn]', ...args);
-          logFn.error = (...args) => console.error('[error]', ...args);
-          logFn.verbose = (...args) => console.debug('[debug]', ...args);
+        app.all(expressRoute, async (req, res) => {
+          const logFn = (...args) => console.log(`[${name}]`, ...args);
+          logFn.info = (...args) => console.log(`[${name}]`, ...args);
+          logFn.warn = (...args) => console.warn(`[${name}]`, ...args);
+          logFn.error = (...args) => console.error(`[${name}]`, ...args);
+          logFn.verbose = (...args) => console.debug(`[${name}]`, ...args);
 
           const context = {
             log: logFn,
-            invocationId: null,
+            invocationId: Date.now().toString(),
             bindings: {},
             res: null
           };
@@ -52,26 +71,32 @@ if (fs.existsSync(apiRoot)) {
             method: req.method,
             headers: req.headers,
             query: req.query,
+            params: req.params, // Include route parameters
             body: req.body
           };
 
           try {
-            // Some handlers expect (context, req)
             await handler(context, reqObj);
 
             if (context.res) {
               const status = context.res.status || 200;
               const headers = context.res.headers || {};
               if (headers) Object.entries(headers).forEach(([k, v]) => res.set(k, v));
-              // If body is an object, send JSON
-              if (typeof context.res.body === 'object') return res.status(status).json(context.res.body);
+              
+              // Always set CORS headers
+              res.set('Access-Control-Allow-Origin', '*');
+              res.set('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+              res.set('Access-Control-Allow-Headers', 'Content-Type');
+              
+              if (typeof context.res.body === 'object') {
+                return res.status(status).json(context.res.body);
+              }
               return res.status(status).send(context.res.body);
             }
 
-            // Fallback: return 200 with empty
             res.status(200).json({ ok: true });
           } catch (err) {
-            console.error('Handler error for', name, err);
+            console.error(`Handler error for ${name}:`, err);
             res.status(500).json({ error: String(err.message || err) });
           }
         });
@@ -80,6 +105,8 @@ if (fs.existsSync(apiRoot)) {
       }
     }
   });
+  
+  console.log(`Loaded ${Object.keys(routeMap).length} API routes`);
 } else {
   console.warn('No api functions directory found at', apiRoot);
 }
