@@ -6,7 +6,7 @@
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
-    <title>AI Management v2.0-MINT-BUILD-202512162035</title>
+    <title>AI Management v2.0-MINT-BUILD-202512162040</title>
     <style>
         :root {
             --bg-primary: #FAFBFC;
@@ -6327,7 +6327,7 @@
                         <div id="templatesSidebar" style="position: fixed; top: 0; right: -380px; width: 380px; height: 100vh; background: linear-gradient(135deg, rgba(99,102,241,0.98) 0%, rgba(139,92,246,0.98) 100%); backdrop-filter: blur(20px); box-shadow: -4px 0 24px rgba(0,0,0,0.2); z-index: 10000; transition: right 0.3s cubic-bezier(0.4, 0, 0.2, 1); display: flex; flex-direction: column;">
                             <!-- En-tête Sidebar -->
                             <div style="padding: 24px; border-bottom: 1px solid rgba(255,255,255,0.15); display: flex; align-items: center; justify-content: space-between;">
-                                <h3 style="margin: 0; color: white; font-size: 18px; font-weight: 700; letter-spacing: -0.3px;">📊 Modèles Excel AI</h3>
+                                <h3 style="margin: 0; color: white; font-size: 18px; font-weight: 700; letter-spacing: -0.3px;">Modèle AI</h3>
                                 <button onclick="toggleTemplatesSidebar()" style="width: 36px; height: 36px; background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.25); border-radius: 10px; color: white; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center;" onmouseover="this.style.background='rgba(255,255,255,0.28)'; this.style.transform='rotate(90deg)'" onmouseout="this.style.background='rgba(255,255,255,0.15)'; this.style.transform='rotate(0deg)'">
                                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
                                 </button>
@@ -6336,22 +6336,22 @@
                             <!-- Liste Modèles -->
                             <div style="flex: 1; overflow-y: auto; padding: 20px;">
                                 <button onclick="toggleExcelUploadZone(); toggleTemplatesSidebar();" style="width: 100%; padding: 16px; background: rgba(255,255,255,0.12); border: 1px solid rgba(255,255,255,0.2); border-radius: 12px; color: white; cursor: pointer; font-weight: 600; font-size: 14px; transition: all 0.2s; text-align: left; margin-bottom: 12px;" onmouseover="this.style.background='rgba(255,255,255,0.22)'; this.style.transform='translateX(-4px)'" onmouseout="this.style.background='rgba(255,255,255,0.12)'; this.style.transform='translateX(0)'">
-                                    <div style="font-weight: 700; margin-bottom: 6px; font-size: 15px;">📊 Excel AI Expert</div>
+                                    <div style="font-weight: 700; margin-bottom: 6px; font-size: 15px;">Excel AI Expert</div>
                                     <div style="font-size: 12px; color: rgba(255,255,255,0.85); font-weight: 400; line-height: 1.4;">Analyse Avancée • Formules Modernes • Audit Automatique</div>
                                 </button>
                                 
                                 <button onclick="loadTemplate('schedule'); toggleTemplatesSidebar();" style="width: 100%; padding: 16px; background: rgba(255,255,255,0.12); border: 1px solid rgba(255,255,255,0.2); border-radius: 12px; color: white; cursor: pointer; font-weight: 600; font-size: 14px; transition: all 0.2s; text-align: left; margin-bottom: 12px;" onmouseover="this.style.background='rgba(255,255,255,0.22)'; this.style.transform='translateX(-4px)'" onmouseout="this.style.background='rgba(255,255,255,0.12)'; this.style.transform='translateX(0)'">
-                                    <div style="font-weight: 700; margin-bottom: 6px; font-size: 15px;">📅 Planning Projet</div>
+                                    <div style="font-weight: 700; margin-bottom: 6px; font-size: 15px;">Planning Projet</div>
                                     <div style="font-size: 12px; color: rgba(255,255,255,0.85); font-weight: 400; line-height: 1.4;">Diagramme de Gantt, gestion des tâches, allocation des ressources et suivi des jalons</div>
                                 </button>
                                 
                                 <button onclick="loadTemplate('finance'); toggleTemplatesSidebar();" style="width: 100%; padding: 16px; background: rgba(255,255,255,0.12); border: 1px solid rgba(255,255,255,0.2); border-radius: 12px; color: white; cursor: pointer; font-weight: 600; font-size: 14px; transition: all 0.2s; text-align: left; margin-bottom: 12px;" onmouseover="this.style.background='rgba(255,255,255,0.22)'; this.style.transform='translateX(-4px)'" onmouseout="this.style.background='rgba(255,255,255,0.12)'; this.style.transform='translateX(0)'">
-                                    <div style="font-weight: 700; margin-bottom: 6px; font-size: 15px;">💰 Tableau de Bord Financier</div>
+                                    <div style="font-weight: 700; margin-bottom: 6px; font-size: 15px;">Tableau de Bord Financier</div>
                                     <div style="font-size: 12px; color: rgba(255,255,255,0.85); font-weight: 400; line-height: 1.4;">KPI financiers, ratios d'analyse, graphiques dynamiques et reporting automatisé</div>
                                 </button>
                                 
                                 <button onclick="loadTemplate('hr'); toggleTemplatesSidebar();" style="width: 100%; padding: 16px; background: rgba(255,255,255,0.12); border: 1px solid rgba(255,255,255,0.2); border-radius: 12px; color: white; cursor: pointer; font-weight: 600; font-size: 14px; transition: all 0.2s; text-align: left;" onmouseover="this.style.background='rgba(255,255,255,0.22)'; this.style.transform='translateX(-4px)'" onmouseout="this.style.background='rgba(255,255,255,0.12)'; this.style.transform='translateX(0)'">
-                                    <div style="font-weight: 700; margin-bottom: 6px; font-size: 15px;">👥 Gestion RH</div>
+                                    <div style="font-weight: 700; margin-bottom: 6px; font-size: 15px;">Gestion RH</div>
                                     <div style="font-size: 12px; color: rgba(255,255,255,0.85); font-weight: 400; line-height: 1.4;">Base de données employés, gestion des congés, calcul de paie et évaluation des performances</div>
                                 </button>
                             </div>
