@@ -6090,6 +6090,12 @@
                 return;
             }
             
+            // Ajouter le message utilisateur à l'historique
+            excelChatHistory.push({
+                role: 'user',
+                content: message
+            });
+            
             showToast('🤖 AI Management en cours...', 'info');
             
             try {
@@ -6101,7 +6107,7 @@
                         message,
                         conversationId: 'ai-management',
                         chatType: 'ai-management',
-                        history: []
+                        history: excelChatHistory.slice(0, -1)  // Envoyer l'historique sans le dernier message (déjà dans 'message')
                     })
                 });
 
@@ -6117,6 +6123,12 @@
                     .replace(/\n*📚.*?Sources:.*?\n*/gi, '')  // Supprimer sources
                     .replace(/\n*💡.*?Plan.*?tokens.*?\n*/gi, '')  // Supprimer infos tokens
                     .trim();
+                
+                // Ajouter la réponse IA à l'historique
+                excelChatHistory.push({
+                    role: 'assistant',
+                    content: aiResponse
+                });
                 
                 addExcelChatMessage(aiResponse, 'bot');
                 showToast('✅ Réponse générée', 'success');
