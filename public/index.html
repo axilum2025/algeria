@@ -6640,7 +6640,7 @@
                 row.forEach((cell, colIdx) => {
                     const cellValue = cell || '';
                     const isEmpty = !cellValue || cellValue.toString().trim() === '';
-                    html += `<td contenteditable="true" class="excel-cell" data-row="${rowIdx}" data-col="${colIdx}" style="padding: 10px; border: 1px solid var(--border-color); color: ${isEmpty ? '#999' : 'var(--text-primary)'}; font-size: 13px;" onblur="updateCellValue(${rowIdx}, ${colIdx}, this.textContent)" onfocus="this.classList.add('editing')" onblur="this.classList.remove('editing')">${cellValue}</td>`;
+                    html += `<td contenteditable="true" class="excel-cell" data-row="${rowIdx}" data-col="${colIdx}" style="padding: 10px; border: 1px solid var(--border-color); color: ${isEmpty ? '#999' : 'var(--text-primary)'}; font-size: 13px;" onfocus="this.classList.add('editing')" onblur="this.classList.remove('editing'); updateCellValue(${rowIdx}, ${colIdx}, this.textContent)">${cellValue}</td>`;
                 });
                 html += '</tr>';
             });
