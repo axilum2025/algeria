@@ -6267,8 +6267,8 @@
             const msgDiv = document.createElement('div');
             msgDiv.style.cssText = `padding: 10px; background: ${bgColor}; border-radius: 8px; border-left: 3px solid ${borderColor};`;
             msgDiv.innerHTML = `
-                <div style="color: var(--text-secondary); font-size: 9px; font-weight: 600; margin-bottom: 3px;">${isBot ? 'AI Management' : 'Vous'}</div>
-                <div style="color: var(--text-primary); font-size: 10px; line-height: 1.5; white-space: pre-line;">${text}</div>
+                <div style="color: var(--text-secondary); font-size: 9px !important; font-weight: 600; margin-bottom: 3px;">${isBot ? 'AI Management' : 'Vous'}</div>
+                <div style="color: var(--text-primary); font-size: 10px !important; line-height: 1.5; white-space: pre-line;">${text}</div>
             `;
             
             container.appendChild(msgDiv);
