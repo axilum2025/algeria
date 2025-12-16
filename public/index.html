@@ -1782,6 +1782,11 @@
     <script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
 </head>
 <body data-theme="light">
+    <!-- 🚨 BOUTON DE DÉBLOCAGE D'URGENCE -->
+    <button onclick="debugAndUnblockInterface()" style="position: fixed; bottom: 20px; right: 20px; z-index: 999999; background: linear-gradient(135deg, #EF4444, #DC2626); color: white; border: none; border-radius: 50%; width: 60px; height: 60px; cursor: pointer; box-shadow: 0 8px 24px rgba(239,68,68,0.4); font-size: 24px; font-weight: bold; transition: all 0.3s; display: flex; align-items: center; justify-content: center;" onmouseover="this.style.transform='scale(1.1) rotate(90deg)'; this.style.boxShadow='0 12px 32px rgba(239,68,68,0.6)'" onmouseout="this.style.transform='scale(1) rotate(0deg)'; this.style.boxShadow='0 8px 24px rgba(239,68,68,0.4)'" title="DÉBLOQUER L'INTERFACE (Ctrl+Shift+U)">
+        🔓
+    </button>
+    
     <!-- Header -->
     <div class="header">
         <div class="header-left">
@@ -8858,77 +8863,134 @@ ${dataContext}`;
         // Fonction pour débloquer l'interface si elle est bloquée
         function debugAndUnblockInterface() {
             try {
-                console.log('🔍 Vérification de l\'interface...');
-                let issuesFound = false;
+                console.log('🔍 DIAGNOSTIC COMPLET DE L\'INTERFACE...\n');
+                const issues = [];
+                const fixes = [];
                 
-                // 1. Vérifier et fermer les overlays actifs
-                const overlays = [
-                    document.getElementById('protectionOverlay'),
-                    document.getElementById('panelOverlay'),
-                    document.getElementById('excelAiOverlay')
-                ];
-                
-                overlays.forEach(overlay => {
-                    if (overlay && (overlay.style.display === 'block' || overlay.classList.contains('show'))) {
-                        console.warn('⚠️ Overlay actif détecté:', overlay.id);
+                // 1. Vérifier TOUS les overlays (pas seulement ceux connus)
+                const allOverlays = document.querySelectorAll('[id*="overlay"], [id*="Overlay"], [class*="overlay"]');
+                allOverlays.forEach(overlay => {
+                    const style = window.getComputedStyle(overlay);
+                    const isVisible = style.display !== 'none' && style.visibility !== 'hidden' && parseFloat(style.opacity) > 0;
+                    const zIndex = parseInt(style.zIndex) || 0;
+                    
+                    if (isVisible && zIndex > 100) {
+                        issues.push(`Overlay bloquant: ${overlay.id || overlay.className}`);
                         overlay.style.display = 'none';
                         overlay.classList.remove('show');
-                        issuesFound = true;
+                        fixes.push(`Masqué overlay: ${overlay.id || overlay.className}`);
                     }
                 });
                 
-                // 2. Réactiver les inputs bloqués
+                // 2. Réactiver les inputs
                 const userInput = document.getElementById('userInput');
                 const sendBtn = document.getElementById('sendBtn');
                 
-                if (userInput && userInput.disabled) {
-                    console.warn('⚠️ Input désactivé, réactivation...');
-                    userInput.disabled = false;
-                    issuesFound = true;
+                if (userInput) {
+                    if (userInput.disabled) {
+                        issues.push('Input principal désactivé');
+                        userInput.disabled = false;
+                        fixes.push('Input réactivé');
+                    }
+                    if (userInput.style.pointerEvents === 'none') {
+                        issues.push('Input avec pointer-events: none');
+                        userInput.style.pointerEvents = 'auto';
+                        fixes.push('pointer-events restauré sur input');
+                    }
                 }
                 
-                if (sendBtn && sendBtn.disabled) {
-                    console.warn('⚠️ Bouton d\'envoi désactivé, réactivation...');
-                    sendBtn.disabled = false;
-                    issuesFound = true;
+                if (sendBtn) {
+                    if (sendBtn.disabled) {
+                        issues.push('Bouton Envoyer désactivé');
+                        sendBtn.disabled = false;
+                        fixes.push('Bouton réactivé');
+                    }
+                    if (sendBtn.style.pointerEvents === 'none') {
+                        issues.push('Bouton avec pointer-events: none');
+                        sendBtn.style.pointerEvents = 'auto';
+                        fixes.push('pointer-events restauré sur bouton');
+                    }
                 }
                 
-                // 3. Fermer les panneaux latéraux
-                const panels = [
-                    document.getElementById('functionsPanel'),
-                    document.getElementById('toolsPanel')
-                ];
+                // 3. Vérifier le body
+                const bodyStyle = window.getComputedStyle(document.body);
+                if (bodyStyle.pointerEvents === 'none') {
+                    issues.push('CRITIQUE: Body avec pointer-events: none');
+                    document.body.style.pointerEvents = 'auto';
+                    fixes.push('Body pointer-events restauré');
+                }
                 
-                panels.forEach(panel => {
-                    if (panel && panel.style.right === '0px') {
-                        console.warn('⚠️ Panneau ouvert détecté, fermeture...');
-                        panel.style.right = '-100%';
-                        issuesFound = true;
+                if (document.body.style.overflow === 'hidden') {
+                    issues.push('Body overflow: hidden');
+                    document.body.style.overflow = 'auto';
+                    fixes.push('Body overflow restauré');
+                }
+                
+                // 4. Fermer tous les panneaux
+                const panels = ['functionsPanel', 'toolsPanel', 'settingsPanel', 'excelAiOverlay'];
+                panels.forEach(panelId => {
+                    const panel = document.getElementById(panelId);
+                    if (panel) {
+                        const style = window.getComputedStyle(panel);
+                        if (style.display !== 'none') {
+                            if (panelId === 'excelAiOverlay') {
+                                panel.remove();
+                                fixes.push(`Panneau ${panelId} supprimé`);
+                            } else {
+                                panel.style.right = '-100%';
+                                panel.style.display = 'none';
+                                fixes.push(`Panneau ${panelId} fermé`);
+                            }
+                        }
                     }
                 });
                 
-                // 4. Vérifier les modals
+                // 5. Fermer alerts
                 const protectionAlert = document.getElementById('protectionAlert');
                 if (protectionAlert && protectionAlert.classList.contains('show')) {
-                    console.warn('⚠️ Alerte de protection active, fermeture...');
                     protectionAlert.classList.remove('show');
-                    issuesFound = true;
+                    fixes.push('Alerte de protection fermée');
                 }
                 
-                // 5. Vérifier body overflow
-                if (document.body.style.overflow === 'hidden') {
-                    console.warn('⚠️ Body overflow hidden, correction...');
-                    document.body.style.overflow = '';
-                    issuesFound = true;
+                // 6. Débloquer tous les éléments cliquables
+                let blockedCount = 0;
+                document.querySelectorAll('button, a, input, [onclick]').forEach(el => {
+                    const style = window.getComputedStyle(el);
+                    if (style.pointerEvents === 'none' && !el.disabled) {
+                        el.style.pointerEvents = 'auto';
+                        blockedCount++;
+                    }
+                });
+                if (blockedCount > 0) {
+                    fixes.push(`${blockedCount} éléments cliquables débloqués`);
                 }
                 
-                if (issuesFound) {
-                    console.log('✅ Problèmes détectés et corrigés!');
+                // 7. Forcer le focus
+                if (userInput) {
+                    setTimeout(() => userInput.focus(), 100);
+                }
+                
+                // RAPPORT
+                console.log('═══════════════════════════════════════');
+                if (issues.length === 0) {
+                    console.log('✅ AUCUN PROBLÈME DÉTECTÉ');
                 } else {
-                    console.log('✅ Aucun problème détecté, interface normale.');
+                    console.log('🔴 PROBLÈMES (' + issues.length + '):');
+                    issues.forEach(i => console.log('  -', i));
                 }
                 
-                return issuesFound;
+                if (fixes.length > 0) {
+                    console.log('\n🔧 CORRECTIONS (' + fixes.length + '):');
+                    fixes.forEach(f => console.log('  ✓', f));
+                }
+                console.log('═══════════════════════════════════════\n');
+                
+                // Notification visuelle si corrections appliquées
+                if (fixes.length > 0) {
+                    showToast('✅ Interface débloquée ! ' + fixes.length + ' correction(s)', 'success');
+                }
+                
+                return fixes.length > 0;
             } catch (error) {
                 console.error('Erreur dans debugAndUnblockInterface:', error);
                 return false;
