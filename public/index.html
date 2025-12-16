@@ -5998,6 +5998,17 @@
                 <style>
                     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
                     #excelAiOverlay * { font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; }
+                    
+                    @keyframes slideDown {
+                        from {
+                            opacity: 0;
+                            transform: translateY(-10px);
+                        }
+                        to {
+                            opacity: 1;
+                            transform: translateY(0);
+                        }
+                    }
                 </style>
                 <div style="min-height: 100vh; padding: 20px;">
                     <!-- Header Premium avec SVG -->
@@ -6016,9 +6027,8 @@
                                 <p style="margin: 0; color: rgba(255,255,255,0.95); font-size: 14px; font-weight: 600; letter-spacing: 0.3px;">Analyse Avancée • Formules Modernes • Audit Automatique</p>
                             </div>
                         </div>
-                        <button onclick="closeExcelAi()" style="padding: 12px 24px; background: rgba(255,255,255,0.15); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.25); border-radius: 12px; color: white; cursor: pointer; font-weight: 700; transition: all 0.2s; font-size: 14px; display: flex; align-items: center; gap: 8px;" onmouseover="this.style.background='rgba(255,255,255,0.28)'" onmouseout="this.style.background='rgba(255,255,255,0.15)'">
-                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-                            Fermer
+                        <button onclick="closeExcelAi()" style="width: 44px; height: 44px; background: rgba(255,255,255,0.15); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.25); border-radius: 12px; color: white; cursor: pointer; font-weight: 700; transition: all 0.2s; font-size: 14px; display: flex; align-items: center; justify-content: center;" onmouseover="this.style.background='rgba(255,255,255,0.28)'; this.style.transform='rotate(90deg)'" onmouseout="this.style.background='rgba(255,255,255,0.15)'; this.style.transform='rotate(0deg)'" title="Fermer">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
                         </button>
                     </div>
 
@@ -6026,8 +6036,8 @@
                         <!-- Zone principale -->
                         <div style="display: flex; flex-direction: column; gap: 20px;">
                             <!-- Upload Zone avec SVG Premium -->
-                            <div id="excelUploadZone" style="background: linear-gradient(135deg, rgba(99,102,241,0.05) 0%, rgba(139,92,246,0.05) 100%); border: 2px dashed #6366F1; border-radius: 20px; padding: 56px; text-align: center; cursor: pointer; transition: all 0.3s;" onclick="document.getElementById('excelFileInput').click()" onmouseover="this.style.borderColor='#8B5CF6'; this.style.background='linear-gradient(135deg, rgba(99,102,241,0.12) 0%, rgba(139,92,246,0.12) 100%)'" onmouseout="this.style.borderColor='#6366F1'; this.style.background='linear-gradient(135deg, rgba(99,102,241,0.05) 0%, rgba(139,92,246,0.05) 100%)'">
-                                <div style="display: inline-flex; align-items: center; justify-content: center; width: 80px; height: 80px; background: linear-gradient(135deg, #6366F1, #8B5CF6); border-radius: 20px; margin-bottom: 20px; box-shadow: 0 8px 24px rgba(99,102,241,0.3);">
+                            <div id="excelUploadZone" style="background: linear-gradient(135deg, rgba(99,102,241,0.05) 0%, rgba(139,92,246,0.05) 100%); border: 2px dashed #6366F1; border-radius: 20px; padding: 56px 56px 40px; text-align: center; transition: all 0.3s;">
+                                <div style="display: inline-flex; align-items: center; justify-content: center; width: 80px; height: 80px; background: linear-gradient(135deg, #6366F1, #8B5CF6); border-radius: 20px; margin-bottom: 20px; box-shadow: 0 8px 24px rgba(99,102,241,0.3); cursor: pointer;" onclick="document.getElementById('excelFileInput').click()">
                                     <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                         <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
                                         <polyline points="17 8 12 3 7 8"/>
@@ -6035,9 +6045,100 @@
                                     </svg>
                                 </div>
                                 <h3 style="margin: 0 0 10px; color: var(--text-primary); font-size: 22px; font-weight: 800; letter-spacing: -0.5px;">Glissez votre fichier Excel ici</h3>
-                                <p style="margin: 0 0 6px; color: var(--text-secondary); font-size: 15px; font-weight: 600;">ou cliquez pour parcourir</p>
-                                <p style="margin: 0; color: var(--text-secondary); font-size: 13px; font-weight: 500; opacity: 0.7;">Formats acceptés: .xlsx, .xls, .csv</p>
+                                <p style="margin: 0 0 6px; color: var(--text-secondary); font-size: 15px; font-weight: 600; cursor: pointer;" onclick="document.getElementById('excelFileInput').click()">ou cliquez pour parcourir</p>
+                                <p style="margin: 0 0 24px; color: var(--text-secondary); font-size: 13px; font-weight: 500; opacity: 0.7;">Formats acceptés: .xlsx, .xls, .csv</p>
                                 <input type="file" id="excelFileInput" accept=".xlsx,.xls,.csv" style="display: none;" onchange="handleExcelUpload(event)">
+                                
+                                <!-- Boutons Actions -->
+                                <div style="display: flex; gap: 12px; justify-content: center; align-items: center; margin-top: 24px; border-top: 1px solid var(--border-color); padding-top: 24px;">
+                                    <button onclick="createEmptyWorkbook()" style="padding: 14px 24px; background: linear-gradient(135deg, #10B981, #14B8A6); border: none; border-radius: 12px; color: white; cursor: pointer; font-weight: 700; font-size: 14px; display: flex; align-items: center; gap: 10px; transition: all 0.2s; box-shadow: 0 4px 12px rgba(16,185,129,0.25);" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 16px rgba(16,185,129,0.35)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 12px rgba(16,185,129,0.25)'">
+                                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                                            <polyline points="14 2 14 8 20 8"/>
+                                            <line x1="12" y1="18" x2="12" y2="12"/>
+                                            <line x1="9" y1="15" x2="15" y2="15"/>
+                                        </svg>
+                                        Créer classeur vide
+                                    </button>
+                                    
+                                    <div style="position: relative;">
+                                        <button onclick="toggleTemplatesMenu()" style="padding: 14px 24px; background: linear-gradient(135deg, #8B5CF6, #A855F7); border: none; border-radius: 12px; color: white; cursor: pointer; font-weight: 700; font-size: 14px; display: flex; align-items: center; gap: 10px; transition: all 0.2s; box-shadow: 0 4px 12px rgba(139,92,246,0.25);" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 16px rgba(139,92,246,0.35)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 12px rgba(139,92,246,0.25)'">
+                                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                                <path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/>
+                                                <polyline points="13 2 13 9 20 9"/>
+                                            </svg>
+                                            Choisir modèles
+                                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                                <polyline points="6 9 12 15 18 9"/>
+                                            </svg>
+                                        </button>
+                                        
+                                        <!-- Menu Modèles -->
+                                        <div id="templatesMenu" style="display: none; position: absolute; top: calc(100% + 8px); right: 0; background: var(--bg-primary); border: 1px solid var(--border-color); border-radius: 14px; padding: 8px; min-width: 280px; box-shadow: 0 8px 32px rgba(0,0,0,0.15); z-index: 1000; animation: slideDown 0.2s ease;">
+                                            <div style="padding: 8px 12px; color: var(--text-secondary); font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">Modèles disponibles</div>
+                                            
+                                            <button onclick="loadTemplate('budget')" style="width: 100%; padding: 12px 14px; background: transparent; border: none; border-radius: 10px; color: var(--text-primary); cursor: pointer; font-weight: 600; font-size: 14px; display: flex; align-items: center; gap: 12px; transition: all 0.2s; text-align: left;" onmouseover="this.style.background='rgba(99,102,241,0.1)'" onmouseout="this.style.background='transparent'">
+                                                <div style="width: 36px; height: 36px; background: linear-gradient(135deg, #10B981, #14B8A6); border-radius: 8px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+                                                </div>
+                                                <div style="flex: 1;">
+                                                    <div style="font-weight: 700; margin-bottom: 2px;">Budget Personnel</div>
+                                                    <div style="font-size: 12px; color: var(--text-secondary); font-weight: 500;">Revenus, dépenses, épargne</div>
+                                                </div>
+                                            </button>
+                                            
+                                            <button onclick="loadTemplate('sales')" style="width: 100%; padding: 12px 14px; background: transparent; border: none; border-radius: 10px; color: var(--text-primary); cursor: pointer; font-weight: 600; font-size: 14px; display: flex; align-items: center; gap: 12px; transition: all 0.2s; text-align: left;" onmouseover="this.style.background='rgba(99,102,241,0.1)'" onmouseout="this.style.background='transparent'">
+                                                <div style="width: 36px; height: 36px; background: linear-gradient(135deg, #F59E0B, #F97316); border-radius: 8px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+                                                </div>
+                                                <div style="flex: 1;">
+                                                    <div style="font-weight: 700; margin-bottom: 2px;">Suivi des Ventes</div>
+                                                    <div style="font-size: 12px; color: var(--text-secondary); font-weight: 500;">Pipeline, KPI, objectifs</div>
+                                                </div>
+                                            </button>
+                                            
+                                            <button onclick="loadTemplate('inventory')" style="width: 100%; padding: 12px 14px; background: transparent; border: none; border-radius: 10px; color: var(--text-primary); cursor: pointer; font-weight: 600; font-size: 14px; display: flex; align-items: center; gap: 12px; transition: all 0.2s; text-align: left;" onmouseover="this.style.background='rgba(99,102,241,0.1)'" onmouseout="this.style.background='transparent'">
+                                                <div style="width: 36px; height: 36px; background: linear-gradient(135deg, #6366F1, #8B5CF6); border-radius: 8px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
+                                                </div>
+                                                <div style="flex: 1;">
+                                                    <div style="font-weight: 700; margin-bottom: 2px;">Gestion Stock</div>
+                                                    <div style="font-size: 12px; color: var(--text-secondary); font-weight: 500;">Inventaire, réapprovisionnement</div>
+                                                </div>
+                                            </button>
+                                            
+                                            <button onclick="loadTemplate('schedule')" style="width: 100%; padding: 12px 14px; background: transparent; border: none; border-radius: 10px; color: var(--text-primary); cursor: pointer; font-weight: 600; font-size: 14px; display: flex; align-items: center; gap: 12px; transition: all 0.2s; text-align: left;" onmouseover="this.style.background='rgba(99,102,241,0.1)'" onmouseout="this.style.background='transparent'">
+                                                <div style="width: 36px; height: 36px; background: linear-gradient(135deg, #EC4899, #F43F5E); border-radius: 8px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                                                </div>
+                                                <div style="flex: 1;">
+                                                    <div style="font-weight: 700; margin-bottom: 2px;">Planning Projet</div>
+                                                    <div style="font-size: 12px; color: var(--text-secondary); font-weight: 500;">Gantt, tâches, ressources</div>
+                                                </div>
+                                            </button>
+                                            
+                                            <button onclick="loadTemplate('finance')" style="width: 100%; padding: 12px 14px; background: transparent; border: none; border-radius: 10px; color: var(--text-primary); cursor: pointer; font-weight: 600; font-size: 14px; display: flex; align-items: center; gap: 12px; transition: all 0.2s; text-align: left;" onmouseover="this.style.background='rgba(99,102,241,0.1)'" onmouseout="this.style.background='transparent'">
+                                                <div style="width: 36px; height: 36px; background: linear-gradient(135deg, #8B5CF6, #A855F7); border-radius: 8px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="20" x2="12" y2="10"/><line x1="18" y1="20" x2="18" y2="4"/><line x1="6" y1="20" x2="6" y2="16"/></svg>
+                                                </div>
+                                                <div style="flex: 1;">
+                                                    <div style="font-weight: 700; margin-bottom: 2px;">Tableau de Bord Financier</div>
+                                                    <div style="font-size: 12px; color: var(--text-secondary); font-weight: 500;">KPI, ratios, graphiques</div>
+                                                </div>
+                                            </button>
+                                            
+                                            <button onclick="loadTemplate('hr')" style="width: 100%; padding: 12px 14px; background: transparent; border: none; border-radius: 10px; color: var(--text-primary); cursor: pointer; font-weight: 600; font-size: 14px; display: flex; align-items: center; gap: 12px; transition: all 0.2s; text-align: left;" onmouseover="this.style.background='rgba(99,102,241,0.1)'" onmouseout="this.style.background='transparent'">
+                                                <div style="width: 36px; height: 36px; background: linear-gradient(135deg, #14B8A6, #06B6D4); border-radius: 8px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                                                </div>
+                                                <div style="flex: 1;">
+                                                    <div style="font-weight: 700; margin-bottom: 2px;">Gestion RH</div>
+                                                    <div style="font-size: 12px; color: var(--text-secondary); font-weight: 500;">Employés, congés, paie</div>
+                                                </div>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
 
                             <!-- Preview Table Modern -->
@@ -6167,6 +6268,15 @@
             `;
             
             document.body.appendChild(overlay);
+            
+            // Fermer le menu des modèles si on clique en dehors
+            document.addEventListener('click', function closeTemplatesOnClickOutside(e) {
+                const menu = document.getElementById('templatesMenu');
+                const button = e.target.closest('button[onclick="toggleTemplatesMenu()"]');
+                if (menu && !menu.contains(e.target) && !button) {
+                    menu.style.display = 'none';
+                }
+            });
         }
 
         function closeExcelAi() {
@@ -6175,6 +6285,147 @@
                 overlay.style.animation = 'fadeOut 0.3s ease';
                 setTimeout(() => overlay.remove(), 300);
             }
+        }
+        
+        // Toggle menu modèles
+        function toggleTemplatesMenu() {
+            const menu = document.getElementById('templatesMenu');
+            if (menu.style.display === 'none' || !menu.style.display) {
+                menu.style.display = 'block';
+            } else {
+                menu.style.display = 'none';
+            }
+        }
+        
+        // Créer classeur vide
+        function createEmptyWorkbook() {
+            excelCurrentFile = { name: 'Nouveau_Classeur.xlsx' };
+            excelColumns = ['Colonne A', 'Colonne B', 'Colonne C', 'Colonne D', 'Colonne E'];
+            excelSheetData = [
+                ['', '', '', '', ''],
+                ['', '', '', '', ''],
+                ['', '', '', '', ''],
+                ['', '', '', '', ''],
+                ['', '', '', '', '']
+            ];
+            
+            renderExcelPreview();
+            document.getElementById('excelUploadZone').style.display = 'none';
+            document.getElementById('excelPreviewContainer').style.display = 'block';
+            document.getElementById('excelQuickActions').style.display = 'block';
+            document.getElementById('excelActionsContainer').style.display = 'block';
+            document.getElementById('excelExportBtn').style.display = 'flex';
+            document.getElementById('excelFileName').textContent = 'Nouveau_Classeur.xlsx';
+            
+            showToast('✅ Classeur vide créé avec succès !', 'success');
+            
+            // Ajouter message d'aide dans le chat
+            addExcelChatMessage('🎉 **Classeur vide créé!**\n\nVous pouvez maintenant:\n• Ajouter vos données\n• Utiliser les actions IA\n• Créer des formules avancées\n• Me poser des questions', 'bot');
+        }
+        
+        // Charger un modèle
+        function loadTemplate(templateType) {
+            const templates = {
+                'budget': {
+                    name: 'Budget_Personnel.xlsx',
+                    columns: ['Catégorie', 'Janvier', 'Février', 'Mars', 'Total', 'Moyenne'],
+                    data: [
+                        ['Revenus', '3500', '3500', '3500', '=SOMME(B2:D2)', '=MOYENNE(B2:D2)'],
+                        ['Loyer', '-900', '-900', '-900', '=SOMME(B3:D3)', '=MOYENNE(B3:D3)'],
+                        ['Alimentation', '-350', '-420', '-380', '=SOMME(B4:D4)', '=MOYENNE(B4:D4)'],
+                        ['Transport', '-120', '-135', '-110', '=SOMME(B5:D5)', '=MOYENNE(B5:D5)'],
+                        ['Loisirs', '-200', '-180', '-220', '=SOMME(B6:D6)', '=MOYENNE(B6:D6)'],
+                        ['Épargne', '=B2+B3+B4+B5+B6', '=C2+C3+C4+C5+C6', '=D2+D3+D4+D5+D6', '=SOMME(B7:D7)', '=MOYENNE(B7:D7)']
+                    ]
+                },
+                'sales': {
+                    name: 'Suivi_Ventes.xlsx',
+                    columns: ['Date', 'Client', 'Produit', 'Quantité', 'Prix Unit.', 'Total'],
+                    data: [
+                        ['2025-01-15', 'ACME Corp', 'Produit A', '10', '250', '=D2*E2'],
+                        ['2025-01-16', 'Tech Inc', 'Produit B', '5', '480', '=D3*E3'],
+                        ['2025-01-17', 'Solutions Ltd', 'Produit A', '15', '250', '=D4*E4'],
+                        ['2025-01-18', 'Global SA', 'Produit C', '8', '320', '=D5*E5'],
+                        ['2025-01-19', 'Innovation Co', 'Produit B', '12', '480', '=D6*E6'],
+                        ['TOTAL', '', '', '=SOMME(D2:D6)', '', '=SOMME(F2:F6)']
+                    ]
+                },
+                'inventory': {
+                    name: 'Gestion_Stock.xlsx',
+                    columns: ['Référence', 'Produit', 'Stock Initial', 'Entrées', 'Sorties', 'Stock Final'],
+                    data: [
+                        ['REF001', 'Widget A', '100', '50', '30', '=C2+D2-E2'],
+                        ['REF002', 'Widget B', '75', '25', '40', '=C3+D3-E3'],
+                        ['REF003', 'Widget C', '150', '0', '20', '=C4+D4-E4'],
+                        ['REF004', 'Widget D', '50', '100', '60', '=C5+D5-E5'],
+                        ['REF005', 'Widget E', '200', '50', '80', '=C6+D6-E6']
+                    ]
+                },
+                'schedule': {
+                    name: 'Planning_Projet.xlsx',
+                    columns: ['Tâche', 'Responsable', 'Début', 'Fin', 'Durée (j)', 'Statut'],
+                    data: [
+                        ['Analyse besoins', 'Alice', '2025-01-15', '2025-01-20', '=JOURS(D2,C2)', 'Terminé'],
+                        ['Conception', 'Bob', '2025-01-21', '2025-02-05', '=JOURS(D3,C3)', 'En cours'],
+                        ['Développement', 'Claire', '2025-02-06', '2025-03-15', '=JOURS(D4,C4)', 'Planifié'],
+                        ['Tests', 'David', '2025-03-16', '2025-03-30', '=JOURS(D5,C5)', 'Planifié'],
+                        ['Déploiement', 'Emma', '2025-04-01', '2025-04-10', '=JOURS(D6,C6)', 'Planifié']
+                    ]
+                },
+                'finance': {
+                    name: 'Dashboard_Financier.xlsx',
+                    columns: ['KPI', 'T1 2025', 'T2 2025', 'T3 2025', 'T4 2025', 'Année'],
+                    data: [
+                        ['CA (k€)', '250', '280', '310', '340', '=SOMME(B2:E2)'],
+                        ['Charges (k€)', '180', '190', '200', '210', '=SOMME(B3:E3)'],
+                        ['Résultat (k€)', '=B2-B3', '=C2-C3', '=D2-D3', '=E2-E3', '=SOMME(B4:E4)'],
+                        ['Marge %', '=B4/B2*100', '=C4/C2*100', '=D4/D2*100', '=E4/E2*100', '=F4/F2*100'],
+                        ['Objectif CA', '260', '290', '320', '350', '=SOMME(B6:E6)'],
+                        ['Atteinte %', '=B2/B6*100', '=C2/C6*100', '=D2/D6*100', '=E2/E6*100', '=F2/F6*100']
+                    ]
+                },
+                'hr': {
+                    name: 'Gestion_RH.xlsx',
+                    columns: ['Matricule', 'Nom', 'Poste', 'Salaire', 'Date embauche', 'Ancienneté'],
+                    data: [
+                        ['EMP001', 'Alice Martin', 'Manager', '4500', '2020-03-15', '=JOURS(AUJOURDHUI(),E2)/365'],
+                        ['EMP002', 'Bob Durant', 'Développeur', '3800', '2021-06-01', '=JOURS(AUJOURDHUI(),E3)/365'],
+                        ['EMP003', 'Claire Dubois', 'Designer', '3500', '2022-01-10', '=JOURS(AUJOURDHUI(),E4)/365'],
+                        ['EMP004', 'David Bernard', 'Commercial', '3200', '2023-04-20', '=JOURS(AUJOURDHUI(),E5)/365'],
+                        ['EMP005', 'Emma Lambert', 'RH', '3600', '2023-09-01', '=JOURS(AUJOURDHUI(),E6)/365']
+                    ]
+                }
+            };
+            
+            const template = templates[templateType];
+            if (!template) return;
+            
+            excelCurrentFile = { name: template.name };
+            excelColumns = template.columns;
+            excelSheetData = template.data;
+            
+            renderExcelPreview();
+            document.getElementById('excelUploadZone').style.display = 'none';
+            document.getElementById('excelPreviewContainer').style.display = 'block';
+            document.getElementById('excelQuickActions').style.display = 'block';
+            document.getElementById('excelActionsContainer').style.display = 'block';
+            document.getElementById('excelExportBtn').style.display = 'flex';
+            document.getElementById('excelFileName').textContent = template.name;
+            document.getElementById('templatesMenu').style.display = 'none';
+            
+            showToast(`✅ Modèle "${template.name}" chargé !`, 'success');
+            
+            // Message dans le chat
+            const descriptions = {
+                'budget': 'Modèle de budget personnel avec calculs automatiques de totaux et moyennes.',
+                'sales': 'Suivi des ventes avec calcul automatique du total par ligne et global.',
+                'inventory': 'Gestion de stock avec calcul automatique du stock final (Initial + Entrées - Sorties).',
+                'schedule': 'Planning de projet avec calcul automatique de la durée en jours.',
+                'finance': 'Tableau de bord financier avec KPI, marges et taux d\'atteinte des objectifs.',
+                'hr': 'Gestion RH avec calcul automatique de l\'ancienneté des employés.'
+            };
+            
+            addExcelChatMessage(`📊 **Modèle chargé: ${template.name}**\n\n${descriptions[templateType]}\n\n💡 **Formules incluses** - Prêt à l'emploi!\n\nVous pouvez maintenant modifier, analyser ou me poser des questions.`, 'bot');
         }
 
         function handleExcelUpload(event) {
