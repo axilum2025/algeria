@@ -6096,6 +6096,27 @@
                 content: message
             });
             
+            // Préparer le contexte Excel si des données sont disponibles
+            let excelContext = '';
+            if (excelSheetData.length > 0 && excelColumns.length > 0) {
+                excelContext = `\n\n[CONTEXTE FICHIER EXCEL]\nNom du fichier: ${excelCurrentFile?.name || 'Document Excel'}\nNombre de lignes: ${excelSheetData.length}\nNombre de colonnes: ${excelColumns.length}\nColonnes: ${excelColumns.join(', ')}\n\nAperçu des données (premières lignes):\n`;
+                
+                // Ajouter les en-têtes
+                excelContext += excelColumns.join(' | ') + '\n';
+                excelContext += '-'.repeat(excelColumns.join(' | ').length) + '\n';
+                
+                // Ajouter les 10 premières lignes de données
+                const previewRows = excelSheetData.slice(0, 10);
+                previewRows.forEach(row => {
+                    excelContext += row.join(' | ') + '\n';
+                });
+                
+                if (excelSheetData.length > 10) {
+                    excelContext += `\n... et ${excelSheetData.length - 10} autres lignes\n`;
+                }
+                excelContext += '[FIN CONTEXTE EXCEL]\n';
+            }
+            
             showToast('🤖 AI Management en cours...', 'info');
             
             try {
@@ -6104,7 +6125,7 @@
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ 
-                        message,
+                        message: message + excelContext,  // Ajouter le contexte Excel au message
                         conversationId: 'ai-management',
                         chatType: 'ai-management',
                         history: excelChatHistory.slice(0, -1)  // Envoyer l'historique sans le dernier message (déjà dans 'message')
