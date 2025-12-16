@@ -6,7 +6,7 @@
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
-    <title>AI Management v2.0-MINT-BUILD-202512162045</title>
+    <title>AI Management v2.0-MINT-BUILD-202512162050</title>
     <style>
         :root {
             --bg-primary: #FAFBFC;
@@ -1786,7 +1786,7 @@
     <div class="header">
         <div class="header-left">
             <button class="menu-btn" onclick="toggleSidebar()">☰</button>
-            <div class="logo" id="logo">Axilum AI</div>
+            <div class="logo" id="logo">AI Management</div>
         </div>
         <div class="header-right">
             <!-- Plan Selector -->
@@ -2199,15 +2199,15 @@
     <div class="modal" id="aboutModal">
         <div class="modal-content" style="max-width: 700px;">
             <div class="modal-header">
-                <div class="modal-title">À propos d'Axilum AI</div>
+                <div class="modal-title">À propos d'AI Management</div>
                 <button class="close-modal" onclick="closeAboutModal()">×</button>
             </div>
             <div style="padding: 20px;">
                 <!-- Introduction -->
                 <div class="about-intro">
                     <p>
-                        <strong>Axilum AI</strong> est la <strong>première et seule IA</strong> qui détecte et vous protège activement contre les hallucinations. 
-                        Notre système breveté analyse en temps réel la fiabilité de chaque réponse grâce à des métriques révolutionnaires.
+                        <strong>AI Management</strong> est votre <strong>assistant professionnel intelligent</strong> spécialisé dans 4 domaines d'expertise : Excel AI Expert, Planning Projet, Tableau de Bord Financier et Gestion RH. 
+                        Notre système avancé analyse en temps réel la fiabilité de chaque réponse grâce à des métriques révolutionnaires.
                     </p>
                 </div>
 
@@ -2533,7 +2533,7 @@
             
             // Animation du logo
             const logoEl = document.getElementById('logo');
-            const logoText = 'Axilum AI';
+            const logoText = 'AI Management';
             
             // Créer les spans pour chaque lettre
             logoEl.innerHTML = '';
@@ -2969,7 +2969,7 @@
             const time = now.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
 
             let avatarEmoji = type === 'user' ? '👤' : '🤖';
-            let senderName = type === 'user' ? 'Vous' : 'Axilum AI';
+            let senderName = type === 'user' ? 'Vous' : 'AI Management';
             let avatarClass = type === 'user' ? 'user-avatar' : 'bot-avatar';
 
             // 🎨 Vérifier si c'est une image générée
@@ -6049,7 +6049,7 @@
             showToast('✅ Colonne ajoutée', 'success');
         }
         
-        function sendExcelChatMessage() {
+        async function sendExcelChatMessage() {
             const input = document.getElementById('excelChatInput');
             const message = input.value.trim();
             if (!message || excelAiProcessing) return;
@@ -6064,9 +6064,34 @@
                 return;
             }
             
-            showToast('🤖 Traitement en cours...', 'info');
-            excelAiProcessing = false;
-            addExcelChatMessage('Fonction en cours de développement. Utilisez les commandes directes.', 'bot');
+            showToast('🤖 AI Management en cours...', 'info');
+            
+            try {
+                const endpoint = getEndpoint();
+                const response = await fetch(endpoint, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        message,
+                        conversationId: 'excel-ai-expert',
+                        history: []
+                    })
+                });
+
+                if (!response.ok) throw new Error('Erreur API');
+                
+                const data = await response.json();
+                const aiResponse = data.response || data.message || 'Désolé, je n\'ai pas pu traiter votre demande.';
+                
+                addExcelChatMessage(aiResponse, 'bot');
+                showToast('✅ Réponse générée', 'success');
+            } catch (error) {
+                console.error('Erreur AI:', error);
+                addExcelChatMessage('Désolé, une erreur s\'est produite. Veuillez réessayer.', 'bot');
+                showToast('❌ Erreur de connexion', 'error');
+            } finally {
+                excelAiProcessing = false;
+            }
         }
         
         function exportExcel() {
