@@ -6071,7 +6071,7 @@
             if (text.match(/nettoyer|nettoyage|supprimer.*vide|trim|espaces/i)) {
                 intentions.push({
                     action: 'clean',
-                    label: '🧹 Nettoyer les données',
+                    label: 'Nettoyer les données',
                     type: 'pro'
                 });
             }
@@ -6079,7 +6079,7 @@
             if (text.match(/doublon|duplicate|répét|identique/i)) {
                 intentions.push({
                     action: 'duplicates',
-                    label: '🔍 Détecter les doublons',
+                    label: 'Détecter les doublons',
                     type: 'pro'
                 });
             }
@@ -6087,7 +6087,7 @@
             if (text.match(/kpi|indicateur|métrique|performance/i)) {
                 intentions.push({
                     action: 'kpi',
-                    label: '📊 Générer des KPI',
+                    label: 'Générer des KPI',
                     type: 'pro'
                 });
             }
@@ -6095,7 +6095,7 @@
             if (text.match(/formule|somme|moyenne|calcul|total/i)) {
                 intentions.push({
                     action: 'formulas',
-                    label: '📐 Formules avancées',
+                    label: 'Formules avancées',
                     type: 'pro'
                 });
             }
@@ -6103,7 +6103,7 @@
             if (text.match(/graphique|chart|visualis|diagramme/i)) {
                 intentions.push({
                     action: 'charts',
-                    label: '📈 Créer des graphiques',
+                    label: 'Créer des graphiques',
                     type: 'pro'
                 });
             }
@@ -6112,7 +6112,7 @@
             if (text.match(/ajoute.*ligne|nouvelle ligne|insérer.*ligne/i)) {
                 intentions.push({
                     action: 'addRow',
-                    label: '➕ Ajouter une ligne',
+                    label: 'Ajouter une ligne',
                     type: 'free'
                 });
             }
@@ -6120,7 +6120,7 @@
             if (text.match(/ajoute.*colonne|nouvelle colonne|insérer.*colonne/i)) {
                 intentions.push({
                     action: 'addColumn',
-                    label: '➕ Ajouter une colonne',
+                    label: 'Ajouter une colonne',
                     type: 'free'
                 });
             }
@@ -6128,7 +6128,7 @@
             if (text.match(/tri|trier|classer|ordonner/i)) {
                 intentions.push({
                     action: 'sort',
-                    label: '🔢 Trier les données',
+                    label: 'Trier les données',
                     type: 'free'
                 });
             }
@@ -6136,7 +6136,7 @@
             if (text.match(/filtre|filtrer|recherche|chercher/i)) {
                 intentions.push({
                     action: 'filter',
-                    label: '🔎 Filtrer les données',
+                    label: 'Filtrer les données',
                     type: 'free'
                 });
             }
