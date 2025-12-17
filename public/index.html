@@ -7143,12 +7143,21 @@ Réponds UNIQUEMENT dans ce format JSON:
             showToast('🤖 Analyse des données pour générer des formules Excel...', 'info');
             
             try {
-                // Analyser les colonnes numériques pour les formules
+                // Analyser les colonnes numériques pour les formules (détection améliorée)
                 const numericColumns = [];
                 excelColumns.forEach((colName, colIdx) => {
                     const values = excelSheetData.map(row => row[colIdx]);
-                    const numericValues = values.filter(v => !isNaN(parseFloat(v)) && isFinite(v));
-                    if (numericValues.length > values.length * 0.5) {
+                    
+                    // Compter les valeurs numériques (en nettoyant les données)
+                    const numericValues = values.filter(v => {
+                        if (v === null || v === undefined || v === '') return false;
+                        const cleaned = String(v).trim().replace(/,/g, '.').replace(/\s/g, '');
+                        const num = parseFloat(cleaned);
+                        return !isNaN(num) && isFinite(num);
+                    });
+                    
+                    // Au moins 30% de valeurs numériques
+                    if (numericValues.length > values.length * 0.3 && numericValues.length > 0) {
                         numericColumns.push({ 
                             name: colName, 
                             index: colIdx,
@@ -7158,7 +7167,7 @@ Réponds UNIQUEMENT dans ce format JSON:
                 });
                 
                 if (numericColumns.length === 0) {
-                    showToast('⚠️ Aucune colonne numérique pour les formules', 'warning');
+                    showToast('⚠️ Aucune colonne numérique détectée. Vérifiez que votre fichier contient des chiffres.', 'warning');
                     return;
                 }
                 
@@ -7442,16 +7451,24 @@ Réponds UNIQUEMENT dans ce format JSON:
             showToast('🤖 Analyse des données pour générer des graphiques...', 'info');
             
             try {
-                // Analyser les colonnes
+                // Analyser les colonnes (détection améliorée)
                 const columnAnalysis = excelColumns.map((colName, colIdx) => {
                     const values = excelSheetData.map(row => row[colIdx]);
-                    const numericValues = values.filter(v => !isNaN(parseFloat(v)) && isFinite(v));
+                    
+                    // Compter les valeurs numériques (en nettoyant les données)
+                    const numericValues = values.filter(v => {
+                        if (v === null || v === undefined || v === '') return false;
+                        const cleaned = String(v).trim().replace(/,/g, '.').replace(/\s/g, '');
+                        const num = parseFloat(cleaned);
+                        return !isNaN(num) && isFinite(num);
+                    });
+                    
                     const uniqueValues = [...new Set(values)].length;
                     
                     return {
                         name: colName,
                         index: colIdx,
-                        isNumeric: numericValues.length > values.length * 0.5,
+                        isNumeric: numericValues.length > values.length * 0.3 && numericValues.length > 0,
                         uniqueCount: uniqueValues,
                         sampleValues: values.slice(0, 5)
                     };
@@ -7461,7 +7478,7 @@ Réponds UNIQUEMENT dans ce format JSON:
                 const categoricalCols = columnAnalysis.filter(c => !c.isNumeric && c.uniqueCount < 20);
                 
                 if (numericCols.length === 0) {
-                    showToast('⚠️ Aucune donnée numérique pour les graphiques', 'warning');
+                    showToast('⚠️ Aucune donnée numérique détectée. Vérifiez que votre fichier contient des chiffres.', 'warning');
                     return;
                 }
                 
