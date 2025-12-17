@@ -6286,7 +6286,9 @@
             excelCurrentFile = { name: workbook.name };
             
             // Vérifier si le message système Excel existe, sinon le créer
-            const hasSystemMessage = excelChatHistory.length > 0 && excelChatHistory[0].role === 'system';
+            const hasSystemMessage = excelChatHistory.length >= 2 && 
+                                     excelChatHistory[0].role === 'user' && 
+                                     excelChatHistory[0].content.startsWith('[SYSTÈME]');
             if (!hasSystemMessage && excelSheetData.length > 0 && excelColumns.length > 0) {
                 const excelContextMessage = `[CONTEXTE FICHIER EXCEL - RÉFÉRENCE PERMANENTE]\nNom du fichier: ${workbook.name}\nNombre de lignes: ${excelSheetData.length}\nNombre de colonnes: ${excelColumns.length}\nColonnes: ${excelColumns.join(', ')}\n\nAperçu des données (premières lignes):\n` + 
                     excelColumns.join(' | ') + '\n' +
@@ -6296,8 +6298,11 @@
                     '[FIN CONTEXTE EXCEL - Ce fichier reste disponible pour référence tout au long de la conversation]\n';
                 
                 excelChatHistory.unshift({
-                    role: 'system',
-                    content: excelContextMessage
+                    role: 'assistant',
+                    content: 'J\'ai bien reçu le contexte de votre fichier Excel. Je suis prêt à vous aider avec ce document.'
+                }, {
+                    role: 'user',
+                    content: '[SYSTÈME] ' + excelContextMessage
                 });
             }
             
@@ -6410,10 +6415,13 @@
                         (excelSheetData.length > 10 ? `\n... et ${excelSheetData.length - 10} autres lignes\n` : '') +
                         '[FIN CONTEXTE EXCEL - Ce fichier reste disponible pour référence tout au long de la conversation]\n';
                     
-                    // Réinitialiser l'historique et ajouter le contexte comme premier message
+                    // Réinitialiser l'historique et ajouter le contexte comme message utilisateur initial
                     excelChatHistory = [{
-                        role: 'system',
-                        content: excelContextMessage
+                        role: 'user',
+                        content: '[SYSTÈME] ' + excelContextMessage
+                    }, {
+                        role: 'assistant',
+                        content: 'J\'ai bien reçu le contexte de votre fichier Excel. Je suis prêt à vous aider avec ce document.'
                     }];
                     excelContextSent = true;  // Marquer comme envoyé
                     
