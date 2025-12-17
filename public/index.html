@@ -6039,7 +6039,22 @@
         function closeWelcomePanel() {
             document.getElementById('welcomePanel').style.display = 'none';
             document.getElementById('welcomeOverlay').style.display = 'none';
+            // Sauvegarder que l'utilisateur a vu la popup
+            localStorage.setItem('hasSeenWelcome', 'true');
         }
+        
+        // Vérifier au chargement si l'utilisateur a déjà vu la popup
+        function checkWelcomePanel() {
+            const hasSeenWelcome = localStorage.getItem('hasSeenWelcome');
+            if (hasSeenWelcome === 'true') {
+                // Masquer la popup si déjà vue
+                document.getElementById('welcomePanel').style.display = 'none';
+                document.getElementById('welcomeOverlay').style.display = 'none';
+            }
+        }
+        
+        // Appeler au chargement de la page
+        window.addEventListener('DOMContentLoaded', checkWelcomePanel);
         
         function toggleExcelAIExpert() {
             const uploadZone = document.getElementById('excelUploadZone');
