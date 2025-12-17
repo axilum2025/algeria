@@ -6533,17 +6533,37 @@
         function renderExcelPreview() {
             const container = document.getElementById('excelTablePreview');
             
+            // Fonction pour convertir index en lettre de colonne (A, B, C, ... Z, AA, AB, etc.)
+            const getColumnLetter = (index) => {
+                let letter = '';
+                let num = index;
+                while (num >= 0) {
+                    letter = String.fromCharCode(65 + (num % 26)) + letter;
+                    num = Math.floor(num / 26) - 1;
+                }
+                return letter;
+            };
+            
             let html = '<table style="width: 100%; border-collapse: collapse; background: var(--bg-primary);">';
             
+            // En-tête avec numérotation des colonnes
             html += '<thead><tr>';
+            // Cellule vide pour l'intersection ligne/colonne
+            html += `<th style="padding: 8px; background: #E5E7EB; color: #6B7280; font-weight: 700; text-align: center; border: 1px solid var(--border-color); font-size: 11px; min-width: 50px;"></th>`;
             excelColumns.forEach((col, colIdx) => {
-                html += `<th contenteditable="true" class="excel-cell" data-row="-1" data-col="${colIdx}" style="padding: 12px; background: linear-gradient(135deg, #6366F1, #8B5CF6); color: white; font-weight: 600; text-align: left; border: 1px solid rgba(255,255,255,0.1);" onblur="updateCellValue(-1, ${colIdx}, this.textContent)">${col}</th>`;
+                const colLetter = getColumnLetter(colIdx);
+                html += `<th contenteditable="true" class="excel-cell" data-row="-1" data-col="${colIdx}" style="padding: 12px; background: linear-gradient(135deg, #6366F1, #8B5CF6); color: white; font-weight: 600; text-align: left; border: 1px solid rgba(255,255,255,0.1); position: relative;" onblur="updateCellValue(-1, ${colIdx}, this.textContent)">
+                    <div style="font-size: 10px; opacity: 0.7; font-weight: 500; margin-bottom: 2px;">${colLetter}</div>
+                    <div>${col}</div>
+                </th>`;
             });
             html += '</tr></thead>';
             
             html += '<tbody>';
             excelSheetData.forEach((row, rowIdx) => {
                 html += `<tr style="background: ${rowIdx % 2 === 0 ? 'var(--bg-primary)' : 'var(--bg-secondary)'};">`;
+                // Numéro de ligne
+                html += `<td style="padding: 8px; background: #E5E7EB; color: #6B7280; font-weight: 700; text-align: center; border: 1px solid var(--border-color); font-size: 12px; min-width: 50px;">${rowIdx + 1}</td>`;
                 row.forEach((cell, colIdx) => {
                     const cellValue = cell || '';
                     const isEmpty = !cellValue || cellValue.toString().trim() === '';
