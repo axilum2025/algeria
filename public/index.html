@@ -6454,6 +6454,8 @@
                 await generateKPI();
             } else if (actionType === 'formulas') {
                 await generateFormulas();
+            } else if (actionType === 'charts') {
+                await generateCharts();
             } else {
                 showToast('🤖 Action IA: ' + actionType + ' (en développement)', 'info');
             }
@@ -7372,6 +7374,329 @@ Réponds UNIQUEMENT dans ce format JSON:
             
             // Notification
             showToast(`✅ Ligne TOTAUX ajoutée avec ${formulas.length} formule${formulas.length > 1 ? 's' : ''}`, 'success');
+        }
+        
+        // Action PRO : Générer graphiques automatiquement
+        async function generateCharts() {
+            if (excelSheetData.length === 0) {
+                showToast('⚠️ Aucune donnée à analyser', 'warning');
+                return;
+            }
+            
+            showToast('🤖 Analyse des données pour générer des graphiques...', 'info');
+            
+            try {
+                // Analyser les colonnes
+                const columnAnalysis = excelColumns.map((colName, colIdx) => {
+                    const values = excelSheetData.map(row => row[colIdx]);
+                    const numericValues = values.filter(v => !isNaN(parseFloat(v)) && isFinite(v));
+                    const uniqueValues = [...new Set(values)].length;
+                    
+                    return {
+                        name: colName,
+                        index: colIdx,
+                        isNumeric: numericValues.length > values.length * 0.5,
+                        uniqueCount: uniqueValues,
+                        sampleValues: values.slice(0, 5)
+                    };
+                });
+                
+                const numericCols = columnAnalysis.filter(c => c.isNumeric);
+                const categoricalCols = columnAnalysis.filter(c => !c.isNumeric && c.uniqueCount < 20);
+                
+                if (numericCols.length === 0) {
+                    showToast('⚠️ Aucune donnée numérique pour les graphiques', 'warning');
+                    return;
+                }
+                
+                // Préparer les données pour l'AI
+                const dataPreview = excelSheetData.slice(0, 10).map(row => row.join(' | ')).join('\n');
+                
+                const prompt = `Analyse ce fichier Excel et suggère les meilleurs graphiques à créer :
+
+Colonnes: ${excelColumns.join(', ')}
+Colonnes numériques: ${numericCols.map(c => c.name).join(', ')}
+Colonnes catégorielles: ${categoricalCols.map(c => c.name).join(', ')}
+Nombre de lignes: ${excelSheetData.length}
+
+Aperçu:
+${dataPreview}
+
+Suggère 1-3 graphiques pertinents parmi :
+- bar (barres verticales) : pour comparer des valeurs par catégorie
+- line (courbes) : pour montrer l'évolution
+- pie (camembert) : pour montrer des proportions (max 8 catégories)
+- area (aires empilées) : pour montrer des tendances cumulées
+
+Réponds UNIQUEMENT dans ce format JSON:
+{
+  "charts": [
+    {
+      "type": "bar",
+      "title": "Ventes par Région",
+      "xColumn": "Région",
+      "yColumn": "Montant",
+      "description": "Comparaison des ventes"
+    }
+  ]
+}`;
+
+                const endpoint = getEndpoint();
+                const response = await fetch(endpoint, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        message: prompt,
+                        conversationId: 'ai-management',
+                        chatType: 'ai-management',
+                        history: []
+                    })
+                });
+                
+                if (!response.ok) throw new Error('Erreur API');
+                
+                const data = await response.json();
+                let aiResponse = data.response || data.message || '';
+                aiResponse = aiResponse.replace(/\n*---[\s\S]*$/g, '').trim();
+                
+                // Parser le JSON de la réponse
+                let chartsConfig;
+                try {
+                    const jsonMatch = aiResponse.match(/\{[\s\S]*\}/);
+                    if (jsonMatch) {
+                        chartsConfig = JSON.parse(jsonMatch[0]);
+                    } else {
+                        // Fallback : graphique par défaut
+                        if (categoricalCols.length > 0 && numericCols.length > 0) {
+                            chartsConfig = {
+                                charts: [{
+                                    type: 'bar',
+                                    title: `${numericCols[0].name} par ${categoricalCols[0].name}`,
+                                    xColumn: categoricalCols[0].name,
+                                    yColumn: numericCols[0].name,
+                                    description: 'Comparaison des valeurs'
+                                }]
+                            };
+                        } else {
+                            chartsConfig = {
+                                charts: [{
+                                    type: 'line',
+                                    title: `Évolution de ${numericCols[0].name}`,
+                                    xColumn: 'Index',
+                                    yColumn: numericCols[0].name,
+                                    description: 'Tendance générale'
+                                }]
+                            };
+                        }
+                    }
+                } catch (e) {
+                    chartsConfig = {
+                        charts: [{
+                            type: 'bar',
+                            title: 'Analyse des données',
+                            xColumn: categoricalCols[0]?.name || 'Catégorie',
+                            yColumn: numericCols[0].name,
+                            description: 'Vue d\'ensemble'
+                        }]
+                    };
+                }
+                
+                // Générer les données pour chaque graphique
+                const chartsData = chartsConfig.charts.map(chart => {
+                    const xColIndex = excelColumns.findIndex(c => 
+                        c.toLowerCase() === chart.xColumn.toLowerCase() || 
+                        c.toLowerCase().includes(chart.xColumn.toLowerCase())
+                    );
+                    const yColIndex = excelColumns.findIndex(c => 
+                        c.toLowerCase() === chart.yColumn.toLowerCase() || 
+                        c.toLowerCase().includes(chart.yColumn.toLowerCase())
+                    );
+                    
+                    if (yColIndex === -1) return null;
+                    
+                    // Agréger les données si nécessaire
+                    const dataMap = new Map();
+                    
+                    excelSheetData.forEach((row, idx) => {
+                        const xValue = xColIndex !== -1 ? row[xColIndex] : `Ligne ${idx + 1}`;
+                        const yValue = parseFloat(row[yColIndex]);
+                        
+                        if (!isNaN(yValue)) {
+                            if (dataMap.has(xValue)) {
+                                dataMap.set(xValue, dataMap.get(xValue) + yValue);
+                            } else {
+                                dataMap.set(xValue, yValue);
+                            }
+                        }
+                    });
+                    
+                    // Limiter à 10 catégories max pour la lisibilité
+                    const entries = Array.from(dataMap.entries())
+                        .sort((a, b) => b[1] - a[1])
+                        .slice(0, 10);
+                    
+                    return {
+                        type: chart.type,
+                        title: chart.title,
+                        description: chart.description,
+                        labels: entries.map(e => e[0]),
+                        values: entries.map(e => e[1]),
+                        maxValue: Math.max(...entries.map(e => e[1]))
+                    };
+                }).filter(c => c !== null);
+                
+                if (chartsData.length === 0) {
+                    showToast('⚠️ Impossible de générer les graphiques', 'warning');
+                    return;
+                }
+                
+                // Afficher la popup de prévisualisation
+                showChartsPreview(chartsData);
+                
+            } catch (error) {
+                console.error('Erreur génération graphiques:', error);
+                showToast('❌ Erreur lors de la génération des graphiques', 'error');
+            }
+        }
+        
+        // Afficher popup de prévisualisation des graphiques
+        function showChartsPreview(charts) {
+            const popup = document.createElement('div');
+            popup.id = 'chartsPreviewPopup';
+            popup.style.cssText = `
+                position: fixed;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                background: rgba(0,0,0,0.5);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                z-index: 10000;
+                backdrop-filter: blur(4px);
+            `;
+            
+            // Générer les graphiques HTML
+            let chartsHTML = '';
+            charts.forEach((chart, chartIdx) => {
+                let chartContent = '';
+                
+                if (chart.type === 'bar') {
+                    // Graphique en barres
+                    const bars = chart.labels.map((label, idx) => {
+                        const percentage = (chart.values[idx] / chart.maxValue) * 100;
+                        const color = `hsl(${(idx * 360 / chart.labels.length)}, 70%, 60%)`;
+                        return `
+                            <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 8px;">
+                                <div style="width: 120px; font-size: 12px; color: var(--text-secondary); font-weight: 600; text-align: right; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${label}</div>
+                                <div style="flex: 1; background: #F3F4F6; border-radius: 6px; height: 28px; position: relative; overflow: hidden;">
+                                    <div style="background: linear-gradient(135deg, ${color}, ${color}dd); width: ${percentage}%; height: 100%; border-radius: 6px; transition: width 0.5s; display: flex; align-items: center; justify-content: flex-end; padding-right: 8px;">
+                                        <span style="color: white; font-weight: 700; font-size: 11px;">${chart.values[idx].toFixed(0)}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                    }).join('');
+                    chartContent = `<div style="padding: 12px;">${bars}</div>`;
+                    
+                } else if (chart.type === 'pie') {
+                    // Graphique camembert (simple avec pourcentages)
+                    const total = chart.values.reduce((a, b) => a + b, 0);
+                    const slices = chart.labels.map((label, idx) => {
+                        const percentage = ((chart.values[idx] / total) * 100).toFixed(1);
+                        const color = `hsl(${(idx * 360 / chart.labels.length)}, 70%, 60%)`;
+                        return `
+                            <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
+                                <div style="width: 16px; height: 16px; background: ${color}; border-radius: 3px;"></div>
+                                <div style="flex: 1; font-size: 13px; color: var(--text-secondary); font-weight: 600;">${label}</div>
+                                <div style="font-weight: 700; color: var(--text-primary); font-size: 14px;">${percentage}%</div>
+                                <div style="font-size: 12px; color: var(--text-secondary);">(${chart.values[idx].toFixed(0)})</div>
+                            </div>
+                        `;
+                    }).join('');
+                    chartContent = `<div style="padding: 12px;">${slices}</div>`;
+                    
+                } else if (chart.type === 'line' || chart.type === 'area') {
+                    // Graphique en ligne/aire (simplifié)
+                    const points = chart.values.map((val, idx) => {
+                        const x = (idx / (chart.values.length - 1)) * 100;
+                        const y = 100 - ((val / chart.maxValue) * 80);
+                        return `${x},${y}`;
+                    }).join(' ');
+                    
+                    const chartSVG = `
+                        <svg viewBox="0 0 100 100" style="width: 100%; height: 150px; background: linear-gradient(to bottom, rgba(99,102,241,0.05), rgba(139,92,246,0.05)); border-radius: 8px;">
+                            <polyline points="${points}" fill="none" stroke="#6366F1" stroke-width="2" />
+                            ${chart.type === 'area' ? `<polygon points="${points} 100,100 0,100" fill="rgba(99,102,241,0.2)" />` : ''}
+                        </svg>
+                        <div style="display: flex; justify-content: space-between; margin-top: 8px; font-size: 11px; color: var(--text-secondary);">
+                            ${chart.labels.map((label, idx) => idx % Math.ceil(chart.labels.length / 5) === 0 ? `<span>${label}</span>` : '').join('')}
+                        </div>
+                    `;
+                    chartContent = `<div style="padding: 12px;">${chartSVG}</div>`;
+                }
+                
+                chartsHTML += `
+                    <div style="background: white; border: 2px solid #E5E7EB; border-radius: 12px; padding: 20px; margin-bottom: 16px;">
+                        <div style="margin-bottom: 12px;">
+                            <h3 style="margin: 0 0 4px; color: var(--text-primary); font-size: 18px; font-weight: 700;">${chart.title}</h3>
+                            <p style="margin: 0; color: var(--text-secondary); font-size: 13px;">${chart.description}</p>
+                        </div>
+                        ${chartContent}
+                    </div>
+                `;
+            });
+            
+            // Stocker les graphiques pour référence
+            window.pendingCharts = charts;
+            
+            popup.innerHTML = `
+                <div style="background: white; border-radius: 16px; padding: 32px; max-width: 700px; width: 90%; max-height: 80vh; overflow-y: auto; box-shadow: 0 20px 60px rgba(0,0,0,0.3);">
+                    <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 20px;">
+                        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#EC4899" stroke-width="2">
+                            <line x1="12" y1="20" x2="12" y2="10"/>
+                            <line x1="18" y1="20" x2="18" y2="4"/>
+                            <line x1="6" y1="20" x2="6" y2="16"/>
+                        </svg>
+                        <div>
+                            <h2 style="margin: 0; color: var(--text-primary); font-size: 24px; font-weight: 700;">Graphiques Générés</h2>
+                            <p style="margin: 4px 0 0; color: var(--text-secondary); font-size: 14px;">${charts.length} visualisation${charts.length > 1 ? 's' : ''} créée${charts.length > 1 ? 's' : ''}</p>
+                        </div>
+                    </div>
+                    
+                    <div style="margin-bottom: 20px;">
+                        ${chartsHTML}
+                    </div>
+                    
+                    <div style="background: rgba(236,72,153,0.1); border: 1px solid rgba(236,72,153,0.3); border-radius: 8px; padding: 12px; margin-bottom: 24px;">
+                        <div style="display: flex; align-items: start; gap: 8px; color: #DB2777; font-size: 13px; font-weight: 600;">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-top: 2px; flex-shrink: 0;">
+                                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+                                <polyline points="22 4 12 14.01 9 11.01"/>
+                            </svg>
+                            <div>Les graphiques sont générés pour analyse. Vous pouvez exporter votre fichier pour les utiliser dans Excel.</div>
+                        </div>
+                    </div>
+                    
+                    <div style="display: flex; gap: 12px; justify-content: flex-end;">
+                        <button onclick="closeChartsPreview()" style="padding: 12px 24px; background: linear-gradient(135deg, #EC4899, #DB2777); border: none; border-radius: 10px; color: white; cursor: pointer; font-weight: 600; font-size: 14px; transition: all 0.2s; box-shadow: 0 4px 12px rgba(236,72,153,0.3);" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 20px rgba(236,72,153,0.4)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 12px rgba(236,72,153,0.3)'">
+                            Fermer
+                        </button>
+                    </div>
+                </div>
+            `;
+            
+            document.body.appendChild(popup);
+            
+            // Notification
+            showToast(`📊 ${charts.length} graphique${charts.length > 1 ? 's' : ''} généré${charts.length > 1 ? 's' : ''}`, 'success');
+        }
+        
+        function closeChartsPreview() {
+            const popup = document.getElementById('chartsPreviewPopup');
+            if (popup) popup.remove();
+            window.pendingCharts = null;
         }
         
         function quickAction(actionType) {
