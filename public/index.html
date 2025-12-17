@@ -6316,6 +6316,31 @@
             // Marquer le contexte comme déjà envoyé
             excelContextSent = true;
             
+            // Restaurer l'affichage des messages de conversation
+            const chatContainer = document.getElementById('excelChatMessages');
+            chatContainer.innerHTML = '';
+            
+            // Afficher les messages sauvegardés (sauf les 2 premiers qui sont le contexte système)
+            excelChatHistory.slice(2).forEach(msg => {
+                const isBot = msg.role === 'assistant';
+                const bgColor = isBot ? 'rgba(16,185,129,0.1)' : 'rgba(59,130,246,0.1)';
+                const borderColor = isBot ? '#10B981' : '#3B82F6';
+                
+                const msgDiv = document.createElement('div');
+                msgDiv.style.cssText = `padding: 10px; background: ${bgColor}; border-radius: 8px; border-left: 3px solid ${borderColor}; margin-bottom: 8px;`;
+                msgDiv.innerHTML = `
+                    <div style="color: var(--text-secondary); font-size: 9px !important; font-weight: 600; margin-bottom: 3px;">${isBot ? 'AI Management' : 'Vous'}</div>
+                    <div style="color: var(--text-primary); font-size: 10px !important; line-height: 1.5; white-space: pre-line;">${msg.content}</div>
+                `;
+                chatContainer.appendChild(msgDiv);
+            });
+            
+            if (excelChatHistory.length <= 2) {
+                chatContainer.innerHTML = '<p style="text-align: center; color: var(--text-secondary); font-size: 12px; padding: 40px 20px;">💬 Posez vos questions sur ce fichier Excel...</p>';
+            }
+            
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+            
             // Afficher le classeur
             renderExcelPreview();
             document.getElementById('excelUploadZone').style.display = 'none';
@@ -6324,10 +6349,10 @@
             document.getElementById('excelActionsContainer').style.display = 'block';
             document.getElementById('excelExportBtn').style.display = 'flex';
             document.getElementById('excelSaveBtn').style.display = 'flex';
+            document.getElementById('excelChatResetBtn').style.display = 'flex';
             document.getElementById('excelFileName').textContent = workbook.name;
             
-            showToast(`✅ Classeur "${workbook.name}" chargé !`, 'success');
-            addExcelChatMessage(`📂 Classeur "${workbook.name}" rechargé avec succès`, 'bot');
+            showToast(`✅ Classeur "${workbook.name}" chargé avec ${excelChatHistory.length - 2} messages`, 'success');
         }
         
         function deleteWorkbook(index) {
@@ -6341,6 +6366,58 @@
             loadSavedWorkbooks();
             
             showToast(`✅ Classeur "${workbookName}" supprimé`, 'success');
+        }
+        
+        function resetExcelChat() {
+            if (!confirm('Voulez-vous réinitialiser la conversation ?\n\nLe fichier Excel sera conservé mais l\'historique des messages sera effacé.')) return;
+            
+            // Garder seulement les 2 premiers messages (contexte système)
+            if (excelChatHistory.length > 2) {
+                excelChatHistory = excelChatHistory.slice(0, 2);
+            }
+            
+            // Vider l'affichage du chat
+            const chatContainer = document.getElementById('excelChatMessages');
+            chatContainer.innerHTML = '<p style="text-align: center; color: var(--text-secondary); font-size: 12px; padding: 40px 20px;">💬 Conversation réinitialisée. Posez vos questions sur ce fichier Excel...</p>';
+            
+            // Sauvegarder automatiquement le classeur avec le chat réinitialisé
+            if (excelCurrentFile) {
+                const savedWorkbooks = JSON.parse(localStorage.getItem('excelWorkbooks') || '[]');
+                const existingIndex = savedWorkbooks.findIndex(wb => wb.name === excelCurrentFile.name);
+                
+                if (existingIndex !== -1) {
+                    savedWorkbooks[existingIndex].chatHistory = excelChatHistory;
+                    localStorage.setItem('excelWorkbooks', JSON.stringify(savedWorkbooks));
+                }
+            }
+            
+            showToast('✅ Conversation réinitialisée', 'success');
+        }
+        
+        function resetExcelChat() {
+            if (!confirm('Voulez-vous réinitialiser la conversation ?\n\nLe fichier Excel sera conservé mais l\'historique des messages sera effacé.')) return;
+            
+            // Garder seulement les 2 premiers messages (contexte système)
+            if (excelChatHistory.length > 2) {
+                excelChatHistory = excelChatHistory.slice(0, 2);
+            }
+            
+            // Vider l'affichage du chat
+            const chatContainer = document.getElementById('excelChatMessages');
+            chatContainer.innerHTML = '<p style="text-align: center; color: var(--text-secondary); font-size: 12px; padding: 40px 20px;">💬 Conversation réinitialisée. Posez vos questions sur ce fichier Excel...</p>';
+            
+            // Sauvegarder automatiquement le classeur avec le chat réinitialisé
+            if (excelCurrentFile) {
+                const savedWorkbooks = JSON.parse(localStorage.getItem('excelWorkbooks') || '[]');
+                const existingIndex = savedWorkbooks.findIndex(wb => wb.name === excelCurrentFile.name);
+                
+                if (existingIndex !== -1) {
+                    savedWorkbooks[existingIndex].chatHistory = excelChatHistory;
+                    localStorage.setItem('excelWorkbooks', JSON.stringify(savedWorkbooks));
+                }
+            }
+            
+            showToast('✅ Conversation réinitialisée', 'success');
         }
         
         function excelAiAction(actionType) {
@@ -6439,10 +6516,10 @@
                     document.getElementById('excelActionsContainer').style.display = 'block';
                     document.getElementById('excelExportBtn').style.display = 'flex';
                     document.getElementById('excelSaveBtn').style.display = 'flex';
+                    document.getElementById('excelChatResetBtn').style.display = 'flex';
                     document.getElementById('excelFileName').textContent = file.name;
                     
                     showToast(`✅ Fichier "${file.name}" chargé avec ${excelSheetData.length} lignes !`, 'success');
-                    addExcelChatMessage(`📊 Fichier chargé: ${file.name}`, 'bot');
                 } catch (error) {
                     console.error('Erreur lecture Excel:', error);
                     showToast('❌ Erreur lecture du fichier Excel', 'error');
@@ -6943,6 +7020,18 @@
                                     <polyline points="7 3 7 8 15 8"/>
                                 </svg>
                                 Sauvegarder Classeur
+                            </button>
+                            
+                            <!-- Réinitialiser Chat -->
+                            <button id="excelChatResetBtn" onclick="resetExcelChat()" style="display: none; padding: 16px; background: rgba(239,68,68,0.1); border: 2px solid rgba(239,68,68,0.3); border-radius: 12px; color: #EF4444; cursor: pointer; font-weight: 700; font-size: 15px; transition: all 0.2s; align-items: center; justify-content: center; gap: 8px;" onmouseover="this.style.background='rgba(239,68,68,0.2)'; this.style.borderColor='rgba(239,68,68,0.5)'" onmouseout="this.style.background='rgba(239,68,68,0.1)'; this.style.borderColor='rgba(239,68,68,0.3)'">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M3 6h18"/>
+                                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/>
+                                    <path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                                    <line x1="10" y1="11" x2="10" y2="17"/>
+                                    <line x1="14" y1="11" x2="14" y2="17"/>
+                                </svg>
+                                Réinitialiser Chat
                             </button>
 
                             <!-- Export Modern -->
