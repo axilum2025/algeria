@@ -7873,19 +7873,21 @@ Réponds UNIQUEMENT dans ce format JSON:
                         ${chartsHTML}
                     </div>
                     
-                    <div style="background: rgba(236,72,153,0.1); border: 1px solid rgba(236,72,153,0.3); border-radius: 8px; padding: 12px; margin-bottom: 24px;">
-                        <div style="display: flex; align-items: start; gap: 8px; color: #DB2777; font-size: 13px; font-weight: 600;">
+                    <div style="background: rgba(16,185,129,0.1); border: 1px solid rgba(16,185,129,0.3); border-radius: 8px; padding: 12px; margin-bottom: 24px;">
+                        <div style="display: flex; align-items: start; gap: 8px; color: #059669; font-size: 13px; font-weight: 600;">
                             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-top: 2px; flex-shrink: 0;">
-                                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
-                                <polyline points="22 4 12 14.01 9 11.01"/>
+                                <polyline points="20 6 9 17 4 12"/>
                             </svg>
-                            <div>Les graphiques sont générés pour analyse. Vous pouvez exporter votre fichier pour les utiliser dans Excel.</div>
+                            <div>Ces données seront ajoutées en bas de votre feuille Excel avec les valeurs de chaque graphique</div>
                         </div>
                     </div>
                     
                     <div style="display: flex; gap: 12px; justify-content: flex-end;">
-                        <button onclick="closeChartsPreview()" style="padding: 12px 24px; background: linear-gradient(135deg, #EC4899, #DB2777); border: none; border-radius: 10px; color: white; cursor: pointer; font-weight: 600; font-size: 14px; transition: all 0.2s; box-shadow: 0 4px 12px rgba(236,72,153,0.3);" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 20px rgba(236,72,153,0.4)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 12px rgba(236,72,153,0.3)'">
-                            Fermer
+                        <button onclick="closeChartsPreview()" style="padding: 12px 24px; background: white; border: 2px solid var(--border-color); border-radius: 10px; color: var(--text-primary); cursor: pointer; font-weight: 600; font-size: 14px; transition: all 0.2s;" onmouseover="this.style.background='#F3F4F6'" onmouseout="this.style.background='white'">
+                            Annuler
+                        </button>
+                        <button onclick="applyChartsToSheet()" style="padding: 12px 24px; background: linear-gradient(135deg, #EC4899, #DB2777); border: none; border-radius: 10px; color: white; cursor: pointer; font-weight: 600; font-size: 14px; transition: all 0.2s; box-shadow: 0 4px 12px rgba(236,72,153,0.3);" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 20px rgba(236,72,153,0.4)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 12px rgba(236,72,153,0.3)'">
+                            📊 Ajouter à la feuille
                         </button>
                     </div>
                 </div>
@@ -7901,6 +7903,71 @@ Réponds UNIQUEMENT dans ce format JSON:
             const popup = document.getElementById('chartsPreviewPopup');
             if (popup) popup.remove();
             window.pendingCharts = null;
+        }
+        
+        // Appliquer l'ajout des graphiques à la feuille Excel
+        function applyChartsToSheet() {
+            if (!window.pendingCharts || window.pendingCharts.length === 0) {
+                closeChartsPreview();
+                return;
+            }
+            
+            const charts = window.pendingCharts;
+            
+            // Ajouter une ligne de séparation
+            const separatorRow = new Array(excelColumns.length).fill('');
+            separatorRow[0] = '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━';
+            excelSheetData.push(separatorRow);
+            
+            // Ajouter l'en-tête de section
+            const headerRow = new Array(excelColumns.length).fill('');
+            headerRow[0] = '📊 GRAPHIQUES GÉNÉRÉS PAR L\'IA';
+            excelSheetData.push(headerRow);
+            
+            // Ligne vide
+            excelSheetData.push(new Array(excelColumns.length).fill(''));
+            
+            // Pour chaque graphique, ajouter ses données
+            charts.forEach((chart, chartIdx) => {
+                // Titre du graphique
+                const titleRow = new Array(excelColumns.length).fill('');
+                titleRow[0] = `${chartIdx + 1}. ${chart.title}`;
+                titleRow[1] = `(Type: ${chart.type})`;
+                excelSheetData.push(titleRow);
+                
+                // Description
+                if (chart.description) {
+                    const descRow = new Array(excelColumns.length).fill('');
+                    descRow[0] = chart.description;
+                    excelSheetData.push(descRow);
+                }
+                
+                // En-tête des données
+                const dataHeaderRow = new Array(excelColumns.length).fill('');
+                dataHeaderRow[0] = 'Catégorie';
+                dataHeaderRow[1] = 'Valeur';
+                excelSheetData.push(dataHeaderRow);
+                
+                // Données du graphique
+                chart.labels.forEach((label, idx) => {
+                    const dataRow = new Array(excelColumns.length).fill('');
+                    dataRow[0] = label;
+                    dataRow[1] = chart.values[idx];
+                    excelSheetData.push(dataRow);
+                });
+                
+                // Ligne vide entre les graphiques
+                excelSheetData.push(new Array(excelColumns.length).fill(''));
+            });
+            
+            // Rafraîchir l'affichage
+            renderExcelPreview();
+            
+            // Fermer popup
+            closeChartsPreview();
+            
+            // Notification
+            showToast(`✅ ${charts.length} graphique${charts.length > 1 ? 's' : ''} ajouté${charts.length > 1 ? 's' : ''} à la feuille`, 'success');
         }
         
         function quickAction(actionType) {
