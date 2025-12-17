@@ -6044,12 +6044,19 @@
             const uploadZone = document.getElementById('excelUploadZone');
             const historyPanel = document.getElementById('excelHistoryPanel');
             const exportBtn = document.getElementById('excelExportBtn');
+            const saveBtn = document.getElementById('excelSaveBtn');
             
             const isHidden = uploadZone.style.display === 'none' || !uploadZone.style.display;
             
             uploadZone.style.display = isHidden ? 'block' : 'none';
             historyPanel.style.display = isHidden ? 'block' : 'none';
             exportBtn.style.display = isHidden ? 'flex' : 'none';
+            saveBtn.style.display = isHidden ? 'flex' : 'none';
+            
+            // Charger les classeurs sauvegardés
+            if (isHidden) {
+                loadSavedWorkbooks();
+            }
         }
         
         function toggleExcelUploadZone() {
@@ -6179,6 +6186,126 @@
                 console.error('Erreur export Excel:', error);
                 showToast('❌ Erreur lors de l\'export', 'error');
             }
+        }
+        
+        function saveWorkbook() {
+            if (!excelCurrentFile && excelSheetData.length === 0) {
+                showToast('⚠️ Aucun classeur à sauvegarder', 'warning');
+                return;
+            }
+            
+            const workbookName = excelCurrentFile?.name || prompt('Nom du classeur:', 'Mon_Classeur.xlsx');
+            if (!workbookName) return;
+            
+            const workbook = {
+                name: workbookName,
+                columns: excelColumns,
+                data: excelSheetData,
+                savedAt: new Date().toISOString(),
+                chatHistory: excelChatHistory
+            };
+            
+            // Récupérer les classeurs existants
+            const savedWorkbooks = JSON.parse(localStorage.getItem('excelWorkbooks') || '[]');
+            
+            // Vérifier si un classeur avec ce nom existe déjà
+            const existingIndex = savedWorkbooks.findIndex(wb => wb.name === workbookName);
+            if (existingIndex !== -1) {
+                savedWorkbooks[existingIndex] = workbook;
+                showToast('✅ Classeur mis à jour !', 'success');
+            } else {
+                savedWorkbooks.push(workbook);
+                showToast('✅ Classeur sauvegardé !', 'success');
+            }
+            
+            // Sauvegarder dans localStorage
+            localStorage.setItem('excelWorkbooks', JSON.stringify(savedWorkbooks));
+            
+            // Recharger la liste
+            loadSavedWorkbooks();
+        }
+        
+        function loadSavedWorkbooks() {
+            const savedWorkbooks = JSON.parse(localStorage.getItem('excelWorkbooks') || '[]');
+            const historyList = document.getElementById('excelHistoryList');
+            
+            if (savedWorkbooks.length === 0) {
+                historyList.innerHTML = '<p style=\"margin: 0; color: var(--text-secondary); font-size: 13px; text-align: center; padding: 20px;\">Aucun classeur sauvegardé</p>';
+                return;
+            }
+            
+            historyList.innerHTML = savedWorkbooks.map((wb, index) => `
+                <div style=\"background: var(--bg-primary); border-radius: 10px; padding: 12px; border: 1px solid var(--border-color); transition: all 0.2s;\">
+                    <div style=\"display: flex; align-items: center; gap: 10px; margin-bottom: 6px;\">
+                        <svg width=\"16\" height=\"16\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"#6366F1\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\">
+                            <path d=\"M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z\"/>
+                            <polyline points=\"14 2 14 8 20 8\"/>
+                            <line x1=\"16\" y1=\"13\" x2=\"8\" y2=\"13\"/>
+                            <line x1=\"16\" y1=\"17\" x2=\"8\" y2=\"17\"/>
+                            <polyline points=\"10 9 9 9 8 9\"/>
+                        </svg>
+                        <span style=\"flex: 1; color: var(--text-primary); font-size: 13px; font-weight: 600;\">${wb.name}</span>
+                    </div>
+                    <div style=\"display: flex; gap: 6px; font-size: 11px; color: var(--text-secondary); margin-bottom: 8px;\">
+                        <span>${wb.data.length} lignes</span>
+                        <span>•</span>
+                        <span>${wb.columns.length} colonnes</span>
+                    </div>
+                    <div style=\"display: flex; gap: 6px;\">
+                        <button onclick=\"loadWorkbook(${index})\" style=\"flex: 1; padding: 6px; background: linear-gradient(135deg, #6366F1, #8B5CF6); border: none; border-radius: 6px; color: white; cursor: pointer; font-size: 11px; font-weight: 600; transition: all 0.2s;\" onmouseover=\"this.style.transform='scale(1.05)'\" onmouseout=\"this.style.transform='scale(1)'\">
+                            Ouvrir
+                        </button>
+                        <button onclick=\"deleteWorkbook(${index})\" style=\"padding: 6px 10px; background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.3); border-radius: 6px; color: #EF4444; cursor: pointer; font-size: 11px; font-weight: 600; transition: all 0.2s;\" onmouseover=\"this.style.background='rgba(239,68,68,0.2)'\" onmouseout=\"this.style.background='rgba(239,68,68,0.1)'\" title=\"Supprimer\">
+                            <svg width=\"14\" height=\"14\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\">
+                                <polyline points=\"3 6 5 6 21 6\"/>
+                                <path d=\"M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2\"/>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+        }
+        
+        function loadWorkbook(index) {
+            const savedWorkbooks = JSON.parse(localStorage.getItem('excelWorkbooks') || '[]');
+            const workbook = savedWorkbooks[index];
+            
+            if (!workbook) {
+                showToast('❌ Classeur introuvable', 'error');
+                return;
+            }
+            
+            // Charger les données
+            excelColumns = workbook.columns;
+            excelSheetData = workbook.data;
+            excelChatHistory = workbook.chatHistory || [];
+            excelCurrentFile = { name: workbook.name };
+            
+            // Afficher le classeur
+            renderExcelPreview();
+            document.getElementById('excelUploadZone').style.display = 'none';
+            document.getElementById('excelPreviewContainer').style.display = 'block';
+            document.getElementById('excelQuickActions').style.display = 'block';
+            document.getElementById('excelActionsContainer').style.display = 'block';
+            document.getElementById('excelExportBtn').style.display = 'flex';
+            document.getElementById('excelSaveBtn').style.display = 'flex';
+            document.getElementById('excelFileName').textContent = workbook.name;
+            
+            showToast(`✅ Classeur "${workbook.name}" chargé !`, 'success');
+            addExcelChatMessage(`📂 Classeur "${workbook.name}" rechargé avec succès`, 'bot');
+        }
+        
+        function deleteWorkbook(index) {
+            if (!confirm('Voulez-vous vraiment supprimer ce classeur ?')) return;
+            
+            const savedWorkbooks = JSON.parse(localStorage.getItem('excelWorkbooks') || '[]');
+            const workbookName = savedWorkbooks[index].name;
+            savedWorkbooks.splice(index, 1);
+            
+            localStorage.setItem('excelWorkbooks', JSON.stringify(savedWorkbooks));
+            loadSavedWorkbooks();
+            
+            showToast(`✅ Classeur "${workbookName}" supprimé`, 'success');
         }
         
         function excelAiAction(actionType) {
@@ -6738,11 +6865,21 @@
 
                             <!-- Historique Modern -->
                             <div id="excelHistoryPanel" style="display: none; background: var(--bg-secondary); border-radius: 16px; padding: 20px; border: 1px solid var(--border-color); box-shadow: 0 2px 8px rgba(0,0,0,0.05);">
-                                <h3 style="margin: 0 0 16px; color: var(--text-primary); font-size: 16px; font-weight: 700;">Historique</h3>
+                                <h3 style="margin: 0 0 16px; color: var(--text-primary); font-size: 16px; font-weight: 700;">Classeurs Sauvegardés</h3>
                                 <div id="excelHistoryList" style="display: flex; flex-direction: column; gap: 8px; max-height: 180px; overflow-y: auto;">
-                                    <p style="margin: 0; color: var(--text-secondary); font-size: 13px; text-align: center; padding: 20px;">Aucune action</p>
+                                    <!-- Rempli par loadSavedWorkbooks() -->
                                 </div>
                             </div>
+
+                            <!-- Sauvegarder Classeur -->
+                            <button id="excelSaveBtn" onclick="saveWorkbook()" style="display: none; padding: 16px; background: linear-gradient(135deg, #14B8A6, #06B6D4); border: none; border-radius: 12px; color: white; cursor: pointer; font-weight: 700; font-size: 15px; box-shadow: 0 4px 16px rgba(20,184,166,0.3); transition: all 0.2s; align-items: center; justify-content: center; gap: 8px;" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 20px rgba(20,184,166,0.4)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 16px rgba(20,184,166,0.3)'">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/>
+                                    <polyline points="17 21 17 13 7 13 7 21"/>
+                                    <polyline points="7 3 7 8 15 8"/>
+                                </svg>
+                                Sauvegarder Classeur
+                            </button>
 
                             <!-- Export Modern -->
                             <button id="excelExportBtn" onclick="exportExcel()" style="display: none; padding: 16px; background: linear-gradient(135deg, #6366F1, #8B5CF6); border: none; border-radius: 12px; color: white; cursor: pointer; font-weight: 700; font-size: 15px; box-shadow: 0 4px 16px rgba(99,102,241,0.3); transition: all 0.2s; align-items: center; justify-content: center; gap: 8px;" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 20px rgba(99,102,241,0.4)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 16px rgba(99,102,241,0.3)'">
