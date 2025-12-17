@@ -6076,11 +6076,47 @@
             showToast('✅ Ligne ajoutée', 'success');
         }
         
+        function insertExcelRowAt(index) {
+            const newRow = new Array(excelColumns.length).fill('');
+            excelSheetData.splice(index, 0, newRow);
+            renderExcelPreview();
+            showToast(`✅ Ligne insérée à la position ${index + 1}`, 'success');
+        }
+        
+        function deleteExcelRowAt(index) {
+            if (excelSheetData.length === 0) {
+                showToast('⚠️ Aucune ligne à supprimer', 'warning');
+                return;
+            }
+            excelSheetData.splice(index, 1);
+            renderExcelPreview();
+            showToast(`✅ Ligne ${index + 1} supprimée`, 'success');
+        }
+        
         function addExcelColumn() {
             excelColumns.push(`Colonne ${excelColumns.length + 1}`);
             excelSheetData.forEach(row => row.push(''));
             renderExcelPreview();
             showToast('✅ Colonne ajoutée', 'success');
+        }
+        
+        function insertExcelColumnAt(index) {
+            const colLetter = String.fromCharCode(65 + index);
+            excelColumns.splice(index, 0, `Colonne ${colLetter}`);
+            excelSheetData.forEach(row => row.splice(index, 0, ''));
+            renderExcelPreview();
+            showToast(`✅ Colonne insérée à la position ${colLetter}`, 'success');
+        }
+        
+        function deleteExcelColumnAt(index) {
+            if (excelColumns.length === 0) {
+                showToast('⚠️ Aucune colonne à supprimer', 'warning');
+                return;
+            }
+            excelColumns.splice(index, 1);
+            excelSheetData.forEach(row => row.splice(index, 1));
+            renderExcelPreview();
+            showToast(`✅ Colonne supprimée`, 'success');
         }
         
         function deleteExcelRow() {
@@ -6552,7 +6588,11 @@
             html += `<th style="padding: 8px; background: #E5E7EB; color: #6B7280; font-weight: 700; text-align: center; border: 1px solid var(--border-color); font-size: 11px; min-width: 50px;"></th>`;
             excelColumns.forEach((col, colIdx) => {
                 const colLetter = getColumnLetter(colIdx);
-                html += `<th contenteditable="true" class="excel-cell" data-row="-1" data-col="${colIdx}" style="padding: 12px; background: linear-gradient(135deg, #6366F1, #8B5CF6); color: white; font-weight: 600; text-align: left; border: 1px solid rgba(255,255,255,0.1); position: relative;" onblur="updateCellValue(-1, ${colIdx}, this.textContent)">
+                html += `<th contenteditable="true" class="excel-cell" data-row="-1" data-col="${colIdx}" 
+                    oncontextmenu="event.preventDefault(); showColumnMenu(${colIdx}, event); return false;"
+                    style="padding: 12px; background: linear-gradient(135deg, #6366F1, #8B5CF6); color: white; font-weight: 600; text-align: left; border: 1px solid rgba(255,255,255,0.1); position: relative; cursor: pointer;" 
+                    onblur="updateCellValue(-1, ${colIdx}, this.textContent)"
+                    title="Clic droit pour insérer/supprimer">
                     <div style="font-size: 10px; opacity: 0.7; font-weight: 500; margin-bottom: 2px;">${colLetter}</div>
                     <div>${col}</div>
                 </th>`;
@@ -6562,8 +6602,10 @@
             html += '<tbody>';
             excelSheetData.forEach((row, rowIdx) => {
                 html += `<tr style="background: ${rowIdx % 2 === 0 ? 'var(--bg-primary)' : 'var(--bg-secondary)'};">`;
-                // Numéro de ligne
-                html += `<td style="padding: 8px; background: #E5E7EB; color: #6B7280; font-weight: 700; text-align: center; border: 1px solid var(--border-color); font-size: 12px; min-width: 50px;">${rowIdx + 1}</td>`;
+                // Numéro de ligne avec menu contextuel
+                html += `<td oncontextmenu="event.preventDefault(); showRowMenu(${rowIdx}, event); return false;" 
+                    style="padding: 8px; background: #E5E7EB; color: #6B7280; font-weight: 700; text-align: center; border: 1px solid var(--border-color); font-size: 12px; min-width: 50px; cursor: pointer;" 
+                    title="Clic droit pour insérer/supprimer">${rowIdx + 1}</td>`;
                 row.forEach((cell, colIdx) => {
                     const cellValue = cell || '';
                     const isEmpty = !cellValue || cellValue.toString().trim() === '';
@@ -6577,6 +6619,98 @@
             
             document.getElementById('excelRowCount').textContent = `${excelSheetData.length} lignes`;
             document.getElementById('excelColCount').textContent = `${excelColumns.length} colonnes`;
+        }
+        
+        // Afficher menu contextuel pour les lignes
+        function showRowMenu(rowIdx, event) {
+            hideContextMenus();
+            const menu = document.createElement('div');
+            menu.id = 'rowContextMenu';
+            menu.style.cssText = `
+                position: fixed;
+                left: ${event.clientX}px;
+                top: ${event.clientY}px;
+                background: white;
+                border: 1px solid var(--border-color);
+                border-radius: 8px;
+                box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+                padding: 6px;
+                z-index: 10000;
+                min-width: 180px;
+            `;
+            
+            menu.innerHTML = `
+                <button onclick="insertExcelRowAt(${rowIdx}); hideContextMenus();" style="width: 100%; padding: 8px 12px; background: transparent; border: none; border-radius: 6px; color: var(--text-primary); cursor: pointer; font-weight: 600; font-size: 12px; text-align: left; transition: all 0.2s; display: flex; align-items: center; gap: 8px;" onmouseover="this.style.background='rgba(99,102,241,0.1)'" onmouseout="this.style.background='transparent'">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                    Insérer ligne au-dessus
+                </button>
+                <button onclick="insertExcelRowAt(${rowIdx + 1}); hideContextMenus();" style="width: 100%; padding: 8px 12px; background: transparent; border: none; border-radius: 6px; color: var(--text-primary); cursor: pointer; font-weight: 600; font-size: 12px; text-align: left; transition: all 0.2s; display: flex; align-items: center; gap: 8px;" onmouseover="this.style.background='rgba(99,102,241,0.1)'" onmouseout="this.style.background='transparent'">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                    Insérer ligne en-dessous
+                </button>
+                <div style="height: 1px; background: var(--border-color); margin: 4px 0;"></div>
+                <button onclick="deleteExcelRowAt(${rowIdx}); hideContextMenus();" style="width: 100%; padding: 8px 12px; background: transparent; border: none; border-radius: 6px; color: #EF4444; cursor: pointer; font-weight: 600; font-size: 12px; text-align: left; transition: all 0.2s; display: flex; align-items: center; gap: 8px;" onmouseover="this.style.background='rgba(239,68,68,0.1)'" onmouseout="this.style.background='transparent'">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                    Supprimer cette ligne
+                </button>
+            `;
+            
+            document.body.appendChild(menu);
+            
+            // Fermer au clic ailleurs
+            setTimeout(() => {
+                document.addEventListener('click', hideContextMenus, { once: true });
+            }, 100);
+        }
+        
+        // Afficher menu contextuel pour les colonnes
+        function showColumnMenu(colIdx, event) {
+            hideContextMenus();
+            const menu = document.createElement('div');
+            menu.id = 'columnContextMenu';
+            menu.style.cssText = `
+                position: fixed;
+                left: ${event.clientX}px;
+                top: ${event.clientY}px;
+                background: white;
+                border: 1px solid var(--border-color);
+                border-radius: 8px;
+                box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+                padding: 6px;
+                z-index: 10000;
+                min-width: 200px;
+            `;
+            
+            menu.innerHTML = `
+                <button onclick="insertExcelColumnAt(${colIdx}); hideContextMenus();" style="width: 100%; padding: 8px 12px; background: transparent; border: none; border-radius: 6px; color: var(--text-primary); cursor: pointer; font-weight: 600; font-size: 12px; text-align: left; transition: all 0.2s; display: flex; align-items: center; gap: 8px;" onmouseover="this.style.background='rgba(99,102,241,0.1)'" onmouseout="this.style.background='transparent'">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                    Insérer colonne à gauche
+                </button>
+                <button onclick="insertExcelColumnAt(${colIdx + 1}); hideContextMenus();" style="width: 100%; padding: 8px 12px; background: transparent; border: none; border-radius: 6px; color: var(--text-primary); cursor: pointer; font-weight: 600; font-size: 12px; text-align: left; transition: all 0.2s; display: flex; align-items: center; gap: 8px;" onmouseover="this.style.background='rgba(99,102,241,0.1)'" onmouseout="this.style.background='transparent'">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                    Insérer colonne à droite
+                </button>
+                <div style="height: 1px; background: var(--border-color); margin: 4px 0;"></div>
+                <button onclick="deleteExcelColumnAt(${colIdx}); hideContextMenus();" style="width: 100%; padding: 8px 12px; background: transparent; border: none; border-radius: 6px; color: #EF4444; cursor: pointer; font-weight: 600; font-size: 12px; text-align: left; transition: all 0.2s; display: flex; align-items: center; gap: 8px;" onmouseover="this.style.background='rgba(239,68,68,0.1)'" onmouseout="this.style.background='transparent'">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                    Supprimer cette colonne
+                </button>
+            `;
+            
+            document.body.appendChild(menu);
+            
+            // Fermer au clic ailleurs
+            setTimeout(() => {
+                document.addEventListener('click', hideContextMenus, { once: true });
+            }, 100);
+        }
+        
+        // Masquer tous les menus contextuels
+        function hideContextMenus() {
+            const rowMenu = document.getElementById('rowContextMenu');
+            const colMenu = document.getElementById('columnContextMenu');
+            if (rowMenu) rowMenu.remove();
+            if (colMenu) colMenu.remove();
         }
         
         function addExcelChatMessage(text, sender) {
