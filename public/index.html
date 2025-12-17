@@ -5997,6 +5997,7 @@
         let excelActionHistory = [];
         let excelChatHistory = [];
         let excelAiProcessing = false;
+        let excelContextSent = false;  // Flag pour savoir si le contexte Excel a été envoyé
 
         // ⚠️ FONCTIONS EXCEL - DOIVENT ÊTRE DÉFINIES AVANT openExcelPro() car appelées dans les onclick/onblur
         
@@ -6097,9 +6098,9 @@
                 return;
             }
             
-            // Préparer le contexte Excel si des données sont disponibles
+            // Préparer le contexte Excel UNIQUEMENT si c'est la première fois après le chargement
             let excelContext = '';
-            if (excelSheetData.length > 0 && excelColumns.length > 0) {
+            if (!excelContextSent && excelSheetData.length > 0 && excelColumns.length > 0) {
                 excelContext = `\n\n[CONTEXTE FICHIER EXCEL]\nNom du fichier: ${excelCurrentFile?.name || 'Document Excel'}\nNombre de lignes: ${excelSheetData.length}\nNombre de colonnes: ${excelColumns.length}\nColonnes: ${excelColumns.join(', ')}\n\nAperçu des données (premières lignes):\n`;
                 
                 // Ajouter les en-têtes
@@ -6116,9 +6117,12 @@
                     excelContext += `\n... et ${excelSheetData.length - 10} autres lignes\n`;
                 }
                 excelContext += '[FIN CONTEXTE EXCEL]\n';
+                
+                // Marquer le contexte comme envoyé
+                excelContextSent = true;
             }
             
-            // Ajouter le message utilisateur à l'historique AVEC le contexte Excel
+            // Ajouter le message utilisateur à l'historique (avec contexte seulement si première fois)
             excelChatHistory.push({
                 role: 'user',
                 content: message + excelContext
@@ -6281,6 +6285,9 @@
             excelChatHistory = workbook.chatHistory || [];
             excelCurrentFile = { name: workbook.name };
             
+            // Marquer le contexte comme déjà envoyé (car il est dans l'historique)
+            excelContextSent = true;
+            
             // Afficher le classeur
             renderExcelPreview();
             document.getElementById('excelUploadZone').style.display = 'none';
@@ -6379,12 +6386,16 @@
                         excelSheetData = [['', '', '']];
                     }
                     
+                    // Réinitialiser le flag pour envoyer le contexte au prochain message
+                    excelContextSent = false;
+                    
                     renderExcelPreview();
                     document.getElementById('excelUploadZone').style.display = 'none';
                     document.getElementById('excelPreviewContainer').style.display = 'block';
                     document.getElementById('excelQuickActions').style.display = 'block';
                     document.getElementById('excelActionsContainer').style.display = 'block';
                     document.getElementById('excelExportBtn').style.display = 'flex';
+                    document.getElementById('excelSaveBtn').style.display = 'flex';
                     document.getElementById('excelFileName').textContent = file.name;
                     
                     showToast(`✅ Fichier "${file.name}" chargé avec ${excelSheetData.length} lignes !`, 'success');
