@@ -6285,7 +6285,23 @@
             excelChatHistory = workbook.chatHistory || [];
             excelCurrentFile = { name: workbook.name };
             
-            // Marquer le contexte comme déjà envoyé (car il est dans l'historique)
+            // Vérifier si le message système Excel existe, sinon le créer
+            const hasSystemMessage = excelChatHistory.length > 0 && excelChatHistory[0].role === 'system';
+            if (!hasSystemMessage && excelSheetData.length > 0 && excelColumns.length > 0) {
+                const excelContextMessage = `[CONTEXTE FICHIER EXCEL - RÉFÉRENCE PERMANENTE]\nNom du fichier: ${workbook.name}\nNombre de lignes: ${excelSheetData.length}\nNombre de colonnes: ${excelColumns.length}\nColonnes: ${excelColumns.join(', ')}\n\nAperçu des données (premières lignes):\n` + 
+                    excelColumns.join(' | ') + '\n' +
+                    '-'.repeat(excelColumns.join(' | ').length) + '\n' +
+                    excelSheetData.slice(0, 10).map(row => row.join(' | ')).join('\n') +
+                    (excelSheetData.length > 10 ? `\n... et ${excelSheetData.length - 10} autres lignes\n` : '') +
+                    '[FIN CONTEXTE EXCEL - Ce fichier reste disponible pour référence tout au long de la conversation]\n';
+                
+                excelChatHistory.unshift({
+                    role: 'system',
+                    content: excelContextMessage
+                });
+            }
+            
+            // Marquer le contexte comme déjà envoyé
             excelContextSent = true;
             
             // Afficher le classeur
