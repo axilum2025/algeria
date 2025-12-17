@@ -6805,6 +6805,8 @@ Si aucun problème: réponds "Aucun problème détecté"`;
         
         // Action PRO : Générer KPI automatiquement
         async function generateKPI() {
+            console.log('🔍 generateKPI appelée');
+            
             if (excelSheetData.length === 0) {
                 showToast('⚠️ Aucune donnée à analyser', 'warning');
                 return;
@@ -6822,6 +6824,8 @@ Si aucun problème: réponds "Aucun problème détecté"`;
                         numericColumns.push({ name: colName, index: colIdx });
                     }
                 });
+                
+                console.log('📊 Colonnes numériques trouvées:', numericColumns.length);
                 
                 if (numericColumns.length === 0) {
                     showToast('⚠️ Aucune colonne numérique détectée', 'warning');
@@ -6855,6 +6859,7 @@ Réponds UNIQUEMENT dans ce format JSON:
   ]
 }`;
 
+                console.log('📤 Envoi de la requête à l\'AI...');
                 const endpoint = getEndpoint();
                 const response = await fetch(endpoint, {
                     method: 'POST',
@@ -6867,9 +6872,13 @@ Réponds UNIQUEMENT dans ce format JSON:
                     })
                 });
                 
-                if (!response.ok) throw new Error('Erreur API');
+                if (!response.ok) {
+                    console.error('❌ Erreur réponse API:', response.status);
+                    throw new Error('Erreur API');
+                }
                 
                 const data = await response.json();
+                console.log('📥 Réponse AI reçue');
                 let aiResponse = data.response || data.message || '';
                 
                 // Nettoyer la réponse
@@ -6893,6 +6902,7 @@ Réponds UNIQUEMENT dans ce format JSON:
                         };
                     }
                 } catch (e) {
+                    console.warn('⚠️ Erreur parsing JSON, fallback activé');
                     // Fallback : générer des KPI par défaut
                     kpisConfig = {
                         kpis: numericColumns.slice(0, 2).map(col => ({
@@ -6902,6 +6912,8 @@ Réponds UNIQUEMENT dans ce format JSON:
                         }))
                     };
                 }
+                
+                console.log('🎯 KPIs config:', kpisConfig);
                 
                 // Calculer les KPI
                 const calculatedKPIs = kpisConfig.kpis.map(kpi => {
@@ -6936,17 +6948,20 @@ Réponds UNIQUEMENT dans ce format JSON:
                     };
                 }).filter(k => k !== null);
                 
+                console.log('✅ KPIs calculés:', calculatedKPIs.length);
+                
                 if (calculatedKPIs.length === 0) {
                     showToast('⚠️ Impossible de générer les KPI', 'warning');
                     return;
                 }
                 
                 // Afficher la popup de prévisualisation
+                console.log('🎨 Affichage de la popup...');
                 showKPIPreview(calculatedKPIs);
                 
             } catch (error) {
-                console.error('Erreur génération KPI:', error);
-                showToast('❌ Erreur lors de la génération des KPI', 'error');
+                console.error('❌ Erreur génération KPI:', error);
+                showToast('❌ Erreur lors de la génération des KPI: ' + error.message, 'error');
             }
         }
         
