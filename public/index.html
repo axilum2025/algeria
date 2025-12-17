@@ -6450,6 +6450,8 @@
                 await cleanDataAutomatically();
             } else if (actionType === 'duplicates') {
                 await detectDuplicates();
+            } else if (actionType === 'kpi') {
+                await generateKPI();
             } else {
                 showToast('🤖 Action IA: ' + actionType + ' (en développement)', 'info');
             }
@@ -6795,6 +6797,280 @@ Si aucun problème: réponds "Aucun problème détecté"`;
             
             // Notification
             showToast(`✅ ${removed} doublon${removed > 1 ? 's' : ''} supprimé${removed > 1 ? 's' : ''}`, 'success');
+        }
+        
+        // Action PRO : Générer KPI automatiquement
+        async function generateKPI() {
+            if (excelSheetData.length === 0) {
+                showToast('⚠️ Aucune donnée à analyser', 'warning');
+                return;
+            }
+            
+            showToast('🤖 Analyse des données pour générer les KPI...', 'info');
+            
+            try {
+                // Analyser les colonnes numériques
+                const numericColumns = [];
+                excelColumns.forEach((colName, colIdx) => {
+                    const values = excelSheetData.map(row => row[colIdx]);
+                    const numericValues = values.filter(v => !isNaN(parseFloat(v)) && isFinite(v));
+                    if (numericValues.length > values.length * 0.5) { // Au moins 50% de valeurs numériques
+                        numericColumns.push({ name: colName, index: colIdx });
+                    }
+                });
+                
+                if (numericColumns.length === 0) {
+                    showToast('⚠️ Aucune colonne numérique détectée', 'warning');
+                    return;
+                }
+                
+                // Préparer les données pour l'AI
+                const dataPreview = excelSheetData.slice(0, 10).map(row => row.join(' | ')).join('\n');
+                const prompt = `Analyse ce fichier Excel et suggère des KPI (colonnes calculées) pertinents :
+
+Colonnes: ${excelColumns.join(', ')}
+Colonnes numériques détectées: ${numericColumns.map(c => c.name).join(', ')}
+Nombre de lignes: ${excelSheetData.length}
+
+Aperçu:
+${dataPreview}
+
+Suggère 2-4 KPI pertinents parmi :
+- Total (somme)
+- Moyenne
+- Pourcentage (%)
+- Minimum/Maximum
+- Écart
+- Rang/Position
+
+Réponds UNIQUEMENT dans ce format JSON:
+{
+  "kpis": [
+    {"name": "Total Général", "type": "sum", "column": "nom_colonne"},
+    {"name": "Moyenne", "type": "avg", "column": "nom_colonne"}
+  ]
+}`;
+
+                const endpoint = getEndpoint();
+                const response = await fetch(endpoint, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        message: prompt,
+                        conversationId: 'ai-management',
+                        chatType: 'ai-management',
+                        history: []
+                    })
+                });
+                
+                if (!response.ok) throw new Error('Erreur API');
+                
+                const data = await response.json();
+                let aiResponse = data.response || data.message || '';
+                
+                // Nettoyer la réponse
+                aiResponse = aiResponse.replace(/\n*---[\s\S]*$/g, '').trim();
+                
+                // Parser le JSON de la réponse
+                let kpisConfig;
+                try {
+                    // Extraire le JSON de la réponse
+                    const jsonMatch = aiResponse.match(/\{[\s\S]*\}/);
+                    if (jsonMatch) {
+                        kpisConfig = JSON.parse(jsonMatch[0]);
+                    } else {
+                        // Fallback : générer des KPI par défaut
+                        kpisConfig = {
+                            kpis: numericColumns.slice(0, 2).map(col => ({
+                                name: `Total ${col.name}`,
+                                type: 'sum',
+                                column: col.name
+                            }))
+                        };
+                    }
+                } catch (e) {
+                    // Fallback : générer des KPI par défaut
+                    kpisConfig = {
+                        kpis: numericColumns.slice(0, 2).map(col => ({
+                            name: `Total ${col.name}`,
+                            type: 'sum',
+                            column: col.name
+                        }))
+                    };
+                }
+                
+                // Calculer les KPI
+                const calculatedKPIs = kpisConfig.kpis.map(kpi => {
+                    const colIndex = excelColumns.findIndex(c => c.toLowerCase().includes(kpi.column.toLowerCase()));
+                    if (colIndex === -1) return null;
+                    
+                    const values = excelSheetData.map(row => parseFloat(row[colIndex])).filter(v => !isNaN(v));
+                    
+                    let value;
+                    switch (kpi.type) {
+                        case 'sum':
+                            value = values.reduce((a, b) => a + b, 0);
+                            break;
+                        case 'avg':
+                            value = values.reduce((a, b) => a + b, 0) / values.length;
+                            break;
+                        case 'min':
+                            value = Math.min(...values);
+                            break;
+                        case 'max':
+                            value = Math.max(...values);
+                            break;
+                        default:
+                            value = 0;
+                    }
+                    
+                    return {
+                        name: kpi.name,
+                        type: kpi.type,
+                        column: excelColumns[colIndex],
+                        value: value.toFixed(2)
+                    };
+                }).filter(k => k !== null);
+                
+                if (calculatedKPIs.length === 0) {
+                    showToast('⚠️ Impossible de générer les KPI', 'warning');
+                    return;
+                }
+                
+                // Afficher la popup de prévisualisation
+                showKPIPreview(calculatedKPIs);
+                
+            } catch (error) {
+                console.error('Erreur génération KPI:', error);
+                showToast('❌ Erreur lors de la génération des KPI', 'error');
+            }
+        }
+        
+        // Afficher popup de prévisualisation des KPI
+        function showKPIPreview(kpis) {
+            const popup = document.createElement('div');
+            popup.id = 'kpiPreviewPopup';
+            popup.style.cssText = `
+                position: fixed;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                background: rgba(0,0,0,0.5);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                z-index: 10000;
+                backdrop-filter: blur(4px);
+            `;
+            
+            // Générer la liste des KPI
+            let kpisList = '';
+            kpis.forEach(kpi => {
+                const typeLabel = {
+                    'sum': '📊 Somme',
+                    'avg': '📈 Moyenne',
+                    'min': '⬇️ Minimum',
+                    'max': '⬆️ Maximum'
+                }[kpi.type] || '📊';
+                
+                kpisList += `
+                    <div style="background: linear-gradient(135deg, rgba(99,102,241,0.05), rgba(139,92,246,0.05)); border: 1px solid rgba(99,102,241,0.2); border-radius: 10px; padding: 16px; margin-bottom: 12px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                            <div style="color: var(--text-primary); font-weight: 700; font-size: 15px;">
+                                ${kpi.name}
+                            </div>
+                            <div style="background: linear-gradient(135deg, #6366F1, #8B5CF6); color: white; padding: 6px 14px; border-radius: 8px; font-weight: 700; font-size: 18px; box-shadow: 0 2px 8px rgba(99,102,241,0.3);">
+                                ${kpi.value}
+                            </div>
+                        </div>
+                        <div style="display: flex; gap: 12px; color: var(--text-secondary); font-size: 12px;">
+                            <span>${typeLabel}</span>
+                            <span>•</span>
+                            <span>Basé sur: ${kpi.column}</span>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            // Stocker les KPI pour l'application
+            window.pendingKPIs = kpis;
+            
+            popup.innerHTML = `
+                <div style="background: white; border-radius: 16px; padding: 32px; max-width: 600px; width: 90%; max-height: 80vh; overflow-y: auto; box-shadow: 0 20px 60px rgba(0,0,0,0.3);">
+                    <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 20px;">
+                        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#6366F1" stroke-width="2">
+                            <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
+                            <polyline points="3.27 6.96 12 12.01 20.73 6.96"/>
+                            <line x1="12" y1="22.08" x2="12" y2="12"/>
+                        </svg>
+                        <div>
+                            <h2 style="margin: 0; color: var(--text-primary); font-size: 24px; font-weight: 700;">KPI Générés</h2>
+                            <p style="margin: 4px 0 0; color: var(--text-secondary); font-size: 14px;">${kpis.length} indicateur${kpis.length > 1 ? 's' : ''} calculé${kpis.length > 1 ? 's' : ''}</p>
+                        </div>
+                    </div>
+                    
+                    <div style="margin-bottom: 20px;">
+                        ${kpisList}
+                    </div>
+                    
+                    <div style="background: rgba(16,185,129,0.1); border: 1px solid rgba(16,185,129,0.3); border-radius: 8px; padding: 12px; margin-bottom: 24px;">
+                        <div style="display: flex; align-items: start; gap: 8px; color: #059669; font-size: 13px; font-weight: 600;">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-top: 2px; flex-shrink: 0;">
+                                <polyline points="20 6 9 17 4 12"/>
+                            </svg>
+                            <div>Ces KPI seront ajoutés comme nouvelles colonnes à la fin de votre fichier Excel</div>
+                        </div>
+                    </div>
+                    
+                    <div style="display: flex; gap: 12px; justify-content: flex-end;">
+                        <button onclick="closeKPIPreview()" style="padding: 12px 24px; background: white; border: 2px solid var(--border-color); border-radius: 10px; color: var(--text-primary); cursor: pointer; font-weight: 600; font-size: 14px; transition: all 0.2s;" onmouseover="this.style.background='#F3F4F6'" onmouseout="this.style.background='white'">
+                            Annuler
+                        </button>
+                        <button onclick="applyKPI()" style="padding: 12px 24px; background: linear-gradient(135deg, #6366F1, #8B5CF6); border: none; border-radius: 10px; color: white; cursor: pointer; font-weight: 600; font-size: 14px; transition: all 0.2s; box-shadow: 0 4px 12px rgba(99,102,241,0.3);" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 20px rgba(99,102,241,0.4)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 12px rgba(99,102,241,0.3)'">
+                            Ajouter les KPI
+                        </button>
+                    </div>
+                </div>
+            `;
+            
+            document.body.appendChild(popup);
+        }
+        
+        function closeKPIPreview() {
+            const popup = document.getElementById('kpiPreviewPopup');
+            if (popup) popup.remove();
+            window.pendingKPIs = null;
+        }
+        
+        // Appliquer l'ajout des colonnes KPI
+        function applyKPI() {
+            if (!window.pendingKPIs || window.pendingKPIs.length === 0) {
+                closeKPIPreview();
+                return;
+            }
+            
+            const kpis = window.pendingKPIs;
+            
+            // Ajouter les colonnes KPI
+            kpis.forEach(kpi => {
+                // Ajouter le nom de la colonne
+                excelColumns.push(kpi.name);
+                
+                // Ajouter la valeur à chaque ligne (même valeur pour toutes les lignes)
+                excelSheetData.forEach(row => {
+                    row.push(kpi.value);
+                });
+            });
+            
+            // Rafraîchir l'affichage
+            renderExcelPreview();
+            
+            // Fermer popup
+            closeKPIPreview();
+            
+            // Notification
+            showToast(`✅ ${kpis.length} colonne${kpis.length > 1 ? 's' : ''} KPI ajoutée${kpis.length > 1 ? 's' : ''}`, 'success');
         }
         
         function quickAction(actionType) {
