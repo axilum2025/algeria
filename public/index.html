@@ -6119,34 +6119,10 @@
                 return;
             }
             
-            // Préparer le contexte Excel UNIQUEMENT si c'est la première fois après le chargement
-            let excelContext = '';
-            if (!excelContextSent && excelSheetData.length > 0 && excelColumns.length > 0) {
-                excelContext = `\n\n[CONTEXTE FICHIER EXCEL]\nNom du fichier: ${excelCurrentFile?.name || 'Document Excel'}\nNombre de lignes: ${excelSheetData.length}\nNombre de colonnes: ${excelColumns.length}\nColonnes: ${excelColumns.join(', ')}\n\nAperçu des données (premières lignes):\n`;
-                
-                // Ajouter les en-têtes
-                excelContext += excelColumns.join(' | ') + '\n';
-                excelContext += '-'.repeat(excelColumns.join(' | ').length) + '\n';
-                
-                // Ajouter les 10 premières lignes de données
-                const previewRows = excelSheetData.slice(0, 10);
-                previewRows.forEach(row => {
-                    excelContext += row.join(' | ') + '\n';
-                });
-                
-                if (excelSheetData.length > 10) {
-                    excelContext += `\n... et ${excelSheetData.length - 10} autres lignes\n`;
-                }
-                excelContext += '[FIN CONTEXTE EXCEL]\n';
-                
-                // Marquer le contexte comme envoyé
-                excelContextSent = true;
-            }
-            
-            // Ajouter le message utilisateur à l'historique (avec contexte seulement si première fois)
+            // Ajouter le message utilisateur à l'historique (sans contexte Excel car déjà dans le message système)
             excelChatHistory.push({
                 role: 'user',
-                content: message + excelContext
+                content: message
             });
             
             showToast('🤖 AI Management en cours...', 'info');
@@ -6157,10 +6133,10 @@
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ 
-                        message: message + excelContext,  // Ajouter le contexte Excel au message
+                        message: message,  // Message simple sans contexte
                         conversationId: 'ai-management',
                         chatType: 'ai-management',
-                        history: excelChatHistory.slice(0, -1)  // Envoyer l'historique sans le dernier message (déjà dans 'message')
+                        history: excelChatHistory.slice(0, -1)  // Historique avec message système Excel en premier
                     })
                 });
 
@@ -6410,8 +6386,20 @@
                         excelSheetData = [['', '', '']];
                     }
                     
-                    // Réinitialiser le flag pour envoyer le contexte au prochain message
-                    excelContextSent = false;
+                    // Ajouter le contexte Excel comme message système au début de l'historique
+                    const excelContextMessage = `[CONTEXTE FICHIER EXCEL - RÉFÉRENCE PERMANENTE]\nNom du fichier: ${file.name}\nNombre de lignes: ${excelSheetData.length}\nNombre de colonnes: ${excelColumns.length}\nColonnes: ${excelColumns.join(', ')}\n\nAperçu des données (premières lignes):\n` + 
+                        excelColumns.join(' | ') + '\n' +
+                        '-'.repeat(excelColumns.join(' | ').length) + '\n' +
+                        excelSheetData.slice(0, 10).map(row => row.join(' | ')).join('\n') +
+                        (excelSheetData.length > 10 ? `\n... et ${excelSheetData.length - 10} autres lignes\n` : '') +
+                        '[FIN CONTEXTE EXCEL - Ce fichier reste disponible pour référence tout au long de la conversation]\n';
+                    
+                    // Réinitialiser l'historique et ajouter le contexte comme premier message
+                    excelChatHistory = [{
+                        role: 'system',
+                        content: excelContextMessage
+                    }];
+                    excelContextSent = true;  // Marquer comme envoyé
                     
                     renderExcelPreview();
                     document.getElementById('excelUploadZone').style.display = 'none';
