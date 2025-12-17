@@ -6063,6 +6063,66 @@
         window.addEventListener('DOMContentLoaded', checkWelcomePanel);
         
         // Système de détection d'intentions et génération de boutons d'action
+        // Détecter et exécuter automatiquement une action depuis le chat
+        function detectAndAutoExecuteAction(userMessage, aiResponse) {
+            const text = userMessage.toLowerCase();
+            
+            // Phrases clés pour déclenchement automatique
+            const chartKeywords = /crée.*graphique|génère.*graphique|fais.*graphique|visuali|chart|diagramme/i;
+            const kpiKeywords = /crée.*kpi|génère.*kpi|calcule.*kpi|indicateur/i;
+            const cleanKeywords = /nettoie.*données|clean.*data|supprime.*vide/i;
+            const duplicateKeywords = /trouve.*doublon|détecte.*doublon|cherche.*doublon/i;
+            const formulaKeywords = /crée.*formule|génère.*formule|ajoute.*formule/i;
+            
+            // Détection de graphiques
+            if (chartKeywords.test(text)) {
+                addExcelChatMessage('🎨 Génération des graphiques en cours...', 'bot');
+                setTimeout(() => {
+                    generateCharts();
+                }, 500);
+                return true;
+            }
+            
+            // Détection de KPI
+            if (kpiKeywords.test(text)) {
+                addExcelChatMessage('📊 Génération des KPI en cours...', 'bot');
+                setTimeout(() => {
+                    generateKPI();
+                }, 500);
+                return true;
+            }
+            
+            // Détection de nettoyage
+            if (cleanKeywords.test(text)) {
+                addExcelChatMessage('🧹 Nettoyage des données en cours...', 'bot');
+                setTimeout(() => {
+                    cleanDataAutomatically();
+                }, 500);
+                return true;
+            }
+            
+            // Détection de doublons
+            if (duplicateKeywords.test(text)) {
+                addExcelChatMessage('🔍 Détection des doublons en cours...', 'bot');
+                setTimeout(() => {
+                    detectDuplicates();
+                }, 500);
+                return true;
+            }
+            
+            // Détection de formules
+            if (formulaKeywords.test(text)) {
+                addExcelChatMessage('🧮 Génération des formules en cours...', 'bot');
+                setTimeout(() => {
+                    generateFormulas();
+                }, 500);
+                return true;
+            }
+            
+            return false; // Aucune action auto-détectée
+        }
+        
+        // Système de détection d'intentions et génération de boutons d'action
         function detectIntentionsAndAddButtons(aiResponse) {
             const intentions = [];
             const text = aiResponse.toLowerCase();
@@ -6351,11 +6411,15 @@
                     content: aiResponse
                 });
                 
-                // Détecter les intentions et ajouter des boutons d'action
-                const responseWithActions = detectIntentionsAndAddButtons(aiResponse);
+                // Détecter les intentions et exécuter automatiquement si c'est une demande d'action
+                const autoExecuted = detectAndAutoExecuteAction(message, aiResponse);
                 
-                addExcelChatMessage(responseWithActions, 'bot');
-                showToast('✅ Réponse générée', 'success');
+                if (!autoExecuted) {
+                    // Si pas d'exécution auto, détecter intentions et ajouter boutons
+                    const responseWithActions = detectIntentionsAndAddButtons(aiResponse);
+                    addExcelChatMessage(responseWithActions, 'bot');
+                    showToast('✅ Réponse générée', 'success');
+                }
             } catch (error) {
                 console.error('Erreur AI:', error);
                 addExcelChatMessage('Désolé, une erreur s\'est produite. Veuillez réessayer.', 'bot');
