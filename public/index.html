@@ -6129,6 +6129,13 @@
             
             try {
                 const endpoint = getEndpoint();
+                
+                // Convertir l'historique au format attendu par le backend (type au lieu de role)
+                const historyForBackend = excelChatHistory.slice(0, -1).map(msg => ({
+                    type: msg.role === 'assistant' ? 'bot' : msg.role,  // assistant -> bot, user reste user, system reste system
+                    content: msg.content
+                }));
+                
                 const response = await fetch(endpoint, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -6136,7 +6143,7 @@
                         message: message,  // Message simple sans contexte
                         conversationId: 'ai-management',
                         chatType: 'ai-management',
-                        history: excelChatHistory.slice(0, -1)  // Historique avec message système Excel en premier
+                        history: historyForBackend  // Historique converti avec type au lieu de role
                     })
                 });
 

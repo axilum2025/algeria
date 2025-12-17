@@ -155,11 +155,14 @@ Ne mentionne pas tes capacités ou fonctionnalités à moins que l'utilisateur n
         }];
 
         recentHistory.forEach(msg => {
-            if (msg.type === 'user' && msg.content) {
+            if ((msg.type === 'user' || msg.role === 'user') && msg.content) {
                 messages.push({ role: "user", content: msg.content });
-            } else if (msg.type === 'bot' && msg.content) {
+            } else if ((msg.type === 'bot' || msg.role === 'assistant') && msg.content) {
                 const cleanContent = msg.content.replace(/\n*---[\s\S]*/g, '').replace(/\n*💡.*\n*/gi, '').trim();
                 if (cleanContent) messages.push({ role: "assistant", content: cleanContent });
+            } else if ((msg.type === 'system' || msg.role === 'system') && msg.content) {
+                // Messages système comme le contexte Excel
+                messages.push({ role: "user", content: msg.content });
             }
         });
 
