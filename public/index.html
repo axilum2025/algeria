@@ -6090,12 +6090,6 @@
                 return;
             }
             
-            // Ajouter le message utilisateur à l'historique
-            excelChatHistory.push({
-                role: 'user',
-                content: message
-            });
-            
             // Préparer le contexte Excel si des données sont disponibles
             let excelContext = '';
             if (excelSheetData.length > 0 && excelColumns.length > 0) {
@@ -6116,6 +6110,12 @@
                 }
                 excelContext += '[FIN CONTEXTE EXCEL]\n';
             }
+            
+            // Ajouter le message utilisateur à l'historique AVEC le contexte Excel
+            excelChatHistory.push({
+                role: 'user',
+                content: message + excelContext
+            });
             
             showToast('🤖 AI Management en cours...', 'info');
             
