@@ -6448,6 +6448,8 @@
         async function excelAiAction(actionType) {
             if (actionType === 'clean') {
                 await cleanDataAutomatically();
+            } else if (actionType === 'duplicates') {
+                await detectDuplicates();
             } else {
                 showToast('🤖 Action IA: ' + actionType + ' (en développement)', 'info');
             }
@@ -6628,6 +6630,171 @@ Si aucun problème: réponds "Aucun problème détecté"`;
             } else {
                 showToast('✅ Aucune modification nécessaire', 'success');
             }
+        }
+        
+        // Action PRO : Détecter les doublons
+        async function detectDuplicates() {
+            if (excelSheetData.length === 0) {
+                showToast('⚠️ Aucune donnée à analyser', 'warning');
+                return;
+            }
+            
+            showToast('🔍 Détection des doublons en cours...', 'info');
+            
+            // Détecter les doublons
+            const duplicateGroups = [];
+            const seen = new Map();
+            
+            excelSheetData.forEach((row, index) => {
+                const key = JSON.stringify(row);
+                if (seen.has(key)) {
+                    // C'est un doublon
+                    const firstIndex = seen.get(key);
+                    let group = duplicateGroups.find(g => g.includes(firstIndex));
+                    if (group) {
+                        group.push(index);
+                    } else {
+                        duplicateGroups.push([firstIndex, index]);
+                    }
+                } else {
+                    seen.set(key, index);
+                }
+            });
+            
+            if (duplicateGroups.length === 0) {
+                showToast('✅ Aucun doublon détecté', 'success');
+                return;
+            }
+            
+            // Compter le nombre total de doublons
+            const totalDuplicates = duplicateGroups.reduce((sum, group) => sum + group.length - 1, 0);
+            
+            // Afficher la popup de prévisualisation
+            showDuplicatesPreview(duplicateGroups, totalDuplicates);
+        }
+        
+        // Afficher popup de prévisualisation des doublons
+        function showDuplicatesPreview(duplicateGroups, totalDuplicates) {
+            const popup = document.createElement('div');
+            popup.id = 'duplicatesPreviewPopup';
+            popup.style.cssText = `
+                position: fixed;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                background: rgba(0,0,0,0.5);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                z-index: 10000;
+                backdrop-filter: blur(4px);
+            `;
+            
+            // Générer la liste des groupes de doublons
+            let duplicatesList = '';
+            duplicateGroups.slice(0, 5).forEach((group, idx) => {
+                const rowContent = excelSheetData[group[0]].join(' | ');
+                duplicatesList += `
+                    <div style="background: rgba(239,68,68,0.05); border-left: 3px solid #EF4444; padding: 12px; border-radius: 6px; margin-bottom: 10px;">
+                        <div style="color: #EF4444; font-weight: 600; font-size: 12px; margin-bottom: 6px;">
+                            Groupe ${idx + 1} : ${group.length} lignes identiques
+                        </div>
+                        <div style="color: var(--text-secondary); font-size: 12px; font-family: monospace; overflow-x: auto; white-space: nowrap;">
+                            ${rowContent.substring(0, 100)}${rowContent.length > 100 ? '...' : ''}
+                        </div>
+                        <div style="color: var(--text-secondary); font-size: 11px; margin-top: 4px;">
+                            Lignes : ${group.map(i => i + 1).join(', ')}
+                        </div>
+                    </div>
+                `;
+            });
+            
+            if (duplicateGroups.length > 5) {
+                duplicatesList += `
+                    <div style="color: var(--text-secondary); font-size: 12px; text-align: center; padding: 8px;">
+                        ... et ${duplicateGroups.length - 5} autres groupe${duplicateGroups.length - 5 > 1 ? 's' : ''} de doublons
+                    </div>
+                `;
+            }
+            
+            popup.innerHTML = `
+                <div style="background: white; border-radius: 16px; padding: 32px; max-width: 700px; width: 90%; max-height: 80vh; overflow-y: auto; box-shadow: 0 20px 60px rgba(0,0,0,0.3);">
+                    <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 20px;">
+                        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#EF4444" stroke-width="2">
+                            <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
+                            <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+                        </svg>
+                        <div>
+                            <h2 style="margin: 0; color: var(--text-primary); font-size: 24px; font-weight: 700;">Doublons détectés</h2>
+                            <p style="margin: 4px 0 0; color: var(--text-secondary); font-size: 14px;">${totalDuplicates} ligne${totalDuplicates > 1 ? 's' : ''} en double trouvée${totalDuplicates > 1 ? 's' : ''}</p>
+                        </div>
+                    </div>
+                    
+                    <div style="background: rgba(99,102,241,0.05); border: 1px solid rgba(99,102,241,0.2); border-radius: 10px; padding: 16px; margin-bottom: 20px;">
+                        <div style="color: var(--text-primary); font-size: 13px; font-weight: 600; margin-bottom: 12px;">
+                            📋 Groupes de doublons détectés :
+                        </div>
+                        ${duplicatesList}
+                    </div>
+                    
+                    <div style="background: rgba(245,158,11,0.1); border: 1px solid rgba(245,158,11,0.3); border-radius: 8px; padding: 12px; margin-bottom: 24px;">
+                        <div style="display: flex; align-items: center; gap: 8px; color: #D97706; font-size: 13px; font-weight: 600;">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+                                <line x1="12" y1="9" x2="12" y2="13"/>
+                                <line x1="12" y1="17" x2="12.01" y2="17"/>
+                            </svg>
+                            Pour chaque groupe, la 1ère ligne sera conservée, les autres supprimées
+                        </div>
+                    </div>
+                    
+                    <div style="display: flex; gap: 12px; justify-content: flex-end;">
+                        <button onclick="closeDuplicatesPreview()" style="padding: 12px 24px; background: white; border: 2px solid var(--border-color); border-radius: 10px; color: var(--text-primary); cursor: pointer; font-weight: 600; font-size: 14px; transition: all 0.2s;" onmouseover="this.style.background='#F3F4F6'" onmouseout="this.style.background='white'">
+                            Annuler
+                        </button>
+                        <button onclick="applyRemoveDuplicates()" style="padding: 12px 24px; background: linear-gradient(135deg, #EF4444, #DC2626); border: none; border-radius: 10px; color: white; cursor: pointer; font-weight: 600; font-size: 14px; transition: all 0.2s; box-shadow: 0 4px 12px rgba(239,68,68,0.3);" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 20px rgba(239,68,68,0.4)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 12px rgba(239,68,68,0.3)'">
+                            Supprimer les doublons
+                        </button>
+                    </div>
+                </div>
+            `;
+            
+            document.body.appendChild(popup);
+        }
+        
+        function closeDuplicatesPreview() {
+            const popup = document.getElementById('duplicatesPreviewPopup');
+            if (popup) popup.remove();
+        }
+        
+        // Appliquer la suppression des doublons
+        function applyRemoveDuplicates() {
+            const initialLength = excelSheetData.length;
+            
+            // Supprimer les doublons (garder la première occurrence)
+            const uniqueRows = [];
+            const seen = new Set();
+            
+            excelSheetData.forEach(row => {
+                const key = JSON.stringify(row);
+                if (!seen.has(key)) {
+                    seen.add(key);
+                    uniqueRows.push(row);
+                }
+            });
+            
+            excelSheetData = uniqueRows;
+            const removed = initialLength - excelSheetData.length;
+            
+            // Rafraîchir l'affichage
+            renderExcelPreview();
+            
+            // Fermer popup
+            closeDuplicatesPreview();
+            
+            // Notification
+            showToast(`✅ ${removed} doublon${removed > 1 ? 's' : ''} supprimé${removed > 1 ? 's' : ''}`, 'success');
         }
         
         function quickAction(actionType) {
