@@ -6445,8 +6445,189 @@
             showToast(`📦 Classeur "${excelCurrentFile?.name || 'Classeur'}" réduit`, 'info');
         }
         
-        function excelAiAction(actionType) {
-            showToast('🤖 Action IA: ' + actionType, 'info');
+        async function excelAiAction(actionType) {
+            if (actionType === 'clean') {
+                await cleanDataAutomatically();
+            } else {
+                showToast('🤖 Action IA: ' + actionType + ' (en développement)', 'info');
+            }
+        }
+        
+        // Action PRO : Nettoyer automatiquement les données
+        async function cleanDataAutomatically() {
+            if (excelSheetData.length === 0) {
+                showToast('⚠️ Aucune donnée à nettoyer', 'warning');
+                return;
+            }
+            
+            showToast('🔍 Analyse des données en cours...', 'info');
+            
+            try {
+                // Préparer les données pour l'analyse
+                const dataPreview = excelSheetData.slice(0, 20).map(row => row.join(' | ')).join('\n');
+                const prompt = `Analyse ce fichier Excel et identifie les problèmes de qualité des données :
+
+Colonnes: ${excelColumns.join(', ')}
+Nombre total de lignes: ${excelSheetData.length}
+
+Aperçu des données:
+${dataPreview}
+
+Identifie et liste UNIQUEMENT les problèmes réels trouvés parmi :
+1. Lignes complètement vides
+2. Espaces inutiles au début/fin des cellules
+3. Valeurs en double (lignes identiques)
+4. Cellules avec valeurs nulles/vides importantes
+5. Incohérences de format (dates, nombres)
+
+Réponds dans ce format exact:
+PROBLÈMES DÉTECTÉS:
+- [Type de problème]: [nombre] occurences (lignes X, Y, Z)
+
+Si aucun problème: réponds "Aucun problème détecté"`;
+
+                const endpoint = getEndpoint();
+                const response = await fetch(endpoint, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        message: prompt,
+                        conversationId: 'ai-management',
+                        chatType: 'ai-management',
+                        history: []
+                    })
+                });
+                
+                if (!response.ok) throw new Error('Erreur API');
+                
+                const data = await response.json();
+                let analysis = data.response || data.message || 'Analyse impossible';
+                
+                // Nettoyer la réponse
+                analysis = analysis.replace(/\n*---[\s\S]*$/g, '').trim();
+                
+                // Afficher popup de prévisualisation
+                showCleanPreview(analysis);
+                
+            } catch (error) {
+                console.error('Erreur analyse:', error);
+                showToast('❌ Erreur lors de l\'analyse', 'error');
+            }
+        }
+        
+        // Afficher popup de prévisualisation du nettoyage
+        function showCleanPreview(analysis) {
+            // Créer popup
+            const popup = document.createElement('div');
+            popup.id = 'cleanPreviewPopup';
+            popup.style.cssText = `
+                position: fixed;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                background: rgba(0,0,0,0.5);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                z-index: 10000;
+                backdrop-filter: blur(4px);
+            `;
+            
+            popup.innerHTML = `
+                <div style="background: white; border-radius: 16px; padding: 32px; max-width: 600px; width: 90%; max-height: 80vh; overflow-y: auto; box-shadow: 0 20px 60px rgba(0,0,0,0.3);">
+                    <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 20px;">
+                        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2">
+                            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+                            <polyline points="22 4 12 14.01 9 11.01"/>
+                        </svg>
+                        <h2 style="margin: 0; color: var(--text-primary); font-size: 24px; font-weight: 700;">Analyse du nettoyage</h2>
+                    </div>
+                    
+                    <div style="background: rgba(99,102,241,0.05); border-left: 4px solid #6366F1; padding: 16px; border-radius: 8px; margin-bottom: 24px;">
+                        <div style="color: var(--text-primary); font-size: 14px; line-height: 1.8; white-space: pre-wrap;">${analysis}</div>
+                    </div>
+                    
+                    <div style="background: rgba(245,158,11,0.1); border: 1px solid rgba(245,158,11,0.3); border-radius: 8px; padding: 12px; margin-bottom: 24px;">
+                        <div style="display: flex; align-items: center; gap: 8px; color: #D97706; font-size: 13px; font-weight: 600;">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+                                <line x1="12" y1="9" x2="12" y2="13"/>
+                                <line x1="12" y1="17" x2="12.01" y2="17"/>
+                            </svg>
+                            Les modifications seront appliquées directement au fichier
+                        </div>
+                    </div>
+                    
+                    <div id="cleanActions" style="display: flex; gap: 12px; justify-content: flex-end;">
+                        <button onclick="closeCleanPreview()" style="padding: 12px 24px; background: white; border: 2px solid var(--border-color); border-radius: 10px; color: var(--text-primary); cursor: pointer; font-weight: 600; font-size: 14px; transition: all 0.2s;" onmouseover="this.style.background='#F3F4F6'" onmouseout="this.style.background='white'">
+                            Annuler
+                        </button>
+                        <button onclick="applyCleanData()" style="padding: 12px 24px; background: linear-gradient(135deg, #10B981, #059669); border: none; border-radius: 10px; color: white; cursor: pointer; font-weight: 600; font-size: 14px; transition: all 0.2s; box-shadow: 0 4px 12px rgba(16,185,129,0.3);" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 20px rgba(16,185,129,0.4)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 12px rgba(16,185,129,0.3)'">
+                            Appliquer le nettoyage
+                        </button>
+                    </div>
+                </div>
+            `;
+            
+            document.body.appendChild(popup);
+        }
+        
+        function closeCleanPreview() {
+            const popup = document.getElementById('cleanPreviewPopup');
+            if (popup) popup.remove();
+        }
+        
+        // Appliquer le nettoyage des données
+        function applyCleanData() {
+            let modificationsCount = 0;
+            
+            // 1. Supprimer lignes complètement vides
+            const initialLength = excelSheetData.length;
+            excelSheetData = excelSheetData.filter(row => {
+                const isEmpty = row.every(cell => !cell || cell.toString().trim() === '');
+                if (isEmpty) modificationsCount++;
+                return !isEmpty;
+            });
+            
+            // 2. Nettoyer espaces inutiles
+            excelSheetData = excelSheetData.map(row => {
+                return row.map(cell => {
+                    if (typeof cell === 'string') {
+                        const trimmed = cell.trim();
+                        if (trimmed !== cell) modificationsCount++;
+                        return trimmed;
+                    }
+                    return cell;
+                });
+            });
+            
+            // 3. Supprimer doublons (lignes identiques)
+            const uniqueRows = [];
+            const seen = new Set();
+            excelSheetData.forEach(row => {
+                const key = JSON.stringify(row);
+                if (!seen.has(key)) {
+                    seen.add(key);
+                    uniqueRows.push(row);
+                } else {
+                    modificationsCount++;
+                }
+            });
+            excelSheetData = uniqueRows;
+            
+            // Rafraîchir l'affichage
+            renderExcelPreview();
+            
+            // Fermer popup
+            closeCleanPreview();
+            
+            // Notification
+            if (modificationsCount > 0) {
+                showToast(`✅ ${modificationsCount} modification${modificationsCount > 1 ? 's' : ''} appliquée${modificationsCount > 1 ? 's' : ''}`, 'success');
+            } else {
+                showToast('✅ Aucune modification nécessaire', 'success');
+            }
         }
         
         function quickAction(actionType) {
