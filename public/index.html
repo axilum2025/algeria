@@ -6079,6 +6079,10 @@
                 addExcelChatMessage('🎨 Génération des graphiques en cours...', 'bot');
                 setTimeout(() => {
                     generateCharts();
+                    // Message avec redirection vers le bouton
+                    setTimeout(() => {
+                        addExcelChatMessage('✅ Graphiques générés ! Cliquez sur le bouton <strong>📊 Générer des graphiques</strong> ci-dessus pour voir le résultat et les ajouter à votre feuille.', 'bot');
+                    }, 1500);
                 }, 500);
                 return true;
             }
@@ -6088,6 +6092,10 @@
                 addExcelChatMessage('📊 Génération des KPI en cours...', 'bot');
                 setTimeout(() => {
                     generateKPI();
+                    // Message avec redirection vers le bouton
+                    setTimeout(() => {
+                        addExcelChatMessage('✅ KPI générés ! Cliquez sur le bouton <strong>📊 Générer des KPI</strong> ci-dessus pour voir le résultat et les ajouter à votre feuille.', 'bot');
+                    }, 1500);
                 }, 500);
                 return true;
             }
@@ -6097,6 +6105,10 @@
                 addExcelChatMessage('🧹 Nettoyage des données en cours...', 'bot');
                 setTimeout(() => {
                     cleanDataAutomatically();
+                    // Message avec confirmation
+                    setTimeout(() => {
+                        addExcelChatMessage('✅ Données nettoyées ! Les modifications ont été appliquées à votre feuille.', 'bot');
+                    }, 1500);
                 }, 500);
                 return true;
             }
@@ -6106,6 +6118,10 @@
                 addExcelChatMessage('🔍 Détection des doublons en cours...', 'bot');
                 setTimeout(() => {
                     detectDuplicates();
+                    // Message avec confirmation
+                    setTimeout(() => {
+                        addExcelChatMessage('✅ Doublons détectés ! Les résultats sont affichés dans la feuille.', 'bot');
+                    }, 1500);
                 }, 500);
                 return true;
             }
@@ -6115,6 +6131,10 @@
                 addExcelChatMessage('🧮 Génération des formules en cours...', 'bot');
                 setTimeout(() => {
                     generateFormulas();
+                    // Message avec redirection vers le bouton
+                    setTimeout(() => {
+                        addExcelChatMessage('✅ Formules générées ! Cliquez sur le bouton <strong>🧮 Générer des formules</strong> ci-dessus pour voir le résultat et les ajouter à votre feuille.', 'bot');
+                    }, 1500);
                 }, 500);
                 return true;
             }
