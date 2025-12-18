@@ -100,6 +100,34 @@
             background: rgba(255,255,255,0.25);
         }
 
+        /* Auto-save indicator */
+        .save-indicator {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 10px;
+            border-radius: 12px;
+            background: rgba(255,255,255,0.15);
+            color: white;
+            font-size: 12px;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .save-indicator.show {
+            opacity: 1;
+        }
+
+        .save-indicator.saving {
+            background: rgba(251, 191, 36, 0.2);
+            color: #FCD34D;
+        }
+
+        .save-indicator.saved {
+            background: rgba(16, 185, 129, 0.2);
+            color: #6EE7B7;
+        }
+
         /* Ribbon Menu */
         .ribbon {
             background: var(--bg-white);
@@ -469,6 +497,12 @@
                 Excel AI Expert
             </div>
             <span class="excel-title" id="fileName">Nouveau classeur</span>
+            <div class="save-indicator" id="saveIndicator">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="20 6 9 17 4 12"/>
+                </svg>
+                <span id="saveIndicatorText">Sauvegardé</span>
+            </div>
         </div>
         <div style="display: flex; align-items: center; gap: 8px;">
             <button class="header-btn" onclick="window.location.href='/'">
@@ -507,6 +541,16 @@
                         <line x1="12" y1="15" x2="12" y2="3"/>
                     </svg>
                     Exporter
+                </button>
+                <button class="ribbon-btn" onclick="clearSession()" title="Nouvelle session (efface toutes les données)">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M3 6h18"/>
+                        <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/>
+                        <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/>
+                        <line x1="10" y1="11" x2="10" y2="17"/>
+                        <line x1="14" y1="11" x2="14" y2="17"/>
+                    </svg>
+                    Nouvelle Session
                 </button>
             </div>
         </div>
@@ -678,6 +722,238 @@
         let chatHistory = [];
         let actionHistory = [];
 
+        // ==================================================
+        // SAUVEGARDE AUTOMATIQUE - AUTO-SAVE FEATURE
+        // ==================================================
+        
+        // Récupérer l'utilisateur connecté (compatible avec le système d'authentification)
+        function getCurrentUser() {
+            try {
+                return JSON.parse(localStorage.getItem('currentUser') || 'null');
+            } catch (e) {
+                return null;
+            }
+        }
+
+        // Générer une clé de sauvegarde unique par utilisateur
+        function getSaveKey() {
+            const user = getCurrentUser();
+            const userId = user?.id || user?.email || 'guest';
+            return `excel_ai_session_${userId}`;
+        }
+
+        // Afficher l'indicateur de sauvegarde
+        function showSaveIndicator(status) {
+            const indicator = document.getElementById('saveIndicator');
+            const indicatorText = document.getElementById('saveIndicatorText');
+            
+            if (!indicator || !indicatorText) return;
+            
+            // Réinitialiser les classes
+            indicator.classList.remove('saving', 'saved');
+            
+            if (status === 'saving') {
+                indicator.classList.add('show', 'saving');
+                indicatorText.textContent = 'Sauvegarde...';
+            } else if (status === 'saved') {
+                indicator.classList.add('show', 'saved');
+                indicatorText.textContent = 'Sauvegardé';
+                
+                // Masquer après 2 secondes
+                setTimeout(() => {
+                    indicator.classList.remove('show');
+                }, 2000);
+            }
+        }
+
+        // Sauvegarder la session (données Excel + historique chat)
+        function saveSession() {
+            try {
+                // Afficher l'indicateur "En cours de sauvegarde..."
+                showSaveIndicator('saving');
+                
+                const sessionData = {
+                    excelData: excelData,
+                    excelColumns: excelColumns,
+                    currentFileName: currentFileName,
+                    chatHistory: chatHistory,
+                    actionHistory: actionHistory,
+                    timestamp: new Date().toISOString(),
+                    version: '1.0'
+                };
+
+                localStorage.setItem(getSaveKey(), JSON.stringify(sessionData));
+                console.log('✅ Session sauvegardée automatiquement');
+                
+                // Afficher l'indicateur "Sauvegardé"
+                showSaveIndicator('saved');
+                
+                return true;
+            } catch (error) {
+                console.error('❌ Erreur lors de la sauvegarde:', error);
+                return false;
+            }
+        }
+
+        // Charger la session sauvegardée
+        function loadSession() {
+            try {
+                const savedData = localStorage.getItem(getSaveKey());
+                if (!savedData) {
+                    console.log('ℹ️ Aucune session sauvegardée trouvée');
+                    return false;
+                }
+
+                const sessionData = JSON.parse(savedData);
+                
+                // Vérifier que les données sont valides
+                if (!sessionData.version || !sessionData.timestamp) {
+                    console.log('⚠️ Format de session invalide');
+                    return false;
+                }
+
+                // Restaurer les données
+                excelData = sessionData.excelData || [];
+                excelColumns = sessionData.excelColumns || [];
+                currentFileName = sessionData.currentFileName || '';
+                chatHistory = sessionData.chatHistory || [];
+                actionHistory = sessionData.actionHistory || [];
+
+                // Afficher les données si elles existent
+                if (excelData.length > 0 && excelColumns.length > 0) {
+                    document.getElementById('fileName').textContent = currentFileName;
+                    displayExcelData();
+                    document.getElementById('exportBtn').style.display = 'flex';
+                }
+
+                // Restaurer l'historique du chat
+                const chatMessages = document.getElementById('chatMessages');
+                chatMessages.innerHTML = ''; // Vider le chat
+                
+                if (chatHistory.length > 0) {
+                    chatHistory.forEach(msg => {
+                        const messageDiv = document.createElement('div');
+                        messageDiv.className = `chat-message ${msg.type}`;
+                        messageDiv.innerHTML = msg.message;
+                        chatMessages.appendChild(messageDiv);
+                    });
+                    chatMessages.scrollTop = chatMessages.scrollHeight;
+                } else {
+                    // Message de bienvenue par défaut
+                    const welcomeDiv = document.createElement('div');
+                    welcomeDiv.className = 'chat-message bot';
+                    welcomeDiv.textContent = '👋 Bonjour ! Je suis votre assistant Excel AI. Importez un fichier pour commencer ou posez-moi une question sur Excel.';
+                    chatMessages.appendChild(welcomeDiv);
+                }
+
+                // Restaurer l'historique des actions
+                const historyList = document.getElementById('historyList');
+                historyList.innerHTML = '';
+                
+                if (actionHistory.length > 0) {
+                    actionHistory.forEach(action => {
+                        const historyItem = document.createElement('div');
+                        historyItem.className = 'history-item';
+                        historyItem.textContent = action;
+                        historyList.appendChild(historyItem);
+                    });
+                } else {
+                    const emptyItem = document.createElement('div');
+                    emptyItem.className = 'history-item';
+                    emptyItem.textContent = 'Aucune action pour le moment';
+                    historyList.appendChild(emptyItem);
+                }
+
+                console.log('✅ Session restaurée avec succès');
+                
+                // Ajouter un message informatif dans le chat
+                const restoreMsg = document.createElement('div');
+                restoreMsg.className = 'chat-message bot';
+                restoreMsg.innerHTML = `💾 <strong>Session restaurée</strong><br>Vos données et conversations précédentes ont été récupérées.`;
+                chatMessages.appendChild(restoreMsg);
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+
+                return true;
+            } catch (error) {
+                console.error('❌ Erreur lors du chargement de la session:', error);
+                return false;
+            }
+        }
+
+        // Effacer la session (nouvelle session)
+        function clearSession() {
+            if (confirm('⚠️ Voulez-vous vraiment commencer une nouvelle session ?\n\nCela effacera :\n- Les données Excel actuelles\n- L\'historique du chat\n- L\'historique des actions\n\nCette action est irréversible.')) {
+                try {
+                    // Supprimer la sauvegarde
+                    localStorage.removeItem(getSaveKey());
+                    
+                    // Réinitialiser toutes les variables
+                    excelData = [];
+                    excelColumns = [];
+                    currentFileName = '';
+                    chatHistory = [];
+                    actionHistory = [];
+                    
+                    // Réinitialiser l'interface
+                    document.getElementById('fileName').textContent = 'Aucun fichier';
+                    document.getElementById('uploadZone').style.display = 'flex';
+                    document.getElementById('tableContainer').style.display = 'none';
+                    document.getElementById('exportBtn').style.display = 'none';
+                    
+                    // Réinitialiser le chat
+                    const chatMessages = document.getElementById('chatMessages');
+                    chatMessages.innerHTML = '';
+                    const welcomeDiv = document.createElement('div');
+                    welcomeDiv.className = 'chat-message bot';
+                    welcomeDiv.textContent = '👋 Bonjour ! Je suis votre assistant Excel AI. Importez un fichier pour commencer ou posez-moi une question sur Excel.';
+                    chatMessages.appendChild(welcomeDiv);
+                    
+                    // Réinitialiser l'historique
+                    const historyList = document.getElementById('historyList');
+                    historyList.innerHTML = '';
+                    const emptyItem = document.createElement('div');
+                    emptyItem.className = 'history-item';
+                    emptyItem.textContent = 'Aucune action pour le moment';
+                    historyList.appendChild(emptyItem);
+                    
+                    console.log('✅ Session effacée avec succès');
+                    addChatMessage('✨ <strong>Nouvelle session démarrée</strong><br>Toutes les données précédentes ont été effacées.', 'bot');
+                } catch (error) {
+                    console.error('❌ Erreur lors de l\'effacement de la session:', error);
+                    alert('Erreur lors de l\'effacement de la session: ' + error.message);
+                }
+            }
+        }
+
+        // Sauvegarder automatiquement avant de quitter la page
+        window.addEventListener('beforeunload', function(e) {
+            // Sauvegarder uniquement s'il y a des données à sauvegarder
+            if (excelData.length > 0 || chatHistory.length > 0 || actionHistory.length > 0) {
+                saveSession();
+                
+                // Message optionnel pour prévenir l'utilisateur
+                // Note: Les navigateurs modernes n'affichent pas de message personnalisé
+                e.preventDefault();
+                e.returnValue = '';
+            }
+        });
+
+        // Sauvegarde automatique périodique (toutes les 30 secondes)
+        setInterval(function() {
+            if (excelData.length > 0 || chatHistory.length > 0) {
+                saveSession();
+            }
+        }, 30000); // 30 secondes
+
+        // Charger la session au démarrage
+        window.addEventListener('DOMContentLoaded', function() {
+            loadSession();
+        });
+
+        // ==================================================
+        // FIN DE LA SAUVEGARDE AUTOMATIQUE
+        // ==================================================
+
         // Handle file upload
         function handleFileUpload(event) {
             const file = event.target.files[0];
@@ -701,6 +977,9 @@
                         addChatMessage('✅ Fichier chargé avec succès ! ' + excelData.length + ' lignes et ' + excelColumns.length + ' colonnes détectées.', 'bot');
                         addHistory('Importation: ' + currentFileName);
                         document.getElementById('exportBtn').style.display = 'flex';
+                        
+                        // Sauvegarder automatiquement après l'import
+                        saveSession();
                     }
                 } catch (error) {
                     addChatMessage('❌ Erreur lors du chargement du fichier: ' + error.message, 'bot');
@@ -874,6 +1153,10 @@ Tu es un expert Excel AI. Aide l'utilisateur avec ses données Excel, formules, 
             messagesContainer.scrollTop = messagesContainer.scrollHeight;
 
             chatHistory.push({type, message, timestamp: new Date()});
+            
+            // Sauvegarder automatiquement après chaque message
+            saveSession();
+            
             return messageDiv; // Retourner l'élément pour pouvoir le modifier
         }
 
@@ -944,6 +1227,9 @@ Tu es un expert Excel AI. Aide l'utilisateur avec ses données Excel, formules, 
                 historyList.removeChild(historyList.lastChild);
                 actionHistory.pop();
             }
+            
+            // Sauvegarder automatiquement après chaque action
+            saveSession();
         }
 
         // Help modal
