@@ -6166,18 +6166,24 @@
                 });
             }
             
-            if (text.match(/formule|somme|moyenne|calcul|total/i)) {
+            if (text.match(/optimis|améliore|performance|qualité|efficacité/i)) {
                 intentions.push({
-                    action: 'formulas',
-                    label: 'Formules avancées',
+                    action: 'optimize',
+                    label: '✨ Optimiser',
                     type: 'pro'
                 });
             }
             
-            // Graphiques désactivés - trop complexe à implémenter dans Excel
-            // L'IA donnera des suggestions textuelles au lieu d'une action
+            if (text.match(/audit|analyse|vérif|contrôle|qualité.*données|erreur/i)) {
+                intentions.push({
+                    action: 'audit',
+                    label: '🔍 Auditer',
+                    type: 'pro'
+                });
+            }
             
-            // Détecter les actions FREE
+            // Mode FREE : Pas de boutons d'action
+            // L'IA donne seulement des explications et suggestions textuelles
             if (text.match(/ajoute.*ligne|nouvelle ligne|insérer.*ligne/i)) {
                 intentions.push({
                     action: 'addRow',
@@ -6229,33 +6235,19 @@
         function executeActionFromChat(action) {
             console.log('🎯 Action demandée depuis le chat:', action);
             
-            // Actions PRO
+            // Actions PRO uniquement
             if (action === 'clean') {
                 cleanDataAutomatically();
             } else if (action === 'duplicates') {
                 detectDuplicates();
             } else if (action === 'kpi') {
                 generateKPI();
-            } else if (action === 'formulas') {
-                generateFormulas();
+            } else if (action === 'optimize') {
+                optimizeExcelData();
+            } else if (action === 'audit') {
+                auditExcelData();
             }
-            // Charts désactivés - trop complexe
-            // Actions FREE
-            else if (action === 'addRow') {
-                const newRow = new Array(excelColumns.length).fill('');
-                excelSheetData.push(newRow);
-                renderExcelPreview();
-                showToast('✅ Ligne ajoutée', 'success');
-            } else if (action === 'addColumn') {
-                excelColumns.push(`Colonne ${excelColumns.length + 1}`);
-                excelSheetData.forEach(row => row.push(''));
-                renderExcelPreview();
-                showToast('✅ Colonne ajoutée', 'success');
-            } else if (action === 'sort') {
-                showToast('💡 Utilisez les flèches ↑↓ dans les en-têtes de colonnes pour trier', 'info');
-            } else if (action === 'filter') {
-                showToast('💡 Utilisez la barre de recherche pour filtrer les données', 'info');
-            }
+            // Mode FREE : Pas d'actions automatiques, seulement explications
         }
         
         function toggleExcelAIExpert() {
@@ -8671,14 +8663,8 @@ Réponds UNIQUEMENT dans ce format JSON:
                             <div id="excelQuickActions" style="display: none; background: rgba(255,255,255,0.5); border-radius: 12px; padding: 14px; border: 1px solid rgba(0,0,0,0.06); backdrop-filter: blur(10px);">
                                 <h3 style="margin: 0 0 10px; color: var(--text-primary); font-size: 15px; font-weight: 700; letter-spacing: -0.2px;">Actions Rapides</h3>
                                 <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px;">
-                                    <button onclick="quickAction('optimize')" style="padding: 8px 12px; background: rgba(168,220,195,0.08); border: 1px solid rgba(143,203,181,0.25); border-radius: 8px; color: var(--text-primary); cursor: pointer; font-weight: 600; font-size: 12px; transition: all 0.2s;" onmouseover="this.style.background='rgba(168,220,195,0.15)'" onmouseout="this.style.background='rgba(168,220,195,0.08)'">
-                                        Optimiser
-                                    </button>
                                     <button onclick="quickAction('explain')" style="padding: 8px 12px; background: rgba(168,220,195,0.08); border: 1px solid rgba(143,203,181,0.25); border-radius: 8px; color: var(--text-primary); cursor: pointer; font-weight: 600; font-size: 12px; transition: all 0.2s;" onmouseover="this.style.background='rgba(168,220,195,0.15)'" onmouseout="this.style.background='rgba(168,220,195,0.08)'">
                                         Expliquer
-                                    </button>
-                                    <button onclick="quickAction('audit')" style="padding: 8px 12px; background: rgba(168,220,195,0.08); border: 1px solid rgba(143,203,181,0.25); border-radius: 8px; color: var(--text-primary); cursor: pointer; font-weight: 600; font-size: 12px; transition: all 0.2s;" onmouseover="this.style.background='rgba(168,220,195,0.15)'" onmouseout="this.style.background='rgba(168,220,195,0.08)'">
-                                        Auditer
                                     </button>
                                     <button onclick="quickAction('beginner')" style="padding: 8px 12px; background: rgba(168,220,195,0.08); border: 1px solid rgba(143,203,181,0.25); border-radius: 8px; color: var(--text-primary); cursor: pointer; font-weight: 600; font-size: 12px; transition: all 0.2s;" onmouseover="this.style.background='rgba(168,220,195,0.15)'" onmouseout="this.style.background='rgba(168,220,195,0.08)'">
                                         Mode Simple
@@ -8702,11 +8688,11 @@ Réponds UNIQUEMENT dans ce format JSON:
                                     <button onclick="excelAiAction('kpi')" style="padding: 10px 12px; background: rgba(168,220,195,0.1); border: 1px solid rgba(143,203,181,0.3); border-radius: 10px; color: var(--text-primary); cursor: pointer; font-weight: 600; font-size: 12px; transition: all 0.2s; box-shadow: none;" onmouseover="this.style.background='rgba(168,220,195,0.18)'" onmouseout="this.style.background='rgba(168,220,195,0.1)'">
                                         Générer KPI
                                     </button>
-                                    <button onclick="excelAiAction('formulas')" style="padding: 10px 12px; background: rgba(168,220,195,0.1); border: 1px solid rgba(143,203,181,0.3); border-radius: 10px; color: var(--text-primary); cursor: pointer; font-weight: 600; font-size: 12px; transition: all 0.2s; box-shadow: none;" onmouseover="this.style.background='rgba(168,220,195,0.18)'" onmouseout="this.style.background='rgba(168,220,195,0.1)'">
-                                        Formules avancées
+                                    <button onclick="quickAction('optimize')" style="padding: 10px 12px; background: rgba(168,220,195,0.1); border: 1px solid rgba(143,203,181,0.3); border-radius: 10px; color: var(--text-primary); cursor: pointer; font-weight: 600; font-size: 12px; transition: all 0.2s; box-shadow: none;" onmouseover="this.style.background='rgba(168,220,195,0.18)'" onmouseout="this.style.background='rgba(168,220,195,0.1)'">
+                                        Optimiser
                                     </button>
-                                    <button onclick="excelAiAction('charts')" style="padding: 10px 12px; background: rgba(168,220,195,0.1); border: 1px solid rgba(143,203,181,0.3); border-radius: 10px; color: var(--text-primary); cursor: pointer; font-weight: 600; font-size: 12px; transition: all 0.2s; box-shadow: none;" onmouseover="this.style.background='rgba(168,220,195,0.18)'" onmouseout="this.style.background='rgba(168,220,195,0.1)'">
-                                        Créer graphiques
+                                    <button onclick="quickAction('audit')" style="padding: 10px 12px; background: rgba(168,220,195,0.1); border: 1px solid rgba(143,203,181,0.3); border-radius: 10px; color: var(--text-primary); cursor: pointer; font-weight: 600; font-size: 12px; transition: all 0.2s; box-shadow: none;" onmouseover="this.style.background='rgba(168,220,195,0.18)'" onmouseout="this.style.background='rgba(168,220,195,0.1)'">
+                                        Auditer
                                     </button>
                                 </div>
                             </div>
