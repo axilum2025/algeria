@@ -1142,6 +1142,9 @@
             const { name, formula } = cmd;
             if (!name || !formula) return false;
             
+            console.log('🔧 executeCalculateColumn:', { name, formula });
+            console.log('📋 Colonnes disponibles:', excelColumns);
+            
             excelColumns.push(name);
             
             excelData.forEach((row, idx) => {
@@ -1154,6 +1157,9 @@
                         }
                     });
                     
+                    console.log(`📊 Ligne ${idx} - Context:`, context);
+                    console.log(`📊 Ligne ${idx} - Formule originale: "${formula}"`);
+                    
                     // Échapper les caractères spéciaux pour regex et trier par longueur (plus long d'abord)
                     const colNames = Object.keys(context).sort((a, b) => b.length - a.length);
                     
@@ -1162,21 +1168,31 @@
                     colNames.forEach(colName => {
                         const value = context[colName];
                         const numValue = parseFloat(value);
-                        const safeValue = isNaN(numValue) ? 0 : numValue; // Utiliser 0 au lieu de string pour calculs
+                        const safeValue = isNaN(numValue) ? 0 : numValue;
+                        
+                        console.log(`  🔍 Cherche à remplacer "${colName}" par ${safeValue} dans "${evalFormula}"`);
                         
                         // Échapper les caractères spéciaux dans le nom de colonne pour regex
                         const escapedColName = colName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
                         
                         // Remplacer toutes les occurrences (insensible à la casse si besoin)
                         const regex = new RegExp(escapedColName, 'gi');
+                        const beforeReplace = evalFormula;
                         evalFormula = evalFormula.replace(regex, safeValue);
+                        
+                        if (beforeReplace !== evalFormula) {
+                            console.log(`  ✅ Remplacement effectué: "${beforeReplace}" → "${evalFormula}"`);
+                        } else {
+                            console.log(`  ⚠️ Aucun remplacement pour "${colName}"`);
+                        }
                     });
                     
-                    console.log(`📝 Ligne ${idx}: formule originale="${formula}", évaluée="${evalFormula}"`);
+                    console.log(`📝 Ligne ${idx}: formule finale="${evalFormula}"`);
                     
                     // Calculer le résultat
                     const result = Function(`"use strict"; return (${evalFormula})`)();
                     row.push(isNaN(result) ? 0 : result);
+                    console.log(`✅ Résultat ligne ${idx}: ${result}`);
                 } catch (error) {
                     console.error(`❌ Erreur calcul ligne ${idx}: formule="${formula}", error:`, error);
                     row.push('ERROR');
