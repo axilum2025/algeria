@@ -10395,10 +10395,10 @@ Réponds UNIQUEMENT dans ce format JSON:
                 }
                 console.log('═══════════════════════════════════════\n');
                 
-                // Notification visuelle si corrections appliquées
-                if (fixes.length > 0) {
-                    showToast('✅ Interface débloquée ! ' + fixes.length + ' correction(s)', 'success');
-                }
+                // Notification visuelle DÉSACTIVÉE - Fonction travaille silencieusement
+                // if (fixes.length > 0) {
+                //     showToast('✅ Interface débloquée ! ' + fixes.length + ' correction(s)', 'success');
+                // }
                 
                 return fixes.length > 0;
             } catch (error) {
