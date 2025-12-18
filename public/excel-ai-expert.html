@@ -1137,7 +1137,194 @@
             return true;
         }
 
-        // 2. Ajouter une colonne avec calcul
+        // ==================================================
+        // SAFE FORMULA EVALUATOR - No eval, handles accents
+        // ==================================================
+        
+        function safeEvaluate(expression, row, options = {}) {
+            const config = {
+                aliases: options.aliases || {},
+                onMissing: options.onMissing || 'zero',
+                trim: options.trim !== false,
+                normalizeAccents: options.normalizeAccents !== false,
+            };
+
+            try {
+                const expr = config.trim ? String(expression || '').trim() : String(expression || '');
+                if (!expr) return { ok: false, error: 'Empty expression' };
+
+                const tokens = tokenizeArithmetic(expr);
+                if (!tokens.ok) return tokens;
+
+                const idents = tokens.tokens.filter(t => t.type === 'ident').map(t => t.value);
+
+                const banned = new Set([
+                    'globalThis','window','self','global','Function','eval','constructor','__proto__',
+                    'prototype','Object','Array','Map','Set','WeakMap','WeakSet','Proxy','Reflect',
+                    'Intl','JSON','Date','RegExp','Error','Math','document','console','process','require',
+                ]);
+                for (const name of idents) {
+                    if (banned.has(name)) {
+                        return { ok: false, error: `Usage of identifier "${name}" is not allowed in formulas.` };
+                    }
+                }
+
+                const context = Object.create(null);
+                const missing = [];
+
+                const rowKeyByNormalized = new Map();
+                for (const k of Object.keys(row || {})) {
+                    rowKeyByNormalized.set(normalizeKey(k, config.normalizeAccents), k);
+                }
+
+                for (const ident of new Set(idents)) {
+                    const actualKey = resolveKey(ident, config.aliases, rowKeyByNormalized, config.normalizeAccents);
+
+                    let value;
+                    if (actualKey in (row || {})) {
+                        value = coerceToNumber(row[actualKey]);
+                    } else {
+                        if (typeof config.onMissing === 'function') {
+                            value = coerceToNumber(config.onMissing(ident));
+                        } else if (config.onMissing === 'zero') {
+                            value = 0;
+                        } else if (config.onMissing === 'null') {
+                            value = null;
+                        } else if (config.onMissing === 'skip') {
+                            return { ok: false, skip: true, error: `Missing "${ident}"` };
+                        } else {
+                            missing.push(ident);
+                            continue;
+                        }
+                    }
+
+                    if (value !== null && !Number.isFinite(value)) {
+                        return { ok: false, error: `Value for "${ident}" is not a finite number.` };
+                    }
+
+                    context[ident] = value;
+                }
+
+                if (missing.length) {
+                    return { ok: false, error: `Missing variables: ${missing.join(', ')}`, missing };
+                }
+
+                const paramNames = Object.keys(context);
+                const paramValues = paramNames.map(n => context[n]);
+
+                const safeExpr = tokens.tokens.map(t => t.value).join('');
+                const fn = new Function(...paramNames, '"use strict"; return (' + safeExpr + ');');
+                const result = fn(...paramValues);
+
+                if (typeof result === 'number' && !Number.isFinite(result)) {
+                    return { ok: false, error: 'Result is not a finite number.' };
+                }
+
+                return { ok: true, value: result };
+            } catch (err) {
+                return { ok: false, error: String(err && err.message ? err.message : err) };
+            }
+
+            function normalizeKey(key, foldAccents = true) {
+                let s = String(key);
+                if (foldAccents && s.normalize) {
+                    s = s.normalize('NFD').replace(/\p{M}+/gu, '');
+                }
+                return s.toLowerCase().replace(/\s+/g, '');
+            }
+
+            function resolveKey(ident, aliases, rowKeyByNorm, foldAccents) {
+                if (ident in aliases) return aliases[ident];
+                const exact = rowKeyByNorm.get(normalizeKey(ident, foldAccents));
+                if (exact) return exact;
+                for (const [from, to] of Object.entries(aliases)) {
+                    if (normalizeKey(from, foldAccents) === normalizeKey(ident, foldAccents)) {
+                        return to;
+                    }
+                }
+                return ident;
+            }
+
+            function coerceToNumber(v) {
+                if (v === null || v === undefined || v === '') return NaN;
+                if (typeof v === 'number') return v;
+                if (typeof v === 'boolean') return v ? 1 : 0;
+
+                let s = String(v).trim();
+                s = s.replace(/[\u00A0\u202F]/g, ' ').replace(/\s+/g, '');
+                const commaDec = /^-?\d{1,3}(\.\d{3})*,\d+$/.test(s) || /,\d+$/.test(s);
+                if (commaDec) s = s.replace(/\./g, '').replace(',', '.');
+
+                const num = Number(s);
+                return num;
+            }
+
+            function tokenizeArithmetic(input) {
+                const tokens = [];
+                let i = 0;
+
+                const isDigit = (c) => c >= '0' && c <= '9';
+                const isWS = (ch) => /\s/.test(ch);
+
+                const identStart = (ch) => {
+                    if (ch === '$' || ch === '_') return true;
+                    if (/[A-Za-z]/.test(ch)) return true;
+                    try { return /\p{L}/u.test(ch); } catch { return false; }
+                };
+                const identContinue = (ch) => {
+                    if (identStart(ch)) return true;
+                    if (/[0-9]/.test(ch)) return true;
+                    return false;
+                };
+
+                while (i < input.length) {
+                    const ch = input[i];
+
+                    if (isWS(ch)) { i++; continue; }
+
+                    if (isDigit(ch) || (ch === '.' && isDigit(input[i+1] || ''))) {
+                        let start = i;
+                        if (ch === '.') i++;
+                        while (i < input.length && isDigit(input[i])) i++;
+                        if (input[i] === '.') {
+                            i++;
+                            while (i < input.length && isDigit(input[i])) i++;
+                        }
+                        tokens.push({ type: 'number', value: input.slice(start, i) });
+                        continue;
+                    }
+
+                    if (identStart(ch)) {
+                        let start = i; i++;
+                        while (i < input.length && identContinue(input[i])) i++;
+                        const name = input.slice(start, i);
+                        tokens.push({ type: 'ident', value: name });
+                        continue;
+                    }
+
+                    if (ch === '+' || ch === '-' || ch === '/' || ch === '%' || ch === '(' || ch === ')') {
+                        tokens.push({ type: 'op', value: ch }); i++; continue;
+                    }
+                    if (ch === '*') {
+                        if (input[i+1] === '*') {
+                            tokens.push({ type: 'op', value: '**' }); i += 2; continue;
+                        } else {
+                            tokens.push({ type: 'op', value: '*' }); i++; continue;
+                        }
+                    }
+
+                    return { ok: false, error: `Illegal character "${ch}" at position ${i}` };
+                }
+
+                return { ok: true, tokens };
+            }
+        }
+
+        // ==================================================
+        // FIN DU SAFE EVALUATOR
+        // ==================================================
+
+        // 2. Ajouter une colonne avec calcul (version sécurisée)
         function executeCalculateColumn(cmd) {
             const { name, formula } = cmd;
             if (!name || !formula) return false;
@@ -1147,55 +1334,39 @@
             
             excelColumns.push(name);
             
+            // Créer un mapping d'alias pour les accents courants
+            const aliases = {
+                'quantite': 'quantité',
+                'quantité': 'quantité',
+                'quantity': 'quantité',
+                'qty': 'quantité'
+            };
+            
             excelData.forEach((row, idx) => {
-                try {
-                    // Créer un contexte avec les valeurs de la ligne
-                    const context = {};
-                    excelColumns.forEach((col, colIdx) => {
-                        if (colIdx < row.length) {
-                            context[col] = row[colIdx];
-                        }
-                    });
-                    
-                    console.log(`📊 Ligne ${idx} - Context:`, context);
-                    console.log(`📊 Ligne ${idx} - Formule originale: "${formula}"`);
-                    
-                    // Échapper les caractères spéciaux pour regex et trier par longueur (plus long d'abord)
-                    const colNames = Object.keys(context).sort((a, b) => b.length - a.length);
-                    
-                    // Remplacer les noms de colonnes par leurs valeurs
-                    let evalFormula = formula;
-                    colNames.forEach(colName => {
-                        const value = context[colName];
-                        const numValue = parseFloat(value);
-                        const safeValue = isNaN(numValue) ? 0 : numValue;
-                        
-                        console.log(`  🔍 Cherche à remplacer "${colName}" par ${safeValue} dans "${evalFormula}"`);
-                        
-                        // Échapper les caractères spéciaux dans le nom de colonne pour regex
-                        const escapedColName = colName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-                        
-                        // Remplacer toutes les occurrences (insensible à la casse si besoin)
-                        const regex = new RegExp(escapedColName, 'gi');
-                        const beforeReplace = evalFormula;
-                        evalFormula = evalFormula.replace(regex, safeValue);
-                        
-                        if (beforeReplace !== evalFormula) {
-                            console.log(`  ✅ Remplacement effectué: "${beforeReplace}" → "${evalFormula}"`);
-                        } else {
-                            console.log(`  ⚠️ Aucun remplacement pour "${colName}"`);
-                        }
-                    });
-                    
-                    console.log(`📝 Ligne ${idx}: formule finale="${evalFormula}"`);
-                    
-                    // Calculer le résultat
-                    const result = Function(`"use strict"; return (${evalFormula})`)();
-                    row.push(isNaN(result) ? 0 : result);
-                    console.log(`✅ Résultat ligne ${idx}: ${result}`);
-                } catch (error) {
-                    console.error(`❌ Erreur calcul ligne ${idx}: formule="${formula}", error:`, error);
+                // Créer un objet row avec les noms de colonnes comme clés
+                const rowObj = {};
+                excelColumns.forEach((col, colIdx) => {
+                    if (colIdx < row.length) {
+                        rowObj[col] = row[colIdx];
+                    }
+                });
+                
+                console.log(`📊 Ligne ${idx} - Context:`, rowObj);
+                console.log(`📊 Ligne ${idx} - Formule: "${formula}"`);
+                
+                // Évaluer avec safeEvaluate
+                const result = safeEvaluate(formula, rowObj, {
+                    aliases: aliases,
+                    onMissing: 'zero', // Utiliser 0 pour les variables manquantes
+                    normalizeAccents: true
+                });
+                
+                if (!result.ok) {
+                    console.error(`❌ Erreur ligne ${idx}:`, result.error);
                     row.push('ERROR');
+                } else {
+                    console.log(`✅ Résultat ligne ${idx}: ${result.value}`);
+                    row.push(result.value);
                 }
             });
             
