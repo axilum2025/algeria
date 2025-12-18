@@ -7970,6 +7970,7 @@ Réponds UNIQUEMENT dans ce format JSON:
         }
         
         // Appliquer l'ajout des graphiques à la feuille Excel (version améliorée avec SheetJS)
+        // Appliquer l'ajout des graphiques à la feuille Excel (ajoute à la prévisualisation)
         function applyChartsToSheet() {
             if (!window.pendingCharts || window.pendingCharts.length === 0) {
                 closeChartsPreview();
@@ -7978,78 +7979,72 @@ Réponds UNIQUEMENT dans ce format JSON:
             
             const charts = window.pendingCharts;
             
-            try {
-                showToast('📊 Création du fichier avec graphiques...', 'info');
+            // Ajouter une ligne de séparation
+            const separatorRow = new Array(excelColumns.length).fill('');
+            separatorRow[0] = '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━';
+            excelSheetData.push(separatorRow);
+            
+            // Ajouter l'en-tête de section
+            const headerRow = new Array(excelColumns.length).fill('');
+            headerRow[0] = '📊 GRAPHIQUES GÉNÉRÉS PAR L\'IA';
+            excelSheetData.push(headerRow);
+            
+            // Note d'instructions
+            const noteRow = new Array(excelColumns.length).fill('');
+            noteRow[0] = '💡 Sélectionnez les données et utilisez Insertion > Graphique dans Excel';
+            excelSheetData.push(noteRow);
+            
+            // Ligne vide
+            excelSheetData.push(new Array(excelColumns.length).fill(''));
+            
+            // Pour chaque graphique, ajouter ses données
+            charts.forEach((chart, chartIdx) => {
+                // Titre du graphique
+                const titleRow = new Array(excelColumns.length).fill('');
+                titleRow[0] = `${chartIdx + 1}. ${chart.title}`;
+                titleRow[1] = `(Type: ${chart.type})`;
+                excelSheetData.push(titleRow);
                 
-                // Créer un nouveau workbook
-                const wb = XLSX.utils.book_new();
+                // Description
+                if (chart.description) {
+                    const descRow = new Array(excelColumns.length).fill('');
+                    descRow[0] = chart.description;
+                    excelSheetData.push(descRow);
+                }
                 
-                // Feuille 1 : Données originales
-                const dataSheet = [excelColumns, ...excelSheetData];
-                const ws1 = XLSX.utils.aoa_to_sheet(dataSheet);
-                XLSX.utils.book_append_sheet(wb, ws1, "Données");
+                // Ligne vide
+                excelSheetData.push(new Array(excelColumns.length).fill(''));
                 
-                // Feuille 2 : Graphiques
-                const chartsData = [];
+                // En-tête des données
+                const dataHeaderRow = new Array(excelColumns.length).fill('');
+                dataHeaderRow[0] = 'Catégorie';
+                dataHeaderRow[1] = 'Valeur';
+                dataHeaderRow[2] = 'Visualisation';
+                excelSheetData.push(dataHeaderRow);
                 
-                // Note d'instructions
-                chartsData.push(['💡 Instructions : Sélectionnez les données (Catégorie + Valeur) et utilisez Insertion > Graphique dans Excel']);
-                chartsData.push([]);
-                chartsData.push([]);
-                
-                // Pour chaque graphique
-                charts.forEach((chart, idx) => {
-                    // Titre
-                    chartsData.push([`${idx + 1}. ${chart.title}`, `(Type: ${chart.type})`]);
-                    
-                    // Description
-                    if (chart.description) {
-                        chartsData.push([chart.description]);
-                    }
-                    
-                    chartsData.push([]);
-                    
-                    // En-têtes
-                    chartsData.push(['Catégorie', 'Valeur', 'Visualisation']);
-                    
-                    // Données avec visualisation
-                    const maxValue = Math.max(...chart.values);
-                    chart.labels.forEach((label, i) => {
-                        const value = chart.values[i];
-                        const barLength = Math.round((value / maxValue) * 20);
-                        const bar = '█'.repeat(barLength);
-                        chartsData.push([label, value, bar]);
-                    });
-                    
-                    chartsData.push([]);
-                    chartsData.push([]);
+                // Données du graphique avec visualisation
+                const maxValue = Math.max(...chart.values);
+                chart.labels.forEach((label, idx) => {
+                    const dataRow = new Array(excelColumns.length).fill('');
+                    dataRow[0] = label;
+                    dataRow[1] = chart.values[idx];
+                    const barLength = Math.round((chart.values[idx] / maxValue) * 20);
+                    dataRow[2] = '█'.repeat(barLength);
+                    excelSheetData.push(dataRow);
                 });
                 
-                const ws2 = XLSX.utils.aoa_to_sheet(chartsData);
-                
-                // Largeur des colonnes
-                ws2['!cols'] = [
-                    { wch: 25 },  // Catégorie
-                    { wch: 15 },  // Valeur
-                    { wch: 30 }   // Visualisation
-                ];
-                
-                XLSX.utils.book_append_sheet(wb, ws2, "📊 Graphiques AI");
-                
-                // Sauvegarder
-                const fileName = `${excelCurrentFile?.name?.replace('.xlsx', '') || 'Excel'}_avec_graphiques.xlsx`;
-                XLSX.writeFile(wb, fileName);
-                
-                // Fermer popup
-                closeChartsPreview();
-                
-                // Notification
-                showToast(`✅ ${charts.length} graphique${charts.length > 1 ? 's' : ''} ajouté${charts.length > 1 ? 's' : ''} !`, 'success');
-                
-            } catch (error) {
-                console.error('❌ Erreur création graphiques:', error);
-                showToast('❌ Erreur lors de la création des graphiques', 'error');
-            }
+                // Ligne vide entre les graphiques
+                excelSheetData.push(new Array(excelColumns.length).fill(''));
+            });
+            
+            // Rafraîchir l'affichage
+            renderExcelPreview();
+            
+            // Fermer popup
+            closeChartsPreview();
+            
+            // Notification
+            showToast(`✅ ${charts.length} graphique${charts.length > 1 ? 's' : ''} ajouté${charts.length > 1 ? 's' : ''} à la feuille`, 'success');
         }
         
         function quickAction(actionType) {
