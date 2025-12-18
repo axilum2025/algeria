@@ -6022,6 +6022,18 @@
         
         // ========== GESTION RH ==========
         function openHRManagement() {
+            // Fermer AI Management s'il est ouvert
+            const excelAiOverlay = document.getElementById('excelAiOverlay');
+            if (excelAiOverlay) {
+                excelAiOverlay.remove();
+            }
+            
+            // Fermer l'overlay RH existant s'il y en a un
+            const existingOverlay = document.getElementById('hrManagementOverlay');
+            if (existingOverlay) {
+                existingOverlay.remove();
+            }
+            
             // Créer l'overlay RH
             const overlay = document.createElement('div');
             overlay.id = 'hrManagementOverlay';
@@ -6032,7 +6044,7 @@
                 width: 100%;
                 height: 100%;
                 background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
-                z-index: 9999;
+                z-index: 10001;
                 animation: fadeIn 0.3s ease;
             `;
             
