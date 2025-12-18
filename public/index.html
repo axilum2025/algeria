@@ -6074,17 +6074,11 @@
             const duplicateKeywords = /trouve.*doublon|détecte.*doublon|cherche.*doublon/i;
             const formulaKeywords = /crée.*formule|génère.*formule|ajoute.*formule/i;
             
-            // Détection de graphiques
+            // Détection de graphiques - DÉSACTIVÉ (trop complexe à implémenter)
+            // L'IA va donner des suggestions dans le chat au lieu d'exécuter l'action
             if (chartKeywords.test(text)) {
-                addExcelChatMessage('🎨 Génération des graphiques en cours...', 'bot');
-                setTimeout(() => {
-                    generateCharts();
-                    // Message avec redirection vers le bouton
-                    setTimeout(() => {
-                        addExcelChatMessage('✅ Graphiques générés ! Cliquez sur le bouton <strong>📊 Générer des graphiques</strong> ci-dessus pour voir le résultat et les ajouter à votre feuille.', 'bot');
-                    }, 1500);
-                }, 500);
-                return true;
+                // Ne rien faire - laisser l'IA répondre normalement avec des suggestions
+                return false;
             }
             
             // Détection de KPI
@@ -6180,13 +6174,8 @@
                 });
             }
             
-            if (text.match(/graphique|chart|visualis|diagramme/i)) {
-                intentions.push({
-                    action: 'charts',
-                    label: 'Créer des graphiques',
-                    type: 'pro'
-                });
-            }
+            // Graphiques désactivés - trop complexe à implémenter dans Excel
+            // L'IA donnera des suggestions textuelles au lieu d'une action
             
             // Détecter les actions FREE
             if (text.match(/ajoute.*ligne|nouvelle ligne|insérer.*ligne/i)) {
@@ -6249,9 +6238,8 @@
                 generateKPI();
             } else if (action === 'formulas') {
                 generateFormulas();
-            } else if (action === 'charts') {
-                generateCharts();
             }
+            // Charts désactivés - trop complexe
             // Actions FREE
             else if (action === 'addRow') {
                 const newRow = new Array(excelColumns.length).fill('');
