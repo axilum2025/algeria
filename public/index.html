@@ -1898,13 +1898,6 @@
                     </svg>
                     <span class="menu-item-text">AI Text</span>
                 </button>
-                <!-- AI Management (Assistant Excel expert) -->
-                <button class="menu-item" onclick="openExcelPro()" style="padding-left:30px;" title="AI Management - Ask The AI">
-                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"/>
-                    </svg>
-                    <span class="menu-item-text">Ask The AI</span>
-                </button>
                 <!-- Excel AI Expert -->
                 <button class="menu-item" onclick="window.location.href='excel-ai-expert.html'" style="padding-left:30px;" title="Excel AI Expert - Analyse avancée">
                     <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -9155,117 +9148,10 @@ Réponds UNIQUEMENT dans ce format JSON:
             return false;
         }
 
-        // Excel AI - Interface simplifiée avec seulement le chat AI
-        function openExcelPro() {
-            const overlay = document.createElement('div');
-            overlay.id = 'excelAiOverlay';
-            overlay.style.cssText = `
-                position: fixed; top: 0; left: 0; right: 0; bottom: 0;
-                background: var(--bg-primary); z-index: 10000; overflow: auto;
-                animation: fadeIn 0.3s ease;
-            `;
-            
-            overlay.innerHTML = `
-                <style>
-                    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
-                    #excelAiOverlay * { font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; }
-                </style>
-                <div style="min-height: 100vh; padding: 20px; display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, rgba(99,102,241,0.05) 0%, rgba(139,92,246,0.05) 100%);">
-                    <!-- Chat AI Panel -->
-                    <div style="width: 100%; max-width: 800px; background: white; border-radius: 24px; box-shadow: 0 20px 60px rgba(0,0,0,0.15); overflow: hidden;">
-                        <!-- Header -->
-                        <div style="background: linear-gradient(135deg, #6366F1 0%, #8B5CF6 50%, #EC4899 100%); padding: 24px; display: flex; align-items: center; justify-content: space-between;">
-                            <div>
-                                <h2 style="margin: 0; color: white; font-size: 24px; font-weight: 700; letter-spacing: -0.5px;">Ask The AI</h2>
-                                <p style="margin: 4px 0 0; color: rgba(255,255,255,0.9); font-size: 14px;">Intelligence Artificielle • Assistance Professionnelle</p>
-                            </div>
-                            <button onclick="closeExcelAi()" style="width: 40px; height: 40px; background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.3); border-radius: 10px; color: white; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.3)'; this.style.transform='rotate(90deg)'" onmouseout="this.style.background='rgba(255,255,255,0.2)'; this.style.transform='rotate(0)'">
-                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-                            </button>
-                        </div>
-
-                        <!-- Welcome Info -->
-                        <div style="background: linear-gradient(135deg, rgba(99,102,241,0.08), rgba(139,92,246,0.08)); padding: 20px; border-bottom: 1px solid rgba(0,0,0,0.1);">
-                            <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px;">
-                                <div style="background: white; border-radius: 12px; padding: 14px; border: 1px solid rgba(99,102,241,0.15);">
-                                    <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 6px;">
-                                        <div style="width: 32px; height: 32px; background: linear-gradient(135deg, #6366F1, #8B5CF6); border-radius: 8px; display: flex; align-items: center; justify-content: center;">
-                                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
-                                        </div>
-                                        <h4 style="margin: 0; font-size: 13px; font-weight: 700;">Excel AI Expert</h4>
-                                    </div>
-                                    <p style="margin: 0; font-size: 11px; color: #6b7280; line-height: 1.4;">Formules avancées et analyse</p>
-                                </div>
-                                
-                                <div style="background: white; border-radius: 12px; padding: 14px; border: 1px solid rgba(139,92,246,0.15);">
-                                    <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 6px;">
-                                        <div style="width: 32px; height: 32px; background: linear-gradient(135deg, #8B5CF6, #EC4899); border-radius: 8px; display: flex; align-items: center; justify-content: center;">
-                                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-                                        </div>
-                                        <h4 style="margin: 0; font-size: 13px; font-weight: 700;">Planning Projet</h4>
-                                    </div>
-                                    <p style="margin: 0; font-size: 11px; color: #6b7280; line-height: 1.4;">Gestion des tâches</p>
-                                </div>
-                                
-                                <div style="background: white; border-radius: 12px; padding: 14px; border: 1px solid rgba(236,72,153,0.15);">
-                                    <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 6px;">
-                                        <div style="width: 32px; height: 32px; background: linear-gradient(135deg, #EC4899, #F43F5E); border-radius: 8px; display: flex; align-items: center; justify-content: center;">
-                                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
-                                        </div>
-                                        <h4 style="margin: 0; font-size: 13px; font-weight: 700;">Finance</h4>
-                                    </div>
-                                    <p style="margin: 0; font-size: 11px; color: #6b7280; line-height: 1.4;">KPI et ratios financiers</p>
-                                </div>
-                                
-                                <div style="background: white; border-radius: 12px; padding: 14px; border: 1px solid rgba(20,184,166,0.15);">
-                                    <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 6px;">
-                                        <div style="width: 32px; height: 32px; background: linear-gradient(135deg, #14B8A6, #06B6D4); border-radius: 8px; display: flex; align-items: center; justify-content: center;">
-                                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-                                        </div>
-                                        <h4 style="margin: 0; font-size: 13px; font-weight: 700;">Gestion RH</h4>
-                                    </div>
-                                    <p style="margin: 0; font-size: 11px; color: #6b7280; line-height: 1.4;">Employés et congés</p>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Chat Messages -->
-                        <div id="excelChatMessages" style="height: 400px; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 12px;">
-                            <div style="padding: 14px; background: linear-gradient(135deg, rgba(99,102,241,0.08), rgba(139,92,246,0.08)); border-radius: 12px; border-left: 3px solid #6366F1;">
-                                <p style="margin: 0; font-size: 14px; line-height: 1.6; color: var(--text-primary);">
-                                    👋 Bonjour ! Je suis votre assistant AI. Posez-moi vos questions sur :
-                                    <br><br>
-                                    • <strong>Excel</strong> : Formules, analyses, graphiques<br>
-                                    • <strong>Planning</strong> : Gestion de projets, Gantt<br>
-                                    • <strong>Finance</strong> : KPI, ratios, prévisions<br>
-                                    • <strong>RH</strong> : Gestion d'employés, congés, paie
-                                </p>
-                            </div>
-                        </div>
-
-                        <!-- Chat Input -->
-                        <div style="padding: 20px; border-top: 1px solid rgba(0,0,0,0.1); background: #f9fafb;">
-                            <div style="position: relative;">
-                                <input id="excelChatInput" type="text" placeholder="Posez votre question ici..." style="width: 100%; padding: 16px 60px 16px 20px; background: white; border: 2px solid #e5e7eb; border-radius: 14px; font-size: 14px; font-weight: 500; transition: all 0.2s;" onkeypress="if(event.key==='Enter') sendExcelChatMessage()" onfocus="this.style.borderColor='#6366F1'; this.style.boxShadow='0 0 0 3px rgba(99,102,241,0.1)'" onblur="this.style.borderColor='#e5e7eb'; this.style.boxShadow='none'">
-                                <button onclick="sendExcelChatMessage()" style="position: absolute; right: 8px; top: 50%; transform: translateY(-50%); padding: 11px 16px; background: linear-gradient(135deg, #6366F1, #8B5CF6); border: none; border-radius: 10px; color: white; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.2s; box-shadow: 0 2px 8px rgba(99,102,241,0.3);" onmouseover="this.style.transform='translateY(-50%) scale(1.05)'" onmouseout="this.style.transform='translateY(-50%) scale(1)'">
-                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                                        <line x1="22" y1="2" x2="11" y2="13"/>
-                                        <polygon points="22 2 15 22 11 13 2 9 22 2"/>
-                                    </svg>
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            `;
-            
-            document.body.appendChild(overlay);
-        }
-
-        // ============== DUPLICATIONS SUPPRIMÉES ==============
-        // Les fonctions Excel ont été déplacées plus haut (lignes 6008-6255)
-        // pour être définies AVANT openExcelPro()
-        // ====================================================
+        // ============== FONCTION openExcelPro() SUPPRIMÉE ==============
+        // Le panneau "Ask The AI" a été supprimé
+        // Le chat AI est maintenant uniquement dans excel-ai-expert.html
+        // ===============================================================
 
         // Outil TTS (FREE)
         function openTTS() {
