@@ -1872,7 +1872,6 @@
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5a2 2 0 104 0 2 2 0 10-4 0zM5 11a2 2 0 102 2h2a2 2 0 102-2v-2a2 2 0 10-2-2H9a2 2 0 10-4 2v2zM13 13a2 2 0 112 2v2a2 2 0 11-2 2h-2a2 2 0 11-2-2v-2a2 2 0 112-2h2z"/>
                 </svg>
                 <span class="menu-item-text">My Office</span>
-                <span class="badge neutral" style="margin-left:8px;">PRO</span>
                 <svg id="functionsChevron" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="width:16px; height:16px; margin-left:auto; transition:transform 0.3s;">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
                 </svg>
@@ -1885,12 +1884,12 @@
                     </svg>
                     <span class="menu-item-text">Analyse Vision</span>
                 </button>
-                <!-- AI Task AI (Calendrier, Tâches, Planning) -->
-                <button class="menu-item" onclick="openOfficePro()" style="padding-left:30px;" title="AI Task AI - Calendrier, Tâches, Planning">
+                <!-- AI Task (Calendrier, Tâches, Planning) -->
+                <button class="menu-item" onclick="openOfficePro()" style="padding-left:30px;" title="AI Task - Calendrier, Tâches, Planning">
                     <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/>
                     </svg>
-                    <span class="menu-item-text">AI Task AI</span>
+                    <span class="menu-item-text">AI Task</span>
                 </button>
                 <!-- AI Text (Traitement de texte professionnel) -->
                 <button class="menu-item" onclick="openTextPro()" style="padding-left:30px;" title="AI Text - Traitement de texte professionnel">
@@ -4483,7 +4482,7 @@
                                 <path d="M9 11l3 3L22 4"/>
                                 <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>
                             </svg>
-                            Tasks
+                            AI Tasks
                         </div>
                     </div>
                     <div style="display: flex; align-items: center; gap: 12px;">
@@ -9756,6 +9755,10 @@ Réponds UNIQUEMENT dans ce format JSON:
                 return;
             }
             
+            // Générer un code de vérification à 6 chiffres
+            const verificationCode = Math.floor(100000 + Math.random() * 900000).toString();
+            const codeExpiresAt = Date.now() + (24 * 60 * 60 * 1000); // 24 heures
+            
             // Stocker les données temporairement
             pendingUser = {
                 id: Date.now().toString(),
@@ -9763,11 +9766,21 @@ Réponds UNIQUEMENT dans ce format JSON:
                 email,
                 password, // Dans un vrai système, hashé !
                 createdAt: Date.now(),
-                emailVerified: false
+                emailVerified: false,
+                verificationCode,
+                codeExpiresAt
             };
             
             // Envoyer le code par email via API
-            sendVerificationEmail(name, email);
+            sendVerificationEmail(name, email, verificationCode);
+            
+            // Fermer le modal de signup
+            closeSignupModal();
+            
+            // Afficher le modal de vérification
+            showVerificationModal(email);
+            
+            showToast('📧 Code de vérification envoyé par email', 'success');
             updateUIForAuth();
             
             // Créer une nouvelle conversation pour ce user
@@ -10210,30 +10223,49 @@ Réponds UNIQUEMENT dans ce format JSON:
             
             const enteredCode = document.getElementById('verificationCode').value.trim();
             
-            // Chercher l'utilisateur avec cet email
-            const user = users.find(u => u.email === currentUser.email && !u.emailVerified);
-            
-            if (!user) {
-                showToast('❌ Utilisateur non trouvé', 'error');
+            // Vérifier qu'on a un pendingUser
+            if (!pendingUser) {
+                showToast('❌ Session expirée. Veuillez vous réinscrire.', 'error');
+                closeVerificationModal();
                 return;
             }
             
             // Vérifier l'expiration
-            if (Date.now() > user.codeExpiresAt) {
-                showToast('❌ Code expiré. Demandez un nouveau code.', 'error');
+            if (Date.now() > pendingUser.codeExpiresAt) {
+                showToast('❌ Code expiré (24h). Veuillez vous réinscrire.', 'error');
+                pendingUser = null;
+                closeVerificationModal();
                 return;
             }
             
             // Vérifier le code
-            if (enteredCode === user.verificationCode) {
+            if (enteredCode === pendingUser.verificationCode) {
                 // Code correct !
-                user.emailVerified = true;
-                delete user.verificationCode;
-                delete user.codeExpiresAt;
+                pendingUser.emailVerified = true;
+                delete pendingUser.verificationCode;
+                delete pendingUser.codeExpiresAt;
+                
+                // Ajouter l'utilisateur à la liste
+                users.push(pendingUser);
                 localStorage.setItem('users', JSON.stringify(users));
                 
+                // Connecter automatiquement
+                currentUser = { 
+                    id: pendingUser.id, 
+                    name: pendingUser.name, 
+                    email: pendingUser.email 
+                };
+                localStorage.setItem('currentUser', JSON.stringify(currentUser));
+                
+                // Nettoyer
+                pendingUser = null;
+                
                 closeVerificationModal();
-                showToast(`✅ Email vérifié ! Bienvenue ${user.name} !`, 'success');
+                showToast(`✅ Email vérifié ! Bienvenue ${currentUser.name} !`, 'success');
+                updateUIForAuth();
+                
+                // Créer une nouvelle conversation pour ce user
+                newConversation();
             } else {
                 // Code incorrect
                 showToast('❌ Code de vérification incorrect', 'error');
