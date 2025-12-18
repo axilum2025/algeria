@@ -1044,6 +1044,9 @@
         // Parser et exécuter les commandes JSON de l'AI
         function parseAndExecuteJSONCommands(aiResponse) {
             try {
+                console.log('🔍 Recherche de commandes JSON dans la réponse AI...');
+                console.log('Réponse complète:', aiResponse);
+                
                 // Chercher les blocs ```json...```
                 const jsonRegex = /```json\s*\n([\s\S]*?)\n```/g;
                 let match;
@@ -1052,18 +1055,23 @@
                 while ((match = jsonRegex.exec(aiResponse)) !== null) {
                     try {
                         const jsonText = match[1].trim();
+                        console.log('📋 JSON trouvé:', jsonText);
+                        
                         const commands = JSON.parse(jsonText);
+                        console.log('✅ JSON parsé:', commands);
                         
                         // Support tableau ou objet unique
                         const cmdArray = Array.isArray(commands) ? commands : [commands];
                         
                         for (const cmd of cmdArray) {
+                            console.log('🔧 Exécution commande:', cmd);
                             if (executeJSONCommand(cmd)) {
                                 commandsExecuted++;
                             }
                         }
                     } catch (parseError) {
                         console.error('❌ Erreur parsing JSON:', parseError);
+                        console.error('JSON problématique:', match[1]);
                     }
                 }
                 
@@ -1075,6 +1083,7 @@
                     return true;
                 }
                 
+                console.log('ℹ️ Aucune commande JSON trouvée dans la réponse');
                 return false;
             } catch (error) {
                 console.error('❌ Erreur exécution commandes:', error);
@@ -1437,6 +1446,15 @@ La colonne Remise a été ajoutée avec succès !"
 
                     // Parser et exécuter les commandes JSON si présentes
                     const commandExecuted = parseAndExecuteJSONCommands(aiResponse);
+                    
+                    // Si demande de modification mais pas de JSON, ajouter un hint
+                    if (!commandExecuted && excelData.length > 0) {
+                        const modificationKeywords = /ajoute|calcul|supprime|modifi|tri|rename|total|somme|moyenne/i;
+                        if (modificationKeywords.test(message)) {
+                            console.warn('⚠️ Demande de modification détectée mais pas de JSON généré par l\'AI');
+                            addChatMessage('💡 <strong>Note</strong>: Pour que je puisse modifier directement votre fichier, demandez-moi par exemple: "Calcule le total en multipliant prix par quantité" ou "Ajoute une colonne Total"', 'bot');
+                        }
+                    }
                     
                     // Afficher la réponse nettoyée (sans les blocs JSON)
                     const cleanResponse = commandExecuted ? cleanAIResponse(aiResponse) : aiResponse;
