@@ -677,6 +677,21 @@
         let currentFileName = '';
         let chatHistory = [];
         let actionHistory = [];
+        let aiProcessing = false;
+
+        // API Endpoints (same as main app)
+        const AGENT_ENDPOINT_PRO = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+            ? 'http://localhost:7071/api/agents/axilum/invoke'
+            : '/api/agents/axilum/invoke';
+        
+        const AGENT_ENDPOINT_FREE = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+            ? 'http://localhost:7071/api/invoke-free'
+            : '/api/invoke-free';
+
+        function getEndpoint() {
+            // Default to PRO endpoint (you can add plan detection later)
+            return AGENT_ENDPOINT_PRO;
+        }
 
         // Handle file upload
         function handleFileUpload(event) {
@@ -750,43 +765,67 @@
         async function sendMessage() {
             const input = document.getElementById('chatInput');
             const message = input.value.trim();
-            if (!message) return;
+            if (!message || aiProcessing) return;
 
             addChatMessage(message, 'user');
             input.value = '';
 
             const sendBtn = document.getElementById('sendBtn');
             sendBtn.disabled = true;
+            aiProcessing = true;
 
             try {
-                const response = await fetch('/api/chat', {
+                const endpoint = getEndpoint();
+                
+                // Build Excel context
+                const excelContext = excelData.length > 0 ? `
+Contexte Excel actuel :
+- Fichier : ${currentFileName}
+- Nombre de lignes : ${excelData.length}
+- Colonnes : ${excelColumns.join(', ')}
+- Aperçu des données : ${JSON.stringify(excelData.slice(0, 3))}
+
+Tu es un expert Excel AI. Aide l'utilisateur avec ses données Excel, formules, analyses, nettoyage, KPI, etc.
+` : `Tu es un expert Excel AI. Aide l'utilisateur avec Excel : formules, analyses, Power Query, tableaux croisés dynamiques, etc.`;
+
+                // Convert history to backend format
+                const historyForBackend = chatHistory.slice(0, -1).map(msg => ({
+                    type: msg.type === 'bot' ? 'bot' : 'user',
+                    content: msg.message
+                }));
+
+                const response = await fetch(endpoint, {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${localStorage.getItem('authToken')}`
-                    },
+                    headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
-                        message: message,
-                        context: excelData.length > 0 ? {
-                            fileName: currentFileName,
-                            columns: excelColumns,
-                            rowCount: excelData.length,
-                            sampleData: excelData.slice(0, 5)
-                        } : null
+                        message: excelContext + "\n\nQuestion: " + message,
+                        conversationId: 'excel-ai-expert',
+                        chatType: 'excel-expert',
+                        history: historyForBackend
                     })
                 });
 
-                const data = await response.json();
-                if (data.response) {
-                    addChatMessage(data.response, 'bot');
-                } else {
-                    addChatMessage('Je suis là pour vous aider avec vos données Excel. Posez-moi une question !', 'bot');
-                }
-            } catch (error) {
-                addChatMessage('Désolé, je ne peux pas me connecter au serveur pour le moment. Veuillez réessayer.', 'bot');
-            }
+                if (!response.ok) throw new Error('Erreur API');
 
-            sendBtn.disabled = false;
+                const data = await response.json();
+                let aiResponse = data.response || data.message || 'Désolé, je n\'ai pas pu traiter votre demande.';
+
+                // Clean metrics
+                aiResponse = aiResponse
+                    .replace(/\n*---[\s\S]*$/g, '')
+                    .replace(/\n*📊.*?Métriques.*?\n.*?HI:.*?CHR:.*?\n*/gi, '')
+                    .replace(/\n*📚.*?Sources:.*?\n*/gi, '')
+                    .replace(/\n*💡.*?Plan.*?tokens.*?\n*/gi, '')
+                    .trim();
+
+                addChatMessage(aiResponse, 'bot');
+            } catch (error) {
+                console.error('Erreur Excel AI:', error);
+                addChatMessage('Désolé, je ne peux pas me connecter au serveur pour le moment. Veuillez réessayer.', 'bot');
+            } finally {
+                sendBtn.disabled = false;
+                aiProcessing = false;
+            }
         }
 
         function addChatMessage(message, type) {
