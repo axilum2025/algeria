@@ -990,8 +990,22 @@
                     const jsonData = XLSX.utils.sheet_to_json(firstSheet, {header: 1});
 
                     if (jsonData.length > 0) {
-                        excelColumns = jsonData[0];
-                        excelData = jsonData.slice(1);
+                        // Nettoyer les noms de colonnes (trim espaces et caractères invisibles)
+                        excelColumns = jsonData[0].map(col => String(col || '').trim());
+                        
+                        // Nettoyer aussi les données (trim chaque cellule)
+                        excelData = jsonData.slice(1).map(row => 
+                            row.map(cell => {
+                                if (typeof cell === 'string') {
+                                    return cell.trim();
+                                }
+                                return cell;
+                            })
+                        );
+                        
+                        console.log('📋 Colonnes nettoyées:', excelColumns);
+                        console.log('📊 Aperçu données (première ligne):', excelData[0]);
+                        
                         displayExcelData();
                         addChatMessage('✅ Fichier chargé avec succès ! ' + excelData.length + ' lignes et ' + excelColumns.length + ' colonnes détectées.', 'bot');
                         addHistory('Importation: ' + currentFileName);
