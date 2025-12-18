@@ -1145,20 +1145,31 @@
                         }
                     });
                     
+                    // Échapper les caractères spéciaux pour regex et trier par longueur (plus long d'abord)
+                    const colNames = Object.keys(context).sort((a, b) => b.length - a.length);
+                    
                     // Remplacer les noms de colonnes par leurs valeurs
                     let evalFormula = formula;
-                    Object.keys(context).forEach(colName => {
+                    colNames.forEach(colName => {
                         const value = context[colName];
                         const numValue = parseFloat(value);
-                        const safeValue = isNaN(numValue) ? `"${value}"` : numValue;
-                        evalFormula = evalFormula.replace(new RegExp(`\\b${colName}\\b`, 'g'), safeValue);
+                        const safeValue = isNaN(numValue) ? 0 : numValue; // Utiliser 0 au lieu de string pour calculs
+                        
+                        // Échapper les caractères spéciaux dans le nom de colonne pour regex
+                        const escapedColName = colName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+                        
+                        // Remplacer toutes les occurrences (insensible à la casse si besoin)
+                        const regex = new RegExp(escapedColName, 'gi');
+                        evalFormula = evalFormula.replace(regex, safeValue);
                     });
+                    
+                    console.log(`📝 Ligne ${idx}: formule originale="${formula}", évaluée="${evalFormula}"`);
                     
                     // Calculer le résultat
                     const result = Function(`"use strict"; return (${evalFormula})`)();
-                    row.push(result);
+                    row.push(isNaN(result) ? 0 : result);
                 } catch (error) {
-                    console.error(`❌ Erreur calcul ligne ${idx}:`, error);
+                    console.error(`❌ Erreur calcul ligne ${idx}: formule="${formula}", error:`, error);
                     row.push('ERROR');
                 }
             });
