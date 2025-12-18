@@ -8051,56 +8051,6 @@ Réponds UNIQUEMENT dans ce format JSON:
                 showToast('❌ Erreur lors de la création des graphiques', 'error');
             }
         }
-
-            const headerRow = new Array(excelColumns.length).fill('');
-            headerRow[0] = '📊 GRAPHIQUES GÉNÉRÉS PAR L\'IA';
-            excelSheetData.push(headerRow);
-            
-            // Ligne vide
-            excelSheetData.push(new Array(excelColumns.length).fill(''));
-            
-            // Pour chaque graphique, ajouter ses données
-            charts.forEach((chart, chartIdx) => {
-                // Titre du graphique
-                const titleRow = new Array(excelColumns.length).fill('');
-                titleRow[0] = `${chartIdx + 1}. ${chart.title}`;
-                titleRow[1] = `(Type: ${chart.type})`;
-                excelSheetData.push(titleRow);
-                
-                // Description
-                if (chart.description) {
-                    const descRow = new Array(excelColumns.length).fill('');
-                    descRow[0] = chart.description;
-                    excelSheetData.push(descRow);
-                }
-                
-                // En-tête des données
-                const dataHeaderRow = new Array(excelColumns.length).fill('');
-                dataHeaderRow[0] = 'Catégorie';
-                dataHeaderRow[1] = 'Valeur';
-                excelSheetData.push(dataHeaderRow);
-                
-                // Données du graphique
-                chart.labels.forEach((label, idx) => {
-                    const dataRow = new Array(excelColumns.length).fill('');
-                    dataRow[0] = label;
-                    dataRow[1] = chart.values[idx];
-                    excelSheetData.push(dataRow);
-                });
-                
-                // Ligne vide entre les graphiques
-                excelSheetData.push(new Array(excelColumns.length).fill(''));
-            });
-            
-            // Rafraîchir l'affichage
-            renderExcelPreview();
-            
-            // Fermer popup
-            closeChartsPreview();
-            
-            // Notification
-            showToast(`✅ ${charts.length} graphique${charts.length > 1 ? 's' : ''} ajouté${charts.length > 1 ? 's' : ''} à la feuille`, 'success');
-        }
         
         function quickAction(actionType) {
             const actions = {
