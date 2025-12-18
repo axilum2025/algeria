@@ -930,11 +930,8 @@
             // Sauvegarder uniquement s'il y a des données à sauvegarder
             if (excelData.length > 0 || chatHistory.length > 0 || actionHistory.length > 0) {
                 saveSession();
-                
-                // Message optionnel pour prévenir l'utilisateur
-                // Note: Les navigateurs modernes n'affichent pas de message personnalisé
-                e.preventDefault();
-                e.returnValue = '';
+                // Vos modifications sont enregistrées avec succès et vous pouvez quitter
+                // Pas de notification - la sauvegarde est automatique
             }
         });
 
