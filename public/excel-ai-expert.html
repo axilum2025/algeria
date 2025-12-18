@@ -758,9 +758,15 @@
             const sendBtn = document.getElementById('sendBtn');
             sendBtn.disabled = true;
 
-            try {
-                // Construire le contexte Excel
-                const excelContext = excelData.length > 0 ? `
+            // Ajouter un indicateur de chargement
+            const loadingMsg = addChatMessage('⏳ Traitement en cours...', 'bot');
+
+            // Retry logic avec timeout
+            let lastError = null;
+            for (let attempt = 1; attempt <= 3; attempt++) {
+                try {
+                    // Construire le contexte Excel
+                    const excelContext = excelData.length > 0 ? `
 Contexte Excel actuel :
 - Fichier : ${currentFileName}
 - Nombre de lignes : ${excelData.length}
@@ -770,43 +776,93 @@ Contexte Excel actuel :
 Tu es un expert Excel AI. Aide l'utilisateur avec ses données Excel, formules, analyses, nettoyage, KPI, etc.
 ` : `Tu es un expert Excel AI. Aide l'utilisateur avec Excel : formules, analyses, Power Query, tableaux croisés dynamiques, etc.`;
 
-                // Convertir l'historique au format backend
-                const historyForBackend = chatHistory.slice(0, -1).map(msg => ({
-                    type: msg.type === 'bot' ? 'bot' : 'user',
-                    content: msg.message
-                }));
+                    // Convertir l'historique au format backend
+                    const historyForBackend = chatHistory.slice(0, -2).map(msg => ({
+                        type: msg.type === 'bot' ? 'bot' : 'user',
+                        content: msg.message
+                    }));
 
-                const response = await fetch('/api/invoke', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ 
-                        message: excelContext + "\n\nQuestion: " + message,
-                        conversationId: 'excel-ai-expert',
-                        chatType: 'excel-expert',
-                        history: historyForBackend
-                    })
-                });
+                    // Timeout de 30 secondes
+                    const controller = new AbortController();
+                    const timeoutId = setTimeout(() => controller.abort(), 30000);
 
-                if (!response.ok) throw new Error('Erreur API');
+                    const response = await fetch('/api/invoke-v2', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ 
+                            message: excelContext + "\n\nQuestion: " + message,
+                            conversationId: 'excel-ai-expert',
+                            chatType: 'excel-expert',
+                            history: historyForBackend
+                        }),
+                        signal: controller.signal
+                    });
 
-                const data = await response.json();
-                let aiResponse = data.response || data.message || 'Désolé, je n\'ai pas pu traiter votre demande.';
+                    clearTimeout(timeoutId);
 
-                // Clean metrics
-                aiResponse = aiResponse
-                    .replace(/\n*---[\s\S]*$/g, '')
-                    .replace(/\n*📊.*?Métriques.*?\n.*?HI:.*?CHR:.*?\n*/gi, '')
-                    .replace(/\n*📚.*?Sources:.*?\n*/gi, '')
-                    .replace(/\n*💡.*?Plan.*?tokens.*?\n*/gi, '')
-                    .trim();
+                    if (!response.ok) {
+                        const errorText = await response.text();
+                        throw new Error(`Erreur ${response.status}: ${errorText}`);
+                    }
 
-                addChatMessage(aiResponse, 'bot');
-            } catch (error) {
-                console.error('Erreur Excel AI:', error);
-                addChatMessage('Désolé, je ne peux pas me connecter au serveur pour le moment. Veuillez réessayer.', 'bot');
-            } finally {
-                sendBtn.disabled = false;
+                    const data = await response.json();
+                    
+                    if (data.error) {
+                        throw new Error(data.error);
+                    }
+
+                    let aiResponse = data.response || data.message || 'Désolé, je n\'ai pas pu traiter votre demande.';
+
+                    // Clean metrics
+                    aiResponse = aiResponse
+                        .replace(/\n*---[\s\S]*$/g, '')
+                        .replace(/\n*📊.*?Métriques.*?\n.*?HI:.*?CHR:.*?\n*/gi, '')
+                        .replace(/\n*📚.*?Sources:.*?\n*/gi, '')
+                        .replace(/\n*💡.*?Plan.*?tokens.*?\n*/gi, '')
+                        .trim();
+
+                    // Supprimer le message de chargement
+                    loadingMsg.remove();
+                    chatHistory.pop(); // Retirer du historique aussi
+
+                    addChatMessage(aiResponse, 'bot');
+                    sendBtn.disabled = false;
+                    return; // Succès, sortie
+
+                } catch (error) {
+                    lastError = error;
+                    console.error(`Tentative ${attempt}/3 échouée:`, error);
+                    
+                    if (error.name === 'AbortError') {
+                        console.log('⏱️ Timeout - retry...');
+                        loadingMsg.innerHTML = `⏳ Timeout... Tentative ${attempt + 1}/3`;
+                    } else {
+                        loadingMsg.innerHTML = `⏳ Retry ${attempt}/3...`;
+                    }
+                    
+                    // Retry avec délai exponentiel
+                    if (attempt < 3) {
+                        const delay = Math.pow(2, attempt) * 1000; // 2s, 4s
+                        console.log(`⏳ Nouvelle tentative dans ${delay}ms...`);
+                        await new Promise(resolve => setTimeout(resolve, delay));
+                        continue;
+                    }
+                }
             }
+
+            // Toutes les tentatives ont échoué
+            console.error('❌ Échec après 3 tentatives:', lastError);
+            const errorMessage = lastError?.message || 'Erreur inconnue';
+            
+            // Supprimer le message de chargement
+            loadingMsg.remove();
+            chatHistory.pop();
+            
+            addChatMessage(
+                `⚠️ Impossible de se connecter au serveur.\n\n**Raison:** ${errorMessage}\n\n**Que faire:**\n- Vérifiez votre connexion internet\n- Réessayez dans quelques instants\n- Si le problème persiste, contactez le support`,
+                'bot'
+            );
+            sendBtn.disabled = false;
         }
 
         function addChatMessage(message, type) {
@@ -818,6 +874,7 @@ Tu es un expert Excel AI. Aide l'utilisateur avec ses données Excel, formules, 
             messagesContainer.scrollTop = messagesContainer.scrollHeight;
 
             chatHistory.push({type, message, timestamp: new Date()});
+            return messageDiv; // Retourner l'élément pour pouvoir le modifier
         }
 
         // Quick actions
