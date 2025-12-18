@@ -6068,11 +6068,11 @@
                 <div style="width: 100%; height: 100%; display: flex; flex-direction: column; overflow: hidden;">
                     
                     <!-- Header -->
-                    <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 20px 32px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); position: relative; z-index: 10;">
+                    <div style="background: linear-gradient(135deg, #6366F1 0%, #6366F1 100%); padding: 20px 32px; box-shadow: 0 4px 12px rgba(99,102,241,0.15); position: relative; z-index: 10;">
                         <div style="display: flex; align-items: center; justify-content: space-between;">
                             <div style="display: flex; align-items: center; gap: 16px;">
                                 <div style="width: 48px; height: 48px; background: rgba(255,255,255,0.2); backdrop-filter: blur(10px); border-radius: 12px; display: flex; align-items: center; justify-content: center; border: 1px solid rgba(255,255,255,0.3);">
-                                    <span style="font-size: 24px;">👥</span>
+                                    <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
                                 </div>
                                 <div>
                                     <h1 style="margin: 0; color: white; font-size: 24px; font-weight: 700;">Gestion RH</h1>
@@ -6088,7 +6088,7 @@
                     
                     <!-- Navigation Tabs -->
                     <div style="background: white; padding: 0 32px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); display: flex; gap: 8px; overflow-x: auto;">
-                        <button onclick="showHRTab('dashboard')" id="hrTabDashboard" class="hr-tab active" style="padding: 16px 24px; background: none; border: none; border-bottom: 3px solid #667eea; color: #667eea; font-weight: 600; cursor: pointer; transition: all 0.2s; white-space: nowrap;">
+                        <button onclick="showHRTab('dashboard')" id="hrTabDashboard" class="hr-tab active" style="padding: 16px 24px; background: none; border: none; border-bottom: 3px solid #6366F1; color: #6366F1; font-weight: 600; cursor: pointer; transition: all 0.2s; white-space: nowrap;">
                             Dashboard
                         </button>
                         <button onclick="showHRTab('employees')" id="hrTabEmployees" class="hr-tab" style="padding: 16px 24px; background: none; border: none; border-bottom: 3px solid transparent; color: #6b7280; font-weight: 600; cursor: pointer; transition: all 0.2s; white-space: nowrap;">
@@ -6113,37 +6113,45 @@
                                 
                                 <!-- Stats Cards -->
                                 <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 20px; margin-bottom: 32px;">
-                                    <div style="background: white; border-radius: 16px; padding: 24px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); border-left: 4px solid #667eea;">
+                                    <div style="background: white; border-radius: 16px; padding: 24px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); border-left: 4px solid #6366F1;">
                                         <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
                                             <span style="font-size: 14px; color: #6b7280; font-weight: 600;">Total Employés</span>
-                                            <span style="font-size: 28px;">👥</span>
+                                            <div style="width: 48px; height: 48px; background: rgba(99,102,241,0.1); border-radius: 12px; display: flex; align-items: center; justify-content: center;">
+                                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#6366F1" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                                            </div>
                                         </div>
                                         <div style="font-size: 32px; font-weight: 700; color: #1a1a1a;">0</div>
-                                        <div style="font-size: 12px; color: #10b981; font-weight: 600; margin-top: 8px;">Aucun employé</div>
+                                        <div style="font-size: 12px; color: #6366F1; font-weight: 600; margin-top: 8px;">Aucun employé</div>
                                     </div>
                                     
-                                    <div style="background: white; border-radius: 16px; padding: 24px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); border-left: 4px solid #8b5cf6;">
+                                    <div style="background: white; border-radius: 16px; padding: 24px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); border-left: 4px solid #6366F1;">
                                         <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
                                             <span style="font-size: 14px; color: #6b7280; font-weight: 600;">Congés en attente</span>
-                                            <span style="font-size: 28px;">📅</span>
+                                            <div style="width: 48px; height: 48px; background: rgba(99,102,241,0.1); border-radius: 12px; display: flex; align-items: center; justify-content: center;">
+                                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#6366F1" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                                            </div>
                                         </div>
                                         <div style="font-size: 32px; font-weight: 700; color: #1a1a1a;">0</div>
-                                        <div style="font-size: 12px; color: #f59e0b; font-weight: 600; margin-top: 8px;">À traiter</div>
+                                        <div style="font-size: 12px; color: #6366F1; font-weight: 600; margin-top: 8px;">À traiter</div>
                                     </div>
                                     
-                                    <div style="background: white; border-radius: 16px; padding: 24px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); border-left: 4px solid #ec4899;">
+                                    <div style="background: white; border-radius: 16px; padding: 24px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); border-left: 4px solid #6366F1;">
                                         <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
                                             <span style="font-size: 14px; color: #6b7280; font-weight: 600;">Absents aujourd'hui</span>
-                                            <span style="font-size: 28px;">🏥</span>
+                                            <div style="width: 48px; height: 48px; background: rgba(99,102,241,0.1); border-radius: 12px; display: flex; align-items: center; justify-content: center;">
+                                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#6366F1" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+                                            </div>
                                         </div>
                                         <div style="font-size: 32px; font-weight: 700; color: #1a1a1a;">0</div>
                                         <div style="font-size: 12px; color: #6b7280; font-weight: 600; margin-top: 8px;">Congés + Maladie</div>
                                     </div>
                                     
-                                    <div style="background: white; border-radius: 16px; padding: 24px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); border-left: 4px solid #10b981;">
+                                    <div style="background: white; border-radius: 16px; padding: 24px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); border-left: 4px solid #6366F1;">
                                         <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
                                             <span style="font-size: 14px; color: #6b7280; font-weight: 600;">Masse salariale</span>
-                                            <span style="font-size: 28px;">💰</span>
+                                            <div style="width: 48px; height: 48px; background: rgba(99,102,241,0.1); border-radius: 12px; display: flex; align-items: center; justify-content: center;">
+                                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#6366F1" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+                                            </div>
                                         </div>
                                         <div style="font-size: 32px; font-weight: 700; color: #1a1a1a;">0€</div>
                                         <div style="font-size: 12px; color: #6b7280; font-weight: 600; margin-top: 8px;">Brut mensuel</div>
@@ -6154,23 +6162,23 @@
                                 <div style="background: white; border-radius: 16px; padding: 24px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); margin-bottom: 32px;">
                                     <h2 style="margin: 0 0 20px; font-size: 18px; font-weight: 700; color: #1a1a1a;">Actions Rapides</h2>
                                     <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px;">
-                                        <button onclick="showHRTab('employees'); showAddEmployeeModal();" style="padding: 16px; background: linear-gradient(135deg, #667eea, #764ba2); border: none; border-radius: 12px; color: white; font-weight: 600; cursor: pointer; transition: all 0.2s; text-align: left;" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 12px rgba(102,126,234,0.4)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='none'">
-                                            <div style="font-size: 20px; margin-bottom: 8px;">➕</div>
+                                        <button onclick="showHRTab('employees'); showAddEmployeeModal();" style="padding: 16px; background: #6366F1; border: none; border-radius: 12px; color: white; font-weight: 600; cursor: pointer; transition: all 0.2s; text-align: left; display: flex; align-items: center; gap: 12px;" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 12px rgba(99,102,241,0.4)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='none'">
+                                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
                                             <div>Nouvel Employé</div>
                                         </button>
                                         
-                                        <button onclick="showHRTab('leaves');" style="padding: 16px; background: linear-gradient(135deg, #8b5cf6, #ec4899); border: none; border-radius: 12px; color: white; font-weight: 600; cursor: pointer; transition: all 0.2s; text-align: left;" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 12px rgba(139,92,246,0.4)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='none'">
-                                            <div style="font-size: 20px; margin-bottom: 8px;">📅</div>
+                                        <button onclick="showHRTab('leaves');" style="padding: 16px; background: #6366F1; border: none; border-radius: 12px; color: white; font-weight: 600; cursor: pointer; transition: all 0.2s; text-align: left; display: flex; align-items: center; gap: 12px;" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 12px rgba(99,102,241,0.4)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='none'">
+                                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
                                             <div>Gérer Congés</div>
                                         </button>
                                         
-                                        <button onclick="showHRTab('payroll');" style="padding: 16px; background: linear-gradient(135deg, #ec4899, #f43f5e); border: none; border-radius: 12px; color: white; font-weight: 600; cursor: pointer; transition: all 0.2s; text-align: left;" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 12px rgba(236,72,153,0.4)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='none'">
-                                            <div style="font-size: 20px; margin-bottom: 8px;">💰</div>
+                                        <button onclick="showHRTab('payroll');" style="padding: 16px; background: #6366F1; border: none; border-radius: 12px; color: white; font-weight: 600; cursor: pointer; transition: all 0.2s; text-align: left; display: flex; align-items: center; gap: 12px;" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 12px rgba(99,102,241,0.4)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='none'">
+                                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
                                             <div>Générer Paie</div>
                                         </button>
                                         
-                                        <button onclick="showHRTab('reviews');" style="padding: 16px; background: linear-gradient(135deg, #10b981, #059669); border: none; border-radius: 12px; color: white; font-weight: 600; cursor: pointer; transition: all 0.2s; text-align: left;" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 12px rgba(16,185,129,0.4)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='none'">
-                                            <div style="font-size: 20px; margin-bottom: 8px;">📊</div>
+                                        <button onclick="showHRTab('reviews');" style="padding: 16px; background: #6366F1; border: none; border-radius: 12px; color: white; font-weight: 600; cursor: pointer; transition: all 0.2s; text-align: left; display: flex; align-items: center; gap: 12px;" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 12px rgba(99,102,241,0.4)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='none'">
+                                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
                                             <div>Évaluations</div>
                                         </button>
                                     </div>
@@ -6180,7 +6188,9 @@
                                 <div style="background: white; border-radius: 16px; padding: 24px; box-shadow: 0 2px 8px rgba(0,0,0,0.08);">
                                     <h2 style="margin: 0 0 20px; font-size: 18px; font-weight: 700; color: #1a1a1a;">Notifications</h2>
                                     <div style="text-align: center; padding: 40px; color: #6b7280;">
-                                        <div style="font-size: 48px; margin-bottom: 16px;">🔔</div>
+                                        <div style="width: 64px; height: 64px; background: rgba(99,102,241,0.1); border-radius: 16px; display: flex; align-items: center; justify-content: center; margin: 0 auto 16px;">
+                                            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#6366F1" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+                                        </div>
                                         <p style="margin: 0; font-size: 14px;">Aucune notification pour le moment</p>
                                     </div>
                                 </div>
@@ -6192,8 +6202,8 @@
                             <div style="max-width: 1400px; margin: 0 auto;">
                                 <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px;">
                                     <h2 style="margin: 0; font-size: 24px; font-weight: 700; color: #1a1a1a;">Liste des Employés</h2>
-                                    <button onclick="showAddEmployeeModal()" style="padding: 12px 24px; background: linear-gradient(135deg, #667eea, #764ba2); border: none; border-radius: 12px; color: white; font-weight: 600; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; gap: 8px;" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 12px rgba(102,126,234,0.4)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='none'">
-                                        <span style="font-size: 18px;">➕</span>
+                                    <button onclick="showAddEmployeeModal()" style="padding: 12px 24px; background: #6366F1; border: none; border-radius: 12px; color: white; font-weight: 600; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; gap: 8px;" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 12px rgba(99,102,241,0.4)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='none'">
+                                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
                                         Nouvel Employé
                                     </button>
                                 </div>
@@ -6201,7 +6211,7 @@
                                 <!-- Filters -->
                                 <div style="background: white; border-radius: 16px; padding: 20px; margin-bottom: 24px; box-shadow: 0 2px 8px rgba(0,0,0,0.08);">
                                     <div style="display: grid; grid-template-columns: 1fr auto auto; gap: 12px;">
-                                        <input type="text" id="employeeSearch" placeholder="🔍 Rechercher un employé..." style="padding: 12px 16px; border: 1px solid #e5e7eb; border-radius: 10px; font-size: 14px;">
+                                        <input type="text" id="employeeSearch" placeholder="Rechercher un employé..." style="padding: 12px 16px 12px 44px; border: 1px solid #e5e7eb; border-radius: 10px; font-size: 14px; background-image: url('data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%2220%22 height=%2220%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22%236366F1%22 stroke-width=%222%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22><circle cx=%2211%22 cy=%2211%22 r=%228%22/><path d=%22m21 21-4.35-4.35%22/></svg>'); background-repeat: no-repeat; background-position: 12px center;">
                                         <select id="departmentFilter" style="padding: 12px 16px; border: 1px solid #e5e7eb; border-radius: 10px; font-size: 14px; cursor: pointer;">
                                             <option value="">Tous les départements</option>
                                             <option value="IT">IT</option>
@@ -6221,10 +6231,12 @@
                                 <!-- Employees List -->
                                 <div id="employeesList" style="background: white; border-radius: 16px; padding: 24px; box-shadow: 0 2px 8px rgba(0,0,0,0.08);">
                                     <div style="text-align: center; padding: 60px 20px; color: #6b7280;">
-                                        <div style="font-size: 64px; margin-bottom: 16px;">👥</div>
+                                        <div style="width: 80px; height: 80px; background: rgba(99,102,241,0.1); border-radius: 20px; display: flex; align-items: center; justify-content: center; margin: 0 auto 16px;">
+                                            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#6366F1" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                                        </div>
                                         <h3 style="margin: 0 0 8px; font-size: 18px; font-weight: 600; color: #1a1a1a;">Aucun employé</h3>
                                         <p style="margin: 0; font-size: 14px;">Commencez par ajouter votre premier employé</p>
-                                        <button onclick="showAddEmployeeModal()" style="margin-top: 24px; padding: 12px 24px; background: linear-gradient(135deg, #667eea, #764ba2); border: none; border-radius: 12px; color: white; font-weight: 600; cursor: pointer; transition: all 0.2s;">
+                                        <button onclick="showAddEmployeeModal()" style="margin-top: 24px; padding: 12px 24px; background: #6366F1; border: none; border-radius: 12px; color: white; font-weight: 600; cursor: pointer; transition: all 0.2s;">
                                             Ajouter un Employé
                                         </button>
                                     </div>
@@ -6235,7 +6247,9 @@
                         <!-- Leaves Tab -->
                         <div id="hrContentLeaves" class="hr-content" style="display: none;">
                             <div style="max-width: 1400px; margin: 0 auto; text-align: center; padding: 60px 20px;">
-                                <div style="font-size: 64px; margin-bottom: 16px;">📅</div>
+                                <div style="width: 80px; height: 80px; background: rgba(99,102,241,0.1); border-radius: 20px; display: flex; align-items: center; justify-content: center; margin: 0 auto 16px;">
+                                    <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#6366F1" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                                </div>
                                 <h3 style="margin: 0 0 8px; font-size: 18px; font-weight: 600; color: #1a1a1a;">Gestion des Congés</h3>
                                 <p style="margin: 0; font-size: 14px; color: #6b7280;">Fonctionnalité en cours de développement</p>
                             </div>
@@ -6244,7 +6258,9 @@
                         <!-- Payroll Tab -->
                         <div id="hrContentPayroll" class="hr-content" style="display: none;">
                             <div style="max-width: 1400px; margin: 0 auto; text-align: center; padding: 60px 20px;">
-                                <div style="font-size: 64px; margin-bottom: 16px;">💰</div>
+                                <div style="width: 80px; height: 80px; background: rgba(99,102,241,0.1); border-radius: 20px; display: flex; align-items: center; justify-content: center; margin: 0 auto 16px;">
+                                    <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#6366F1" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+                                </div>
                                 <h3 style="margin: 0 0 8px; font-size: 18px; font-weight: 600; color: #1a1a1a;">Gestion de la Paie</h3>
                                 <p style="margin: 0; font-size: 14px; color: #6b7280;">Fonctionnalité en cours de développement</p>
                             </div>
@@ -6253,7 +6269,9 @@
                         <!-- Reviews Tab -->
                         <div id="hrContentReviews" class="hr-content" style="display: none;">
                             <div style="max-width: 1400px; margin: 0 auto; text-align: center; padding: 60px 20px;">
-                                <div style="font-size: 64px; margin-bottom: 16px;">📊</div>
+                                <div style="width: 80px; height: 80px; background: rgba(99,102,241,0.1); border-radius: 20px; display: flex; align-items: center; justify-content: center; margin: 0 auto 16px;">
+                                    <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#6366F1" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+                                </div>
                                 <h3 style="margin: 0 0 8px; font-size: 18px; font-weight: 600; color: #1a1a1a;">Évaluations des Performances</h3>
                                 <p style="margin: 0; font-size: 14px; color: #6b7280;">Fonctionnalité en cours de développement</p>
                             </div>
@@ -6298,8 +6316,8 @@
             // Activate selected tab
             const selectedTab = document.getElementById(`hrTab${tabName.charAt(0).toUpperCase() + tabName.slice(1)}`);
             if (selectedTab) {
-                selectedTab.style.borderBottom = '3px solid #667eea';
-                selectedTab.style.color = '#667eea';
+                selectedTab.style.borderBottom = '3px solid #6366F1';
+                selectedTab.style.color = '#6366F1';
             }
         }
         
@@ -6319,10 +6337,12 @@
             if (employees.length === 0) {
                 list.innerHTML = `
                     <div style="text-align: center; padding: 60px 20px; color: #6b7280;">
-                        <div style="font-size: 64px; margin-bottom: 16px;">👥</div>
+                        <div style="width: 80px; height: 80px; background: rgba(99,102,241,0.1); border-radius: 20px; display: flex; align-items: center; justify-content: center; margin: 0 auto 16px;">
+                            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#6366F1" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                        </div>
                         <h3 style="margin: 0 0 8px; font-size: 18px; font-weight: 600; color: #1a1a1a;">Aucun employé</h3>
                         <p style="margin: 0; font-size: 14px;">Commencez par ajouter votre premier employé</p>
-                        <button onclick="showAddEmployeeModal()" style="margin-top: 24px; padding: 12px 24px; background: linear-gradient(135deg, #667eea, #764ba2); border: none; border-radius: 12px; color: white; font-weight: 600; cursor: pointer;">
+                        <button onclick="showAddEmployeeModal()" style="margin-top: 24px; padding: 12px 24px; background: #6366F1; border: none; border-radius: 12px; color: white; font-weight: 600; cursor: pointer;">
                             Ajouter un Employé
                         </button>
                     </div>
@@ -6362,7 +6382,7 @@
                     <tr style="border-bottom: 1px solid #f3f4f6; transition: background 0.2s;" onmouseover="this.style.background='#f9fafb'" onmouseout="this.style.background='white'">
                         <td style="padding: 16px;">
                             <div style="display: flex; align-items: center; gap: 12px;">
-                                <div style="width: 40px; height: 40px; background: linear-gradient(135deg, #667eea, #764ba2); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: 700; font-size: 16px;">
+                                <div style="width: 40px; height: 40px; background: #6366F1; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: 700; font-size: 16px;">
                                     ${emp.firstName.charAt(0)}${emp.lastName.charAt(0)}
                                 </div>
                                 <div>
@@ -6379,7 +6399,7 @@
                             </span>
                         </td>
                         <td style="padding: 16px; text-align: center;">
-                            <button onclick="viewEmployee('${emp.id}')" style="padding: 6px 12px; background: #667eea; border: none; border-radius: 8px; color: white; cursor: pointer; font-size: 12px; font-weight: 600; margin-right: 4px;">
+                            <button onclick="viewEmployee('${emp.id}')" style="padding: 6px 12px; background: #6366F1; border: none; border-radius: 8px; color: white; cursor: pointer; font-size: 12px; font-weight: 600; margin-right: 4px;">
                                 Voir
                             </button>
                             <button onclick="deleteEmployee('${emp.id}')" style="padding: 6px 12px; background: #ef4444; border: none; border-radius: 8px; color: white; cursor: pointer; font-size: 12px; font-weight: 600;">
@@ -6497,7 +6517,7 @@
                             <button type="button" onclick="closeAddEmployeeModal()" style="flex: 1; padding: 12px; background: #f3f4f6; border: none; border-radius: 10px; font-weight: 600; cursor: pointer;" onmouseover="this.style.background='#e5e7eb'" onmouseout="this.style.background='#f3f4f6'">
                                 Annuler
                             </button>
-                            <button type="submit" style="flex: 1; padding: 12px; background: linear-gradient(135deg, #667eea, #764ba2); border: none; border-radius: 10px; color: white; font-weight: 600; cursor: pointer;" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 12px rgba(102,126,234,0.4)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='none'">
+                            <button type="submit" style="flex: 1; padding: 12px; background: #6366F1; border: none; border-radius: 10px; color: white; font-weight: 600; cursor: pointer;" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 12px rgba(99,102,241,0.4)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='none'">
                                 Ajouter l'Employé
                             </button>
                         </div>
