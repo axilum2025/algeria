@@ -1121,6 +1121,8 @@
                     return executeCalculateColumn(cmd);
                 case 'addRow':
                     return executeAddRow(cmd);
+                case 'addSummaryRow':
+                    return executeAddSummaryRow(cmd);
                 case 'deleteColumn':
                     return executeDeleteColumn(cmd);
                 case 'deleteRow':
@@ -1404,6 +1406,73 @@
             return true;
         }
 
+        // 3b. Ajouter une ligne de totaux/agrégation
+        function executeAddSummaryRow(cmd) {
+            const { label = 'TOTAL', columns } = cmd;
+            // columns: { columnName: 'SUM' | 'AVG' | 'COUNT' | 'MIN' | 'MAX' | value }
+            
+            if (!columns || typeof columns !== 'object') {
+                console.warn('⚠️ Paramètre columns manquant');
+                return false;
+            }
+            
+            const newRow = [];
+            
+            excelColumns.forEach((colName, colIdx) => {
+                if (colIdx === 0) {
+                    // Première colonne = label
+                    newRow.push(label);
+                } else if (columns[colName]) {
+                    const operation = columns[colName];
+                    
+                    if (typeof operation === 'number' || typeof operation === 'string') {
+                        // Valeur fixe
+                        newRow.push(operation);
+                    } else {
+                        // Opération d'agrégation
+                        const values = excelData
+                            .map(row => parseFloat(row[colIdx]))
+                            .filter(v => !isNaN(v));
+                        
+                        let result = 0;
+                        switch(operation.toUpperCase()) {
+                            case 'SUM':
+                            case 'SOMME':
+                                result = values.reduce((a, b) => a + b, 0);
+                                break;
+                            case 'AVG':
+                            case 'AVERAGE':
+                            case 'MOYENNE':
+                                result = values.length > 0 ? values.reduce((a, b) => a + b, 0) / values.length : 0;
+                                break;
+                            case 'COUNT':
+                            case 'COMPTE':
+                                result = values.length;
+                                break;
+                            case 'MIN':
+                            case 'MINIMUM':
+                                result = values.length > 0 ? Math.min(...values) : 0;
+                                break;
+                            case 'MAX':
+                            case 'MAXIMUM':
+                                result = values.length > 0 ? Math.max(...values) : 0;
+                                break;
+                            default:
+                                result = 0;
+                        }
+                        newRow.push(result);
+                    }
+                } else {
+                    // Pas d'opération définie pour cette colonne
+                    newRow.push('');
+                }
+            });
+            
+            excelData.push(newRow);
+            console.log(`✅ Ligne de total ajoutée: ${label}`);
+            return true;
+        }
+
         // 4. Supprimer une colonne
         function executeDeleteColumn(cmd) {
             const { name, index } = cmd;
@@ -1571,11 +1640,19 @@ COMMANDES JSON DISPONIBLES :
 1. Ajouter colonne : {"action":"addColumn","name":"NomColonne","defaultValue":""}
 2. Colonne calculée : {"action":"calculateColumn","name":"Total","formula":"Prix * Quantite"}
 3. Ajouter ligne : {"action":"addRow","values":["val1","val2","val3"]}
+3b. Ligne de totaux : {"action":"addSummaryRow","label":"TOTAL","columns":{"Total":"SUM","Prix":"AVG"}}
 4. Supprimer colonne : {"action":"deleteColumn","name":"NomColonne"}
 5. Supprimer ligne : {"action":"deleteRow","index":0}
 6. Modifier cellule : {"action":"updateCell","row":0,"columnName":"Prix","value":"150"}
 7. Renommer colonne : {"action":"renameColumn","oldName":"Ancien","newName":"Nouveau"}
 8. Trier données : {"action":"sortData","columnName":"Prix","order":"desc"}
+
+OPÉRATIONS DE TOTAUX (addSummaryRow) :
+- SUM/SOMME : somme de la colonne
+- AVG/MOYENNE : moyenne des valeurs
+- COUNT/COMPTE : nombre de valeurs
+- MIN/MINIMUM : valeur minimale
+- MAX/MAXIMUM : valeur maximale
 
 RÈGLES :
 - Utilise les NOMS EXACTS des colonnes (respecte la casse)
