@@ -9853,6 +9853,16 @@ Réponds UNIQUEMENT dans ce format JSON:
                 updateProfilePhotoDisplay();
                 
                 menu.classList.add('show');
+                
+                // Fermer le menu quand on clique en dehors
+                setTimeout(() => {
+                    document.addEventListener('click', function closeUserMenuOutside(e) {
+                        if (!menu.contains(e.target) && !document.getElementById('accountBtn').contains(e.target)) {
+                            menu.classList.remove('show');
+                            document.removeEventListener('click', closeUserMenuOutside);
+                        }
+                    });
+                }, 10);
             }
         }
 
