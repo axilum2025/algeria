@@ -1423,44 +1423,52 @@
                     // Première colonne = label
                     newRow.push(label);
                 } else if (columns[colName]) {
-                    const operation = columns[colName];
+                    const operation = String(columns[colName]).toUpperCase();
                     
-                    if (typeof operation === 'number' || typeof operation === 'string') {
-                        // Valeur fixe
-                        newRow.push(operation);
-                    } else {
-                        // Opération d'agrégation
+                    // Liste des opérations d'agrégation connues
+                    const aggregationOps = ['SUM', 'SOMME', 'AVG', 'AVERAGE', 'MOYENNE', 'COUNT', 'COMPTE', 'MIN', 'MINIMUM', 'MAX', 'MAXIMUM'];
+                    
+                    if (aggregationOps.includes(operation)) {
+                        // Opération d'agrégation - calculer
                         const values = excelData
                             .map(row => parseFloat(row[colIdx]))
                             .filter(v => !isNaN(v));
                         
                         let result = 0;
-                        switch(operation.toUpperCase()) {
+                        switch(operation) {
                             case 'SUM':
                             case 'SOMME':
                                 result = values.reduce((a, b) => a + b, 0);
+                                console.log(`💰 SUM colonne ${colName}: ${result}`);
                                 break;
                             case 'AVG':
                             case 'AVERAGE':
                             case 'MOYENNE':
                                 result = values.length > 0 ? values.reduce((a, b) => a + b, 0) / values.length : 0;
+                                console.log(`📊 AVG colonne ${colName}: ${result}`);
                                 break;
                             case 'COUNT':
                             case 'COMPTE':
                                 result = values.length;
+                                console.log(`🔢 COUNT colonne ${colName}: ${result}`);
                                 break;
                             case 'MIN':
                             case 'MINIMUM':
                                 result = values.length > 0 ? Math.min(...values) : 0;
+                                console.log(`⬇️ MIN colonne ${colName}: ${result}`);
                                 break;
                             case 'MAX':
                             case 'MAXIMUM':
                                 result = values.length > 0 ? Math.max(...values) : 0;
+                                console.log(`⬆️ MAX colonne ${colName}: ${result}`);
                                 break;
                             default:
                                 result = 0;
                         }
                         newRow.push(result);
+                    } else {
+                        // Valeur fixe (nombre ou texte)
+                        newRow.push(columns[colName]);
                     }
                 } else {
                     // Pas d'opération définie pour cette colonne
