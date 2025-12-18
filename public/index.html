@@ -1898,12 +1898,12 @@
                     </svg>
                     <span class="menu-item-text">AI Text</span>
                 </button>
-                <!-- AI Management (Assistant Excel expert) -->
-                <button class="menu-item" onclick="openExcelPro()" style="padding-left:30px;" title="AI Management - Assistant Excel expert">
+                <!-- Excel AI Expert -->
+                <button class="menu-item" onclick="openExcelPro()" style="padding-left:30px;" title="Excel AI Expert - Assistant Excel professionnel">
                     <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"/>
                     </svg>
-                    <span class="menu-item-text">AI Management</span>
+                    <span class="menu-item-text">📊 Excel AI Expert</span>
                 </button>
             </div>
             
@@ -7370,7 +7370,7 @@ Tu es un assistant RH expert. Aide l'utilisateur avec la gestion des ressources 
                 content: message
             });
             
-            showToast('🤖 AI Management en cours...', 'info');
+            showToast('🤖 Excel AI Expert en cours...', 'info');
             
             try {
                 const endpoint = getEndpoint();
@@ -7586,7 +7586,7 @@ Tu es un assistant RH expert. Aide l'utilisateur avec la gestion des ressources 
                 const msgDiv = document.createElement('div');
                 msgDiv.style.cssText = `padding: 10px; background: ${bgColor}; border-radius: 8px; border-left: 3px solid ${borderColor}; margin-bottom: 8px;`;
                 msgDiv.innerHTML = `
-                    <div style="color: var(--text-secondary); font-size: 9px !important; font-weight: 600; margin-bottom: 3px;">${isBot ? 'AI Management' : 'Vous'}</div>
+                    <div style="color: var(--text-secondary); font-size: 9px !important; font-weight: 600; margin-bottom: 3px;">${isBot ? 'Excel AI Expert' : 'Vous'}</div>
                     <div style="color: var(--text-primary); font-size: 10px !important; line-height: 1.5; white-space: pre-line;">${msg.content}</div>
                 `;
                 chatContainer.appendChild(msgDiv);
