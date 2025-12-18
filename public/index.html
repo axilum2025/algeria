@@ -6020,6 +6020,551 @@
             }
         }
         
+        // ========== GESTION RH ==========
+        function openHRManagement() {
+            // Créer l'overlay RH
+            const overlay = document.createElement('div');
+            overlay.id = 'hrManagementOverlay';
+            overlay.style.cssText = `
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+                z-index: 9999;
+                animation: fadeIn 0.3s ease;
+            `;
+            
+            overlay.innerHTML = `
+                <style>
+                    @keyframes fadeIn {
+                        from { opacity: 0; }
+                        to { opacity: 1; }
+                    }
+                    @keyframes fadeOut {
+                        from { opacity: 1; }
+                        to { opacity: 0; }
+                    }
+                    @keyframes slideIn {
+                        from { transform: translateY(-20px); opacity: 0; }
+                        to { transform: translateY(0); opacity: 1; }
+                    }
+                </style>
+                
+                <!-- Interface RH Management -->
+                <div style="width: 100%; height: 100%; display: flex; flex-direction: column; overflow: hidden;">
+                    
+                    <!-- Header -->
+                    <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 20px 32px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); position: relative; z-index: 10;">
+                        <div style="display: flex; align-items: center; justify-content: space-between;">
+                            <div style="display: flex; align-items: center; gap: 16px;">
+                                <div style="width: 48px; height: 48px; background: rgba(255,255,255,0.2); backdrop-filter: blur(10px); border-radius: 12px; display: flex; align-items: center; justify-content: center; border: 1px solid rgba(255,255,255,0.3);">
+                                    <span style="font-size: 24px;">👥</span>
+                                </div>
+                                <div>
+                                    <h1 style="margin: 0; color: white; font-size: 24px; font-weight: 700;">Gestion RH</h1>
+                                    <p style="margin: 0; color: rgba(255,255,255,0.9); font-size: 14px; font-weight: 500;">Employés • Congés • Paie • Évaluations</p>
+                                </div>
+                            </div>
+                            
+                            <button onclick="closeHRManagement()" style="width: 44px; height: 44px; background: rgba(255,255,255,0.15); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.25); border-radius: 12px; color: white; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center;" onmouseover="this.style.background='rgba(255,255,255,0.28)'; this.style.transform='rotate(90deg)'" onmouseout="this.style.background='rgba(255,255,255,0.15)'; this.style.transform='rotate(0deg)'">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- Navigation Tabs -->
+                    <div style="background: white; padding: 0 32px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); display: flex; gap: 8px; overflow-x: auto;">
+                        <button onclick="showHRTab('dashboard')" id="hrTabDashboard" class="hr-tab active" style="padding: 16px 24px; background: none; border: none; border-bottom: 3px solid #667eea; color: #667eea; font-weight: 600; cursor: pointer; transition: all 0.2s; white-space: nowrap;">
+                            Dashboard
+                        </button>
+                        <button onclick="showHRTab('employees')" id="hrTabEmployees" class="hr-tab" style="padding: 16px 24px; background: none; border: none; border-bottom: 3px solid transparent; color: #6b7280; font-weight: 600; cursor: pointer; transition: all 0.2s; white-space: nowrap;">
+                            Employés
+                        </button>
+                        <button onclick="showHRTab('leaves')" id="hrTabLeaves" class="hr-tab" style="padding: 16px 24px; background: none; border: none; border-bottom: 3px solid transparent; color: #6b7280; font-weight: 600; cursor: pointer; transition: all 0.2s; white-space: nowrap;">
+                            Congés
+                        </button>
+                        <button onclick="showHRTab('payroll')" id="hrTabPayroll" class="hr-tab" style="padding: 16px 24px; background: none; border: none; border-bottom: 3px solid transparent; color: #6b7280; font-weight: 600; cursor: pointer; transition: all 0.2s; white-space: nowrap;">
+                            Paie
+                        </button>
+                        <button onclick="showHRTab('reviews')" id="hrTabReviews" class="hr-tab" style="padding: 16px 24px; background: none; border: none; border-bottom: 3px solid transparent; color: #6b7280; font-weight: 600; cursor: pointer; transition: all 0.2s; white-space: nowrap;">
+                            Évaluations
+                        </button>
+                    </div>
+                    
+                    <!-- Content Area -->
+                    <div style="flex: 1; overflow-y: auto; padding: 32px;">
+                        <!-- Dashboard Tab -->
+                        <div id="hrContentDashboard" class="hr-content" style="animation: slideIn 0.3s ease;">
+                            <div style="max-width: 1200px; margin: 0 auto;">
+                                
+                                <!-- Stats Cards -->
+                                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 20px; margin-bottom: 32px;">
+                                    <div style="background: white; border-radius: 16px; padding: 24px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); border-left: 4px solid #667eea;">
+                                        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
+                                            <span style="font-size: 14px; color: #6b7280; font-weight: 600;">Total Employés</span>
+                                            <span style="font-size: 28px;">👥</span>
+                                        </div>
+                                        <div style="font-size: 32px; font-weight: 700; color: #1a1a1a;">0</div>
+                                        <div style="font-size: 12px; color: #10b981; font-weight: 600; margin-top: 8px;">Aucun employé</div>
+                                    </div>
+                                    
+                                    <div style="background: white; border-radius: 16px; padding: 24px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); border-left: 4px solid #8b5cf6;">
+                                        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
+                                            <span style="font-size: 14px; color: #6b7280; font-weight: 600;">Congés en attente</span>
+                                            <span style="font-size: 28px;">📅</span>
+                                        </div>
+                                        <div style="font-size: 32px; font-weight: 700; color: #1a1a1a;">0</div>
+                                        <div style="font-size: 12px; color: #f59e0b; font-weight: 600; margin-top: 8px;">À traiter</div>
+                                    </div>
+                                    
+                                    <div style="background: white; border-radius: 16px; padding: 24px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); border-left: 4px solid #ec4899;">
+                                        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
+                                            <span style="font-size: 14px; color: #6b7280; font-weight: 600;">Absents aujourd'hui</span>
+                                            <span style="font-size: 28px;">🏥</span>
+                                        </div>
+                                        <div style="font-size: 32px; font-weight: 700; color: #1a1a1a;">0</div>
+                                        <div style="font-size: 12px; color: #6b7280; font-weight: 600; margin-top: 8px;">Congés + Maladie</div>
+                                    </div>
+                                    
+                                    <div style="background: white; border-radius: 16px; padding: 24px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); border-left: 4px solid #10b981;">
+                                        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
+                                            <span style="font-size: 14px; color: #6b7280; font-weight: 600;">Masse salariale</span>
+                                            <span style="font-size: 28px;">💰</span>
+                                        </div>
+                                        <div style="font-size: 32px; font-weight: 700; color: #1a1a1a;">0€</div>
+                                        <div style="font-size: 12px; color: #6b7280; font-weight: 600; margin-top: 8px;">Brut mensuel</div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Quick Actions -->
+                                <div style="background: white; border-radius: 16px; padding: 24px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); margin-bottom: 32px;">
+                                    <h2 style="margin: 0 0 20px; font-size: 18px; font-weight: 700; color: #1a1a1a;">Actions Rapides</h2>
+                                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px;">
+                                        <button onclick="showHRTab('employees'); showAddEmployeeModal();" style="padding: 16px; background: linear-gradient(135deg, #667eea, #764ba2); border: none; border-radius: 12px; color: white; font-weight: 600; cursor: pointer; transition: all 0.2s; text-align: left;" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 12px rgba(102,126,234,0.4)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='none'">
+                                            <div style="font-size: 20px; margin-bottom: 8px;">➕</div>
+                                            <div>Nouvel Employé</div>
+                                        </button>
+                                        
+                                        <button onclick="showHRTab('leaves');" style="padding: 16px; background: linear-gradient(135deg, #8b5cf6, #ec4899); border: none; border-radius: 12px; color: white; font-weight: 600; cursor: pointer; transition: all 0.2s; text-align: left;" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 12px rgba(139,92,246,0.4)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='none'">
+                                            <div style="font-size: 20px; margin-bottom: 8px;">📅</div>
+                                            <div>Gérer Congés</div>
+                                        </button>
+                                        
+                                        <button onclick="showHRTab('payroll');" style="padding: 16px; background: linear-gradient(135deg, #ec4899, #f43f5e); border: none; border-radius: 12px; color: white; font-weight: 600; cursor: pointer; transition: all 0.2s; text-align: left;" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 12px rgba(236,72,153,0.4)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='none'">
+                                            <div style="font-size: 20px; margin-bottom: 8px;">💰</div>
+                                            <div>Générer Paie</div>
+                                        </button>
+                                        
+                                        <button onclick="showHRTab('reviews');" style="padding: 16px; background: linear-gradient(135deg, #10b981, #059669); border: none; border-radius: 12px; color: white; font-weight: 600; cursor: pointer; transition: all 0.2s; text-align: left;" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 12px rgba(16,185,129,0.4)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='none'">
+                                            <div style="font-size: 20px; margin-bottom: 8px;">📊</div>
+                                            <div>Évaluations</div>
+                                        </button>
+                                    </div>
+                                </div>
+                                
+                                <!-- Notifications -->
+                                <div style="background: white; border-radius: 16px; padding: 24px; box-shadow: 0 2px 8px rgba(0,0,0,0.08);">
+                                    <h2 style="margin: 0 0 20px; font-size: 18px; font-weight: 700; color: #1a1a1a;">Notifications</h2>
+                                    <div style="text-align: center; padding: 40px; color: #6b7280;">
+                                        <div style="font-size: 48px; margin-bottom: 16px;">🔔</div>
+                                        <p style="margin: 0; font-size: 14px;">Aucune notification pour le moment</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Employees Tab -->
+                        <div id="hrContentEmployees" class="hr-content" style="display: none;">
+                            <div style="max-width: 1400px; margin: 0 auto;">
+                                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px;">
+                                    <h2 style="margin: 0; font-size: 24px; font-weight: 700; color: #1a1a1a;">Liste des Employés</h2>
+                                    <button onclick="showAddEmployeeModal()" style="padding: 12px 24px; background: linear-gradient(135deg, #667eea, #764ba2); border: none; border-radius: 12px; color: white; font-weight: 600; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; gap: 8px;" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 12px rgba(102,126,234,0.4)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='none'">
+                                        <span style="font-size: 18px;">➕</span>
+                                        Nouvel Employé
+                                    </button>
+                                </div>
+                                
+                                <!-- Filters -->
+                                <div style="background: white; border-radius: 16px; padding: 20px; margin-bottom: 24px; box-shadow: 0 2px 8px rgba(0,0,0,0.08);">
+                                    <div style="display: grid; grid-template-columns: 1fr auto auto; gap: 12px;">
+                                        <input type="text" id="employeeSearch" placeholder="🔍 Rechercher un employé..." style="padding: 12px 16px; border: 1px solid #e5e7eb; border-radius: 10px; font-size: 14px;">
+                                        <select id="departmentFilter" style="padding: 12px 16px; border: 1px solid #e5e7eb; border-radius: 10px; font-size: 14px; cursor: pointer;">
+                                            <option value="">Tous les départements</option>
+                                            <option value="IT">IT</option>
+                                            <option value="RH">RH</option>
+                                            <option value="Finance">Finance</option>
+                                            <option value="Marketing">Marketing</option>
+                                        </select>
+                                        <select id="statusFilter" style="padding: 12px 16px; border: 1px solid #e5e7eb; border-radius: 10px; font-size: 14px; cursor: pointer;">
+                                            <option value="">Tous les statuts</option>
+                                            <option value="active">Actif</option>
+                                            <option value="onLeave">En congé</option>
+                                            <option value="terminated">Terminé</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                
+                                <!-- Employees List -->
+                                <div id="employeesList" style="background: white; border-radius: 16px; padding: 24px; box-shadow: 0 2px 8px rgba(0,0,0,0.08);">
+                                    <div style="text-align: center; padding: 60px 20px; color: #6b7280;">
+                                        <div style="font-size: 64px; margin-bottom: 16px;">👥</div>
+                                        <h3 style="margin: 0 0 8px; font-size: 18px; font-weight: 600; color: #1a1a1a;">Aucun employé</h3>
+                                        <p style="margin: 0; font-size: 14px;">Commencez par ajouter votre premier employé</p>
+                                        <button onclick="showAddEmployeeModal()" style="margin-top: 24px; padding: 12px 24px; background: linear-gradient(135deg, #667eea, #764ba2); border: none; border-radius: 12px; color: white; font-weight: 600; cursor: pointer; transition: all 0.2s;">
+                                            Ajouter un Employé
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Leaves Tab -->
+                        <div id="hrContentLeaves" class="hr-content" style="display: none;">
+                            <div style="max-width: 1400px; margin: 0 auto; text-align: center; padding: 60px 20px;">
+                                <div style="font-size: 64px; margin-bottom: 16px;">📅</div>
+                                <h3 style="margin: 0 0 8px; font-size: 18px; font-weight: 600; color: #1a1a1a;">Gestion des Congés</h3>
+                                <p style="margin: 0; font-size: 14px; color: #6b7280;">Fonctionnalité en cours de développement</p>
+                            </div>
+                        </div>
+                        
+                        <!-- Payroll Tab -->
+                        <div id="hrContentPayroll" class="hr-content" style="display: none;">
+                            <div style="max-width: 1400px; margin: 0 auto; text-align: center; padding: 60px 20px;">
+                                <div style="font-size: 64px; margin-bottom: 16px;">💰</div>
+                                <h3 style="margin: 0 0 8px; font-size: 18px; font-weight: 600; color: #1a1a1a;">Gestion de la Paie</h3>
+                                <p style="margin: 0; font-size: 14px; color: #6b7280;">Fonctionnalité en cours de développement</p>
+                            </div>
+                        </div>
+                        
+                        <!-- Reviews Tab -->
+                        <div id="hrContentReviews" class="hr-content" style="display: none;">
+                            <div style="max-width: 1400px; margin: 0 auto; text-align: center; padding: 60px 20px;">
+                                <div style="font-size: 64px; margin-bottom: 16px;">📊</div>
+                                <h3 style="margin: 0 0 8px; font-size: 18px; font-weight: 600; color: #1a1a1a;">Évaluations des Performances</h3>
+                                <p style="margin: 0; font-size: 14px; color: #6b7280;">Fonctionnalité en cours de développement</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            document.body.appendChild(overlay);
+            
+            // Initialize HR data
+            initializeHRData();
+        }
+        
+        function closeHRManagement() {
+            const overlay = document.getElementById('hrManagementOverlay');
+            if (overlay) {
+                overlay.style.animation = 'fadeOut 0.3s ease';
+                setTimeout(() => overlay.remove(), 300);
+            }
+        }
+        
+        function showHRTab(tabName) {
+            // Hide all content
+            const contents = document.querySelectorAll('.hr-content');
+            contents.forEach(content => content.style.display = 'none');
+            
+            // Remove active from all tabs
+            const tabs = document.querySelectorAll('.hr-tab');
+            tabs.forEach(tab => {
+                tab.style.borderBottom = '3px solid transparent';
+                tab.style.color = '#6b7280';
+            });
+            
+            // Show selected content
+            const selectedContent = document.getElementById(`hrContent${tabName.charAt(0).toUpperCase() + tabName.slice(1)}`);
+            if (selectedContent) {
+                selectedContent.style.display = 'block';
+                selectedContent.style.animation = 'slideIn 0.3s ease';
+            }
+            
+            // Activate selected tab
+            const selectedTab = document.getElementById(`hrTab${tabName.charAt(0).toUpperCase() + tabName.slice(1)}`);
+            if (selectedTab) {
+                selectedTab.style.borderBottom = '3px solid #667eea';
+                selectedTab.style.color = '#667eea';
+            }
+        }
+        
+        function initializeHRData() {
+            // Load employees from localStorage
+            const employees = JSON.parse(localStorage.getItem('hrEmployees') || '[]');
+            if (employees.length > 0) {
+                renderEmployeesList(employees);
+                updateHRStats(employees);
+            }
+        }
+        
+        function renderEmployeesList(employees) {
+            const list = document.getElementById('employeesList');
+            if (!list) return;
+            
+            if (employees.length === 0) {
+                list.innerHTML = `
+                    <div style="text-align: center; padding: 60px 20px; color: #6b7280;">
+                        <div style="font-size: 64px; margin-bottom: 16px;">👥</div>
+                        <h3 style="margin: 0 0 8px; font-size: 18px; font-weight: 600; color: #1a1a1a;">Aucun employé</h3>
+                        <p style="margin: 0; font-size: 14px;">Commencez par ajouter votre premier employé</p>
+                        <button onclick="showAddEmployeeModal()" style="margin-top: 24px; padding: 12px 24px; background: linear-gradient(135deg, #667eea, #764ba2); border: none; border-radius: 12px; color: white; font-weight: 600; cursor: pointer;">
+                            Ajouter un Employé
+                        </button>
+                    </div>
+                `;
+                return;
+            }
+            
+            let html = `
+                <div style="overflow-x: auto;">
+                    <table style="width: 100%; border-collapse: collapse;">
+                        <thead>
+                            <tr style="border-bottom: 2px solid #e5e7eb;">
+                                <th style="padding: 12px; text-align: left; font-size: 12px; font-weight: 700; color: #6b7280; text-transform: uppercase;">Employé</th>
+                                <th style="padding: 12px; text-align: left; font-size: 12px; font-weight: 700; color: #6b7280; text-transform: uppercase;">Poste</th>
+                                <th style="padding: 12px; text-align: left; font-size: 12px; font-weight: 700; color: #6b7280; text-transform: uppercase;">Département</th>
+                                <th style="padding: 12px; text-align: left; font-size: 12px; font-weight: 700; color: #6b7280; text-transform: uppercase;">Email</th>
+                                <th style="padding: 12px; text-align: left; font-size: 12px; font-weight: 700; color: #6b7280; text-transform: uppercase;">Statut</th>
+                                <th style="padding: 12px; text-align: center; font-size: 12px; font-weight: 700; color: #6b7280; text-transform: uppercase;">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+            `;
+            
+            employees.forEach(emp => {
+                const statusColors = {
+                    active: '#10b981',
+                    onLeave: '#f59e0b',
+                    terminated: '#ef4444'
+                };
+                const statusLabels = {
+                    active: 'Actif',
+                    onLeave: 'En congé',
+                    terminated: 'Terminé'
+                };
+                
+                html += `
+                    <tr style="border-bottom: 1px solid #f3f4f6; transition: background 0.2s;" onmouseover="this.style.background='#f9fafb'" onmouseout="this.style.background='white'">
+                        <td style="padding: 16px;">
+                            <div style="display: flex; align-items: center; gap: 12px;">
+                                <div style="width: 40px; height: 40px; background: linear-gradient(135deg, #667eea, #764ba2); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: 700; font-size: 16px;">
+                                    ${emp.firstName.charAt(0)}${emp.lastName.charAt(0)}
+                                </div>
+                                <div>
+                                    <div style="font-weight: 600; color: #1a1a1a;">${emp.firstName} ${emp.lastName}</div>
+                                </div>
+                            </div>
+                        </td>
+                        <td style="padding: 16px; color: #6b7280;">${emp.position || '-'}</td>
+                        <td style="padding: 16px; color: #6b7280;">${emp.department || '-'}</td>
+                        <td style="padding: 16px; color: #6b7280;">${emp.email}</td>
+                        <td style="padding: 16px;">
+                            <span style="padding: 4px 12px; background: ${statusColors[emp.status] || '#6b7280'}20; color: ${statusColors[emp.status] || '#6b7280'}; border-radius: 12px; font-size: 12px; font-weight: 600;">
+                                ${statusLabels[emp.status] || 'Inconnu'}
+                            </span>
+                        </td>
+                        <td style="padding: 16px; text-align: center;">
+                            <button onclick="viewEmployee('${emp.id}')" style="padding: 6px 12px; background: #667eea; border: none; border-radius: 8px; color: white; cursor: pointer; font-size: 12px; font-weight: 600; margin-right: 4px;">
+                                Voir
+                            </button>
+                            <button onclick="deleteEmployee('${emp.id}')" style="padding: 6px 12px; background: #ef4444; border: none; border-radius: 8px; color: white; cursor: pointer; font-size: 12px; font-weight: 600;">
+                                Supprimer
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            });
+            
+            html += `
+                        </tbody>
+                    </table>
+                </div>
+            `;
+            
+            list.innerHTML = html;
+        }
+        
+        function updateHRStats(employees) {
+            // Update stats in dashboard
+            // This will be implemented when we have the stats cards
+        }
+        
+        function showAddEmployeeModal() {
+            const modal = document.createElement('div');
+            modal.id = 'addEmployeeModal';
+            modal.style.cssText = `
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: rgba(0,0,0,0.5);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                z-index: 10000;
+                animation: fadeIn 0.2s ease;
+            `;
+            
+            modal.innerHTML = `
+                <div style="background: white; border-radius: 20px; padding: 32px; max-width: 600px; width: 90%; max-height: 90vh; overflow-y: auto; animation: slideIn 0.3s ease;">
+                    <div style="display: flex; align-items: center; justify-content: between; margin-bottom: 24px;">
+                        <h2 style="margin: 0; font-size: 24px; font-weight: 700; color: #1a1a1a; flex: 1;">Nouvel Employé</h2>
+                        <button onclick="closeAddEmployeeModal()" style="width: 36px; height: 36px; background: #f3f4f6; border: none; border-radius: 10px; cursor: pointer; display: flex; align-items: center; justify-content: center;" onmouseover="this.style.background='#e5e7eb'" onmouseout="this.style.background='#f3f4f6'">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                        </button>
+                    </div>
+                    
+                    <form id="addEmployeeForm" onsubmit="handleAddEmployee(event)" style="display: flex; flex-direction: column; gap: 16px;">
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+                            <div>
+                                <label style="display: block; margin-bottom: 6px; font-size: 14px; font-weight: 600; color: #374151;">Prénom</label>
+                                <input type="text" name="firstName" required style="width: 100%; padding: 12px; border: 1px solid #e5e7eb; border-radius: 10px; font-size: 14px;">
+                            </div>
+                            <div>
+                                <label style="display: block; margin-bottom: 6px; font-size: 14px; font-weight: 600; color: #374151;">Nom</label>
+                                <input type="text" name="lastName" required style="width: 100%; padding: 12px; border: 1px solid #e5e7eb; border-radius: 10px; font-size: 14px;">
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <label style="display: block; margin-bottom: 6px; font-size: 14px; font-weight: 600; color: #374151;">Email</label>
+                            <input type="email" name="email" required style="width: 100%; padding: 12px; border: 1px solid #e5e7eb; border-radius: 10px; font-size: 14px;">
+                        </div>
+                        
+                        <div>
+                            <label style="display: block; margin-bottom: 6px; font-size: 14px; font-weight: 600; color: #374151;">Téléphone</label>
+                            <input type="tel" name="phone" style="width: 100%; padding: 12px; border: 1px solid #e5e7eb; border-radius: 10px; font-size: 14px;">
+                        </div>
+                        
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+                            <div>
+                                <label style="display: block; margin-bottom: 6px; font-size: 14px; font-weight: 600; color: #374151;">Poste</label>
+                                <input type="text" name="position" required style="width: 100%; padding: 12px; border: 1px solid #e5e7eb; border-radius: 10px; font-size: 14px;">
+                            </div>
+                            <div>
+                                <label style="display: block; margin-bottom: 6px; font-size: 14px; font-weight: 600; color: #374151;">Département</label>
+                                <select name="department" required style="width: 100%; padding: 12px; border: 1px solid #e5e7eb; border-radius: 10px; font-size: 14px;">
+                                    <option value="">Sélectionner...</option>
+                                    <option value="IT">IT</option>
+                                    <option value="RH">RH</option>
+                                    <option value="Finance">Finance</option>
+                                    <option value="Marketing">Marketing</option>
+                                    <option value="Ventes">Ventes</option>
+                                    <option value="Operations">Opérations</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+                            <div>
+                                <label style="display: block; margin-bottom: 6px; font-size: 14px; font-weight: 600; color: #374151;">Date d'embauche</label>
+                                <input type="date" name="hireDate" required style="width: 100%; padding: 12px; border: 1px solid #e5e7eb; border-radius: 10px; font-size: 14px;">
+                            </div>
+                            <div>
+                                <label style="display: block; margin-bottom: 6px; font-size: 14px; font-weight: 600; color: #374151;">Type de contrat</label>
+                                <select name="contractType" required style="width: 100%; padding: 12px; border: 1px solid #e5e7eb; border-radius: 10px; font-size: 14px;">
+                                    <option value="">Sélectionner...</option>
+                                    <option value="CDI">CDI</option>
+                                    <option value="CDD">CDD</option>
+                                    <option value="Stage">Stage</option>
+                                    <option value="Freelance">Freelance</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <label style="display: block; margin-bottom: 6px; font-size: 14px; font-weight: 600; color: #374151;">Salaire (EUR/an)</label>
+                            <input type="number" name="baseSalary" required min="0" step="100" style="width: 100%; padding: 12px; border: 1px solid #e5e7eb; border-radius: 10px; font-size: 14px;">
+                        </div>
+                        
+                        <div style="display: flex; gap: 12px; margin-top: 8px;">
+                            <button type="button" onclick="closeAddEmployeeModal()" style="flex: 1; padding: 12px; background: #f3f4f6; border: none; border-radius: 10px; font-weight: 600; cursor: pointer;" onmouseover="this.style.background='#e5e7eb'" onmouseout="this.style.background='#f3f4f6'">
+                                Annuler
+                            </button>
+                            <button type="submit" style="flex: 1; padding: 12px; background: linear-gradient(135deg, #667eea, #764ba2); border: none; border-radius: 10px; color: white; font-weight: 600; cursor: pointer;" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 12px rgba(102,126,234,0.4)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='none'">
+                                Ajouter l'Employé
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            `;
+            
+            document.body.appendChild(modal);
+        }
+        
+        function closeAddEmployeeModal() {
+            const modal = document.getElementById('addEmployeeModal');
+            if (modal) modal.remove();
+        }
+        
+        function handleAddEmployee(event) {
+            event.preventDefault();
+            const form = event.target;
+            const formData = new FormData(form);
+            
+            const employee = {
+                id: Date.now().toString(),
+                firstName: formData.get('firstName'),
+                lastName: formData.get('lastName'),
+                email: formData.get('email'),
+                phone: formData.get('phone'),
+                position: formData.get('position'),
+                department: formData.get('department'),
+                hireDate: formData.get('hireDate'),
+                contractType: formData.get('contractType'),
+                baseSalary: parseFloat(formData.get('baseSalary')),
+                status: 'active',
+                createdAt: Date.now()
+            };
+            
+            // Save to localStorage
+            const employees = JSON.parse(localStorage.getItem('hrEmployees') || '[]');
+            employees.push(employee);
+            localStorage.setItem('hrEmployees', JSON.stringify(employees));
+            
+            // Close modal
+            closeAddEmployeeModal();
+            
+            // Refresh list
+            renderEmployeesList(employees);
+            updateHRStats(employees);
+            
+            // Show success message
+            showToast(`✅ Employé ${employee.firstName} ${employee.lastName} ajouté avec succès`, 'success');
+        }
+        
+        function viewEmployee(id) {
+            const employees = JSON.parse(localStorage.getItem('hrEmployees') || '[]');
+            const employee = employees.find(e => e.id === id);
+            if (!employee) return;
+            
+            showToast(`👤 Détails de ${employee.firstName} ${employee.lastName}`, 'info');
+            // TODO: Implement full employee details modal
+        }
+        
+        function deleteEmployee(id) {
+            if (!confirm('Êtes-vous sûr de vouloir supprimer cet employé ?')) return;
+            
+            let employees = JSON.parse(localStorage.getItem('hrEmployees') || '[]');
+            const employee = employees.find(e => e.id === id);
+            
+            employees = employees.filter(e => e.id !== id);
+            localStorage.setItem('hrEmployees', JSON.stringify(employees));
+            
+            renderEmployeesList(employees);
+            updateHRStats(employees);
+            
+            if (employee) {
+                showToast(`❌ Employé ${employee.firstName} ${employee.lastName} supprimé`, 'info');
+            }
+        }
+        // ========== FIN GESTION RH ==========
+        
+        
         function toggleTemplatesMenu() {
             const menu = document.getElementById('templatesMenu');
             if (menu.style.display === 'none' || !menu.style.display) {
@@ -8460,7 +9005,7 @@ Réponds UNIQUEMENT dans ce format JSON:
                                     <div style="font-size: 12px; color: rgba(255,255,255,0.85); font-weight: 400; line-height: 1.4;">KPI financiers, ratios d'analyse, graphiques dynamiques et reporting automatisé</div>
                                 </button>
                                 
-                                <button onclick="loadTemplate('hr'); toggleTemplatesSidebar();" style="width: 100%; padding: 16px; background: rgba(255,255,255,0.12); border: 1px solid rgba(255,255,255,0.2); border-radius: 12px; color: white; cursor: pointer; font-weight: 600; font-size: 14px; transition: all 0.2s; text-align: left; margin-bottom: 12px;" onmouseover="this.style.background='rgba(255,255,255,0.22)'; this.style.transform='translateX(-4px)'" onmouseout="this.style.background='rgba(255,255,255,0.12)'; this.style.transform='translateX(0)'">
+                                <button onclick="openHRManagement(); toggleTemplatesSidebar();" style="width: 100%; padding: 16px; background: rgba(255,255,255,0.12); border: 1px solid rgba(255,255,255,0.2); border-radius: 12px; color: white; cursor: pointer; font-weight: 600; font-size: 14px; transition: all 0.2s; text-align: left; margin-bottom: 12px;" onmouseover="this.style.background='rgba(255,255,255,0.22)'; this.style.transform='translateX(-4px)'" onmouseout="this.style.background='rgba(255,255,255,0.12)'; this.style.transform='translateX(0)'">
                                     <div style="font-weight: 700; margin-bottom: 6px; font-size: 15px;">Gestion RH</div>
                                     <div style="font-size: 12px; color: rgba(255,255,255,0.85); font-weight: 400; line-height: 1.4;">Base de données employés, gestion des congés, calcul de paie et évaluation des performances</div>
                                 </button>
