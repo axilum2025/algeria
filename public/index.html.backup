@@ -1899,25 +1899,11 @@
                     <span class="menu-item-text">AI Text</span>
                 </button>
                 <!-- AI Management (Assistant Excel expert) -->
-                <button class="menu-item" onclick="openExcelPro()" style="padding-left:30px;" title="AI Management - Ask The AI">
-                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"/>
-                    </svg>
-                    <span class="menu-item-text">Ask The AI</span>
-                </button>
-                <!-- Excel AI Expert -->
-                <button class="menu-item" onclick="window.location.href='excel-ai-expert.html'" style="padding-left:30px;" title="Excel AI Expert - Analyse avancée">
+                <button class="menu-item" onclick="openExcelPro()" style="padding-left:30px;" title="AI Management - Assistant Excel expert">
                     <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"/>
                     </svg>
-                    <span class="menu-item-text">Excel AI Expert</span>
-                </button>
-                <!-- Gestion RH -->
-                <button class="menu-item" onclick="openHRManagement()" style="padding-left:30px;" title="Gestion RH - Employés, congés, paie">
-                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
-                    </svg>
-                    <span class="menu-item-text">Gestion RH</span>
+                    <span class="menu-item-text">AI Management</span>
                 </button>
             </div>
             
@@ -9155,7 +9141,7 @@ Réponds UNIQUEMENT dans ce format JSON:
             return false;
         }
 
-        // Excel AI - Interface simplifiée avec seulement le chat AI
+        // Excel AI - Interface complète
         function openExcelPro() {
             const overlay = document.createElement('div');
             overlay.id = 'excelAiOverlay';
@@ -9169,97 +9155,442 @@ Réponds UNIQUEMENT dans ce format JSON:
                 <style>
                     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
                     #excelAiOverlay * { font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; }
+                    
+                    /* Styles pour cellules éditables */
+                    .excel-cell {
+                        padding: 8px;
+                        border: 1px solid var(--border-color);
+                        min-width: 100px;
+                        cursor: text;
+                        transition: all 0.2s;
+                    }
+                    
+                    .excel-cell:hover {
+                        background: rgba(99,102,241,0.05);
+                        border-color: #6366F1;
+                    }
+                    
+                    .excel-cell:focus {
+                        outline: 2px solid #6366F1;
+                        background: white;
+                    }
+                    
+                    .excel-cell.editing {
+                        background: #FEF3C7;
+                        border-color: #F59E0B;
+                    }
                 </style>
-                <div style="min-height: 100vh; padding: 20px; display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, rgba(99,102,241,0.05) 0%, rgba(139,92,246,0.05) 100%);">
-                    <!-- Chat AI Panel -->
-                    <div style="width: 100%; max-width: 800px; background: white; border-radius: 24px; box-shadow: 0 20px 60px rgba(0,0,0,0.15); overflow: hidden;">
-                        <!-- Header -->
-                        <div style="background: linear-gradient(135deg, #6366F1 0%, #8B5CF6 50%, #EC4899 100%); padding: 24px; display: flex; align-items: center; justify-content: space-between;">
-                            <div>
-                                <h2 style="margin: 0; color: white; font-size: 24px; font-weight: 700; letter-spacing: -0.5px;">Ask The AI</h2>
-                                <p style="margin: 4px 0 0; color: rgba(255,255,255,0.9); font-size: 14px;">Intelligence Artificielle • Assistance Professionnelle</p>
+                <div style="min-height: 100vh; padding: 20px;">
+                    <!-- Header Premium avec SVG -->
+                    <div style="max-width: 1400px; margin: 0 auto 24px; display: flex; align-items: center; justify-content: space-between; background: linear-gradient(135deg, #6366F1 0%, #8B5CF6 50%, #EC4899 100%); padding: 20px 32px; border-radius: 20px; box-shadow: 0 10px 40px rgba(99, 102, 241, 0.3);">
+                        <div style="display: flex; align-items: center; gap: 18px;">
+                            <!-- Bouton Modèles Professionnels -->
+                            <button onclick="toggleTemplatesSidebar()" style="width: 56px; height: 56px; background: rgba(255,255,255,0.18); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.25); border-radius: 14px; color: white; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; flex-shrink: 0;" onmouseover="this.style.background='rgba(255,255,255,0.3)'" onmouseout="this.style.background='rgba(255,255,255,0.18)'" title="Modèles Professionnels">
+                                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <rect x="3" y="3" width="7" height="7"/>
+                                    <rect x="14" y="3" width="7" height="7"/>
+                                    <rect x="14" y="14" width="7" height="7"/>
+                                    <rect x="3" y="14" width="7" height="7"/>
+                                </svg>
+                            </button>
+                            <div style="flex: 1;">
+                                <h2 style="margin: 0; color: white; font-size: 20px; font-weight: 700; letter-spacing: -0.5px; text-shadow: 0 2px 4px rgba(0,0,0,0.1);">AI Management</h2>
+                                <p style="margin: 0; color: rgba(255,255,255,0.95); font-size: 14px; font-weight: 600; letter-spacing: 0.3px;">Gestion Intelligente • Automatisation • Productivité</p>
                             </div>
-                            <button onclick="closeExcelAi()" style="width: 40px; height: 40px; background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.3); border-radius: 10px; color: white; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.3)'; this.style.transform='rotate(90deg)'" onmouseout="this.style.background='rgba(255,255,255,0.2)'; this.style.transform='rotate(0)'">
+                        </div>
+                        
+                        <!-- Sidebar Modèles Professionnels -->
+                        <div id="templatesSidebar" style="position: fixed; top: 0; right: -380px; width: 380px; height: 100vh; background: linear-gradient(135deg, #6366F1 0%, #8B5CF6 50%, #EC4899 100%); backdrop-filter: blur(20px); box-shadow: -4px 0 24px rgba(0,0,0,0.2); z-index: 10000; transition: right 0.3s cubic-bezier(0.4, 0, 0.2, 1); display: flex; flex-direction: column;">
+                            <!-- En-tête Sidebar -->
+                            <div style="padding: 24px; border-bottom: 1px solid rgba(255,255,255,0.15); display: flex; align-items: center; justify-content: space-between;">
+                                <h3 style="margin: 0; color: white; font-size: 18px; font-weight: 700; letter-spacing: -0.3px;">Modèle AI</h3>
+                                <button onclick="toggleTemplatesSidebar()" style="width: 36px; height: 36px; background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.25); border-radius: 10px; color: white; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center;" onmouseover="this.style.background='rgba(255,255,255,0.28)'; this.style.transform='rotate(90deg)'" onmouseout="this.style.background='rgba(255,255,255,0.15)'; this.style.transform='rotate(0deg)'">
+                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                                </button>
+                            </div>
+                            
+                            <!-- Liste Modèles -->
+                            <div style="flex: 1; overflow-y: auto; padding: 20px;">
+                                <button onclick="toggleExcelAIExpert(); toggleTemplatesSidebar();" style="width: 100%; padding: 16px; background: rgba(255,255,255,0.12); border: 1px solid rgba(255,255,255,0.2); border-radius: 12px; color: white; cursor: pointer; font-weight: 600; font-size: 14px; transition: all 0.2s; text-align: left; margin-bottom: 12px;" onmouseover="this.style.background='rgba(255,255,255,0.22)'; this.style.transform='translateX(-4px)'" onmouseout="this.style.background='rgba(255,255,255,0.12)'; this.style.transform='translateX(0)'">
+                                    <div style="font-weight: 700; margin-bottom: 6px; font-size: 15px;">Excel AI Expert</div>
+                                    <div style="font-size: 12px; color: rgba(255,255,255,0.85); font-weight: 400; line-height: 1.4;">Analyse Avancée • Formules Modernes • Audit Automatique</div>
+                                </button>
+                                
+                                <button onclick="loadTemplate('schedule'); toggleTemplatesSidebar();" style="width: 100%; padding: 16px; background: rgba(255,255,255,0.12); border: 1px solid rgba(255,255,255,0.2); border-radius: 12px; color: white; cursor: pointer; font-weight: 600; font-size: 14px; transition: all 0.2s; text-align: left; margin-bottom: 12px;" onmouseover="this.style.background='rgba(255,255,255,0.22)'; this.style.transform='translateX(-4px)'" onmouseout="this.style.background='rgba(255,255,255,0.12)'; this.style.transform='translateX(0)'">
+                                    <div style="font-weight: 700; margin-bottom: 6px; font-size: 15px;">Planning Projet</div>
+                                    <div style="font-size: 12px; color: rgba(255,255,255,0.85); font-weight: 400; line-height: 1.4;">Diagramme de Gantt, gestion des tâches, allocation des ressources et suivi des jalons</div>
+                                </button>
+                                
+                                <button onclick="loadTemplate('finance'); toggleTemplatesSidebar();" style="width: 100%; padding: 16px; background: rgba(255,255,255,0.12); border: 1px solid rgba(255,255,255,0.2); border-radius: 12px; color: white; cursor: pointer; font-weight: 600; font-size: 14px; transition: all 0.2s; text-align: left; margin-bottom: 12px;" onmouseover="this.style.background='rgba(255,255,255,0.22)'; this.style.transform='translateX(-4px)'" onmouseout="this.style.background='rgba(255,255,255,0.12)'; this.style.transform='translateX(0)'">
+                                    <div style="font-weight: 700; margin-bottom: 6px; font-size: 15px;">Tableau de Bord Financier</div>
+                                    <div style="font-size: 12px; color: rgba(255,255,255,0.85); font-weight: 400; line-height: 1.4;">KPI financiers, ratios d'analyse, graphiques dynamiques et reporting automatisé</div>
+                                </button>
+                                
+                                <button onclick="openHRManagement(); toggleTemplatesSidebar();" style="width: 100%; padding: 16px; background: rgba(255,255,255,0.12); border: 1px solid rgba(255,255,255,0.2); border-radius: 12px; color: white; cursor: pointer; font-weight: 600; font-size: 14px; transition: all 0.2s; text-align: left; margin-bottom: 12px;" onmouseover="this.style.background='rgba(255,255,255,0.22)'; this.style.transform='translateX(-4px)'" onmouseout="this.style.background='rgba(255,255,255,0.12)'; this.style.transform='translateX(0)'">
+                                    <div style="font-weight: 700; margin-bottom: 6px; font-size: 15px;">Gestion RH</div>
+                                    <div style="font-size: 12px; color: rgba(255,255,255,0.85); font-weight: 400; line-height: 1.4;">Base de données employés, gestion des congés, calcul de paie et évaluation des performances</div>
+                                </button>
+                                
+                                <button onclick="toggleAiChat(); toggleTemplatesSidebar();" style="width: 100%; padding: 16px; background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.3); border-radius: 12px; color: white; cursor: pointer; font-weight: 600; font-size: 14px; transition: all 0.2s; text-align: left;" onmouseover="this.style.background='rgba(255,255,255,0.32)'; this.style.transform='translateX(-4px)'" onmouseout="this.style.background='rgba(255,255,255,0.2)'; this.style.transform='translateX(0)'">
+                                    <div style="font-weight: 700; font-size: 15px;">Ask The AI</div>
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <button onclick="openWelcomePanel()" style="width: 44px; height: 44px; background: rgba(255,255,255,0.15); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.25); border-radius: 12px; color: white; cursor: pointer; font-weight: 700; transition: all 0.2s; font-size: 20px; display: flex; align-items: center; justify-content: center;" onmouseover="this.style.background='rgba(255,255,255,0.28)'; this.style.transform='scale(1.1)'" onmouseout="this.style.background='rgba(255,255,255,0.15)'; this.style.transform='scale(1)'" title="Aide">
+                                ?
+                            </button>
+                            
+                            <button onclick="closeExcelAi()" style="width: 44px; height: 44px; background: rgba(255,255,255,0.15); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.25); border-radius: 12px; color: white; cursor: pointer; font-weight: 700; transition: all 0.2s; font-size: 14px; display: flex; align-items: center; justify-content: center;" onmouseover="this.style.background='rgba(255,255,255,0.28)'; this.style.transform='rotate(90deg)'" onmouseout="this.style.background='rgba(255,255,255,0.15)'; this.style.transform='rotate(0deg)'" title="Fermer">
                                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
                             </button>
                         </div>
+                    </div>
 
-                        <!-- Welcome Info -->
-                        <div style="background: linear-gradient(135deg, rgba(99,102,241,0.08), rgba(139,92,246,0.08)); padding: 20px; border-bottom: 1px solid rgba(0,0,0,0.1);">
+                    <!-- Panneau de Bienvenue / Onboarding -->
+                    <div id="welcomePanel" style="position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 90%; max-width: 700px; max-height: 90vh; overflow-y: auto; background: linear-gradient(135deg, #ffffff 0%, #f8f9ff 100%); border-radius: 24px; padding: 40px; box-shadow: 0 20px 60px rgba(0,0,0,0.25); z-index: 10001; border: 1px solid rgba(99,102,241,0.2);">
+                        <button onclick="closeWelcomePanel()" style="position: sticky; top: 0; float: right; width: 40px; height: 40px; background: rgba(99,102,241,0.1); border: 1px solid rgba(99,102,241,0.2); border-radius: 10px; color: #6366F1; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; z-index: 1;" onmouseover="this.style.background='rgba(99,102,241,0.2)'; this.style.transform='rotate(90deg)'" onmouseout="this.style.background='rgba(99,102,241,0.1)'; this.style.transform='rotate(0deg)'">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                        </button>
+                        
+                        <div style="text-align: center; margin-bottom: 32px;">
+                            <div style="display: inline-flex; align-items: center; justify-content: center; width: 80px; height: 80px; background: linear-gradient(135deg, #6366F1, #8B5CF6); border-radius: 20px; margin-bottom: 20px; box-shadow: 0 8px 24px rgba(99,102,241,0.3);">
+                                <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
+                                    <polyline points="3.27 6.96 12 12.01 20.73 6.96"/>
+                                    <line x1="12" y1="22.08" x2="12" y2="12"/>
+                                </svg>
+                            </div>
+                            <h2 style="margin: 0 0 12px; color: #1a1a1a; font-size: 28px; font-weight: 800; letter-spacing: -0.5px;">Bienvenue sur AI Management</h2>
+                            <p style="margin: 0; color: #6b7280; font-size: 15px; font-weight: 500; line-height: 1.6;">Votre plateforme intelligente pour la gestion professionnelle</p>
+                        </div>
+                        
+                        <div style="background: linear-gradient(135deg, rgba(99,102,241,0.05), rgba(139,92,246,0.05)); border-radius: 16px; padding: 24px; margin-bottom: 28px; border: 1px solid rgba(99,102,241,0.15);">
+                            <h3 style="margin: 0 0 16px; color: #1a1a1a; font-size: 16px; font-weight: 700; display: flex; align-items: center; gap: 8px;">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#6366F1" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                                Comment utiliser cette page ?
+                            </h3>
+                            <ol style="margin: 0; padding-left: 20px; color: #4b5563; font-size: 14px; line-height: 1.8; font-weight: 500;">
+                                <li style="margin-bottom: 8px;">Cliquez sur l'icône <strong>grille</strong> en haut à gauche pour ouvrir le menu</li>
+                                <li style="margin-bottom: 8px;">Sélectionnez l'une des <strong>4 expertises</strong> disponibles</li>
+                                <li style="margin-bottom: 8px;">Utilisez <strong>"Ask The AI"</strong> pour poser vos questions</li>
+                                <li>L'<strong>historique</strong> et les outils apparaîtront selon votre sélection</li>
+                            </ol>
+                        </div>
+                        
+                        <div style="margin-bottom: 28px;">
+                            <h3 style="margin: 0 0 16px; color: #1a1a1a; font-size: 16px; font-weight: 700; display: flex; align-items: center; gap: 8px;">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#6366F1" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+                                4 Expertises Professionnelles
+                            </h3>
                             <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px;">
-                                <div style="background: white; border-radius: 12px; padding: 14px; border: 1px solid rgba(99,102,241,0.15);">
-                                    <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 6px;">
-                                        <div style="width: 32px; height: 32px; background: linear-gradient(135deg, #6366F1, #8B5CF6); border-radius: 8px; display: flex; align-items: center; justify-content: center;">
-                                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+                                <div style="background: white; border-radius: 12px; padding: 16px; border: 1px solid rgba(99,102,241,0.15); transition: all 0.2s;">
+                                    <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px;">
+                                        <div style="width: 36px; height: 36px; background: linear-gradient(135deg, #6366F1, #8B5CF6); border-radius: 8px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
                                         </div>
-                                        <h4 style="margin: 0; font-size: 13px; font-weight: 700;">Excel AI Expert</h4>
+                                        <h4 style="margin: 0; color: #1a1a1a; font-size: 14px; font-weight: 700;">Excel AI Expert</h4>
                                     </div>
-                                    <p style="margin: 0; font-size: 11px; color: #6b7280; line-height: 1.4;">Formules avancées et analyse</p>
+                                    <p style="margin: 0; color: #6b7280; font-size: 12px; line-height: 1.5;">Formules avancées, Power Query, analyse prédictive</p>
                                 </div>
                                 
-                                <div style="background: white; border-radius: 12px; padding: 14px; border: 1px solid rgba(139,92,246,0.15);">
-                                    <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 6px;">
-                                        <div style="width: 32px; height: 32px; background: linear-gradient(135deg, #8B5CF6, #EC4899); border-radius: 8px; display: flex; align-items: center; justify-content: center;">
-                                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                                <div style="background: white; border-radius: 12px; padding: 16px; border: 1px solid rgba(139,92,246,0.15); transition: all 0.2s;">
+                                    <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px;">
+                                        <div style="width: 36px; height: 36px; background: linear-gradient(135deg, #8B5CF6, #EC4899); border-radius: 8px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
                                         </div>
-                                        <h4 style="margin: 0; font-size: 13px; font-weight: 700;">Planning Projet</h4>
+                                        <h4 style="margin: 0; color: #1a1a1a; font-size: 14px; font-weight: 700;">Planning Projet</h4>
                                     </div>
-                                    <p style="margin: 0; font-size: 11px; color: #6b7280; line-height: 1.4;">Gestion des tâches</p>
+                                    <p style="margin: 0; color: #6b7280; font-size: 12px; line-height: 1.5;">Gantt, gestion des tâches et ressources</p>
                                 </div>
                                 
-                                <div style="background: white; border-radius: 12px; padding: 14px; border: 1px solid rgba(236,72,153,0.15);">
-                                    <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 6px;">
-                                        <div style="width: 32px; height: 32px; background: linear-gradient(135deg, #EC4899, #F43F5E); border-radius: 8px; display: flex; align-items: center; justify-content: center;">
-                                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+                                <div style="background: white; border-radius: 12px; padding: 16px; border: 1px solid rgba(236,72,153,0.15); transition: all 0.2s;">
+                                    <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px;">
+                                        <div style="width: 36px; height: 36px; background: linear-gradient(135deg, #EC4899, #F43F5E); border-radius: 8px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
                                         </div>
-                                        <h4 style="margin: 0; font-size: 13px; font-weight: 700;">Finance</h4>
+                                        <h4 style="margin: 0; color: #1a1a1a; font-size: 14px; font-weight: 700;">Finance</h4>
                                     </div>
-                                    <p style="margin: 0; font-size: 11px; color: #6b7280; line-height: 1.4;">KPI et ratios financiers</p>
+                                    <p style="margin: 0; color: #6b7280; font-size: 12px; line-height: 1.5;">KPI financiers, ratios et prévisions</p>
                                 </div>
                                 
-                                <div style="background: white; border-radius: 12px; padding: 14px; border: 1px solid rgba(20,184,166,0.15);">
-                                    <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 6px;">
-                                        <div style="width: 32px; height: 32px; background: linear-gradient(135deg, #14B8A6, #06B6D4); border-radius: 8px; display: flex; align-items: center; justify-content: center;">
-                                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                                <div style="background: white; border-radius: 12px; padding: 16px; border: 1px solid rgba(20,184,166,0.15); transition: all 0.2s;">
+                                    <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px;">
+                                        <div style="width: 36px; height: 36px; background: linear-gradient(135deg, #14B8A6, #06B6D4); border-radius: 8px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
                                         </div>
-                                        <h4 style="margin: 0; font-size: 13px; font-weight: 700;">Gestion RH</h4>
+                                        <h4 style="margin: 0; color: #1a1a1a; font-size: 14px; font-weight: 700;">Gestion RH</h4>
                                     </div>
-                                    <p style="margin: 0; font-size: 11px; color: #6b7280; line-height: 1.4;">Employés et congés</p>
+                                    <p style="margin: 0; color: #6b7280; font-size: 12px; line-height: 1.5;">Employés, congés et évaluations</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div style="background: linear-gradient(135deg, rgba(99,102,241,0.08), rgba(139,92,246,0.08)); border-radius: 16px; padding: 20px; margin-bottom: 24px; border: 1px solid rgba(99,102,241,0.2);">
+                            <div style="display: flex; align-items: start; gap: 12px;">
+                                <div style="width: 40px; height: 40px; background: linear-gradient(135deg, #6366F1, #8B5CF6); border-radius: 10px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+                                </div>
+                                <div style="flex: 1;">
+                                    <h4 style="margin: 0 0 8px; color: #1a1a1a; font-size: 15px; font-weight: 700;">Intelligence Artificielle</h4>
+                                    <p style="margin: 0; color: #4b5563; font-size: 13px; line-height: 1.6; font-weight: 500;">Propulsé par <strong>Gemini Flash 2.0</strong> de Google, le modèle d'IA le plus avancé pour l'analyse et la génération de contenu professionnel. Réponses ultra-rapides et précises garanties.</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <button onclick="closeWelcomePanel()" style="width: 100%; padding: 16px; background: linear-gradient(135deg, #6366F1, #8B5CF6); border: none; border-radius: 12px; color: white; cursor: pointer; font-weight: 700; font-size: 16px; box-shadow: 0 4px 16px rgba(99,102,241,0.3); transition: all 0.2s;" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 20px rgba(99,102,241,0.4)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 16px rgba(99,102,241,0.3)'">
+                            Commencer
+                        </button>
+                    </div>
+                    
+                    <!-- Overlay sombre pour le panneau de bienvenue -->
+                    <div id="welcomeOverlay" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); backdrop-filter: blur(4px); z-index: 10000;"></div>
+
+                    <div style="max-width: 1400px; margin: 0 auto; display: grid; grid-template-columns: 1fr 450px; gap: 24px;">
+                        <!-- Upload Zone - Largeur totale -->
+                        <div id="excelUploadZone" style="display: none; grid-column: 1 / -1; background: linear-gradient(135deg, rgba(99,102,241,0.02) 0%, rgba(139,92,246,0.02) 100%); border: 1px dashed rgba(99,102,241,0.3); border-radius: 12px; padding: 16px 24px; text-align: center; transition: all 0.3s;">
+                            <h3 style="margin: 0 0 8px; color: var(--text-primary); font-size: 18px; font-weight: 700; letter-spacing: -0.3px;">Glissez votre fichier Excel ici</h3>
+                                <p style="margin: 0 0 4px; color: var(--text-secondary); font-size: 13px; font-weight: 500; cursor: pointer;" onclick="document.getElementById('excelFileInput').click()">ou cliquez pour parcourir</p>
+                                <p style="margin: 0 0 12px; color: var(--text-secondary); font-size: 12px; font-weight: 400; opacity: 0.6;">Formats: .xlsx, .xls, .csv</p>
+                                <input type="file" id="excelFileInput" accept=".xlsx,.xls,.csv" style="display: none;" onchange="handleExcelUpload(event)">
+                                
+                                <!-- Boutons Actions -->
+                                <div style="display: flex; gap: 10px; justify-content: center; align-items: center; margin-top: 12px; border-top: 1px solid rgba(0,0,0,0.05); padding-top: 12px;">
+                                    <button onclick="createEmptyWorkbook()" style="padding: 8px 20px; background: rgba(168,220,195,0.15); border: 1px solid rgba(143,203,181,0.35); border-radius: 8px; color: var(--text-primary); cursor: pointer; font-weight: 600; font-size: 13px; transition: all 0.2s; box-shadow: none;" onmouseover="this.style.background='rgba(168,220,195,0.25)'" onmouseout="this.style.background='rgba(168,220,195,0.15)'">
+                                        Créer classeur vide
+                                    </button>
                                 </div>
                             </div>
                         </div>
 
-                        <!-- Chat Messages -->
-                        <div id="excelChatMessages" style="height: 400px; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 12px;">
-                            <div style="padding: 14px; background: linear-gradient(135deg, rgba(99,102,241,0.08), rgba(139,92,246,0.08)); border-radius: 12px; border-left: 3px solid #6366F1;">
-                                <p style="margin: 0; font-size: 14px; line-height: 1.6; color: var(--text-primary);">
-                                    👋 Bonjour ! Je suis votre assistant AI. Posez-moi vos questions sur :
-                                    <br><br>
-                                    • <strong>Excel</strong> : Formules, analyses, graphiques<br>
-                                    • <strong>Planning</strong> : Gestion de projets, Gantt<br>
-                                    • <strong>Finance</strong> : KPI, ratios, prévisions<br>
-                                    • <strong>RH</strong> : Gestion d'employés, congés, paie
-                                </p>
+                        <!-- Zone principale -->
+                        <div style="display: flex; flex-direction: column; gap: 20px;">
+                            <!-- Preview Table Modern -->
+                            <div id="excelPreviewContainer" style="display: none; background: var(--bg-secondary); border-radius: 16px; padding: 24px; border: 1px solid var(--border-color); box-shadow: 0 2px 8px rgba(0,0,0,0.05);">
+                                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px;">
+                                    <div style="display: flex; align-items: center; gap: 12px;">
+                                        <h3 style="margin: 0; color: var(--text-primary); font-size: 16px; font-weight: 700;">Aperçu des données</h3>
+                                    </div>
+                                    <div style="display: flex; align-items: center; gap: 8px;">
+                                        <!-- Bouton Actions avec menu déroulant -->
+                                        <div style="position: relative; display: inline-block;">
+                                            <button id="excelActionsMenuBtn" style="padding: 8px 14px; background: linear-gradient(135deg, #6366F1, #8B5CF6); border: none; border-radius: 8px; color: white; cursor: pointer; font-weight: 600; font-size: 13px; transition: all 0.2s; display: flex; align-items: center; gap: 6px; box-shadow: 0 2px 8px rgba(99,102,241,0.3);" onmouseover="document.getElementById('excelActionsDropdown').style.display='block'" onmouseout="setTimeout(() => { if (!document.getElementById('excelActionsDropdown').matches(':hover')) document.getElementById('excelActionsDropdown').style.display='none'; }, 100)">
+                                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                                    <circle cx="12" cy="12" r="1"/>
+                                                    <circle cx="12" cy="5" r="1"/>
+                                                    <circle cx="12" cy="19" r="1"/>
+                                                </svg>
+                                                Actions
+                                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                                    <polyline points="6 9 12 15 18 9"/>
+                                                </svg>
+                                            </button>
+                                            <div id="excelActionsDropdown" style="display: none; position: absolute; top: 100%; right: 0; margin-top: 6px; background: var(--bg-primary); border: 1px solid var(--border-color); border-radius: 10px; box-shadow: 0 4px 20px rgba(0,0,0,0.15); min-width: 200px; z-index: 1000; padding: 8px;" onmouseover="this.style.display='block'" onmouseout="this.style.display='none'">
+                                                <button onclick="minimizeWorkbook(); document.getElementById('excelActionsDropdown').style.display='none'" style="width: 100%; padding: 10px 12px; background: rgba(99,102,241,0.1); border: none; border-radius: 6px; color: #6366F1; cursor: pointer; font-weight: 600; font-size: 12px; text-align: left; transition: all 0.2s; display: flex; align-items: center; gap: 8px; margin-bottom: 6px;" onmouseover="this.style.background='rgba(99,102,241,0.2)'" onmouseout="this.style.background='rgba(99,102,241,0.1)'">
+                                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                                        <line x1="5" y1="12" x2="19" y2="12"/>
+                                                    </svg>
+                                                    Réduire le classeur
+                                                </button>
+                                                <div style="height: 1px; background: var(--border-color); margin: 6px 0;"></div>
+                                                <button onclick="addExcelRow(); document.getElementById('excelActionsDropdown').style.display='none'" style="width: 100%; padding: 10px 12px; background: rgba(168,220,195,0.1); border: none; border-radius: 6px; color: var(--text-primary); cursor: pointer; font-weight: 600; font-size: 12px; text-align: left; transition: all 0.2s; display: flex; align-items: center; gap: 8px; margin-bottom: 4px;" onmouseover="this.style.background='rgba(168,220,195,0.2)'" onmouseout="this.style.background='rgba(168,220,195,0.1)'">
+                                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                                        <line x1="12" y1="5" x2="12" y2="19"/>
+                                                        <line x1="5" y1="12" x2="19" y2="12"/>
+                                                    </svg>
+                                                    Ajouter ligne
+                                                </button>
+                                                <button onclick="deleteExcelRow(); document.getElementById('excelActionsDropdown').style.display='none'" style="width: 100%; padding: 10px 12px; background: rgba(239,68,68,0.08); border: none; border-radius: 6px; color: #EF4444; cursor: pointer; font-weight: 600; font-size: 12px; text-align: left; transition: all 0.2s; display: flex; align-items: center; gap: 8px; margin-bottom: 6px;" onmouseover="this.style.background='rgba(239,68,68,0.15)'" onmouseout="this.style.background='rgba(239,68,68,0.08)'">
+                                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                                        <line x1="5" y1="12" x2="19" y2="12"/>
+                                                    </svg>
+                                                    Supprimer ligne
+                                                </button>
+                                                <div style="height: 1px; background: var(--border-color); margin: 6px 0;"></div>
+                                                <button onclick="addExcelColumn(); document.getElementById('excelActionsDropdown').style.display='none'" style="width: 100%; padding: 10px 12px; background: rgba(168,220,195,0.1); border: none; border-radius: 6px; color: var(--text-primary); cursor: pointer; font-weight: 600; font-size: 12px; text-align: left; transition: all 0.2s; display: flex; align-items: center; gap: 8px; margin-bottom: 4px;" onmouseover="this.style.background='rgba(168,220,195,0.2)'" onmouseout="this.style.background='rgba(168,220,195,0.1)'">
+                                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                                        <line x1="12" y1="5" x2="12" y2="19"/>
+                                                        <line x1="5" y1="12" x2="19" y2="12"/>
+                                                    </svg>
+                                                    Ajouter colonne
+                                                </button>
+                                                <button onclick="deleteExcelColumn(); document.getElementById('excelActionsDropdown').style.display='none'" style="width: 100%; padding: 10px 12px; background: rgba(239,68,68,0.08); border: none; border-radius: 6px; color: #EF4444; cursor: pointer; font-weight: 600; font-size: 12px; text-align: left; transition: all 0.2s; display: flex; align-items: center; gap: 8px;" onmouseover="this.style.background='rgba(239,68,68,0.15)'" onmouseout="this.style.background='rgba(239,68,68,0.08)'">
+                                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                                        <line x1="5" y1="12" x2="19" y2="12"/>
+                                                    </svg>
+                                                    Supprimer colonne
+                                                </button>
+                                            </div>
+                                        </div>
+                                        <span id="excelFileName" style="color: var(--text-secondary); font-size: 12px; background: rgba(99,102,241,0.08); padding: 6px 12px; border-radius: 6px; font-weight: 500;"></span>
+                                    </div>
+                                </div>
+                                <div id="excelTablePreview" style="overflow-x: auto; overflow-y: auto; max-height: 500px; border-radius: 12px; border: 1px solid var(--border-color);"></div>
+                                <div style="margin-top: 16px; display: flex; gap: 16px; align-items: center; color: var(--text-secondary); font-size: 13px; font-weight: 600;">
+                                    <span id="excelRowCount" style="background: rgba(99,102,241,0.1); padding: 6px 12px; border-radius: 8px;"></span>
+                                    <span id="excelColCount" style="background: rgba(139,92,246,0.1); padding: 6px 12px; border-radius: 8px;"></span>
+                                </div>
+                                
+                                <!-- PANNEAU COMMANDES IA SUPPRIMÉ TEMPORAIREMENT POUR DÉBOGAGE -->
+                                </div>
+                            </div>
+
+                            <!-- Boutons Rapides Intelligents -->
+                            <div id="excelQuickActions" style="display: none; background: rgba(255,255,255,0.5); border-radius: 12px; padding: 14px; border: 1px solid rgba(0,0,0,0.06); backdrop-filter: blur(10px);">
+                                <h3 style="margin: 0 0 10px; color: var(--text-primary); font-size: 15px; font-weight: 700; letter-spacing: -0.2px;">Actions Rapides</h3>
+                                <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px;">
+                                    <button onclick="quickAction('explain')" style="padding: 8px 12px; background: rgba(168,220,195,0.08); border: 1px solid rgba(143,203,181,0.25); border-radius: 8px; color: var(--text-primary); cursor: pointer; font-weight: 600; font-size: 12px; transition: all 0.2s;" onmouseover="this.style.background='rgba(168,220,195,0.15)'" onmouseout="this.style.background='rgba(168,220,195,0.08)'">
+                                        Expliquer
+                                    </button>
+                                    <button onclick="quickAction('beginner')" style="padding: 8px 12px; background: rgba(168,220,195,0.08); border: 1px solid rgba(143,203,181,0.25); border-radius: 8px; color: var(--text-primary); cursor: pointer; font-weight: 600; font-size: 12px; transition: all 0.2s;" onmouseover="this.style.background='rgba(168,220,195,0.15)'" onmouseout="this.style.background='rgba(168,220,195,0.08)'">
+                                        Mode Simple
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <!-- Actions IA Modern -->
+                            <div id="excelActionsContainer" style="display: none; margin-top: 16px;">
+                                <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 12px;">
+                                    <h3 style="margin: 0; color: var(--text-primary); font-size: 15px; font-weight: 700; letter-spacing: -0.2px;">Actions Intelligentes</h3>
+                                    <span style="background: linear-gradient(135deg, #F59E0B, #D97706); color: white; padding: 4px 10px; border-radius: 6px; font-size: 11px; font-weight: 700; letter-spacing: 0.5px; box-shadow: 0 2px 8px rgba(245,158,11,0.3);">PRO</span>
+                                </div>
+                                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 8px;">
+                                    <button onclick="excelAiAction('clean')" style="padding: 10px 12px; background: rgba(168,220,195,0.1); border: 1px solid rgba(143,203,181,0.3); border-radius: 10px; color: var(--text-primary); cursor: pointer; font-weight: 600; font-size: 12px; transition: all 0.2s; box-shadow: none;" onmouseover="this.style.background='rgba(168,220,195,0.18)'" onmouseout="this.style.background='rgba(168,220,195,0.1)'">
+                                        Nettoyer les données
+                                    </button>
+                                    <button onclick="excelAiAction('duplicates')" style="padding: 10px 12px; background: rgba(168,220,195,0.1); border: 1px solid rgba(143,203,181,0.3); border-radius: 10px; color: var(--text-primary); cursor: pointer; font-weight: 600; font-size: 12px; transition: all 0.2s; box-shadow: none;" onmouseover="this.style.background='rgba(168,220,195,0.18)'" onmouseout="this.style.background='rgba(168,220,195,0.1)'">
+                                        Détecter doublons
+                                    </button>
+                                    <button onclick="excelAiAction('kpi')" style="padding: 10px 12px; background: rgba(168,220,195,0.1); border: 1px solid rgba(143,203,181,0.3); border-radius: 10px; color: var(--text-primary); cursor: pointer; font-weight: 600; font-size: 12px; transition: all 0.2s; box-shadow: none;" onmouseover="this.style.background='rgba(168,220,195,0.18)'" onmouseout="this.style.background='rgba(168,220,195,0.1)'">
+                                        Générer KPI
+                                    </button>
+                                    <button onclick="quickAction('optimize')" style="padding: 10px 12px; background: rgba(168,220,195,0.1); border: 1px solid rgba(143,203,181,0.3); border-radius: 10px; color: var(--text-primary); cursor: pointer; font-weight: 600; font-size: 12px; transition: all 0.2s; box-shadow: none;" onmouseover="this.style.background='rgba(168,220,195,0.18)'" onmouseout="this.style.background='rgba(168,220,195,0.1)'">
+                                        Optimiser
+                                    </button>
+                                    <button onclick="quickAction('audit')" style="padding: 10px 12px; background: rgba(168,220,195,0.1); border: 1px solid rgba(143,203,181,0.3); border-radius: 10px; color: var(--text-primary); cursor: pointer; font-weight: 600; font-size: 12px; transition: all 0.2s; box-shadow: none;" onmouseover="this.style.background='rgba(168,220,195,0.18)'" onmouseout="this.style.background='rgba(168,220,195,0.1)'">
+                                        Auditer
+                                    </button>
+                                </div>
                             </div>
                         </div>
 
-                        <!-- Chat Input -->
-                        <div style="padding: 20px; border-top: 1px solid rgba(0,0,0,0.1); background: #f9fafb;">
-                            <div style="position: relative;">
-                                <input id="excelChatInput" type="text" placeholder="Posez votre question ici..." style="width: 100%; padding: 16px 60px 16px 20px; background: white; border: 2px solid #e5e7eb; border-radius: 14px; font-size: 14px; font-weight: 500; transition: all 0.2s;" onkeypress="if(event.key==='Enter') sendExcelChatMessage()" onfocus="this.style.borderColor='#6366F1'; this.style.boxShadow='0 0 0 3px rgba(99,102,241,0.1)'" onblur="this.style.borderColor='#e5e7eb'; this.style.boxShadow='none'">
-                                <button onclick="sendExcelChatMessage()" style="position: absolute; right: 8px; top: 50%; transform: translateY(-50%); padding: 11px 16px; background: linear-gradient(135deg, #6366F1, #8B5CF6); border: none; border-radius: 10px; color: white; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.2s; box-shadow: 0 2px 8px rgba(99,102,241,0.3);" onmouseover="this.style.transform='translateY(-50%) scale(1.05)'" onmouseout="this.style.transform='translateY(-50%) scale(1)'">
-                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                                        <line x1="22" y1="2" x2="11" y2="13"/>
-                                        <polygon points="22 2 15 22 11 13 2 9 22 2"/>
-                                    </svg>
-                                </button>
+                        <!-- Sidebar droite Modern -->
+                        <div style="display: flex; flex-direction: column; gap: 20px;">
+                            <!-- Chat "Ask The AI" Premium -->
+                            <div id="aiChatPanel" style="display: none; background: linear-gradient(135deg, rgba(99,102,241,0.03) 0%, rgba(139,92,246,0.03) 100%); border: 1px solid var(--border-color); border-radius: 20px; padding: 24px; flex-direction: column; height: 550px; box-shadow: 0 4px 16px rgba(0,0,0,0.06);">
+                                <div style="display: flex; align-items: center; gap: 14px; margin-bottom: 20px; padding-bottom: 18px; border-bottom: 1px solid var(--border-color);">
+                                    <div style="flex: 1;">
+                                        <h3 style="margin: 0; color: var(--text-primary); font-size: 15px; font-weight: 700; letter-spacing: -0.2px;">Ask The AI</h3>
+                                        <p style="margin: 0; color: var(--text-secondary); font-size: 11px; font-weight: 600;">Excel • Planning • Finance • RH</p>
+                                    </div>
+                                </div>
+                                <div id="excelChatMessages" style="flex: 1; overflow-y: auto; margin-bottom: 16px; display: flex; flex-direction: column; gap: 12px; padding-right: 8px;">
+                                    <div style="padding: 12px; background: linear-gradient(135deg, rgba(99,102,241,0.08), rgba(139,92,246,0.08)); border-radius: 12px; border-left: 3px solid #6366F1;">
+                                        <p style="margin: 0 0 8px; color: var(--text-primary); font-size: 10px; font-weight: 700; letter-spacing: -0.2px; display: flex; align-items: center; gap: 6px;">
+                                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/></svg>
+                                            AI Management - 4 Expertises
+                                        </p>
+                                        <p style="margin: 0; color: var(--text-secondary); font-size: 9px; line-height: 1.5; font-weight: 500;">
+                                            <strong style="display: flex; align-items: center; gap: 4px; margin-bottom: 2px;">
+                                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#6366F1" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+                                                Excel AI Expert
+                                            </strong>
+                                            • Formules modernes (XLOOKUP, FILTER, LET)<br>
+                                            • Power Query & Power Pivot<br>
+                                            • Analyse prédictive & audit<br><br>
+                                            
+                                            <strong style="display: flex; align-items: center; gap: 4px; margin-bottom: 2px;">
+                                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#8B5CF6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                                                Planning Projet
+                                            </strong>
+                                            • Gantt, tâches & jalons<br>
+                                            • Allocation ressources<br>
+                                            • Chemin critique<br><br>
+                                            
+                                            <strong style="display: flex; align-items: center; gap: 4px; margin-bottom: 2px;">
+                                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#EC4899" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+                                                Tableau de Bord Financier
+                                            </strong>
+                                            • KPI financiers & ratios<br>
+                                            • Graphiques & reporting<br>
+                                            • Prévisions budgétaires<br><br>
+                                            
+                                            <strong style="display: flex; align-items: center; gap: 4px; margin-bottom: 2px;">
+                                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#14B8A6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                                                Gestion RH
+                                            </strong>
+                                            • Base employés & congés<br>
+                                            • Calcul de paie<br>
+                                            • Évaluation performances
+                                        </p>
+                                    </div>
+                                </div>
+                                <div style="position: relative;">
+                                    <input id="excelChatInput" type="text" placeholder="Ex: Créer XLOOKUP pour fusionner 2 tableaux..." style="width: 100%; padding: 15px 52px 15px 18px; background: var(--bg-primary); border: 2px solid var(--border-color); border-radius: 14px; color: var(--text-primary); font-size: 14px; font-weight: 500; transition: all 0.2s;" onkeypress="if(event.key==='Enter') sendExcelChatMessage()" onfocus="this.style.borderColor='#6366F1'; this.style.boxShadow='0 0 0 3px rgba(99,102,241,0.1)'" onblur="this.style.borderColor='var(--border-color)'; this.style.boxShadow='none'">
+                                    <button onclick="sendExcelChatMessage()" style="position: absolute; right: 8px; top: 50%; transform: translateY(-50%); padding: 10px 14px; background: linear-gradient(135deg, #6366F1, #8B5CF6); border: none; border-radius: 10px; color: white; cursor: pointer; font-weight: 700; display: flex; align-items: center; justify-content: center; transition: all 0.2s; box-shadow: 0 2px 8px rgba(99,102,241,0.3);" onmouseover="this.style.transform='translateY(-50%) scale(1.05)'" onmouseout="this.style.transform='translateY(-50%) scale(1)'">
+                                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                            <line x1="22" y1="2" x2="11" y2="13"/>
+                                            <polygon points="22 2 15 22 11 13 2 9 22 2"/>
+                                        </svg>
+                                    </button>
+                                </div>
                             </div>
+
+                            <!-- Historique Modern -->
+                            <div id="excelHistoryPanel" style="display: none; background: var(--bg-secondary); border-radius: 16px; padding: 20px; border: 1px solid var(--border-color); box-shadow: 0 2px 8px rgba(0,0,0,0.05);">
+                                <h3 style="margin: 0 0 16px; color: var(--text-primary); font-size: 16px; font-weight: 700;">Classeurs Sauvegardés</h3>
+                                <div id="excelHistoryList" style="display: flex; flex-direction: column; gap: 8px; max-height: 180px; overflow-y: auto;">
+                                    <!-- Rempli par loadSavedWorkbooks() -->
+                                </div>
+                            </div>
+
+                            <!-- Sauvegarder Classeur -->
+                            <button id="excelSaveBtn" onclick="saveWorkbook()" style="display: none; padding: 16px; background: linear-gradient(135deg, #14B8A6, #06B6D4); border: none; border-radius: 12px; color: white; cursor: pointer; font-weight: 700; font-size: 15px; box-shadow: 0 4px 16px rgba(20,184,166,0.3); transition: all 0.2s; align-items: center; justify-content: center; gap: 8px;" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 20px rgba(20,184,166,0.4)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 16px rgba(20,184,166,0.3)'">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/>
+                                    <polyline points="17 21 17 13 7 13 7 21"/>
+                                    <polyline points="7 3 7 8 15 8"/>
+                                </svg>
+                                Sauvegarder Classeur
+                            </button>
+                            
+                            <!-- Réinitialiser Chat -->
+                            <button id="excelChatResetBtn" onclick="resetExcelChat()" style="display: none; padding: 16px; background: rgba(239,68,68,0.1); border: 2px solid rgba(239,68,68,0.3); border-radius: 12px; color: #EF4444; cursor: pointer; font-weight: 700; font-size: 15px; transition: all 0.2s; align-items: center; justify-content: center; gap: 8px;" onmouseover="this.style.background='rgba(239,68,68,0.2)'; this.style.borderColor='rgba(239,68,68,0.5)'" onmouseout="this.style.background='rgba(239,68,68,0.1)'; this.style.borderColor='rgba(239,68,68,0.3)'">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M3 6h18"/>
+                                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/>
+                                    <path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                                    <line x1="10" y1="11" x2="10" y2="17"/>
+                                    <line x1="14" y1="11" x2="14" y2="17"/>
+                                </svg>
+                                Réinitialiser Chat
+                            </button>
+
+                            <!-- Export Modern -->
+                            <button id="excelExportBtn" onclick="exportExcel()" style="display: none; padding: 16px; background: linear-gradient(135deg, #6366F1, #8B5CF6); border: none; border-radius: 12px; color: white; cursor: pointer; font-weight: 700; font-size: 15px; box-shadow: 0 4px 16px rgba(99,102,241,0.3); transition: all 0.2s; align-items: center; justify-content: center; gap: 8px;" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 20px rgba(99,102,241,0.4)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 16px rgba(99,102,241,0.3)'">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                                    <polyline points="7 10 12 15 17 10"/>
+                                    <line x1="12" y1="15" x2="12" y2="3"/>
+                                </svg>
+                                Télécharger Excel
+                            </button>
                         </div>
                     </div>
                 </div>
             `;
             
             document.body.appendChild(overlay);
+            
+            // Fermer le menu des modèles si on clique en dehors
+            document.addEventListener('click', function closeTemplatesOnClickOutside(e) {
+                const menu = document.getElementById('templatesMenu');
+                const button = e.target.closest('button[onclick="toggleTemplatesMenu()"]');
+                if (menu && !menu.contains(e.target) && !button) {
+                    menu.style.display = 'none';
+                }
+            });
         }
 
         // ============== DUPLICATIONS SUPPRIMÉES ==============
