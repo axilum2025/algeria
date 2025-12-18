@@ -1037,6 +1037,279 @@
             tableBody.innerHTML = bodyHTML;
         }
 
+        // ==================================================
+        // COMMANDES JSON - MODIFICATION EXCEL PAR L'AI
+        // ==================================================
+
+        // Parser et exécuter les commandes JSON de l'AI
+        function parseAndExecuteJSONCommands(aiResponse) {
+            try {
+                // Chercher les blocs ```json...```
+                const jsonRegex = /```json\s*\n([\s\S]*?)\n```/g;
+                let match;
+                let commandsExecuted = 0;
+                
+                while ((match = jsonRegex.exec(aiResponse)) !== null) {
+                    try {
+                        const jsonText = match[1].trim();
+                        const commands = JSON.parse(jsonText);
+                        
+                        // Support tableau ou objet unique
+                        const cmdArray = Array.isArray(commands) ? commands : [commands];
+                        
+                        for (const cmd of cmdArray) {
+                            if (executeJSONCommand(cmd)) {
+                                commandsExecuted++;
+                            }
+                        }
+                    } catch (parseError) {
+                        console.error('❌ Erreur parsing JSON:', parseError);
+                    }
+                }
+                
+                if (commandsExecuted > 0) {
+                    displayExcelData(); // Rafraîchir l'affichage
+                    saveSession(); // Sauvegarder les modifications
+                    addChatMessage(`✅ ${commandsExecuted} modification(s) appliquée(s) avec succès !`, 'bot');
+                    addHistory(`Modifications: ${commandsExecuted} action(s) exécutée(s)`);
+                    return true;
+                }
+                
+                return false;
+            } catch (error) {
+                console.error('❌ Erreur exécution commandes:', error);
+                return false;
+            }
+        }
+
+        // Router principal pour exécuter une commande
+        function executeJSONCommand(cmd) {
+            if (!cmd || !cmd.action) {
+                console.warn('⚠️ Commande invalide:', cmd);
+                return false;
+            }
+            
+            console.log('🔧 Exécution commande:', cmd);
+            
+            switch(cmd.action) {
+                case 'addColumn':
+                    return executeAddColumn(cmd);
+                case 'calculateColumn':
+                    return executeCalculateColumn(cmd);
+                case 'addRow':
+                    return executeAddRow(cmd);
+                case 'deleteColumn':
+                    return executeDeleteColumn(cmd);
+                case 'deleteRow':
+                    return executeDeleteRow(cmd);
+                case 'updateCell':
+                    return executeUpdateCell(cmd);
+                case 'renameColumn':
+                    return executeRenameColumn(cmd);
+                case 'sortData':
+                    return executeSortData(cmd);
+                default:
+                    console.warn('⚠️ Action inconnue:', cmd.action);
+                    return false;
+            }
+        }
+
+        // 1. Ajouter une colonne vide
+        function executeAddColumn(cmd) {
+            const { name, defaultValue = '' } = cmd;
+            if (!name) return false;
+            
+            excelColumns.push(name);
+            excelData.forEach(row => {
+                row.push(defaultValue);
+            });
+            
+            console.log(`✅ Colonne "${name}" ajoutée`);
+            return true;
+        }
+
+        // 2. Ajouter une colonne avec calcul
+        function executeCalculateColumn(cmd) {
+            const { name, formula } = cmd;
+            if (!name || !formula) return false;
+            
+            excelColumns.push(name);
+            
+            excelData.forEach((row, idx) => {
+                try {
+                    // Créer un contexte avec les valeurs de la ligne
+                    const context = {};
+                    excelColumns.forEach((col, colIdx) => {
+                        if (colIdx < row.length) {
+                            context[col] = row[colIdx];
+                        }
+                    });
+                    
+                    // Remplacer les noms de colonnes par leurs valeurs
+                    let evalFormula = formula;
+                    Object.keys(context).forEach(colName => {
+                        const value = context[colName];
+                        const numValue = parseFloat(value);
+                        const safeValue = isNaN(numValue) ? `"${value}"` : numValue;
+                        evalFormula = evalFormula.replace(new RegExp(`\\b${colName}\\b`, 'g'), safeValue);
+                    });
+                    
+                    // Calculer le résultat
+                    const result = Function(`"use strict"; return (${evalFormula})`)();
+                    row.push(result);
+                } catch (error) {
+                    console.error(`❌ Erreur calcul ligne ${idx}:`, error);
+                    row.push('ERROR');
+                }
+            });
+            
+            console.log(`✅ Colonne calculée "${name}" ajoutée`);
+            return true;
+        }
+
+        // 3. Ajouter une ligne
+        function executeAddRow(cmd) {
+            const { values } = cmd;
+            if (!values || !Array.isArray(values)) return false;
+            
+            // Compléter avec des valeurs vides si nécessaire
+            const newRow = [...values];
+            while (newRow.length < excelColumns.length) {
+                newRow.push('');
+            }
+            
+            excelData.push(newRow);
+            console.log(`✅ Ligne ajoutée`);
+            return true;
+        }
+
+        // 4. Supprimer une colonne
+        function executeDeleteColumn(cmd) {
+            const { name, index } = cmd;
+            
+            let colIndex = -1;
+            if (typeof index === 'number') {
+                colIndex = index;
+            } else if (name) {
+                colIndex = excelColumns.indexOf(name);
+            }
+            
+            if (colIndex === -1 || colIndex >= excelColumns.length) {
+                console.warn('⚠️ Colonne introuvable');
+                return false;
+            }
+            
+            excelColumns.splice(colIndex, 1);
+            excelData.forEach(row => {
+                row.splice(colIndex, 1);
+            });
+            
+            console.log(`✅ Colonne ${colIndex} supprimée`);
+            return true;
+        }
+
+        // 5. Supprimer une ligne
+        function executeDeleteRow(cmd) {
+            const { index } = cmd;
+            if (typeof index !== 'number' || index < 0 || index >= excelData.length) {
+                console.warn('⚠️ Index de ligne invalide');
+                return false;
+            }
+            
+            excelData.splice(index, 1);
+            console.log(`✅ Ligne ${index} supprimée`);
+            return true;
+        }
+
+        // 6. Modifier une cellule
+        function executeUpdateCell(cmd) {
+            const { row, column, columnName, value } = cmd;
+            
+            if (typeof row !== 'number' || row < 0 || row >= excelData.length) {
+                console.warn('⚠️ Index de ligne invalide');
+                return false;
+            }
+            
+            let colIndex = -1;
+            if (typeof column === 'number') {
+                colIndex = column;
+            } else if (columnName) {
+                colIndex = excelColumns.indexOf(columnName);
+            }
+            
+            if (colIndex === -1 || colIndex >= excelColumns.length) {
+                console.warn('⚠️ Colonne introuvable');
+                return false;
+            }
+            
+            excelData[row][colIndex] = value;
+            console.log(`✅ Cellule [${row}, ${colIndex}] modifiée`);
+            return true;
+        }
+
+        // 7. Renommer une colonne
+        function executeRenameColumn(cmd) {
+            const { oldName, newName } = cmd;
+            if (!oldName || !newName) return false;
+            
+            const colIndex = excelColumns.indexOf(oldName);
+            if (colIndex === -1) {
+                console.warn('⚠️ Colonne introuvable:', oldName);
+                return false;
+            }
+            
+            excelColumns[colIndex] = newName;
+            console.log(`✅ Colonne "${oldName}" renommée en "${newName}"`);
+            return true;
+        }
+
+        // 8. Trier les données
+        function executeSortData(cmd) {
+            const { columnName, order = 'asc' } = cmd;
+            if (!columnName) return false;
+            
+            const colIndex = excelColumns.indexOf(columnName);
+            if (colIndex === -1) {
+                console.warn('⚠️ Colonne introuvable:', columnName);
+                return false;
+            }
+            
+            excelData.sort((a, b) => {
+                let valA = a[colIndex];
+                let valB = b[colIndex];
+                
+                // Essayer de convertir en nombre
+                const numA = parseFloat(valA);
+                const numB = parseFloat(valB);
+                
+                if (!isNaN(numA) && !isNaN(numB)) {
+                    // Tri numérique
+                    return order === 'asc' ? numA - numB : numB - numA;
+                } else {
+                    // Tri alphabétique
+                    const strA = String(valA).toLowerCase();
+                    const strB = String(valB).toLowerCase();
+                    if (order === 'asc') {
+                        return strA < strB ? -1 : strA > strB ? 1 : 0;
+                    } else {
+                        return strA > strB ? -1 : strA < strB ? 1 : 0;
+                    }
+                }
+            });
+            
+            console.log(`✅ Données triées par "${columnName}" (${order})`);
+            return true;
+        }
+
+        // Nettoyer la réponse AI (enlever les blocs JSON)
+        function cleanAIResponse(aiResponse) {
+            return aiResponse.replace(/```json\s*\n[\s\S]*?\n```/g, '').trim();
+        }
+
+        // ==================================================
+        // FIN DES COMMANDES JSON
+        // ==================================================
+
         // Chat functions
         function handleKeyPress(event) {
             if (event.key === 'Enter' && !event.shiftKey) {
@@ -1071,7 +1344,35 @@ Contexte Excel actuel :
 - Colonnes : ${excelColumns.join(', ')}
 - Aperçu des données : ${JSON.stringify(excelData.slice(0, 3))}
 
-Tu es un expert Excel AI. Aide l'utilisateur avec ses données Excel, formules, analyses, nettoyage, KPI, etc.
+Tu es un expert Excel AI. Tu peux modifier directement les fichiers Excel en générant des commandes JSON.
+
+COMMANDES JSON DISPONIBLES :
+1. Ajouter colonne : {"action":"addColumn","name":"NomColonne","defaultValue":""}
+2. Colonne calculée : {"action":"calculateColumn","name":"Total","formula":"Prix * Quantite"}
+3. Ajouter ligne : {"action":"addRow","values":["val1","val2","val3"]}
+4. Supprimer colonne : {"action":"deleteColumn","name":"NomColonne"}
+5. Supprimer ligne : {"action":"deleteRow","index":0}
+6. Modifier cellule : {"action":"updateCell","row":0,"columnName":"Prix","value":"150"}
+7. Renommer colonne : {"action":"renameColumn","oldName":"Ancien","newName":"Nouveau"}
+8. Trier données : {"action":"sortData","columnName":"Prix","order":"desc"}
+
+RÈGLES :
+- Utilise les NOMS EXACTS des colonnes (respecte la casse)
+- Pour les formules, utilise les noms de colonnes comme variables
+- Explique toujours ce que tu vas faire AVANT le JSON
+- Mets le JSON dans un bloc \`\`\`json ... \`\`\`
+- Tu peux combiner plusieurs commandes dans un tableau : [cmd1, cmd2]
+
+EXEMPLE :
+User: "Ajoute une colonne Remise qui calcule 10% du Prix"
+Tu réponds:
+"Je vais ajouter une colonne Remise calculant 10% du prix.
+
+\`\`\`json
+{"action":"calculateColumn","name":"Remise","formula":"Prix * 0.1"}
+\`\`\`
+
+La colonne Remise a été ajoutée avec succès !"
 ` : `Tu es un expert Excel AI. Aide l'utilisateur avec Excel : formules, analyses, Power Query, tableaux croisés dynamiques, etc.`;
 
                     // Convertir l'historique au format backend
@@ -1123,7 +1424,15 @@ Tu es un expert Excel AI. Aide l'utilisateur avec ses données Excel, formules, 
                     loadingMsg.remove();
                     chatHistory.pop(); // Retirer du historique aussi
 
-                    addChatMessage(aiResponse, 'bot');
+                    // Parser et exécuter les commandes JSON si présentes
+                    const commandExecuted = parseAndExecuteJSONCommands(aiResponse);
+                    
+                    // Afficher la réponse nettoyée (sans les blocs JSON)
+                    const cleanResponse = commandExecuted ? cleanAIResponse(aiResponse) : aiResponse;
+                    if (cleanResponse) {
+                        addChatMessage(cleanResponse, 'bot');
+                    }
+                    
                     sendBtn.disabled = false;
                     return; // Succès, sortie
 
