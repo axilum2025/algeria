@@ -6080,9 +6080,17 @@
                                 </div>
                             </div>
                             
-                            <button onclick="closeHRManagement()" style="width: 44px; height: 44px; background: rgba(255,255,255,0.15); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.25); border-radius: 12px; color: white; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center;" onmouseover="this.style.background='rgba(255,255,255,0.28)'; this.style.transform='rotate(90deg)'" onmouseout="this.style.background='rgba(255,255,255,0.15)'; this.style.transform='rotate(0deg)'">
-                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-                            </button>
+                            <div style="display: flex; align-items: center; gap: 12px;">
+                                <!-- Bouton Ask The AI -->
+                                <button onclick="toggleHRChat()" style="padding: 12px 20px; background: rgba(255,255,255,0.15); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.25); border-radius: 12px; color: white; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; gap: 8px; font-weight: 600; font-size: 14px;" onmouseover="this.style.background='rgba(255,255,255,0.28)'" onmouseout="this.style.background='rgba(255,255,255,0.15)'">
+                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                                    Ask The AI
+                                </button>
+                                
+                                <button onclick="closeHRManagement()" style="width: 44px; height: 44px; background: rgba(255,255,255,0.15); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.25); border-radius: 12px; color: white; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center;" onmouseover="this.style.background='rgba(255,255,255,0.28)'; this.style.transform='rotate(90deg)'" onmouseout="this.style.background='rgba(255,255,255,0.15)'; this.style.transform='rotate(0deg)'">
+                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                                </button>
+                            </div>
                         </div>
                     </div>
                     
@@ -6274,6 +6282,58 @@
                                 </div>
                                 <h3 style="margin: 0 0 8px; font-size: 18px; font-weight: 600; color: #1a1a1a;">Évaluations des Performances</h3>
                                 <p style="margin: 0; font-size: 14px; color: #6b7280;">Fonctionnalité en cours de développement</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- HR AI Chat Panel -->
+                    <div id="hrAiChatPanel" style="display: none; position: fixed; right: 32px; bottom: 32px; width: 420px; height: 600px; background: white; border-radius: 20px; box-shadow: 0 10px 40px rgba(0,0,0,0.2); z-index: 10002; flex-direction: column; overflow: hidden; animation: slideIn 0.3s ease;">
+                        <!-- Header Chat -->
+                        <div style="background: linear-gradient(135deg, #6366F1, #6366F1); padding: 20px; display: flex; align-items: center; justify-content: space-between;">
+                            <div style="display: flex; align-items: center; gap: 12px;">
+                                <div style="width: 40px; height: 40px; background: rgba(255,255,255,0.2); border-radius: 10px; display: flex; align-items: center; justify-content: center;">
+                                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                                </div>
+                                <div>
+                                    <h3 style="margin: 0; color: white; font-size: 16px; font-weight: 700;">Ask The AI - RH</h3>
+                                    <p style="margin: 0; color: rgba(255,255,255,0.85); font-size: 12px; font-weight: 500;">Assistant IA pour la gestion RH</p>
+                                </div>
+                            </div>
+                            <button onclick="toggleHRChat()" style="width: 36px; height: 36px; background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.25); border-radius: 10px; color: white; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.28)'" onmouseout="this.style.background='rgba(255,255,255,0.15)'">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                            </button>
+                        </div>
+                        
+                        <!-- Messages Area -->
+                        <div id="hrChatMessages" style="flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 12px; background: #f9fafb;">
+                            <!-- Message de bienvenue -->
+                            <div style="padding: 16px; background: linear-gradient(135deg, rgba(99,102,241,0.08), rgba(99,102,241,0.12)); border-radius: 12px; border-left: 3px solid #6366F1;">
+                                <p style="margin: 0 0 8px; color: #1a1a1a; font-size: 13px; font-weight: 700; display: flex; align-items: center; gap: 6px;">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#6366F1" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/></svg>
+                                    AI RH Assistant
+                                </p>
+                                <p style="margin: 0; color: #6b7280; font-size: 12px; line-height: 1.6;">
+                                    Bonjour! Je suis votre assistant IA pour la gestion RH. Je peux vous aider avec :
+                                    <br><br>
+                                    • Gestion des employés<br>
+                                    • Calculs de congés et absences<br>
+                                    • Paie et cotisations<br>
+                                    • Recrutement et onboarding<br>
+                                    • Évaluations de performance<br>
+                                    • Formation et développement<br>
+                                    <br>
+                                    Posez-moi vos questions!
+                                </p>
+                            </div>
+                        </div>
+                        
+                        <!-- Input Area -->
+                        <div style="padding: 16px; background: white; border-top: 1px solid #e5e7eb;">
+                            <div style="position: relative;">
+                                <input id="hrChatInput" type="text" placeholder="Ex: Comment calculer les congés pays..." style="width: 100%; padding: 12px 50px 12px 16px; border: 2px solid #e5e7eb; border-radius: 12px; font-size: 14px; transition: all 0.2s;" onkeypress="if(event.key==='Enter') sendHRChatMessage()" onfocus="this.style.borderColor='#6366F1'; this.style.boxShadow='0 0 0 3px rgba(99,102,241,0.1)'" onblur="this.style.borderColor='#e5e7eb'; this.style.boxShadow='none'">
+                                <button onclick="sendHRChatMessage()" style="position: absolute; right: 8px; top: 50%; transform: translateY(-50%); padding: 8px 12px; background: #6366F1; border: none; border-radius: 8px; color: white; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.22s;" onmouseover="this.style.transform='translateY(-50%) scale(1.05)'" onmouseout="this.style.transform='translateY(-50%) scale(1)'">
+                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+                                </button>
                             </div>
                         </div>
                     </div>
@@ -6594,6 +6654,135 @@
                 showToast(`❌ Employé ${employee.firstName} ${employee.lastName} supprimé`, 'info');
             }
         }
+        
+        // ========== HR AI CHAT ==========
+        let hrChatHistory = [];
+        let hrAiProcessing = false;
+        
+        function toggleHRChat() {
+            const chatPanel = document.getElementById('hrAiChatPanel');
+            if (!chatPanel) return;
+            
+            if (chatPanel.style.display === 'none' || !chatPanel.style.display) {
+                chatPanel.style.display = 'flex';
+                // Focus sur l'input
+                setTimeout(() => {
+                    const input = document.getElementById('hrChatInput');
+                    if (input) input.focus();
+                }, 100);
+            } else {
+                chatPanel.style.display = 'none';
+            }
+        }
+        
+        function addHRChatMessage(message, type) {
+            const messagesContainer = document.getElementById('hrChatMessages');
+            if (!messagesContainer) return;
+            
+            const isBot = type === 'bot';
+            const messageDiv = document.createElement('div');
+            
+            if (isBot) {
+                messageDiv.innerHTML = `
+                    <div style="padding: 12px 16px; background: white; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); max-width: 85%; align-self: flex-start;">
+                        <div style="color: #6366F1; font-size: 10px; font-weight: 700; margin-bottom: 4px; display: flex; align-items: center; gap: 4px;">
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/></svg>
+                            AI RH
+                        </div>
+                        <div style="color: #1a1a1a; font-size: 13px; line-height: 1.6; white-space: pre-wrap;">${message}</div>
+                    </div>
+                `;
+            } else {
+                messageDiv.innerHTML = `
+                    <div style="padding: 12px 16px; background: #6366F1; color: white; border-radius: 12px; max-width: 85%; align-self: flex-end; margin-left: auto;">
+                        <div style="font-size: 13px; line-height: 1.6; white-space: pre-wrap;">${message}</div>
+                    </div>
+                `;
+            }
+            
+            messagesContainer.appendChild(messageDiv);
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }
+        
+        async function sendHRChatMessage() {
+            const input = document.getElementById('hrChatInput');
+            const message = input.value.trim();
+            if (!message || hrAiProcessing) return;
+            
+            addHRChatMessage(message, 'user');
+            input.value = '';
+            hrAiProcessing = true;
+            
+            // Ajouter le message utilisateur à l'historique
+            hrChatHistory.push({
+                role: 'user',
+                content: message
+            });
+            
+            showToast('🤖 AI RH en cours...', 'info');
+            
+            try {
+                const endpoint = getEndpoint();
+                
+                // Obtenir les données RH actuelles pour le contexte
+                const employees = JSON.parse(localStorage.getItem('hrEmployees') || '[]');
+                const hrContext = `
+Contexte RH actuel :
+- Nombre total d'employés : ${employees.length}
+- Départements : ${[...new Set(employees.map(e => e.department))].join(', ') || 'Aucun'}
+- Données employés disponibles : ${employees.length > 0 ? 'Oui' : 'Non'}
+
+Tu es un assistant RH expert. Aide l'utilisateur avec la gestion des ressources humaines, calculs de paie, congés, recrutement, évaluations, etc.
+`;
+                
+                // Convertir l'historique au format backend
+                const historyForBackend = hrChatHistory.slice(0, -1).map(msg => ({
+                    type: msg.role === 'assistant' ? 'bot' : msg.role,
+                    content: msg.content
+                }));
+                
+                const response = await fetch(endpoint, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        message: hrContext + "\n\nQuestion: " + message,
+                        conversationId: 'hr-management',
+                        chatType: 'hr-management',
+                        history: historyForBackend
+                    })
+                });
+
+                if (!response.ok) throw new Error('Erreur API');
+                
+                const data = await response.json();
+                let aiResponse = data.response || data.message || 'Désolé, je n\'ai pas pu traiter votre demande.';
+                
+                // Nettoyer les métriques
+                aiResponse = aiResponse
+                    .replace(/\n*---[\s\S]*$/g, '')
+                    .replace(/\n*📊.*?Métriques.*?\n.*?HI:.*?CHR:.*?\n*/gi, '')
+                    .replace(/\n*📚.*?Sources:.*?\n*/gi, '')
+                    .replace(/\n*💡.*?Plan.*?tokens.*?\n*/gi, '')
+                    .trim();
+                
+                // Ajouter la réponse à l'historique
+                hrChatHistory.push({
+                    role: 'assistant',
+                    content: aiResponse
+                });
+                
+                addHRChatMessage(aiResponse, 'bot');
+                showToast('✅ Réponse générée', 'success');
+            } catch (error) {
+                console.error('Erreur AI RH:', error);
+                addHRChatMessage('Désolé, une erreur s\'est produite. Veuillez réessayer.', 'bot');
+                showToast('❌ Erreur de connexion', 'error');
+            } finally {
+                hrAiProcessing = false;
+            }
+        }
+        // ========== FIN HR AI CHAT ==========
+        
         // ========== FIN GESTION RH ==========
         
         
