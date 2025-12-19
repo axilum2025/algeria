@@ -1039,15 +1039,44 @@
             headerHTML += '</tr>';
             tableHead.innerHTML = headerHTML;
 
-            // Create rows
+            // Séparer les lignes normales des lignes de totaux
+            const normalRows = [];
+            const summaryRows = [];
+            
+            excelData.forEach(row => {
+                const firstCell = String(row[0] || '').toUpperCase();
+                if (firstCell === 'TOTAL' || firstCell === 'MOYENNE' || firstCell === 'SOMME' || firstCell === 'AVERAGE') {
+                    summaryRows.push(row);
+                } else {
+                    normalRows.push(row);
+                }
+            });
+
+            // Create rows normales (max 100)
             let bodyHTML = '';
-            excelData.slice(0, 100).forEach(row => {
+            normalRows.slice(0, 100).forEach(row => {
                 bodyHTML += '<tr>';
                 excelColumns.forEach((col, idx) => {
                     bodyHTML += `<td>${row[idx] || ''}</td>`;
                 });
                 bodyHTML += '</tr>';
             });
+            
+            // Ajouter les lignes de totaux à la fin avec style spécial
+            if (summaryRows.length > 0) {
+                summaryRows.forEach(row => {
+                    bodyHTML += '<tr style="background-color: #e3f2fd; font-weight: bold; border-top: 2px solid #1976d2;">';
+                    excelColumns.forEach((col, idx) => {
+                        const cellValue = row[idx] || '';
+                        // Formater les nombres avec 2 décimales
+                        const displayValue = typeof cellValue === 'number' ? cellValue.toFixed(2) : cellValue;
+                        bodyHTML += `<td>${displayValue}</td>`;
+                    });
+                    bodyHTML += '</tr>';
+                });
+                console.log(`📊 ${summaryRows.length} ligne(s) de totaux affichée(s)`);
+            }
+            
             tableBody.innerHTML = bodyHTML;
         }
 
