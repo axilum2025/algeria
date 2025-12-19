@@ -1044,8 +1044,12 @@
             const summaryRows = [];
             
             excelData.forEach(row => {
-                const firstCell = String(row[0] || '').toUpperCase();
-                if (firstCell === 'TOTAL' || firstCell === 'MOYENNE' || firstCell === 'SOMME' || firstCell === 'AVERAGE') {
+                const firstCell = String(row[0] || '').toUpperCase().trim();
+                // Détecter les lignes de totaux/résumés
+                const summaryKeywords = ['TOTAL', 'MOYENNE', 'SOMME', 'AVERAGE', 'SUM', 'AVG'];
+                const isSummaryRow = summaryKeywords.some(keyword => firstCell.includes(keyword));
+                
+                if (isSummaryRow) {
                     summaryRows.push(row);
                 } else {
                     normalRows.push(row);
@@ -1460,7 +1464,9 @@
             // Filtrer les données pour EXCLURE les lignes de totaux existantes
             const dataRows = excelData.filter(row => {
                 const firstCell = String(row[0] || '').toUpperCase().trim();
-                const isSummaryRow = ['TOTAL', 'TOTAL GÉNÉRAL', 'MOYENNE', 'SOMME', 'AVERAGE', 'SUM'].includes(firstCell);
+                // Détecter les lignes de totaux/résumés
+                const summaryKeywords = ['TOTAL', 'MOYENNE', 'SOMME', 'AVERAGE', 'SUM', 'AVG'];
+                const isSummaryRow = summaryKeywords.some(keyword => firstCell.includes(keyword));
                 return !isSummaryRow;
             });
             
