@@ -6342,7 +6342,7 @@
                             <div style="padding: 16px; background: linear-gradient(135deg, rgba(99,102,241,0.08), rgba(99,102,241,0.12)); border-radius: 12px; border-left: 3px solid #6366F1;">
                                 <p style="margin: 0 0 8px; color: #1a1a1a; font-size: 13px; font-weight: 700; display: flex; align-items: center; gap: 6px;">
                                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#6366F1" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/></svg>
-                                    AI RH Assistant
+                                    Agent RH
                                 </p>
                                 <p style="margin: 0; color: #6b7280; font-size: 12px; line-height: 1.6;">
                                     Bonjour! Je suis votre assistant IA pour la gestion RH. Je peux vous aider avec :
@@ -6719,7 +6719,7 @@
                     <div style="padding: 12px 16px; background: white; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); max-width: 85%; align-self: flex-start;">
                         <div style="color: #6366F1; font-size: 10px; font-weight: 700; margin-bottom: 4px; display: flex; align-items: center; gap: 4px;">
                             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/></svg>
-                            AI RH
+                            Agent RH
                         </div>
                         <div style="color: #1a1a1a; font-size: 13px; line-height: 1.6; white-space: pre-wrap;">${message}</div>
                     </div>
@@ -6751,7 +6751,7 @@
                 content: message
             });
             
-            showToast('🤖 AI RH en cours...', 'info');
+            showToast('🤖 Agent RH en cours...', 'info');
             
             try {
                 const endpoint = getEndpoint();
@@ -6806,7 +6806,7 @@ Tu es Agent RH, un assistant RH expert. Aide l'utilisateur avec la gestion des r
                 addHRChatMessage(aiResponse, 'bot');
                 showToast('✅ Réponse générée', 'success');
             } catch (error) {
-                console.error('Erreur AI RH:', error);
+                console.error('Erreur Agent RH:', error);
                 addHRChatMessage('Désolé, une erreur s\'est produite. Veuillez réessayer.', 'bot');
                 showToast('❌ Erreur de connexion', 'error');
             } finally {
