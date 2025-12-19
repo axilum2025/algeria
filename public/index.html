@@ -6113,6 +6113,12 @@
                             </div>
                             
                             <div style="display: flex; align-items: center; gap: 12px;">
+                                <!-- Bouton Entreprise -->
+                                <button onclick="openCompanySettings()" style="padding: 12px 20px; background: rgba(255,255,255,0.15); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.25); border-radius: 12px; color: white; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; gap: 8px; font-weight: 600; font-size: 14px;" onmouseover="this.style.background='rgba(255,255,255,0.28)'" onmouseout="this.style.background='rgba(255,255,255,0.15)'">
+                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+                                    Entreprise
+                                </button>
+                                
                                 <!-- Bouton Agent RH -->
                                 <button onclick="toggleHRChat()" style="padding: 12px 20px; background: rgba(255,255,255,0.15); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.25); border-radius: 12px; color: white; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; gap: 8px; font-weight: 600; font-size: 14px;" onmouseover="this.style.background='rgba(255,255,255,0.28)'" onmouseout="this.style.background='rgba(255,255,255,0.15)'">
                                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
@@ -6886,6 +6892,171 @@ RÈGLES:
             }
         }
         // ========== FIN HR AI CHAT ==========
+        
+        // ========== COMPANY SETTINGS ==========
+        function openCompanySettings() {
+            // Vérifier si le panneau existe déjà
+            let panel = document.getElementById('companySettingsPanel');
+            if (panel) {
+                // Si déjà ouvert, le fermer
+                closeCompanySettings();
+                return;
+            }
+            
+            // Créer le panneau
+            panel = document.createElement('div');
+            panel.id = 'companySettingsPanel';
+            panel.style.cssText = `
+                position: fixed;
+                top: 0;
+                right: -100%;
+                width: 90%;
+                max-width: 500px;
+                height: 100vh;
+                background: white;
+                z-index: 10003;
+                transition: right 0.3s ease;
+                box-shadow: -4px 0 20px rgba(0,0,0,0.15);
+                overflow-y: auto;
+            `;
+            
+            // Charger les données existantes
+            const companyData = JSON.parse(localStorage.getItem('companySettings') || '{}');
+            
+            panel.innerHTML = `
+                <div style="padding: 24px; border-bottom: 1px solid #e5e7eb;">
+                    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
+                        <h2 style="margin: 0; font-size: 20px; font-weight: 700; color: #1a1a1a;">Paramètres Entreprise</h2>
+                        <button onclick="closeCompanySettings()" style="width: 36px; height: 36px; background: #f3f4f6; border: none; border-radius: 10px; cursor: pointer; display: flex; align-items: center; justify-content: center;" onmouseover="this.style.background='#e5e7eb'" onmouseout="this.style.background='#f3f4f6'">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#1a1a1a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                        </button>
+                    </div>
+                    <p style="margin: 0; color: #6b7280; font-size: 13px;">Informations de votre entreprise</p>
+                </div>
+                
+                <form id="companySettingsForm" onsubmit="saveCompanySettings(event)" style="padding: 24px; display: flex; flex-direction: column; gap: 20px;">
+                    
+                    <div>
+                        <label style="display: block; font-size: 13px; font-weight: 600; color: #374151; margin-bottom: 6px;">
+                            Nom de l'entreprise *
+                        </label>
+                        <input type="text" name="companyName" value="${companyData.companyName || ''}" required style="width: 100%; padding: 10px 14px; border: 1px solid #d1d5db; border-radius: 8px; font-size: 14px; transition: all 0.2s;" onfocus="this.style.borderColor='#6366F1'" onblur="this.style.borderColor='#d1d5db'" placeholder="Ex: Axilum">
+                    </div>
+                    
+                    <div>
+                        <label style="display: block; font-size: 13px; font-weight: 600; color: #374151; margin-bottom: 6px;">
+                            Domaine d'activité *
+                        </label>
+                        <input type="text" name="businessSector" value="${companyData.businessSector || ''}" required style="width: 100%; padding: 10px 14px; border: 1px solid #d1d5db; border-radius: 8px; font-size: 14px; transition: all 0.2s;" onfocus="this.style.borderColor='#6366F1'" onblur="this.style.borderColor='#d1d5db'" placeholder="Ex: Technologies, Commerce, Services...">
+                    </div>
+                    
+                    <div>
+                        <label style="display: block; font-size: 13px; font-weight: 600; color: #374151; margin-bottom: 6px;">
+                            Adresse complète *
+                        </label>
+                        <textarea name="address" required style="width: 100%; padding: 10px 14px; border: 1px solid #d1d5db; border-radius: 8px; font-size: 14px; min-height: 80px; resize: vertical; font-family: inherit; transition: all 0.2s;" onfocus="this.style.borderColor='#6366F1'" onblur="this.style.borderColor='#d1d5db'" placeholder="Rue, ville, code postal, pays...">${companyData.address || ''}</textarea>
+                    </div>
+                    
+                    <div>
+                        <label style="display: block; font-size: 13px; font-weight: 600; color: #374151; margin-bottom: 6px;">
+                            Téléphone *
+                        </label>
+                        <input type="tel" name="phone" value="${companyData.phone || ''}" required style="width: 100%; padding: 10px 14px; border: 1px solid #d1d5db; border-radius: 8px; font-size: 14px; transition: all 0.2s;" onfocus="this.style.borderColor='#6366F1'" onblur="this.style.borderColor='#d1d5db'" placeholder="+213 XXX XXX XXX">
+                    </div>
+                    
+                    <div>
+                        <label style="display: block; font-size: 13px; font-weight: 600; color: #374151; margin-bottom: 6px;">
+                            Email *
+                        </label>
+                        <input type="email" name="email" value="${companyData.email || ''}" required style="width: 100%; padding: 10px 14px; border: 1px solid #d1d5db; border-radius: 8px; font-size: 14px; transition: all 0.2s;" onfocus="this.style.borderColor='#6366F1'" onblur="this.style.borderColor='#d1d5db'" placeholder="contact@entreprise.com">
+                    </div>
+                    
+                    <div>
+                        <label style="display: block; font-size: 13px; font-weight: 600; color: #374151; margin-bottom: 6px;">
+                            Devise *
+                        </label>
+                        <select name="currency" required style="width: 100%; padding: 10px 14px; border: 1px solid #d1d5db; border-radius: 8px; font-size: 14px; background: white; cursor: pointer; transition: all 0.2s;" onfocus="this.style.borderColor='#6366F1'" onblur="this.style.borderColor='#d1d5db'">
+                            <option value="DA" ${companyData.currency === 'DA' ? 'selected' : ''}>Dinar Algérien (DA)</option>
+                            <option value="EUR" ${companyData.currency === 'EUR' ? 'selected' : ''}>Euro (€)</option>
+                            <option value="USD" ${companyData.currency === 'USD' ? 'selected' : ''}>Dollar US ($)</option>
+                            <option value="MAD" ${companyData.currency === 'MAD' ? 'selected' : ''}>Dirham Marocain (MAD)</option>
+                            <option value="TND" ${companyData.currency === 'TND' ? 'selected' : ''}>Dinar Tunisien (TND)</option>
+                        </select>
+                    </div>
+                    
+                    <div>
+                        <label style="display: block; font-size: 13px; font-weight: 600; color: #374151; margin-bottom: 6px;">
+                            Numéro SIRET/RC (optionnel)
+                        </label>
+                        <input type="text" name="registrationNumber" value="${companyData.registrationNumber || ''}" style="width: 100%; padding: 10px 14px; border: 1px solid #d1d5db; border-radius: 8px; font-size: 14px; transition: all 0.2s;" onfocus="this.style.borderColor='#6366F1'" onblur="this.style.borderColor='#d1d5db'" placeholder="Numéro d'enregistrement">
+                    </div>
+                    
+                    <div style="display: flex; gap: 12px; margin-top: 12px;">
+                        <button type="button" onclick="closeCompanySettings()" style="flex: 1; padding: 12px; background: #f3f4f6; border: none; border-radius: 10px; font-weight: 600; cursor: pointer; font-size: 14px; color: #374151;" onmouseover="this.style.background='#e5e7eb'" onmouseout="this.style.background='#f3f4f6'">
+                            Annuler
+                        </button>
+                        <button type="submit" style="flex: 1; padding: 12px; background: #6366F1; border: none; border-radius: 10px; color: white; font-weight: 600; cursor: pointer; font-size: 14px;" onmouseover="this.style.background='#5558e3'" onmouseout="this.style.background='#6366F1'">
+                            Enregistrer
+                        </button>
+                    </div>
+                </form>
+            `;
+            
+            document.body.appendChild(panel);
+            
+            // Animer l'ouverture
+            setTimeout(() => {
+                panel.style.right = '0';
+            }, 10);
+            
+            // Fermer si clic en dehors (optionnel)
+            setTimeout(() => {
+                document.addEventListener('click', handleClickOutsideCompanyPanel);
+            }, 300);
+        }
+        
+        function handleClickOutsideCompanyPanel(event) {
+            const panel = document.getElementById('companySettingsPanel');
+            if (panel && !panel.contains(event.target)) {
+                const targetButton = event.target.closest('button');
+                if (!targetButton || targetButton.onclick?.toString().indexOf('openCompanySettings') === -1) {
+                    closeCompanySettings();
+                }
+            }
+        }
+        
+        function closeCompanySettings() {
+            const panel = document.getElementById('companySettingsPanel');
+            if (panel) {
+                panel.style.right = '-100%';
+                setTimeout(() => {
+                    panel.remove();
+                    document.removeEventListener('click', handleClickOutsideCompanyPanel);
+                }, 300);
+            }
+        }
+        
+        function saveCompanySettings(event) {
+            event.preventDefault();
+            const form = event.target;
+            const formData = new FormData(form);
+            
+            const companySettings = {
+                companyName: formData.get('companyName'),
+                businessSector: formData.get('businessSector'),
+                address: formData.get('address'),
+                phone: formData.get('phone'),
+                email: formData.get('email'),
+                currency: formData.get('currency'),
+                registrationNumber: formData.get('registrationNumber'),
+                updatedAt: Date.now()
+            };
+            
+            localStorage.setItem('companySettings', JSON.stringify(companySettings));
+            showToast(`✅ Paramètres de l'entreprise enregistrés`, 'success');
+            closeCompanySettings();
+        }
+        // ========== FIN COMPANY SETTINGS ==========
         
         // ========== FIN GESTION RH ==========
         
