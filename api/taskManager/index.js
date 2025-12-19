@@ -376,7 +376,7 @@ async function syncTasks(context, req, userId) {
  * Exemples: "Organise ma semaine", "Qu'est-ce que je dois faire maintenant?", "Déplace ça à demain"
  */
 async function smartCommand(context, req, userId) {
-    const { command } = req.body;
+    const { command, history } = req.body;
 
     if (!command) {
         context.res = {
@@ -417,7 +417,9 @@ async function smartCommand(context, req, userId) {
         estimatedTime: t.estimatedTime
     }));
 
-    const systemPrompt = `Tu es Agent ToDo, un assistant de productivité intelligent. Tu aides l'utilisateur à gérer ses tâches de manière conversationnelle. Présente-toi toujours sous le nom "Agent ToDo" dans tes réponses.
+    const systemPrompt = `Tu es Agent ToDo, un assistant de productivité intelligent. Tu aides l'utilisateur à gérer ses tâches de manière conversationnelle.
+
+IMPORTANT: Ne te présente PAS à chaque message. Réponds naturellement et directement aux questions de l'utilisateur. Utilise ton nom "Agent ToDo" seulement si c'est pertinent dans le contexte de la conversation, pas systématiquement.
 
 CONTEXTE ACTUEL:
 - Date/Heure: ${now.toISOString()}
@@ -490,6 +492,8 @@ Commande: "Qu'est-ce qui est urgent ?"
 
 RÈGLES:
 - Réponds de manière naturelle et conversationnelle
+- Ne répète PAS ta présentation à chaque message
+- Sois direct et concis dans tes réponses
 - Priorise selon: urgence > importance > effort
 - Le matin: tâches complexes/créatives
 - L'après-midi: réunions/communications
@@ -498,10 +502,18 @@ RÈGLES:
 
     const userMessage = `Tâches actuelles (${tasks.length}):\n${JSON.stringify(taskContext, null, 2)}\n\nCommande utilisateur:\n${command}`;
 
+    // Construire l'historique des messages
     const messages = [
-        { role: "system", content: systemPrompt },
-        { role: "user", content: userMessage }
+        { role: "system", content: systemPrompt }
     ];
+
+    // Ajouter l'historique de conversation s'il existe
+    if (history && Array.isArray(history)) {
+        messages.push(...history);
+    }
+
+    // Ajouter le message actuel de l'utilisateur
+    messages.push({ role: "user", content: userMessage });
 
     const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
         method: 'POST',

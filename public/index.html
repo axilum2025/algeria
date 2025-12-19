@@ -4456,6 +4456,7 @@
         let detailsPanelOpen = false;
         let notificationsEnabled = localStorage.getItem('todoNotificationsEnabled') === 'true';
         let notificationCheckInterval = null;
+        let aiChatHistory = []; // Historique de conversation avec Agent ToDo
 
         // Office Pro - Interface complète To Do AI
         function openOfficePro() {
@@ -4801,6 +4802,10 @@
             aiAssistantOpen = !aiAssistantOpen;
             if (aiAssistantOpen) {
                 aiAssistantMinimized = false;
+                // Réinitialiser l'historique lors de l'ouverture pour une nouvelle session
+                if (aiChatHistory.length === 0) {
+                    // Premier message de bienvenue seulement
+                }
                 showAiAssistantPanel();
             } else {
                 hideAiAssistantPanel();
@@ -4939,6 +4944,17 @@
             userMsg.innerHTML = `<div style="display: inline-block; background: var(--bg-secondary); color: var(--text-primary); padding: 10px 14px; border-radius: 12px 12px 4px 12px; max-width: 80%; font-size: 13px; border: 1px solid var(--border-color);">${command}</div>`;
             messagesContainer.appendChild(userMsg);
 
+            // Ajouter à l'historique
+            aiChatHistory.push({
+                role: 'user',
+                content: command
+            });
+
+            // Limiter l'historique aux 20 derniers messages (10 échanges)
+            if (aiChatHistory.length > 20) {
+                aiChatHistory = aiChatHistory.slice(-20);
+            }
+
             // Message loading
             const loadingMsg = document.createElement('div');
             loadingMsg.id = 'aiLoadingMsg';
@@ -4961,7 +4977,10 @@
                 const response = await fetch(apiUrl, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ command: command })
+                    body: JSON.stringify({ 
+                        command: command,
+                        history: aiChatHistory
+                    })
                 });
 
                 // Vérifier si la réponse est OK
@@ -5022,6 +5041,12 @@
                     responseHtml += `</div>`;
                     aiMsg.innerHTML = responseHtml;
                     messagesContainer.appendChild(aiMsg);
+
+                    // Ajouter la réponse de l'assistant à l'historique
+                    aiChatHistory.push({
+                        role: 'assistant',
+                        content: data.response
+                    });
 
                     // Si modifications, recharger les tâches
                     if (data.tasksModified > 0) {
