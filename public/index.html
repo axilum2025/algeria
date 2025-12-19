@@ -6113,10 +6113,10 @@
                             </div>
                             
                             <div style="display: flex; align-items: center; gap: 12px;">
-                                <!-- Bouton Ask The AI -->
+                                <!-- Bouton Agent RH -->
                                 <button onclick="toggleHRChat()" style="padding: 12px 20px; background: rgba(255,255,255,0.15); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.25); border-radius: 12px; color: white; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; gap: 8px; font-weight: 600; font-size: 14px;" onmouseover="this.style.background='rgba(255,255,255,0.28)'" onmouseout="this.style.background='rgba(255,255,255,0.15)'">
                                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-                                    Ask The AI
+                                    Agent RH
                                 </button>
                                 
                                 <button onclick="closeHRManagement()" style="width: 44px; height: 44px; background: rgba(255,255,255,0.15); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.25); border-radius: 12px; color: white; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center;" onmouseover="this.style.background='rgba(255,255,255,0.28)'; this.style.transform='rotate(90deg)'" onmouseout="this.style.background='rgba(255,255,255,0.15)'; this.style.transform='rotate(0deg)'">
@@ -6327,7 +6327,7 @@
                                     <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
                                 </div>
                                 <div>
-                                    <h3 style="margin: 0; color: white; font-size: 16px; font-weight: 700;">Ask The AI - RH</h3>
+                                    <h3 style="margin: 0; color: white; font-size: 16px; font-weight: 700;">Agent RH</h3>
                                     <p style="margin: 0; color: rgba(255,255,255,0.85); font-size: 12px; font-weight: 500;">Assistant IA pour la gestion RH</p>
                                 </div>
                             </div>
@@ -6764,7 +6764,7 @@ Contexte RH actuel :
 - Départements : ${[...new Set(employees.map(e => e.department))].join(', ') || 'Aucun'}
 - Données employés disponibles : ${employees.length > 0 ? 'Oui' : 'Non'}
 
-Tu es un assistant RH expert. Aide l'utilisateur avec la gestion des ressources humaines, calculs de paie, congés, recrutement, évaluations, etc.
+Tu es Agent RH, un assistant RH expert. Aide l'utilisateur avec la gestion des ressources humaines, calculs de paie, congés, recrutement, évaluations, etc. Présente-toi comme Agent RH dans tes réponses.
 `;
                 
                 // Convertir l'historique au format backend
