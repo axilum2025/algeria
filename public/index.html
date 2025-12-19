@@ -6306,12 +6306,101 @@
                         
                         <!-- Leaves Tab -->
                         <div id="hrContentLeaves" class="hr-content" style="display: none;">
-                            <div style="max-width: 1400px; margin: 0 auto; text-align: center; padding: 60px 20px;">
-                                <div style="width: 80px; height: 80px; background: rgba(99,102,241,0.1); border-radius: 20px; display: flex; align-items: center; justify-content: center; margin: 0 auto 16px;">
-                                    <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#6366F1" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                            <div style="max-width: 1400px; margin: 0 auto;">
+                                
+                                <!-- Header avec actions -->
+                                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px;">
+                                    <h2 style="margin: 0; font-size: 24px; font-weight: 700; color: #1a1a1a;">Gestion des Congés</h2>
+                                    <div style="display: flex; gap: 12px;">
+                                        <button onclick="showLeaveCalendar()" style="padding: 12px 20px; background: white; border: 2px solid #6366F1; border-radius: 12px; color: #6366F1; font-weight: 600; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; gap: 8px;" onmouseover="this.style.background='#f0f1ff'" onmouseout="this.style.background='white'">
+                                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                                            Calendrier
+                                        </button>
+                                        <button onclick="showAddLeaveModal()" style="padding: 12px 24px; background: #6366F1; border: none; border-radius: 12px; color: white; font-weight: 600; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; gap: 8px;" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 12px rgba(99,102,241,0.4)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='none'">
+                                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                                            Nouvelle Demande
+                                        </button>
+                                    </div>
                                 </div>
-                                <h3 style="margin: 0 0 8px; font-size: 18px; font-weight: 600; color: #1a1a1a;">Gestion des Congés</h3>
-                                <p style="margin: 0; font-size: 14px; color: #6b7280;">Fonctionnalité en cours de développement</p>
+                                
+                                <!-- Stats Cards -->
+                                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 32px;">
+                                    <div style="background: white; border-radius: 16px; padding: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); border-left: 4px solid #10b981;">
+                                        <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 8px;">
+                                            <div style="width: 40px; height: 40px; background: rgba(16,185,129,0.1); border-radius: 10px; display: flex; align-items: center; justify-content: center;">
+                                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                                            </div>
+                                            <span style="font-size: 13px; color: #6b7280; font-weight: 600;">Approuvées</span>
+                                        </div>
+                                        <div id="leavesApprovedCount" style="font-size: 28px; font-weight: 700; color: #10b981;">0</div>
+                                    </div>
+                                    
+                                    <div style="background: white; border-radius: 16px; padding: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); border-left: 4px solid #f59e0b;">
+                                        <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 8px;">
+                                            <div style="width: 40px; height: 40px; background: rgba(245,158,11,0.1); border-radius: 10px; display: flex; align-items: center; justify-content: center;">
+                                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                                            </div>
+                                            <span style="font-size: 13px; color: #6b7280; font-weight: 600;">En attente</span>
+                                        </div>
+                                        <div id="leavesPendingCount" style="font-size: 28px; font-weight: 700; color: #f59e0b;">0</div>
+                                    </div>
+                                    
+                                    <div style="background: white; border-radius: 16px; padding: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); border-left: 4px solid #ef4444;">
+                                        <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 8px;">
+                                            <div style="width: 40px; height: 40px; background: rgba(239,68,68,0.1); border-radius: 10px; display: flex; align-items: center; justify-content: center;">
+                                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                                            </div>
+                                            <span style="font-size: 13px; color: #6b7280; font-weight: 600;">Refusées</span>
+                                        </div>
+                                        <div id="leavesRejectedCount" style="font-size: 28px; font-weight: 700; color: #ef4444;">0</div>
+                                    </div>
+                                    
+                                    <div style="background: white; border-radius: 16px; padding: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); border-left: 4px solid #6366F1;">
+                                        <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 8px;">
+                                            <div style="width: 40px; height: 40px; background: rgba(99,102,241,0.1); border-radius: 10px; display: flex; align-items: center; justify-content: center;">
+                                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#6366F1" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                                            </div>
+                                            <span style="font-size: 13px; color: #6b7280; font-weight: 600;">Absents aujourd'hui</span>
+                                        </div>
+                                        <div id="leavesTodayCount" style="font-size: 28px; font-weight: 700; color: #6366F1;">0</div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Filtres -->
+                                <div style="background: white; border-radius: 16px; padding: 20px; margin-bottom: 24px; box-shadow: 0 2px 8px rgba(0,0,0,0.08);">
+                                    <div style="display: grid; grid-template-columns: 1fr auto auto; gap: 12px;">
+                                        <input type="text" id="leaveSearch" placeholder="Rechercher par nom d'employé..." style="padding: 12px 16px 12px 44px; border: 1px solid #e5e7eb; border-radius: 10px; font-size: 14px; background-image: url('data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%2220%22 height=%2220%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22%236366F1%22 stroke-width=%222%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22><circle cx=%2211%22 cy=%2211%22 r=%228%22/><path d=%22m21 21-4.35-4.35%22/></svg>'); background-repeat: no-repeat; background-position: 12px center;" oninput="filterLeaves()">
+                                        <select id="leaveTypeFilter" style="padding: 12px 16px; border: 1px solid #e5e7eb; border-radius: 10px; font-size: 14px; cursor: pointer;" onchange="filterLeaves()">
+                                            <option value="">Tous les types</option>
+                                            <option value="paid">Congé payé</option>
+                                            <option value="sick">Maladie</option>
+                                            <option value="unpaid">Sans solde</option>
+                                            <option value="parental">Parental</option>
+                                            <option value="other">Autre</option>
+                                        </select>
+                                        <select id="leaveStatusFilter" style="padding: 12px 16px; border: 1px solid #e5e7eb; border-radius: 10px; font-size: 14px; cursor: pointer;" onchange="filterLeaves()">
+                                            <option value="">Tous les statuts</option>
+                                            <option value="pending">En attente</option>
+                                            <option value="approved">Approuvée</option>
+                                            <option value="rejected">Refusée</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                
+                                <!-- Liste des demandes de congés -->
+                                <div id="leavesList" style="background: white; border-radius: 16px; padding: 24px; box-shadow: 0 2px 8px rgba(0,0,0,0.08);">
+                                    <!-- Le contenu sera généré dynamiquement -->
+                                    <div style="text-align: center; padding: 60px 20px; color: #6b7280;">
+                                        <div style="width: 80px; height: 80px; background: rgba(99,102,241,0.1); border-radius: 20px; display: flex; align-items: center; justify-content: center; margin: 0 auto 16px;">
+                                            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#6366F1" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                                        </div>
+                                        <h3 style="margin: 0 0 8px; font-size: 18px; font-weight: 600; color: #1a1a1a;">Aucune demande de congé</h3>
+                                        <p style="margin: 0; font-size: 14px;">Créez votre première demande de congé</p>
+                                        <button onclick="showAddLeaveModal()" style="margin-top: 24px; padding: 12px 24px; background: #6366F1; border: none; border-radius: 12px; color: white; font-weight: 600; cursor: pointer;">
+                                            Nouvelle Demande
+                                        </button>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                         
@@ -6437,10 +6526,12 @@
                 selectedTab.style.color = '#6366F1';
             }
             
-            // Rafraîchir les stats si on affiche le dashboard
+            // Rafraîchir les données selon l'onglet
             if (tabName === 'dashboard') {
                 const employees = JSON.parse(localStorage.getItem('hrEmployees') || '[]');
                 updateHRStats(employees);
+            } else if (tabName === 'leaves') {
+                initializeLeavesData();
             }
         }
         
@@ -7156,6 +7247,530 @@ RÈGLES:
             closeCompanySettings();
         }
         // ========== FIN COMPANY SETTINGS ==========
+        
+        // ========== LEAVES MANAGEMENT ==========
+        
+        function initializeLeavesData() {
+            const leaves = JSON.parse(localStorage.getItem('hrLeaves') || '[]');
+            renderLeavesList(leaves);
+            updateLeavesStats(leaves);
+        }
+        
+        function updateLeavesStats(leaves) {
+            // Compter par statut
+            const approved = leaves.filter(l => l.status === 'approved').length;
+            const pending = leaves.filter(l => l.status === 'pending').length;
+            const rejected = leaves.filter(l => l.status === 'rejected').length;
+            
+            // Compter les absents aujourd'hui
+            const today = new Date().toISOString().split('T')[0];
+            const todayAbsent = leaves.filter(l => {
+                if (l.status !== 'approved') return false;
+                return l.startDate <= today && l.endDate >= today;
+            }).length;
+            
+            // Mettre à jour l'affichage
+            const approvedEl = document.getElementById('leavesApprovedCount');
+            const pendingEl = document.getElementById('leavesPendingCount');
+            const rejectedEl = document.getElementById('leavesRejectedCount');
+            const todayEl = document.getElementById('leavesTodayCount');
+            
+            if (approvedEl) approvedEl.textContent = approved;
+            if (pendingEl) pendingEl.textContent = pending;
+            if (rejectedEl) rejectedEl.textContent = rejected;
+            if (todayEl) todayEl.textContent = todayAbsent;
+        }
+        
+        function renderLeavesList(leaves = null) {
+            const list = document.getElementById('leavesList');
+            if (!list) return;
+            
+            if (leaves === null) {
+                leaves = JSON.parse(localStorage.getItem('hrLeaves') || '[]');
+            }
+            
+            if (leaves.length === 0) {
+                list.innerHTML = `
+                    <div style="text-align: center; padding: 60px 20px; color: #6b7280;">
+                        <div style="width: 80px; height: 80px; background: rgba(99,102,241,0.1); border-radius: 20px; display: flex; align-items: center; justify-content: center; margin: 0 auto 16px;">
+                            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#6366F1" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                        </div>
+                        <h3 style="margin: 0 0 8px; font-size: 18px; font-weight: 600; color: #1a1a1a;">Aucune demande de congé</h3>
+                        <p style="margin: 0; font-size: 14px;">Créez votre première demande de congé</p>
+                        <button onclick="showAddLeaveModal()" style="margin-top: 24px; padding: 12px 24px; background: #6366F1; border: none; border-radius: 12px; color: white; font-weight: 600; cursor: pointer;">
+                            Nouvelle Demande
+                        </button>
+                    </div>
+                `;
+                return;
+            }
+            
+            // Trier par date de création (plus récent en premier)
+            leaves.sort((a, b) => b.createdAt - a.createdAt);
+            
+            const statusColors = {
+                pending: { bg: '#fef3c7', color: '#f59e0b', icon: 'clock' },
+                approved: { bg: '#d1fae5', color: '#10b981', icon: 'check' },
+                rejected: { bg: '#fee2e2', color: '#ef4444', icon: 'x' }
+            };
+            
+            const statusLabels = {
+                pending: 'En attente',
+                approved: 'Approuvée',
+                rejected: 'Refusée'
+            };
+            
+            const leaveTypes = {
+                paid: '🏖️ Congé payé',
+                sick: '🤒 Maladie',
+                unpaid: '📅 Sans solde',
+                parental: '👶 Parental',
+                other: '📋 Autre'
+            };
+            
+            let html = '<div style="display: flex; flex-direction: column; gap: 16px;">';
+            
+            leaves.forEach(leave => {
+                const employee = JSON.parse(localStorage.getItem('hrEmployees') || '[]').find(e => e.id === leave.employeeId);
+                const employeeName = employee ? `${employee.firstName} ${employee.lastName}` : 'Employé inconnu';
+                const statusStyle = statusColors[leave.status] || statusColors.pending;
+                
+                // Calculer la durée
+                const start = new Date(leave.startDate);
+                const end = new Date(leave.endDate);
+                const days = Math.ceil((end - start) / (1000 * 60 * 60 * 24)) + 1;
+                
+                html += `
+                    <div style="background: white; border-radius: 12px; padding: 20px; border-left: 4px solid ${statusStyle.color}; box-shadow: 0 1px 3px rgba(0,0,0,0.1); transition: all 0.2s;" onmouseover="this.style.boxShadow='0 4px 12px rgba(0,0,0,0.15)'" onmouseout="this.style.boxShadow='0 1px 3px rgba(0,0,0,0.1)'">
+                        <div style="display: flex; align-items: start; justify-content: space-between; gap: 16px;">
+                            <div style="flex: 1;">
+                                <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 8px;">
+                                    <div style="width: 44px; height: 44px; background: #6366F1; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: 700; font-size: 16px;">
+                                        ${employee ? employee.firstName.charAt(0) + employee.lastName.charAt(0) : '??'}
+                                    </div>
+                                    <div>
+                                        <h4 style="margin: 0; font-size: 16px; font-weight: 700; color: #1a1a1a;">${employeeName}</h4>
+                                        <p style="margin: 0; font-size: 13px; color: #6b7280;">${employee ? employee.position : ''}</p>
+                                    </div>
+                                </div>
+                                
+                                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; margin: 16px 0;">
+                                    <div>
+                                        <div style="font-size: 11px; color: #6b7280; font-weight: 600; text-transform: uppercase; margin-bottom: 4px;">Type</div>
+                                        <div style="font-size: 14px; color: #1a1a1a; font-weight: 600;">${leaveTypes[leave.type] || leave.type}</div>
+                                    </div>
+                                    <div>
+                                        <div style="font-size: 11px; color: #6b7280; font-weight: 600; text-transform: uppercase; margin-bottom: 4px;">Période</div>
+                                        <div style="font-size: 14px; color: #1a1a1a;">${new Date(leave.startDate).toLocaleDateString('fr-FR')} → ${new Date(leave.endDate).toLocaleDateString('fr-FR')}</div>
+                                    </div>
+                                    <div>
+                                        <div style="font-size: 11px; color: #6b7280; font-weight: 600; text-transform: uppercase; margin-bottom: 4px;">Durée</div>
+                                        <div style="font-size: 14px; color: #1a1a1a; font-weight: 600;">${days} jour${days > 1 ? 's' : ''}</div>
+                                    </div>
+                                </div>
+                                
+                                ${leave.reason ? `
+                                    <div style="background: #f9fafb; padding: 12px; border-radius: 8px; margin-top: 12px;">
+                                        <div style="font-size: 11px; color: #6b7280; font-weight: 600; text-transform: uppercase; margin-bottom: 4px;">Motif</div>
+                                        <div style="font-size: 13px; color: #374151; line-height: 1.5;">${leave.reason}</div>
+                                    </div>
+                                ` : ''}
+                            </div>
+                            
+                            <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 12px;">
+                                <span style="padding: 6px 14px; background: ${statusStyle.bg}; color: ${statusStyle.color}; border-radius: 20px; font-size: 12px; font-weight: 700; white-space: nowrap;">
+                                    ${statusLabels[leave.status]}
+                                </span>
+                                
+                                ${leave.status === 'pending' ? `
+                                    <div style="display: flex; gap: 8px;">
+                                        <button onclick="approveLeave('${leave.id}')" title="Approuver" style="padding: 8px 12px; background: #10b981; border: none; border-radius: 8px; color: white; cursor: pointer; font-size: 12px; font-weight: 600; transition: all 0.2s;" onmouseover="this.style.background='#059669'" onmouseout="this.style.background='#10b981'">
+                                            ✓ Approuver
+                                        </button>
+                                        <button onclick="rejectLeave('${leave.id}')" title="Refuser" style="padding: 8px 12px; background: #ef4444; border: none; border-radius: 8px; color: white; cursor: pointer; font-size: 12px; font-weight: 600; transition: all 0.2s;" onmouseover="this.style.background='#dc2626'" onmouseout="this.style.background='#ef4444'">
+                                            ✗ Refuser
+                                        </button>
+                                    </div>
+                                ` : ''}
+                                
+                                <button onclick="deleteLeave('${leave.id}')" style="padding: 6px 12px; background: #f3f4f6; border: none; border-radius: 8px; color: #6b7280; cursor: pointer; font-size: 11px; font-weight: 600;" onmouseover="this.style.background='#e5e7eb'; this.style.color='#ef4444'" onmouseout="this.style.background='#f3f4f6'; this.style.color='#6b7280'">
+                                    🗑 Supprimer
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            html += '</div>';
+            list.innerHTML = html;
+        }
+        
+        function filterLeaves() {
+            const searchTerm = document.getElementById('leaveSearch')?.value.toLowerCase() || '';
+            const typeFilter = document.getElementById('leaveTypeFilter')?.value || '';
+            const statusFilter = document.getElementById('leaveStatusFilter')?.value || '';
+            
+            let leaves = JSON.parse(localStorage.getItem('hrLeaves') || '[]');
+            const employees = JSON.parse(localStorage.getItem('hrEmployees') || '[]');
+            
+            leaves = leaves.filter(leave => {
+                const employee = employees.find(e => e.id === leave.employeeId);
+                const employeeName = employee ? `${employee.firstName} ${employee.lastName}`.toLowerCase() : '';
+                
+                const matchSearch = !searchTerm || employeeName.includes(searchTerm);
+                const matchType = !typeFilter || leave.type === typeFilter;
+                const matchStatus = !statusFilter || leave.status === statusFilter;
+                
+                return matchSearch && matchType && matchStatus;
+            });
+            
+            renderLeavesList(leaves);
+        }
+        
+        function showAddLeaveModal() {
+            const employees = JSON.parse(localStorage.getItem('hrEmployees') || '[]');
+            
+            if (employees.length === 0) {
+                showToast('⚠️ Veuillez d\'abord ajouter des employés', 'error');
+                return;
+            }
+            
+            const modal = document.createElement('div');
+            modal.id = 'addLeaveModal';
+            modal.style.cssText = `
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: rgba(0,0,0,0.5);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                z-index: 10003;
+                animation: fadeIn 0.2s ease;
+            `;
+            
+            const employeeOptions = employees.map(emp => 
+                `<option value="${emp.id}">${emp.firstName} ${emp.lastName} - ${emp.position}</option>`
+            ).join('');
+            
+            modal.innerHTML = `
+                <div style="background: white; border-radius: 20px; padding: 32px; max-width: 600px; width: 90%; max-height: 90vh; overflow-y: auto; animation: slideIn 0.3s ease;">
+                    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px;">
+                        <h2 style="margin: 0; font-size: 24px; font-weight: 700; color: #1a1a1a;">Nouvelle Demande de Congé</h2>
+                        <button onclick="closeAddLeaveModal()" style="width: 36px; height: 36px; background: #f3f4f6; border: none; border-radius: 10px; cursor: pointer; display: flex; align-items: center; justify-content: center;" onmouseover="this.style.background='#e5e7eb'" onmouseout="this.style.background='#f3f4f6'">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                        </button>
+                    </div>
+                    
+                    <form id="addLeaveForm" onsubmit="handleAddLeave(event)" style="display: flex; flex-direction: column; gap: 16px;">
+                        <div>
+                            <label style="display: block; margin-bottom: 6px; font-size: 14px; font-weight: 600; color: #374151;">Employé *</label>
+                            <select name="employeeId" required style="width: 100%; padding: 12px; border: 1px solid #e5e7eb; border-radius: 10px; font-size: 14px;">
+                                <option value="">Sélectionner un employé...</option>
+                                ${employeeOptions}
+                            </select>
+                        </div>
+                        
+                        <div>
+                            <label style="display: block; margin-bottom: 6px; font-size: 14px; font-weight: 600; color: #374151;">Type de congé *</label>
+                            <select name="type" required style="width: 100%; padding: 12px; border: 1px solid #e5e7eb; border-radius: 10px; font-size: 14px;">
+                                <option value="">Sélectionner...</option>
+                                <option value="paid">🏖️ Congé payé</option>
+                                <option value="sick">🤒 Maladie</option>
+                                <option value="unpaid">📅 Sans solde</option>
+                                <option value="parental">👶 Parental</option>
+                                <option value="other">📋 Autre</option>
+                            </select>
+                        </div>
+                        
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+                            <div>
+                                <label style="display: block; margin-bottom: 6px; font-size: 14px; font-weight: 600; color: #374151;">Date de début *</label>
+                                <input type="date" name="startDate" required style="width: 100%; padding: 12px; border: 1px solid #e5e7eb; border-radius: 10px; font-size: 14px;">
+                            </div>
+                            <div>
+                                <label style="display: block; margin-bottom: 6px; font-size: 14px; font-weight: 600; color: #374151;">Date de fin *</label>
+                                <input type="date" name="endDate" required style="width: 100%; padding: 12px; border: 1px solid #e5e7eb; border-radius: 10px; font-size: 14px;">
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <label style="display: block; margin-bottom: 6px; font-size: 14px; font-weight: 600; color: #374151;">Motif (optionnel)</label>
+                            <textarea name="reason" rows="3" style="width: 100%; padding: 12px; border: 1px solid #e5e7eb; border-radius: 10px; font-size: 14px; font-family: inherit; resize: vertical;" placeholder="Raison de la demande de congé..."></textarea>
+                        </div>
+                        
+                        <div style="display: flex; gap: 12px; margin-top: 8px;">
+                            <button type="button" onclick="closeAddLeaveModal()" style="flex: 1; padding: 12px; background: #f3f4f6; border: none; border-radius: 10px; font-weight: 600; cursor: pointer;" onmouseover="this.style.background='#e5e7eb'" onmouseout="this.style.background='#f3f4f6'">
+                                Annuler
+                            </button>
+                            <button type="submit" style="flex: 1; padding: 12px; background: #6366F1; border: none; border-radius: 10px; color: white; font-weight: 600; cursor: pointer;" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 12px rgba(99,102,241,0.4)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='none'">
+                                Créer la Demande
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            `;
+            
+            document.body.appendChild(modal);
+        }
+        
+        function closeAddLeaveModal() {
+            const modal = document.getElementById('addLeaveModal');
+            if (modal) modal.remove();
+        }
+        
+        function handleAddLeave(event) {
+            event.preventDefault();
+            const form = event.target;
+            const formData = new FormData(form);
+            
+            const startDate = formData.get('startDate');
+            const endDate = formData.get('endDate');
+            
+            // Validation des dates
+            if (new Date(endDate) < new Date(startDate)) {
+                showToast('❌ La date de fin doit être après la date de début', 'error');
+                return;
+            }
+            
+            const leave = {
+                id: Date.now().toString(),
+                employeeId: formData.get('employeeId'),
+                type: formData.get('type'),
+                startDate: startDate,
+                endDate: endDate,
+                reason: formData.get('reason'),
+                status: 'pending',
+                createdAt: Date.now(),
+                updatedAt: Date.now()
+            };
+            
+            // Sauvegarder
+            const leaves = JSON.parse(localStorage.getItem('hrLeaves') || '[]');
+            leaves.push(leave);
+            localStorage.setItem('hrLeaves', JSON.stringify(leaves));
+            
+            closeAddLeaveModal();
+            renderLeavesList(leaves);
+            updateLeavesStats(leaves);
+            
+            const employee = JSON.parse(localStorage.getItem('hrEmployees') || '[]').find(e => e.id === leave.employeeId);
+            const employeeName = employee ? `${employee.firstName} ${employee.lastName}` : 'Employé';
+            
+            showToast(`✅ Demande de congé créée pour ${employeeName}`, 'success');
+        }
+        
+        function approveLeave(leaveId) {
+            let leaves = JSON.parse(localStorage.getItem('hrLeaves') || '[]');
+            const leave = leaves.find(l => l.id === leaveId);
+            
+            if (!leave) return;
+            
+            leave.status = 'approved';
+            leave.updatedAt = Date.now();
+            
+            localStorage.setItem('hrLeaves', JSON.stringify(leaves));
+            renderLeavesList(leaves);
+            updateLeavesStats(leaves);
+            
+            const employee = JSON.parse(localStorage.getItem('hrEmployees') || '[]').find(e => e.id === leave.employeeId);
+            const employeeName = employee ? `${employee.firstName} ${employee.lastName}` : 'Employé';
+            
+            showToast(`✅ Congé approuvé pour ${employeeName}`, 'success');
+        }
+        
+        function rejectLeave(leaveId) {
+            if (!confirm('Êtes-vous sûr de vouloir refuser cette demande de congé ?')) return;
+            
+            let leaves = JSON.parse(localStorage.getItem('hrLeaves') || '[]');
+            const leave = leaves.find(l => l.id === leaveId);
+            
+            if (!leave) return;
+            
+            leave.status = 'rejected';
+            leave.updatedAt = Date.now();
+            
+            localStorage.setItem('hrLeaves', JSON.stringify(leaves));
+            renderLeavesList(leaves);
+            updateLeavesStats(leaves);
+            
+            const employee = JSON.parse(localStorage.getItem('hrEmployees') || '[]').find(e => e.id === leave.employeeId);
+            const employeeName = employee ? `${employee.firstName} ${employee.lastName}` : 'Employé';
+            
+            showToast(`❌ Congé refusé pour ${employeeName}`, 'info');
+        }
+        
+        function deleteLeave(leaveId) {
+            if (!confirm('Êtes-vous sûr de vouloir supprimer cette demande de congé ?')) return;
+            
+            let leaves = JSON.parse(localStorage.getItem('hrLeaves') || '[]');
+            leaves = leaves.filter(l => l.id !== leaveId);
+            
+            localStorage.setItem('hrLeaves', JSON.stringify(leaves));
+            renderLeavesList(leaves);
+            updateLeavesStats(leaves);
+            
+            showToast('🗑️ Demande de congé supprimée', 'info');
+        }
+        
+        function showLeaveCalendar() {
+            const modal = document.createElement('div');
+            modal.id = 'leaveCalendarModal';
+            modal.style.cssText = `
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: rgba(0,0,0,0.5);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                z-index: 10003;
+                animation: fadeIn 0.2s ease;
+            `;
+            
+            const currentDate = new Date();
+            const currentMonth = currentDate.getMonth();
+            const currentYear = currentDate.getFullYear();
+            
+            modal.innerHTML = `
+                <div style="background: white; border-radius: 20px; padding: 32px; max-width: 900px; width: 90%; max-height: 90vh; overflow-y: auto; animation: slideIn 0.3s ease;">
+                    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px;">
+                        <h2 style="margin: 0; font-size: 24px; font-weight: 700; color: #1a1a1a;">📅 Calendrier des Congés</h2>
+                        <button onclick="closeLeaveCalendar()" style="width: 36px; height: 36px; background: #f3f4f6; border: none; border-radius: 10px; cursor: pointer; display: flex; align-items: center; justify-content: center;" onmouseover="this.style.background='#e5e7eb'" onmouseout="this.style.background='#f3f4f6'">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                        </button>
+                    </div>
+                    
+                    <div id="calendarContainer" style="min-height: 400px;">
+                        ${generateCalendarHTML(currentYear, currentMonth)}
+                    </div>
+                    
+                    <div style="margin-top: 24px; padding-top: 24px; border-top: 1px solid #e5e7eb;">
+                        <h3 style="margin: 0 0 16px; font-size: 16px; font-weight: 700; color: #1a1a1a;">Légende</h3>
+                        <div style="display: flex; gap: 16px; flex-wrap: wrap;">
+                            <div style="display: flex; align-items: center; gap: 8px;">
+                                <div style="width: 16px; height: 16px; background: #d1fae5; border-radius: 4px;"></div>
+                                <span style="font-size: 13px; color: #374151;">Congé approuvé</span>
+                            </div>
+                            <div style="display: flex; align-items: center; gap: 8px;">
+                                <div style="width: 16px; height: 16px; background: #fef3c7; border-radius: 4px;"></div>
+                                <span style="font-size: 13px; color: #374151;">En attente</span>
+                            </div>
+                            <div style="display: flex; align-items: center; gap: 8px;">
+                                <div style="width: 16px; height: 16px; background: #dbeafe; border-radius: 4px;"></div>
+                                <span style="font-size: 13px; color: #374151;">Aujourd'hui</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            document.body.appendChild(modal);
+        }
+        
+        function closeLeaveCalendar() {
+            const modal = document.getElementById('leaveCalendarModal');
+            if (modal) modal.remove();
+        }
+        
+        function generateCalendarHTML(year, month) {
+            const monthNames = ['Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin', 'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre'];
+            const daysInMonth = new Date(year, month + 1, 0).getDate();
+            const firstDay = new Date(year, month, 1).getDay();
+            const today = new Date().toISOString().split('T')[0];
+            
+            // Charger les congés
+            const leaves = JSON.parse(localStorage.getItem('hrLeaves') || '[]');
+            const employees = JSON.parse(localStorage.getItem('hrEmployees') || '[]');
+            
+            let html = `
+                <div style="text-align: center; margin-bottom: 20px;">
+                    <h3 style="margin: 0; font-size: 20px; font-weight: 700; color: #1a1a1a;">${monthNames[month]} ${year}</h3>
+                </div>
+                
+                <div style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 8px; text-align: center;">
+                    <!-- Jours de la semaine -->
+                    <div style="font-size: 12px; font-weight: 700; color: #6b7280; padding: 8px;">Dim</div>
+                    <div style="font-size: 12px; font-weight: 700; color: #6b7280; padding: 8px;">Lun</div>
+                    <div style="font-size: 12px; font-weight: 700; color: #6b7280; padding: 8px;">Mar</div>
+                    <div style="font-size: 12px; font-weight: 700; color: #6b7280; padding: 8px;">Mer</div>
+                    <div style="font-size: 12px; font-weight: 700; color: #6b7280; padding: 8px;">Jeu</div>
+                    <div style="font-size: 12px; font-weight: 700; color: #6b7280; padding: 8px;">Ven</div>
+                    <div style="font-size: 12px; font-weight: 700; color: #6b7280; padding: 8px;">Sam</div>
+            `;
+            
+            // Espaces vides avant le 1er jour
+            for (let i = 0; i < firstDay; i++) {
+                html += '<div></div>';
+            }
+            
+            // Jours du mois
+            for (let day = 1; day <= daysInMonth; day++) {
+                const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+                const isToday = dateStr === today;
+                
+                // Trouver les congés pour ce jour
+                const dayLeaves = leaves.filter(l => {
+                    return l.status === 'approved' && l.startDate <= dateStr && l.endDate >= dateStr;
+                });
+                
+                const pendingLeaves = leaves.filter(l => {
+                    return l.status === 'pending' && l.startDate <= dateStr && l.endDate >= dateStr;
+                });
+                
+                let bgColor = 'white';
+                let borderColor = '#e5e7eb';
+                
+                if (isToday) {
+                    bgColor = '#dbeafe';
+                    borderColor = '#3b82f6';
+                } else if (dayLeaves.length > 0) {
+                    bgColor = '#d1fae5';
+                    borderColor = '#10b981';
+                } else if (pendingLeaves.length > 0) {
+                    bgColor = '#fef3c7';
+                    borderColor = '#f59e0b';
+                }
+                
+                const tooltip = [...dayLeaves, ...pendingLeaves].map(l => {
+                    const emp = employees.find(e => e.id === l.employeeId);
+                    return emp ? `${emp.firstName} ${emp.lastName}` : 'Employé';
+                }).join(', ');
+                
+                html += `
+                    <div title="${tooltip}" style="
+                        background: ${bgColor}; 
+                        border: 2px solid ${borderColor}; 
+                        border-radius: 8px; 
+                        padding: 12px 8px; 
+                        font-size: 14px; 
+                        font-weight: ${isToday ? '700' : '600'}; 
+                        color: ${isToday ? '#1e40af' : '#1a1a1a'};
+                        cursor: ${dayLeaves.length > 0 || pendingLeaves.length > 0 ? 'pointer' : 'default'};
+                        min-height: 60px;
+                        display: flex;
+                        flex-direction: column;
+                        align-items: center;
+                        justify-content: center;
+                        position: relative;
+                    ">
+                        <div>${day}</div>
+                        ${dayLeaves.length > 0 ? `<div style="font-size: 10px; color: #10b981; margin-top: 4px;">${dayLeaves.length} 👤</div>` : ''}
+                        ${pendingLeaves.length > 0 ? `<div style="font-size: 10px; color: #f59e0b; margin-top: 2px;">⏳</div>` : ''}
+                    </div>
+                `;
+            }
+            
+            html += '</div>';
+            return html;
+        }
+        
+        // ========== FIN LEAVES MANAGEMENT ==========
         
         // ========== FIN GESTION RH ==========
         
