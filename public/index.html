@@ -6764,7 +6764,13 @@ Contexte RH actuel :
 - Départements : ${[...new Set(employees.map(e => e.department))].join(', ') || 'Aucun'}
 - Données employés disponibles : ${employees.length > 0 ? 'Oui' : 'Non'}
 
-Tu es Agent RH, un assistant RH expert. Aide l'utilisateur avec la gestion des ressources humaines, calculs de paie, congés, recrutement, évaluations, etc. Présente-toi comme Agent RH dans tes réponses.
+Tu es Agent RH, un assistant RH expert. Aide l'utilisateur avec la gestion des ressources humaines, calculs de paie, congés, recrutement, évaluations, etc.
+
+RÈGLES:
+- Ne répète PAS ta présentation à chaque message (présente-toi uniquement au premier message)
+- Réponds de manière naturelle et conversationnelle
+- Sois direct et concis dans tes réponses
+- Fournis des informations précises basées sur les données disponibles
 `;
                 
                 // Convertir l'historique au format backend
