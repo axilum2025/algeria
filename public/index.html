@@ -6816,8 +6816,22 @@
                 
                 // Obtenir les données RH actuelles pour le contexte
                 const employees = JSON.parse(localStorage.getItem('hrEmployees') || '[]');
+                const companySettings = JSON.parse(localStorage.getItem('companySettings') || '{}');
+                
+                // Construire les informations de l'entreprise
+                const companyInfo = companySettings.companyName ? `
+INFORMATIONS DE L'ENTREPRISE :
+- Nom: ${companySettings.companyName}
+- Domaine d'activité: ${companySettings.businessSector || 'Non spécifié'}
+- Adresse: ${companySettings.address || 'Non spécifiée'}
+- Téléphone: ${companySettings.phone || 'Non spécifié'}
+- Email: ${companySettings.email || 'Non spécifié'}
+- Devise: ${companySettings.currency || 'DA'}
+- Numéro d'enregistrement: ${companySettings.registrationNumber || 'Non spécifié'}
+` : 'Les informations de l\'entreprise n\'ont pas encore été configurées.';
                 
                 // Construire une liste détaillée des employés
+                const currency = companySettings.currency || 'DA';
                 const employeesDetails = employees.map(emp => `
   • ${emp.firstName} ${emp.lastName}
     - Poste: ${emp.position}
@@ -6826,12 +6840,14 @@
     - Téléphone: ${emp.phone || 'N/A'}
     - Type de contrat: ${emp.contractType}
     - Date d'embauche: ${emp.hireDate}
-    - Salaire de base: ${emp.baseSalary ? emp.baseSalary + ' DA' : 'N/A'}
+    - Salaire de base: ${emp.baseSalary ? emp.baseSalary + ' ' + currency : 'N/A'}
     - Statut: ${emp.status === 'active' ? 'Actif' : 'Inactif'}
 `).join('\n');
 
                 const hrContext = `
-Contexte RH actuel :
+${companyInfo}
+
+CONTEXTE RH ACTUEL :
 - Nombre total d'employés : ${employees.length}
 - Départements actifs : ${[...new Set(employees.map(e => e.department))].join(', ') || 'Aucun'}
 
@@ -6843,9 +6859,11 @@ RÈGLES:
 - Ne répète PAS ta présentation à chaque message (présente-toi uniquement au premier message)
 - Réponds de manière naturelle et conversationnelle
 - Sois direct et concis dans tes réponses
-- Fournis des informations précises basées sur les données d'employés ci-dessus
+- Fournis des informations précises basées sur les données d'employés et de l'entreprise ci-dessus
 - Tu as accès à TOUS les détails des employés listés ci-dessus
+- Tu connais TOUTES les informations de l'entreprise listées ci-dessus
 - Si l'utilisateur te parle d'un nouvel employé qu'il vient d'ajouter, vérifie dans la liste ci-dessus
+- Utilise toujours la devise de l'entreprise (${currency}) dans tes réponses concernant les salaires
 `;
                 
                 // Convertir l'historique au format backend
@@ -7037,12 +7055,19 @@ RÈGLES:
                     document.removeEventListener('click', handleClickOutsideCompanyPanel);
                 }, 300);
             }
-        }
-        
-        function saveCompanySettings(event) {
-            event.preventDefault();
-            const form = event.target;
-            const formData = new FormData(form);
+        }localStorage.setItem('companySettings', JSON.stringify(companySettings));
+            
+            // Rafraîchir les statistiques RH pour mettre à jour la devise
+            const employees = JSON.parse(localStorage.getItem('hrEmployees') || '[]');
+            updateHRStats(employees);
+            
+            // Notifier l'Agent RH si le chat est ouvert
+            const hrChatContainer = document.getElementById('hrChatContainer');
+            if (hrChatContainer && hrChatContainer.style.display !== 'none') {
+                const systemMessage = `ℹ️ Informations de l'entreprise mises à jour: ${companySettings.companyName} - ${companySettings.businessSector} (${companySettings.currency})`;
+                addHRChatMessage(systemMessage, 'system');
+            }
+            
             
             const companySettings = {
                 companyName: formData.get('companyName'),
