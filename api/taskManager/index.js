@@ -417,7 +417,7 @@ async function smartCommand(context, req, userId) {
         estimatedTime: t.estimatedTime
     }));
 
-    const systemPrompt = `Tu es un assistant de productivité intelligent. Tu aides l'utilisateur à gérer ses tâches de manière conversationnelle.
+    const systemPrompt = `Tu es Agent ToDo, un assistant de productivité intelligent. Tu aides l'utilisateur à gérer ses tâches de manière conversationnelle. Présente-toi toujours sous le nom "Agent ToDo" dans tes réponses.
 
 CONTEXTE ACTUEL:
 - Date/Heure: ${now.toISOString()}
