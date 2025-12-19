@@ -6337,7 +6337,11 @@
                                     <p style="margin: 0; color: rgba(255,255,255,0.85); font-size: 12px; font-weight: 500;">Assistant IA pour la gestion RH</p>
                                 </div>
                             </div>
-                            <button onclick="toggleHRChat()" style="width: 36px; height: 36px; background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.25); border-radius: 10px; color: white; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.28)'" onmouseout="this.style.background='rgba(255,255,255,0.15)'">
+                            <div style="display: flex; gap: 8px;">
+                                <button onclick="clearHRChatHistory()" title="Effacer l'historique" style="width: 36px; height: 36px; background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.25); border-radius: 10px; color: white; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.28)'" onmouseout="this.style.background='rgba(255,255,255,0.15)'">
+                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                                </button>
+                                <button onclick="toggleHRChat()" style="width: 36px; height: 36px; background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.25); border-radius: 10px; color: white; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.28)'" onmouseout="this.style.background='rgba(255,255,255,0.15)'">
                                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
                             </button>
                         </div>
@@ -6738,7 +6742,7 @@
         }
         
         // ========== HR AI CHAT ==========
-        let hrChatHistory = [];
+        let hrChatHistory = JSON.parse(localStorage.getItem('hrChatHistory') || '[]');
         let hrAiProcessing = false;
         
         function toggleHRChat() {
@@ -6747,6 +6751,10 @@
             
             if (chatPanel.style.display === 'none' || !chatPanel.style.display) {
                 chatPanel.style.display = 'flex';
+                
+                // Charger et afficher l'historique
+                loadHRChatHistory();
+                
                 // Focus sur l'input
                 setTimeout(() => {
                     const input = document.getElementById('hrChatInput');
@@ -6757,7 +6765,44 @@
             }
         }
         
-        function addHRChatMessage(message, type) {
+        function loadHRChatHistory() {
+            const messagesContainer = document.getElementById('hrChatMessages');
+            if (!messagesContainer) return;
+            
+            // Vider le conteneur
+            messagesContainer.innerHTML = '';
+            
+            // Afficher l'historique sauvegardé
+            if (hrChatHistory.length === 0) {
+                // Message de bienvenue si pas d'historique
+                addHRChatMessage('Bonjour! Je suis votre assistant IA pour la gestion RH. Je me souviens de toutes nos conversations précédentes. Comment puis-je vous aider aujourd\'hui?', 'bot', false);
+            } else {
+                // Afficher chaque message de l'historique
+                hrChatHistory.forEach(msg => {
+                    const type = msg.role === 'assistant' ? 'bot' : 'user';
+                    addHRChatMessage(msg.content, type, false);
+                });
+            }
+        }
+        
+        function clearHRChatHistory() {
+            if (!confirm('Êtes-vous sûr de vouloir effacer tout l\'historique des conversations?')) return;
+            
+            hrChatHistory = [];
+            localStorage.removeItem('hrChatHistory');
+            
+            const messagesContainer = document.getElementById('hrChatMessages');
+            if (messagesContainer) {
+                messagesContainer.innerHTML = '';
+            }
+            
+            showToast('🗑️ Historique effacé', 'info');
+            
+            // Afficher le message de bienvenue
+            addHRChatMessage('Bonjour! Je suis votre assistant IA pour la gestion RH. Comment puis-je vous aider?', 'bot', false);
+        }
+        
+        function addHRChatMessage(message, type, saveToHistory = true) {
             const messagesContainer = document.getElementById('hrChatMessages');
             if (!messagesContainer) return;
             
@@ -6766,7 +6811,7 @@
             const messageDiv = document.createElement('div');
             
             if (isSystem) {
-                // Message système (notification)
+                // Message système (notification) - ne pas sauvegarder dans l'historique
                 messageDiv.innerHTML = `
                     <div style="padding: 8px 12px; background: #f0f9ff; border-left: 3px solid #3b82f6; border-radius: 8px; margin: 8px 0; font-size: 12px; color: #1e40af;">
                         ${message}
@@ -6808,6 +6853,9 @@
                 role: 'user',
                 content: message
             });
+            
+            // Sauvegarder l'historique dans localStorage
+            localStorage.setItem('hrChatHistory', JSON.stringify(hrChatHistory));
             
             showToast('🤖 Agent RH en cours...', 'info');
             
@@ -6901,6 +6949,9 @@ RÈGLES:
                     role: 'assistant',
                     content: aiResponse
                 });
+                
+                // Sauvegarder l'historique dans localStorage
+                localStorage.setItem('hrChatHistory', JSON.stringify(hrChatHistory));
                 
                 addHRChatMessage(aiResponse, 'bot');
                 showToast('✅ Réponse générée', 'success');
