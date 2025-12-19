@@ -6160,8 +6160,8 @@
                                                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#6366F1" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
                                             </div>
                                         </div>
-                                        <div style="font-size: 32px; font-weight: 700; color: #1a1a1a;">0</div>
-                                        <div style="font-size: 12px; color: #6366F1; font-weight: 600; margin-top: 8px;">Aucun employé</div>
+                                        <div id="hrStatTotalEmployees" style="font-size: 32px; font-weight: 700; color: #1a1a1a;">0</div>
+                                        <div id="hrStatTotalEmployeesLabel" style="font-size: 12px; color: #6366F1; font-weight: 600; margin-top: 8px;">Aucun employé</div>
                                     </div>
                                     
                                     <div style="background: white; border-radius: 16px; padding: 24px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); border-left: 4px solid #6366F1;">
@@ -6193,7 +6193,7 @@
                                                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#6366F1" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
                                             </div>
                                         </div>
-                                        <div style="font-size: 32px; font-weight: 700; color: #1a1a1a;">0€</div>
+                                        <div id="hrStatTotalSalary" style="font-size: 32px; font-weight: 700; color: #1a1a1a;">0 DA</div>
                                         <div style="font-size: 12px; color: #6b7280; font-weight: 600; margin-top: 8px;">Brut mensuel</div>
                                     </div>
                                 </div>
@@ -6411,6 +6411,12 @@
                 selectedTab.style.borderBottom = '3px solid #6366F1';
                 selectedTab.style.color = '#6366F1';
             }
+            
+            // Rafraîchir les stats si on affiche le dashboard
+            if (tabName === 'dashboard') {
+                const employees = JSON.parse(localStorage.getItem('hrEmployees') || '[]');
+                updateHRStats(employees);
+            }
         }
         
         function initializeHRData() {
@@ -6512,8 +6518,29 @@
         }
         
         function updateHRStats(employees) {
-            // Update stats in dashboard
-            // This will be implemented when we have the stats cards
+            // Mettre à jour Total Employés
+            const totalEmployeesEl = document.getElementById('hrStatTotalEmployees');
+            const totalEmployeesLabelEl = document.getElementById('hrStatTotalEmployeesLabel');
+            if (totalEmployeesEl) {
+                totalEmployeesEl.textContent = employees.length;
+            }
+            if (totalEmployeesLabelEl) {
+                if (employees.length === 0) {
+                    totalEmployeesLabelEl.textContent = 'Aucun employé';
+                } else if (employees.length === 1) {
+                    totalEmployeesLabelEl.textContent = '1 employé actif';
+                } else {
+                    const activeCount = employees.filter(e => e.status === 'active').length;
+                    totalEmployeesLabelEl.textContent = `${activeCount} employé${activeCount > 1 ? 's' : ''} actif${activeCount > 1 ? 's' : ''}`;
+                }
+            }
+            
+            // Mettre à jour Masse salariale
+            const totalSalaryEl = document.getElementById('hrStatTotalSalary');
+            if (totalSalaryEl) {
+                const totalSalary = employees.reduce((sum, emp) => sum + (emp.baseSalary || 0), 0);
+                totalSalaryEl.textContent = totalSalary.toLocaleString('fr-DZ') + ' DA';
+            }
         }
         
         function showAddEmployeeModal() {
