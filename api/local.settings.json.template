@@ -1,0 +1,18 @@
+{
+  "IsEncrypted": false,
+  "Values": {
+    "AzureWebJobsStorage": "",
+    "FUNCTIONS_WORKER_RUNTIME": "node",
+    "SENDGRID_API_KEY": "REMPLACEZ_PAR_VOTRE_CLE_SENDGRID",
+    "SENDGRID_SENDER": "REMPLACEZ_PAR_VOTRE_EMAIL_VERIFIE@example.com"
+  },
+  "Host": {
+    "LocalHttpPort": 7071,
+    "CORS": "*"
+  },
+  "_comments": {
+    "SENDGRID_API_KEY": "Obtenez votre clé sur https://app.sendgrid.com → Settings → API Keys",
+    "SENDGRID_SENDER": "Doit être un email vérifié dans SendGrid (Settings → Sender Authentication)",
+    "instructions": "1. Copiez ce fichier en 'local.settings.json', 2. Remplacez les valeurs, 3. NE commitez PAS le fichier avec vos vraies clés!"
+  }
+}

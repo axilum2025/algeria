@@ -10882,7 +10882,7 @@ Réponds UNIQUEMENT dans ce format JSON:
             document.getElementById('signinForm').reset();
         }
 
-        function handleSignup(event) {
+        async function handleSignup(event) {
             event.preventDefault();
             
             const name = document.getElementById('signupName').value.trim();
@@ -10930,8 +10930,15 @@ Réponds UNIQUEMENT dans ce format JSON:
                 codeExpiresAt
             };
             
-            // Envoyer le code par email via API
-            sendVerificationEmail(name, email, verificationCode);
+            // Envoyer le code par email via API et attendre la réponse
+            const emailSent = await sendVerificationEmail(name, email, verificationCode);
+            
+            if (!emailSent) {
+                // Si l'email n'a pas pu être envoyé, on annule l'inscription
+                pendingUser = null;
+                showToast('❌ Impossible d\'envoyer l\'email de vérification. Réessayez plus tard.', 'error');
+                return;
+            }
             
             // Fermer le modal de signup
             closeSignupModal();
@@ -10939,7 +10946,7 @@ Réponds UNIQUEMENT dans ce format JSON:
             // Afficher le modal de vérification
             showVerificationModal(email);
             
-            showToast('📧 Code de vérification envoyé par email', 'success');
+            showToast('✅ Code de vérification envoyé par email', 'success');
             updateUIForAuth();
             
             // Créer une nouvelle conversation pour ce user
@@ -11174,7 +11181,7 @@ Réponds UNIQUEMENT dans ce format JSON:
             document.getElementById('signinForm').reset();
         }
 
-        function handleSignup(event) {
+        async function handleSignup(event) {
             event.preventDefault();
             
             const name = document.getElementById('signupName').value.trim();
@@ -11332,6 +11339,8 @@ Réponds UNIQUEMENT dans ce format JSON:
                     ? 'http://localhost:7071/api/send-verification-email'
                     : '/api/send-verification-email';
 
+                console.log(`📤 Tentative d'envoi d'email à ${email}...`);
+
                 const response = await fetch(emailApiEndpoint, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -11343,12 +11352,24 @@ Réponds UNIQUEMENT dans ce format JSON:
                 });
 
                 if (!response.ok) {
-                    console.error('⚠️ Erreur envoi email:', response.status);
+                    const errorData = await response.json().catch(() => ({ error: 'Erreur inconnue' }));
+                    console.error('❌ Erreur envoi email:', response.status, errorData);
+                    
+                    // Afficher un toast d'erreur à l'utilisateur
+                    if (response.status === 500) {
+                        showToast('⚠️ Erreur serveur: Vérifiez la configuration SendGrid', 'error');
+                    } else {
+                        showToast(`⚠️ Erreur d'envoi de l'email: ${errorData.error || 'Erreur inconnue'}`, 'error');
+                    }
+                    return false;
                 } else {
-                    console.log('✅ Email de vérification envoyé');
+                    console.log('✅ Email de vérification envoyé avec succès');
+                    return true;
                 }
             } catch (error) {
-                console.error('⚠️ Erreur envoi email:', error);
+                console.error('❌ Erreur réseau:', error);
+                showToast('⚠️ Impossible de contacter le serveur email. Vérifiez votre connexion.', 'error');
+                return false;
             }
         }
         
