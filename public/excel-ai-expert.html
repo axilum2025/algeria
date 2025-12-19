@@ -1359,6 +1359,14 @@
             };
             
             excelData.forEach((row, idx) => {
+                // Ignorer les lignes de totaux (qui commencent par TOTAL, MOYENNE, etc.)
+                const firstCell = String(row[0] || '').toUpperCase();
+                if (firstCell === 'TOTAL' || firstCell === 'MOYENNE' || firstCell === 'SOMME' || firstCell === 'AVERAGE') {
+                    console.log(`⏭️ Ligne ${idx} ignorée (ligne de totaux)`);
+                    row.push(''); // Ajouter une cellule vide au lieu de calculer
+                    return;
+                }
+                
                 // Créer un objet row avec les noms de colonnes comme clés
                 const rowObj = {};
                 excelColumns.forEach((col, colIdx) => {
