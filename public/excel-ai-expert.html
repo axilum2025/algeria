@@ -1232,6 +1232,21 @@
                     let value;
                     if (actualKey in (row || {})) {
                         value = coerceToNumber(row[actualKey]);
+                        
+                        // Si coerceToNumber retourne NaN, traiter comme valeur manquante
+                        if (isNaN(value)) {
+                            if (typeof config.onMissing === 'function') {
+                                value = coerceToNumber(config.onMissing(ident));
+                            } else if (config.onMissing === 'zero') {
+                                value = 0;
+                            } else if (config.onMissing === 'null') {
+                                value = null;
+                            } else if (config.onMissing === 'skip') {
+                                return { ok: false, skip: true, error: `Invalid value for "${ident}"` };
+                            } else {
+                                value = 0; // Par défaut, utiliser 0
+                            }
+                        }
                     } else {
                         if (typeof config.onMissing === 'function') {
                             value = coerceToNumber(config.onMissing(ident));
