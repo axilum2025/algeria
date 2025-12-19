@@ -6657,6 +6657,14 @@
             renderEmployeesList(employees);
             updateHRStats(employees);
             
+            // Notifier l'Agent RH du nouvel employé si le chat est ouvert
+            const hrChatContainer = document.getElementById('hrChatContainer');
+            if (hrChatContainer && hrChatContainer.style.display !== 'none') {
+                // Ajouter un message système dans le chat
+                const systemMessage = `ℹ️ Nouvel employé ajouté: ${employee.firstName} ${employee.lastName} - ${employee.position} (${employee.department})`;
+                addHRChatMessage(systemMessage, 'system');
+            }
+            
             // Show success message
             showToast(`✅ Employé ${employee.firstName} ${employee.lastName} ajouté avec succès`, 'success');
         }
@@ -6682,7 +6690,13 @@
             renderEmployeesList(employees);
             updateHRStats(employees);
             
+            // Notifier l'Agent RH de la suppression si le chat est ouvert
             if (employee) {
+                const hrChatContainer = document.getElementById('hrChatContainer');
+                if (hrChatContainer && hrChatContainer.style.display !== 'none') {
+                    const systemMessage = `ℹ️ Employé supprimé: ${employee.firstName} ${employee.lastName} - ${employee.position}`;
+                    addHRChatMessage(systemMessage, 'system');
+                }
                 showToast(`❌ Employé ${employee.firstName} ${employee.lastName} supprimé`, 'info');
             }
         }
@@ -6712,9 +6726,17 @@
             if (!messagesContainer) return;
             
             const isBot = type === 'bot';
+            const isSystem = type === 'system';
             const messageDiv = document.createElement('div');
             
-            if (isBot) {
+            if (isSystem) {
+                // Message système (notification)
+                messageDiv.innerHTML = `
+                    <div style="padding: 8px 12px; background: #f0f9ff; border-left: 3px solid #3b82f6; border-radius: 8px; margin: 8px 0; font-size: 12px; color: #1e40af;">
+                        ${message}
+                    </div>
+                `;
+            } else if (isBot) {
                 messageDiv.innerHTML = `
                     <div style="padding: 12px 16px; background: white; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); max-width: 85%; align-self: flex-start;">
                         <div style="color: #6366F1; font-size: 10px; font-weight: 700; margin-bottom: 4px; display: flex; align-items: center; gap: 4px;">
@@ -6758,11 +6780,26 @@
                 
                 // Obtenir les données RH actuelles pour le contexte
                 const employees = JSON.parse(localStorage.getItem('hrEmployees') || '[]');
+                
+                // Construire une liste détaillée des employés
+                const employeesDetails = employees.map(emp => `
+  • ${emp.firstName} ${emp.lastName}
+    - Poste: ${emp.position}
+    - Département: ${emp.department}
+    - Email: ${emp.email}
+    - Téléphone: ${emp.phone || 'N/A'}
+    - Type de contrat: ${emp.contractType}
+    - Date d'embauche: ${emp.hireDate}
+    - Salaire de base: ${emp.baseSalary ? emp.baseSalary + ' DA' : 'N/A'}
+    - Statut: ${emp.status === 'active' ? 'Actif' : 'Inactif'}
+`).join('\n');
+
                 const hrContext = `
 Contexte RH actuel :
 - Nombre total d'employés : ${employees.length}
-- Départements : ${[...new Set(employees.map(e => e.department))].join(', ') || 'Aucun'}
-- Données employés disponibles : ${employees.length > 0 ? 'Oui' : 'Non'}
+- Départements actifs : ${[...new Set(employees.map(e => e.department))].join(', ') || 'Aucun'}
+
+${employees.length > 0 ? 'LISTE COMPLÈTE DES EMPLOYÉS :\n' + employeesDetails : 'Aucun employé enregistré pour le moment.'}
 
 Tu es Agent RH, un assistant RH expert. Aide l'utilisateur avec la gestion des ressources humaines, calculs de paie, congés, recrutement, évaluations, etc.
 
@@ -6770,7 +6807,9 @@ RÈGLES:
 - Ne répète PAS ta présentation à chaque message (présente-toi uniquement au premier message)
 - Réponds de manière naturelle et conversationnelle
 - Sois direct et concis dans tes réponses
-- Fournis des informations précises basées sur les données disponibles
+- Fournis des informations précises basées sur les données d'employés ci-dessus
+- Tu as accès à TOUS les détails des employés listés ci-dessus
+- Si l'utilisateur te parle d'un nouvel employé qu'il vient d'ajouter, vérifie dans la liste ci-dessus
 `;
                 
                 // Convertir l'historique au format backend
