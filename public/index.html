@@ -7055,19 +7055,12 @@ RÈGLES:
                     document.removeEventListener('click', handleClickOutsideCompanyPanel);
                 }, 300);
             }
-        }localStorage.setItem('companySettings', JSON.stringify(companySettings));
-            
-            // Rafraîchir les statistiques RH pour mettre à jour la devise
-            const employees = JSON.parse(localStorage.getItem('hrEmployees') || '[]');
-            updateHRStats(employees);
-            
-            // Notifier l'Agent RH si le chat est ouvert
-            const hrChatContainer = document.getElementById('hrChatContainer');
-            if (hrChatContainer && hrChatContainer.style.display !== 'none') {
-                const systemMessage = `ℹ️ Informations de l'entreprise mises à jour: ${companySettings.companyName} - ${companySettings.businessSector} (${companySettings.currency})`;
-                addHRChatMessage(systemMessage, 'system');
-            }
-            
+        }
+        
+        function saveCompanySettings(event) {
+            event.preventDefault();
+            const form = event.target;
+            const formData = new FormData(form);
             
             const companySettings = {
                 companyName: formData.get('companyName'),
@@ -7080,12 +7073,19 @@ RÈGLES:
                 updatedAt: Date.now()
             };
             
+            localStorage.setItem('companySettings', JSON.stringify(companySettings));
+            
             // Rafraîchir les statistiques RH pour mettre à jour la devise
             const employees = JSON.parse(localStorage.getItem('hrEmployees') || '[]');
             updateHRStats(employees);
             
+            // Notifier l'Agent RH si le chat est ouvert
+            const hrChatContainer = document.getElementById('hrChatContainer');
+            if (hrChatContainer && hrChatContainer.style.display !== 'none') {
+                const systemMessage = `ℹ️ Informations de l'entreprise mises à jour: ${companySettings.companyName} - ${companySettings.businessSector} (${companySettings.currency})`;
+                addHRChatMessage(systemMessage, 'system');
+            }
             
-            localStorage.setItem('companySettings', JSON.stringify(companySettings));
             showToast(`✅ Paramètres de l'entreprise enregistrés`, 'success');
             closeCompanySettings();
         }
