@@ -1457,6 +1457,15 @@
             console.log('🎯 executeAddSummaryRow - Opérations demandées:', columns);
             console.log('🎯 executeAddSummaryRow - Données existantes:', excelData.length, 'lignes');
             
+            // Filtrer les données pour EXCLURE les lignes de totaux existantes
+            const dataRows = excelData.filter(row => {
+                const firstCell = String(row[0] || '').toUpperCase().trim();
+                const isSummaryRow = ['TOTAL', 'TOTAL GÉNÉRAL', 'MOYENNE', 'SOMME', 'AVERAGE', 'SUM'].includes(firstCell);
+                return !isSummaryRow;
+            });
+            
+            console.log(`📊 Lignes de données (sans totaux): ${dataRows.length} / ${excelData.length}`);
+            
             const newRow = [];
             
             excelColumns.forEach((colName, colIdx) => {
@@ -1474,12 +1483,12 @@
                     const aggregationOps = ['SUM', 'SOMME', 'AVG', 'AVERAGE', 'MOYENNE', 'COUNT', 'COMPTE', 'MIN', 'MINIMUM', 'MAX', 'MAXIMUM'];
                     
                     if (aggregationOps.includes(operation)) {
-                        // Opération d'agrégation - calculer
+                        // Opération d'agrégation - calculer SUR LES DONNÉES SEULEMENT (pas les totaux)
                         console.log(`  → Extraction valeurs de la colonne ${colIdx}...`);
-                        const allValues = excelData.map(row => row[colIdx]);
+                        const allValues = dataRows.map(row => row[colIdx]);
                         console.log(`  → Valeurs brutes:`, allValues);
                         
-                        const values = excelData
+                        const values = dataRows
                             .map(row => parseFloat(row[colIdx]))
                             .filter(v => !isNaN(v));
                         
