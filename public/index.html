@@ -6545,7 +6545,10 @@
             const totalSalaryEl = document.getElementById('hrStatTotalSalary');
             if (totalSalaryEl) {
                 const totalSalary = employees.reduce((sum, emp) => sum + (emp.baseSalary || 0), 0);
-                totalSalaryEl.textContent = totalSalary.toLocaleString('fr-DZ') + ' DA';
+                // Récupérer la devise depuis les paramètres de l'entreprise
+                const companySettings = JSON.parse(localStorage.getItem('companySettings') || '{}');
+                const currency = companySettings.currency || 'DA';
+                totalSalaryEl.textContent = totalSalary.toLocaleString('fr-DZ') + ' ' + currency;
             }
         }
         
@@ -7051,6 +7054,11 @@ RÈGLES:
                 registrationNumber: formData.get('registrationNumber'),
                 updatedAt: Date.now()
             };
+            
+            // Rafraîchir les statistiques RH pour mettre à jour la devise
+            const employees = JSON.parse(localStorage.getItem('hrEmployees') || '[]');
+            updateHRStats(employees);
+            
             
             localStorage.setItem('companySettings', JSON.stringify(companySettings));
             showToast(`✅ Paramètres de l'entreprise enregistrés`, 'success');
