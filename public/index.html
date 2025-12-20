@@ -6103,185 +6103,384 @@
                 left: 0;
                 width: 100%;
                 height: 100%;
-                background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+                background: linear-gradient(135deg, #0a4d3c, #064e3b, #1e3a8a);
                 z-index: 10001;
                 animation: fadeIn 0.3s ease;
+                overflow: hidden;
             `;
             
             overlay.innerHTML = `
                 <style>
-                    @keyframes fadeIn {
-                        from { opacity: 0; }
-                        to { opacity: 1; }
+                    .hr-container {
+                        width: 100%;
+                        height: 100%;
+                        display: flex;
+                        flex-direction: column;
+                        color: white;
                     }
-                    @keyframes fadeOut {
-                        from { opacity: 1; }
-                        to { opacity: 0; }
+                    
+                    .hr-header {
+                        background: rgba(0, 0, 0, 0.3);
+                        padding: 24px 40px;
+                        border-bottom: 1px solid rgba(16, 185, 129, 0.3);
+                        backdrop-filter: blur(10px);
                     }
-                    @keyframes slideIn {
-                        from { transform: translateY(-20px); opacity: 0; }
-                        to { transform: translateY(0); opacity: 1; }
+                    
+                    .hr-title {
+                        font-size: 32px;
+                        font-weight: 700;
+                        background: linear-gradient(135deg, #10b981, #06b6d4, #3b82f6);
+                        -webkit-background-clip: text;
+                        -webkit-text-fill-color: transparent;
+                        background-clip: text;
+                        margin: 0 0 8px;
+                        letter-spacing: -0.5px;
+                    }
+                    
+                    .hr-subtitle {
+                        font-size: 14px;
+                        color: rgba(255, 255, 255, 0.6);
+                        margin: 0;
+                    }
+                    
+                    .hr-tabs {
+                        display: flex;
+                        gap: 8px;
+                        padding: 20px 40px;
+                        background: rgba(0, 0, 0, 0.2);
+                        border-bottom: 1px solid rgba(16, 185, 129, 0.2);
+                        overflow-x: auto;
+                    }
+                    
+                    .hr-tab {
+                        padding: 12px 24px;
+                        background: rgba(16, 185, 129, 0.1);
+                        border: 1px solid rgba(16, 185, 129, 0.3);
+                        border-radius: 8px;
+                        color: rgba(255, 255, 255, 0.7);
+                        cursor: pointer;
+                        transition: all 0.3s ease;
+                        font-weight: 600;
+                        font-size: 14px;
+                        white-space: nowrap;
+                    }
+                    
+                    .hr-tab:hover {
+                        background: rgba(16, 185, 129, 0.2);
+                        border-color: rgba(16, 185, 129, 0.5);
+                        color: white;
+                        transform: translateY(-2px);
+                    }
+                    
+                    .hr-tab.active {
+                        background: linear-gradient(135deg, #10b981, #06b6d4);
+                        border-color: transparent;
+                        color: white;
+                        box-shadow: 0 4px 20px rgba(16, 185, 129, 0.4);
+                    }
+                    
+                    .hr-content-area {
+                        flex: 1;
+                        overflow-y: auto;
+                        padding: 40px;
+                    }
+                    
+                    .hr-stat-card {
+                        background: rgba(255, 255, 255, 0.05);
+                        border: 1px solid rgba(16, 185, 129, 0.3);
+                        border-radius: 16px;
+                        padding: 24px;
+                        transition: all 0.3s ease;
+                        position: relative;
+                        overflow: hidden;
+                    }
+                    
+                    .hr-stat-card::before {
+                        content: '';
+                        position: absolute;
+                        top: 0;
+                        left: 0;
+                        right: 0;
+                        height: 3px;
+                        background: linear-gradient(90deg, #10b981, #06b6d4, #3b82f6);
+                    }
+                    
+                    .hr-stat-card:hover {
+                        background: rgba(255, 255, 255, 0.08);
+                        border-color: rgba(16, 185, 129, 0.5);
+                        transform: translateY(-4px);
+                        box-shadow: 0 8px 30px rgba(16, 185, 129, 0.3);
+                    }
+                    
+                    .hr-stat-value {
+                        font-size: 40px;
+                        font-weight: 700;
+                        margin: 0 0 8px;
+                        background: linear-gradient(135deg, #10b981, #06b6d4);
+                        -webkit-background-clip: text;
+                        -webkit-text-fill-color: transparent;
+                    }
+                    
+                    .hr-stat-label {
+                        font-size: 13px;
+                        color: rgba(255, 255, 255, 0.6);
+                        text-transform: uppercase;
+                        letter-spacing: 0.5px;
+                        font-weight: 600;
+                    }
+                    
+                    .hr-btn {
+                        padding: 12px 24px;
+                        background: linear-gradient(135deg, #10b981, #06b6d4);
+                        border: none;
+                        border-radius: 8px;
+                        color: white;
+                        font-weight: 600;
+                        cursor: pointer;
+                        transition: all 0.3s ease;
+                        font-size: 14px;
+                    }
+                    
+                    .hr-btn:hover {
+                        transform: translateY(-2px);
+                        box-shadow: 0 8px 20px rgba(16, 185, 129, 0.4);
+                    }
+                    
+                    .hr-close-btn {
+                        position: absolute;
+                        top: 24px;
+                        right: 40px;
+                        width: 40px;
+                        height: 40px;
+                        background: rgba(255, 255, 255, 0.1);
+                        border: 1px solid rgba(255, 255, 255, 0.2);
+                        border-radius: 8px;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        cursor: pointer;
+                        transition: all 0.3s ease;
+                    }
+                    
+                    .hr-close-btn:hover {
+                        background: rgba(239, 68, 68, 0.2);
+                        border-color: rgba(239, 68, 68, 0.5);
+                        transform: rotate(90deg);
+                    }
+                    
+                    .hr-section {
+                        background: rgba(255, 255, 255, 0.05);
+                        border: 1px solid rgba(16, 185, 129, 0.2);
+                        border-radius: 16px;
+                        padding: 24px;
+                        margin-bottom: 24px;
+                    }
+                    
+                    .hr-section-title {
+                        font-size: 20px;
+                        font-weight: 700;
+                        color: white;
+                        margin: 0 0 20px;
+                        display: flex;
+                        align-items: center;
+                        gap: 12px;
+                    }
+                    
+                    .hr-section-title::before {
+                        content: '';
+                        width: 4px;
+                        height: 24px;
+                        background: linear-gradient(180deg, #10b981, #06b6d4);
+                        border-radius: 2px;
+                    }
+                    
+                    .hr-item {
+                        background: rgba(0, 0, 0, 0.3);
+                        border: 1px solid rgba(16, 185, 129, 0.2);
+                        border-radius: 12px;
+                        padding: 20px;
+                        margin-bottom: 16px;
+                        transition: all 0.3s ease;
+                    }
+                    
+                    .hr-item:hover {
+                        border-color: rgba(16, 185, 129, 0.5);
+                        background: rgba(0, 0, 0, 0.4);
+                        transform: translateX(4px);
+                    }
+                    
+                    .hr-badge {
+                        display: inline-block;
+                        padding: 4px 12px;
+                        border-radius: 12px;
+                        font-size: 11px;
+                        font-weight: 600;
+                        text-transform: uppercase;
+                        letter-spacing: 0.5px;
+                    }
+                    
+                    .hr-badge-success {
+                        background: rgba(16, 185, 129, 0.2);
+                        color: #6ee7b7;
+                        border: 1px solid rgba(16, 185, 129, 0.3);
+                    }
+                    
+                    .hr-badge-warning {
+                        background: rgba(251, 191, 36, 0.2);
+                        color: #fcd34d;
+                        border: 1px solid rgba(251, 191, 36, 0.3);
+                    }
+                    
+                    .hr-badge-danger {
+                        background: rgba(239, 68, 68, 0.2);
+                        color: #fca5a5;
+                        border: 1px solid rgba(239, 68, 68, 0.3);
+                    }
+                    
+                    .hr-badge-info {
+                        background: rgba(59, 130, 246, 0.2);
+                        color: #93c5fd;
+                        border: 1px solid rgba(59, 130, 246, 0.3);
+                    }
+                    
+                    .hr-empty {
+                        text-align: center;
+                        padding: 60px 20px;
+                        color: rgba(255, 255, 255, 0.5);
+                    }
+                    
+                    .hr-empty-title {
+                        font-size: 18px;
+                        font-weight: 600;
+                        margin: 0 0 8px;
+                        color: rgba(255, 255, 255, 0.7);
                     }
                 </style>
                 
                 <!-- Interface RH Management -->
-                <div style="width: 100%; height: 100%; display: flex; flex-direction: column; overflow: hidden;">
+                <div class="hr-container">
                     
                     <!-- Header -->
-                    <div style="background: linear-gradient(135deg, #6366F1 0%, #6366F1 100%); padding: 20px 32px; box-shadow: 0 4px 12px rgba(99,102,241,0.15); position: relative; z-index: 10;">
-                        <div style="display: flex; align-items: center; justify-content: space-between;">
-                            <div style="display: flex; align-items: center; gap: 16px;">
-                                <div style="width: 48px; height: 48px; background: rgba(255,255,255,0.2); backdrop-filter: blur(10px); border-radius: 12px; display: flex; align-items: center; justify-content: center; border: 1px solid rgba(255,255,255,0.3);">
-                                    <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-                                </div>
-                                <div>
-                                    <h1 style="margin: 0; color: white; font-size: 24px; font-weight: 700;">Gestion RH</h1>
-                                    <p style="margin: 0; color: rgba(255,255,255,0.9); font-size: 14px; font-weight: 500;">Employés • Congés • Paie • Évaluations</p>
-                                </div>
-                            </div>
-                            
-                            <div style="display: flex; align-items: center; gap: 12px;">
-                                <!-- Bouton Entreprise -->
-                                <button onclick="openCompanySettings()" style="padding: 12px 20px; background: rgba(255,255,255,0.15); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.25); border-radius: 12px; color: white; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; gap: 8px; font-weight: 600; font-size: 14px;" onmouseover="this.style.background='rgba(255,255,255,0.28)'" onmouseout="this.style.background='rgba(255,255,255,0.15)'">
-                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
-                                    Entreprise
-                                </button>
-                                
-                                <!-- Bouton Agent RH -->
-                                <button onclick="toggleHRChat()" style="padding: 12px 20px; background: rgba(255,255,255,0.15); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.25); border-radius: 12px; color: white; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; gap: 8px; font-weight: 600; font-size: 14px;" onmouseover="this.style.background='rgba(255,255,255,0.28)'" onmouseout="this.style.background='rgba(255,255,255,0.15)'">
-                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-                                    Agent RH
-                                </button>
-                                
-                                <button onclick="closeHRManagement()" style="width: 44px; height: 44px; background: rgba(255,255,255,0.15); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.25); border-radius: 12px; color: white; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center;" onmouseover="this.style.background='rgba(255,255,255,0.28)'; this.style.transform='rotate(90deg)'" onmouseout="this.style.background='rgba(255,255,255,0.15)'; this.style.transform='rotate(0deg)'">
-                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-                                </button>
-                            </div>
+                    <div class="hr-header">
+                        <button class="hr-close-btn" onclick="closeHRManagement()">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <line x1="18" y1="6" x2="6" y2="18"></line>
+                                <line x1="6" y1="6" x2="18" y2="18"></line>
+                            </svg>
+                        </button>
+                        <h1 class="hr-title">Gestion RH</h1>
+                        <p class="hr-subtitle">Human Resources Management Center</p>
+                        
+                        <div style="display: flex; gap: 12px; margin-top: 16px;">
+                            <button onclick="openCompanySettings()" class="hr-btn" style="background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2);">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display: inline; margin-right: 8px; vertical-align: middle;">
+                                    <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+                                    <polyline points="9 22 9 12 15 12 15 22"/>
+                                </svg>
+                                Entreprise
+                            </button>
+                            <button onclick="toggleHRChat()" class="hr-btn" style="background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2);">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display: inline; margin-right: 8px; vertical-align: middle;">
+                                    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                                </svg>
+                                Agent RH
+                            </button>
                         </div>
                     </div>
                     
                     <!-- Navigation Tabs -->
-                    <div style="background: white; padding: 0 32px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); display: flex; gap: 8px; overflow-x: auto;">
-                        <button onclick="showHRTab('dashboard')" id="hrTabDashboard" class="hr-tab active" style="padding: 16px 24px; background: none; border: none; border-bottom: 3px solid #6366F1; color: #6366F1; font-weight: 600; cursor: pointer; transition: all 0.2s; white-space: nowrap;">
+                    <div class="hr-tabs">
+                        <button onclick="showHRTab('dashboard')" id="hrTabDashboard" class="hr-tab active">
                             Dashboard
                         </button>
-                        <button onclick="showHRTab('employees')" id="hrTabEmployees" class="hr-tab" style="padding: 16px 24px; background: none; border: none; border-bottom: 3px solid transparent; color: #6b7280; font-weight: 600; cursor: pointer; transition: all 0.2s; white-space: nowrap;">
+                        <button onclick="showHRTab('employees')" id="hrTabEmployees" class="hr-tab">
                             Employés
                         </button>
-                        <button onclick="showHRTab('leaves')" id="hrTabLeaves" class="hr-tab" style="padding: 16px 24px; background: none; border: none; border-bottom: 3px solid transparent; color: #6b7280; font-weight: 600; cursor: pointer; transition: all 0.2s; white-space: nowrap;">
+                        <button onclick="showHRTab('leaves')" id="hrTabLeaves" class="hr-tab">
                             Congés
                         </button>
-                        <button onclick="showHRTab('payroll')" id="hrTabPayroll" class="hr-tab" style="padding: 16px 24px; background: none; border: none; border-bottom: 3px solid transparent; color: #6b7280; font-weight: 600; cursor: pointer; transition: all 0.2s; white-space: nowrap;">
+                        <button onclick="showHRTab('payroll')" id="hrTabPayroll" class="hr-tab">
                             Paie
                         </button>
-                        <button onclick="showHRTab('reviews')" id="hrTabReviews" class="hr-tab" style="padding: 16px 24px; background: none; border: none; border-bottom: 3px solid transparent; color: #6b7280; font-weight: 600; cursor: pointer; transition: all 0.2s; white-space: nowrap;">
+                        <button onclick="showHRTab('reviews')" id="hrTabReviews" class="hr-tab">
                             Évaluations
                         </button>
-                        <button onclick="showHRTab('turnover')" id="hrTabTurnover" class="hr-tab" style="padding: 16px 24px; background: none; border: none; border-bottom: 3px solid transparent; color: #6b7280; font-weight: 600; cursor: pointer; transition: all 0.2s; white-space: nowrap;">
-                            🚨 Turnover
+                        <button onclick="showHRTab('turnover')" id="hrTabTurnover" class="hr-tab">
+                            Turnover
                         </button>
-                        <button onclick="showHRTab('recruitment')" id="hrTabRecruitment" class="hr-tab" style="padding: 16px 24px; background: none; border: none; border-bottom: 3px solid transparent; color: #6b7280; font-weight: 600; cursor: pointer; transition: all 0.2s; white-space: nowrap;">
-                            📄 Recrutement
+                        <button onclick="showHRTab('recruitment')" id="hrTabRecruitment" class="hr-tab">
+                            Recrutement
                         </button>
                     </div>
                     
                     <!-- Content Area -->
-                    <div style="flex: 1; overflow-y: auto; padding: 32px;">
+                    <div class="hr-content-area">
                         <!-- Dashboard Tab -->
-                        <div id="hrContentDashboard" class="hr-content" style="animation: slideIn 0.3s ease;">
-                            <div style="max-width: 1200px; margin: 0 auto;">
-                                
+                        <div id="hrContentDashboard" class="hr-content">
+                            
                                 <!-- Stats Cards -->
-                                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 20px; margin-bottom: 32px;">
-                                    <div style="background: white; border-radius: 16px; padding: 24px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); border-left: 4px solid #6366F1;">
-                                        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
-                                            <span style="font-size: 14px; color: #6b7280; font-weight: 600;">Total Employés</span>
-                                            <div style="width: 48px; height: 48px; background: rgba(99,102,241,0.1); border-radius: 12px; display: flex; align-items: center; justify-content: center;">
-                                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#6366F1" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-                                            </div>
-                                        </div>
-                                        <div id="hrStatTotalEmployees" style="font-size: 32px; font-weight: 700; color: #1a1a1a;">0</div>
-                                        <div id="hrStatTotalEmployeesLabel" style="font-size: 12px; color: #6366F1; font-weight: 600; margin-top: 8px;">Aucun employé</div>
+                                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 24px; margin-bottom: 32px;">
+                                    <div class="hr-stat-card">
+                                        <div class="hr-stat-label">Total Employés</div>
+                                        <div id="hrStatTotalEmployees" class="hr-stat-value">0</div>
+                                        <div id="hrStatTotalEmployeesLabel" style="font-size: 12px; color: rgba(255, 255, 255, 0.5); margin-top: 4px;">Aucun employé</div>
                                     </div>
                                     
-                                    <div style="background: white; border-radius: 16px; padding: 24px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); border-left: 4px solid #6366F1;">
-                                        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
-                                            <span style="font-size: 14px; color: #6b7280; font-weight: 600;">Congés en attente</span>
-                                            <div style="width: 48px; height: 48px; background: rgba(99,102,241,0.1); border-radius: 12px; display: flex; align-items: center; justify-content: center;">
-                                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#6366F1" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-                                            </div>
-                                        </div>
-                                        <div style="font-size: 32px; font-weight: 700; color: #1a1a1a;">0</div>
-                                        <div style="font-size: 12px; color: #6366F1; font-weight: 600; margin-top: 8px;">À traiter</div>
+                                    <div class="hr-stat-card">
+                                        <div class="hr-stat-label">Congés en attente</div>
+                                        <div class="hr-stat-value">0</div>
+                                        <div style="font-size: 12px; color: rgba(255, 255, 255, 0.5); margin-top: 4px;">À traiter</div>
                                     </div>
                                     
-                                    <div style="background: white; border-radius: 16px; padding: 24px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); border-left: 4px solid #6366F1;">
-                                        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
-                                            <span style="font-size: 14px; color: #6b7280; font-weight: 600;">Absents aujourd'hui</span>
-                                            <div style="width: 48px; height: 48px; background: rgba(99,102,241,0.1); border-radius: 12px; display: flex; align-items: center; justify-content: center;">
-                                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#6366F1" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
-                                            </div>
-                                        </div>
-                                        <div style="font-size: 32px; font-weight: 700; color: #1a1a1a;">0</div>
-                                        <div style="font-size: 12px; color: #6b7280; font-weight: 600; margin-top: 8px;">Congés + Maladie</div>
+                                    <div class="hr-stat-card">
+                                        <div class="hr-stat-label">Absents aujourd'hui</div>
+                                        <div class="hr-stat-value">0</div>
+                                        <div style="font-size: 12px; color: rgba(255, 255, 255, 0.5); margin-top: 4px;">Congés + Maladie</div>
                                     </div>
                                     
-                                    <div style="background: white; border-radius: 16px; padding: 24px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); border-left: 4px solid #6366F1;">
-                                        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
-                                            <span style="font-size: 14px; color: #6b7280; font-weight: 600;">Masse salariale</span>
-                                            <div style="width: 48px; height: 48px; background: rgba(99,102,241,0.1); border-radius: 12px; display: flex; align-items: center; justify-content: center;">
-                                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#6366F1" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
-                                            </div>
-                                        </div>
-                                        <div id="hrStatTotalSalary" style="font-size: 32px; font-weight: 700; color: #1a1a1a;">0 DA</div>
-                                        <div style="font-size: 12px; color: #6b7280; font-weight: 600; margin-top: 8px;">Brut mensuel</div>
+                                    <div class="hr-stat-card">
+                                        <div class="hr-stat-label">Masse salariale</div>
+                                        <div id="hrStatTotalSalary" class="hr-stat-value">0 DA</div>
+                                        <div style="font-size: 12px; color: rgba(255, 255, 255, 0.5); margin-top: 4px;">Brut mensuel</div>
                                     </div>
                                 </div>
                                 
                                 <!-- Quick Actions -->
-                                <div style="background: white; border-radius: 16px; padding: 24px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); margin-bottom: 32px;">
-                                    <h2 style="margin: 0 0 20px; font-size: 18px; font-weight: 700; color: #1a1a1a;">Actions Rapides</h2>
+                                <div class="hr-section">
+                                    <div class="hr-section-title">Actions Rapides</div>
                                     <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px;">
-                                        <button onclick="showHRTab('employees'); showAddEmployeeModal();" style="padding: 16px; background: #6366F1; border: none; border-radius: 12px; color: white; font-weight: 600; cursor: pointer; transition: all 0.2s; text-align: left; display: flex; align-items: center; gap: 12px;" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 12px rgba(99,102,241,0.4)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='none'">
-                                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-                                            <div>Nouvel Employé</div>
+                                        <button onclick="showHRTab('employees'); showAddEmployeeModal();" class="hr-btn">
+                                            Nouvel Employé
                                         </button>
                                         
-                                        <button onclick="showHRTab('leaves');" style="padding: 16px; background: #6366F1; border: none; border-radius: 12px; color: white; font-weight: 600; cursor: pointer; transition: all 0.2s; text-align: left; display: flex; align-items: center; gap: 12px;" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 12px rgba(99,102,241,0.4)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='none'">
-                                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-                                            <div>Gérer Congés</div>
+                                        <button onclick="showHRTab('leaves');" class="hr-btn">
+                                            Gérer Congés
                                         </button>
                                         
-                                        <button onclick="showHRTab('payroll');" style="padding: 16px; background: #6366F1; border: none; border-radius: 12px; color: white; font-weight: 600; cursor: pointer; transition: all 0.2s; text-align: left; display: flex; align-items: center; gap: 12px;" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 12px rgba(99,102,241,0.4)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='none'">
-                                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
-                                            <div>Générer Paie</div>
+                                        <button onclick="showHRTab('payroll');" class="hr-btn">
+                                            Générer Paie
                                         </button>
                                         
-                                        <button onclick="showHRTab('reviews');" style="padding: 16px; background: #6366F1; border: none; border-radius: 12px; color: white; font-weight: 600; cursor: pointer; transition: all 0.2s; text-align: left; display: flex; align-items: center; gap: 12px;" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 12px rgba(99,102,241,0.4)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='none'">
-                                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
-                                            <div>Évaluations</div>
+                                        <button onclick="showHRTab('reviews');" class="hr-btn">
+                                            Évaluations
                                         </button>
                                         
-                                        <button onclick="showHRTab('turnover');" style="padding: 16px; background: #EF4444; border: none; border-radius: 12px; color: white; font-weight: 600; cursor: pointer; transition: all 0.2s; text-align: left; display: flex; align-items: center; gap: 12px;" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 12px rgba(239,68,68,0.4)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='none'">
-                                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
-                                            <div>Turnover Prediction</div>
+                                        <button onclick="showHRTab('turnover');" class="hr-btn" style="background: linear-gradient(135deg, #ef4444, #f97316);">
+                                            Turnover Prediction
                                         </button>
                                         
-                                        <button onclick="showHRTab('recruitment');" style="padding: 16px; background: #8B5CF6; border: none; border-radius: 12px; color: white; font-weight: 600; cursor: pointer; transition: all 0.2s; text-align: left; display: flex; align-items: center; gap: 12px;" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 12px rgba(139,92,246,0.4)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='none'">
-                                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/></svg>
-                                            <div>CV Screening</div>
+                                        <button onclick="showHRTab('recruitment');" class="hr-btn" style="background: linear-gradient(135deg, #8b5cf6, #ec4899);">
+                                            CV Screening
                                         </button>
                                     </div>
                                 </div>
                                 
                                 <!-- Notifications -->
-                                <div style="background: white; border-radius: 16px; padding: 24px; box-shadow: 0 2px 8px rgba(0,0,0,0.08);">
-                                    <h2 style="margin: 0 0 20px; font-size: 18px; font-weight: 700; color: #1a1a1a;">Notifications</h2>
-                                    <div style="text-align: center; padding: 40px; color: #6b7280;">
-                                        <div style="width: 64px; height: 64px; background: rgba(99,102,241,0.1); border-radius: 16px; display: flex; align-items: center; justify-content: center; margin: 0 auto 16px;">
-                                            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#6366F1" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
-                                        </div>
-                                        <p style="margin: 0; font-size: 14px;">Aucune notification pour le moment</p>
+                                <div class="hr-section">
+                                    <div class="hr-section-title">Notifications</div>
+                                    <div class="hr-empty">
+                                        <p class="hr-empty-title">Aucune notification</p>
+                                        <p style="margin: 0; font-size: 14px;">Tout est à jour</p>
                                     </div>
                                 </div>
                             </div>
