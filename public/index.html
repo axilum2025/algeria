@@ -1905,6 +1905,13 @@
                     </svg>
                     <span class="menu-item-text">AI Finance & Compta</span>
                 </button>
+                <!-- AI R&D -->
+                <button class="menu-item" onclick="openRnD()" style="padding-left:30px;" title="AI R&D - Recherche et Développement">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/>
+                    </svg>
+                    <span class="menu-item-text">AI R&D</span>
+                </button>
             </div>
             
             <!-- Section Outils (dépliable) -->
@@ -6924,6 +6931,747 @@
                 overlay.style.animation = 'fadeOut 0.3s ease';
                 setTimeout(() => overlay.remove(), 300);
             }
+        }
+        
+        // ====================================
+        // R&D MANAGEMENT SYSTEM
+        // ====================================
+        
+        function openRnD() {
+            // Fermer AI Management s'il est ouvert
+            const excelAiOverlay = document.getElementById('excelAiOverlay');
+            if (excelAiOverlay) {
+                excelAiOverlay.remove();
+            }
+            
+            // Fermer HR Management s'il est ouvert
+            const hrOverlay = document.getElementById('hrManagementOverlay');
+            if (hrOverlay) {
+                hrOverlay.remove();
+            }
+            
+            // Fermer l'overlay R&D existant s'il y en a un
+            const existingOverlay = document.getElementById('rndOverlay');
+            if (existingOverlay) {
+                existingOverlay.remove();
+            }
+            
+            // Créer l'overlay R&D
+            const overlay = document.createElement('div');
+            overlay.id = 'rndOverlay';
+            overlay.style.cssText = `
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+                z-index: 10001;
+                animation: fadeIn 0.3s ease;
+                overflow: hidden;
+            `;
+            
+            overlay.innerHTML = `
+                <style>
+                    @keyframes fadeIn {
+                        from { opacity: 0; }
+                        to { opacity: 1; }
+                    }
+                    @keyframes slideIn {
+                        from { transform: translateY(-20px); opacity: 0; }
+                        to { transform: translateY(0); opacity: 1; }
+                    }
+                    @keyframes pulse {
+                        0%, 100% { opacity: 1; }
+                        50% { opacity: 0.5; }
+                    }
+                    @keyframes glow {
+                        0%, 100% { box-shadow: 0 0 20px rgba(99, 102, 241, 0.5); }
+                        50% { box-shadow: 0 0 30px rgba(99, 102, 241, 0.8), 0 0 40px rgba(139, 92, 246, 0.6); }
+                    }
+                    
+                    .rnd-container {
+                        width: 100%;
+                        height: 100%;
+                        display: flex;
+                        flex-direction: column;
+                        color: white;
+                    }
+                    
+                    .rnd-header {
+                        background: rgba(0, 0, 0, 0.3);
+                        padding: 24px 40px;
+                        border-bottom: 1px solid rgba(99, 102, 241, 0.3);
+                        backdrop-filter: blur(10px);
+                    }
+                    
+                    .rnd-title {
+                        font-size: 32px;
+                        font-weight: 700;
+                        background: linear-gradient(135deg, #6366f1, #8b5cf6, #ec4899);
+                        -webkit-background-clip: text;
+                        -webkit-text-fill-color: transparent;
+                        background-clip: text;
+                        margin: 0 0 8px;
+                        letter-spacing: -0.5px;
+                    }
+                    
+                    .rnd-subtitle {
+                        font-size: 14px;
+                        color: rgba(255, 255, 255, 0.6);
+                        margin: 0;
+                    }
+                    
+                    .rnd-tabs {
+                        display: flex;
+                        gap: 8px;
+                        padding: 20px 40px;
+                        background: rgba(0, 0, 0, 0.2);
+                        border-bottom: 1px solid rgba(99, 102, 241, 0.2);
+                    }
+                    
+                    .rnd-tab {
+                        padding: 12px 24px;
+                        background: rgba(99, 102, 241, 0.1);
+                        border: 1px solid rgba(99, 102, 241, 0.3);
+                        border-radius: 8px;
+                        color: rgba(255, 255, 255, 0.7);
+                        cursor: pointer;
+                        transition: all 0.3s ease;
+                        font-weight: 600;
+                        font-size: 14px;
+                    }
+                    
+                    .rnd-tab:hover {
+                        background: rgba(99, 102, 241, 0.2);
+                        border-color: rgba(99, 102, 241, 0.5);
+                        color: white;
+                        transform: translateY(-2px);
+                    }
+                    
+                    .rnd-tab.active {
+                        background: linear-gradient(135deg, #6366f1, #8b5cf6);
+                        border-color: transparent;
+                        color: white;
+                        box-shadow: 0 4px 20px rgba(99, 102, 241, 0.4);
+                    }
+                    
+                    .rnd-content {
+                        flex: 1;
+                        overflow-y: auto;
+                        padding: 40px;
+                    }
+                    
+                    .rnd-dashboard {
+                        display: grid;
+                        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+                        gap: 24px;
+                        margin-bottom: 40px;
+                    }
+                    
+                    .rnd-stat-card {
+                        background: rgba(255, 255, 255, 0.05);
+                        border: 1px solid rgba(99, 102, 241, 0.3);
+                        border-radius: 16px;
+                        padding: 24px;
+                        transition: all 0.3s ease;
+                        position: relative;
+                        overflow: hidden;
+                    }
+                    
+                    .rnd-stat-card::before {
+                        content: '';
+                        position: absolute;
+                        top: 0;
+                        left: 0;
+                        right: 0;
+                        height: 3px;
+                        background: linear-gradient(90deg, #6366f1, #8b5cf6, #ec4899);
+                    }
+                    
+                    .rnd-stat-card:hover {
+                        background: rgba(255, 255, 255, 0.08);
+                        border-color: rgba(99, 102, 241, 0.5);
+                        transform: translateY(-4px);
+                        box-shadow: 0 8px 30px rgba(99, 102, 241, 0.3);
+                    }
+                    
+                    .rnd-stat-value {
+                        font-size: 40px;
+                        font-weight: 700;
+                        margin: 0 0 8px;
+                        background: linear-gradient(135deg, #6366f1, #8b5cf6);
+                        -webkit-background-clip: text;
+                        -webkit-text-fill-color: transparent;
+                    }
+                    
+                    .rnd-stat-label {
+                        font-size: 13px;
+                        color: rgba(255, 255, 255, 0.6);
+                        text-transform: uppercase;
+                        letter-spacing: 0.5px;
+                        font-weight: 600;
+                    }
+                    
+                    .rnd-section {
+                        background: rgba(255, 255, 255, 0.05);
+                        border: 1px solid rgba(99, 102, 241, 0.2);
+                        border-radius: 16px;
+                        padding: 32px;
+                        margin-bottom: 24px;
+                    }
+                    
+                    .rnd-section-title {
+                        font-size: 20px;
+                        font-weight: 700;
+                        color: white;
+                        margin: 0 0 24px;
+                        display: flex;
+                        align-items: center;
+                        gap: 12px;
+                    }
+                    
+                    .rnd-section-title::before {
+                        content: '';
+                        width: 4px;
+                        height: 24px;
+                        background: linear-gradient(180deg, #6366f1, #8b5cf6);
+                        border-radius: 2px;
+                    }
+                    
+                    .rnd-item {
+                        background: rgba(0, 0, 0, 0.3);
+                        border: 1px solid rgba(99, 102, 241, 0.2);
+                        border-radius: 12px;
+                        padding: 20px;
+                        margin-bottom: 16px;
+                        transition: all 0.3s ease;
+                    }
+                    
+                    .rnd-item:hover {
+                        border-color: rgba(99, 102, 241, 0.5);
+                        background: rgba(0, 0, 0, 0.4);
+                        transform: translateX(4px);
+                    }
+                    
+                    .rnd-btn {
+                        padding: 12px 24px;
+                        background: linear-gradient(135deg, #6366f1, #8b5cf6);
+                        border: none;
+                        border-radius: 8px;
+                        color: white;
+                        font-weight: 600;
+                        cursor: pointer;
+                        transition: all 0.3s ease;
+                        font-size: 14px;
+                    }
+                    
+                    .rnd-btn:hover {
+                        transform: translateY(-2px);
+                        box-shadow: 0 8px 20px rgba(99, 102, 241, 0.4);
+                    }
+                    
+                    .rnd-close-btn {
+                        position: absolute;
+                        top: 24px;
+                        right: 40px;
+                        width: 40px;
+                        height: 40px;
+                        background: rgba(255, 255, 255, 0.1);
+                        border: 1px solid rgba(255, 255, 255, 0.2);
+                        border-radius: 8px;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        cursor: pointer;
+                        transition: all 0.3s ease;
+                    }
+                    
+                    .rnd-close-btn:hover {
+                        background: rgba(239, 68, 68, 0.2);
+                        border-color: rgba(239, 68, 68, 0.5);
+                        transform: rotate(90deg);
+                    }
+                    
+                    .rnd-chat-container {
+                        background: rgba(0, 0, 0, 0.3);
+                        border: 1px solid rgba(99, 102, 241, 0.3);
+                        border-radius: 16px;
+                        height: 500px;
+                        display: flex;
+                        flex-direction: column;
+                    }
+                    
+                    .rnd-chat-messages {
+                        flex: 1;
+                        overflow-y: auto;
+                        padding: 24px;
+                    }
+                    
+                    .rnd-chat-input {
+                        padding: 20px;
+                        border-top: 1px solid rgba(99, 102, 241, 0.2);
+                        display: flex;
+                        gap: 12px;
+                    }
+                    
+                    .rnd-input {
+                        flex: 1;
+                        background: rgba(255, 255, 255, 0.05);
+                        border: 1px solid rgba(99, 102, 241, 0.3);
+                        border-radius: 8px;
+                        padding: 12px 16px;
+                        color: white;
+                        font-size: 14px;
+                    }
+                    
+                    .rnd-input:focus {
+                        outline: none;
+                        border-color: rgba(99, 102, 241, 0.6);
+                        background: rgba(255, 255, 255, 0.08);
+                    }
+                    
+                    .rnd-badge {
+                        display: inline-block;
+                        padding: 4px 12px;
+                        border-radius: 12px;
+                        font-size: 11px;
+                        font-weight: 600;
+                        text-transform: uppercase;
+                        letter-spacing: 0.5px;
+                    }
+                    
+                    .rnd-badge-high {
+                        background: rgba(239, 68, 68, 0.2);
+                        color: #fca5a5;
+                        border: 1px solid rgba(239, 68, 68, 0.3);
+                    }
+                    
+                    .rnd-badge-medium {
+                        background: rgba(245, 158, 11, 0.2);
+                        color: #fcd34d;
+                        border: 1px solid rgba(245, 158, 11, 0.3);
+                    }
+                    
+                    .rnd-badge-low {
+                        background: rgba(16, 185, 129, 0.2);
+                        color: #6ee7b7;
+                        border: 1px solid rgba(16, 185, 129, 0.3);
+                    }
+                    
+                    .rnd-empty {
+                        text-align: center;
+                        padding: 60px 20px;
+                        color: rgba(255, 255, 255, 0.5);
+                    }
+                    
+                    .rnd-empty-title {
+                        font-size: 18px;
+                        font-weight: 600;
+                        margin: 0 0 8px;
+                        color: rgba(255, 255, 255, 0.7);
+                    }
+                </style>
+                
+                <div class="rnd-container">
+                    <div class="rnd-header">
+                        <button class="rnd-close-btn" onclick="closeRnD()">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <line x1="18" y1="6" x2="6" y2="18"></line>
+                                <line x1="6" y1="6" x2="18" y2="18"></line>
+                            </svg>
+                        </button>
+                        <h1 class="rnd-title">AI R&D Center</h1>
+                        <p class="rnd-subtitle">Research & Development Innovation Hub</p>
+                    </div>
+                    
+                    <div class="rnd-tabs">
+                        <button class="rnd-tab active" onclick="showRnDTab('dashboard')">Dashboard</button>
+                        <button class="rnd-tab" onclick="showRnDTab('veille')">Veille Technologique</button>
+                        <button class="rnd-tab" onclick="showRnDTab('idees')">Idées Innovation</button>
+                        <button class="rnd-tab" onclick="showRnDTab('projets')">Projets R&D</button>
+                        <button class="rnd-tab" onclick="showRnDTab('agent')">Agent Dev</button>
+                    </div>
+                    
+                    <div class="rnd-content">
+                        <!-- Dashboard -->
+                        <div id="rndDashboard" class="rnd-tab-content">
+                            <div class="rnd-dashboard">
+                                <div class="rnd-stat-card">
+                                    <div class="rnd-stat-value" id="rndTechCount">0</div>
+                                    <div class="rnd-stat-label">Technologies Suivies</div>
+                                </div>
+                                <div class="rnd-stat-card">
+                                    <div class="rnd-stat-value" id="rndIdeasCount">0</div>
+                                    <div class="rnd-stat-label">Idées Innovation</div>
+                                </div>
+                                <div class="rnd-stat-card">
+                                    <div class="rnd-stat-value" id="rndProjectsCount">0</div>
+                                    <div class="rnd-stat-label">Projets Actifs</div>
+                                </div>
+                                <div class="rnd-stat-card">
+                                    <div class="rnd-stat-value" id="rndPocCount">0</div>
+                                    <div class="rnd-stat-label">POCs Validés</div>
+                                </div>
+                            </div>
+                            
+                            <div class="rnd-section">
+                                <div class="rnd-section-title">Tendances Technologiques</div>
+                                <div id="rndTrendsContainer"></div>
+                            </div>
+                            
+                            <div class="rnd-section">
+                                <div class="rnd-section-title">Projets Prioritaires</div>
+                                <div id="rndPriorityContainer"></div>
+                            </div>
+                        </div>
+                        
+                        <!-- Veille Technologique -->
+                        <div id="rndVeille" class="rnd-tab-content" style="display: none;">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+                                <h2 style="margin: 0; font-size: 24px; color: white;">Veille Technologique</h2>
+                                <button class="rnd-btn" onclick="showAddTechModal()">Ajouter Technologie</button>
+                            </div>
+                            <div id="rndTechList"></div>
+                        </div>
+                        
+                        <!-- Idées Innovation -->
+                        <div id="rndIdees" class="rnd-tab-content" style="display: none;">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+                                <h2 style="margin: 0; font-size: 24px; color: white;">Pipeline d'Innovation</h2>
+                                <button class="rnd-btn" onclick="showAddIdeaModal()">Nouvelle Idée</button>
+                            </div>
+                            <div id="rndIdeasList"></div>
+                        </div>
+                        
+                        <!-- Projets R&D -->
+                        <div id="rndProjets" class="rnd-tab-content" style="display: none;">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+                                <h2 style="margin: 0; font-size: 24px; color: white;">Projets de Recherche</h2>
+                                <button class="rnd-btn" onclick="showAddProjectModal()">Créer Projet</button>
+                            </div>
+                            <div id="rndProjectsList"></div>
+                        </div>
+                        
+                        <!-- Agent Dev -->
+                        <div id="rndAgent" class="rnd-tab-content" style="display: none;">
+                            <div style="margin-bottom: 24px;">
+                                <h2 style="margin: 0 0 8px; font-size: 24px; color: white;">Agent Dev</h2>
+                                <p style="margin: 0; color: rgba(255, 255, 255, 0.6); font-size: 14px;">Assistant IA spécialisé en R&D et innovation technologique</p>
+                            </div>
+                            
+                            <div class="rnd-chat-container">
+                                <div class="rnd-chat-messages" id="rndChatMessages"></div>
+                                <div class="rnd-chat-input">
+                                    <input type="text" class="rnd-input" id="rndChatInput" placeholder="Posez votre question à Agent Dev..." onkeypress="if(event.key==='Enter') sendRnDMessage()">
+                                    <button class="rnd-btn" onclick="sendRnDMessage()">Envoyer</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            document.body.appendChild(overlay);
+            
+            // Initialize R&D data
+            initializeRnDData();
+        }
+        
+        function closeRnD() {
+            const overlay = document.getElementById('rndOverlay');
+            if (overlay) {
+                overlay.style.animation = 'fadeOut 0.3s ease';
+                setTimeout(() => overlay.remove(), 300);
+            }
+        }
+        
+        function showRnDTab(tabName) {
+            // Hide all tabs
+            document.querySelectorAll('.rnd-tab-content').forEach(tab => {
+                tab.style.display = 'none';
+            });
+            
+            // Remove active from all tab buttons
+            document.querySelectorAll('.rnd-tab').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            
+            // Show selected tab
+            const tabMap = {
+                'dashboard': 'rndDashboard',
+                'veille': 'rndVeille',
+                'idees': 'rndIdees',
+                'projets': 'rndProjets',
+                'agent': 'rndAgent'
+            };
+            
+            const tabId = tabMap[tabName];
+            if (tabId) {
+                document.getElementById(tabId).style.display = 'block';
+            }
+            
+            // Set active tab button
+            event.target.classList.add('active');
+        }
+        
+        function initializeRnDData() {
+            const technologies = JSON.parse(localStorage.getItem('rdTechnologies') || '[]');
+            const ideas = JSON.parse(localStorage.getItem('rdIdeas') || '[]');
+            const projects = JSON.parse(localStorage.getItem('rdProjects') || '[]');
+            
+            // Update stats
+            document.getElementById('rndTechCount').textContent = technologies.length;
+            document.getElementById('rndIdeasCount').textContent = ideas.length;
+            document.getElementById('rndProjectsCount').textContent = projects.filter(p => p.status === 'active').length;
+            document.getElementById('rndPocCount').textContent = projects.filter(p => p.phase === 'poc' && p.status === 'validated').length;
+            
+            // Render lists
+            renderTechList();
+            renderIdeasList();
+            renderProjectsList();
+            renderDashboardTrends();
+            renderDashboardPriority();
+        }
+        
+        function renderTechList() {
+            const technologies = JSON.parse(localStorage.getItem('rdTechnologies') || '[]');
+            const container = document.getElementById('rndTechList');
+            
+            if (technologies.length === 0) {
+                container.innerHTML = `
+                    <div class="rnd-empty">
+                        <div class="rnd-empty-title">Aucune technologie suivie</div>
+                        <p>Commencez à surveiller les nouvelles technologies</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            container.innerHTML = technologies.map(tech => `
+                <div class="rnd-item">
+                    <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 12px;">
+                        <div>
+                            <h3 style="margin: 0 0 4px; font-size: 18px; color: white;">${tech.name}</h3>
+                            <span class="rnd-badge rnd-badge-${tech.status === 'adoption' ? 'high' : tech.status === 'prototype' ? 'medium' : 'low'}">${tech.status}</span>
+                        </div>
+                        <div style="font-size: 24px; color: #fcd34d;">${'★'.repeat(tech.relevanceScore)}${'☆'.repeat(5-tech.relevanceScore)}</div>
+                    </div>
+                    <p style="margin: 0 0 8px; color: rgba(255, 255, 255, 0.7); font-size: 14px;">${tech.description}</p>
+                    <div style="font-size: 12px; color: rgba(255, 255, 255, 0.5);">Catégorie: ${tech.category} • Mise à jour: ${new Date(tech.lastUpdate).toLocaleDateString()}</div>
+                </div>
+            `).join('');
+        }
+        
+        function renderIdeasList() {
+            const ideas = JSON.parse(localStorage.getItem('rdIdeas') || '[]');
+            const container = document.getElementById('rndIdeasList');
+            
+            if (ideas.length === 0) {
+                container.innerHTML = `
+                    <div class="rnd-empty">
+                        <div class="rnd-empty-title">Aucune idée enregistrée</div>
+                        <p>Proposez des innovations pour l'entreprise</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            container.innerHTML = ideas.map(idea => `
+                <div class="rnd-item">
+                    <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 12px;">
+                        <h3 style="margin: 0; font-size: 18px; color: white;">${idea.title}</h3>
+                        <div style="display: flex; gap: 8px;">
+                            <span class="rnd-badge rnd-badge-${idea.impact}">${idea.impact} Impact</span>
+                            <span class="rnd-badge rnd-badge-${idea.effort}">${idea.effort} Effort</span>
+                        </div>
+                    </div>
+                    <p style="margin: 0 0 8px; color: rgba(255, 255, 255, 0.7); font-size: 14px;">${idea.description}</p>
+                    <div style="font-size: 12px; color: rgba(255, 255, 255, 0.5);">Par: ${idea.submittedBy} • ${new Date(idea.createdAt).toLocaleDateString()}</div>
+                </div>
+            `).join('');
+        }
+        
+        function renderProjectsList() {
+            const projects = JSON.parse(localStorage.getItem('rdProjects') || '[]');
+            const container = document.getElementById('rndProjectsList');
+            
+            if (projects.length === 0) {
+                container.innerHTML = `
+                    <div class="rnd-empty">
+                        <div class="rnd-empty-title">Aucun projet R&D</div>
+                        <p>Lancez votre premier projet de recherche</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            container.innerHTML = projects.map(project => `
+                <div class="rnd-item">
+                    <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 12px;">
+                        <div>
+                            <h3 style="margin: 0 0 4px; font-size: 18px; color: white;">${project.name}</h3>
+                            <span class="rnd-badge rnd-badge-medium">${project.phase}</span>
+                        </div>
+                        <div style="text-align: right;">
+                            <div style="font-size: 12px; color: rgba(255, 255, 255, 0.5);">Budget</div>
+                            <div style="font-size: 16px; color: #6ee7b7; font-weight: 600;">${project.budget || 0} DA</div>
+                        </div>
+                    </div>
+                    <p style="margin: 0 0 8px; color: rgba(255, 255, 255, 0.7); font-size: 14px;">${project.objective}</p>
+                    <div style="font-size: 12px; color: rgba(255, 255, 255, 0.5);">
+                        Équipe: ${project.teamMembers?.length || 0} membres • 
+                        ${project.startDate ? new Date(project.startDate).toLocaleDateString() : 'Date non définie'}
+                    </div>
+                </div>
+            `).join('');
+        }
+        
+        function renderDashboardTrends() {
+            const technologies = JSON.parse(localStorage.getItem('rdTechnologies') || '[]');
+            const container = document.getElementById('rndTrendsContainer');
+            
+            if (technologies.length === 0) {
+                container.innerHTML = '<div class="rnd-empty"><p>Aucune tendance à afficher</p></div>';
+                return;
+            }
+            
+            const topTech = technologies.sort((a, b) => b.relevanceScore - a.relevanceScore).slice(0, 3);
+            container.innerHTML = topTech.map(tech => `
+                <div style="padding: 12px 0; border-bottom: 1px solid rgba(99, 102, 241, 0.2);">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <span style="color: white; font-weight: 600;">${tech.name}</span>
+                        <span style="color: #fcd34d;">${'★'.repeat(tech.relevanceScore)}</span>
+                    </div>
+                </div>
+            `).join('');
+        }
+        
+        function renderDashboardPriority() {
+            const projects = JSON.parse(localStorage.getItem('rdProjects') || '[]');
+            const container = document.getElementById('rndPriorityContainer');
+            
+            if (projects.length === 0) {
+                container.innerHTML = '<div class="rnd-empty"><p>Aucun projet prioritaire</p></div>';
+                return;
+            }
+            
+            const activeProjects = projects.filter(p => p.status === 'active').slice(0, 3);
+            container.innerHTML = activeProjects.map(project => `
+                <div style="padding: 12px 0; border-bottom: 1px solid rgba(99, 102, 241, 0.2);">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <span style="color: white; font-weight: 600;">${project.name}</span>
+                        <span class="rnd-badge rnd-badge-medium">${project.phase}</span>
+                    </div>
+                </div>
+            `).join('');
+        }
+        
+        async function sendRnDMessage() {
+            const input = document.getElementById('rndChatInput');
+            const message = input.value.trim();
+            if (!message) return;
+            
+            const messagesContainer = document.getElementById('rndChatMessages');
+            
+            // Add user message
+            messagesContainer.innerHTML += `
+                <div style="margin-bottom: 16px; text-align: right;">
+                    <div style="display: inline-block; background: linear-gradient(135deg, #6366f1, #8b5cf6); padding: 12px 16px; border-radius: 12px; max-width: 70%;">
+                        <p style="margin: 0; color: white; font-size: 14px;">${message}</p>
+                    </div>
+                </div>
+            `;
+            
+            input.value = '';
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+            
+            // Add typing indicator
+            messagesContainer.innerHTML += `
+                <div id="rndTyping" style="margin-bottom: 16px;">
+                    <div style="display: inline-block; background: rgba(255, 255, 255, 0.1); padding: 12px 16px; border-radius: 12px;">
+                        <p style="margin: 0; color: rgba(255, 255, 255, 0.6); font-size: 14px;">Agent Dev analyse...</p>
+                    </div>
+                </div>
+            `;
+            
+            try {
+                const endpoint = (window.location.hostname === 'localhost') 
+                    ? 'http://localhost:7071/api/agents/axilum/invoke'
+                    : '/api/agents/axilum/invoke';
+                
+                // Get R&D context
+                const technologies = JSON.parse(localStorage.getItem('rdTechnologies') || '[]');
+                const ideas = JSON.parse(localStorage.getItem('rdIdeas') || '[]');
+                const projects = JSON.parse(localStorage.getItem('rdProjects') || '[]');
+                
+                const rndContext = `
+CONTEXTE R&D COMPLET :
+
+TECHNOLOGIES SUIVIES (${technologies.length}) :
+${technologies.map(t => `- ${t.name} (${t.category}): ${t.relevanceScore}/5 étoiles - ${t.status}`).join('\n')}
+
+IDÉES INNOVATION (${ideas.length}) :
+${ideas.map(i => `- ${i.title}: Impact ${i.impact}, Effort ${i.effort} - ${i.status}`).join('\n')}
+
+PROJETS R&D (${projects.length}) :
+${projects.map(p => `- ${p.name}: Phase ${p.phase}, Budget ${p.budget} DA - ${p.status}`).join('\n')}
+
+TU ES AGENT DEV - EXPERT R&D :
+Tu es un assistant spécialisé en Recherche & Développement et innovation technologique.
+Tu aides à analyser les technologies, évaluer les idées, et suivre les projets R&D.
+Réponds de manière professionnelle et technique.
+`;
+                
+                const response = await fetch(endpoint, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        message: rndContext + '\n\nQuestion: ' + message,
+                        conversationId: 'rnd-agent',
+                        history: []
+                    })
+                });
+                
+                const data = await response.json();
+                
+                // Remove typing indicator
+                document.getElementById('rndTyping')?.remove();
+                
+                // Add bot response
+                messagesContainer.innerHTML += `
+                    <div style="margin-bottom: 16px;">
+                        <div style="display: inline-block; background: rgba(255, 255, 255, 0.1); padding: 12px 16px; border-radius: 12px; max-width: 70%; border: 1px solid rgba(99, 102, 241, 0.3);">
+                            <p style="margin: 0; color: white; font-size: 14px; line-height: 1.6;">${data.response || 'Erreur de réponse'}</p>
+                        </div>
+                    </div>
+                `;
+                
+            } catch (error) {
+                document.getElementById('rndTyping')?.remove();
+                messagesContainer.innerHTML += `
+                    <div style="margin-bottom: 16px;">
+                        <div style="display: inline-block; background: rgba(239, 68, 68, 0.2); padding: 12px 16px; border-radius: 12px; max-width: 70%; border: 1px solid rgba(239, 68, 68, 0.3);">
+                            <p style="margin: 0; color: #fca5a5; font-size: 14px;">Erreur: ${error.message}</p>
+                        </div>
+                    </div>
+                `;
+            }
+            
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }
+        
+        // Modal stubs (to be implemented)
+        function showAddTechModal() {
+            alert('Fonctionnalité en développement: Ajout de technologie');
+        }
+        
+        function showAddIdeaModal() {
+            alert('Fonctionnalité en développement: Nouvelle idée');
+        }
+        
+        function showAddProjectModal() {
+            alert('Fonctionnalité en développement: Créer projet');
         }
         
         function showHRTab(tabName) {
