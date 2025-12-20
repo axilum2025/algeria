@@ -7962,10 +7962,19 @@ RÈGLES:
                                 </div>
                                 ` : ''}
                                 
-                                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-                                    <span style="font-size: 13px; color: #ef4444;">- Cotisations sociales</span>
-                                    <span style="font-size: 13px; color: #ef4444; font-weight: 600;">${payroll.deductions.toLocaleString()} ${currency}</span>
-                                </div>
+                                ${payroll.customDeductions && payroll.customDeductions.length > 0 ? 
+                                    payroll.customDeductions.map(ded => `
+                                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                                            <span style="font-size: 13px; color: #ef4444;">- ${ded.name} (${ded.rate}%)</span>
+                                            <span style="font-size: 13px; color: #ef4444; font-weight: 600;">${ded.amount.toLocaleString()} ${currency}</span>
+                                        </div>
+                                    `).join('')
+                                : (payroll.deductions ? `
+                                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                                        <span style="font-size: 13px; color: #ef4444;">- Cotisations sociales (9%)</span>
+                                        <span style="font-size: 13px; color: #ef4444; font-weight: 600;">${payroll.deductions.toLocaleString()} ${currency}</span>
+                                    </div>
+                                ` : '')}
                                 
                                 ${payroll.taxes > 0 ? `
                                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
@@ -8115,20 +8124,30 @@ RÈGLES:
                         </div>
                         
                         <div style="background: #f9fafb; border-radius: 12px; padding: 16px;">
-                            <h4 style="margin: 0 0 12px; font-size: 14px; font-weight: 700; color: #1a1a1a;">Calculs Automatiques</h4>
-                            
-                            <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
-                                <span style="font-size: 13px; color: #6b7280;">Cotisations sociales (9%)</span>
-                                <span id="calculatedDeductions" style="font-size: 13px; color: #ef4444; font-weight: 600;">0</span>
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                                <h4 style="margin: 0; font-size: 14px; font-weight: 700; color: #1a1a1a;">Déductions</h4>
+                                <button type="button" onclick="addDeductionRow()" style="padding: 6px 12px; background: #6366F1; color: white; border: none; border-radius: 8px; font-size: 12px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 4px;" onmouseover="this.style.background='#4f46e5'" onmouseout="this.style.background='#6366F1'">
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                                    Ajouter
+                                </button>
                             </div>
                             
-                            <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
-                                <span style="font-size: 13px; color: #6b7280;">IRG (estimé)</span>
-                                <span id="calculatedTaxes" style="font-size: 13px; color: #ef4444; font-weight: 600;">0</span>
+                            <div id="deductionsContainer" style="margin-bottom: 12px;">
+                                <!-- Déductions dynamiques -->
                             </div>
                             
-                            <div style="border-top: 2px solid #e5e7eb; padding-top: 12px; margin-top: 12px; display: flex; justify-content: space-between;">
-                                <span style="font-size: 14px; color: #1a1a1a; font-weight: 700;">Salaire net</span>
+                            <div style="background: white; border-radius: 8px; padding: 12px; margin-bottom: 12px;">
+                                <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                                    <span style="font-size: 13px; color: #6b7280;">Salaire brut</span>
+                                    <span id="calculatedGrossSalary" style="font-size: 13px; color: #1a1a1a; font-weight: 600;">0</span>
+                                </div>
+                                <div id="deductionsSummary">
+                                    <!-- Résumé des déductions -->
+                                </div>
+                            </div>
+                            
+                            <div style="border-top: 2px solid #e5e7eb; padding-top: 12px; display: flex; justify-content: space-between;">
+                                <span style="font-size: 14px; color: #1a1a1a; font-weight: 700;">💰 Salaire net</span>
                                 <span id="calculatedNetSalary" style="font-size: 16px; color: #10b981; font-weight: 700;">0</span>
                             </div>
                         </div>
@@ -8171,6 +8190,36 @@ RÈGLES:
             }
         }
         
+        function addDeductionRow() {
+            const container = document.getElementById('deductionsContainer');
+            const rowId = 'deduction_' + Date.now();
+            
+            const row = document.createElement('div');
+            row.id = rowId;
+            row.style.cssText = 'display: grid; grid-template-columns: 2fr 1fr auto; gap: 8px; margin-bottom: 8px; align-items: center;';
+            
+            row.innerHTML = `
+                <input type="text" placeholder="Ex: Cotisations sociales" class="deduction-name" style="padding: 8px 12px; border: 1px solid #e5e7eb; border-radius: 8px; font-size: 13px;" oninput="calculatePayroll()">
+                <div style="position: relative;">
+                    <input type="number" placeholder="%" class="deduction-rate" min="0" max="100" step="0.01" style="padding: 8px 12px; padding-right: 28px; border: 1px solid #e5e7eb; border-radius: 8px; font-size: 13px; width: 100%;" oninput="calculatePayroll()">
+                    <span style="position: absolute; right: 12px; top: 50%; transform: translateY(-50%); color: #6b7280; font-size: 13px; pointer-events: none;">%</span>
+                </div>
+                <button type="button" onclick="removeDeductionRow('${rowId}')" style="padding: 8px; background: #fee2e2; color: #dc2626; border: none; border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center;" onmouseover="this.style.background='#fecaca'" onmouseout="this.style.background='#fee2e2'">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                </button>
+            `;
+            
+            container.appendChild(row);
+        }
+        
+        function removeDeductionRow(rowId) {
+            const row = document.getElementById(rowId);
+            if (row) {
+                row.remove();
+                calculatePayroll();
+            }
+        }
+        
         function calculatePayroll() {
             const baseSalary = parseFloat(document.querySelector('[name="baseSalary"]').value) || 0;
             const bonuses = parseFloat(document.querySelector('[name="bonuses"]').value) || 0;
@@ -8184,25 +8233,49 @@ RÈGLES:
             // Salaire brut
             const grossSalary = baseSalary + bonuses + overtimePay;
             
-            // Cotisations sociales (9% en Algérie)
-            const deductions = grossSalary * 0.09;
+            // Afficher le salaire brut
+            document.getElementById('calculatedGrossSalary').textContent = Math.round(grossSalary).toLocaleString() + ' ' + currency;
             
-            // IRG simplifié (barème progressif approximatif)
-            let taxes = 0;
-            if (grossSalary > 30000) {
-                taxes = (grossSalary - 30000) * 0.35; // Taux marginal simplifié
-            } else if (grossSalary > 20000) {
-                taxes = (grossSalary - 20000) * 0.20;
-            } else if (grossSalary > 10000) {
-                taxes = (grossSalary - 10000) * 0.10;
-            }
+            // Collecter toutes les déductions personnalisées
+            const deductionRows = document.querySelectorAll('#deductionsContainer > div');
+            let totalDeductions = 0;
+            let deductionsDetails = [];
+            
+            deductionRows.forEach(row => {
+                const nameInput = row.querySelector('.deduction-name');
+                const rateInput = row.querySelector('.deduction-rate');
+                
+                if (nameInput && rateInput) {
+                    const name = nameInput.value.trim();
+                    const rate = parseFloat(rateInput.value) || 0;
+                    
+                    if (name && rate > 0) {
+                        const amount = grossSalary * (rate / 100);
+                        totalDeductions += amount;
+                        deductionsDetails.push({ name, rate, amount });
+                    }
+                }
+            });
+            
+            // Afficher le résumé des déductions
+            const summaryContainer = document.getElementById('deductionsSummary');
+            let summaryHTML = '';
+            
+            deductionsDetails.forEach(deduction => {
+                summaryHTML += `
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 6px;">
+                        <span style="font-size: 12px; color: #ef4444;">- ${deduction.name} (${deduction.rate}%)</span>
+                        <span style="font-size: 12px; color: #ef4444; font-weight: 600;">-${Math.round(deduction.amount).toLocaleString()} ${currency}</span>
+                    </div>
+                `;
+            });
+            
+            summaryContainer.innerHTML = summaryHTML;
             
             // Salaire net
-            const netSalary = grossSalary - deductions - taxes;
+            const netSalary = grossSalary - totalDeductions;
             
-            // Afficher les résultats
-            document.getElementById('calculatedDeductions').textContent = Math.round(deductions).toLocaleString() + ' ' + currency;
-            document.getElementById('calculatedTaxes').textContent = Math.round(taxes).toLocaleString() + ' ' + currency;
+            // Afficher le salaire net
             document.getElementById('calculatedNetSalary').textContent = Math.round(netSalary).toLocaleString() + ' ' + currency;
         }
         
@@ -8218,18 +8291,29 @@ RÈGLES:
             const hourlyRate = baseSalary / 173.33;
             const overtimePay = overtime * hourlyRate * 1.5;
             const grossSalary = baseSalary + bonuses + overtimePay;
-            const deductions = grossSalary * 0.09;
             
-            let taxes = 0;
-            if (grossSalary > 30000) {
-                taxes = (grossSalary - 30000) * 0.35;
-            } else if (grossSalary > 20000) {
-                taxes = (grossSalary - 20000) * 0.20;
-            } else if (grossSalary > 10000) {
-                taxes = (grossSalary - 10000) * 0.10;
-            }
+            // Collecter les déductions personnalisées
+            const deductionRows = document.querySelectorAll('#deductionsContainer > div');
+            let customDeductions = [];
+            let totalDeductions = 0;
             
-            const netSalary = grossSalary - deductions - taxes;
+            deductionRows.forEach(row => {
+                const nameInput = row.querySelector('.deduction-name');
+                const rateInput = row.querySelector('.deduction-rate');
+                
+                if (nameInput && rateInput) {
+                    const name = nameInput.value.trim();
+                    const rate = parseFloat(rateInput.value) || 0;
+                    
+                    if (name && rate > 0) {
+                        const amount = grossSalary * (rate / 100);
+                        totalDeductions += amount;
+                        customDeductions.push({ name, rate, amount: Math.round(amount) });
+                    }
+                }
+            });
+            
+            const netSalary = grossSalary - totalDeductions;
             
             const payroll = {
                 id: Date.now().toString(),
@@ -8240,8 +8324,8 @@ RÈGLES:
                 overtime: overtime,
                 overtimePay: Math.round(overtimePay),
                 grossSalary: Math.round(grossSalary),
-                deductions: Math.round(deductions),
-                taxes: Math.round(taxes),
+                customDeductions: customDeductions,
+                totalDeductions: Math.round(totalDeductions),
                 netSalary: Math.round(netSalary),
                 status: 'pending',
                 createdAt: Date.now(),
@@ -8419,15 +8503,28 @@ RÈGLES:
                             <span style="font-size: 16px; color: #1a1a1a; font-weight: 700;">${payroll.grossSalary.toLocaleString()} ${currency}</span>
                         </div>
                         
+                        ${payroll.customDeductions && payroll.customDeductions.length > 0 ? 
+                            payroll.customDeductions.map(ded => `
+                                <div style="display: flex; justify-content: space-between; margin-bottom: 16px; padding-bottom: 16px; border-bottom: 1px solid #e5e7eb;">
+                                    <span style="font-size: 14px; color: #6b7280; font-weight: 600;">- ${ded.name} (${ded.rate}%)</span>
+                                    <span style="font-size: 16px; color: #ef4444; font-weight: 700;">-${ded.amount.toLocaleString()} ${currency}</span>
+                                </div>
+                            `).join('')
+                        : ''}
+                        
+                        ${payroll.deductions ? `
                         <div style="display: flex; justify-content: space-between; margin-bottom: 16px; padding-bottom: 16px; border-bottom: 1px solid #e5e7eb;">
                             <span style="font-size: 14px; color: #6b7280; font-weight: 600;">- Cotisations sociales (9%)</span>
                             <span style="font-size: 16px; color: #ef4444; font-weight: 700;">-${payroll.deductions.toLocaleString()} ${currency}</span>
                         </div>
+                        ` : ''}
                         
+                        ${payroll.taxes ? `
                         <div style="display: flex; justify-content: space-between; margin-bottom: 16px; padding-bottom: 16px; border-bottom: 1px solid #e5e7eb;">
                             <span style="font-size: 14px; color: #6b7280; font-weight: 600;">- IRG</span>
                             <span style="font-size: 16px; color: #ef4444; font-weight: 700;">-${payroll.taxes.toLocaleString()} ${currency}</span>
                         </div>
+                        ` : ''}
                         
                         <div style="display: flex; justify-content: space-between; padding-top: 16px;">
                             <span style="font-size: 18px; color: #1a1a1a; font-weight: 700;">💰 Salaire NET à payer</span>
