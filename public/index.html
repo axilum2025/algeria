@@ -10533,87 +10533,54 @@ RÈGLES DE CONVERSATION :
             modal.innerHTML = `
                 <div style="background: white; border-radius: 20px; padding: 32px; max-width: 700px; width: 100%; animation: slideIn 0.3s ease;">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
-                        <h2 style="margin: 0; font-size: 24px; font-weight: 700; color: #1a1a1a;">📄 Analyser un CV</h2>
+                        <h2 style="margin: 0; font-size: 24px; font-weight: 700; color: #1a1a1a;">📄 Analyser un CV avec IA</h2>
                         <button onclick="closeUploadCVModal()" style="width: 36px; height: 36px; background: #f3f4f6; border: none; border-radius: 10px; cursor: pointer; display: flex; align-items: center; justify-content: center;" onmouseover="this.style.background='#e5e7eb'" onmouseout="this.style.background='#f3f4f6'">
                             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
                         </button>
                     </div>
                     
-                    <div style="background: #F9FAFB; border-radius: 12px; padding: 16px; margin-bottom: 20px; border: 2px dashed #E5E7EB;">
-                        <p style="margin: 0 0 12px; font-size: 13px; color: #6b7280; text-align: center;">
-                            ℹ️ Pour cette démo, saisissez les informations du CV manuellement.<br>
-                            <span style="font-size: 11px;">En production : parsing automatique PDF/Word avec IA</span>
+                    <div style="background: linear-gradient(135deg, #DBEAFE, #EDE9FE); border-radius: 12px; padding: 16px; margin-bottom: 20px; border: 2px solid #6366F1;">
+                        <p style="margin: 0; font-size: 13px; color: #1E40AF; text-align: center; font-weight: 600;">
+                            ✨ Parsing automatique avec Azure Vision + Azure OpenAI<br>
+                            <span style="font-size: 11px; font-weight: 400;">Upload un CV (PDF/JPG/PNG) et l'IA extrait automatiquement les données</span>
                         </p>
                     </div>
                     
-                    <form onsubmit="handleUploadCV(event)">
+                    <form onsubmit="handleUploadCVWithAI(event)" id="cvUploadForm">
                         <div style="margin-bottom: 20px;">
                             <label style="display: block; margin-bottom: 6px; font-size: 13px; font-weight: 600; color: #1a1a1a;">Offre ciblée *</label>
-                            <select name="jobId" required style="width: 100%; padding: 12px; border: 2px solid #e5e7eb; border-radius: 10px; font-size: 14px;">
+                            <select name="jobId" id="cvJobSelect" required style="width: 100%; padding: 12px; border: 2px solid #e5e7eb; border-radius: 10px; font-size: 14px;">
                                 <option value="">Sélectionner...</option>
                                 ${activeJobs.map(job => `<option value="${job.id}">${job.title} - ${job.location}</option>`).join('')}
                             </select>
                         </div>
                         
-                        <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; margin-bottom: 20px;">
-                            <div>
-                                <label style="display: block; margin-bottom: 6px; font-size: 13px; font-weight: 600; color: #1a1a1a;">Nom complet *</label>
-                                <input type="text" name="name" placeholder="Ex: Marie Silva" required style="width: 100%; padding: 12px; border: 2px solid #e5e7eb; border-radius: 10px; font-size: 14px;">
-                            </div>
-                            <div>
-                                <label style="display: block; margin-bottom: 6px; font-size: 13px; font-weight: 600; color: #1a1a1a;">Email *</label>
-                                <input type="email" name="email" placeholder="Ex: marie@email.com" required style="width: 100%; padding: 12px; border: 2px solid #e5e7eb; border-radius: 10px; font-size: 14px;">
-                            </div>
-                        </div>
-                        
                         <div style="margin-bottom: 20px;">
-                            <label style="display: block; margin-bottom: 6px; font-size: 13px; font-weight: 600; color: #1a1a1a;">Compétences * (séparées par virgule)</label>
-                            <textarea name="skills" rows="2" placeholder="Ex: JavaScript, React, Python, SQL" required style="width: 100%; padding: 12px; border: 2px solid #e5e7eb; border-radius: 10px; font-size: 14px; font-family: inherit;"></textarea>
-                        </div>
-                        
-                        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 20px;">
-                            <div>
-                                <label style="display: block; margin-bottom: 6px; font-size: 13px; font-weight: 600; color: #1a1a1a;">Années d'exp. *</label>
-                                <input type="number" name="experience" min="0" placeholder="Ex: 5" required style="width: 100%; padding: 12px; border: 2px solid #e5e7eb; border-radius: 10px; font-size: 14px;">
+                            <label style="display: block; margin-bottom: 6px; font-size: 13px; font-weight: 600; color: #1a1a1a;">Fichier CV * (PDF, JPG, PNG)</label>
+                            <div style="position: relative;">
+                                <input type="file" 
+                                       name="cvFile" 
+                                       id="cvFileInput"
+                                       accept=".pdf,.jpg,.jpeg,.png"
+                                       required 
+                                       style="width: 100%; padding: 16px; border: 2px dashed #6366F1; border-radius: 12px; font-size: 14px; background: #F9FAFB; cursor: pointer;"
+                                       onchange="handleCVFileSelect(event)">
                             </div>
-                            <div>
-                                <label style="display: block; margin-bottom: 6px; font-size: 13px; font-weight: 600; color: #1a1a1a;">Diplôme *</label>
-                                <select name="degree" required style="width: 100%; padding: 12px; border: 2px solid #e5e7eb; border-radius: 10px; font-size: 14px;">
-                                    <option value="Bac">Bac</option>
-                                    <option value="Bac+2">Bac+2</option>
-                                    <option value="Bac+3">Bac+3</option>
-                                    <option value="Bac+5" selected>Bac+5</option>
-                                    <option value="Doctorat">Doctorat</option>
-                                </select>
-                            </div>
-                            <div>
-                                <label style="display: block; margin-bottom: 6px; font-size: 13px; font-weight: 600; color: #1a1a1a;">Langues *</label>
-                                <select name="languages" required style="width: 100%; padding: 12px; border: 2px solid #e5e7eb; border-radius: 10px; font-size: 14px;">
-                                    <option value="A2">A2</option>
-                                    <option value="B1">B1</option>
-                                    <option value="B2" selected>B2</option>
-                                    <option value="C1">C1</option>
-                                    <option value="C2">C2</option>
-                                </select>
-                            </div>
+                            <p style="margin: 8px 0 0; font-size: 11px; color: #6b7280;">
+                                💡 Pour de meilleurs résultats, utilisez un CV avec un texte clair et lisible
+                            </p>
                         </div>
                         
-                        <div style="margin-bottom: 20px;">
-                            <label style="display: block; margin-bottom: 6px; font-size: 13px; font-weight: 600; color: #1a1a1a;">Dernière expérience</label>
-                            <textarea name="lastJob" rows="2" placeholder="Ex: Développeur Full Stack chez TechCorp (2020-2024)" style="width: 100%; padding: 12px; border: 2px solid #e5e7eb; border-radius: 10px; font-size: 14px; font-family: inherit;"></textarea>
+                            <!-- Zone de prévisualisation des données parsées -->
+                            <div id="parsedDataContent"></div>
                         </div>
                         
-                        <div style="margin-bottom: 20px;">
-                            <label style="display: block; margin-bottom: 6px; font-size: 13px; font-weight: 600; color: #1a1a1a;">Certifications (optionnelles)</label>
-                            <input type="text" name="certifications" placeholder="Ex: AWS Certified, Scrum Master" style="width: 100%; padding: 12px; border: 2px solid #e5e7eb; border-radius: 10px; font-size: 14px;">
-                        </div>
-                        
-                        <div style="display: flex; gap: 12px;">
+                        <div style="display: flex; gap: 12px; margin-top: 20px;">
                             <button type="button" onclick="closeUploadCVModal()" style="flex: 1; padding: 12px; background: #f3f4f6; border: none; border-radius: 10px; font-weight: 600; cursor: pointer;" onmouseover="this.style.background='#e5e7eb'" onmouseout="this.style.background='#f3f4f6'">
                                 Annuler
                             </button>
-                            <button type="submit" style="flex: 1; padding: 12px; background: #6366F1; border: none; border-radius: 10px; color: white; font-weight: 600; cursor: pointer;" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 12px rgba(99,102,241,0.4)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='none'">
-                                Analyser le CV
+                            <button type="submit" id="submitCVBtn" style="flex: 1; padding: 12px; background: #6366F1; border: none; border-radius: 10px; color: white; font-weight: 600; cursor: pointer;" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 12px rgba(99,102,241,0.4)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='none'">
+                                🤖 Analyser avec IA
                             </button>
                         </div>
                     </form>
@@ -10634,6 +10601,225 @@ RÈGLES DE CONVERSATION :
             }
         }
         
+        // Gestion du fichier CV sélectionné
+        function handleCVFileSelect(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            
+            const fileSize = (file.size / 1024 / 1024).toFixed(2);
+            if (fileSize > 10) {
+                showToast('Fichier trop volumineux (max 10 MB)', 'warning');
+                event.target.value = '';
+                return;
+            }
+            
+            const submitBtn = document.getElementById('submitCVBtn');
+            submitBtn.textContent = '🤖 Analyser avec IA';
+            submitBtn.disabled = false;
+        }
+        
+        // Conversion fichier vers base64
+        function fileToBase64(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = () => resolve(reader.result.split(',')[1]);
+                reader.onerror = reject;
+                reader.readAsDataURL(file);
+            });
+        }
+        
+        // Handler pour l'upload du CV avec parsing IA
+        async function handleUploadCVWithAI(event) {
+            event.preventDefault();
+            
+            const form = event.target;
+            const jobId = form.jobId.value;
+            const cvFile = form.cvFile.files[0];
+            
+            if (!cvFile) {
+                showToast('Sélectionnez un fichier CV', 'warning');
+                return;
+            }
+            
+            const submitBtn = document.getElementById('submitCVBtn');
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '⏳ Analyse en cours...';
+            
+            try {
+                // 1. Convertir le fichier en base64
+                const base64 = await fileToBase64(cvFile);
+                const fileType = cvFile.type.includes('pdf') ? 'pdf' : 'image';
+                
+                showToast('🔍 Extraction du texte avec Azure Vision...', 'info');
+                
+                // 2. Appeler l'API de parsing
+                const response = await fetch('/api/parseCV', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        file: base64,
+                        fileType: fileType,
+                        fileName: cvFile.name
+                    })
+                });
+                
+                const result = await response.json();
+                
+                if (!result.success) {
+                    throw new Error(result.error || 'Erreur lors du parsing du CV');
+                }
+                
+                showToast('✨ CV analysé par Azure OpenAI...', 'success');
+                
+                // 3. Afficher les données parsées pour validation
+                displayParsedData(result.data, result.rawText, result.stats, jobId);
+                
+            } catch (error) {
+                console.error('Erreur parsing CV:', error);
+                showToast('❌ Erreur: ' + error.message, 'error');
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = '🤖 Analyser avec IA';
+            }
+        }
+        
+        // Afficher les données parsées pour validation
+        function displayParsedData(data, rawText, stats, jobId) {
+            const preview = document.getElementById('parsedDataPreview');
+            const content = document.getElementById('parsedDataContent');
+            
+            content.innerHTML = `
+                <div style="background: #D1FAE5; border-radius: 12px; padding: 16px; margin-bottom: 16px; border-left: 4px solid #10B981;">
+                    <p style="margin: 0; font-size: 13px; color: #065F46; font-weight: 600;">
+                        ✅ CV analysé avec succès ! Vérifiez et corrigez si besoin :
+                    </p>
+                    <p style="margin: 8px 0 0; font-size: 11px; color: #047857;">
+                        📊 ${stats.textLength} caractères • ${stats.skillsCount} compétences • ${stats.certificationsCount} certifications
+                    </p>
+                </div>
+                
+                <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; margin-bottom: 16px;">
+                    <div>
+                        <label style="display: block; margin-bottom: 6px; font-size: 13px; font-weight: 600; color: #1a1a1a;">Nom complet *</label>
+                        <input type="text" id="parsedName" value="${data.name || ''}" required style="width: 100%; padding: 12px; border: 2px solid #10B981; border-radius: 10px; font-size: 14px; background: #F0FDF4;">
+                    </div>
+                    <div>
+                        <label style="display: block; margin-bottom: 6px; font-size: 13px; font-weight: 600; color: #1a1a1a;">Email *</label>
+                        <input type="email" id="parsedEmail" value="${data.email || ''}" required style="width: 100%; padding: 12px; border: 2px solid #10B981; border-radius: 10px; font-size: 14px; background: #F0FDF4;">
+                    </div>
+                </div>
+                
+                <div style="margin-bottom: 16px;">
+                    <label style="display: block; margin-bottom: 6px; font-size: 13px; font-weight: 600; color: #1a1a1a;">Téléphone</label>
+                    <input type="text" id="parsedPhone" value="${data.phone || ''}" style="width: 100%; padding: 12px; border: 2px solid #10B981; border-radius: 10px; font-size: 14px; background: #F0FDF4;">
+                </div>
+                
+                <div style="margin-bottom: 16px;">
+                    <label style="display: block; margin-bottom: 6px; font-size: 13px; font-weight: 600; color: #1a1a1a;">Compétences * (${data.skills.length} détectées)</label>
+                    <textarea id="parsedSkills" rows="3" required style="width: 100%; padding: 12px; border: 2px solid #10B981; border-radius: 10px; font-size: 14px; font-family: inherit; background: #F0FDF4;">${data.skills.join(', ')}</textarea>
+                </div>
+                
+                <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 16px;">
+                    <div>
+                        <label style="display: block; margin-bottom: 6px; font-size: 13px; font-weight: 600; color: #1a1a1a;">Années d'exp. *</label>
+                        <input type="number" id="parsedExperience" value="${data.experience || 0}" min="0" required style="width: 100%; padding: 12px; border: 2px solid #10B981; border-radius: 10px; font-size: 14px; background: #F0FDF4;">
+                    </div>
+                    <div>
+                        <label style="display: block; margin-bottom: 6px; font-size: 13px; font-weight: 600; color: #1a1a1a;">Diplôme *</label>
+                        <select id="parsedDegree" required style="width: 100%; padding: 12px; border: 2px solid #10B981; border-radius: 10px; font-size: 14px; background: #F0FDF4;">
+                            <option value="Bac" ${data.degree === 'Bac' ? 'selected' : ''}>Bac</option>
+                            <option value="Bac+2" ${data.degree === 'Bac+2' ? 'selected' : ''}>Bac+2</option>
+                            <option value="Bac+3" ${data.degree === 'Bac+3' ? 'selected' : ''}>Bac+3</option>
+                            <option value="Bac+5" ${data.degree === 'Bac+5' || !data.degree ? 'selected' : ''}>Bac+5</option>
+                            <option value="Doctorat" ${data.degree === 'Doctorat' ? 'selected' : ''}>Doctorat</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label style="display: block; margin-bottom: 6px; font-size: 13px; font-weight: 600; color: #1a1a1a;">Langues *</label>
+                        <select id="parsedLanguages" required style="width: 100%; padding: 12px; border: 2px solid #10B981; border-radius: 10px; font-size: 14px; background: #F0FDF4;">
+                            <option value="A2" ${data.languages === 'A2' ? 'selected' : ''}>A2</option>
+                            <option value="B1" ${data.languages === 'B1' ? 'selected' : ''}>B1</option>
+                            <option value="B2" ${data.languages === 'B2' || !data.languages ? 'selected' : ''}>B2</option>
+                            <option value="C1" ${data.languages === 'C1' ? 'selected' : ''}>C1</option>
+                            <option value="C2" ${data.languages === 'C2' ? 'selected' : ''}>C2</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div style="margin-bottom: 16px;">
+                    <label style="display: block; margin-bottom: 6px; font-size: 13px; font-weight: 600; color: #1a1a1a;">Dernière expérience</label>
+                    <textarea id="parsedLastJob" rows="2" style="width: 100%; padding: 12px; border: 2px solid #10B981; border-radius: 10px; font-size: 14px; font-family: inherit; background: #F0FDF4;">${data.lastJob || ''}</textarea>
+                </div>
+                
+                <div style="margin-bottom: 16px;">
+                    <label style="display: block; margin-bottom: 6px; font-size: 13px; font-weight: 600; color: #1a1a1a;">Certifications (${data.certifications.length} détectées)</label>
+                    <input type="text" id="parsedCertifications" value="${data.certifications.join(', ')}" style="width: 100%; padding: 12px; border: 2px solid #10B981; border-radius: 10px; font-size: 14px; background: #F0FDF4;">
+                </div>
+                
+                <details style="margin-bottom: 16px; background: #F9FAFB; border-radius: 10px; padding: 12px;">
+                    <summary style="cursor: pointer; font-weight: 600; font-size: 13px; color: #374151;">📄 Aperçu du texte extrait (${stats.textLength} caractères)</summary>
+                    <pre style="margin-top: 12px; font-size: 11px; color: #6b7280; white-space: pre-wrap; background: white; padding: 12px; border-radius: 8px; max-height: 200px; overflow-y: auto;">${rawText}</pre>
+                </details>
+                
+                <button type="button" onclick="saveParsedCV('${jobId}')" style="width: 100%; padding: 14px; background: #10B981; border: none; border-radius: 10px; color: white; font-weight: 600; font-size: 15px; cursor: pointer; transition: all 0.2s;" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 12px rgba(16,185,129,0.4)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='none'">
+                    💾 Enregistrer le candidat
+                </button>
+            `;
+            
+            preview.style.display = 'block';
+            const submitBtn = document.getElementById('submitCVBtn');
+            submitBtn.style.display = 'none';
+        }
+        
+        // Sauvegarder le CV après validation
+        function saveParsedCV(jobId) {
+            const candidate = {
+                id: Date.now().toString(),
+                jobId: jobId,
+                name: document.getElementById('parsedName').value,
+                email: document.getElementById('parsedEmail').value,
+                phone: document.getElementById('parsedPhone').value,
+                skills: document.getElementById('parsedSkills').value.split(',').map(s => s.trim()).filter(s => s),
+                experience: parseInt(document.getElementById('parsedExperience').value),
+                degree: document.getElementById('parsedDegree').value,
+                languages: document.getElementById('parsedLanguages').value,
+                lastJob: document.getElementById('parsedLastJob').value || '',
+                certifications: document.getElementById('parsedCertifications').value.split(',').map(s => s.trim()).filter(s => s),
+                uploadedAt: Date.now(),
+                parsedWithAI: true // Indicateur de parsing automatique
+            };
+            
+            // Récupérer l'offre pour le matching
+            const jobs = JSON.parse(localStorage.getItem('recruitmentJobs') || '[]');
+            const job = jobs.find(j => j.id === candidate.jobId);
+            
+            if (!job) {
+                showToast('Offre non trouvée', 'error');
+                return;
+            }
+            
+            // Analyser et scorer le CV
+            const analysis = analyzeCVMatch(candidate, job);
+            candidate.matchScore = analysis.overallScore;
+            candidate.scoreBreakdown = analysis.breakdown;
+            candidate.missingKeywords = analysis.missingKeywords;
+            candidate.strengths = analysis.strengths;
+            candidate.risks = analysis.risks;
+            candidate.anomalies = analysis.anomalies;
+            candidate.mustHaveCheck = analysis.mustHaveCheck;
+            candidate.recommendation = analysis.recommendation;
+            
+            // Sauvegarder
+            const candidates = JSON.parse(localStorage.getItem('recruitmentCandidates') || '[]');
+            candidates.push(candidate);
+            localStorage.setItem('recruitmentCandidates', JSON.stringify(candidates));
+            
+            showToast('✅ CV analysé avec IA - Score: ' + analysis.overallScore + '%', 'success');
+            closeUploadCVModal();
+            renderCandidatesList(candidates);
+            updateRecruitmentStats(jobs, candidates);
+        }
+        
+        // ANCIEN HANDLER (kept for compatibility)
         function handleUploadCV(event) {
             event.preventDefault();
             const formData = new FormData(event.target);
