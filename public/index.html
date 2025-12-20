@@ -8191,6 +8191,7 @@ RÈGLES DE CONVERSATION :
                 justify-content: center;
                 z-index: 10003;
                 animation: fadeIn 0.2s ease;
+                padding: 20px;
             `;
             
             const currentDate = new Date();
@@ -8198,32 +8199,66 @@ RÈGLES DE CONVERSATION :
             const currentYear = currentDate.getFullYear();
             
             modal.innerHTML = `
-                <div style="background: white; border-radius: 20px; padding: 32px; max-width: 900px; width: 90%; max-height: 90vh; overflow-y: auto; animation: slideIn 0.3s ease;">
+                <div style="background: white; border-radius: 20px; padding: 32px; max-width: 1200px; width: 100%; max-height: 90vh; overflow-y: auto; animation: slideIn 0.3s ease;">
                     <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px;">
-                        <h2 style="margin: 0; font-size: 24px; font-weight: 700; color: #1a1a1a;">📅 Calendrier des Congés</h2>
+                        <div>
+                            <h2 style="margin: 0 0 4px; font-size: 24px; font-weight: 700; color: #1a1a1a;">📅 Planning des Congés</h2>
+                            <p style="margin: 0; font-size: 14px; color: #6b7280;">Vue mensuelle avec suivi des chevauchements</p>
+                        </div>
                         <button onclick="closeLeaveCalendar()" style="width: 36px; height: 36px; background: #f3f4f6; border: none; border-radius: 10px; cursor: pointer; display: flex; align-items: center; justify-content: center;" onmouseover="this.style.background='#e5e7eb'" onmouseout="this.style.background='#f3f4f6'">
                             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
                         </button>
                     </div>
                     
+                    <!-- Filtre département -->
+                    <div style="margin-bottom: 20px;">
+                        <select id="calendarDeptFilter" onchange="refreshCalendar()" style="padding: 10px 16px; border: 2px solid #e5e7eb; border-radius: 10px; font-size: 14px; font-weight: 600; cursor: pointer;">
+                            <option value="">Tous les départements</option>
+                            <option value="IT">IT</option>
+                            <option value="RH">RH</option>
+                            <option value="Finance">Finance</option>
+                            <option value="Marketing">Marketing</option>
+                            <option value="Commercial">Commercial</option>
+                        </select>
+                    </div>
+                    
+                    <!-- Alertes chevauchements -->
+                    <div id="overlapWarnings" style="margin-bottom: 20px;"></div>
+                    
                     <div id="calendarContainer" style="min-height: 400px;">
-                        ${generateCalendarHTML(currentYear, currentMonth)}
+                        ${generateEnhancedCalendarHTML(currentYear, currentMonth)}
                     </div>
                     
                     <div style="margin-top: 24px; padding-top: 24px; border-top: 1px solid #e5e7eb;">
                         <h3 style="margin: 0 0 16px; font-size: 16px; font-weight: 700; color: #1a1a1a;">Légende</h3>
-                        <div style="display: flex; gap: 16px; flex-wrap: wrap;">
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px;">
                             <div style="display: flex; align-items: center; gap: 8px;">
-                                <div style="width: 16px; height: 16px; background: #d1fae5; border-radius: 4px;"></div>
-                                <span style="font-size: 13px; color: #374151;">Congé approuvé</span>
-                            </div>
-                            <div style="display: flex; align-items: center; gap: 8px;">
-                                <div style="width: 16px; height: 16px; background: #fef3c7; border-radius: 4px;"></div>
-                                <span style="font-size: 13px; color: #374151;">En attente</span>
-                            </div>
-                            <div style="display: flex; align-items: center; gap: 8px;">
-                                <div style="width: 16px; height: 16px; background: #dbeafe; border-radius: 4px;"></div>
+                                <div style="width: 20px; height: 20px; background: #DBEAFE; border-radius: 4px; border: 2px solid #3B82F6;"></div>
                                 <span style="font-size: 13px; color: #374151;">Aujourd'hui</span>
+                            </div>
+                            <div style="display: flex; align-items: center; gap: 8px;">
+                                <div style="width: 20px; height: 20px; background: #FEE2E2; border-radius: 4px;"></div>
+                                <span style="font-size: 13px; color: #374151;">🔴 IT</span>
+                            </div>
+                            <div style="display: flex; align-items: center; gap: 8px;">
+                                <div style="width: 20px; height: 20px; background: #DBEAFE; border-radius: 4px;"></div>
+                                <span style="font-size: 13px; color: #374151;">🔵 RH</span>
+                            </div>
+                            <div style="display: flex; align-items: center; gap: 8px;">
+                                <div style="width: 20px; height: 20px; background: #FEF3C7; border-radius: 4px;"></div>
+                                <span style="font-size: 13px; color: #374151;">🟡 Finance</span>
+                            </div>
+                            <div style="display: flex; align-items: center; gap: 8px;">
+                                <div style="width: 20px; height: 20px; background: #D1FAE5; border-radius: 4px;"></div>
+                                <span style="font-size: 13px; color: #374151;">🟢 Marketing</span>
+                            </div>
+                            <div style="display: flex; align-items: center; gap: 8px;">
+                                <div style="width: 20px; height: 20px; background: #E9D5FF; border-radius: 4px;"></div>
+                                <span style="font-size: 13px; color: #374151;">🟣 Commercial</span>
+                            </div>
+                            <div style="display: flex; align-items: center; gap: 8px;">
+                                <div style="width: 20px; height: 20px; background: white; border-radius: 4px; border: 2px dashed #f59e0b;"></div>
+                                <span style="font-size: 13px; color: #374151;">En attente</span>
                             </div>
                         </div>
                     </div>
@@ -8231,6 +8266,7 @@ RÈGLES DE CONVERSATION :
             `;
             
             document.body.appendChild(modal);
+            checkOverlapWarnings();
         }
         
         function closeLeaveCalendar() {
@@ -8238,30 +8274,115 @@ RÈGLES DE CONVERSATION :
             if (modal) modal.remove();
         }
         
-        function generateCalendarHTML(year, month) {
+        function refreshCalendar() {
+            const currentDate = new Date();
+            const container = document.getElementById('calendarContainer');
+            if (container) {
+                container.innerHTML = generateEnhancedCalendarHTML(currentDate.getFullYear(), currentDate.getMonth());
+            }
+            checkOverlapWarnings();
+        }
+        
+        function checkOverlapWarnings() {
+            const leaves = JSON.parse(localStorage.getItem('hrLeaves') || '[]');
+            const employees = JSON.parse(localStorage.getItem('hrEmployees') || '[]');
+            const warningsContainer = document.getElementById('overlapWarnings');
+            
+            if (!warningsContainer) return;
+            
+            // Grouper les congés par date
+            const dateMap = {};
+            leaves.filter(l => l.status === 'approved' || l.status === 'pending').forEach(leave => {
+                const start = new Date(leave.startDate);
+                const end = new Date(leave.endDate);
+                const emp = employees.find(e => e.id === leave.employeeId);
+                
+                for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
+                    const dateStr = d.toISOString().split('T')[0];
+                    if (!dateMap[dateStr]) dateMap[dateStr] = [];
+                    dateMap[dateStr].push({leave, employee: emp});
+                }
+            });
+            
+            // Trouver les périodes à risque
+            const warnings = [];
+            Object.entries(dateMap).forEach(([date, items]) => {
+                const depts = {};
+                items.forEach(({employee}) => {
+                    if (employee) {
+                        depts[employee.department] = (depts[employee.department] || 0) + 1;
+                    }
+                });
+                
+                // Alerte si >3 personnes du même département absentes
+                Object.entries(depts).forEach(([dept, count]) => {
+                    if (count >= 3) {
+                        warnings.push({date, dept, count});
+                    }
+                });
+            });
+            
+            if (warnings.length > 0) {
+                const today = new Date().toISOString().split('T')[0];
+                const futureWarnings = warnings.filter(w => w.date >= today).slice(0, 3);
+                
+                warningsContainer.innerHTML = futureWarnings.map(w => `
+                    <div style="background: #FEF3C7; border-left: 4px solid #F59E0B; padding: 12px 16px; border-radius: 8px; margin-bottom: 8px;">
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#F59E0B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                            <strong style="color: #92400E; font-size: 14px;">⚠️ Chevauchement critique le ${new Date(w.date).toLocaleDateString('fr-FR')}</strong>
+                        </div>
+                        <p style="margin: 4px 0 0 26px; font-size: 13px; color: #78350F;">${w.count} personnes du département ${w.dept} absentes simultanément</p>
+                    </div>
+                `).join('');
+            } else {
+                warningsContainer.innerHTML = `
+                    <div style="background: #D1FAE5; border-left: 4px solid #10B981; padding: 12px 16px; border-radius: 8px;">
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                            <span style="color: #065F46; font-size: 14px; font-weight: 600;">✅ Aucun chevauchement critique détecté</span>
+                        </div>
+                    </div>
+                `;
+            }
+        }
+        
+        function generateEnhancedCalendarHTML(year, month) {
             const monthNames = ['Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin', 'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre'];
             const daysInMonth = new Date(year, month + 1, 0).getDate();
             const firstDay = new Date(year, month, 1).getDay();
             const today = new Date().toISOString().split('T')[0];
             
-            // Charger les congés
             const leaves = JSON.parse(localStorage.getItem('hrLeaves') || '[]');
             const employees = JSON.parse(localStorage.getItem('hrEmployees') || '[]');
+            const deptFilter = document.getElementById('calendarDeptFilter')?.value || '';
+            
+            // Couleurs par département
+            const deptColors = {
+                'IT': {bg: '#FEE2E2', text: '#991B1B', emoji: '🔴'},
+                'RH': {bg: '#DBEAFE', text: '#1E40AF', emoji: '🔵'},
+                'Finance': {bg: '#FEF3C7', text: '#92400E', emoji: '🟡'},
+                'Marketing': {bg: '#D1FAE5', text: '#065F46', emoji: '🟢'},
+                'Commercial': {bg: '#E9D5FF', text: '#6B21A8', emoji: '🟣'}
+            };
             
             let html = `
-                <div style="text-align: center; margin-bottom: 20px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
                     <h3 style="margin: 0; font-size: 20px; font-weight: 700; color: #1a1a1a;">${monthNames[month]} ${year}</h3>
+                    <div id="whoIsAbsentToday" style="background: #F3F4F6; padding: 8px 16px; border-radius: 8px;">
+                        <span style="font-size: 13px; color: #6b7280;">Chargement...</span>
+                    </div>
                 </div>
                 
-                <div style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 8px; text-align: center;">
+                <div style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; text-align: center;">
                     <!-- Jours de la semaine -->
-                    <div style="font-size: 12px; font-weight: 700; color: #6b7280; padding: 8px;">Dim</div>
-                    <div style="font-size: 12px; font-weight: 700; color: #6b7280; padding: 8px;">Lun</div>
-                    <div style="font-size: 12px; font-weight: 700; color: #6b7280; padding: 8px;">Mar</div>
-                    <div style="font-size: 12px; font-weight: 700; color: #6b7280; padding: 8px;">Mer</div>
-                    <div style="font-size: 12px; font-weight: 700; color: #6b7280; padding: 8px;">Jeu</div>
-                    <div style="font-size: 12px; font-weight: 700; color: #6b7280; padding: 8px;">Ven</div>
-                    <div style="font-size: 12px; font-weight: 700; color: #6b7280; padding: 8px;">Sam</div>
+                    <div style="font-size: 12px; font-weight: 700; color: #6b7280; padding: 8px; background: #F9FAFB; border-radius: 6px;">Dim</div>
+                    <div style="font-size: 12px; font-weight: 700; color: #6b7280; padding: 8px; background: #F9FAFB; border-radius: 6px;">Lun</div>
+                    <div style="font-size: 12px; font-weight: 700; color: #6b7280; padding: 8px; background: #F9FAFB; border-radius: 6px;">Mar</div>
+                    <div style="font-size: 12px; font-weight: 700; color: #6b7280; padding: 8px; background: #F9FAFB; border-radius: 6px;">Mer</div>
+                    <div style="font-size: 12px; font-weight: 700; color: #6b7280; padding: 8px; background: #F9FAFB; border-radius: 6px;">Jeu</div>
+                    <div style="font-size: 12px; font-weight: 700; color: #6b7280; padding: 8px; background: #F9FAFB; border-radius: 6px;">Ven</div>
+                    <div style="font-size: 12px; font-weight: 700; color: #6b7280; padding: 8px; background: #F9FAFB; border-radius: 6px;">Sam</div>
             `;
             
             // Espaces vides avant le 1er jour
@@ -8274,63 +8395,124 @@ RÈGLES DE CONVERSATION :
                 const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
                 const isToday = dateStr === today;
                 
-                // Trouver les congés pour ce jour
+                // Congés approuvés ce jour
                 const dayLeaves = leaves.filter(l => {
-                    return l.status === 'approved' && l.startDate <= dateStr && l.endDate >= dateStr;
+                    const empMatch = !deptFilter || employees.find(e => e.id === l.employeeId && e.department === deptFilter);
+                    return l.status === 'approved' && l.startDate <= dateStr && l.endDate >= dateStr && empMatch;
                 });
                 
+                // Congés en attente
                 const pendingLeaves = leaves.filter(l => {
-                    return l.status === 'pending' && l.startDate <= dateStr && l.endDate >= dateStr;
+                    const empMatch = !deptFilter || employees.find(e => e.id === l.employeeId && e.department === deptFilter);
+                    return l.status === 'pending' && l.startDate <= dateStr && l.endDate >= dateStr && empMatch;
                 });
                 
-                let bgColor = 'white';
-                let borderColor = '#e5e7eb';
+                let cellBg = 'white';
+                let cellBorder = '#e5e7eb';
+                let cellContent = [];
                 
                 if (isToday) {
-                    bgColor = '#dbeafe';
-                    borderColor = '#3b82f6';
-                } else if (dayLeaves.length > 0) {
-                    bgColor = '#d1fae5';
-                    borderColor = '#10b981';
-                } else if (pendingLeaves.length > 0) {
-                    bgColor = '#fef3c7';
-                    borderColor = '#f59e0b';
+                    cellBorder = '#3B82F6';
+                    cellBg = '#DBEAFE';
                 }
                 
-                const tooltip = [...dayLeaves, ...pendingLeaves].map(l => {
-                    const emp = employees.find(e => e.id === l.employeeId);
-                    return emp ? `${emp.firstName} ${emp.lastName}` : 'Employé';
-                }).join(', ');
+                // Afficher les congés par département (max 3 visible)
+                const visibleLeaves = dayLeaves.slice(0, 3);
+                visibleLeaves.forEach(leave => {
+                    const emp = employees.find(e => e.id === leave.employeeId);
+                    if (emp && deptColors[emp.department]) {
+                        const color = deptColors[emp.department];
+                        cellContent.push(`
+                            <div title="${emp.firstName} ${emp.lastName} (${emp.department})" style="
+                                background: ${color.bg}; 
+                                color: ${color.text}; 
+                                font-size: 9px; 
+                                padding: 2px 4px; 
+                                border-radius: 3px; 
+                                margin: 1px 0;
+                                white-space: nowrap;
+                                overflow: hidden;
+                                text-overflow: ellipsis;
+                                font-weight: 600;
+                            ">
+                                ${color.emoji} ${emp.firstName.charAt(0)}.${emp.lastName.charAt(0)}
+                            </div>
+                        `);
+                    }
+                });
+                
+                if (dayLeaves.length > 3) {
+                    cellContent.push(`
+                        <div style="font-size: 9px; color: #6b7280; font-weight: 600; margin-top: 2px;">
+                            +${dayLeaves.length - 3} autre${dayLeaves.length - 3 > 1 ? 's' : ''}
+                        </div>
+                    `);
+                }
+                
+                // Indicateur congés en attente
+                if (pendingLeaves.length > 0) {
+                    cellContent.push(`
+                        <div title="${pendingLeaves.length} demande(s) en attente" style="font-size: 9px; color: #F59E0B; font-weight: 600; margin-top: 2px;">
+                            ⏳ ${pendingLeaves.length}
+                        </div>
+                    `);
+                }
                 
                 html += `
-                    <div title="${tooltip}" style="
-                        background: ${bgColor}; 
-                        border: 2px solid ${borderColor}; 
+                    <div style="
+                        background: ${cellBg}; 
+                        border: 2px solid ${cellBorder}; 
                         border-radius: 8px; 
-                        padding: 12px 8px; 
-                        font-size: 14px; 
+                        padding: 4px; 
+                        font-size: 13px; 
                         font-weight: ${isToday ? '700' : '600'}; 
-                        color: ${isToday ? '#1e40af' : '#1a1a1a'};
-                        cursor: ${dayLeaves.length > 0 || pendingLeaves.length > 0 ? 'pointer' : 'default'};
-                        min-height: 60px;
+                        color: ${isToday ? '#1E40AF' : '#1a1a1a'};
+                        min-height: 70px;
                         display: flex;
                         flex-direction: column;
-                        align-items: center;
-                        justify-content: center;
                         position: relative;
                     ">
-                        <div>${day}</div>
-                        ${dayLeaves.length > 0 ? `<div style="font-size: 10px; color: #10b981; margin-top: 4px;">${dayLeaves.length} 👤</div>` : ''}
-                        ${pendingLeaves.length > 0 ? `<div style="font-size: 10px; color: #f59e0b; margin-top: 2px;">⏳</div>` : ''}
+                        <div style="text-align: center; margin-bottom: 2px;">${day}</div>
+                        ${cellContent.join('')}
                     </div>
                 `;
             }
             
             html += '</div>';
+            
+            // Widget "Qui est absent aujourd'hui ?"
+            setTimeout(() => updateWhoIsAbsentToday(), 100);
+            
             return html;
         }
         
+        function updateWhoIsAbsentToday() {
+            const widget = document.getElementById('whoIsAbsentToday');
+            if (!widget) return;
+            
+            const today = new Date().toISOString().split('T')[0];
+            const leaves = JSON.parse(localStorage.getItem('hrLeaves') || '[]');
+            const employees = JSON.parse(localStorage.getItem('hrEmployees') || '[]');
+            
+            const todayLeaves = leaves.filter(l => 
+                l.status === 'approved' && l.startDate <= today && l.endDate >= today
+            );
+            
+            if (todayLeaves.length === 0) {
+                widget.innerHTML = '<span style="font-size: 13px; color: #10B981; font-weight: 600;">✅ Tous présents aujourd\'hui</span>';
+            } else {
+                const names = todayLeaves.map(l => {
+                    const emp = employees.find(e => e.id === l.employeeId);
+                    return emp ? `${emp.firstName} ${emp.lastName.charAt(0)}.` : '?';
+                }).slice(0, 3).join(', ');
+                
+                const more = todayLeaves.length > 3 ? ` +${todayLeaves.length - 3}` : '';
+                widget.innerHTML = `<span style="font-size: 13px; color: #EF4444; font-weight: 600;">👤 ${todayLeaves.length} absent${todayLeaves.length > 1 ? 's' : ''} : ${names}${more}</span>`;
+            }
+        }
+        
         // ========== FIN LEAVES MANAGEMENT ==========
+
         
         // ========== PAYROLL MANAGEMENT ==========
         
