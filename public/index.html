@@ -6163,6 +6163,9 @@
                         <button onclick="showHRTab('reviews')" id="hrTabReviews" class="hr-tab" style="padding: 16px 24px; background: none; border: none; border-bottom: 3px solid transparent; color: #6b7280; font-weight: 600; cursor: pointer; transition: all 0.2s; white-space: nowrap;">
                             Évaluations
                         </button>
+                        <button onclick="showHRTab('turnover')" id="hrTabTurnover" class="hr-tab" style="padding: 16px 24px; background: none; border: none; border-bottom: 3px solid transparent; color: #6b7280; font-weight: 600; cursor: pointer; transition: all 0.2s; white-space: nowrap;">
+                            🚨 Turnover
+                        </button>
                     </div>
                     
                     <!-- Content Area -->
@@ -6240,6 +6243,11 @@
                                         <button onclick="showHRTab('reviews');" style="padding: 16px; background: #6366F1; border: none; border-radius: 12px; color: white; font-weight: 600; cursor: pointer; transition: all 0.2s; text-align: left; display: flex; align-items: center; gap: 12px;" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 12px rgba(99,102,241,0.4)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='none'">
                                             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
                                             <div>Évaluations</div>
+                                        </button>
+                                        
+                                        <button onclick="showHRTab('turnover');" style="padding: 16px; background: #EF4444; border: none; border-radius: 12px; color: white; font-weight: 600; cursor: pointer; transition: all 0.2s; text-align: left; display: flex; align-items: center; gap: 12px;" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 12px rgba(239,68,68,0.4)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='none'">
+                                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                                            <div>Turnover Prediction</div>
                                         </button>
                                     </div>
                                 </div>
@@ -6587,6 +6595,112 @@
                                 <p style="margin: 0; font-size: 14px; color: #6b7280;">Créez votre première évaluation pour commencer</p>
                             </div>
                         </div>
+                        
+                        <!-- Turnover Prediction Tab -->
+                        <div id="hrContentTurnover" class="hr-content" style="display: none;">
+                            <!-- RGPD Warning Banner -->
+                            <div style="background: linear-gradient(135deg, #3B82F6, #2563EB); border-radius: 16px; padding: 24px; margin-bottom: 24px; color: white;">
+                                <div style="display: flex; align-items: start; gap: 16px;">
+                                    <div style="width: 48px; height: 48px; background: rgba(255,255,255,0.2); border-radius: 12px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                                    </div>
+                                    <div style="flex: 1;">
+                                        <h3 style="margin: 0 0 8px; font-size: 16px; font-weight: 700;">🔒 Conformité RGPD - Données Sensibles</h3>
+                                        <p style="margin: 0 0 12px; font-size: 13px; line-height: 1.6; opacity: 0.95;">
+                                            Cette fonctionnalité analyse des données RH pour prédire les risques de départ. Toutes les données sont traitées dans le navigateur (localStorage), aucune transmission externe. 
+                                            Les scores sont calculés de manière <strong>transparente</strong> et <strong>explicable</strong>.
+                                        </p>
+                                        <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                                            <span style="background: rgba(255,255,255,0.2); padding: 6px 12px; border-radius: 6px; font-size: 11px; font-weight: 600;">✓ Données minimisées</span>
+                                            <span style="background: rgba(255,255,255,0.2); padding: 6px 12px; border-radius: 6px; font-size: 11px; font-weight: 600;">✓ Explicabilité totale</span>
+                                            <span style="background: rgba(255,255,255,0.2); padding: 6px 12px; border-radius: 6px; font-size: 11px; font-weight: 600;">✓ Pas de surveillance</span>
+                                            <span style="background: rgba(255,255,255,0.2); padding: 6px 12px; border-radius: 6px; font-size: 11px; font-weight: 600;">✓ Consentement requis</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Stats Cards -->
+                            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; margin-bottom: 32px;">
+                                <div style="background: linear-gradient(135deg, #EF4444, #DC2626); border-radius: 16px; padding: 24px; color: white;">
+                                    <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 16px;">
+                                        <div>
+                                            <p style="margin: 0 0 8px; opacity: 0.9; font-size: 13px; font-weight: 600;">Risque Élevé</p>
+                                            <h3 id="highRiskCount" style="margin: 0; font-size: 32px; font-weight: 700;">0</h3>
+                                        </div>
+                                        <div style="width: 48px; height: 48px; background: rgba(255,255,255,0.2); border-radius: 12px; display: flex; align-items: center; justify-content: center;">
+                                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                                        </div>
+                                    </div>
+                                    <p style="margin: 0; font-size: 12px; opacity: 0.85;">Score ≥ 70% - Action immédiate</p>
+                                </div>
+                                
+                                <div style="background: white; border-radius: 16px; padding: 24px; border: 2px solid #e5e7eb;">
+                                    <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 16px;">
+                                        <div>
+                                            <p style="margin: 0 0 8px; color: #6b7280; font-size: 13px; font-weight: 600;">Risque Moyen</p>
+                                            <h3 id="mediumRiskCount" style="margin: 0; font-size: 32px; font-weight: 700; color: #1a1a1a;">0</h3>
+                                        </div>
+                                        <div style="width: 48px; height: 48px; background: #FEF3C7; border-radius: 12px; display: flex; align-items: center; justify-content: center;">
+                                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#F59E0B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                                        </div>
+                                    </div>
+                                    <p style="margin: 0; font-size: 12px; color: #6b7280;">Score 40-69% - Surveillance</p>
+                                </div>
+                                
+                                <div style="background: white; border-radius: 16px; padding: 24px; border: 2px solid #e5e7eb;">
+                                    <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 16px;">
+                                        <div>
+                                            <p style="margin: 0 0 8px; color: #6b7280; font-size: 13px; font-weight: 600;">Risque Faible</p>
+                                            <h3 id="lowRiskCount" style="margin: 0; font-size: 32px; font-weight: 700; color: #10b981;">0</h3>
+                                        </div>
+                                        <div style="width: 48px; height: 48px; background: #D1FAE5; border-radius: 12px; display: flex; align-items: center; justify-content: center;">
+                                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                                        </div>
+                                    </div>
+                                    <p style="margin: 0; font-size: 12px; color: #6b7280;">Score < 40% - Stable</p>
+                                </div>
+                            </div>
+                            
+                            <!-- Actions Bar -->
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; flex-wrap: wrap; gap: 16px;">
+                                <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+                                    <button onclick="analyzeTurnoverRisks()" style="padding: 12px 24px; background: #EF4444; border: none; border-radius: 10px; color: white; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 8px; transition: all 0.2s;" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 12px rgba(239,68,68,0.4)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='none'">
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                                        Analyser les Risques
+                                    </button>
+                                    
+                                    <select id="turnoverRiskFilter" onchange="filterTurnoverList()" style="padding: 12px 16px; border: 2px solid #e5e7eb; border-radius: 10px; font-size: 14px; font-weight: 600; cursor: pointer; background: white;">
+                                        <option value="">Tous les niveaux</option>
+                                        <option value="high">🔴 Risque élevé</option>
+                                        <option value="medium">🟡 Risque moyen</option>
+                                        <option value="low">🟢 Risque faible</option>
+                                    </select>
+                                </div>
+                                
+                                <button onclick="showRGPDSettings()" style="padding: 12px 16px; background: #3B82F6; border: none; border-radius: 10px; color: white; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 8px; font-size: 13px;">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                                    Paramètres RGPD
+                                </button>
+                            </div>
+                            
+                            <!-- Turnover Risk List -->
+                            <div id="turnoverListContainer" style="display: grid; gap: 16px;">
+                                <!-- Risk cards dynamiques -->
+                            </div>
+                            
+                            <!-- Empty State -->
+                            <div id="turnoverEmptyState" style="text-align: center; padding: 60px 20px;">
+                                <div style="width: 80px; height: 80px; background: rgba(239,68,68,0.1); border-radius: 20px; display: flex; align-items: center; justify-content: center; margin: 0 auto 16px;">
+                                    <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#EF4444" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                                </div>
+                                <h3 style="margin: 0 0 8px; font-size: 18px; font-weight: 600; color: #1a1a1a;">Aucune analyse disponible</h3>
+                                <p style="margin: 0 0 16px; font-size: 14px; color: #6b7280;">Cliquez sur "Analyser les Risques" pour générer les prédictions</p>
+                                <p style="margin: 0; font-size: 12px; color: #6b7280; max-width: 500px; margin: 0 auto;">
+                                    ⚠️ L'analyse nécessite des données d'employés, congés et évaluations
+                                </p>
+                            </div>
+                        </div>
                     </div>
                     
                     <!-- HR AI Chat Panel -->
@@ -6696,6 +6810,8 @@
                 initializeLeavesData();
             } else if (tabName === 'reviews') {
                 initializeReviewsData();
+            } else if (tabName === 'turnover') {
+                initializeTurnoverData();
             }
         }
         
@@ -9270,6 +9386,529 @@ RÈGLES:
             renderReviewsList(reviews);
             updateReviewStats(reviews);
         }
+        
+        // ========== TURNOVER PREDICTION ==========
+        
+        function initializeTurnoverData() {
+            const analyses = JSON.parse(localStorage.getItem('turnoverAnalyses') || '[]');
+            if (analyses.length > 0) {
+                renderTurnoverList(analyses);
+                updateTurnoverStats(analyses);
+            }
+        }
+        
+        function analyzeTurnoverRisks() {
+            const employees = JSON.parse(localStorage.getItem('hrEmployees') || '[]');
+            
+            if (employees.length === 0) {
+                showToast('Aucun employé à analyser', 'warning');
+                return;
+            }
+            
+            const leaves = JSON.parse(localStorage.getItem('hrLeaves') || '[]');
+            const reviews = JSON.parse(localStorage.getItem('hrReviews') || '[]');
+            const payrolls = JSON.parse(localStorage.getItem('hrPayrolls') || '[]');
+            
+            const analyses = employees.map(emp => calculateTurnoverRisk(emp, leaves, reviews, payrolls));
+            
+            localStorage.setItem('turnoverAnalyses', JSON.stringify(analyses));
+            
+            renderTurnoverList(analyses);
+            updateTurnoverStats(analyses);
+            
+            showToast('Analyse terminée - ' + analyses.length + ' employés analysés', 'success');
+        }
+        
+        function calculateTurnoverRisk(employee, allLeaves, allReviews, allPayrolls) {
+            let riskScore = 0;
+            const factors = [];
+            
+            // 1. DONNÉES PROFESSIONNELLES
+            
+            // Ancienneté (20% du score)
+            const hireDate = new Date(employee.hireDate || Date.now());
+            const monthsWorked = (Date.now() - hireDate) / (1000 * 60 * 60 * 24 * 30);
+            
+            if (monthsWorked < 6) {
+                riskScore += 20;
+                factors.push({ name: 'Ancienneté < 6 mois', impact: 20, category: 'professional' });
+            } else if (monthsWorked >= 12 && monthsWorked < 24) {
+                riskScore += 10;
+                factors.push({ name: 'Ancienneté 1-2 ans (période critique)', impact: 10, category: 'professional' });
+            }
+            
+            // Salaire & évolutions (15% du score)
+            const empPayrolls = allPayrolls.filter(p => p.employeeId === employee.id);
+            if (empPayrolls.length >= 2) {
+                const firstPay = empPayrolls[0].netSalary;
+                const lastPay = empPayrolls[empPayrolls.length - 1].netSalary;
+                const increase = ((lastPay - firstPay) / firstPay) * 100;
+                
+                if (increase < 5 && monthsWorked > 12) {
+                    riskScore += 15;
+                    factors.push({ name: 'Aucune augmentation significative', impact: 15, category: 'professional' });
+                }
+            }
+            
+            // 2. DONNÉES COMPORTEMENTALES
+            
+            // Absentéisme (20% du score)
+            const empLeaves = allLeaves.filter(l => l.employeeId === employee.id && l.status === 'approved');
+            const absenceDays = empLeaves.reduce((sum, l) => {
+                const start = new Date(l.startDate);
+                const end = new Date(l.endDate);
+                return sum + Math.ceil((end - start) / (1000 * 60 * 60 * 24)) + 1;
+            }, 0);
+            
+            if (absenceDays > 30 && monthsWorked > 6) {
+                riskScore += 20;
+                factors.push({ name: 'Absentéisme élevé (' + absenceDays + ' jours)', impact: 20, category: 'behavioral' });
+            } else if (absenceDays > 15 && monthsWorked > 6) {
+                riskScore += 10;
+                factors.push({ name: 'Absentéisme modéré (' + absenceDays + ' jours)', impact: 10, category: 'behavioral' });
+            }
+            
+            // Baisse de performance (25% du score)
+            const empReviews = allReviews.filter(r => r.employeeId === employee.id).sort((a, b) => new Date(b.date) - new Date(a.date));
+            if (empReviews.length >= 2) {
+                const latestReview = empReviews[0];
+                const previousReview = empReviews[1];
+                
+                if (latestReview.overallRating < previousReview.overallRating) {
+                    const drop = previousReview.overallRating - latestReview.overallRating;
+                    if (drop >= 1) {
+                        riskScore += 25;
+                        factors.push({ name: 'Baisse de performance significative', impact: 25, category: 'behavioral' });
+                    } else if (drop >= 0.5) {
+                        riskScore += 15;
+                        factors.push({ name: 'Légère baisse de performance', impact: 15, category: 'behavioral' });
+                    }
+                }
+                
+                if (latestReview.overallRating < 3) {
+                    riskScore += 20;
+                    factors.push({ name: 'Performance insatisfaisante', impact: 20, category: 'behavioral' });
+                }
+            } else if (empReviews.length === 1 && empReviews[0].overallRating < 3) {
+                riskScore += 15;
+                factors.push({ name: 'Évaluation médiocre', impact: 15, category: 'behavioral' });
+            }
+            
+            // 3. DONNÉES CONTEXTUELLES
+            
+            // Pas de promotion/évolution (10% du score)
+            if (monthsWorked > 24 && empReviews.filter(r => r.overallRating >= 4).length > 0) {
+                riskScore += 10;
+                factors.push({ name: 'Pas de promotion malgré bonne performance', impact: 10, category: 'contextual' });
+            }
+            
+            // Charge de travail (10% du score - basé sur heures sup)
+            const recentPayrolls = empPayrolls.slice(-3);
+            const avgOvertime = recentPayrolls.reduce((sum, p) => sum + (p.overtime || 0), 0) / Math.max(recentPayrolls.length, 1);
+            if (avgOvertime > 15) {
+                riskScore += 10;
+                factors.push({ name: 'Surcharge de travail (' + Math.round(avgOvertime) + 'h sup/mois)', impact: 10, category: 'contextual' });
+            }
+            
+            // Limite le score à 100
+            riskScore = Math.min(riskScore, 100);
+            
+            // Déterminer le niveau de risque
+            let riskLevel = 'low';
+            if (riskScore >= 70) riskLevel = 'high';
+            else if (riskScore >= 40) riskLevel = 'medium';
+            
+            // Suggestions d'actions
+            const suggestedActions = generateSuggestedActions(riskLevel, factors, employee);
+            
+            return {
+                employeeId: employee.id,
+                riskScore,
+                riskLevel,
+                factors,
+                suggestedActions,
+                analyzedAt: Date.now()
+            };
+        }
+        
+        function generateSuggestedActions(riskLevel, factors, employee) {
+            const actions = [];
+            
+            if (riskLevel === 'high' || riskLevel === 'medium') {
+                actions.push({
+                    type: 'interview',
+                    priority: 'high',
+                    title: 'Entretien RH préventif',
+                    description: 'Organiser un entretien individuel pour comprendre les préoccupations et besoins'
+                });
+            }
+            
+            const hasPerformanceIssue = factors.some(f => f.name.includes('performance') || f.name.includes('Performance'));
+            if (hasPerformanceIssue) {
+                actions.push({
+                    type: 'training',
+                    priority: 'medium',
+                    title: 'Proposition de formation',
+                    description: 'Offrir une formation ciblée pour développer les compétences'
+                });
+            }
+            
+            const hasSalaryIssue = factors.some(f => f.name.includes('augmentation') || f.name.includes('Salaire'));
+            if (hasSalaryIssue) {
+                actions.push({
+                    type: 'salary',
+                    priority: 'high',
+                    title: 'Ajustement de salaire',
+                    description: 'Réviser la rémunération selon le marché et les performances'
+                });
+            }
+            
+            const hasPromotionIssue = factors.some(f => f.name.includes('promotion'));
+            if (hasPromotionIssue) {
+                actions.push({
+                    type: 'career',
+                    priority: 'high',
+                    title: 'Plan de carrière personnalisé',
+                    description: 'Définir un plan d\'évolution avec objectifs clairs et échéances'
+                });
+            }
+            
+            const hasWorkloadIssue = factors.some(f => f.name.includes('Surcharge'));
+            if (hasWorkloadIssue) {
+                actions.push({
+                    type: 'team',
+                    priority: 'medium',
+                    title: 'Rééquilibrage de la charge',
+                    description: 'Redistribuer les tâches ou renforcer l\'équipe'
+                });
+            }
+            
+            if (riskLevel === 'high' && actions.length < 2) {
+                actions.push({
+                    type: 'team',
+                    priority: 'medium',
+                    title: 'Changement d\'équipe / manager',
+                    description: 'Envisager une mobilité interne pour un nouveau départ'
+                });
+            }
+            
+            return actions;
+        }
+        
+        function renderTurnoverList(analyses = null) {
+            if (!analyses) {
+                analyses = JSON.parse(localStorage.getItem('turnoverAnalyses') || '[]');
+            }
+            
+            const container = document.getElementById('turnoverListContainer');
+            const emptyState = document.getElementById('turnoverEmptyState');
+            
+            if (!container) return;
+            
+            if (analyses.length === 0) {
+                container.style.display = 'none';
+                if (emptyState) emptyState.style.display = 'block';
+                return;
+            }
+            
+            container.style.display = 'grid';
+            if (emptyState) emptyState.style.display = 'none';
+            
+            const employees = JSON.parse(localStorage.getItem('hrEmployees') || '[]');
+            
+            // Trier par score de risque décroissant
+            analyses.sort((a, b) => b.riskScore - a.riskScore);
+            
+            container.innerHTML = analyses.map(analysis => {
+                const employee = employees.find(e => e.id === analysis.employeeId);
+                if (!employee) return '';
+                
+                const riskColor = analysis.riskLevel === 'high' ? '#EF4444' :
+                                 analysis.riskLevel === 'medium' ? '#F59E0B' : '#10b981';
+                
+                const riskBg = analysis.riskLevel === 'high' ? '#FEE2E2' :
+                              analysis.riskLevel === 'medium' ? '#FEF3C7' : '#D1FAE5';
+                
+                const riskLabel = analysis.riskLevel === 'high' ? '🔴 RISQUE ÉLEVÉ' :
+                                 analysis.riskLevel === 'medium' ? '🟡 RISQUE MOYEN' : '🟢 RISQUE FAIBLE';
+                
+                return `
+                    <div style="background: white; border-radius: 16px; padding: 24px; border: 2px solid ${riskColor === '#EF4444' ? riskColor : '#e5e7eb'}; transition: all 0.2s; cursor: pointer;" onclick="viewTurnoverDetails('${analysis.employeeId}')">
+                        <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 16px;">
+                            <div style="display: flex; gap: 12px; align-items: center; flex: 1;">
+                                ${employee.photo ? 
+                                    `<img src="${employee.photo}" style="width: 48px; height: 48px; border-radius: 12px; object-fit: cover;">` :
+                                    `<div style="width: 48px; height: 48px; background: linear-gradient(135deg, ${riskColor}, ${riskColor}CC); border-radius: 12px; display: flex; align-items: center; justify-content: center; color: white; font-weight: 700; font-size: 18px;">
+                                        ${employee.firstName.charAt(0)}${employee.lastName.charAt(0)}
+                                    </div>`
+                                }
+                                <div style="flex: 1;">
+                                    <h4 style="margin: 0 0 4px; font-size: 16px; font-weight: 700; color: #1a1a1a;">${employee.firstName} ${employee.lastName}</h4>
+                                    <p style="margin: 0; font-size: 13px; color: #6b7280;">${employee.position || 'Employé'}</p>
+                                </div>
+                            </div>
+                            
+                            <div style="text-align: right;">
+                                <div style="background: ${riskBg}; padding: 6px 12px; border-radius: 8px; font-size: 11px; font-weight: 700; color: ${riskColor}; margin-bottom: 8px;">
+                                    ${riskLabel}
+                                </div>
+                                <div style="font-size: 32px; font-weight: 700; color: ${riskColor};">${analysis.riskScore}%</div>
+                            </div>
+                        </div>
+                        
+                        <div style="background: #f9fafb; border-radius: 12px; padding: 16px; margin-bottom: 16px;">
+                            <h5 style="margin: 0 0 12px; font-size: 13px; font-weight: 700; color: #1a1a1a;">📊 Facteurs de risque (${analysis.factors.length})</h5>
+                            ${analysis.factors.slice(0, 3).map(factor => `
+                                <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid #e5e7eb;">
+                                    <span style="font-size: 12px; color: #6b7280;">${factor.name}</span>
+                                    <span style="font-size: 12px; font-weight: 700; color: ${riskColor};">+${factor.impact}%</span>
+                                </div>
+                            `).join('')}
+                            ${analysis.factors.length > 3 ? `
+                                <div style="text-align: center; padding-top: 8px;">
+                                    <span style="font-size: 11px; color: #6b7280;">+${analysis.factors.length - 3} autres facteurs...</span>
+                                </div>
+                            ` : ''}
+                        </div>
+                        
+                        <div>
+                            <h5 style="margin: 0 0 12px; font-size: 13px; font-weight: 700; color: #1a1a1a;">💡 Actions recommandées (${analysis.suggestedActions.length})</h5>
+                            <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                                ${analysis.suggestedActions.map(action => `
+                                    <span style="background: ${action.priority === 'high' ? '#FEE2E2' : '#E0E7FF'}; color: ${action.priority === 'high' ? '#DC2626' : '#4F46E5'}; padding: 6px 12px; border-radius: 6px; font-size: 11px; font-weight: 600;">
+                                        ${action.title}
+                                    </span>
+                                `).join('')}
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+        
+        function updateTurnoverStats(analyses) {
+            const highRisk = analyses.filter(a => a.riskLevel === 'high').length;
+            const mediumRisk = analyses.filter(a => a.riskLevel === 'medium').length;
+            const lowRisk = analyses.filter(a => a.riskLevel === 'low').length;
+            
+            const highRiskEl = document.getElementById('highRiskCount');
+            const mediumRiskEl = document.getElementById('mediumRiskCount');
+            const lowRiskEl = document.getElementById('lowRiskCount');
+            
+            if (highRiskEl) highRiskEl.textContent = highRisk;
+            if (mediumRiskEl) mediumRiskEl.textContent = mediumRisk;
+            if (lowRiskEl) lowRiskEl.textContent = lowRisk;
+        }
+        
+        function filterTurnoverList() {
+            const filter = document.getElementById('turnoverRiskFilter')?.value || '';
+            let analyses = JSON.parse(localStorage.getItem('turnoverAnalyses') || '[]');
+            
+            if (filter) {
+                analyses = analyses.filter(a => a.riskLevel === filter);
+            }
+            
+            renderTurnoverList(analyses);
+        }
+        
+        function viewTurnoverDetails(employeeId) {
+            const analyses = JSON.parse(localStorage.getItem('turnoverAnalyses') || '[]');
+            const analysis = analyses.find(a => a.employeeId === employeeId);
+            const employees = JSON.parse(localStorage.getItem('hrEmployees') || '[]');
+            const employee = employees.find(e => e.id === employeeId);
+            
+            if (!analysis || !employee) return;
+            
+            const riskColor = analysis.riskLevel === 'high' ? '#EF4444' :
+                             analysis.riskLevel === 'medium' ? '#F59E0B' : '#10b981';
+            
+            const modal = document.createElement('div');
+            modal.style.cssText = 'position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 10004; animation: fadeIn 0.3s ease; overflow-y: auto; padding: 20px;';
+            
+            modal.innerHTML = `
+                <div style="background: white; border-radius: 20px; padding: 40px; max-width: 900px; width: 100%; max-height: 90vh; overflow-y: auto; animation: slideIn 0.3s ease;">
+                    <div style="text-align: center; margin-bottom: 32px;">
+                        <h2 style="margin: 0 0 8px; font-size: 28px; font-weight: 700; color: #1a1a1a;">🚨 Analyse de Risque de Turnover</h2>
+                        <p style="margin: 0; font-size: 14px; color: #6b7280;">Analyse conforme RGPD - Données explicables et transparentes</p>
+                    </div>
+                    
+                    <div style="background: linear-gradient(135deg, ${riskColor}, ${riskColor}DD); border-radius: 16px; padding: 24px; margin-bottom: 24px; color: white;">
+                        <div style="display: flex; align-items: center; gap: 16px; margin-bottom: 16px;">
+                            ${employee.photo ? 
+                                `<img src="${employee.photo}" style="width: 72px; height: 72px; border-radius: 12px; object-fit: cover; border: 3px solid rgba(255,255,255,0.3);">` :
+                                `<div style="width: 72px; height: 72px; background: rgba(255,255,255,0.2); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 28px; border: 3px solid rgba(255,255,255,0.3);">
+                                    ${employee.firstName.charAt(0)}${employee.lastName.charAt(0)}
+                                </div>`
+                            }
+                            <div style="flex: 1;">
+                                <h3 style="margin: 0 0 4px; font-size: 20px; font-weight: 700;">${employee.firstName} ${employee.lastName}</h3>
+                                <p style="margin: 0; font-size: 14px; opacity: 0.9;">${employee.position || 'Employé'}</p>
+                            </div>
+                            <div style="text-align: center;">
+                                <div style="font-size: 48px; font-weight: 700; margin-bottom: 4px;">${analysis.riskScore}%</div>
+                                <div style="font-size: 12px; opacity: 0.9;">Score de risque</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Facteurs de risque détaillés -->
+                    <div style="background: #f9fafb; border-radius: 16px; padding: 24px; margin-bottom: 24px;">
+                        <h3 style="margin: 0 0 16px; font-size: 18px; font-weight: 700; color: #1a1a1a;">📊 Facteurs de risque identifiés (${analysis.factors.length})</h3>
+                        
+                        ${['professional', 'behavioral', 'contextual'].map(category => {
+                            const categoryFactors = analysis.factors.filter(f => f.category === category);
+                            if (categoryFactors.length === 0) return '';
+                            
+                            const categoryName = category === 'professional' ? '💼 Professionnels' :
+                                               category === 'behavioral' ? '🧠 Comportementaux' : '🗂️ Contextuels';
+                            
+                            return `
+                                <div style="margin-bottom: 20px;">
+                                    <h4 style="margin: 0 0 12px; font-size: 14px; font-weight: 700; color: #6b7280;">${categoryName}</h4>
+                                    ${categoryFactors.map(factor => `
+                                        <div style="background: white; border-radius: 8px; padding: 12px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; border-left: 3px solid ${riskColor};">
+                                            <span style="font-size: 13px; color: #1a1a1a; font-weight: 600;">${factor.name}</span>
+                                            <span style="background: ${riskColor}15; color: ${riskColor}; padding: 4px 12px; border-radius: 6px; font-size: 12px; font-weight: 700;">+${factor.impact}%</span>
+                                        </div>
+                                    `).join('')}
+                                </div>
+                            `;
+                        }).join('')}
+                        
+                        <div style="background: ${riskColor}15; border-radius: 8px; padding: 12px; border-left: 3px solid ${riskColor};">
+                            <p style="margin: 0; font-size: 12px; color: #6b7280; line-height: 1.6;">
+                                ℹ️ <strong>Explicabilité RGPD:</strong> Le score est calculé en additionnant les impacts de chaque facteur identifié. 
+                                Les critères sont basés uniquement sur des données professionnelles objectives (ancienneté, évaluations, congés, salaire).
+                                Aucune donnée personnelle sensible n'est utilisée.
+                            </p>
+                        </div>
+                    </div>
+                    
+                    <!-- Actions recommandées -->
+                    <div style="background: #E0E7FF; border-radius: 16px; padding: 24px; margin-bottom: 24px;">
+                        <h3 style="margin: 0 0 16px; font-size: 18px; font-weight: 700; color: #3730A3;">💡 Actions préventives recommandées</h3>
+                        ${analysis.suggestedActions.map(action => `
+                            <div style="background: white; border-radius: 12px; padding: 16px; margin-bottom: 12px; border-left: 4px solid ${action.priority === 'high' ? '#EF4444' : '#6366F1'};">
+                                <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 8px;">
+                                    <h4 style="margin: 0; font-size: 14px; font-weight: 700; color: #1a1a1a;">${action.title}</h4>
+                                    <span style="background: ${action.priority === 'high' ? '#FEE2E2' : '#E0E7FF'}; color: ${action.priority === 'high' ? '#DC2626' : '#4F46E5'}; padding: 4px 8px; border-radius: 4px; font-size: 10px; font-weight: 700;">
+                                        ${action.priority === 'high' ? '⚠️ PRIORITAIRE' : 'Recommandé'}
+                                    </span>
+                                </div>
+                                <p style="margin: 0; font-size: 12px; color: #6b7280; line-height: 1.5;">${action.description}</p>
+                            </div>
+                        `).join('')}
+                    </div>
+                    
+                    <div style="background: #f9fafb; border-radius: 12px; padding: 16px; margin-bottom: 24px; border: 1px solid #e5e7eb;">
+                        <p style="margin: 0; font-size: 11px; color: #6b7280; line-height: 1.6;">
+                            📅 Analyse effectuée le ${new Date(analysis.analyzedAt).toLocaleString('fr-FR')}<br>
+                            🔒 Ces données sont confidentielles et accessibles uniquement aux RH autorisés<br>
+                            ⚖️ Conformité RGPD: Base légale = Intérêt légitime de l'employeur (gestion RH)
+                        </p>
+                    </div>
+                    
+                    <button onclick="this.parentElement.parentElement.remove()" style="width: 100%; padding: 14px; background: #6366F1; color: white; border: none; border-radius: 12px; font-size: 16px; font-weight: 600; cursor: pointer; transition: all 0.2s;" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 16px rgba(99,102,241,0.4)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='none'">
+                        Fermer
+                    </button>
+                </div>
+            `;
+            
+            document.body.appendChild(modal);
+            modal.onclick = (e) => {
+                if (e.target === modal) modal.remove();
+            };
+        }
+        
+        function showRGPDSettings() {
+            const modal = document.createElement('div');
+            modal.style.cssText = 'position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 10005; animation: fadeIn 0.3s ease; overflow-y: auto; padding: 20px;';
+            
+            modal.innerHTML = `
+                <div style="background: white; border-radius: 20px; padding: 32px; max-width: 700px; width: 100%; max-height: 90vh; overflow-y: auto; animation: slideIn 0.3s ease;">
+                    <div style="margin-bottom: 24px;">
+                        <h2 style="margin: 0 0 8px; font-size: 24px; font-weight: 700; color: #1a1a1a;">🔒 Paramètres RGPD - Turnover Prediction</h2>
+                        <p style="margin: 0; font-size: 14px; color: #6b7280;">Protection des données personnelles et conformité réglementaire</p>
+                    </div>
+                    
+                    <div style="background: #EFF6FF; border-radius: 12px; padding: 20px; margin-bottom: 24px; border-left: 4px solid #3B82F6;">
+                        <h3 style="margin: 0 0 12px; font-size: 16px; font-weight: 700; color: #1E40AF;">📋 Informations sur le traitement</h3>
+                        <div style="font-size: 13px; color: #1E40AF; line-height: 1.8;">
+                            <p style="margin: 0 0 8px;"><strong>Finalité:</strong> Prévention des départs non souhaités et amélioration de la rétention</p>
+                            <p style="margin: 0 0 8px;"><strong>Base légale:</strong> Intérêt légitime de l'employeur (gestion RH)</p>
+                            <p style="margin: 0 0 8px;"><strong>Données traitées:</strong> Ancienneté, évaluations, congés, salaire (données professionnelles uniquement)</p>
+                            <p style="margin: 0 0 8px;"><strong>Durée de conservation:</strong> Durée du contrat + 1 an</p>
+                            <p style="margin: 0;"><strong>Stockage:</strong> Local (navigateur) - Aucune transmission externe</p>
+                        </div>
+                    </div>
+                    
+                    <div style="background: #F9FAFB; border-radius: 12px; padding: 20px; margin-bottom: 24px;">
+                        <h3 style="margin: 0 0 16px; font-size: 16px; font-weight: 700; color: #1a1a1a;">✓ Principes respectés</h3>
+                        <div style="display: grid; gap: 12px;">
+                            <div style="display: flex; gap: 12px; align-items: start;">
+                                <div style="width: 24px; height: 24px; background: #10b981; border-radius: 6px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                                </div>
+                                <div>
+                                    <div style="font-size: 13px; font-weight: 700; color: #1a1a1a; margin-bottom: 4px;">Minimisation des données</div>
+                                    <div style="font-size: 12px; color: #6b7280;">Seules les données strictement nécessaires sont analysées</div>
+                                </div>
+                            </div>
+                            <div style="display: flex; gap: 12px; align-items: start;">
+                                <div style="width: 24px; height: 24px; background: #10b981; border-radius: 6px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                                </div>
+                                <div>
+                                    <div style="font-size: 13px; font-weight: 700; color: #1a1a1a; margin-bottom: 4px;">Explicabilité totale</div>
+                                    <div style="font-size: 12px; color: #6b7280;">Chaque score affiche les facteurs et leur pondération exacte</div>
+                                </div>
+                            </div>
+                            <div style="display: flex; gap: 12px; align-items: start;">
+                                <div style="width: 24px; height: 24px; background: #10b981; border-radius: 6px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                                </div>
+                                <div>
+                                    <div style="font-size: 13px; font-weight: 700; color: #1a1a1a; margin-bottom: 4px;">Pas de surveillance intrusive</div>
+                                    <div style="font-size: 12px; color: #6b7280;">Pas de monitoring continu, seulement analyse ponctuelle sur demande</div>
+                                </div>
+                            </div>
+                            <div style="display: flex; gap: 12px; align-items: start;">
+                                <div style="width: 24px; height: 24px; background: #10b981; border-radius: 6px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                                </div>
+                                <div>
+                                    <div style="font-size: 13px; font-weight: 700; color: #1a1a1a; margin-bottom: 4px;">Contrôle d'accès RH uniquement</div>
+                                    <div style="font-size: 12px; color: #6b7280;">Accès limité aux personnes autorisées du service RH</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div style="background: #FEF3C7; border-radius: 12px; padding: 20px; margin-bottom: 24px; border-left: 4px solid #F59E0B;">
+                        <h3 style="margin: 0 0 12px; font-size: 14px; font-weight: 700; color: #92400E;">⚠️ Droits des employés</h3>
+                        <div style="font-size: 12px; color: #92400E; line-height: 1.7;">
+                            Les employés disposent des droits suivants concernant leurs données:<br>
+                            • Droit d'accès à leur score et facteurs<br>
+                            • Droit de rectification des données erronées<br>
+                            • Droit d'opposition au traitement<br>
+                            • Droit à l'effacement (sous conditions)<br>
+                            • Droit de recours auprès de la CNIL
+                        </div>
+                    </div>
+                    
+                    <button onclick="this.parentElement.parentElement.remove()" style="width: 100%; padding: 14px; background: #3B82F6; color: white; border: none; border-radius: 12px; font-size: 16px; font-weight: 600; cursor: pointer; transition: all 0.2s;" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 16px rgba(59,130,246,0.4)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='none'">
+                        J'ai compris
+                    </button>
+                </div>
+            `;
+            
+            document.body.appendChild(modal);
+            modal.onclick = (e) => {
+                if (e.target === modal) modal.remove();
+            };
+        }
+        
+        // ========== FIN TURNOVER PREDICTION ==========
         
         // ========== FIN PERFORMANCE REVIEWS ==========
         
