@@ -7389,11 +7389,19 @@
             try {
                 const endpoint = getEndpoint();
                 
-                // Obtenir les données RH actuelles pour le contexte
+                // ========== RÉCUPÉRATION DE TOUTES LES DONNÉES RH ==========
                 const employees = JSON.parse(localStorage.getItem('hrEmployees') || '[]');
                 const companySettings = JSON.parse(localStorage.getItem('companySettings') || '{}');
+                const leaves = JSON.parse(localStorage.getItem('hrLeaves') || '[]');
+                const payrolls = JSON.parse(localStorage.getItem('hrPayrolls') || '[]');
+                const reviews = JSON.parse(localStorage.getItem('hrReviews') || '[]');
+                const turnoverAnalyses = JSON.parse(localStorage.getItem('turnoverAnalyses') || '[]');
+                const recruitmentJobs = JSON.parse(localStorage.getItem('recruitmentJobs') || '[]');
+                const recruitmentCandidates = JSON.parse(localStorage.getItem('recruitmentCandidates') || '[]');
                 
-                // Construire les informations de l'entreprise
+                const currency = companySettings.currency || 'DA';
+                
+                // ========== INFORMATIONS ENTREPRISE ==========
                 const companyInfo = companySettings.companyName ? `
 INFORMATIONS DE L'ENTREPRISE :
 - Nom: ${companySettings.companyName}
@@ -7401,45 +7409,176 @@ INFORMATIONS DE L'ENTREPRISE :
 - Adresse: ${companySettings.address || 'Non spécifiée'}
 - Téléphone: ${companySettings.phone || 'Non spécifié'}
 - Email: ${companySettings.email || 'Non spécifié'}
-- Devise: ${companySettings.currency || 'DA'}
+- Devise: ${currency}
 - Numéro d'enregistrement: ${companySettings.registrationNumber || 'Non spécifié'}
 ` : 'Les informations de l\'entreprise n\'ont pas encore été configurées.';
                 
-                // Construire une liste détaillée des employés
-                const currency = companySettings.currency || 'DA';
+                // ========== STATISTIQUES GLOBALES ==========
+                const activeEmployees = employees.filter(e => e.status === 'active');
+                const pendingLeaves = leaves.filter(l => l.status === 'pending');
+                const approvedLeaves = leaves.filter(l => l.status === 'approved');
+                const currentMonthPayrolls = payrolls.filter(p => {
+                    const payrollDate = new Date(p.month + '-01');
+                    const now = new Date();
+                    return payrollDate.getMonth() === now.getMonth() && payrollDate.getFullYear() === now.getFullYear();
+                });
+                const highRiskTurnover = turnoverAnalyses.filter(t => t.riskLevel === 'high');
+                const mediumRiskTurnover = turnoverAnalyses.filter(t => t.riskLevel === 'medium');
+                const activeJobs = recruitmentJobs.filter(j => j.status === 'active');
+                const topCandidates = recruitmentCandidates.filter(c => c.matchScore >= 80);
+                
+                // ========== DÉTAILS EMPLOYÉS ==========
                 const employeesDetails = employees.map(emp => `
   • ${emp.firstName} ${emp.lastName}
     - Poste: ${emp.position}
     - Département: ${emp.department}
     - Email: ${emp.email}
-    - Téléphone: ${emp.phone || 'N/A'}
     - Type de contrat: ${emp.contractType}
     - Date d'embauche: ${emp.hireDate}
     - Salaire de base: ${emp.baseSalary ? emp.baseSalary + ' ' + currency : 'N/A'}
     - Statut: ${emp.status === 'active' ? 'Actif' : 'Inactif'}
 `).join('\n');
 
+                // ========== CONGÉS ==========
+                const leavesInfo = leaves.length > 0 ? `
+📅 CONGÉS & ABSENCES :
+- Total demandes : ${leaves.length}
+- En attente de validation : ${pendingLeaves.length}
+- Approuvées : ${approvedLeaves.length}
+- Rejetées : ${leaves.filter(l => l.status === 'rejected').length}
+
+${pendingLeaves.length > 0 ? `⚠️ DEMANDES EN ATTENTE (nécessitent validation) :
+${pendingLeaves.map(l => {
+    const emp = employees.find(e => e.id === l.employeeId);
+    return `  • ${emp ? emp.firstName + ' ' + emp.lastName : 'Employé inconnu'}: ${l.days} jours (${l.startDate} → ${l.endDate}) - Type: ${l.type}`;
+}).join('\n')}` : ''}
+
+${approvedLeaves.length > 0 ? `✅ Congés approuvés récents :
+${approvedLeaves.slice(-5).map(l => {
+    const emp = employees.find(e => e.id === l.employeeId);
+    return `  • ${emp ? emp.firstName + ' ' + emp.lastName : 'Employé inconnu'}: ${l.days} jours (${l.startDate} → ${l.endDate})`;
+}).join('\n')}` : ''}
+` : '📅 CONGÉS : Aucune demande de congé pour le moment.';
+
+                // ========== PAIES ==========
+                const totalPayroll = currentMonthPayrolls.reduce((sum, p) => sum + (p.netSalary || 0), 0);
+                const payrollsInfo = payrolls.length > 0 ? `
+💰 PAIE & RÉMUNÉRATION :
+- Total bulletins générés : ${payrolls.length}
+- Bulletins du mois en cours : ${currentMonthPayrolls.length}
+- Budget paie mensuel actuel : ${totalPayroll.toLocaleString()} ${currency}
+- Masse salariale annuelle estimée : ${(totalPayroll * 12).toLocaleString()} ${currency}
+
+${currentMonthPayrolls.length > 0 ? `📊 Détails paies du mois :
+${currentMonthPayrolls.map(p => {
+    const emp = employees.find(e => e.id === p.employeeId);
+    return `  • ${emp ? emp.firstName + ' ' + emp.lastName : 'Employé inconnu'}: ${p.netSalary} ${currency} (Brut: ${p.grossSalary} ${currency})`;
+}).join('\n')}` : ''}
+` : '💰 PAIE : Aucun bulletin de paie généré pour le moment.';
+
+                // ========== ÉVALUATIONS ==========
+                const avgPerformance = reviews.length > 0 
+                    ? (reviews.reduce((sum, r) => sum + r.overallScore, 0) / reviews.length).toFixed(1) 
+                    : 'N/A';
+                const reviewsInfo = reviews.length > 0 ? `
+⭐ ÉVALUATIONS DE PERFORMANCE :
+- Total évaluations : ${reviews.length}
+- Score moyen global : ${avgPerformance}/5
+- Évaluations récentes : ${reviews.filter(r => {
+    const reviewDate = new Date(r.createdAt);
+    const monthAgo = new Date();
+    monthAgo.setMonth(monthAgo.getMonth() - 1);
+    return reviewDate > monthAgo;
+}).length}
+
+${reviews.slice(-5).map(r => {
+    const emp = employees.find(e => e.id === r.employeeId);
+    return `  • ${emp ? emp.firstName + ' ' + emp.lastName : 'Employé inconnu'}: ${r.overallScore}/5 (${r.period})`;
+}).join('\n')}
+` : '⭐ ÉVALUATIONS : Aucune évaluation de performance enregistrée.';
+
+                // ========== TURNOVER & RISQUES ==========
+                const turnoverInfo = turnoverAnalyses.length > 0 ? `
+🚨 ANALYSE TURNOVER (Prédiction des départs) :
+- Employés analysés : ${turnoverAnalyses.length}
+- 🔴 Risque élevé (>70%) : ${highRiskTurnover.length} employés ⚠️
+- 🟡 Risque moyen (40-70%) : ${mediumRiskTurnover.length} employés
+- 🟢 Risque faible (<40%) : ${turnoverAnalyses.filter(t => t.riskLevel === 'low').length} employés
+
+${highRiskTurnover.length > 0 ? `⚠️ EMPLOYÉS À RISQUE CRITIQUE (action urgente recommandée) :
+${highRiskTurnover.map(t => {
+    const emp = employees.find(e => e.id === t.employeeId);
+    return `  • ${emp ? emp.firstName + ' ' + emp.lastName : 'Employé inconnu'} (${emp ? emp.department : 'N/A'}): ${t.riskScore}% de risque de départ
+    Actions suggérées: ${t.suggestedActions.slice(0, 2).join(', ')}`;
+}).join('\n')}` : ''}
+` : '🚨 TURNOVER : Aucune analyse de risque de turnover effectuée.';
+
+                // ========== RECRUTEMENT ==========
+                const recruitmentInfo = recruitmentJobs.length > 0 || recruitmentCandidates.length > 0 ? `
+👔 RECRUTEMENT & CANDIDATURES :
+- Offres actives : ${activeJobs.length}
+- CVs reçus : ${recruitmentCandidates.length}
+- Candidats excellents (>80%) : ${topCandidates.length}
+- Candidats recommandés (70-80%) : ${recruitmentCandidates.filter(c => c.matchScore >= 70 && c.matchScore < 80).length}
+
+${activeJobs.length > 0 ? `📢 Offres d'emploi ouvertes :
+${activeJobs.map(j => `  • ${j.title} (${j.location}) - ${j.department}`).join('\n')}` : ''}
+
+${topCandidates.length > 0 ? `\n⭐ Top candidats (score >80%) :
+${topCandidates.slice(0, 5).map(c => {
+    const job = recruitmentJobs.find(j => j.id === c.jobId);
+    return `  • ${c.name} pour ${job ? job.title : 'Poste supprimé'}: ${c.matchScore}% (${c.recommendation})`;
+}).join('\n')}` : ''}
+` : '👔 RECRUTEMENT : Aucune offre d\'emploi ou candidature en cours.';
+
+                // ========== CONSTRUCTION DU CONTEXTE COMPLET ==========
                 const hrContext = `
 ${companyInfo}
 
-CONTEXTE RH ACTUEL :
-- Nombre total d'employés : ${employees.length}
-- Départements actifs : ${[...new Set(employees.map(e => e.department))].join(', ') || 'Aucun'}
+📊 TABLEAU DE BORD RH GLOBAL :
+====================================
+👥 Employés actifs : ${activeEmployees.length}/${employees.length}
+📅 Congés en attente : ${pendingLeaves.length}
+💰 Budget paie mensuel : ${totalPayroll.toLocaleString()} ${currency}
+⭐ Score performance moyen : ${avgPerformance}/5
+🚨 Employés à risque élevé : ${highRiskTurnover.length}
+👔 Offres actives : ${activeJobs.length}
+📄 CVs en cours : ${recruitmentCandidates.length}
+====================================
 
-${employees.length > 0 ? 'LISTE COMPLÈTE DES EMPLOYÉS :\n' + employeesDetails : 'Aucun employé enregistré pour le moment.'}
+${employees.length > 0 ? 'LISTE COMPLÈTE DES EMPLOYÉS :\n' + employeesDetails : 'Aucun employé enregistré.'}
 
-Tu es Agent RH, un assistant RH expert. Aide l'utilisateur avec la gestion des ressources humaines, calculs de paie, congés, recrutement, évaluations, etc.
+${leavesInfo}
 
-RÈGLES:
-- Ne répète PAS ta présentation à chaque message (présente-toi uniquement au premier message)
-- Réponds de manière naturelle et conversationnelle
-- Sois direct et concis dans tes réponses
-- Fournis des informations précises basées sur les données d'employés et de l'entreprise ci-dessus
-- Tu as accès à TOUS les détails des employés listés ci-dessus
-- Tu connais TOUTES les informations de l'entreprise listées ci-dessus
-- Si l'utilisateur te parle d'un nouvel employé qu'il vient d'ajouter, vérifie dans la liste ci-dessus
-- Utilise toujours la devise de l'entreprise (${currency}) dans tes réponses concernant les salaires
+${payrollsInfo}
+
+${reviewsInfo}
+
+${turnoverInfo}
+
+${recruitmentInfo}
+
+═══════════════════════════════════
+TU ES AGENT RH - ASSISTANT IA EXPERT
+═══════════════════════════════════
+
+Tu as accès à TOUTES les données ci-dessus en temps réel. Tu peux :
+✅ Répondre sur les employés, congés, paies, évaluations, turnover, recrutement
+✅ Faire des calculs (budget, moyennes, prévisions)
+✅ Identifier les problèmes (congés en attente, risques turnover)
+✅ Suggérer des actions (valider congé, analyser turnover, contacter candidat)
+✅ Comparer des données (départements, périodes, employés)
+
+RÈGLES DE CONVERSATION :
+- Ne te présente PAS à chaque message (uniquement au 1er message)
+- Sois direct, concis et professionnel
+- Utilise les données EXACTES ci-dessus (ne pas inventer)
+- Mentionne les noms des employés quand pertinent
+- Utilise la devise ${currency} pour les montants
+- Si données manquantes, dis-le clairement
+- Suggère des actions concrètes quand approprié
 `;
+
                 
                 // Convertir l'historique au format backend
                 const historyForBackend = hrChatHistory.slice(0, -1).map(msg => ({
