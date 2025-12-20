@@ -9275,13 +9275,7 @@ Réponds de manière professionnelle, data-driven et orientée résultats.
             font-size: 12px;
         }
         .footer {
-            position: fixed;
-            bottom: 20px;
-            left: 0;
-            right: 0;
-            text-align: center;
-            font-size: 10px;
-            color: #666;
+            display: none;
         }
         .info-box {
             background: #f5f5f5;
@@ -9296,8 +9290,7 @@ Réponds de manière professionnelle, data-driven et orientée résultats.
         <div class="company-name">${company.name}</div>
         <div class="company-details">
             ${company.address} - ${company.city}<br>
-            Tél: ${company.phone} | Email: ${company.email}<br>
-            ${company.rc} | ${company.nif}
+            Tél: ${company.phone} | Email: ${company.email}
         </div>
     </div>
 
@@ -9338,13 +9331,9 @@ ${employee.birthDate ? new Date(employee.birthDate).toLocaleDateString('fr-FR', 
     </div>
 
     <div class="signature-section">
-        <div class="signature-box">
-            <div style="margin-bottom: 10px;"><strong>L'Employé(e)</strong></div>
-            <div class="signature-line">Signature et cachet</div>
-        </div>
-        <div class="signature-box">
+        <div class="signature-box" style="width: 100%; text-align: right;">
             <div style="margin-bottom: 10px;"><strong>Le Directeur</strong></div>
-            <div class="signature-line">Signature et cachet</div>
+            <div class="signature-line" style="width: 200px; margin-left: auto;">Signature et cachet</div>
         </div>
     </div>
 
