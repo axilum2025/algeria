@@ -9034,8 +9034,312 @@ Réponds de manière professionnelle, data-driven et orientée résultats.
             const employee = employees.find(e => e.id === id);
             if (!employee) return;
             
-            showToast(`👤 Détails de ${employee.firstName} ${employee.lastName}`, 'info');
-            // TODO: Implement full employee details modal
+            // Create modal
+            const modal = document.createElement('div');
+            modal.id = 'viewEmployeeModal';
+            modal.style.cssText = `
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: rgba(0, 0, 0, 0.7);
+                backdrop-filter: blur(8px);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                z-index: 10003;
+                animation: fadeIn 0.3s ease;
+            `;
+            
+            modal.innerHTML = `
+                <div style="background: linear-gradient(135deg, #0a4d3c 0%, #064e3b 50%, #1e3a8a 100%); border: 2px solid rgba(16, 185, 129, 0.3); border-radius: 24px; padding: 40px; max-width: 900px; width: 90%; max-height: 90vh; overflow-y: auto; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5); animation: slideIn 0.3s ease;">
+                    <!-- Header -->
+                    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 32px; padding-bottom: 20px; border-bottom: 1px solid rgba(16, 185, 129, 0.2);">
+                        <div style="flex: 1;">
+                            <h2 style="margin: 0 0 8px; font-size: 28px; font-weight: 700; background: linear-gradient(135deg, #10b981 0%, #06b6d4 50%, #3b82f6 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
+                                ${employee.firstName} ${employee.lastName}
+                            </h2>
+                            <p style="margin: 0; font-size: 16px; color: rgba(255, 255, 255, 0.7);">${employee.position} - ${employee.department}</p>
+                        </div>
+                        <button onclick="closeViewEmployeeModal()" style="width: 40px; height: 40px; background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 12px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.3s;" onmouseover="this.style.background='rgba(239, 68, 68, 0.2)'; this.style.borderColor='#ef4444'; this.style.transform='rotate(90deg)'" onmouseout="this.style.background='rgba(255, 255, 255, 0.1)'; this.style.borderColor='rgba(16, 185, 129, 0.3)'; this.style.transform='rotate(0)'">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                        </button>
+                    </div>
+                    
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 32px;">
+                        <!-- Informations personnelles -->
+                        <div style="background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(16, 185, 129, 0.2); border-radius: 16px; padding: 24px;">
+                            <h3 style="margin: 0 0 20px; font-size: 18px; font-weight: 600; color: #10b981;">Informations personnelles</h3>
+                            <div style="display: flex; flex-direction: column; gap: 14px;">
+                                <div>
+                                    <div style="font-size: 12px; color: rgba(255, 255, 255, 0.5); margin-bottom: 4px;">Email</div>
+                                    <div style="font-size: 15px; color: white; font-weight: 500;">${employee.email}</div>
+                                </div>
+                                <div>
+                                    <div style="font-size: 12px; color: rgba(255, 255, 255, 0.5); margin-bottom: 4px;">Téléphone</div>
+                                    <div style="font-size: 15px; color: white; font-weight: 500;">${employee.phone || 'Non renseigné'}</div>
+                                </div>
+                                <div>
+                                    <div style="font-size: 12px; color: rgba(255, 255, 255, 0.5); margin-bottom: 4px;">ID Employé</div>
+                                    <div style="font-size: 13px; color: rgba(255, 255, 255, 0.7); font-family: monospace;">${employee.id}</div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Informations professionnelles -->
+                        <div style="background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(16, 185, 129, 0.2); border-radius: 16px; padding: 24px;">
+                            <h3 style="margin: 0 0 20px; font-size: 18px; font-weight: 600; color: #06b6d4;">Informations professionnelles</h3>
+                            <div style="display: flex; flex-direction: column; gap: 14px;">
+                                <div>
+                                    <div style="font-size: 12px; color: rgba(255, 255, 255, 0.5); margin-bottom: 4px;">Département</div>
+                                    <div style="font-size: 15px; color: white; font-weight: 500;">${employee.department}</div>
+                                </div>
+                                <div>
+                                    <div style="font-size: 12px; color: rgba(255, 255, 255, 0.5); margin-bottom: 4px;">Type de contrat</div>
+                                    <div style="font-size: 15px; color: white; font-weight: 500;">${employee.contractType}</div>
+                                </div>
+                                <div>
+                                    <div style="font-size: 12px; color: rgba(255, 255, 255, 0.5); margin-bottom: 4px;">Date d'embauche</div>
+                                    <div style="font-size: 15px; color: white; font-weight: 500;">${new Date(employee.hireDate).toLocaleDateString('fr-FR')}</div>
+                                </div>
+                                <div>
+                                    <div style="font-size: 12px; color: rgba(255, 255, 255, 0.5); margin-bottom: 4px;">Ancienneté</div>
+                                    <div style="font-size: 15px; color: white; font-weight: 500;">${calculateSeniority(employee.hireDate)}</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Informations salariales -->
+                    <div style="background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(16, 185, 129, 0.2); border-radius: 16px; padding: 24px; margin-bottom: 32px;">
+                        <h3 style="margin: 0 0 20px; font-size: 18px; font-weight: 600; color: #3b82f6;">Informations salariales</h3>
+                        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px;">
+                            <div>
+                                <div style="font-size: 12px; color: rgba(255, 255, 255, 0.5); margin-bottom: 4px;">Salaire annuel</div>
+                                <div style="font-size: 20px; color: white; font-weight: 700;">${new Intl.NumberFormat('fr-DZ').format(employee.baseSalary)} DZD</div>
+                            </div>
+                            <div>
+                                <div style="font-size: 12px; color: rgba(255, 255, 255, 0.5); margin-bottom: 4px;">Salaire mensuel</div>
+                                <div style="font-size: 20px; color: white; font-weight: 700;">${new Intl.NumberFormat('fr-DZ').format(employee.baseSalary / 12)} DZD</div>
+                            </div>
+                            <div>
+                                <div style="font-size: 12px; color: rgba(255, 255, 255, 0.5); margin-bottom: 4px;">Statut</div>
+                                <div style="display: inline-block; padding: 6px 12px; background: ${employee.status === 'active' ? 'rgba(16, 185, 129, 0.2)' : 'rgba(239, 68, 68, 0.2)'}; border: 1px solid ${employee.status === 'active' ? '#10b981' : '#ef4444'}; border-radius: 8px; color: white; font-size: 13px; font-weight: 600;">
+                                    ${employee.status === 'active' ? 'Actif' : employee.status === 'onLeave' ? 'En congé' : 'Terminé'}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Action Buttons -->
+                    <div style="display: flex; gap: 12px;">
+                        <button onclick="closeViewEmployeeModal()" style="flex: 1; padding: 14px 24px; background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 12px; color: white; font-weight: 600; font-size: 15px; cursor: pointer; transition: all 0.3s;" onmouseover="this.style.background='rgba(255, 255, 255, 0.15)'; this.style.transform='translateY(-2px)'" onmouseout="this.style.background='rgba(255, 255, 255, 0.1)'; this.style.transform='translateY(0)'">
+                            Fermer
+                        </button>
+                        <button onclick="generateWorkCertificate('${employee.id}')" style="flex: 2; padding: 14px 24px; background: linear-gradient(135deg, #10b981 0%, #06b6d4 100%); border: none; border-radius: 12px; color: white; font-weight: 600; font-size: 15px; cursor: pointer; transition: all 0.3s; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3); display: flex; align-items: center; justify-content: center; gap: 8px;" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 8px 20px rgba(16, 185, 129, 0.4)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 12px rgba(16, 185, 129, 0.3)'">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/></svg>
+                            Générer une attestation de travail
+                        </button>
+                    </div>
+                </div>
+            `;
+            
+            document.body.appendChild(modal);
+        }
+        
+        function closeViewEmployeeModal() {
+            const modal = document.getElementById('viewEmployeeModal');
+            if (modal) modal.remove();
+        }
+        
+        function calculateSeniority(hireDate) {
+            const start = new Date(hireDate);
+            const now = new Date();
+            const years = now.getFullYear() - start.getFullYear();
+            const months = now.getMonth() - start.getMonth();
+            
+            let totalMonths = years * 12 + months;
+            const years_final = Math.floor(totalMonths / 12);
+            const months_final = totalMonths % 12;
+            
+            if (years_final > 0) {
+                return `${years_final} an${years_final > 1 ? 's' : ''} ${months_final > 0 ? `et ${months_final} mois` : ''}`;
+            } else {
+                return `${months_final} mois`;
+            }
+        }
+        
+        function generateWorkCertificate(employeeId) {
+            const employees = JSON.parse(localStorage.getItem('hrEmployees') || '[]');
+            const employee = employees.find(e => e.id === employeeId);
+            if (!employee) return;
+            
+            // Company information (à personnaliser selon vos besoins)
+            const company = {
+                name: 'Votre Entreprise',
+                address: 'Adresse de l\'entreprise',
+                city: 'Ville, Code Postal',
+                phone: '+213 XXX XXX XXX',
+                email: 'contact@entreprise.dz',
+                rc: 'RC N° XXXXXXXXX',
+                nif: 'NIF N° XXXXXXXXX'
+            };
+            
+            const today = new Date().toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' });
+            const hireDate = new Date(employee.hireDate).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' });
+            const seniority = calculateSeniority(employee.hireDate);
+            
+            // Create PDF content
+            const certificateContent = `
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <style>
+        @page { margin: 2cm; }
+        body {
+            font-family: 'Times New Roman', serif;
+            line-height: 1.6;
+            color: #000;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            border-bottom: 2px solid #000;
+            padding-bottom: 20px;
+        }
+        .company-name {
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        .company-details {
+            font-size: 12px;
+            color: #333;
+        }
+        .title {
+            text-align: center;
+            font-size: 20px;
+            font-weight: bold;
+            text-decoration: underline;
+            margin: 40px 0 30px 0;
+            text-transform: uppercase;
+        }
+        .content {
+            text-align: justify;
+            font-size: 14px;
+            margin: 30px 0;
+        }
+        .signature-section {
+            margin-top: 80px;
+            display: flex;
+            justify-content: space-between;
+        }
+        .signature-box {
+            text-align: center;
+            width: 45%;
+        }
+        .signature-line {
+            margin-top: 60px;
+            border-top: 1px solid #000;
+            padding-top: 5px;
+            font-size: 12px;
+        }
+        .footer {
+            position: fixed;
+            bottom: 20px;
+            left: 0;
+            right: 0;
+            text-align: center;
+            font-size: 10px;
+            color: #666;
+        }
+        .info-box {
+            background: #f5f5f5;
+            padding: 15px;
+            margin: 20px 0;
+            border-left: 4px solid #000;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="company-name">${company.name}</div>
+        <div class="company-details">
+            ${company.address} - ${company.city}<br>
+            Tél: ${company.phone} | Email: ${company.email}<br>
+            ${company.rc} | ${company.nif}
+        </div>
+    </div>
+
+    <div style="text-align: right; margin-bottom: 30px;">
+        <strong>Fait à ${company.city.split(',')[0]}, le ${today}</strong>
+    </div>
+
+    <div class="title">Attestation de Travail</div>
+
+    <div class="content">
+        <p>Je soussigné(e), représentant(e) légal(e) de <strong>${company.name}</strong>, certifie par la présente que :</p>
+        
+        <div class="info-box">
+            <strong>Monsieur/Madame ${employee.firstName} ${employee.lastName}</strong><br>
+            Né(e) le : [Date de naissance à compléter]<br>
+            Résidant à : [Adresse à compléter]
+        </div>
+
+        <p>
+            Est employé(e) au sein de notre entreprise depuis le <strong>${hireDate}</strong>, 
+            soit une ancienneté de <strong>${seniority}</strong>, en qualité de <strong>${employee.position}</strong> 
+            au département <strong>${employee.department}</strong>.
+        </p>
+
+        <p>
+            L'intéressé(e) exerce ses fonctions sous un contrat de travail de type <strong>${employee.contractType}</strong> 
+            et perçoit une rémunération mensuelle brute de <strong>${new Intl.NumberFormat('fr-DZ').format(employee.baseSalary / 12)} DZD</strong>.
+        </p>
+
+        <p>
+            Durant toute la période de son emploi, ${employee.firstName} ${employee.lastName} s'est montré(e) 
+            professionnel(le), assidu(e) et a exécuté ses tâches avec compétence et dévouement.
+        </p>
+
+        <p>
+            La présente attestation est délivrée à l'intéressé(e) pour servir et valoir ce que de droit.
+        </p>
+    </div>
+
+    <div class="signature-section">
+        <div class="signature-box">
+            <div style="margin-bottom: 10px;"><strong>L'Employé(e)</strong></div>
+            <div class="signature-line">Signature et cachet</div>
+        </div>
+        <div class="signature-box">
+            <div style="margin-bottom: 10px;"><strong>Le Directeur</strong></div>
+            <div class="signature-line">Signature et cachet</div>
+        </div>
+    </div>
+
+    <div class="footer">
+        Document généré automatiquement le ${today}
+    </div>
+</body>
+</html>
+            `;
+            
+            // Open in new window for printing/saving as PDF
+            const printWindow = window.open('', '_blank');
+            printWindow.document.write(certificateContent);
+            printWindow.document.close();
+            
+            // Trigger print dialog after a short delay
+            setTimeout(() => {
+                printWindow.print();
+            }, 500);
+            
+            showToast('✓ Attestation générée ! Utilisez Ctrl+P ou Cmd+P pour l\'imprimer ou sauvegarder en PDF', 'success');
         }
         
         function deleteEmployee(id) {
