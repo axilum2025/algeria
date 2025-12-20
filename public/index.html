@@ -9034,6 +9034,10 @@ Réponds de manière professionnelle, data-driven et orientée résultats.
             const employee = employees.find(e => e.id === id);
             if (!employee) return;
             
+            // Récupérer la devise depuis les paramètres de l'entreprise
+            const companySettings = JSON.parse(localStorage.getItem('companySettings') || '{}');
+            const currency = companySettings.currency || 'DA';
+            
             // Create modal
             const modal = document.createElement('div');
             modal.id = 'viewEmployeeModal';
@@ -9117,11 +9121,11 @@ Réponds de manière professionnelle, data-driven et orientée résultats.
                         <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px;">
                             <div>
                                 <div style="font-size: 12px; color: rgba(255, 255, 255, 0.5); margin-bottom: 4px;">Salaire annuel</div>
-                                <div style="font-size: 20px; color: white; font-weight: 700;">${new Intl.NumberFormat('fr-DZ').format(employee.baseSalary)} DZD</div>
+                                <div style="font-size: 20px; color: white; font-weight: 700;">${new Intl.NumberFormat('fr-DZ').format(employee.baseSalary)} ${currency}</div>
                             </div>
                             <div>
                                 <div style="font-size: 12px; color: rgba(255, 255, 255, 0.5); margin-bottom: 4px;">Salaire mensuel</div>
-                                <div style="font-size: 20px; color: white; font-weight: 700;">${new Intl.NumberFormat('fr-DZ').format(employee.baseSalary / 12)} DZD</div>
+                                <div style="font-size: 20px; color: white; font-weight: 700;">${new Intl.NumberFormat('fr-DZ').format(employee.baseSalary / 12)} ${currency}</div>
                             </div>
                             <div>
                                 <div style="font-size: 12px; color: rgba(255, 255, 255, 0.5); margin-bottom: 4px;">Statut</div>
@@ -9175,15 +9179,19 @@ Réponds de manière professionnelle, data-driven et orientée résultats.
             const employee = employees.find(e => e.id === employeeId);
             if (!employee) return;
             
-            // Company information (à personnaliser selon vos besoins)
+            // Récupérer les paramètres de l'entreprise
+            const companySettings = JSON.parse(localStorage.getItem('companySettings') || '{}');
+            const currency = companySettings.currency || 'DA';
+            
+            // Company information depuis les paramètres
             const company = {
-                name: 'Votre Entreprise',
-                address: 'Adresse de l\'entreprise',
-                city: 'Ville, Code Postal',
-                phone: '+213 XXX XXX XXX',
-                email: 'contact@entreprise.dz',
-                rc: 'RC N° XXXXXXXXX',
-                nif: 'NIF N° XXXXXXXXX'
+                name: companySettings.companyName || 'Votre Entreprise',
+                address: companySettings.address || 'Adresse de l\'entreprise',
+                city: companySettings.city || 'Ville, Code Postal',
+                phone: companySettings.phone || '+213 XXX XXX XXX',
+                email: companySettings.email || 'contact@entreprise.dz',
+                rc: companySettings.registrationNumber || 'RC N° XXXXXXXXX',
+                nif: companySettings.taxId || 'NIF N° XXXXXXXXX'
             };
             
             const today = new Date().toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' });
@@ -9298,7 +9306,7 @@ Réponds de manière professionnelle, data-driven et orientée résultats.
 
         <p>
             L'intéressé(e) exerce ses fonctions sous un contrat de travail de type <strong>${employee.contractType}</strong> 
-            et perçoit une rémunération mensuelle brute de <strong>${new Intl.NumberFormat('fr-DZ').format(employee.baseSalary / 12)} DZD</strong>.
+            et perçoit une rémunération mensuelle brute de <strong>${new Intl.NumberFormat('fr-DZ').format(employee.baseSalary / 12)} ${currency}</strong>.
         </p>
 
         <p>
