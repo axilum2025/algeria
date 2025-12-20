@@ -7537,22 +7537,91 @@ ${highRiskTurnover.map(t => {
 ` : '🚨 TURNOVER : Aucune analyse de risque de turnover effectuée.';
 
                 // ========== RECRUTEMENT ==========
+                const avgMatchScore = recruitmentCandidates.length > 0 
+                    ? Math.round(recruitmentCandidates.reduce((sum, c) => sum + c.matchScore, 0) / recruitmentCandidates.length) 
+                    : 0;
+                const candidatesWithAI = recruitmentCandidates.filter(c => c.parsedWithAI === true);
+                const shortlistCandidates = recruitmentCandidates.filter(c => c.matchScore >= 70);
+                
                 const recruitmentInfo = recruitmentJobs.length > 0 || recruitmentCandidates.length > 0 ? `
-👔 RECRUTEMENT & CANDIDATURES :
-- Offres actives : ${activeJobs.length}
-- CVs reçus : ${recruitmentCandidates.length}
-- Candidats excellents (>80%) : ${topCandidates.length}
-- Candidats recommandés (70-80%) : ${recruitmentCandidates.filter(c => c.matchScore >= 70 && c.matchScore < 80).length}
+👔 RECRUTEMENT & CANDIDATURES (Section complète) :
+════════════════════════════════════════════════
+📊 STATISTIQUES GLOBALES :
+- Offres d'emploi totales : ${recruitmentJobs.length}
+  • Actives : ${activeJobs.length}
+  • Fermées : ${recruitmentJobs.filter(j => j.status === 'closed').length}
+- CVs reçus au total : ${recruitmentCandidates.length}
+  • Parsés avec IA : ${candidatesWithAI.length}
+  • Saisis manuellement : ${recruitmentCandidates.length - candidatesWithAI.length}
+- Shortlist (score ≥70%) : ${shortlistCandidates.length} candidats
+- Score de matching moyen : ${avgMatchScore}%
+- Candidats excellents (≥80%) : ${topCandidates.length}
+- Candidats recommandés (70-79%) : ${recruitmentCandidates.filter(c => c.matchScore >= 70 && c.matchScore < 80).length}
+- Candidats à revoir (50-69%) : ${recruitmentCandidates.filter(c => c.matchScore >= 50 && c.matchScore < 70).length}
+- Candidats non qualifiés (<50%) : ${recruitmentCandidates.filter(c => c.matchScore < 50).length}
 
-${activeJobs.length > 0 ? `📢 Offres d'emploi ouvertes :
-${activeJobs.map(j => `  • ${j.title} (${j.location}) - ${j.department}`).join('\n')}` : ''}
+${activeJobs.length > 0 ? `📢 OFFRES D'EMPLOI OUVERTES (${activeJobs.length}) :
+${activeJobs.map(j => {
+    const candidatesForJob = recruitmentCandidates.filter(c => c.jobId === j.id);
+    const shortlistForJob = candidatesForJob.filter(c => c.matchScore >= 70);
+    return `  • ${j.title} - ${j.location}
+    Département: ${j.department}
+    Type contrat: ${j.contractType}
+    Salaire: ${j.salaryRange || 'Non spécifié'}
+    CVs reçus: ${candidatesForJob.length} | Shortlist: ${shortlistForJob.length}
+    Compétences requises: ${j.skills.join(', ')}
+    Must-have: ${j.mustHave ? j.mustHave.join(', ') : 'Aucun'}
+    Nice-to-have: ${j.niceToHave ? j.niceToHave.join(', ') : 'Aucun'}
+    Date création: ${j.createdAt ? new Date(j.createdAt).toLocaleDateString() : 'N/A'}`;
+}).join('\n\n')}` : '📢 Aucune offre d\'emploi active.'}
 
-${topCandidates.length > 0 ? `\n⭐ Top candidats (score >80%) :
-${topCandidates.slice(0, 5).map(c => {
+${topCandidates.length > 0 ? `⭐ TOP CANDIDATS (Score ≥80%) - ${topCandidates.length} profils :
+${topCandidates.slice(0, 10).map(c => {
     const job = recruitmentJobs.find(j => j.id === c.jobId);
-    return `  • ${c.name} pour ${job ? job.title : 'Poste supprimé'}: ${c.matchScore}% (${c.recommendation})`;
+    return `  • ${c.name} ${c.email ? '(' + c.email + ')' : ''}
+    Pour: ${job ? job.title + ' - ' + job.location : 'Poste supprimé'}
+    Score de matching: ${c.matchScore}%
+    Recommandation: ${c.recommendation || 'N/A'}
+    Compétences: ${c.skills ? c.skills.join(', ') : 'Non spécifiées'}
+    Expérience: ${c.experience || 0} ans
+    Diplôme: ${c.degree || 'Non spécifié'}
+    Langues: ${c.languages || 'Non spécifié'}
+    ${c.phone ? 'Tél: ' + c.phone : ''}
+    ${c.lastJob ? 'Dernier poste: ' + c.lastJob : ''}
+    ${c.certifications && c.certifications.length > 0 ? 'Certifications: ' + c.certifications.join(', ') : ''}
+    Points forts: ${c.strengths ? c.strengths.slice(0, 3).join(', ') : 'N/A'}
+    Risques: ${c.risks && c.risks.length > 0 ? c.risks.slice(0, 2).join(', ') : 'Aucun'}
+    ${c.anomalies && c.anomalies.length > 0 ? '⚠️ Anomalies: ' + c.anomalies.join(', ') : ''}
+    Date upload: ${c.uploadedAt ? new Date(c.uploadedAt).toLocaleDateString() : 'N/A'}
+    ${c.parsedWithAI ? '🤖 CV analysé automatiquement avec Azure Vision + OpenAI' : '📝 Saisi manuellement'}`;
+}).join('\n\n')}` : ''}
+
+${shortlistCandidates.length > 0 && topCandidates.length === 0 ? `✅ CANDIDATS SHORTLIST (70-79%) - ${shortlistCandidates.length} profils :
+${shortlistCandidates.slice(0, 5).map(c => {
+    const job = recruitmentJobs.find(j => j.id === c.jobId);
+    return `  • ${c.name} pour ${job ? job.title : 'Poste supprimé'}: ${c.matchScore}%
+    Compétences: ${c.skills ? c.skills.slice(0, 5).join(', ') : 'N/A'}
+    ${c.experience ? c.experience + ' ans d\'expérience' : ''}`;
 }).join('\n')}` : ''}
-` : '👔 RECRUTEMENT : Aucune offre d\'emploi ou candidature en cours.';
+
+${recruitmentCandidates.length > 0 ? `📋 ANALYSE DÉTAILLÉE PAR OFFRE :
+${activeJobs.map(j => {
+    const candidatesForJob = recruitmentCandidates.filter(c => c.jobId === j.id);
+    if (candidatesForJob.length === 0) return `  • ${j.title}: 0 CV reçu`;
+    const avgScore = Math.round(candidatesForJob.reduce((s, c) => s + c.matchScore, 0) / candidatesForJob.length);
+    const excellent = candidatesForJob.filter(c => c.matchScore >= 80).length;
+    const good = candidatesForJob.filter(c => c.matchScore >= 70 && c.matchScore < 80).length;
+    return `  • ${j.title}:
+    ${candidatesForJob.length} CV | Score moyen: ${avgScore}%
+    Excellents: ${excellent} | Bons: ${good} | À revoir: ${candidatesForJob.length - excellent - good}`;
+}).join('\n')}` : ''}
+
+${recruitmentJobs.filter(j => j.status === 'closed').length > 0 ? `\n🔒 OFFRES FERMÉES (${recruitmentJobs.filter(j => j.status === 'closed').length}) :
+${recruitmentJobs.filter(j => j.status === 'closed').slice(0, 3).map(j => `  • ${j.title} - ${j.location} (Fermée)`).join('\n')}` : ''}
+
+💡 ACTIONS RECOMMANDÉES :
+${pendingLeaves.length > 0 ? `- Valider ${pendingLeaves.length} demande(s) de congé en attente\n` : ''}${topCandidates.length > 0 ? `- Contacter ${topCandidates.length} candidat(s) excellent(s) pour entretien\n` : ''}${activeJobs.filter(j => !recruitmentCandidates.some(c => c.jobId === j.id)).length > 0 ? `- Promouvoir ${activeJobs.filter(j => !recruitmentCandidates.some(c => c.jobId === j.id)).length} offre(s) sans candidature\n` : ''}${highRiskTurnover.length > 0 ? `- Rencontrer ${highRiskTurnover.length} employé(s) à risque de départ\n` : ''}${shortlistCandidates.length > 5 ? `- Trier la shortlist (${shortlistCandidates.length} candidats qualifiés)\n` : ''}
+` : '👔 RECRUTEMENT : Aucune offre d\'emploi ou candidature en cours. Commencez par créer une offre!';
 
                 // ========== CONSTRUCTION DU CONTEXTE COMPLET ==========
                 const hrContext = `
