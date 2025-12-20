@@ -6406,12 +6406,103 @@
                         
                         <!-- Payroll Tab -->
                         <div id="hrContentPayroll" class="hr-content" style="display: none;">
-                            <div style="max-width: 1400px; margin: 0 auto; text-align: center; padding: 60px 20px;">
-                                <div style="width: 80px; height: 80px; background: rgba(99,102,241,0.1); border-radius: 20px; display: flex; align-items: center; justify-content: center; margin: 0 auto 16px;">
-                                    <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#6366F1" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+                            <div style="max-width: 1400px; margin: 0 auto;">
+                                <!-- Payroll Stats -->
+                                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 20px; margin-bottom: 32px;">
+                                    <div style="background: linear-gradient(135deg, #10B981, #059669); padding: 24px; border-radius: 16px; box-shadow: 0 4px 12px rgba(16,185,129,0.2);">
+                                        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px;">
+                                            <div style="width: 48px; height: 48px; background: rgba(255,255,255,0.2); border-radius: 12px; display: flex; align-items: center; justify-content: center;">
+                                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+                                            </div>
+                                        </div>
+                                        <div style="color: white;">
+                                            <p style="margin: 0 0 4px; font-size: 13px; font-weight: 500; opacity: 0.9;">Masse Salariale Totale</p>
+                                            <p id="payrollTotalMass" style="margin: 0; font-size: 28px; font-weight: 700;">0 DA</p>
+                                        </div>
+                                    </div>
+                                    
+                                    <div style="background: linear-gradient(135deg, #3B82F6, #2563EB); padding: 24px; border-radius: 16px; box-shadow: 0 4px 12px rgba(59,130,246,0.2);">
+                                        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px;">
+                                            <div style="width: 48px; height: 48px; background: rgba(255,255,255,0.2); border-radius: 12px; display: flex; align-items: center; justify-content: center;">
+                                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>
+                                            </div>
+                                        </div>
+                                        <div style="color: white;">
+                                            <p style="margin: 0 0 4px; font-size: 13px; font-weight: 500; opacity: 0.9;">Bulletins du Mois</p>
+                                            <p id="payrollCountThisMonth" style="margin: 0; font-size: 28px; font-weight: 700;">0</p>
+                                        </div>
+                                    </div>
+                                    
+                                    <div style="background: linear-gradient(135deg, #F59E0B, #D97706); padding: 24px; border-radius: 16px; box-shadow: 0 4px 12px rgba(245,158,11,0.2);">
+                                        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px;">
+                                            <div style="width: 48px; height: 48px; background: rgba(255,255,255,0.2); border-radius: 12px; display: flex; align-items: center; justify-content: center;">
+                                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                                            </div>
+                                        </div>
+                                        <div style="color: white;">
+                                            <p style="margin: 0 0 4px; font-size: 13px; font-weight: 500; opacity: 0.9;">En Attente</p>
+                                            <p id="payrollPendingCount" style="margin: 0; font-size: 28px; font-weight: 700;">0</p>
+                                        </div>
+                                    </div>
+                                    
+                                    <div style="background: linear-gradient(135deg, #8B5CF6, #7C3AED); padding: 24px; border-radius: 16px; box-shadow: 0 4px 12px rgba(139,92,246,0.2);">
+                                        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px;">
+                                            <div style="width: 48px; height: 48px; background: rgba(255,255,255,0.2); border-radius: 12px; display: flex; align-items: center; justify-content: center;">
+                                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                                            </div>
+                                        </div>
+                                        <div style="color: white;">
+                                            <p style="margin: 0 0 4px; font-size: 13px; font-weight: 500; opacity: 0.9;">Employés Payés</p>
+                                            <p id="payrollEmployeesPaid" style="margin: 0; font-size: 28px; font-weight: 700;">0</p>
+                                        </div>
+                                    </div>
                                 </div>
-                                <h3 style="margin: 0 0 8px; font-size: 18px; font-weight: 600; color: #1a1a1a;">Gestion de la Paie</h3>
-                                <p style="margin: 0; font-size: 14px; color: #6b7280;">Fonctionnalité en cours de développement</p>
+                                
+                                <!-- Filters and Actions -->
+                                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; flex-wrap: wrap; gap: 16px;">
+                                    <div style="display: flex; gap: 12px; flex: 1; min-width: 300px;">
+                                        <input type="text" id="payrollSearchInput" onkeyup="filterPayrolls()" placeholder="Rechercher un employé..." style="flex: 1; padding: 12px 16px; border: 2px solid #e5e7eb; border-radius: 12px; font-size: 14px; transition: all 0.2s;">
+                                        
+                                        <select id="payrollMonthFilter" onchange="filterPayrolls()" style="padding: 12px 16px; border: 2px solid #e5e7eb; border-radius: 12px; font-size: 14px; background: white; cursor: pointer;">
+                                            <option value="">Tous les mois</option>
+                                            <option value="01">Janvier</option>
+                                            <option value="02">Février</option>
+                                            <option value="03">Mars</option>
+                                            <option value="04">Avril</option>
+                                            <option value="05">Mai</option>
+                                            <option value="06">Juin</option>
+                                            <option value="07">Juillet</option>
+                                            <option value="08">Août</option>
+                                            <option value="09">Septembre</option>
+                                            <option value="10">Octobre</option>
+                                            <option value="11">Novembre</option>
+                                            <option value="12">Décembre</option>
+                                        </select>
+                                        
+                                        <select id="payrollStatusFilter" onchange="filterPayrolls()" style="padding: 12px 16px; border: 2px solid #e5e7eb; border-radius: 12px; font-size: 14px; background: white; cursor: pointer;">
+                                            <option value="">Tous les statuts</option>
+                                            <option value="pending">En attente</option>
+                                            <option value="validated">Validé</option>
+                                            <option value="paid">Payé</option>
+                                        </select>
+                                    </div>
+                                    
+                                    <div style="display: flex; gap: 12px;">
+                                        <button onclick="generateAllPayrolls()" style="padding: 12px 24px; background: #6366F1; color: white; border: none; border-radius: 12px; font-size: 14px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 8px; transition: all 0.2s; box-shadow: 0 2px 8px rgba(99,102,241,0.25);" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 12px rgba(99,102,241,0.35)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 2px 8px rgba(99,102,241,0.25)'">
+                                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                                            Générer Tous
+                                        </button>
+                                        <button onclick="showAddPayrollModal()" style="padding: 12px 24px; background: #10B981; color: white; border: none; border-radius: 12px; font-size: 14px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 8px; transition: all 0.2s; box-shadow: 0 2px 8px rgba(16,185,129,0.25);" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 12px rgba(16,185,129,0.35)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 2px 8px rgba(16,185,129,0.25)'">
+                                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                                            Nouveau Bulletin
+                                        </button>
+                                    </div>
+                                </div>
+                                
+                                <!-- Payrolls List -->
+                                <div id="payrollsList" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(380px, 1fr)); gap: 20px;">
+                                    <!-- Payrolls will be rendered here -->
+                                </div>
                             </div>
                         </div>
                         
@@ -6541,6 +6632,20 @@
             if (employees.length > 0) {
                 renderEmployeesList(employees);
                 updateHRStats(employees);
+            }
+            
+            // Load leaves
+            const leaves = JSON.parse(localStorage.getItem('hrLeaves') || '[]');
+            if (leaves.length > 0) {
+                renderLeavesList(leaves);
+                updateLeavesStats(leaves);
+            }
+            
+            // Load payrolls
+            const payrolls = JSON.parse(localStorage.getItem('hrPayrolls') || '[]');
+            if (payrolls.length > 0) {
+                renderPayrollsList(payrolls);
+                updatePayrollStats(payrolls);
             }
         }
         
@@ -7771,6 +7876,591 @@ RÈGLES:
         }
         
         // ========== FIN LEAVES MANAGEMENT ==========
+        
+        // ========== PAYROLL MANAGEMENT ==========
+        
+        function initializePayrollData() {
+            const payrolls = JSON.parse(localStorage.getItem('hrPayrolls') || '[]');
+            renderPayrollsList(payrolls);
+            updatePayrollStats(payrolls);
+        }
+        
+        function renderPayrollsList(payrolls) {
+            const container = document.getElementById('payrollsList');
+            const employees = JSON.parse(localStorage.getItem('hrEmployees') || '[]');
+            
+            if (payrolls.length === 0) {
+                container.innerHTML = `
+                    <div style="grid-column: 1 / -1; text-align: center; padding: 60px 20px;">
+                        <div style="width: 80px; height: 80px; background: rgba(99,102,241,0.1); border-radius: 20px; display: flex; align-items: center; justify-content: center; margin: 0 auto 16px;">
+                            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#6366F1" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+                        </div>
+                        <h3 style="margin: 0 0 8px; font-size: 18px; font-weight: 600; color: #1a1a1a;">Aucun bulletin de paie</h3>
+                        <p style="margin: 0; font-size: 14px; color: #6b7280;">Créez votre premier bulletin de paie</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            let html = '';
+            payrolls.forEach(payroll => {
+                const employee = employees.find(e => e.id === payroll.employeeId);
+                if (!employee) return;
+                
+                const statusColors = {
+                    'pending': { bg: '#FEF3C7', text: '#92400E', label: 'En attente' },
+                    'validated': { bg: '#DBEAFE', text: '#1E40AF', label: 'Validé' },
+                    'paid': { bg: '#D1FAE5', text: '#065F46', label: 'Payé' }
+                };
+                
+                const status = statusColors[payroll.status] || statusColors.pending;
+                
+                // Format month/year
+                const [year, month] = payroll.period.split('-');
+                const monthNames = ['Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin', 'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre'];
+                const periodLabel = `${monthNames[parseInt(month) - 1]} ${year}`;
+                
+                html += `
+                    <div style="background: white; border-radius: 16px; padding: 24px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); border: 2px solid #f3f4f6; transition: all 0.2s;">
+                        <div style="display: flex; align-items: center; gap: 16px; margin-bottom: 20px;">
+                            ${employee.photo ? 
+                                `<img src="${employee.photo}" style="width: 56px; height: 56px; border-radius: 12px; object-fit: cover; border: 2px solid #e5e7eb;">` :
+                                `<div style="width: 56px; height: 56px; background: linear-gradient(135deg, #6366F1, #8B5CF6); border-radius: 12px; display: flex; align-items: center; justify-content: center; color: white; font-weight: 700; font-size: 20px;">
+                                    ${employee.firstName.charAt(0)}${employee.lastName.charAt(0)}
+                                </div>`
+                            }
+                            <div style="flex: 1;">
+                                <h4 style="margin: 0 0 4px; font-size: 16px; font-weight: 700; color: #1a1a1a;">${employee.firstName} ${employee.lastName}</h4>
+                                <p style="margin: 0; font-size: 13px; color: #6b7280; font-weight: 500;">${employee.position || 'Employé'}</p>
+                            </div>
+                            <span style="padding: 6px 12px; background: ${status.bg}; color: ${status.text}; border-radius: 8px; font-size: 12px; font-weight: 600;">${status.label}</span>
+                        </div>
+                        
+                        <div style="background: #f9fafb; border-radius: 12px; padding: 16px; margin-bottom: 16px;">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                                <span style="font-size: 13px; color: #6b7280; font-weight: 500;">📅 Période</span>
+                                <span style="font-size: 14px; color: #1a1a1a; font-weight: 700;">${periodLabel}</span>
+                            </div>
+                            
+                            <div style="border-top: 1px dashed #e5e7eb; padding-top: 12px; margin-top: 12px;">
+                                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                                    <span style="font-size: 13px; color: #6b7280;">Salaire de base</span>
+                                    <span style="font-size: 13px; color: #1a1a1a; font-weight: 600;">${payroll.baseSalary.toLocaleString()} DA</span>
+                                </div>
+                                
+                                ${payroll.bonuses > 0 ? `
+                                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                                    <span style="font-size: 13px; color: #10b981;">+ Primes</span>
+                                    <span style="font-size: 13px; color: #10b981; font-weight: 600;">${payroll.bonuses.toLocaleString()} DA</span>
+                                </div>
+                                ` : ''}
+                                
+                                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                                    <span style="font-size: 13px; color: #ef4444;">- Cotisations sociales</span>
+                                    <span style="font-size: 13px; color: #ef4444; font-weight: 600;">${payroll.deductions.toLocaleString()} DA</span>
+                                </div>
+                                
+                                ${payroll.taxes > 0 ? `
+                                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                                    <span style="font-size: 13px; color: #ef4444;">- IRG</span>
+                                    <span style="font-size: 13px; color: #ef4444; font-weight: 600;">${payroll.taxes.toLocaleString()} DA</span>
+                                </div>
+                                ` : ''}
+                                
+                                <div style="border-top: 2px solid #e5e7eb; padding-top: 12px; margin-top: 12px; display: flex; justify-content: space-between; align-items: center;">
+                                    <span style="font-size: 14px; color: #1a1a1a; font-weight: 700;">💰 Salaire net</span>
+                                    <span style="font-size: 18px; color: #10b981; font-weight: 700;">${payroll.netSalary.toLocaleString()} DA</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div style="display: flex; gap: 8px;">
+                            ${payroll.status === 'pending' ? `
+                                <button onclick="validatePayroll('${payroll.id}')" style="flex: 1; padding: 10px; background: #3b82f6; color: white; border: none; border-radius: 10px; font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.2s;" onmouseover="this.style.background='#2563eb'" onmouseout="this.style.background='#3b82f6'">
+                                    ✓ Valider
+                                </button>
+                            ` : ''}
+                            
+                            ${payroll.status === 'validated' ? `
+                                <button onclick="markPayrollAsPaid('${payroll.id}')" style="flex: 1; padding: 10px; background: #10b981; color: white; border: none; border-radius: 10px; font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.2s;" onmouseover="this.style.background='#059669'" onmouseout="this.style.background='#10b981'">
+                                    💸 Marquer comme payé
+                                </button>
+                            ` : ''}
+                            
+                            <button onclick="viewPayrollDetails('${payroll.id}')" style="flex: 1; padding: 10px; background: #f3f4f6; color: #1a1a1a; border: none; border-radius: 10px; font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.2s;" onmouseover="this.style.background='#e5e7eb'" onmouseout="this.style.background='#f3f4f6'">
+                                📄 Détails
+                            </button>
+                            
+                            <button onclick="deletePayroll('${payroll.id}')" style="padding: 10px 16px; background: #fee2e2; color: #dc2626; border: none; border-radius: 10px; font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.2s;" onmouseover="this.style.background='#fecaca'" onmouseout="this.style.background='#fee2e2'">
+                                🗑️
+                            </button>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            container.innerHTML = html;
+        }
+        
+        function updatePayrollStats(payrolls) {
+            const currentMonth = new Date().toISOString().slice(0, 7); // YYYY-MM
+            
+            // Total mass salariale (tous les bulletins payés)
+            const totalMass = payrolls
+                .filter(p => p.status === 'paid')
+                .reduce((sum, p) => sum + p.netSalary, 0);
+            document.getElementById('payrollTotalMass').textContent = totalMass.toLocaleString() + ' DA';
+            
+            // Bulletins du mois en cours
+            const currentMonthCount = payrolls.filter(p => p.period === currentMonth).length;
+            document.getElementById('payrollCountThisMonth').textContent = currentMonthCount;
+            
+            // En attente
+            const pendingCount = payrolls.filter(p => p.status === 'pending').length;
+            document.getElementById('payrollPendingCount').textContent = pendingCount;
+            
+            // Employés payés ce mois
+            const paidThisMonth = new Set(
+                payrolls.filter(p => p.period === currentMonth && p.status === 'paid')
+                    .map(p => p.employeeId)
+            ).size;
+            document.getElementById('payrollEmployeesPaid').textContent = paidThisMonth;
+        }
+        
+        function filterPayrolls() {
+            const searchTerm = document.getElementById('payrollSearchInput').value.toLowerCase();
+            const monthFilter = document.getElementById('payrollMonthFilter').value;
+            const statusFilter = document.getElementById('payrollStatusFilter').value;
+            
+            const employees = JSON.parse(localStorage.getItem('hrEmployees') || '[]');
+            let payrolls = JSON.parse(localStorage.getItem('hrPayrolls') || '[]');
+            
+            payrolls = payrolls.filter(payroll => {
+                const employee = employees.find(e => e.id === payroll.employeeId);
+                if (!employee) return false;
+                
+                const fullName = `${employee.firstName} ${employee.lastName}`.toLowerCase();
+                const matchesSearch = fullName.includes(searchTerm);
+                const matchesMonth = !monthFilter || payroll.period.endsWith('-' + monthFilter);
+                const matchesStatus = !statusFilter || payroll.status === statusFilter;
+                
+                return matchesSearch && matchesMonth && matchesStatus;
+            });
+            
+            renderPayrollsList(payrolls);
+        }
+        
+        function showAddPayrollModal() {
+            const employees = JSON.parse(localStorage.getItem('hrEmployees') || '[]');
+            
+            if (employees.length === 0) {
+                showToast('Veuillez d\'abord créer des employés', 'warning');
+                return;
+            }
+            
+            const employeeOptions = employees.map(emp => 
+                `<option value="${emp.id}">${emp.firstName} ${emp.lastName} - ${emp.position || 'Employé'}</option>`
+            ).join('');
+            
+            const modal = document.createElement('div');
+            modal.id = 'addPayrollModal';
+            modal.style.cssText = 'position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 10003; animation: fadeIn 0.3s ease;';
+            
+            modal.innerHTML = `
+                <div style="background: white; border-radius: 20px; padding: 32px; max-width: 600px; width: 90%; max-height: 90vh; overflow-y: auto; animation: slideIn 0.3s ease;">
+                    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px;">
+                        <h2 style="margin: 0; font-size: 24px; font-weight: 700; color: #1a1a1a;">Nouveau Bulletin de Paie</h2>
+                        <button onclick="closeAddPayrollModal()" style="width: 36px; height: 36px; background: #f3f4f6; border: none; border-radius: 10px; cursor: pointer; display: flex; align-items: center; justify-content: center;" onmouseover="this.style.background='#e5e7eb'" onmouseout="this.style.background='#f3f4f6'">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                        </button>
+                    </div>
+                    
+                    <form id="addPayrollForm" onsubmit="handleAddPayroll(event)" style="display: flex; flex-direction: column; gap: 16px;">
+                        <div>
+                            <label style="display: block; margin-bottom: 6px; font-size: 14px; font-weight: 600; color: #374151;">Employé *</label>
+                            <select id="payrollEmployeeSelect" name="employeeId" required onchange="fillEmployeeSalary()" style="width: 100%; padding: 12px; border: 1px solid #e5e7eb; border-radius: 10px; font-size: 14px;">
+                                <option value="">Sélectionner un employé...</option>
+                                ${employeeOptions}
+                            </select>
+                        </div>
+                        
+                        <div>
+                            <label style="display: block; margin-bottom: 6px; font-size: 14px; font-weight: 600; color: #374151;">Période *</label>
+                            <input type="month" name="period" required value="${new Date().toISOString().slice(0, 7)}" style="width: 100%; padding: 12px; border: 1px solid #e5e7eb; border-radius: 10px; font-size: 14px;">
+                        </div>
+                        
+                        <div>
+                            <label style="display: block; margin-bottom: 6px; font-size: 14px; font-weight: 600; color: #374151;">Salaire de base (DA) *</label>
+                            <input type="number" id="payrollBaseSalary" name="baseSalary" required min="0" step="0.01" placeholder="45000" style="width: 100%; padding: 12px; border: 1px solid #e5e7eb; border-radius: 10px; font-size: 14px;" oninput="calculatePayroll()">
+                        </div>
+                        
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+                            <div>
+                                <label style="display: block; margin-bottom: 6px; font-size: 14px; font-weight: 600; color: #374151;">Primes (DA)</label>
+                                <input type="number" name="bonuses" min="0" step="0.01" value="0" placeholder="0" style="width: 100%; padding: 12px; border: 1px solid #e5e7eb; border-radius: 10px; font-size: 14px;" oninput="calculatePayroll()">
+                            </div>
+                            
+                            <div>
+                                <label style="display: block; margin-bottom: 6px; font-size: 14px; font-weight: 600; color: #374151;">Heures sup. (h)</label>
+                                <input type="number" name="overtime" min="0" step="0.5" value="0" placeholder="0" style="width: 100%; padding: 12px; border: 1px solid #e5e7eb; border-radius: 10px; font-size: 14px;" oninput="calculatePayroll()">
+                            </div>
+                        </div>
+                        
+                        <div style="background: #f9fafb; border-radius: 12px; padding: 16px;">
+                            <h4 style="margin: 0 0 12px; font-size: 14px; font-weight: 700; color: #1a1a1a;">Calculs Automatiques</h4>
+                            
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                                <span style="font-size: 13px; color: #6b7280;">Cotisations sociales (9%)</span>
+                                <span id="calculatedDeductions" style="font-size: 13px; color: #ef4444; font-weight: 600;">0 DA</span>
+                            </div>
+                            
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                                <span style="font-size: 13px; color: #6b7280;">IRG (estimé)</span>
+                                <span id="calculatedTaxes" style="font-size: 13px; color: #ef4444; font-weight: 600;">0 DA</span>
+                            </div>
+                            
+                            <div style="border-top: 2px solid #e5e7eb; padding-top: 12px; margin-top: 12px; display: flex; justify-content: space-between;">
+                                <span style="font-size: 14px; color: #1a1a1a; font-weight: 700;">Salaire net</span>
+                                <span id="calculatedNetSalary" style="font-size: 16px; color: #10b981; font-weight: 700;">0 DA</span>
+                            </div>
+                        </div>
+                        
+                        <div style="display: flex; gap: 12px; margin-top: 8px;">
+                            <button type="button" onclick="closeAddPayrollModal()" style="flex: 1; padding: 12px; background: #f3f4f6; border: none; border-radius: 10px; font-weight: 600; cursor: pointer;" onmouseover="this.style.background='#e5e7eb'" onmouseout="this.style.background='#f3f4f6'">
+                                Annuler
+                            </button>
+                            <button type="submit" style="flex: 1; padding: 12px; background: #10b981; border: none; border-radius: 10px; color: white; font-weight: 600; cursor: pointer;" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 12px rgba(16,185,129,0.4)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='none'">
+                                Créer le Bulletin
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            `;
+            
+            document.body.appendChild(modal);
+        }
+        
+        function closeAddPayrollModal() {
+            const modal = document.getElementById('addPayrollModal');
+            if (modal) {
+                modal.style.animation = 'fadeOut 0.3s ease';
+                setTimeout(() => modal.remove(), 300);
+            }
+        }
+        
+        function fillEmployeeSalary() {
+            const select = document.getElementById('payrollEmployeeSelect');
+            const employeeId = select.value;
+            
+            if (!employeeId) return;
+            
+            const employees = JSON.parse(localStorage.getItem('hrEmployees') || '[]');
+            const employee = employees.find(e => e.id === employeeId);
+            
+            if (employee && employee.salary) {
+                document.getElementById('payrollBaseSalary').value = employee.salary;
+                calculatePayroll();
+            }
+        }
+        
+        function calculatePayroll() {
+            const baseSalary = parseFloat(document.querySelector('[name="baseSalary"]').value) || 0;
+            const bonuses = parseFloat(document.querySelector('[name="bonuses"]').value) || 0;
+            const overtime = parseFloat(document.querySelector('[name="overtime"]').value) || 0;
+            
+            // Calcul heures supplémentaires (150% du taux horaire)
+            const hourlyRate = baseSalary / 173.33; // Heures mensuelles standard
+            const overtimePay = overtime * hourlyRate * 1.5;
+            
+            // Salaire brut
+            const grossSalary = baseSalary + bonuses + overtimePay;
+            
+            // Cotisations sociales (9% en Algérie)
+            const deductions = grossSalary * 0.09;
+            
+            // IRG simplifié (barème progressif approximatif)
+            let taxes = 0;
+            if (grossSalary > 30000) {
+                taxes = (grossSalary - 30000) * 0.35; // Taux marginal simplifié
+            } else if (grossSalary > 20000) {
+                taxes = (grossSalary - 20000) * 0.20;
+            } else if (grossSalary > 10000) {
+                taxes = (grossSalary - 10000) * 0.10;
+            }
+            
+            // Salaire net
+            const netSalary = grossSalary - deductions - taxes;
+            
+            // Afficher les résultats
+            document.getElementById('calculatedDeductions').textContent = Math.round(deductions).toLocaleString() + ' DA';
+            document.getElementById('calculatedTaxes').textContent = Math.round(taxes).toLocaleString() + ' DA';
+            document.getElementById('calculatedNetSalary').textContent = Math.round(netSalary).toLocaleString() + ' DA';
+        }
+        
+        function handleAddPayroll(event) {
+            event.preventDefault();
+            
+            const formData = new FormData(event.target);
+            const baseSalary = parseFloat(formData.get('baseSalary'));
+            const bonuses = parseFloat(formData.get('bonuses')) || 0;
+            const overtime = parseFloat(formData.get('overtime')) || 0;
+            
+            // Recalculer avec les valeurs du formulaire
+            const hourlyRate = baseSalary / 173.33;
+            const overtimePay = overtime * hourlyRate * 1.5;
+            const grossSalary = baseSalary + bonuses + overtimePay;
+            const deductions = grossSalary * 0.09;
+            
+            let taxes = 0;
+            if (grossSalary > 30000) {
+                taxes = (grossSalary - 30000) * 0.35;
+            } else if (grossSalary > 20000) {
+                taxes = (grossSalary - 20000) * 0.20;
+            } else if (grossSalary > 10000) {
+                taxes = (grossSalary - 10000) * 0.10;
+            }
+            
+            const netSalary = grossSalary - deductions - taxes;
+            
+            const payroll = {
+                id: Date.now().toString(),
+                employeeId: formData.get('employeeId'),
+                period: formData.get('period'),
+                baseSalary: baseSalary,
+                bonuses: bonuses,
+                overtime: overtime,
+                overtimePay: Math.round(overtimePay),
+                grossSalary: Math.round(grossSalary),
+                deductions: Math.round(deductions),
+                taxes: Math.round(taxes),
+                netSalary: Math.round(netSalary),
+                status: 'pending',
+                createdAt: Date.now(),
+                updatedAt: Date.now()
+            };
+            
+            const payrolls = JSON.parse(localStorage.getItem('hrPayrolls') || '[]');
+            payrolls.push(payroll);
+            localStorage.setItem('hrPayrolls', JSON.stringify(payrolls));
+            
+            showToast('Bulletin de paie créé avec succès', 'success');
+            closeAddPayrollModal();
+            renderPayrollsList(payrolls);
+            updatePayrollStats(payrolls);
+        }
+        
+        function generateAllPayrolls() {
+            const employees = JSON.parse(localStorage.getItem('hrEmployees') || '[]');
+            
+            if (employees.length === 0) {
+                showToast('Aucun employé trouvé', 'warning');
+                return;
+            }
+            
+            if (!confirm(`Générer les bulletins de paie pour tous les employés (${employees.length}) ?`)) {
+                return;
+            }
+            
+            const currentPeriod = new Date().toISOString().slice(0, 7);
+            const payrolls = JSON.parse(localStorage.getItem('hrPayrolls') || '[]');
+            
+            let generated = 0;
+            employees.forEach(employee => {
+                // Vérifier si un bulletin existe déjà pour cet employé ce mois
+                const existing = payrolls.find(p => p.employeeId === employee.id && p.period === currentPeriod);
+                if (existing) return;
+                
+                const baseSalary = employee.salary || 30000;
+                const bonuses = 0;
+                const overtime = 0;
+                
+                const grossSalary = baseSalary + bonuses;
+                const deductions = grossSalary * 0.09;
+                
+                let taxes = 0;
+                if (grossSalary > 30000) {
+                    taxes = (grossSalary - 30000) * 0.35;
+                } else if (grossSalary > 20000) {
+                    taxes = (grossSalary - 20000) * 0.20;
+                } else if (grossSalary > 10000) {
+                    taxes = (grossSalary - 10000) * 0.10;
+                }
+                
+                const netSalary = grossSalary - deductions - taxes;
+                
+                const payroll = {
+                    id: Date.now().toString() + '_' + employee.id,
+                    employeeId: employee.id,
+                    period: currentPeriod,
+                    baseSalary: baseSalary,
+                    bonuses: bonuses,
+                    overtime: overtime,
+                    overtimePay: 0,
+                    grossSalary: Math.round(grossSalary),
+                    deductions: Math.round(deductions),
+                    taxes: Math.round(taxes),
+                    netSalary: Math.round(netSalary),
+                    status: 'pending',
+                    createdAt: Date.now(),
+                    updatedAt: Date.now()
+                };
+                
+                payrolls.push(payroll);
+                generated++;
+            });
+            
+            localStorage.setItem('hrPayrolls', JSON.stringify(payrolls));
+            
+            showToast(`${generated} bulletin(s) de paie généré(s)`, 'success');
+            renderPayrollsList(payrolls);
+            updatePayrollStats(payrolls);
+        }
+        
+        function validatePayroll(payrollId) {
+            const payrolls = JSON.parse(localStorage.getItem('hrPayrolls') || '[]');
+            const payroll = payrolls.find(p => p.id === payrollId);
+            
+            if (payroll) {
+                payroll.status = 'validated';
+                payroll.updatedAt = Date.now();
+                localStorage.setItem('hrPayrolls', JSON.stringify(payrolls));
+                
+                showToast('Bulletin de paie validé', 'success');
+                renderPayrollsList(payrolls);
+                updatePayrollStats(payrolls);
+            }
+        }
+        
+        function markPayrollAsPaid(payrollId) {
+            const payrolls = JSON.parse(localStorage.getItem('hrPayrolls') || '[]');
+            const payroll = payrolls.find(p => p.id === payrollId);
+            
+            if (payroll) {
+                payroll.status = 'paid';
+                payroll.paidAt = Date.now();
+                payroll.updatedAt = Date.now();
+                localStorage.setItem('hrPayrolls', JSON.stringify(payrolls));
+                
+                showToast('Bulletin marqué comme payé', 'success');
+                renderPayrollsList(payrolls);
+                updatePayrollStats(payrolls);
+            }
+        }
+        
+        function viewPayrollDetails(payrollId) {
+            const payrolls = JSON.parse(localStorage.getItem('hrPayrolls') || '[]');
+            const payroll = payrolls.find(p => p.id === payrollId);
+            const employees = JSON.parse(localStorage.getItem('hrEmployees') || '[]');
+            const employee = employees.find(e => e.id === payroll.employeeId);
+            
+            if (!payroll || !employee) return;
+            
+            const [year, month] = payroll.period.split('-');
+            const monthNames = ['Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin', 'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre'];
+            const periodLabel = `${monthNames[parseInt(month) - 1]} ${year}`;
+            
+            const modal = document.createElement('div');
+            modal.style.cssText = 'position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 10004; animation: fadeIn 0.3s ease;';
+            
+            modal.innerHTML = `
+                <div style="background: white; border-radius: 20px; padding: 40px; max-width: 700px; width: 90%; max-height: 90vh; overflow-y: auto; animation: slideIn 0.3s ease;">
+                    <div style="text-align: center; margin-bottom: 32px; padding-bottom: 24px; border-bottom: 2px solid #e5e7eb;">
+                        <h2 style="margin: 0 0 8px; font-size: 28px; font-weight: 700; color: #1a1a1a;">Bulletin de Paie</h2>
+                        <p style="margin: 0; font-size: 16px; color: #6b7280; font-weight: 600;">${periodLabel}</p>
+                    </div>
+                    
+                    <div style="background: linear-gradient(135deg, #6366F1, #8B5CF6); border-radius: 16px; padding: 24px; margin-bottom: 24px; color: white;">
+                        <div style="display: flex; align-items: center; gap: 16px;">
+                            ${employee.photo ? 
+                                `<img src="${employee.photo}" style="width: 72px; height: 72px; border-radius: 12px; object-fit: cover; border: 3px solid rgba(255,255,255,0.3);">` :
+                                `<div style="width: 72px; height: 72px; background: rgba(255,255,255,0.2); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 28px; border: 3px solid rgba(255,255,255,0.3);">
+                                    ${employee.firstName.charAt(0)}${employee.lastName.charAt(0)}
+                                </div>`
+                            }
+                            <div>
+                                <h3 style="margin: 0 0 4px; font-size: 20px; font-weight: 700;">${employee.firstName} ${employee.lastName}</h3>
+                                <p style="margin: 0; font-size: 14px; opacity: 0.9;">${employee.position || 'Employé'}</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div style="background: #f9fafb; border-radius: 16px; padding: 24px; margin-bottom: 24px;">
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 16px; padding-bottom: 16px; border-bottom: 1px solid #e5e7eb;">
+                            <span style="font-size: 14px; color: #6b7280; font-weight: 600;">Salaire de base</span>
+                            <span style="font-size: 16px; color: #1a1a1a; font-weight: 700;">${payroll.baseSalary.toLocaleString()} DA</span>
+                        </div>
+                        
+                        ${payroll.bonuses > 0 ? `
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 16px; padding-bottom: 16px; border-bottom: 1px solid #e5e7eb;">
+                            <span style="font-size: 14px; color: #6b7280; font-weight: 600;">+ Primes</span>
+                            <span style="font-size: 16px; color: #10b981; font-weight: 700;">+${payroll.bonuses.toLocaleString()} DA</span>
+                        </div>
+                        ` : ''}
+                        
+                        ${payroll.overtime > 0 ? `
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 16px; padding-bottom: 16px; border-bottom: 1px solid #e5e7eb;">
+                            <span style="font-size: 14px; color: #6b7280; font-weight: 600;">+ Heures supplémentaires (${payroll.overtime}h)</span>
+                            <span style="font-size: 16px; color: #10b981; font-weight: 700;">+${payroll.overtimePay.toLocaleString()} DA</span>
+                        </div>
+                        ` : ''}
+                        
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 16px; padding-bottom: 16px; border-bottom: 1px solid #e5e7eb;">
+                            <span style="font-size: 14px; color: #6b7280; font-weight: 600;">Salaire brut</span>
+                            <span style="font-size: 16px; color: #1a1a1a; font-weight: 700;">${payroll.grossSalary.toLocaleString()} DA</span>
+                        </div>
+                        
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 16px; padding-bottom: 16px; border-bottom: 1px solid #e5e7eb;">
+                            <span style="font-size: 14px; color: #6b7280; font-weight: 600;">- Cotisations sociales (9%)</span>
+                            <span style="font-size: 16px; color: #ef4444; font-weight: 700;">-${payroll.deductions.toLocaleString()} DA</span>
+                        </div>
+                        
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 16px; padding-bottom: 16px; border-bottom: 1px solid #e5e7eb;">
+                            <span style="font-size: 14px; color: #6b7280; font-weight: 600;">- IRG</span>
+                            <span style="font-size: 16px; color: #ef4444; font-weight: 700;">-${payroll.taxes.toLocaleString()} DA</span>
+                        </div>
+                        
+                        <div style="display: flex; justify-content: space-between; padding-top: 16px;">
+                            <span style="font-size: 18px; color: #1a1a1a; font-weight: 700;">💰 Salaire NET à payer</span>
+                            <span style="font-size: 24px; color: #10b981; font-weight: 700;">${payroll.netSalary.toLocaleString()} DA</span>
+                        </div>
+                    </div>
+                    
+                    <div style="background: #f0f9ff; border: 2px solid #bfdbfe; border-radius: 12px; padding: 16px; margin-bottom: 24px;">
+                        <p style="margin: 0; font-size: 13px; color: #1e40af; line-height: 1.6;">
+                            <strong>ℹ️ Informations :</strong><br>
+                            • Cotisations sociales selon barème algérien (9%)<br>
+                            • IRG calculé selon barème progressif<br>
+                            • Heures supplémentaires majorées à 150%
+                        </p>
+                    </div>
+                    
+                    <button onclick="this.parentElement.parentElement.remove()" style="width: 100%; padding: 14px; background: #6366F1; color: white; border: none; border-radius: 12px; font-size: 16px; font-weight: 600; cursor: pointer; transition: all 0.2s;" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 16px rgba(99,102,241,0.4)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='none'">
+                        Fermer
+                    </button>
+                </div>
+            `;
+            
+            document.body.appendChild(modal);
+            modal.onclick = (e) => {
+                if (e.target === modal) modal.remove();
+            };
+        }
+        
+        function deletePayroll(payrollId) {
+            if (!confirm('Êtes-vous sûr de vouloir supprimer ce bulletin de paie ?')) {
+                return;
+            }
+            
+            let payrolls = JSON.parse(localStorage.getItem('hrPayrolls') || '[]');
+            payrolls = payrolls.filter(p => p.id !== payrollId);
+            localStorage.setItem('hrPayrolls', JSON.stringify(payrolls));
+            
+            showToast('Bulletin de paie supprimé', 'success');
+            renderPayrollsList(payrolls);
+            updatePayrollStats(payrolls);
+        }
+        
+        // ========== FIN PAYROLL MANAGEMENT ==========
         
         // ========== FIN GESTION RH ==========
         
