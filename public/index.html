@@ -6166,6 +6166,9 @@
                         <button onclick="showHRTab('turnover')" id="hrTabTurnover" class="hr-tab" style="padding: 16px 24px; background: none; border: none; border-bottom: 3px solid transparent; color: #6b7280; font-weight: 600; cursor: pointer; transition: all 0.2s; white-space: nowrap;">
                             🚨 Turnover
                         </button>
+                        <button onclick="showHRTab('recruitment')" id="hrTabRecruitment" class="hr-tab" style="padding: 16px 24px; background: none; border: none; border-bottom: 3px solid transparent; color: #6b7280; font-weight: 600; cursor: pointer; transition: all 0.2s; white-space: nowrap;">
+                            📄 Recrutement
+                        </button>
                     </div>
                     
                     <!-- Content Area -->
@@ -6248,6 +6251,11 @@
                                         <button onclick="showHRTab('turnover');" style="padding: 16px; background: #EF4444; border: none; border-radius: 12px; color: white; font-weight: 600; cursor: pointer; transition: all 0.2s; text-align: left; display: flex; align-items: center; gap: 12px;" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 12px rgba(239,68,68,0.4)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='none'">
                                             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
                                             <div>Turnover Prediction</div>
+                                        </button>
+                                        
+                                        <button onclick="showHRTab('recruitment');" style="padding: 16px; background: #8B5CF6; border: none; border-radius: 12px; color: white; font-weight: 600; cursor: pointer; transition: all 0.2s; text-align: left; display: flex; align-items: center; gap: 12px;" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 12px rgba(139,92,246,0.4)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='none'">
+                                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/></svg>
+                                            <div>CV Screening</div>
                                         </button>
                                     </div>
                                 </div>
@@ -6699,6 +6707,128 @@
                                 <p style="margin: 0; font-size: 12px; color: #6b7280; max-width: 500px; margin: 0 auto;">
                                     ⚠️ L'analyse nécessite des données d'employés, congés et évaluations
                                 </p>
+                            </div>
+                        </div>
+                        
+                        <!-- Recruitment / CV Screening Tab -->
+                        <div id="hrContentRecruitment" class="hr-content" style="display: none;">
+                            <!-- RGPD Warning Banner -->
+                            <div style="background: linear-gradient(135deg, #8B5CF6, #7C3AED); border-radius: 16px; padding: 24px; margin-bottom: 24px; color: white;">
+                                <div style="display: flex; align-items: start; gap: 16px;">
+                                    <div style="width: 48px; height: 48px; background: rgba(255,255,255,0.2); border-radius: 12px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                                    </div>
+                                    <div style="flex: 1;">
+                                        <h3 style="margin: 0 0 8px; font-size: 16px; font-weight: 700;">🔒 CV Screening Conforme RGPD</h3>
+                                        <p style="margin: 0 0 12px; font-size: 13px; line-height: 1.6; opacity: 0.95;">
+                                            Cette fonctionnalité analyse automatiquement les CV avec <strong>transparence totale</strong>. 
+                                            Le scoring est <strong>explicable</strong> et l'humain reste <strong>"in the loop"</strong> pour la décision finale.
+                                        </p>
+                                        <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                                            <span style="background: rgba(255,255,255,0.2); padding: 6px 12px; border-radius: 6px; font-size: 11px; font-weight: 600;">✓ Pas de biais discriminatoires</span>
+                                            <span style="background: rgba(255,255,255,0.2); padding: 6px 12px; border-radius: 6px; font-size: 11px; font-weight: 600;">✓ Scoring explicable</span>
+                                            <span style="background: rgba(255,255,255,0.2); padding: 6px 12px; border-radius: 6px; font-size: 11px; font-weight: 600;">✓ Humain décide</span>
+                                            <span style="background: rgba(255,255,255,0.2); padding: 6px 12px; border-radius: 6px; font-size: 11px; font-weight: 600;">✓ Audit trail</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Stats Cards -->
+                            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; margin-bottom: 32px;">
+                                <div style="background: linear-gradient(135deg, #8B5CF6, #7C3AED); border-radius: 16px; padding: 24px; color: white;">
+                                    <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 16px;">
+                                        <div>
+                                            <p style="margin: 0 0 8px; opacity: 0.9; font-size: 13px; font-weight: 600;">Offres Actives</p>
+                                            <h3 id="activeJobsCount" style="margin: 0; font-size: 32px; font-weight: 700;">0</h3>
+                                        </div>
+                                        <div style="width: 48px; height: 48px; background: rgba(255,255,255,0.2); border-radius: 12px; display: flex; align-items: center; justify-content: center;">
+                                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>
+                                        </div>
+                                    </div>
+                                    <p style="margin: 0; font-size: 12px; opacity: 0.85;">Postes en recrutement</p>
+                                </div>
+                                
+                                <div style="background: white; border-radius: 16px; padding: 24px; border: 2px solid #e5e7eb;">
+                                    <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 16px;">
+                                        <div>
+                                            <p style="margin: 0 0 8px; color: #6b7280; font-size: 13px; font-weight: 600;">CV Reçus</p>
+                                            <h3 id="totalCVsCount" style="margin: 0; font-size: 32px; font-weight: 700; color: #1a1a1a;">0</h3>
+                                        </div>
+                                        <div style="width: 48px; height: 48px; background: #E0E7FF; border-radius: 12px; display: flex; align-items: center; justify-content: center;">
+                                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#6366F1" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+                                        </div>
+                                    </div>
+                                    <p style="margin: 0; font-size: 12px; color: #6b7280;">Tous candidats</p>
+                                </div>
+                                
+                                <div style="background: white; border-radius: 16px; padding: 24px; border: 2px solid #e5e7eb;">
+                                    <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 16px;">
+                                        <div>
+                                            <p style="margin: 0 0 8px; color: #6b7280; font-size: 13px; font-weight: 600;">Shortlist</p>
+                                            <h3 id="shortlistCount" style="margin: 0; font-size: 32px; font-weight: 700; color: #10b981;">0</h3>
+                                        </div>
+                                        <div style="width: 48px; height: 48px; background: #D1FAE5; border-radius: 12px; display: flex; align-items: center; justify-content: center;">
+                                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+                                        </div>
+                                    </div>
+                                    <p style="margin: 0; font-size: 12px; color: #6b7280;">Candidats qualifiés</p>
+                                </div>
+                                
+                                <div style="background: white; border-radius: 16px; padding: 24px; border: 2px solid #e5e7eb;">
+                                    <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 16px;">
+                                        <div>
+                                            <p style="margin: 0 0 8px; color: #6b7280; font-size: 13px; font-weight: 600;">Score Moyen</p>
+                                            <h3 id="avgMatchScore" style="margin: 0; font-size: 32px; font-weight: 700; color: #F59E0B;">0</h3>
+                                        </div>
+                                        <div style="width: 48px; height: 48px; background: #FEF3C7; border-radius: 12px; display: flex; align-items: center; justify-content: center;">
+                                            <svg width="24" height="24" viewBox="0 0 24 24" fill="#F59E0B" stroke="#F59E0B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                                        </div>
+                                    </div>
+                                    <p style="margin: 0; font-size: 12px; color: #6b7280;">Match moyen / 100</p>
+                                </div>
+                            </div>
+                            
+                            <!-- Actions Bar -->
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; flex-wrap: wrap; gap: 16px;">
+                                <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+                                    <button onclick="showAddJobModal()" style="padding: 12px 24px; background: #8B5CF6; border: none; border-radius: 10px; color: white; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 8px; transition: all 0.2s;" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 12px rgba(139,92,246,0.4)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='none'">
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                                        Nouvelle Offre
+                                    </button>
+                                    
+                                    <button onclick="showUploadCVModal()" style="padding: 12px 24px; background: #6366F1; border: none; border-radius: 10px; color: white; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 8px; transition: all 0.2s;" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 12px rgba(99,102,241,0.4)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='none'">
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                                        Upload CV
+                                    </button>
+                                    
+                                    <select id="jobFilterSelect" onchange="filterCandidatesByJob()" style="padding: 12px 16px; border: 2px solid #e5e7eb; border-radius: 10px; font-size: 14px; font-weight: 600; cursor: pointer; background: white;">
+                                        <option value="">Toutes les offres</option>
+                                    </select>
+                                </div>
+                                
+                                <button onclick="showRecruitmentSettings()" style="padding: 12px 16px; background: #3B82F6; border: none; border-radius: 10px; color: white; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 8px; font-size: 13px;">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 1v6m0 6v6m6-12l-3 3m-6 6l-3 3m12 0l-3-3m-6-6l-3-3"/></svg>
+                                    Scoring & Filtres
+                                </button>
+                            </div>
+                            
+                            <!-- Candidates List -->
+                            <div id="candidatesListContainer" style="display: grid; gap: 16px;">
+                                <!-- Candidates cards dynamiques -->
+                            </div>
+                            
+                            <!-- Empty State -->
+                            <div id="candidatesEmptyState" style="text-align: center; padding: 60px 20px;">
+                                <div style="width: 80px; height: 80px; background: rgba(139,92,246,0.1); border-radius: 20px; display: flex; align-items: center; justify-content: center; margin: 0 auto 16px;">
+                                    <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#8B5CF6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+                                </div>
+                                <h3 style="margin: 0 0 8px; font-size: 18px; font-weight: 600; color: #1a1a1a;">Aucun CV analysé</h3>
+                                <p style="margin: 0 0 16px; font-size: 14px; color: #6b7280;">Créez une offre d'emploi et uploadez des CV pour commencer</p>
+                                <div style="display: flex; gap: 12px; justify-content: center;">
+                                    <button onclick="showAddJobModal()" style="padding: 10px 20px; background: #8B5CF6; color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer;">Créer une offre</button>
+                                    <button onclick="showUploadCVModal()" style="padding: 10px 20px; background: #6366F1; color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer;">Upload CV</button>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -9909,6 +10039,771 @@ RÈGLES:
         }
         
         // ========== FIN TURNOVER PREDICTION ==========
+        
+        // ========== CV SCREENING & RECRUITMENT ==========
+        
+        function initializeRecruitmentData() {
+            const jobs = JSON.parse(localStorage.getItem('recruitmentJobs') || '[]');
+            const candidates = JSON.parse(localStorage.getItem('recruitmentCandidates') || '[]');
+            
+            renderCandidatesList(candidates);
+            updateRecruitmentStats(jobs, candidates);
+            populateJobFilter(jobs);
+        }
+        
+        function updateRecruitmentStats(jobs, candidates) {
+            const activeJobs = jobs.filter(j => j.status === 'active').length;
+            const totalCVs = candidates.length;
+            const shortlist = candidates.filter(c => c.matchScore >= 70).length;
+            const avgScore = candidates.length > 0 ? 
+                Math.round(candidates.reduce((sum, c) => sum + c.matchScore, 0) / candidates.length) : 0;
+            
+            const activeJobsEl = document.getElementById('activeJobsCount');
+            const totalCVsEl = document.getElementById('totalCVsCount');
+            const shortlistEl = document.getElementById('shortlistCount');
+            const avgScoreEl = document.getElementById('avgMatchScore');
+            
+            if (activeJobsEl) activeJobsEl.textContent = activeJobs;
+            if (totalCVsEl) totalCVsEl.textContent = totalCVs;
+            if (shortlistEl) shortlistEl.textContent = shortlist;
+            if (avgScoreEl) avgScoreEl.textContent = avgScore;
+        }
+        
+        function populateJobFilter(jobs) {
+            const select = document.getElementById('jobFilterSelect');
+            if (!select) return;
+            
+            select.innerHTML = '<option value="">Toutes les offres</option>' + 
+                jobs.filter(j => j.status === 'active').map(job => 
+                    `<option value="${job.id}">${job.title}</option>`
+                ).join('');
+        }
+        
+        function showAddJobModal() {
+            const modal = document.createElement('div');
+            modal.id = 'addJobModal';
+            modal.style.cssText = 'position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 10003; animation: fadeIn 0.3s ease; overflow-y: auto; padding: 20px;';
+            
+            modal.innerHTML = `
+                <div style="background: white; border-radius: 20px; padding: 32px; max-width: 800px; width: 100%; max-height: 90vh; overflow-y: auto; animation: slideIn 0.3s ease;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+                        <h2 style="margin: 0; font-size: 24px; font-weight: 700; color: #1a1a1a;">💼 Nouvelle Offre d'Emploi</h2>
+                        <button onclick="closeAddJobModal()" style="width: 36px; height: 36px; background: #f3f4f6; border: none; border-radius: 10px; cursor: pointer; display: flex; align-items: center; justify-content: center;" onmouseover="this.style.background='#e5e7eb'" onmouseout="this.style.background='#f3f4f6'">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                        </button>
+                    </div>
+                    
+                    <form onsubmit="handleAddJob(event)">
+                        <div style="margin-bottom: 20px;">
+                            <label style="display: block; margin-bottom: 6px; font-size: 13px; font-weight: 600; color: #1a1a1a;">Titre du poste *</label>
+                            <input type="text" name="title" placeholder="Ex: Développeur Full Stack Senior" required style="width: 100%; padding: 12px; border: 2px solid #e5e7eb; border-radius: 10px; font-size: 14px;">
+                        </div>
+                        
+                        <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; margin-bottom: 20px;">
+                            <div>
+                                <label style="display: block; margin-bottom: 6px; font-size: 13px; font-weight: 600; color: #1a1a1a;">Département *</label>
+                                <input type="text" name="department" placeholder="Ex: IT" required style="width: 100%; padding: 12px; border: 2px solid #e5e7eb; border-radius: 10px; font-size: 14px;">
+                            </div>
+                            <div>
+                                <label style="display: block; margin-bottom: 6px; font-size: 13px; font-weight: 600; color: #1a1a1a;">Localisation *</label>
+                                <input type="text" name="location" placeholder="Ex: Lisbonne, Portugal" required style="width: 100%; padding: 12px; border: 2px solid #e5e7eb; border-radius: 10px; font-size: 14px;">
+                            </div>
+                        </div>
+                        
+                        <div style="margin-bottom: 20px;">
+                            <label style="display: block; margin-bottom: 6px; font-size: 13px; font-weight: 600; color: #1a1a1a;">Description du poste *</label>
+                            <textarea name="description" rows="4" placeholder="Missions principales, responsabilités..." required style="width: 100%; padding: 12px; border: 2px solid #e5e7eb; border-radius: 10px; font-size: 14px; font-family: inherit; resize: vertical;"></textarea>
+                        </div>
+                        
+                        <div style="margin-bottom: 20px;">
+                            <label style="display: block; margin-bottom: 6px; font-size: 13px; font-weight: 600; color: #1a1a1a;">Compétences requises * (séparées par virgule)</label>
+                            <textarea name="skills" rows="2" placeholder="Ex: React, Node.js, MongoDB, Docker, AWS" required style="width: 100%; padding: 12px; border: 2px solid #e5e7eb; border-radius: 10px; font-size: 14px; font-family: inherit;"></textarea>
+                        </div>
+                        
+                        <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; margin-bottom: 20px;">
+                            <div>
+                                <label style="display: block; margin-bottom: 6px; font-size: 13px; font-weight: 600; color: #1a1a1a;">Expérience minimale (années) *</label>
+                                <input type="number" name="minExperience" min="0" placeholder="Ex: 3" required style="width: 100%; padding: 12px; border: 2px solid #e5e7eb; border-radius: 10px; font-size: 14px;">
+                            </div>
+                            <div>
+                                <label style="display: block; margin-bottom: 6px; font-size: 13px; font-weight: 600; color: #1a1a1a;">Niveau Langue *</label>
+                                <select name="languageLevel" required style="width: 100%; padding: 12px; border: 2px solid #e5e7eb; border-radius: 10px; font-size: 14px;">
+                                    <option value="A2">A2 - Élémentaire</option>
+                                    <option value="B1">B1 - Intermédiaire</option>
+                                    <option value="B2" selected>B2 - Intermédiaire avancé</option>
+                                    <option value="C1">C1 - Avancé</option>
+                                    <option value="C2">C2 - Maîtrise</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div style="margin-bottom: 20px;">
+                            <label style="display: block; margin-bottom: 6px; font-size: 13px; font-weight: 600; color: #1a1a1a;">Critères must-have (optionnels)</label>
+                            <textarea name="mustHave" rows="2" placeholder="Ex: Permis B, Disponible immédiatement, Maîtrise anglais..." style="width: 100%; padding: 12px; border: 2px solid #e5e7eb; border-radius: 10px; font-size: 14px; font-family: inherit;"></textarea>
+                            <p style="margin: 4px 0 0; font-size: 11px; color: #6b7280;">Les CV sans ces critères seront automatiquement filtrés</p>
+                        </div>
+                        
+                        <div style="display: flex; gap: 12px;">
+                            <button type="button" onclick="closeAddJobModal()" style="flex: 1; padding: 12px; background: #f3f4f6; border: none; border-radius: 10px; font-weight: 600; cursor: pointer;" onmouseover="this.style.background='#e5e7eb'" onmouseout="this.style.background='#f3f4f6'">
+                                Annuler
+                            </button>
+                            <button type="submit" style="flex: 1; padding: 12px; background: #8B5CF6; border: none; border-radius: 10px; color: white; font-weight: 600; cursor: pointer;" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 12px rgba(139,92,246,0.4)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='none'">
+                                Publier l'Offre
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            `;
+            
+            document.body.appendChild(modal);
+            modal.onclick = (e) => {
+                if (e.target === modal) modal.remove();
+            };
+        }
+        
+        function closeAddJobModal() {
+            const modal = document.getElementById('addJobModal');
+            if (modal) {
+                modal.style.animation = 'fadeOut 0.3s ease';
+                setTimeout(() => modal.remove(), 300);
+            }
+        }
+        
+        function handleAddJob(event) {
+            event.preventDefault();
+            const formData = new FormData(event.target);
+            
+            const job = {
+                id: Date.now().toString(),
+                title: formData.get('title'),
+                department: formData.get('department'),
+                location: formData.get('location'),
+                description: formData.get('description'),
+                skills: formData.get('skills').split(',').map(s => s.trim()).filter(s => s),
+                minExperience: parseInt(formData.get('minExperience')),
+                languageLevel: formData.get('languageLevel'),
+                mustHave: formData.get('mustHave').split(',').map(s => s.trim()).filter(s => s),
+                status: 'active',
+                createdAt: Date.now()
+            };
+            
+            const jobs = JSON.parse(localStorage.getItem('recruitmentJobs') || '[]');
+            jobs.push(job);
+            localStorage.setItem('recruitmentJobs', JSON.stringify(jobs));
+            
+            showToast('Offre publiée avec succès', 'success');
+            closeAddJobModal();
+            
+            const candidates = JSON.parse(localStorage.getItem('recruitmentCandidates') || '[]');
+            updateRecruitmentStats(jobs, candidates);
+            populateJobFilter(jobs);
+        }
+        
+        function showUploadCVModal() {
+            const jobs = JSON.parse(localStorage.getItem('recruitmentJobs') || '[]');
+            const activeJobs = jobs.filter(j => j.status === 'active');
+            
+            if (activeJobs.length === 0) {
+                showToast('Créez d\'abord une offre d\'emploi', 'warning');
+                return;
+            }
+            
+            const modal = document.createElement('div');
+            modal.id = 'uploadCVModal';
+            modal.style.cssText = 'position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 10003; animation: fadeIn 0.3s ease; overflow-y: auto; padding: 20px;';
+            
+            modal.innerHTML = `
+                <div style="background: white; border-radius: 20px; padding: 32px; max-width: 700px; width: 100%; animation: slideIn 0.3s ease;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+                        <h2 style="margin: 0; font-size: 24px; font-weight: 700; color: #1a1a1a;">📄 Analyser un CV</h2>
+                        <button onclick="closeUploadCVModal()" style="width: 36px; height: 36px; background: #f3f4f6; border: none; border-radius: 10px; cursor: pointer; display: flex; align-items: center; justify-content: center;" onmouseover="this.style.background='#e5e7eb'" onmouseout="this.style.background='#f3f4f6'">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                        </button>
+                    </div>
+                    
+                    <div style="background: #F9FAFB; border-radius: 12px; padding: 16px; margin-bottom: 20px; border: 2px dashed #E5E7EB;">
+                        <p style="margin: 0 0 12px; font-size: 13px; color: #6b7280; text-align: center;">
+                            ℹ️ Pour cette démo, saisissez les informations du CV manuellement.<br>
+                            <span style="font-size: 11px;">En production : parsing automatique PDF/Word avec IA</span>
+                        </p>
+                    </div>
+                    
+                    <form onsubmit="handleUploadCV(event)">
+                        <div style="margin-bottom: 20px;">
+                            <label style="display: block; margin-bottom: 6px; font-size: 13px; font-weight: 600; color: #1a1a1a;">Offre ciblée *</label>
+                            <select name="jobId" required style="width: 100%; padding: 12px; border: 2px solid #e5e7eb; border-radius: 10px; font-size: 14px;">
+                                <option value="">Sélectionner...</option>
+                                ${activeJobs.map(job => `<option value="${job.id}">${job.title} - ${job.location}</option>`).join('')}
+                            </select>
+                        </div>
+                        
+                        <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; margin-bottom: 20px;">
+                            <div>
+                                <label style="display: block; margin-bottom: 6px; font-size: 13px; font-weight: 600; color: #1a1a1a;">Nom complet *</label>
+                                <input type="text" name="name" placeholder="Ex: Marie Silva" required style="width: 100%; padding: 12px; border: 2px solid #e5e7eb; border-radius: 10px; font-size: 14px;">
+                            </div>
+                            <div>
+                                <label style="display: block; margin-bottom: 6px; font-size: 13px; font-weight: 600; color: #1a1a1a;">Email *</label>
+                                <input type="email" name="email" placeholder="Ex: marie@email.com" required style="width: 100%; padding: 12px; border: 2px solid #e5e7eb; border-radius: 10px; font-size: 14px;">
+                            </div>
+                        </div>
+                        
+                        <div style="margin-bottom: 20px;">
+                            <label style="display: block; margin-bottom: 6px; font-size: 13px; font-weight: 600; color: #1a1a1a;">Compétences * (séparées par virgule)</label>
+                            <textarea name="skills" rows="2" placeholder="Ex: JavaScript, React, Python, SQL" required style="width: 100%; padding: 12px; border: 2px solid #e5e7eb; border-radius: 10px; font-size: 14px; font-family: inherit;"></textarea>
+                        </div>
+                        
+                        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 20px;">
+                            <div>
+                                <label style="display: block; margin-bottom: 6px; font-size: 13px; font-weight: 600; color: #1a1a1a;">Années d'exp. *</label>
+                                <input type="number" name="experience" min="0" placeholder="Ex: 5" required style="width: 100%; padding: 12px; border: 2px solid #e5e7eb; border-radius: 10px; font-size: 14px;">
+                            </div>
+                            <div>
+                                <label style="display: block; margin-bottom: 6px; font-size: 13px; font-weight: 600; color: #1a1a1a;">Diplôme *</label>
+                                <select name="degree" required style="width: 100%; padding: 12px; border: 2px solid #e5e7eb; border-radius: 10px; font-size: 14px;">
+                                    <option value="Bac">Bac</option>
+                                    <option value="Bac+2">Bac+2</option>
+                                    <option value="Bac+3">Bac+3</option>
+                                    <option value="Bac+5" selected>Bac+5</option>
+                                    <option value="Doctorat">Doctorat</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label style="display: block; margin-bottom: 6px; font-size: 13px; font-weight: 600; color: #1a1a1a;">Langues *</label>
+                                <select name="languages" required style="width: 100%; padding: 12px; border: 2px solid #e5e7eb; border-radius: 10px; font-size: 14px;">
+                                    <option value="A2">A2</option>
+                                    <option value="B1">B1</option>
+                                    <option value="B2" selected>B2</option>
+                                    <option value="C1">C1</option>
+                                    <option value="C2">C2</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div style="margin-bottom: 20px;">
+                            <label style="display: block; margin-bottom: 6px; font-size: 13px; font-weight: 600; color: #1a1a1a;">Dernière expérience</label>
+                            <textarea name="lastJob" rows="2" placeholder="Ex: Développeur Full Stack chez TechCorp (2020-2024)" style="width: 100%; padding: 12px; border: 2px solid #e5e7eb; border-radius: 10px; font-size: 14px; font-family: inherit;"></textarea>
+                        </div>
+                        
+                        <div style="margin-bottom: 20px;">
+                            <label style="display: block; margin-bottom: 6px; font-size: 13px; font-weight: 600; color: #1a1a1a;">Certifications (optionnelles)</label>
+                            <input type="text" name="certifications" placeholder="Ex: AWS Certified, Scrum Master" style="width: 100%; padding: 12px; border: 2px solid #e5e7eb; border-radius: 10px; font-size: 14px;">
+                        </div>
+                        
+                        <div style="display: flex; gap: 12px;">
+                            <button type="button" onclick="closeUploadCVModal()" style="flex: 1; padding: 12px; background: #f3f4f6; border: none; border-radius: 10px; font-weight: 600; cursor: pointer;" onmouseover="this.style.background='#e5e7eb'" onmouseout="this.style.background='#f3f4f6'">
+                                Annuler
+                            </button>
+                            <button type="submit" style="flex: 1; padding: 12px; background: #6366F1; border: none; border-radius: 10px; color: white; font-weight: 600; cursor: pointer;" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 12px rgba(99,102,241,0.4)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='none'">
+                                Analyser le CV
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            `;
+            
+            document.body.appendChild(modal);
+            modal.onclick = (e) => {
+                if (e.target === modal) modal.remove();
+            };
+        }
+        
+        function closeUploadCVModal() {
+            const modal = document.getElementById('uploadCVModal');
+            if (modal) {
+                modal.style.animation = 'fadeOut 0.3s ease';
+                setTimeout(() => modal.remove(), 300);
+            }
+        }
+        
+        function handleUploadCV(event) {
+            event.preventDefault();
+            const formData = new FormData(event.target);
+            
+            const candidate = {
+                id: Date.now().toString(),
+                jobId: formData.get('jobId'),
+                name: formData.get('name'),
+                email: formData.get('email'),
+                skills: formData.get('skills').split(',').map(s => s.trim()).filter(s => s),
+                experience: parseInt(formData.get('experience')),
+                degree: formData.get('degree'),
+                languages: formData.get('languages'),
+                lastJob: formData.get('lastJob') || '',
+                certifications: (formData.get('certifications') || '').split(',').map(s => s.trim()).filter(s => s),
+                uploadedAt: Date.now()
+            };
+            
+            // Récupérer l'offre pour le matching
+            const jobs = JSON.parse(localStorage.getItem('recruitmentJobs') || '[]');
+            const job = jobs.find(j => j.id === candidate.jobId);
+            
+            if (!job) {
+                showToast('Offre non trouvée', 'error');
+                return;
+            }
+            
+            // Analyser et scorer le CV
+            const analysis = analyzeCVMatch(candidate, job);
+            candidate.matchScore = analysis.overallScore;
+            candidate.scoreBreakdown = analysis.breakdown;
+            candidate.missingKeywords = analysis.missingKeywords;
+            candidate.strengths = analysis.strengths;
+            candidate.risks = analysis.risks;
+            candidate.anomalies = analysis.anomalies;
+            candidate.mustHaveCheck = analysis.mustHaveCheck;
+            candidate.recommendation = analysis.recommendation;
+            
+            // Sauvegarder
+            const candidates = JSON.parse(localStorage.getItem('recruitmentCandidates') || '[]');
+            candidates.push(candidate);
+            localStorage.setItem('recruitmentCandidates', JSON.stringify(candidates));
+            
+            showToast('CV analysé avec succès - Score: ' + analysis.overallScore + '%', 'success');
+            closeUploadCVModal();
+            renderCandidatesList(candidates);
+            updateRecruitmentStats(jobs, candidates);
+        }
+        
+        function analyzeCVMatch(candidate, job) {
+            const breakdown = {};
+            let overallScore = 0;
+            const strengths = [];
+            const risks = [];
+            const missingKeywords = [];
+            const anomalies = [];
+            
+            // 1. Compétences (40%)
+            const requiredSkills = job.skills.map(s => s.toLowerCase());
+            const candidateSkills = candidate.skills.map(s => s.toLowerCase());
+            const matchedSkills = requiredSkills.filter(skill => 
+                candidateSkills.some(cs => cs.includes(skill) || skill.includes(cs))
+            );
+            breakdown.skillsScore = requiredSkills.length > 0 
+                ? Math.round((matchedSkills.length / requiredSkills.length) * 100) 
+                : 100;
+            overallScore += breakdown.skillsScore * 0.4;
+            
+            if (breakdown.skillsScore >= 80) {
+                strengths.push('Excellente adéquation des compétences techniques');
+            } else if (breakdown.skillsScore < 50) {
+                risks.push('Compétences techniques insuffisantes');
+                requiredSkills.forEach(skill => {
+                    if (!matchedSkills.includes(skill)) {
+                        missingKeywords.push(skill);
+                    }
+                });
+            }
+            
+            // 2. Expérience (30%)
+            const expGap = candidate.experience - job.minExperience;
+            if (expGap >= 3) {
+                breakdown.experienceScore = 100;
+                strengths.push(`${expGap} ans d'expérience supplémentaire au-delà du minimum`);
+            } else if (expGap >= 0) {
+                breakdown.experienceScore = 80 + (expGap * 6.67); // 80-100
+            } else if (expGap >= -1) {
+                breakdown.experienceScore = 60;
+                risks.push('Légèrement en dessous de l\'expérience requise');
+            } else {
+                breakdown.experienceScore = Math.max(30, 60 + (expGap * 15));
+                risks.push(`${Math.abs(expGap)} ans d'expérience manquants`);
+            }
+            overallScore += breakdown.experienceScore * 0.3;
+            
+            // 3. Diplôme (10%)
+            const degreeValue = {
+                'Bac': 40,
+                'Bac+2': 60,
+                'Bac+3': 75,
+                'Bac+5': 90,
+                'Doctorat': 100
+            };
+            breakdown.degreeScore = degreeValue[candidate.degree] || 50;
+            overallScore += breakdown.degreeScore * 0.1;
+            
+            if (breakdown.degreeScore >= 90) {
+                strengths.push('Formation académique excellente');
+            }
+            
+            // 4. Langues (10%)
+            const languageLevels = {'A2': 40, 'B1': 60, 'B2': 75, 'C1': 90, 'C2': 100};
+            const candidateLevel = languageLevels[candidate.languages] || 60;
+            const requiredLevel = languageLevels[job.languageLevel] || 60;
+            breakdown.languageScore = candidateLevel >= requiredLevel 
+                ? 100 
+                : Math.round((candidateLevel / requiredLevel) * 100);
+            overallScore += breakdown.languageScore * 0.1;
+            
+            if (breakdown.languageScore < 80) {
+                risks.push('Niveau de langue à vérifier');
+            }
+            
+            // 5. Must-Have (10%)
+            const mustHaveCheck = {
+                met: [],
+                missing: []
+            };
+            
+            if (job.mustHave && job.mustHave.length > 0) {
+                // Simuler la vérification (en prod, ce serait des questions spécifiques)
+                const meetsMustHave = candidate.experience >= job.minExperience && 
+                                     breakdown.skillsScore >= 60;
+                
+                if (meetsMustHave) {
+                    mustHaveCheck.met = job.mustHave;
+                    breakdown.mustHaveScore = 100;
+                } else {
+                    mustHaveCheck.missing = job.mustHave;
+                    breakdown.mustHaveScore = 0;
+                    risks.push('Critères must-have non satisfaits');
+                }
+            } else {
+                breakdown.mustHaveScore = 100;
+            }
+            overallScore += breakdown.mustHaveScore * 0.1;
+            
+            // Détection d'anomalies
+            if (candidate.experience > 20) {
+                anomalies.push('⚠️ Expérience exceptionnellement élevée (surqualification?)');
+            }
+            
+            if (candidate.skills.length < 3) {
+                anomalies.push('⚠️ Peu de compétences listées');
+            }
+            
+            if (!candidate.lastJob || candidate.lastJob.length < 10) {
+                anomalies.push('⚠️ Dernière expérience non renseignée');
+            }
+            
+            // Recommandation finale
+            let recommendation = '';
+            if (overallScore >= 80 && risks.length === 0) {
+                recommendation = '✅ RECOMMANDÉ - Excellent profil';
+            } else if (overallScore >= 70 && breakdown.mustHaveScore === 100) {
+                recommendation = '✅ SHORTLIST - Bon candidat à interviewer';
+            } else if (overallScore >= 60) {
+                recommendation = '⚠️ À ÉVALUER - Profil intéressant mais nécessite validation';
+            } else if (breakdown.mustHaveScore === 0) {
+                recommendation = '❌ REJETÉ - Critères must-have non satisfaits';
+            } else {
+                recommendation = '❌ NON RECOMMANDÉ - Profil insuffisant';
+            }
+            
+            return {
+                overallScore: Math.round(overallScore),
+                breakdown,
+                strengths,
+                risks,
+                missingKeywords,
+                anomalies,
+                mustHaveCheck,
+                recommendation
+            };
+        }
+        
+        function renderCandidatesList(candidatesParam = null) {
+            const candidates = candidatesParam || JSON.parse(localStorage.getItem('recruitmentCandidates') || '[]');
+            const jobs = JSON.parse(localStorage.getItem('recruitmentJobs') || '[]');
+            const container = document.getElementById('candidatesList');
+            const emptyState = document.getElementById('recruitmentEmptyState');
+            const selectedJobId = document.getElementById('filterJobId').value;
+            
+            let filtered = candidates;
+            if (selectedJobId) {
+                filtered = candidates.filter(c => c.jobId === selectedJobId);
+            }
+            
+            if (filtered.length === 0) {
+                container.innerHTML = '';
+                emptyState.style.display = 'block';
+                return;
+            }
+            
+            emptyState.style.display = 'none';
+            
+            // Trier par score décroissant
+            filtered.sort((a, b) => b.matchScore - a.matchScore);
+            
+            container.innerHTML = filtered.map(candidate => {
+                const job = jobs.find(j => j.id === candidate.jobId);
+                const jobTitle = job ? job.title : 'Offre supprimée';
+                
+                let scoreColor = '#ef4444'; // Rouge
+                let scoreIcon = '❌';
+                let scoreBg = '#fee2e2';
+                
+                if (candidate.matchScore >= 80) {
+                    scoreColor = '#10b981';
+                    scoreIcon = '✅';
+                    scoreBg = '#d1fae5';
+                } else if (candidate.matchScore >= 70) {
+                    scoreColor = '#f59e0b';
+                    scoreIcon = '⚠️';
+                    scoreBg = '#fef3c7';
+                } else if (candidate.matchScore >= 60) {
+                    scoreColor = '#f59e0b';
+                    scoreIcon = '⚠️';
+                    scoreBg = '#fef3c7';
+                }
+                
+                return `
+                    <div style="background: white; border: 2px solid #f3f4f6; border-radius: 16px; padding: 20px; transition: all 0.2s; cursor: pointer;" onclick="viewCandidateDetails('${candidate.id}')" onmouseover="this.style.borderColor='#6366F1'; this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 12px rgba(0,0,0,0.08)'" onmouseout="this.style.borderColor='#f3f4f6'; this.style.transform='translateY(0)'; this.style.boxShadow='none'">
+                        <div style="display: flex; align-items: start; justify-content: space-between; gap: 16px; margin-bottom: 12px;">
+                            <div style="flex: 1;">
+                                <h3 style="margin: 0 0 4px; font-size: 18px; font-weight: 700; color: #1a1a1a;">${candidate.name}</h3>
+                                <p style="margin: 0; font-size: 14px; color: #6b7280;">📧 ${candidate.email}</p>
+                            </div>
+                            <div style="display: flex; flex-direction: column; align-items: center; gap: 4px;">
+                                <div style="background: ${scoreBg}; border-radius: 12px; padding: 8px 16px;">
+                                    <div style="font-size: 24px; font-weight: 700; color: ${scoreColor};">
+                                        ${scoreIcon} ${candidate.matchScore}%
+                                    </div>
+                                </div>
+                                <span style="font-size: 11px; color: #9ca3af; text-transform: uppercase; letter-spacing: 0.5px;">Match</span>
+                            </div>
+                        </div>
+                        
+                        <div style="background: #F9FAFB; border-radius: 10px; padding: 12px; margin-bottom: 12px;">
+                            <div style="font-size: 12px; color: #6b7280; margin-bottom: 4px;">Candidature pour :</div>
+                            <div style="font-size: 14px; font-weight: 600; color: #1a1a1a;">${jobTitle}</div>
+                        </div>
+                        
+                        <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 12px;">
+                            <div style="text-align: center;">
+                                <div style="font-size: 18px; font-weight: 700; color: ${candidate.scoreBreakdown.skillsScore >= 70 ? '#10b981' : '#ef4444'};">${candidate.scoreBreakdown.skillsScore}%</div>
+                                <div style="font-size: 11px; color: #9ca3af;">Compétences</div>
+                            </div>
+                            <div style="text-align: center;">
+                                <div style="font-size: 18px; font-weight: 700; color: ${candidate.scoreBreakdown.experienceScore >= 70 ? '#10b981' : '#ef4444'};">${candidate.scoreBreakdown.experienceScore}%</div>
+                                <div style="font-size: 11px; color: #9ca3af;">Expérience</div>
+                            </div>
+                            <div style="text-align: center;">
+                                <div style="font-size: 18px; font-weight: 700; color: ${candidate.scoreBreakdown.languageScore >= 70 ? '#10b981' : '#ef4444'};">${candidate.scoreBreakdown.languageScore}%</div>
+                                <div style="font-size: 11px; color: #9ca3af;">Langues</div>
+                            </div>
+                            <div style="text-align: center;">
+                                <div style="font-size: 18px; font-weight: 700; color: ${candidate.scoreBreakdown.degreeScore >= 70 ? '#10b981' : '#ef4444'};">${candidate.scoreBreakdown.degreeScore}%</div>
+                                <div style="font-size: 11px; color: #9ca3af;">Diplôme</div>
+                            </div>
+                        </div>
+                        
+                        <div style="font-size: 13px; font-weight: 600; color: ${scoreColor}; padding: 10px; background: ${scoreBg}; border-radius: 8px; text-align: center;">
+                            ${candidate.recommendation}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+        
+        function viewCandidateDetails(candidateId) {
+            const candidates = JSON.parse(localStorage.getItem('recruitmentCandidates') || '[]');
+            const jobs = JSON.parse(localStorage.getItem('recruitmentJobs') || '[]');
+            const candidate = candidates.find(c => c.id === candidateId);
+            const job = jobs.find(j => j.id === candidate.jobId);
+            
+            if (!candidate) return;
+            
+            const modal = document.createElement('div');
+            modal.id = 'candidateDetailsModal';
+            modal.style.cssText = 'position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 10004; animation: fadeIn 0.3s ease; overflow-y: auto; padding: 20px;';
+            
+            modal.innerHTML = `
+                <div style="background: white; border-radius: 20px; padding: 32px; max-width: 900px; width: 100%; max-height: 90vh; overflow-y: auto; animation: slideIn 0.3s ease;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+                        <div>
+                            <h2 style="margin: 0 0 4px; font-size: 28px; font-weight: 700; color: #1a1a1a;">${candidate.name}</h2>
+                            <p style="margin: 0; font-size: 14px; color: #6b7280;">📧 ${candidate.email}</p>
+                        </div>
+                        <button onclick="this.closest('#candidateDetailsModal').remove()" style="width: 36px; height: 36px; background: #f3f4f6; border: none; border-radius: 10px; cursor: pointer; display: flex; align-items: center; justify-content: center;" onmouseover="this.style.background='#e5e7eb'" onmouseout="this.style.background='#f3f4f6'">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                        </button>
+                    </div>
+                    
+                    <!-- Score global -->
+                    <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 16px; padding: 24px; margin-bottom: 24px; color: white;">
+                        <div style="text-align: center;">
+                            <div style="font-size: 14px; opacity: 0.9; margin-bottom: 8px;">Score de compatibilité</div>
+                            <div style="font-size: 64px; font-weight: 700; line-height: 1;">${candidate.matchScore}%</div>
+                            <div style="margin-top: 12px; font-size: 16px; font-weight: 600;">${candidate.recommendation}</div>
+                        </div>
+                    </div>
+                    
+                    <!-- Offre ciblée -->
+                    <div style="background: #F9FAFB; border-radius: 12px; padding: 16px; margin-bottom: 24px;">
+                        <h3 style="margin: 0 0 8px; font-size: 14px; font-weight: 600; color: #6b7280;">CANDIDATURE POUR</h3>
+                        <div style="font-size: 18px; font-weight: 700; color: #1a1a1a;">${job ? job.title : 'Offre supprimée'}</div>
+                        ${job ? `<div style="font-size: 14px; color: #6b7280; margin-top: 4px;">📍 ${job.location} • ${job.department}</div>` : ''}
+                    </div>
+                    
+                    <!-- Breakdown détaillé -->
+                    <div style="margin-bottom: 24px;">
+                        <h3 style="margin: 0 0 16px; font-size: 18px; font-weight: 700; color: #1a1a1a;">📊 Analyse détaillée</h3>
+                        <div style="display: grid; gap: 12px;">
+                            ${Object.entries({
+                                'Compétences': {score: candidate.scoreBreakdown.skillsScore, weight: '40%', icon: '💻'},
+                                'Expérience': {score: candidate.scoreBreakdown.experienceScore, weight: '30%', icon: '📊'},
+                                'Langues': {score: candidate.scoreBreakdown.languageScore, weight: '10%', icon: '🌍'},
+                                'Diplôme': {score: candidate.scoreBreakdown.degreeScore, weight: '10%', icon: '🎓'},
+                                'Must-Have': {score: candidate.scoreBreakdown.mustHaveScore, weight: '10%', icon: '✅'}
+                            }).map(([label, data]) => {
+                                const color = data.score >= 80 ? '#10b981' : data.score >= 60 ? '#f59e0b' : '#ef4444';
+                                return `
+                                    <div style="background: white; border: 2px solid #f3f4f6; border-radius: 12px; padding: 16px;">
+                                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                                            <span style="font-size: 14px; font-weight: 600; color: #1a1a1a;">${data.icon} ${label}</span>
+                                            <div style="display: flex; align-items: center; gap: 8px;">
+                                                <span style="font-size: 20px; font-weight: 700; color: ${color};">${data.score}%</span>
+                                                <span style="font-size: 12px; color: #9ca3af;">(poids: ${data.weight})</span>
+                                            </div>
+                                        </div>
+                                        <div style="background: #f3f4f6; border-radius: 8px; height: 8px; overflow: hidden;">
+                                            <div style="background: ${color}; height: 100%; width: ${data.score}%; transition: width 0.5s;"></div>
+                                        </div>
+                                    </div>
+                                `;
+                            }).join('')}
+                        </div>
+                    </div>
+                    
+                    <!-- Informations candidat -->
+                    <div style="margin-bottom: 24px;">
+                        <h3 style="margin: 0 0 16px; font-size: 18px; font-weight: 700; color: #1a1a1a;">👤 Profil du candidat</h3>
+                        <div style="background: #F9FAFB; border-radius: 12px; padding: 20px;">
+                            <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; margin-bottom: 16px;">
+                                <div>
+                                    <div style="font-size: 12px; color: #6b7280; margin-bottom: 4px;">Expérience</div>
+                                    <div style="font-size: 16px; font-weight: 600; color: #1a1a1a;">${candidate.experience} ans</div>
+                                </div>
+                                <div>
+                                    <div style="font-size: 12px; color: #6b7280; margin-bottom: 4px;">Diplôme</div>
+                                    <div style="font-size: 16px; font-weight: 600; color: #1a1a1a;">${candidate.degree}</div>
+                                </div>
+                                <div>
+                                    <div style="font-size: 12px; color: #6b7280; margin-bottom: 4px;">Niveau langues</div>
+                                    <div style="font-size: 16px; font-weight: 600; color: #1a1a1a;">${candidate.languages}</div>
+                                </div>
+                                <div>
+                                    <div style="font-size: 12px; color: #6b7280; margin-bottom: 4px;">Compétences</div>
+                                    <div style="font-size: 16px; font-weight: 600; color: #1a1a1a;">${candidate.skills.length} listées</div>
+                                </div>
+                            </div>
+                            
+                            ${candidate.skills.length > 0 ? `
+                                <div style="margin-bottom: 16px;">
+                                    <div style="font-size: 12px; color: #6b7280; margin-bottom: 8px;">Compétences détaillées</div>
+                                    <div style="display: flex; flex-wrap: wrap; gap: 6px;">
+                                        ${candidate.skills.map(skill => `
+                                            <span style="background: white; border: 1px solid #e5e7eb; padding: 6px 12px; border-radius: 20px; font-size: 13px; color: #1a1a1a;">${skill}</span>
+                                        `).join('')}
+                                    </div>
+                                </div>
+                            ` : ''}
+                            
+                            ${candidate.lastJob ? `
+                                <div style="margin-bottom: 16px;">
+                                    <div style="font-size: 12px; color: #6b7280; margin-bottom: 4px;">Dernière expérience</div>
+                                    <div style="font-size: 14px; color: #1a1a1a;">${candidate.lastJob}</div>
+                                </div>
+                            ` : ''}
+                            
+                            ${candidate.certifications && candidate.certifications.length > 0 ? `
+                                <div>
+                                    <div style="font-size: 12px; color: #6b7280; margin-bottom: 8px;">Certifications</div>
+                                    <div style="display: flex; flex-wrap: wrap; gap: 6px;">
+                                        ${candidate.certifications.map(cert => `
+                                            <span style="background: #dbeafe; color: #1e40af; padding: 6px 12px; border-radius: 20px; font-size: 13px; font-weight: 500;">🏆 ${cert}</span>
+                                        `).join('')}
+                                    </div>
+                                </div>
+                            ` : ''}
+                        </div>
+                    </div>
+                    
+                    <!-- Points forts -->
+                    ${candidate.strengths && candidate.strengths.length > 0 ? `
+                        <div style="margin-bottom: 24px;">
+                            <h3 style="margin: 0 0 12px; font-size: 18px; font-weight: 700; color: #1a1a1a;">✅ Points forts</h3>
+                            <div style="background: #d1fae5; border-radius: 12px; padding: 16px;">
+                                ${candidate.strengths.map(strength => `
+                                    <div style="font-size: 14px; color: #065f46; margin-bottom: 8px; display: flex; align-items: start; gap: 8px;">
+                                        <span>•</span>
+                                        <span>${strength}</span>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </div>
+                    ` : ''}
+                    
+                    <!-- Risques -->
+                    ${candidate.risks && candidate.risks.length > 0 ? `
+                        <div style="margin-bottom: 24px;">
+                            <h3 style="margin: 0 0 12px; font-size: 18px; font-weight: 700; color: #1a1a1a;">⚠️ Points d'attention</h3>
+                            <div style="background: #fef3c7; border-radius: 12px; padding: 16px;">
+                                ${candidate.risks.map(risk => `
+                                    <div style="font-size: 14px; color: #92400e; margin-bottom: 8px; display: flex; align-items: start; gap: 8px;">
+                                        <span>•</span>
+                                        <span>${risk}</span>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </div>
+                    ` : ''}
+                    
+                    <!-- Compétences manquantes -->
+                    ${candidate.missingKeywords && candidate.missingKeywords.length > 0 ? `
+                        <div style="margin-bottom: 24px;">
+                            <h3 style="margin: 0 0 12px; font-size: 18px; font-weight: 700; color: #1a1a1a;">❌ Compétences manquantes</h3>
+                            <div style="display: flex; flex-wrap: wrap; gap: 6px;">
+                                ${candidate.missingKeywords.map(keyword => `
+                                    <span style="background: #fee2e2; color: #991b1b; padding: 8px 14px; border-radius: 8px; font-size: 13px; font-weight: 500;">${keyword}</span>
+                                `).join('')}
+                            </div>
+                        </div>
+                    ` : ''}
+                    
+                    <!-- Anomalies -->
+                    ${candidate.anomalies && candidate.anomalies.length > 0 ? `
+                        <div style="margin-bottom: 24px;">
+                            <h3 style="margin: 0 0 12px; font-size: 18px; font-weight: 700; color: #1a1a1a;">🔍 Anomalies détectées</h3>
+                            <div style="background: #fee2e2; border-radius: 12px; padding: 16px;">
+                                ${candidate.anomalies.map(anomaly => `
+                                    <div style="font-size: 14px; color: #991b1b; margin-bottom: 8px;">${anomaly}</div>
+                                `).join('')}
+                            </div>
+                        </div>
+                    ` : ''}
+                    
+                    <!-- RGPD Notice -->
+                    <div style="background: #F9FAFB; border: 2px solid #e5e7eb; border-radius: 12px; padding: 16px; margin-top: 24px;">
+                        <div style="font-size: 12px; color: #6b7280; line-height: 1.6;">
+                            <strong style="color: #1a1a1a;">ℹ️ Transparence RGPD :</strong> Ce scoring est calculé automatiquement selon les critères suivants :
+                            Compétences (40%), Expérience (30%), Langues (10%), Diplôme (10%), Critères must-have (10%).
+                            Aucune donnée sensible (origine, religion, santé) n'est analysée. La décision finale reste humaine.
+                        </div>
+                    </div>
+                    
+                    <div style="display: flex; gap: 12px; margin-top: 24px;">
+                        <button onclick="this.closest('#candidateDetailsModal').remove()" style="flex: 1; padding: 14px; background: #f3f4f6; border: none; border-radius: 10px; font-weight: 600; cursor: pointer;" onmouseover="this.style.background='#e5e7eb'" onmouseout="this.style.background='#f3f4f6'">
+                            Fermer
+                        </button>
+                        <button onclick="alert('Fonctionnalité à venir : Ajouter à la shortlist')" style="flex: 1; padding: 14px; background: #10b981; border: none; border-radius: 10px; color: white; font-weight: 600; cursor: pointer;" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 12px rgba(16,185,129,0.4)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='none'">
+                            ✅ Ajouter à la shortlist
+                        </button>
+                    </div>
+                </div>
+            `;
+            
+            document.body.appendChild(modal);
+            modal.onclick = (e) => {
+                if (e.target === modal) modal.remove();
+            };
+        }
+        
+        // Filtre des candidats par offre
+        document.getElementById('filterJobId').addEventListener('change', function() {
+            renderCandidatesList();
+        });
         
         // ========== FIN PERFORMANCE REVIEWS ==========
         
