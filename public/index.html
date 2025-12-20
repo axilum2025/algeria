@@ -6788,6 +6788,29 @@
                                 </div>
                             </div>
                             
+                            <!-- Boutons Sauvegarde/Restauration -->
+                            <div style="background: linear-gradient(135deg, #DBEAFE, #E0E7FF); border-radius: 12px; padding: 16px; margin-bottom: 24px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; border: 2px solid #6366F1;">
+                                <div style="display: flex; align-items: center; gap: 12px;">
+                                    <div style="width: 40px; height: 40px; background: white; border-radius: 10px; display: flex; align-items: center; justify-content: center;">
+                                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#6366F1" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+                                    </div>
+                                    <div>
+                                        <p style="margin: 0; font-size: 13px; font-weight: 700; color: #1E40AF;">💾 Sauvegarde des données</p>
+                                        <p style="margin: 0; font-size: 11px; color: #3B82F6;">Téléchargez ou restaurez toutes les données (offres, CV, analyses)</p>
+                                    </div>
+                                </div>
+                                <div style="display: flex; gap: 8px;">
+                                    <button onclick="saveRecruitmentData()" style="padding: 10px 20px; background: #10B981; border: none; border-radius: 8px; color: white; font-weight: 600; font-size: 13px; cursor: pointer; display: flex; align-items: center; gap: 6px; transition: all 0.2s;" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 12px rgba(16,185,129,0.3)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='none'">
+                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                                        Sauvegarder
+                                    </button>
+                                    <button onclick="restoreRecruitmentData()" style="padding: 10px 20px; background: #6366F1; border: none; border-radius: 8px; color: white; font-weight: 600; font-size: 13px; cursor: pointer; display: flex; align-items: center; gap: 6px; transition: all 0.2s;" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 12px rgba(99,102,241,0.3)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='none'">
+                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                                        Restaurer
+                                    </button>
+                                </div>
+                            </div>
+                            
                             <!-- Actions Bar -->
                             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; flex-wrap: wrap; gap: 16px;">
                                 <div style="display: flex; gap: 12px; flex-wrap: wrap;">
@@ -10385,6 +10408,93 @@ RÈGLES DE CONVERSATION :
             if (totalCVsEl) totalCVsEl.textContent = totalCVs;
             if (shortlistEl) shortlistEl.textContent = shortlist;
             if (avgScoreEl) avgScoreEl.textContent = avgScore;
+        }
+        
+        function saveRecruitmentData() {
+            try {
+                const jobs = JSON.parse(localStorage.getItem('recruitmentJobs') || '[]');
+                const candidates = JSON.parse(localStorage.getItem('recruitmentCandidates') || '[]');
+                
+                const data = {
+                    exportDate: new Date().toISOString(),
+                    version: '1.0',
+                    type: 'recruitment-data',
+                    statistics: {
+                        totalJobs: jobs.length,
+                        activeJobs: jobs.filter(j => j.status === 'active').length,
+                        totalCandidates: candidates.length,
+                        shortlist: candidates.filter(c => c.matchScore >= 70).length,
+                        avgScore: candidates.length > 0 ? Math.round(candidates.reduce((sum, c) => sum + c.matchScore, 0) / candidates.length) : 0
+                    },
+                    jobs: jobs,
+                    candidates: candidates
+                };
+                
+                const dataStr = JSON.stringify(data, null, 2);
+                const blob = new Blob([dataStr], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+                const link = document.createElement('a');
+                link.href = url;
+                link.download = 'recrutement-backup-' + new Date().toISOString().split('T')[0] + '.json';
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                URL.revokeObjectURL(url);
+                
+                showToast('✅ Sauvegarde: ' + data.statistics.totalJobs + ' offres, ' + data.statistics.totalCandidates + ' CV', 'success');
+            } catch (error) {
+                console.error('Erreur sauvegarde:', error);
+                showToast('❌ Erreur lors de la sauvegarde', 'error');
+            }
+        }
+        
+        function restoreRecruitmentData() {
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = '.json';
+            
+            input.onchange = async (e) => {
+                const file = e.target.files[0];
+                if (!file) return;
+                
+                try {
+                    const text = await file.text();
+                    const data = JSON.parse(text);
+                    
+                    if (data.type !== 'recruitment-data') {
+                        throw new Error('Type de fichier incorrect');
+                    }
+                    
+                    if (!data.jobs || !data.candidates) {
+                        throw new Error('Données manquantes');
+                    }
+                    
+                    const currentJobs = JSON.parse(localStorage.getItem('recruitmentJobs') || '[]');
+                    const currentCandidates = JSON.parse(localStorage.getItem('recruitmentCandidates') || '[]');
+                    
+                    let confirmMsg = '📊 Restaurer les données?\n\n';
+                    confirmMsg += 'Actuelles: ' + currentJobs.length + ' offres, ' + currentCandidates.length + ' CV\n';
+                    confirmMsg += 'Fichier: ' + data.statistics.totalJobs + ' offres, ' + data.statistics.totalCandidates + ' CV\n\n';
+                    confirmMsg += '⚠️ Les données actuelles seront remplacées!';
+                    
+                    if (!confirm(confirmMsg)) return;
+                    
+                    localStorage.setItem('recruitmentJobs', JSON.stringify(data.jobs));
+                    localStorage.setItem('recruitmentCandidates', JSON.stringify(data.candidates));
+                    
+                    renderCandidatesList(data.candidates);
+                    updateRecruitmentStats(data.jobs, data.candidates);
+                    populateJobFilter(data.jobs);
+                    
+                    showToast('✅ Restauration: ' + data.jobs.length + ' offres, ' + data.candidates.length + ' CV', 'success');
+                    
+                } catch (error) {
+                    console.error('Erreur restauration:', error);
+                    showToast('❌ Erreur: ' + error.message, 'error');
+                }
+            };
+            
+            input.click();
         }
         
         function populateJobFilter(jobs) {
