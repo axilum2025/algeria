@@ -8916,6 +8916,16 @@ Réponds de manière professionnelle, data-driven et orientée résultats.
                                 <label style="display: block; margin-bottom: 8px; font-size: 13px; font-weight: 600; color: rgba(255, 255, 255, 0.9);">Téléphone</label>
                                 <input type="tel" name="phone" style="width: 100%; padding: 12px 16px; background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 10px; font-size: 14px; color: white; transition: all 0.3s;" onfocus="this.style.borderColor='#10b981'; this.style.background='rgba(255, 255, 255, 0.15)'" onblur="this.style.borderColor='rgba(16, 185, 129, 0.3)'; this.style.background='rgba(255, 255, 255, 0.1)'" placeholder="+213 555 123 456">
                             </div>
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 16px;">
+                                <div>
+                                    <label style="display: block; margin-bottom: 8px; font-size: 13px; font-weight: 600; color: rgba(255, 255, 255, 0.9);">Date de naissance *</label>
+                                    <input type="date" name="birthDate" required style="width: 100%; padding: 12px 16px; background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 10px; font-size: 14px; color: white; transition: all 0.3s; color-scheme: dark;" onfocus="this.style.borderColor='#10b981'; this.style.background='rgba(255, 255, 255, 0.15)'" onblur="this.style.borderColor='rgba(16, 185, 129, 0.3)'; this.style.background='rgba(255, 255, 255, 0.1)'">
+                                </div>
+                                <div>
+                                    <label style="display: block; margin-bottom: 8px; font-size: 13px; font-weight: 600; color: rgba(255, 255, 255, 0.9);">Adresse *</label>
+                                    <input type="text" name="address" required style="width: 100%; padding: 12px 16px; background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 10px; font-size: 14px; color: white; transition: all 0.3s;" onfocus="this.style.borderColor='#10b981'; this.style.background='rgba(255, 255, 255, 0.15)'" onblur="this.style.borderColor='rgba(16, 185, 129, 0.3)'; this.style.background='rgba(255, 255, 255, 0.1)'" placeholder="Ex: 123 Rue de la Liberté, Alger">
+                                </div>
+                            </div>
                         </div>
                         
                         <!-- Section: Informations professionnelles -->
@@ -9083,6 +9093,14 @@ Réponds de manière professionnelle, data-driven et orientée résultats.
                                 <div>
                                     <div style="font-size: 12px; color: rgba(255, 255, 255, 0.5); margin-bottom: 4px;">Téléphone</div>
                                     <div style="font-size: 15px; color: white; font-weight: 500;">${employee.phone || 'Non renseigné'}</div>
+                                </div>
+                                <div>
+                                    <div style="font-size: 12px; color: rgba(255, 255, 255, 0.5); margin-bottom: 4px;">Date de naissance</div>
+                                    <div style="font-size: 15px; color: white; font-weight: 500;">${employee.birthDate ? new Date(employee.birthDate).toLocaleDateString('fr-FR') : 'Non renseignée'}</div>
+                                </div>
+                                <div>
+                                    <div style="font-size: 12px; color: rgba(255, 255, 255, 0.5); margin-bottom: 4px;">Adresse</div>
+                                    <div style="font-size: 15px; color: white; font-weight: 500;">${employee.address || 'Non renseignée'}</div>
                                 </div>
                                 <div>
                                     <div style="font-size: 12px; color: rgba(255, 255, 255, 0.5); margin-bottom: 4px;">ID Employé</div>
@@ -9286,8 +9304,8 @@ Réponds de manière professionnelle, data-driven et orientée résultats.
     <div style="text-align: right; margin-bottom: 30px;">
         <strong>Fait à ${company.city.split(',')[0]}, le ${today}</strong>
     </div>
-
-    <div class="title">Attestation de Travail</div>
+${employee.birthDate ? new Date(employee.birthDate).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' }) : '[Date de naissance à compléter]'}<br>
+            Résidant à : ${employee.address || '[Adresse à compléter]'}/div>
 
     <div class="content">
         <p>Je soussigné(e), représentant(e) légal(e) de <strong>${company.name}</strong>, certifie par la présente que :</p>
