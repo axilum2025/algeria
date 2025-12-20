@@ -8111,6 +8111,23 @@ RÈGLES:
                             <input type="number" id="payrollBaseSalary" name="baseSalary" required min="0" step="0.01" placeholder="45000" style="width: 100%; padding: 12px; border: 1px solid #e5e7eb; border-radius: 10px; font-size: 14px;" oninput="calculatePayroll()">
                         </div>
                         
+                        <!-- Section Primes/Bonus personnalisés -->
+                        <div style="background: #f0fdf4; border-radius: 12px; padding: 16px; border: 2px solid #bbf7d0;">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                                <h4 style="margin: 0; font-size: 14px; font-weight: 700; color: #166534;">➕ Primes & Bonus</h4>
+                                <button type="button" onclick="addBonusRow()" style="padding: 6px 12px; background: #10b981; color: white; border: none; border-radius: 8px; font-size: 12px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 4px;" onmouseover="this.style.background='#059669'" onmouseout="this.style.background='#10b981'">
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                                    Ajouter
+                                </button>
+                            </div>
+                            
+                            <div id="bonusesContainer" style="margin-bottom: 8px;">
+                                <!-- Bonus dynamiques -->
+                            </div>
+                            
+                            <p style="margin: 0; font-size: 11px; color: #15803d; font-style: italic;">💡 Ajoutez des primes, bonus ou indemnités supplémentaires</p>
+                        </div>
+                        
                         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
                             <div>
                                 <label style="display: block; margin-bottom: 6px; font-size: 14px; font-weight: 600; color: #374151;">Primes</label>
@@ -8140,6 +8157,9 @@ RÈGLES:
                                 <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
                                     <span style="font-size: 13px; color: #6b7280;">Salaire brut</span>
                                     <span id="calculatedGrossSalary" style="font-size: 13px; color: #1a1a1a; font-weight: 600;">0</span>
+                                </div>
+                                <div id="bonusesSummary" style="margin-bottom: 8px;">
+                                    <!-- Résumé des bonus personnalisés -->
                                 </div>
                                 <div id="deductionsSummary">
                                     <!-- Résumé des déductions -->
@@ -8220,6 +8240,38 @@ RÈGLES:
             }
         }
         
+        function addBonusRow() {
+            const container = document.getElementById('bonusesContainer');
+            const rowId = 'bonus_' + Date.now();
+            
+            const row = document.createElement('div');
+            row.id = rowId;
+            row.style.cssText = 'display: grid; grid-template-columns: 2fr 1fr auto; gap: 8px; margin-bottom: 8px; align-items: center;';
+            
+            const currency = getCurrency();
+            
+            row.innerHTML = `
+                <input type="text" placeholder="Ex: Prime de rendement" class="bonus-name" style="padding: 8px 12px; border: 1px solid #e5e7eb; border-radius: 8px; font-size: 13px;" oninput="calculatePayroll()">
+                <div style="position: relative;">
+                    <input type="number" placeholder="Montant" class="bonus-amount" min="0" step="0.01" style="padding: 8px 12px; padding-right: 50px; border: 1px solid #e5e7eb; border-radius: 8px; font-size: 13px; width: 100%;" oninput="calculatePayroll()">
+                    <span style="position: absolute; right: 12px; top: 50%; transform: translateY(-50%); color: #6b7280; font-size: 11px; pointer-events: none;">${currency}</span>
+                </div>
+                <button type="button" onclick="removeBonusRow('${rowId}')" style="padding: 8px; background: #dcfce7; color: #16a34a; border: none; border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center;" onmouseover="this.style.background='#bbf7d0'" onmouseout="this.style.background='#dcfce7'">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                </button>
+            `;
+            
+            container.appendChild(row);
+        }
+        
+        function removeBonusRow(rowId) {
+            const row = document.getElementById(rowId);
+            if (row) {
+                row.remove();
+                calculatePayroll();
+            }
+        }
+        
         function calculatePayroll() {
             const baseSalary = parseFloat(document.querySelector('[name="baseSalary"]').value) || 0;
             const bonuses = parseFloat(document.querySelector('[name="bonuses"]').value) || 0;
@@ -8230,8 +8282,28 @@ RÈGLES:
             const hourlyRate = baseSalary / 173.33; // Heures mensuelles standard
             const overtimePay = overtime * hourlyRate * 1.5;
             
-            // Salaire brut
-            const grossSalary = baseSalary + bonuses + overtimePay;
+            // Collecter tous les bonus personnalisés
+            const bonusRows = document.querySelectorAll('#bonusesContainer > div');
+            let totalCustomBonuses = 0;
+            let customBonusesDetails = [];
+            
+            bonusRows.forEach(row => {
+                const nameInput = row.querySelector('.bonus-name');
+                const amountInput = row.querySelector('.bonus-amount');
+                
+                if (nameInput && amountInput) {
+                    const name = nameInput.value.trim();
+                    const amount = parseFloat(amountInput.value) || 0;
+                    
+                    if (name && amount > 0) {
+                        totalCustomBonuses += amount;
+                        customBonusesDetails.push({ name, amount });
+                    }
+                }
+            });
+            
+            // Salaire brut (incluant les bonus personnalisés)
+            const grossSalary = baseSalary + bonuses + overtimePay + totalCustomBonuses;
             
             // Afficher le salaire brut
             document.getElementById('calculatedGrossSalary').textContent = Math.round(grossSalary).toLocaleString() + ' ' + currency;
@@ -8257,6 +8329,21 @@ RÈGLES:
                 }
             });
             
+            // Afficher le résumé des bonus personnalisés
+            const bonusesSummary = document.getElementById('bonusesSummary');
+            if (bonusesSummary) {
+                let bonusesHTML = '';
+                customBonusesDetails.forEach(bonus => {
+                    bonusesHTML += `
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 6px;">
+                            <span style="font-size: 12px; color: #16a34a;">+ ${bonus.name}</span>
+                            <span style="font-size: 12px; color: #16a34a; font-weight: 600;">+${Math.round(bonus.amount).toLocaleString()} ${currency}</span>
+                        </div>
+                    `;
+                });
+                bonusesSummary.innerHTML = bonusesHTML;
+            }
+            
             // Afficher le résumé des déductions
             const summaryContainer = document.getElementById('deductionsSummary');
             let summaryHTML = '';
@@ -8278,6 +8365,7 @@ RÈGLES:
             // Afficher le salaire net
             document.getElementById('calculatedNetSalary').textContent = Math.round(netSalary).toLocaleString() + ' ' + currency;
         }
+
         
         function handleAddPayroll(event) {
             event.preventDefault();
@@ -8290,7 +8378,28 @@ RÈGLES:
             // Recalculer avec les valeurs du formulaire
             const hourlyRate = baseSalary / 173.33;
             const overtimePay = overtime * hourlyRate * 1.5;
-            const grossSalary = baseSalary + bonuses + overtimePay;
+            
+            // Collecter les bonus personnalisés
+            const bonusRows = document.querySelectorAll('#bonusesContainer > div');
+            let customBonuses = [];
+            let totalCustomBonuses = 0;
+            
+            bonusRows.forEach(row => {
+                const nameInput = row.querySelector('.bonus-name');
+                const amountInput = row.querySelector('.bonus-amount');
+                
+                if (nameInput && amountInput) {
+                    const name = nameInput.value.trim();
+                    const amount = parseFloat(amountInput.value) || 0;
+                    
+                    if (name && amount > 0) {
+                        totalCustomBonuses += amount;
+                        customBonuses.push({ name, amount: Math.round(amount) });
+                    }
+                }
+            });
+            
+            const grossSalary = baseSalary + bonuses + overtimePay + totalCustomBonuses;
             
             // Collecter les déductions personnalisées
             const deductionRows = document.querySelectorAll('#deductionsContainer > div');
@@ -8323,6 +8432,8 @@ RÈGLES:
                 bonuses: bonuses,
                 overtime: overtime,
                 overtimePay: Math.round(overtimePay),
+                customBonuses: customBonuses,
+                totalCustomBonuses: Math.round(totalCustomBonuses),
                 grossSalary: Math.round(grossSalary),
                 customDeductions: customDeductions,
                 totalDeductions: Math.round(totalDeductions),
@@ -8497,6 +8608,15 @@ RÈGLES:
                             <span style="font-size: 16px; color: #10b981; font-weight: 700;">+${payroll.overtimePay.toLocaleString()} ${currency}</span>
                         </div>
                         ` : ''}
+                        
+                        ${payroll.customBonuses && payroll.customBonuses.length > 0 ? 
+                            payroll.customBonuses.map(bonus => `
+                                <div style="display: flex; justify-content: space-between; margin-bottom: 16px; padding-bottom: 16px; border-bottom: 1px solid #e5e7eb;">
+                                    <span style="font-size: 14px; color: #6b7280; font-weight: 600;">+ ${bonus.name}</span>
+                                    <span style="font-size: 16px; color: #10b981; font-weight: 700;">+${bonus.amount.toLocaleString()} ${currency}</span>
+                                </div>
+                            `).join('')
+                        : ''}
                         
                         <div style="display: flex; justify-content: space-between; margin-bottom: 16px; padding-bottom: 16px; border-bottom: 1px solid #e5e7eb;">
                             <span style="font-size: 14px; color: #6b7280; font-weight: 600;">Salaire brut</span>
