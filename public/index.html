@@ -6488,41 +6488,46 @@
                         
                         <!-- Employees Tab -->
                         <div id="hrContentEmployees" class="hr-content" style="display: none;">
-                            <div style="max-width: 1400px; margin: 0 auto;">
-                                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px;">
-                                    <h2 style="margin: 0; font-size: 24px; font-weight: 700; color: white;">Liste des Employés</h2>
-                                    <button onclick="showAddEmployeeModal()" class="hr-btn">
+                            <div style="max-width: 1200px; margin: 0 auto;">
+                                <!-- Header -->
+                                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px;">
+                                    <h2 style="margin: 0; font-size: 22px; font-weight: 700; color: white;">Liste des Employés</h2>
+                                    <button onclick="showAddEmployeeModal()" class="hr-btn" style="padding: 10px 20px; font-size: 13px;">
                                         Nouvel Employé
                                     </button>
                                 </div>
                                 
                                 <!-- Filters -->
-                                <div class="hr-section">
-                                    <div style="display: grid; grid-template-columns: 1fr auto auto; gap: 12px;">
-                                        <input type="text" id="employeeSearch" placeholder="Rechercher un employé..." style="padding: 12px 16px; background: rgba(255,255,255,0.1); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 10px; font-size: 14px; color: white;">
-                                        <select id="departmentFilter" style="padding: 12px 16px; background: rgba(255,255,255,0.1); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 10px; font-size: 14px; color: white; cursor: pointer;">
-                                            <option value="">Tous les départements</option>
+                                <div style="background: rgba(255,255,255,0.05); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 12px; padding: 16px; margin-bottom: 20px;">
+                                    <div style="display: grid; grid-template-columns: 1fr auto auto; gap: 10px;">
+                                        <input type="text" id="employeeSearch" placeholder="Rechercher..." style="padding: 10px 14px; background: rgba(255,255,255,0.1); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 8px; font-size: 13px; color: white;">
+                                        <select id="departmentFilter" style="padding: 10px 14px; background: rgba(255,255,255,0.1); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 8px; font-size: 13px; color: white; cursor: pointer;">
+                                            <option value="">Tous</option>
                                             <option value="IT">IT</option>
                                             <option value="RH">RH</option>
                                             <option value="Finance">Finance</option>
                                             <option value="Marketing">Marketing</option>
                                         </select>
-                                        <select id="statusFilter" style="padding: 12px 16px; background: rgba(255,255,255,0.1); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 10px; font-size: 14px; color: white; cursor: pointer;">
-                                            <option value="">Tous les statuts</option>
+                                        <select id="statusFilter" style="padding: 10px 14px; background: rgba(255,255,255,0.1); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 8px; font-size: 13px; color: white; cursor: pointer;">
+                                            <option value="">Statut</option>
                                             <option value="active">Actif</option>
-                                            <option value="onLeave">En congé</option>
+                                            <option value="onLeave">Congé</option>
                                             <option value="terminated">Terminé</option>
                                         </select>
                                     </div>
                                 </div>
                                 
-                                <!-- Employees List -->
-                                <div id="employeesList" class="hr-section" style="max-height: 500px; overflow-y: auto;">
-                                    <div class="hr-empty">
-                                        <p class="hr-empty-title">Aucun employé</p>
-                                        <p style="margin: 0; font-size: 14px;">Commencez par ajouter votre premier employé</p>
-                                        <button onclick="showAddEmployeeModal()" class="hr-btn" style="margin-top: 24px;">
-                                            Ajouter un Employé
+                                <!-- Employees List Container -->
+                                <div id="employeesList" style="background: rgba(255,255,255,0.05); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 12px; padding: 20px; min-height: 300px; max-height: 450px; overflow-y: auto;">
+                                    <!-- Empty State -->
+                                    <div style="text-align: center; padding: 40px 20px;">
+                                        <div style="width: 60px; height: 60px; background: rgba(16, 185, 129, 0.2); border-radius: 12px; display: flex; align-items: center; justify-content: center; margin: 0 auto 16px;">
+                                            <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                                        </div>
+                                        <h3 style="margin: 0 0 8px; font-size: 16px; font-weight: 600; color: white;">Aucun employé</h3>
+                                        <p style="margin: 0 0 20px; font-size: 13px; color: rgba(255,255,255,0.6);">Commencez par ajouter un employé</p>
+                                        <button onclick="showAddEmployeeModal()" class="hr-btn" style="padding: 10px 20px; font-size: 13px;">
+                                            Ajouter
                                         </button>
                                     </div>
                                 </div>
