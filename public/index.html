@@ -8864,92 +8864,108 @@ Réponds de manière professionnelle, data-driven et orientée résultats.
                 left: 0;
                 width: 100%;
                 height: 100%;
-                background: rgba(0,0,0,0.5);
+                background: rgba(0, 0, 0, 0.7);
+                backdrop-filter: blur(8px);
                 display: flex;
                 align-items: center;
                 justify-content: center;
                 z-index: 10002;
-                animation: fadeIn 0.2s ease;
+                animation: fadeIn 0.3s ease;
             `;
             
             modal.innerHTML = `
-                <div style="background: white; border-radius: 20px; padding: 32px; max-width: 600px; width: 90%; max-height: 90vh; overflow-y: auto; animation: slideIn 0.3s ease;">
-                    <div style="display: flex; align-items: center; justify-content: between; margin-bottom: 24px;">
-                        <h2 style="margin: 0; font-size: 24px; font-weight: 700; color: #1a1a1a; flex: 1;">Nouvel Employé</h2>
-                        <button onclick="closeAddEmployeeModal()" style="width: 36px; height: 36px; background: #f3f4f6; border: none; border-radius: 10px; cursor: pointer; display: flex; align-items: center; justify-content: center;" onmouseover="this.style.background='#e5e7eb'" onmouseout="this.style.background='#f3f4f6'">
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                <div style="background: linear-gradient(135deg, #0a4d3c 0%, #064e3b 50%, #1e3a8a 100%); border: 2px solid rgba(16, 185, 129, 0.3); border-radius: 24px; padding: 40px; max-width: 700px; width: 90%; max-height: 90vh; overflow-y: auto; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5); animation: slideIn 0.3s ease;">
+                    <!-- Header -->
+                    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 32px; padding-bottom: 20px; border-bottom: 1px solid rgba(16, 185, 129, 0.2);">
+                        <div>
+                            <h2 style="margin: 0 0 8px; font-size: 28px; font-weight: 700; background: linear-gradient(135deg, #10b981 0%, #06b6d4 50%, #3b82f6 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">Nouvel Employé</h2>
+                            <p style="margin: 0; font-size: 14px; color: rgba(255, 255, 255, 0.6);">Ajouter un nouveau membre à l'équipe</p>
+                        </div>
+                        <button onclick="closeAddEmployeeModal()" style="width: 40px; height: 40px; background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 12px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.3s;" onmouseover="this.style.background='rgba(239, 68, 68, 0.2)'; this.style.borderColor='#ef4444'; this.style.transform='rotate(90deg)'" onmouseout="this.style.background='rgba(255, 255, 255, 0.1)'; this.style.borderColor='rgba(16, 185, 129, 0.3)'; this.style.transform='rotate(0)'">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
                         </button>
                     </div>
                     
-                    <form id="addEmployeeForm" onsubmit="handleAddEmployee(event)" style="display: flex; flex-direction: column; gap: 16px;">
-                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
-                            <div>
-                                <label style="display: block; margin-bottom: 6px; font-size: 14px; font-weight: 600; color: #374151;">Prénom</label>
-                                <input type="text" name="firstName" required style="width: 100%; padding: 12px; border: 1px solid #e5e7eb; border-radius: 10px; font-size: 14px;">
+                    <form id="addEmployeeForm" onsubmit="handleAddEmployee(event)" style="display: flex; flex-direction: column; gap: 20px;">
+                        <!-- Section: Informations personnelles -->
+                        <div style="background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(16, 185, 129, 0.2); border-radius: 16px; padding: 24px;">
+                            <h3 style="margin: 0 0 20px; font-size: 16px; font-weight: 600; color: #10b981; display: flex; align-items: center; gap: 8px;">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                                Informations personnelles
+                            </h3>
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+                                <div>
+                                    <label style="display: block; margin-bottom: 8px; font-size: 13px; font-weight: 600; color: rgba(255, 255, 255, 0.9);">Prénom *</label>
+                                    <input type="text" name="firstName" required style="width: 100%; padding: 12px 16px; background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 10px; font-size: 14px; color: white; transition: all 0.3s;" onfocus="this.style.borderColor='#10b981'; this.style.background='rgba(255, 255, 255, 0.15)'" onblur="this.style.borderColor='rgba(16, 185, 129, 0.3)'; this.style.background='rgba(255, 255, 255, 0.1)'" placeholder="Ex: Ahmed">
+                                </div>
+                                <div>
+                                    <label style="display: block; margin-bottom: 8px; font-size: 13px; font-weight: 600; color: rgba(255, 255, 255, 0.9);">Nom *</label>
+                                    <input type="text" name="lastName" required style="width: 100%; padding: 12px 16px; background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 10px; font-size: 14px; color: white; transition: all 0.3s;" onfocus="this.style.borderColor='#10b981'; this.style.background='rgba(255, 255, 255, 0.15)'" onblur="this.style.borderColor='rgba(16, 185, 129, 0.3)'; this.style.background='rgba(255, 255, 255, 0.1)'" placeholder="Ex: Benali">
+                                </div>
                             </div>
-                            <div>
-                                <label style="display: block; margin-bottom: 6px; font-size: 14px; font-weight: 600; color: #374151;">Nom</label>
-                                <input type="text" name="lastName" required style="width: 100%; padding: 12px; border: 1px solid #e5e7eb; border-radius: 10px; font-size: 14px;">
+                            <div style="margin-top: 16px;">
+                                <label style="display: block; margin-bottom: 8px; font-size: 13px; font-weight: 600; color: rgba(255, 255, 255, 0.9);">Email *</label>
+                                <input type="email" name="email" required style="width: 100%; padding: 12px 16px; background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 10px; font-size: 14px; color: white; transition: all 0.3s;" onfocus="this.style.borderColor='#10b981'; this.style.background='rgba(255, 255, 255, 0.15)'" onblur="this.style.borderColor='rgba(16, 185, 129, 0.3)'; this.style.background='rgba(255, 255, 255, 0.1)'" placeholder="ahmed.benali@company.dz">
                             </div>
-                        </div>
-                        
-                        <div>
-                            <label style="display: block; margin-bottom: 6px; font-size: 14px; font-weight: 600; color: #374151;">Email</label>
-                            <input type="email" name="email" required style="width: 100%; padding: 12px; border: 1px solid #e5e7eb; border-radius: 10px; font-size: 14px;">
-                        </div>
-                        
-                        <div>
-                            <label style="display: block; margin-bottom: 6px; font-size: 14px; font-weight: 600; color: #374151;">Téléphone</label>
-                            <input type="tel" name="phone" style="width: 100%; padding: 12px; border: 1px solid #e5e7eb; border-radius: 10px; font-size: 14px;">
-                        </div>
-                        
-                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
-                            <div>
-                                <label style="display: block; margin-bottom: 6px; font-size: 14px; font-weight: 600; color: #374151;">Poste</label>
-                                <input type="text" name="position" required style="width: 100%; padding: 12px; border: 1px solid #e5e7eb; border-radius: 10px; font-size: 14px;">
-                            </div>
-                            <div>
-                                <label style="display: block; margin-bottom: 6px; font-size: 14px; font-weight: 600; color: #374151;">Département</label>
-                                <select name="department" required style="width: 100%; padding: 12px; border: 1px solid #e5e7eb; border-radius: 10px; font-size: 14px;">
-                                    <option value="">Sélectionner...</option>
-                                    <option value="IT">IT</option>
-                                    <option value="RH">RH</option>
-                                    <option value="Finance">Finance</option>
-                                    <option value="Marketing">Marketing</option>
-                                    <option value="Ventes">Ventes</option>
-                                    <option value="Operations">Opérations</option>
-                                </select>
+                            <div style="margin-top: 16px;">
+                                <label style="display: block; margin-bottom: 8px; font-size: 13px; font-weight: 600; color: rgba(255, 255, 255, 0.9);">Téléphone</label>
+                                <input type="tel" name="phone" style="width: 100%; padding: 12px 16px; background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 10px; font-size: 14px; color: white; transition: all 0.3s;" onfocus="this.style.borderColor='#10b981'; this.style.background='rgba(255, 255, 255, 0.15)'" onblur="this.style.borderColor='rgba(16, 185, 129, 0.3)'; this.style.background='rgba(255, 255, 255, 0.1)'" placeholder="+213 555 123 456">
                             </div>
                         </div>
                         
-                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
-                            <div>
-                                <label style="display: block; margin-bottom: 6px; font-size: 14px; font-weight: 600; color: #374151;">Date d'embauche</label>
-                                <input type="date" name="hireDate" required style="width: 100%; padding: 12px; border: 1px solid #e5e7eb; border-radius: 10px; font-size: 14px;">
+                        <!-- Section: Informations professionnelles -->
+                        <div style="background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(16, 185, 129, 0.2); border-radius: 16px; padding: 24px;">
+                            <h3 style="margin: 0 0 20px; font-size: 16px; font-weight: 600; color: #06b6d4; display: flex; align-items: center; gap: 8px;">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>
+                                Informations professionnelles
+                            </h3>
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+                                <div>
+                                    <label style="display: block; margin-bottom: 8px; font-size: 13px; font-weight: 600; color: rgba(255, 255, 255, 0.9);">Poste *</label>
+                                    <input type="text" name="position" required style="width: 100%; padding: 12px 16px; background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 10px; font-size: 14px; color: white; transition: all 0.3s;" onfocus="this.style.borderColor='#06b6d4'; this.style.background='rgba(255, 255, 255, 0.15)'" onblur="this.style.borderColor='rgba(16, 185, 129, 0.3)'; this.style.background='rgba(255, 255, 255, 0.1)'" placeholder="Ex: Développeur Full Stack">
+                                </div>
+                                <div>
+                                    <label style="display: block; margin-bottom: 8px; font-size: 13px; font-weight: 600; color: rgba(255, 255, 255, 0.9);">Département *</label>
+                                    <select name="department" required style="width: 100%; padding: 12px 16px; background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 10px; font-size: 14px; color: white; cursor: pointer; transition: all 0.3s;" onfocus="this.style.borderColor='#06b6d4'; this.style.background='rgba(255, 255, 255, 0.15)'" onblur="this.style.borderColor='rgba(16, 185, 129, 0.3)'; this.style.background='rgba(255, 255, 255, 0.1)'">
+                                        <option value="" style="background: #1e3a8a; color: white;">Sélectionner...</option>
+                                        <option value="IT" style="background: #1e3a8a; color: white;">IT</option>
+                                        <option value="RH" style="background: #1e3a8a; color: white;">RH</option>
+                                        <option value="Finance" style="background: #1e3a8a; color: white;">Finance</option>
+                                        <option value="Marketing" style="background: #1e3a8a; color: white;">Marketing</option>
+                                        <option value="Ventes" style="background: #1e3a8a; color: white;">Ventes</option>
+                                        <option value="Operations" style="background: #1e3a8a; color: white;">Opérations</option>
+                                    </select>
+                                </div>
                             </div>
-                            <div>
-                                <label style="display: block; margin-bottom: 6px; font-size: 14px; font-weight: 600; color: #374151;">Type de contrat</label>
-                                <select name="contractType" required style="width: 100%; padding: 12px; border: 1px solid #e5e7eb; border-radius: 10px; font-size: 14px;">
-                                    <option value="">Sélectionner...</option>
-                                    <option value="CDI">CDI</option>
-                                    <option value="CDD">CDD</option>
-                                    <option value="Stage">Stage</option>
-                                    <option value="Freelance">Freelance</option>
-                                </select>
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 16px;">
+                                <div>
+                                    <label style="display: block; margin-bottom: 8px; font-size: 13px; font-weight: 600; color: rgba(255, 255, 255, 0.9);">Date d'embauche *</label>
+                                    <input type="date" name="hireDate" required style="width: 100%; padding: 12px 16px; background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 10px; font-size: 14px; color: white; transition: all 0.3s; color-scheme: dark;" onfocus="this.style.borderColor='#06b6d4'; this.style.background='rgba(255, 255, 255, 0.15)'" onblur="this.style.borderColor='rgba(16, 185, 129, 0.3)'; this.style.background='rgba(255, 255, 255, 0.1)'">
+                                </div>
+                                <div>
+                                    <label style="display: block; margin-bottom: 8px; font-size: 13px; font-weight: 600; color: rgba(255, 255, 255, 0.9);">Type de contrat *</label>
+                                    <select name="contractType" required style="width: 100%; padding: 12px 16px; background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 10px; font-size: 14px; color: white; cursor: pointer; transition: all 0.3s;" onfocus="this.style.borderColor='#06b6d4'; this.style.background='rgba(255, 255, 255, 0.15)'" onblur="this.style.borderColor='rgba(16, 185, 129, 0.3)'; this.style.background='rgba(255, 255, 255, 0.1)'">
+                                        <option value="" style="background: #1e3a8a; color: white;">Sélectionner...</option>
+                                        <option value="CDI" style="background: #1e3a8a; color: white;">CDI</option>
+                                        <option value="CDD" style="background: #1e3a8a; color: white;">CDD</option>
+                                        <option value="Stage" style="background: #1e3a8a; color: white;">Stage</option>
+                                        <option value="Freelance" style="background: #1e3a8a; color: white;">Freelance</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div style="margin-top: 16px;">
+                                <label style="display: block; margin-bottom: 8px; font-size: 13px; font-weight: 600; color: rgba(255, 255, 255, 0.9);">Salaire (DZD/an) *</label>
+                                <input type="number" name="baseSalary" required min="0" step="10000" style="width: 100%; padding: 12px 16px; background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 10px; font-size: 14px; color: white; transition: all 0.3s;" onfocus="this.style.borderColor='#06b6d4'; this.style.background='rgba(255, 255, 255, 0.15)'" onblur="this.style.borderColor='rgba(16, 185, 129, 0.3)'; this.style.background='rgba(255, 255, 255, 0.1)'" placeholder="Ex: 3600000">
                             </div>
                         </div>
                         
-                        <div>
-                            <label style="display: block; margin-bottom: 6px; font-size: 14px; font-weight: 600; color: #374151;">Salaire (EUR/an)</label>
-                            <input type="number" name="baseSalary" required min="0" step="100" style="width: 100%; padding: 12px; border: 1px solid #e5e7eb; border-radius: 10px; font-size: 14px;">
-                        </div>
-                        
-                        <div style="display: flex; gap: 12px; margin-top: 8px;">
-                            <button type="button" onclick="closeAddEmployeeModal()" style="flex: 1; padding: 12px; background: #f3f4f6; border: none; border-radius: 10px; font-weight: 600; cursor: pointer;" onmouseover="this.style.background='#e5e7eb'" onmouseout="this.style.background='#f3f4f6'">
+                        <!-- Action Buttons -->
+                        <div style="display: flex; gap: 12px; margin-top: 12px;">
+                            <button type="button" onclick="closeAddEmployeeModal()" style="flex: 1; padding: 14px 24px; background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 12px; color: white; font-weight: 600; font-size: 15px; cursor: pointer; transition: all 0.3s;" onmouseover="this.style.background='rgba(239, 68, 68, 0.2)'; this.style.borderColor='#ef4444'; this.style.transform='translateY(-2px)'" onmouseout="this.style.background='rgba(255, 255, 255, 0.1)'; this.style.borderColor='rgba(16, 185, 129, 0.3)'; this.style.transform='translateY(0)'">
                                 Annuler
                             </button>
-                            <button type="submit" style="flex: 1; padding: 12px; background: #6366F1; border: none; border-radius: 10px; color: white; font-weight: 600; cursor: pointer;" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 12px rgba(99,102,241,0.4)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='none'">
-                                Ajouter l'Employé
+                            <button type="submit" style="flex: 1; padding: 14px 24px; background: linear-gradient(135deg, #10b981 0%, #06b6d4 100%); border: none; border-radius: 12px; color: white; font-weight: 600; font-size: 15px; cursor: pointer; transition: all 0.3s; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 8px 20px rgba(16, 185, 129, 0.4)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 12px rgba(16, 185, 129, 0.3)'">
+                                ✓ Ajouter l'Employé
                             </button>
                         </div>
                     </form>
