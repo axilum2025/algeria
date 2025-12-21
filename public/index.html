@@ -2543,7 +2543,7 @@
         }
 
         // State
-        let conversations = JSON.parse(localStorage.getItem('conversations') || '[]');
+        let conversations = getHRData('conversations');
         let currentConversationId = null;
         let messageStats = JSON.parse(localStorage.getItem('messageStats') || '{"hiHistory":[],"chrHistory":[]}');
         let isRecording = false;
@@ -2569,7 +2569,7 @@
                         if (employeeSearchInput) {
                             employeeSearchInput.addEventListener('input', function() {
                                 const search = this.value.trim().toLowerCase();
-                                const employees = JSON.parse(localStorage.getItem('hrEmployees') || '[]');
+                                const employees = getHRData('hrEmployees');
                                 const filtered = employees.filter(emp =>
                                     emp.firstName.toLowerCase().includes(search) ||
                                     emp.lastName.toLowerCase().includes(search) ||
@@ -3558,7 +3558,7 @@
         }
 
         function saveConversations() {
-            localStorage.setItem('conversations', JSON.stringify(conversations));
+            setHRData('conversations', conversations);
         }
 
         // 📅 SYSTÈME TO DO - Gestion des tâches et événements
@@ -6097,6 +6097,26 @@
         }
         
         // ========== GESTION RH ==========
+        
+        // Helper functions pour lier les données RH à l'utilisateur connecté
+        function getHRStorageKey(dataType) {
+            const currentUser = JSON.parse(localStorage.getItem('currentUser') || 'null');
+            if (!currentUser || !currentUser.email) {
+                return dataType; // Fallback pour les données non liées à un utilisateur
+            }
+            return `${dataType}_${currentUser.email}`;
+        }
+        
+        function getHRData(dataType, defaultValue = []) {
+            const key = getHRStorageKey(dataType);
+            return JSON.parse(localStorage.getItem(key) || JSON.stringify(defaultValue));
+        }
+        
+        function setHRData(dataType, data) {
+            const key = getHRStorageKey(dataType);
+            localStorage.setItem(key, JSON.stringify(data));
+        }
+        
         function openHRManagement() {
             // Fermer AI Management s'il est ouvert
             const excelAiOverlay = document.getElementById('excelAiOverlay');
@@ -8732,7 +8752,7 @@ Réponds de manière professionnelle, data-driven et orientée résultats.
             
             // Rafraîchir les données selon l'onglet
             if (tabName === 'dashboard') {
-                const employees = JSON.parse(localStorage.getItem('hrEmployees') || '[]');
+                const employees = getHRData('hrEmployees');
                 updateHRStats(employees);
             } else if (tabName === 'leaves') {
                 initializeLeavesData();
@@ -8750,21 +8770,21 @@ Réponds de manière professionnelle, data-driven et orientée résultats.
         
         function initializeHRData() {
             // Load employees from localStorage
-            const employees = JSON.parse(localStorage.getItem('hrEmployees') || '[]');
+            const employees = getHRData('hrEmployees');
             if (employees.length > 0) {
                 renderEmployeesList(employees);
                 updateHRStats(employees);
             }
             
             // Load leaves
-            const leaves = JSON.parse(localStorage.getItem('hrLeaves') || '[]');
+            const leaves = getHRData('hrLeaves');
             if (leaves.length > 0) {
                 renderLeavesList(leaves);
                 updateLeavesStats(leaves);
             }
             
             // Load payrolls
-            const payrolls = JSON.parse(localStorage.getItem('hrPayrolls') || '[]');
+            const payrolls = getHRData('hrPayrolls');
             if (payrolls.length > 0) {
                 renderPayrollsList(payrolls);
                 updatePayrollStats(payrolls);
@@ -8863,7 +8883,7 @@ Réponds de manière professionnelle, data-driven et orientée résultats.
             if (employeeSearchInput && !employeeSearchInput._filterAttached) {
                 employeeSearchInput.addEventListener('input', function() {
                     const search = this.value.trim().toLowerCase();
-                    const employees = JSON.parse(localStorage.getItem('hrEmployees') || '[]');
+                    const employees = getHRData('hrEmployees');
                     const filtered = employees.filter(emp =>
                         emp.firstName.toLowerCase().includes(search) ||
                         emp.lastName.toLowerCase().includes(search) ||
@@ -8900,7 +8920,7 @@ Réponds de manière professionnelle, data-driven et orientée résultats.
             if (totalSalaryEl) {
                 const totalSalary = employees.reduce((sum, emp) => sum + (emp.baseSalary || 0), 0);
                 // Récupérer la devise depuis les paramètres de l'entreprise
-                const companySettings = JSON.parse(localStorage.getItem('companySettings') || '{}');
+                const companySettings = getHRData('companySettings', {});
                 const currency = companySettings.currency || 'DA';
                 totalSalaryEl.textContent = totalSalary.toLocaleString('fr-DZ') + ' ' + currency;
             }
@@ -9064,9 +9084,9 @@ Réponds de manière professionnelle, data-driven et orientée résultats.
             };
             
             // Save to localStorage
-            const employees = JSON.parse(localStorage.getItem('hrEmployees') || '[]');
+            const employees = getHRData('hrEmployees');
             employees.push(employee);
-            localStorage.setItem('hrEmployees', JSON.stringify(employees));
+            setHRData('hrEmployees', employees);
             
             // Close modal
             closeAddEmployeeModal();
@@ -9088,12 +9108,12 @@ Réponds de manière professionnelle, data-driven et orientée résultats.
         }
         
         function viewEmployee(id) {
-            const employees = JSON.parse(localStorage.getItem('hrEmployees') || '[]');
+            const employees = getHRData('hrEmployees');
             const employee = employees.find(e => e.id === id);
             if (!employee) return;
             
             // Récupérer la devise depuis les paramètres de l'entreprise
-            const companySettings = JSON.parse(localStorage.getItem('companySettings') || '{}');
+            const companySettings = getHRData('companySettings', {});
             const currency = companySettings.currency || 'DA';
             
             // Create modal
@@ -9241,12 +9261,12 @@ Réponds de manière professionnelle, data-driven et orientée résultats.
         }
         
         function generateWorkCertificate(employeeId) {
-            const employees = JSON.parse(localStorage.getItem('hrEmployees') || '[]');
+            const employees = getHRData('hrEmployees');
             const employee = employees.find(e => e.id === employeeId);
             if (!employee) return;
             
             // Récupérer les paramètres de l'entreprise
-            const companySettings = JSON.parse(localStorage.getItem('companySettings') || '{}');
+            const companySettings = getHRData('companySettings', {});
             const currency = companySettings.currency || 'DA';
             
             // Company information depuis les paramètres
@@ -9408,11 +9428,11 @@ Réponds de manière professionnelle, data-driven et orientée résultats.
         function deleteEmployee(id) {
             if (!confirm('Êtes-vous sûr de vouloir supprimer cet employé ?')) return;
             
-            let employees = JSON.parse(localStorage.getItem('hrEmployees') || '[]');
+            let employees = getHRData('hrEmployees');
             const employee = employees.find(e => e.id === id);
             
             employees = employees.filter(e => e.id !== id);
-            localStorage.setItem('hrEmployees', JSON.stringify(employees));
+            setHRData('hrEmployees', employees);
             
             renderEmployeesList(employees);
             updateHRStats(employees);
@@ -9429,7 +9449,7 @@ Réponds de manière professionnelle, data-driven et orientée résultats.
         }
         
         // ========== HR AI CHAT ==========
-        let hrChatHistory = JSON.parse(localStorage.getItem('hrChatHistory') || '[]');
+        let hrChatHistory = getHRData('hrChatHistory');
         let hrAiProcessing = false;
         
         function toggleHRChat() {
@@ -9476,7 +9496,7 @@ Réponds de manière professionnelle, data-driven et orientée résultats.
             if (!confirm('Êtes-vous sûr de vouloir effacer tout l\'historique des conversations?')) return;
             
             hrChatHistory = [];
-            localStorage.removeItem('hrChatHistory');
+            setHRData('hrChatHistory', []);
             
             const messagesContainer = document.getElementById('hrChatMessages');
             if (messagesContainer) {
@@ -9542,7 +9562,7 @@ Réponds de manière professionnelle, data-driven et orientée résultats.
             });
             
             // Sauvegarder l'historique dans localStorage
-            localStorage.setItem('hrChatHistory', JSON.stringify(hrChatHistory));
+            setHRData('hrChatHistory', hrChatHistory);
             
             showToast('🤖 Agent RH en cours...', 'info');
             
@@ -9550,14 +9570,14 @@ Réponds de manière professionnelle, data-driven et orientée résultats.
                 const endpoint = getEndpoint();
                 
                 // ========== RÉCUPÉRATION DE TOUTES LES DONNÉES RH ==========
-                const employees = JSON.parse(localStorage.getItem('hrEmployees') || '[]');
-                const companySettings = JSON.parse(localStorage.getItem('companySettings') || '{}');
-                const leaves = JSON.parse(localStorage.getItem('hrLeaves') || '[]');
-                const payrolls = JSON.parse(localStorage.getItem('hrPayrolls') || '[]');
-                const reviews = JSON.parse(localStorage.getItem('hrReviews') || '[]');
+                const employees = getHRData('hrEmployees');
+                const companySettings = getHRData('companySettings', {});
+                const leaves = getHRData('hrLeaves');
+                const payrolls = getHRData('hrPayrolls');
+                const reviews = getHRData('hrReviews');
                 const turnoverAnalyses = JSON.parse(localStorage.getItem('turnoverAnalyses') || '[]');
-                const recruitmentJobs = JSON.parse(localStorage.getItem('recruitmentJobs') || '[]');
-                const recruitmentCandidates = JSON.parse(localStorage.getItem('recruitmentCandidates') || '[]');
+                const recruitmentJobs = getHRData('recruitmentJobs');
+                const recruitmentCandidates = getHRData('recruitmentCandidates');
                 
                 const currency = companySettings.currency || 'DA';
                 
@@ -9846,7 +9866,7 @@ RÈGLES DE CONVERSATION :
                 });
                 
                 // Sauvegarder l'historique dans localStorage
-                localStorage.setItem('hrChatHistory', JSON.stringify(hrChatHistory));
+                setHRData('hrChatHistory', hrChatHistory);
                 
                 addHRChatMessage(aiResponse, 'bot');
                 showToast('✅ Réponse générée', 'success');
@@ -9888,7 +9908,7 @@ RÈGLES DE CONVERSATION :
             `;
             
             // Charger les données existantes
-            const companyData = JSON.parse(localStorage.getItem('companySettings') || '{}');
+            const companyData = getHRData('companySettings', {});
             
             panel.innerHTML = `
                 <div style="padding: 24px; border-bottom: 1px solid #e5e7eb;">
@@ -10019,10 +10039,10 @@ RÈGLES DE CONVERSATION :
                 updatedAt: Date.now()
             };
             
-            localStorage.setItem('companySettings', JSON.stringify(companySettings));
+            setHRData('companySettings', companySettings);
             
             // Rafraîchir les statistiques RH pour mettre à jour la devise
-            const employees = JSON.parse(localStorage.getItem('hrEmployees') || '[]');
+            const employees = getHRData('hrEmployees');
             updateHRStats(employees);
             
             // Notifier l'Agent RH si le chat est ouvert
@@ -10040,7 +10060,7 @@ RÈGLES DE CONVERSATION :
         // ========== LEAVES MANAGEMENT ==========
         
         function initializeLeavesData() {
-            const leaves = JSON.parse(localStorage.getItem('hrLeaves') || '[]');
+            const leaves = getHRData('hrLeaves');
             renderLeavesList(leaves);
             updateLeavesStats(leaves);
         }
@@ -10075,7 +10095,7 @@ RÈGLES DE CONVERSATION :
             if (!list) return;
             
             if (leaves === null) {
-                leaves = JSON.parse(localStorage.getItem('hrLeaves') || '[]');
+                leaves = getHRData('hrLeaves');
             }
             
             if (leaves.length === 0) {
@@ -10120,7 +10140,7 @@ RÈGLES DE CONVERSATION :
             let html = '<div style="display: flex; flex-direction: column; gap: 16px;">';
             
             leaves.forEach(leave => {
-                const employee = JSON.parse(localStorage.getItem('hrEmployees') || '[]').find(e => e.id === leave.employeeId);
+                const employee = getHRData('hrEmployees').find(e => e.id === leave.employeeId);
                 const employeeName = employee ? `${employee.firstName} ${employee.lastName}` : 'Employé inconnu';
                 const statusStyle = statusColors[leave.status] || statusColors.pending;
                 
@@ -10200,8 +10220,8 @@ RÈGLES DE CONVERSATION :
             const typeFilter = document.getElementById('leaveTypeFilter')?.value || '';
             const statusFilter = document.getElementById('leaveStatusFilter')?.value || '';
             
-            let leaves = JSON.parse(localStorage.getItem('hrLeaves') || '[]');
-            const employees = JSON.parse(localStorage.getItem('hrEmployees') || '[]');
+            let leaves = getHRData('hrLeaves');
+            const employees = getHRData('hrEmployees');
             
             leaves = leaves.filter(leave => {
                 const employee = employees.find(e => e.id === leave.employeeId);
@@ -10218,7 +10238,7 @@ RÈGLES DE CONVERSATION :
         }
         
         function showAddLeaveModal() {
-            const employees = JSON.parse(localStorage.getItem('hrEmployees') || '[]');
+            const employees = getHRData('hrEmployees');
             
             if (employees.length === 0) {
                 showToast('⚠️ Veuillez d\'abord ajouter des employés', 'error');
@@ -10368,22 +10388,22 @@ RÈGLES DE CONVERSATION :
             };
             
             // Sauvegarder
-            const leaves = JSON.parse(localStorage.getItem('hrLeaves') || '[]');
+            const leaves = getHRData('hrLeaves');
             leaves.push(leave);
-            localStorage.setItem('hrLeaves', JSON.stringify(leaves));
+            setHRData('hrLeaves', leaves);
             
             closeAddLeaveModal();
             renderLeavesList(leaves);
             updateLeavesStats(leaves);
             
-            const employee = JSON.parse(localStorage.getItem('hrEmployees') || '[]').find(e => e.id === leave.employeeId);
+            const employee = getHRData('hrEmployees').find(e => e.id === leave.employeeId);
             const employeeName = employee ? `${employee.firstName} ${employee.lastName}` : 'Employé';
             
             showToast(`✅ Demande de congé créée pour ${employeeName}`, 'success');
         }
         
         function approveLeave(leaveId) {
-            let leaves = JSON.parse(localStorage.getItem('hrLeaves') || '[]');
+            let leaves = getHRData('hrLeaves');
             const leave = leaves.find(l => l.id === leaveId);
             
             if (!leave) return;
@@ -10391,11 +10411,11 @@ RÈGLES DE CONVERSATION :
             leave.status = 'approved';
             leave.updatedAt = Date.now();
             
-            localStorage.setItem('hrLeaves', JSON.stringify(leaves));
+            setHRData('hrLeaves', leaves);
             renderLeavesList(leaves);
             updateLeavesStats(leaves);
             
-            const employee = JSON.parse(localStorage.getItem('hrEmployees') || '[]').find(e => e.id === leave.employeeId);
+            const employee = getHRData('hrEmployees').find(e => e.id === leave.employeeId);
             const employeeName = employee ? `${employee.firstName} ${employee.lastName}` : 'Employé';
             
             showToast(`✅ Congé approuvé pour ${employeeName}`, 'success');
@@ -10404,7 +10424,7 @@ RÈGLES DE CONVERSATION :
         function rejectLeave(leaveId) {
             if (!confirm('Êtes-vous sûr de vouloir refuser cette demande de congé ?')) return;
             
-            let leaves = JSON.parse(localStorage.getItem('hrLeaves') || '[]');
+            let leaves = getHRData('hrLeaves');
             const leave = leaves.find(l => l.id === leaveId);
             
             if (!leave) return;
@@ -10412,11 +10432,11 @@ RÈGLES DE CONVERSATION :
             leave.status = 'rejected';
             leave.updatedAt = Date.now();
             
-            localStorage.setItem('hrLeaves', JSON.stringify(leaves));
+            setHRData('hrLeaves', leaves);
             renderLeavesList(leaves);
             updateLeavesStats(leaves);
             
-            const employee = JSON.parse(localStorage.getItem('hrEmployees') || '[]').find(e => e.id === leave.employeeId);
+            const employee = getHRData('hrEmployees').find(e => e.id === leave.employeeId);
             const employeeName = employee ? `${employee.firstName} ${employee.lastName}` : 'Employé';
             
             showToast(`❌ Congé refusé pour ${employeeName}`, 'info');
@@ -10425,10 +10445,10 @@ RÈGLES DE CONVERSATION :
         function deleteLeave(leaveId) {
             if (!confirm('Êtes-vous sûr de vouloir supprimer cette demande de congé ?')) return;
             
-            let leaves = JSON.parse(localStorage.getItem('hrLeaves') || '[]');
+            let leaves = getHRData('hrLeaves');
             leaves = leaves.filter(l => l.id !== leaveId);
             
-            localStorage.setItem('hrLeaves', JSON.stringify(leaves));
+            setHRData('hrLeaves', leaves);
             renderLeavesList(leaves);
             updateLeavesStats(leaves);
             
@@ -10556,8 +10576,8 @@ RÈGLES DE CONVERSATION :
         }
         
         function checkOverlapWarnings() {
-            const leaves = JSON.parse(localStorage.getItem('hrLeaves') || '[]');
-            const employees = JSON.parse(localStorage.getItem('hrEmployees') || '[]');
+            const leaves = getHRData('hrLeaves');
+            const employees = getHRData('hrEmployees');
             const warningsContainer = document.getElementById('overlapWarnings');
             
             if (!warningsContainer) return;
@@ -10625,8 +10645,8 @@ RÈGLES DE CONVERSATION :
             const firstDay = new Date(year, month, 1).getDay();
             const today = new Date().toISOString().split('T')[0];
             
-            const leaves = JSON.parse(localStorage.getItem('hrLeaves') || '[]');
-            const employees = JSON.parse(localStorage.getItem('hrEmployees') || '[]');
+            const leaves = getHRData('hrLeaves');
+            const employees = getHRData('hrEmployees');
             const deptFilter = document.getElementById('calendarDeptFilter')?.value || '';
             
             // Couleurs par département
@@ -10763,8 +10783,8 @@ RÈGLES DE CONVERSATION :
             if (!widget) return;
             
             const today = new Date().toISOString().split('T')[0];
-            const leaves = JSON.parse(localStorage.getItem('hrLeaves') || '[]');
-            const employees = JSON.parse(localStorage.getItem('hrEmployees') || '[]');
+            const leaves = getHRData('hrLeaves');
+            const employees = getHRData('hrEmployees');
             
             const todayLeaves = leaves.filter(l => 
                 l.status === 'approved' && l.startDate <= today && l.endDate >= today
@@ -10790,19 +10810,19 @@ RÈGLES DE CONVERSATION :
         
         // Helper function to get currency from company settings
         function getCurrency() {
-            const companySettings = JSON.parse(localStorage.getItem('companySettings') || '{}');
+            const companySettings = getHRData('companySettings', {});
             return companySettings.currency || 'DA';
         }
         
         function initializePayrollData() {
-            const payrolls = JSON.parse(localStorage.getItem('hrPayrolls') || '[]');
+            const payrolls = getHRData('hrPayrolls');
             renderPayrollsList(payrolls);
             updatePayrollStats(payrolls);
         }
         
         function renderPayrollsList(payrolls) {
             const container = document.getElementById('payrollsList');
-            const employees = JSON.parse(localStorage.getItem('hrEmployees') || '[]');
+            const employees = getHRData('hrEmployees');
             const currency = getCurrency();
             
             if (payrolls.length === 0) {
@@ -10921,8 +10941,8 @@ RÈGLES DE CONVERSATION :
             const monthFilter = document.getElementById('payrollMonthFilter').value;
             const statusFilter = document.getElementById('payrollStatusFilter').value;
             
-            const employees = JSON.parse(localStorage.getItem('hrEmployees') || '[]');
-            let payrolls = JSON.parse(localStorage.getItem('hrPayrolls') || '[]');
+            const employees = getHRData('hrEmployees');
+            let payrolls = getHRData('hrPayrolls');
             
             payrolls = payrolls.filter(payroll => {
                 const employee = employees.find(e => e.id === payroll.employeeId);
@@ -10940,7 +10960,7 @@ RÈGLES DE CONVERSATION :
         }
         
         function showAddPayrollModal() {
-            const employees = JSON.parse(localStorage.getItem('hrEmployees') || '[]');
+            const employees = getHRData('hrEmployees');
             
             if (employees.length === 0) {
                 showToast('Veuillez d\'abord créer des employés', 'warning');
@@ -11073,7 +11093,7 @@ RÈGLES DE CONVERSATION :
             
             if (!employeeId) return;
             
-            const employees = JSON.parse(localStorage.getItem('hrEmployees') || '[]');
+            const employees = getHRData('hrEmployees');
             const employee = employees.find(e => e.id === employeeId);
             
             if (employee && employee.salary) {
@@ -11315,9 +11335,9 @@ RÈGLES DE CONVERSATION :
                 updatedAt: Date.now()
             };
             
-            const payrolls = JSON.parse(localStorage.getItem('hrPayrolls') || '[]');
+            const payrolls = getHRData('hrPayrolls');
             payrolls.push(payroll);
-            localStorage.setItem('hrPayrolls', JSON.stringify(payrolls));
+            setHRData('hrPayrolls', payrolls);
             
             showToast('Bulletin de paie créé avec succès', 'success');
             closeAddPayrollModal();
@@ -11326,7 +11346,7 @@ RÈGLES DE CONVERSATION :
         }
         
         function generateAllPayrolls() {
-            const employees = JSON.parse(localStorage.getItem('hrEmployees') || '[]');
+            const employees = getHRData('hrEmployees');
             
             if (employees.length === 0) {
                 showToast('Aucun employé trouvé', 'warning');
@@ -11338,7 +11358,7 @@ RÈGLES DE CONVERSATION :
             }
             
             const currentPeriod = new Date().toISOString().slice(0, 7);
-            const payrolls = JSON.parse(localStorage.getItem('hrPayrolls') || '[]');
+            const payrolls = getHRData('hrPayrolls');
             
             let generated = 0;
             employees.forEach(employee => {
@@ -11385,7 +11405,7 @@ RÈGLES DE CONVERSATION :
                 generated++;
             });
             
-            localStorage.setItem('hrPayrolls', JSON.stringify(payrolls));
+            setHRData('hrPayrolls', payrolls);
             
             showToast(`${generated} bulletin(s) de paie généré(s)`, 'success');
             renderPayrollsList(payrolls);
@@ -11393,13 +11413,13 @@ RÈGLES DE CONVERSATION :
         }
         
         function validatePayroll(payrollId) {
-            const payrolls = JSON.parse(localStorage.getItem('hrPayrolls') || '[]');
+            const payrolls = getHRData('hrPayrolls');
             const payroll = payrolls.find(p => p.id === payrollId);
             
             if (payroll) {
                 payroll.status = 'validated';
                 payroll.updatedAt = Date.now();
-                localStorage.setItem('hrPayrolls', JSON.stringify(payrolls));
+                setHRData('hrPayrolls', payrolls);
                 
                 showToast('Bulletin de paie validé', 'success');
                 renderPayrollsList(payrolls);
@@ -11408,14 +11428,14 @@ RÈGLES DE CONVERSATION :
         }
         
         function markPayrollAsPaid(payrollId) {
-            const payrolls = JSON.parse(localStorage.getItem('hrPayrolls') || '[]');
+            const payrolls = getHRData('hrPayrolls');
             const payroll = payrolls.find(p => p.id === payrollId);
             
             if (payroll) {
                 payroll.status = 'paid';
                 payroll.paidAt = Date.now();
                 payroll.updatedAt = Date.now();
-                localStorage.setItem('hrPayrolls', JSON.stringify(payrolls));
+                setHRData('hrPayrolls', payrolls);
                 
                 showToast('Bulletin marqué comme payé', 'success');
                 renderPayrollsList(payrolls);
@@ -11424,9 +11444,9 @@ RÈGLES DE CONVERSATION :
         }
         
         function viewPayrollDetails(payrollId) {
-            const payrolls = JSON.parse(localStorage.getItem('hrPayrolls') || '[]');
+            const payrolls = getHRData('hrPayrolls');
             const payroll = payrolls.find(p => p.id === payrollId);
-            const employees = JSON.parse(localStorage.getItem('hrEmployees') || '[]');
+            const employees = getHRData('hrEmployees');
             const employee = employees.find(e => e.id === payroll.employeeId);
             const currency = getCurrency();
             
@@ -11541,9 +11561,9 @@ RÈGLES DE CONVERSATION :
                 return;
             }
             
-            let payrolls = JSON.parse(localStorage.getItem('hrPayrolls') || '[]');
+            let payrolls = getHRData('hrPayrolls');
             payrolls = payrolls.filter(p => p.id !== payrollId);
-            localStorage.setItem('hrPayrolls', JSON.stringify(payrolls));
+            setHRData('hrPayrolls', payrolls);
             
             showToast('Bulletin de paie supprimé', 'success');
             renderPayrollsList(payrolls);
@@ -11559,7 +11579,7 @@ RÈGLES DE CONVERSATION :
         // ========== PERFORMANCE REVIEWS MANAGEMENT ==========
         
         function initializeReviewsData() {
-            const reviews = JSON.parse(localStorage.getItem('hrReviews') || '[]');
+            const reviews = getHRData('hrReviews');
             renderReviewsList(reviews);
             updateReviewStats(reviews);
             populateReviewEmployeeFilter();
@@ -11567,7 +11587,7 @@ RÈGLES DE CONVERSATION :
         
         function renderReviewsList(reviews = null) {
             if (!reviews) {
-                reviews = JSON.parse(localStorage.getItem('hrReviews') || '[]');
+                reviews = getHRData('hrReviews');
             }
             
             const container = document.getElementById('reviewsListContainer');
@@ -11584,7 +11604,7 @@ RÈGLES DE CONVERSATION :
             container.style.display = 'grid';
             if (emptyState) emptyState.style.display = 'none';
             
-            const employees = JSON.parse(localStorage.getItem('hrEmployees') || '[]');
+            const employees = getHRData('hrEmployees');
             
             container.innerHTML = reviews.map(review => {
                 const employee = employees.find(e => e.id === review.employeeId);
@@ -11680,7 +11700,7 @@ RÈGLES DE CONVERSATION :
             const select = document.getElementById('reviewFilterEmployee');
             if (!select) return;
             
-            const employees = JSON.parse(localStorage.getItem('hrEmployees') || '[]');
+            const employees = getHRData('hrEmployees');
             
             select.innerHTML = '<option value="">Tous les employés</option>' + 
                 employees.map(emp => 
@@ -11693,8 +11713,8 @@ RÈGLES DE CONVERSATION :
             const periodFilter = document.getElementById('reviewFilterPeriod')?.value || '';
             const searchTerm = document.getElementById('reviewSearchInput')?.value.toLowerCase() || '';
             
-            let reviews = JSON.parse(localStorage.getItem('hrReviews') || '[]');
-            const employees = JSON.parse(localStorage.getItem('hrEmployees') || '[]');
+            let reviews = getHRData('hrReviews');
+            const employees = getHRData('hrEmployees');
             
             reviews = reviews.filter(review => {
                 const employee = employees.find(e => e.id === review.employeeId);
@@ -11715,7 +11735,7 @@ RÈGLES DE CONVERSATION :
         }
         
         function showAddReviewModal() {
-            const employees = JSON.parse(localStorage.getItem('hrEmployees') || '[]');
+            const employees = getHRData('hrEmployees');
             
             if (employees.length === 0) {
                 showToast('Aucun employé trouvé. Ajoutez des employés d\'abord.', 'warning');
@@ -11925,9 +11945,9 @@ RÈGLES DE CONVERSATION :
                 updatedAt: Date.now()
             };
             
-            const reviews = JSON.parse(localStorage.getItem('hrReviews') || '[]');
+            const reviews = getHRData('hrReviews');
             reviews.push(review);
-            localStorage.setItem('hrReviews', JSON.stringify(reviews));
+            setHRData('hrReviews', reviews);
             
             showToast('Évaluation créée avec succès', 'success');
             closeAddReviewModal();
@@ -11936,9 +11956,9 @@ RÈGLES DE CONVERSATION :
         }
         
         function viewReviewDetails(reviewId) {
-            const reviews = JSON.parse(localStorage.getItem('hrReviews') || '[]');
+            const reviews = getHRData('hrReviews');
             const review = reviews.find(r => r.id === reviewId);
-            const employees = JSON.parse(localStorage.getItem('hrEmployees') || '[]');
+            const employees = getHRData('hrEmployees');
             const employee = employees.find(e => e.id === review.employeeId);
             
             if (!review || !employee) return;
@@ -12065,9 +12085,9 @@ RÈGLES DE CONVERSATION :
                 return;
             }
             
-            let reviews = JSON.parse(localStorage.getItem('hrReviews') || '[]');
+            let reviews = getHRData('hrReviews');
             reviews = reviews.filter(r => r.id !== reviewId);
-            localStorage.setItem('hrReviews', JSON.stringify(reviews));
+            setHRData('hrReviews', reviews);
             
             showToast('Évaluation supprimée', 'success');
             renderReviewsList(reviews);
@@ -12085,16 +12105,16 @@ RÈGLES DE CONVERSATION :
         }
         
         function analyzeTurnoverRisks() {
-            const employees = JSON.parse(localStorage.getItem('hrEmployees') || '[]');
+            const employees = getHRData('hrEmployees');
             
             if (employees.length === 0) {
                 showToast('Aucun employé à analyser', 'warning');
                 return;
             }
             
-            const leaves = JSON.parse(localStorage.getItem('hrLeaves') || '[]');
-            const reviews = JSON.parse(localStorage.getItem('hrReviews') || '[]');
-            const payrolls = JSON.parse(localStorage.getItem('hrPayrolls') || '[]');
+            const leaves = getHRData('hrLeaves');
+            const reviews = getHRData('hrReviews');
+            const payrolls = getHRData('hrPayrolls');
             
             const analyses = employees.map(emp => calculateTurnoverRisk(emp, leaves, reviews, payrolls));
             
@@ -12301,7 +12321,7 @@ RÈGLES DE CONVERSATION :
             container.style.display = 'grid';
             if (emptyState) emptyState.style.display = 'none';
             
-            const employees = JSON.parse(localStorage.getItem('hrEmployees') || '[]');
+            const employees = getHRData('hrEmployees');
             
             // Trier par score de risque décroissant
             analyses.sort((a, b) => b.riskScore - a.riskScore);
@@ -12401,7 +12421,7 @@ RÈGLES DE CONVERSATION :
         function viewTurnoverDetails(employeeId) {
             const analyses = JSON.parse(localStorage.getItem('turnoverAnalyses') || '[]');
             const analysis = analyses.find(a => a.employeeId === employeeId);
-            const employees = JSON.parse(localStorage.getItem('hrEmployees') || '[]');
+            const employees = getHRData('hrEmployees');
             const employee = employees.find(e => e.id === employeeId);
             
             if (!analysis || !employee) return;
@@ -12600,8 +12620,8 @@ RÈGLES DE CONVERSATION :
         // ========== CV SCREENING & RECRUITMENT ==========
         
         function initializeRecruitmentData() {
-            const jobs = JSON.parse(localStorage.getItem('recruitmentJobs') || '[]');
-            const candidates = JSON.parse(localStorage.getItem('recruitmentCandidates') || '[]');
+            const jobs = getHRData('recruitmentJobs');
+            const candidates = getHRData('recruitmentCandidates');
             
             renderCandidatesList(candidates);
             updateRecruitmentStats(jobs, candidates);
@@ -12628,8 +12648,8 @@ RÈGLES DE CONVERSATION :
         
         function saveRecruitmentData() {
             try {
-                const jobs = JSON.parse(localStorage.getItem('recruitmentJobs') || '[]');
-                const candidates = JSON.parse(localStorage.getItem('recruitmentCandidates') || '[]');
+                const jobs = getHRData('recruitmentJobs');
+                const candidates = getHRData('recruitmentCandidates');
                 
                 const data = {
                     exportDate: new Date().toISOString(),
@@ -12685,8 +12705,8 @@ RÈGLES DE CONVERSATION :
                         throw new Error('Données manquantes');
                     }
                     
-                    const currentJobs = JSON.parse(localStorage.getItem('recruitmentJobs') || '[]');
-                    const currentCandidates = JSON.parse(localStorage.getItem('recruitmentCandidates') || '[]');
+                    const currentJobs = getHRData('recruitmentJobs');
+                    const currentCandidates = getHRData('recruitmentCandidates');
                     
                     let confirmMsg = '📊 Restaurer les données?\n\n';
                     confirmMsg += 'Actuelles: ' + currentJobs.length + ' offres, ' + currentCandidates.length + ' CV\n';
@@ -12695,8 +12715,8 @@ RÈGLES DE CONVERSATION :
                     
                     if (!confirm(confirmMsg)) return;
                     
-                    localStorage.setItem('recruitmentJobs', JSON.stringify(data.jobs));
-                    localStorage.setItem('recruitmentCandidates', JSON.stringify(data.candidates));
+                    setHRData('recruitmentJobs', jobs);
+                    setHRData('recruitmentCandidates', candidates);
                     
                     renderCandidatesList(data.candidates);
                     updateRecruitmentStats(data.jobs, data.candidates);
@@ -12831,20 +12851,20 @@ RÈGLES DE CONVERSATION :
                 createdAt: Date.now()
             };
             
-            const jobs = JSON.parse(localStorage.getItem('recruitmentJobs') || '[]');
+            const jobs = getHRData('recruitmentJobs');
             jobs.push(job);
-            localStorage.setItem('recruitmentJobs', JSON.stringify(jobs));
+            setHRData('recruitmentJobs', jobs);
             
             showToast('Offre publiée avec succès', 'success');
             closeAddJobModal();
             
-            const candidates = JSON.parse(localStorage.getItem('recruitmentCandidates') || '[]');
+            const candidates = getHRData('recruitmentCandidates');
             updateRecruitmentStats(jobs, candidates);
             populateJobFilter(jobs);
         }
         
         function showUploadCVModal() {
-            const jobs = JSON.parse(localStorage.getItem('recruitmentJobs') || '[]');
+            const jobs = getHRData('recruitmentJobs');
             const activeJobs = jobs.filter(j => j.status === 'active');
             
             if (activeJobs.length === 0) {
@@ -13116,7 +13136,7 @@ RÈGLES DE CONVERSATION :
             };
             
             // Récupérer l'offre pour le matching
-            const jobs = JSON.parse(localStorage.getItem('recruitmentJobs') || '[]');
+            const jobs = getHRData('recruitmentJobs');
             const job = jobs.find(j => j.id === candidate.jobId);
             
             if (!job) {
@@ -13136,9 +13156,9 @@ RÈGLES DE CONVERSATION :
             candidate.recommendation = analysis.recommendation;
             
             // Sauvegarder
-            const candidates = JSON.parse(localStorage.getItem('recruitmentCandidates') || '[]');
+            const candidates = getHRData('recruitmentCandidates');
             candidates.push(candidate);
-            localStorage.setItem('recruitmentCandidates', JSON.stringify(candidates));
+            setHRData('recruitmentCandidates', candidates);
             
             showToast('✅ CV analysé avec IA - Score: ' + analysis.overallScore + '%', 'success');
             closeUploadCVModal();
@@ -13166,7 +13186,7 @@ RÈGLES DE CONVERSATION :
             };
             
             // Récupérer l'offre pour le matching
-            const jobs = JSON.parse(localStorage.getItem('recruitmentJobs') || '[]');
+            const jobs = getHRData('recruitmentJobs');
             const job = jobs.find(j => j.id === candidate.jobId);
             
             if (!job) {
@@ -13186,9 +13206,9 @@ RÈGLES DE CONVERSATION :
             candidate.recommendation = analysis.recommendation;
             
             // Sauvegarder
-            const candidates = JSON.parse(localStorage.getItem('recruitmentCandidates') || '[]');
+            const candidates = getHRData('recruitmentCandidates');
             candidates.push(candidate);
-            localStorage.setItem('recruitmentCandidates', JSON.stringify(candidates));
+            setHRData('recruitmentCandidates', candidates);
             
             showToast('CV analysé avec succès - Score: ' + analysis.overallScore + '%', 'success');
             closeUploadCVModal();
@@ -13334,8 +13354,8 @@ RÈGLES DE CONVERSATION :
         }
         
         function renderCandidatesList(candidatesParam = null) {
-            const candidates = candidatesParam || JSON.parse(localStorage.getItem('recruitmentCandidates') || '[]');
-            const jobs = JSON.parse(localStorage.getItem('recruitmentJobs') || '[]');
+            const candidates = candidatesParam || getHRData('recruitmentCandidates');
+            const jobs = getHRData('recruitmentJobs');
             const container = document.getElementById('candidatesList');
             const emptyState = document.getElementById('recruitmentEmptyState');
             const selectedJobId = document.getElementById('filterJobId').value;
@@ -13428,8 +13448,8 @@ RÈGLES DE CONVERSATION :
         }
         
         function viewCandidateDetails(candidateId) {
-            const candidates = JSON.parse(localStorage.getItem('recruitmentCandidates') || '[]');
-            const jobs = JSON.parse(localStorage.getItem('recruitmentJobs') || '[]');
+            const candidates = getHRData('recruitmentCandidates');
+            const jobs = getHRData('recruitmentJobs');
             const candidate = candidates.find(c => c.id === candidateId);
             const job = jobs.find(j => j.id === candidate.jobId);
             
