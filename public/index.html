@@ -11006,7 +11006,7 @@ RÈGLES DE CONVERSATION :
             }
             
             const employeeOptions = employees.map(emp => 
-                `<option value="${emp.id}">${emp.firstName} ${emp.lastName} - ${emp.position || 'Employé'}</option>`
+                `<option value="${emp.id}" style="background: #1e3a8a; color: white;">${emp.firstName} ${emp.lastName} - ${emp.position || 'Employé'}</option>`
             ).join('');
             
             const modal = document.createElement('div');
