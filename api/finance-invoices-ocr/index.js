@@ -103,12 +103,114 @@ module.exports = async function (context, req) {
 
     const analyzeResp = await fetch(analyzeUrl, { method: 'POST', headers: postHeaders, body: postBody });
     if (analyzeResp.status !== 202) {
-      const errText = await analyzeResp.text().catch(() => '');
-      setCors();
-      context.res.status = 200;
-      context.res.headers['Content-Type'] = 'application/json';
-      context.res.body = { warning: `Analyse non acceptée (${analyzeResp.status})`, details: errText, fallback: fallbackStub(fileUrl), method: 'azure-form-recognizer-error' };
-      return;
+      // Tentative fallback via Computer Vision Read API si l'endpoint configuré est ComputerVision
+      try {
+        const cvUrl = `${baseUrl}/vision/v3.2/read/analyze`;
+        const cvHeaders = { 'Ocp-Apim-Subscription-Key': apiKey };
+        let cvBody, cvContentType;
+        if (contentBase64) {
+          cvBody = Buffer.from(String(contentBase64), 'base64');
+          cvContentType = 'application/octet-stream';
+        } else if (fileUrl) {
+          cvBody = JSON.stringify({ url: fileUrl });
+          cvContentType = 'application/json';
+        } else {
+          throw new Error('input manquant');
+        }
+        cvHeaders['Content-Type'] = cvContentType;
+        const cvResp = await fetch(cvUrl, { method: 'POST', headers: cvHeaders, body: cvBody });
+        if (cvResp.status !== 202) {
+          const errText = await cvResp.text().catch(() => '');
+          setCors();
+          context.res.status = 200;
+          context.res.headers['Content-Type'] = 'application/json';
+          context.res.body = { warning: `Analyse non acceptée (${analyzeResp.status})`, details: errText, fallback: fallbackStub(fileUrl), method: 'azure-form-recognizer-error' };
+          return;
+        }
+
+        const cvOpLoc = cvResp.headers.get('operation-location');
+        if (!cvOpLoc) {
+          setCors();
+          context.res.status = 200;
+          context.res.headers['Content-Type'] = 'application/json';
+          context.res.body = { warning: 'operation-location manquant (Computer Vision)', fallback: fallbackStub(fileUrl), method: 'azure-computer-vision-missing-oploc' };
+          return;
+        }
+
+        // Poll Computer Vision Read result
+        const maxCvTries = 10;
+        const cvDelayMs = 800;
+        let cvResult = null;
+        for (let i = 0; i < maxCvTries; i++) {
+          const r = await fetch(cvOpLoc, { headers: { 'Ocp-Apim-Subscription-Key': apiKey } });
+          const j = await r.json().catch(() => null);
+          if (!j) break;
+          if (j.status === 'succeeded') { cvResult = j; break; }
+          if (j.status === 'failed') { break; }
+          await new Promise(res => setTimeout(res, cvDelayMs));
+        }
+        if (!cvResult) {
+          setCors();
+          context.res.status = 200;
+          context.res.headers['Content-Type'] = 'application/json';
+          context.res.body = { warning: 'Analyse non terminée (Computer Vision)', fallback: fallbackStub(fileUrl), method: 'azure-computer-vision-timeout' };
+          return;
+        }
+
+        const lines = ((cvResult.analyzeResult && cvResult.analyzeResult.readResults) || [])
+          .flatMap(p => p.lines || [])
+          .map(l => l.text || '')
+          .filter(t => t && t.trim().length);
+
+        // Extraction simple via heuristiques
+        const text = lines.join('\n');
+        const amountMatch = text.match(/([€$]|\b(DZD|DA|EUR|USD)\b)\s*([0-9]+(?:[\.,][0-9]{2})?)/i);
+        const currency = amountMatch ? (amountMatch[1] && amountMatch[1].match(/[€$]/) ? (amountMatch[1] === '€' ? 'EUR' : 'USD') : (amountMatch[2] || '')) : null;
+        const amount = amountMatch ? Number((amountMatch[3] || '').replace(/\./g,'').replace(',','.')) : null;
+        const dateMatch = text.match(/(\d{4}-\d{2}-\d{2}|\d{2}[\/.-]\d{2}[\/.-]\d{4})/);
+        const date = dateMatch ? dateMatch[1] : null;
+        const vendor = lines[0] || 'Fournisseur Inconnu';
+
+        let storedUrl = null;
+        try {
+          if (fileUrl) {
+            const srcResp = await fetch(fileUrl);
+            if (srcResp.ok) {
+              const arrayBuf = await srcResp.arrayBuffer();
+              const buf = Buffer.from(arrayBuf);
+              const guessName = (new URL(fileUrl)).pathname.split('/').pop() || `invoice-${Date.now()}.pdf`;
+              storedUrl = await uploadBuffer('invoices', guessName, buf, srcResp.headers.get('content-type') || 'application/octet-stream');
+            }
+          } else if (contentBase64) {
+            const buf = Buffer.from(String(contentBase64), 'base64');
+            const name = `invoice-${Date.now()}.bin`;
+            storedUrl = await uploadBuffer('invoices', name, buf, 'application/octet-stream');
+          }
+        } catch {}
+
+        setCors();
+        context.res.status = 200;
+        context.res.headers['Content-Type'] = 'application/json';
+        context.res.body = {
+          vendor,
+          amount,
+          currency,
+          date,
+          invoiceNumber: null,
+          fields: {},
+          source: fileUrl || (contentBase64 ? 'inline' : null),
+          storedUrl,
+          method: 'azure-computer-vision-read'
+        };
+        return;
+      } catch (cvErr) {
+        const errText = await analyzeResp.text().catch(() => '');
+        setCors();
+        context.res.status = 200;
+        context.res.headers['Content-Type'] = 'application/json';
+        context.res.body = { warning: `Analyse non acceptée (${analyzeResp.status})`, details: errText, fallback: fallbackStub(fileUrl), method: 'azure-form-recognizer-error' };
+        return;
+      }
     }
 
     const opLoc = analyzeResp.headers.get('operation-location');
