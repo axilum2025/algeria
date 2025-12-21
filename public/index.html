@@ -8845,6 +8845,23 @@ Réponds de manière professionnelle, data-driven et orientée résultats.
             `;
             
             list.innerHTML = html;
+            // Réattacher l'écouteur de recherche après chaque rendu
+            const employeeSearchInput = document.getElementById('employeeSearch');
+            if (employeeSearchInput && !employeeSearchInput._filterAttached) {
+                employeeSearchInput.addEventListener('input', function() {
+                    const search = this.value.trim().toLowerCase();
+                    const employees = JSON.parse(localStorage.getItem('hrEmployees') || '[]');
+                    const filtered = employees.filter(emp =>
+                        emp.firstName.toLowerCase().includes(search) ||
+                        emp.lastName.toLowerCase().includes(search) ||
+                        (emp.position && emp.position.toLowerCase().includes(search)) ||
+                        (emp.department && emp.department.toLowerCase().includes(search)) ||
+                        (emp.email && emp.email.toLowerCase().includes(search))
+                    );
+                    renderEmployeesList(filtered);
+                });
+                employeeSearchInput._filterAttached = true;
+            }
         }
         
         function updateHRStats(employees) {
