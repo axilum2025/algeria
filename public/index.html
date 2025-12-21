@@ -1885,7 +1885,7 @@
                     <span class="menu-item-text">AI Task</span>
                 </button>
                 <!-- AI Text (Traitement de texte professionnel) -->
-                <button class="menu-item" onclick="openTextPro()" style="padding-left:30px;" title="AI Text - Traitement de texte professionnel">
+                <button class="menu-item" onclick="loadTextProModule()" style="padding-left:30px;" title="AI Text - Traitement de texte professionnel">
                     <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
                     </svg>
@@ -5982,7 +5982,35 @@
             toggleTaskComplete(taskId);
         }
 
-        // Text Pro - Traitement de texte professionnel
+        // Text Pro - Chargement modulaire pour éviter de bloquer l'application
+        let textProModuleLoaded = false;
+        
+        function loadTextProModule() {
+            if (textProModuleLoaded && typeof window.openTextProModule === 'function') {
+                window.openTextProModule();
+                return;
+            }
+            
+            // Charger le module JavaScript séparément
+            const script = document.createElement('script');
+            script.src = '/js/text-pro-module.js';
+            script.onload = function() {
+                textProModuleLoaded = true;
+                console.log('Module Text Pro chargé');
+                if (typeof window.openTextProModule === 'function') {
+                    window.openTextProModule();
+                } else {
+                    console.error('openTextProModule non disponible');
+                }
+            };
+            script.onerror = function() {
+                console.error('Erreur lors du chargement du module Text Pro');
+                alert('Erreur lors du chargement de Text Pro. Veuillez réessayer.');
+            };
+            document.head.appendChild(script);
+        }
+        
+        // Ancienne fonction openTextPro (conservée comme fallback)
         function openTextPro() {
             // Fermer tout overlay existant
             const existingOverlay = document.getElementById('textProOverlay');
