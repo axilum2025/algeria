@@ -1878,7 +1878,7 @@
             </button>
             <div id="functionsContent" style="display:none; padding-left:20px;">
                 <!-- AI Task (Calendrier, Tâches, Planning) -->
-                <button class="menu-item" onclick="openOfficePro()" style="padding-left:30px;" title="AI Task - Calendrier, Tâches, Planning">
+                <button class="menu-item" onclick="loadTaskModule()" style="padding-left:30px;" title="AI Task - Calendrier, Tâches, Planning">
                     <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/>
                     </svg>
@@ -8446,6 +8446,42 @@ Réponds de manière professionnelle et technique.
                     openMarketing();
                 } else {
                     alert('Erreur lors du chargement d\'AI Marketing. Veuillez réessayer.');
+                }
+            };
+            document.head.appendChild(script);
+        }
+        
+        // Variable pour tracker le chargement du module Task
+        let taskModuleLoaded = false;
+        
+        function loadTaskModule() {
+            // Si le module est déjà chargé et les fonctions disponibles
+            if (taskModuleLoaded && typeof openOfficePro === 'function') {
+                openOfficePro();
+                return;
+            }
+            
+            // Charger le wrapper module
+            const script = document.createElement('script');
+            script.src = '/js/task-module.js';
+            script.onload = function() {
+                taskModuleLoaded = true;
+                console.log('Module Task wrapper chargé');
+                // Appeler directement openOfficePro qui est déjà dans index.html
+                if (typeof openOfficePro === 'function') {
+                    openOfficePro();
+                } else {
+                    console.error('openOfficePro non disponible');
+                    alert('Erreur lors de l\'ouverture d\'AI Task');
+                }
+            };
+            script.onerror = function() {
+                console.error('Erreur lors du chargement du module Task');
+                // Fallback: essayer d'appeler directement la fonction
+                if (typeof openOfficePro === 'function') {
+                    openOfficePro();
+                } else {
+                    alert('Erreur lors du chargement d\'AI Task. Veuillez réessayer.');
                 }
             };
             document.head.appendChild(script);

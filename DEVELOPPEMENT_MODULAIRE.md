@@ -253,8 +253,8 @@ Le module Text Pro déjà créé suit cette architecture :
 | **HR Management** | ✅ Wrapper | `/js/hr-module.js` | Wrapper + code dans index.html |
 | **AI R&D** | ✅ Wrapper | `/js/rnd-module.js` | Wrapper + code dans index.html |
 | **AI Marketing** | ✅ Wrapper | `/js/marketing-module.js` | Wrapper + code dans index.html |
+| **Task Management** | ✅ Wrapper | `/js/task-module.js` | Wrapper + code dans index.html |
 | **Excel AI** | ⏳ Préparé | `/js/excel-ai-module.js` (stub) | Page dédiée → Module |
-| **Task Management** | ⏳ À migrer | Dans `index.html` | Intégré → Module |
 
 ### Note sur HR Management
 
