@@ -13,56 +13,68 @@ app.use(express.json());
 // Servir les fichiers statiques
 app.use(express.static(path.join(__dirname, 'public')));
 
-// Charger dynamiquement les Azure Functions depuis le dossier api
-const apiFunctions = fs.readdirSync('./api')
+// Charger dynamiquement les Azure Functions depuis le dossier api avec support des routes function.json
+const apiRoot = path.join(__dirname, 'api');
+const apiFunctions = fs.readdirSync(apiRoot)
   .filter(item => {
-    const stat = fs.statSync(path.join('./api', item));
-    return stat.isDirectory() && fs.existsSync(path.join('./api', item, 'index.js'));
+    const dir = path.join(apiRoot, item);
+    const stat = fs.statSync(dir);
+    return stat.isDirectory() && fs.existsSync(path.join(dir, 'index.js'));
   });
 
-// Monter chaque fonction Azure comme endpoint
 apiFunctions.forEach(functionName => {
   try {
-    const functionPath = path.join(__dirname, 'api', functionName, 'index.js');
+    const functionDir = path.join(apiRoot, functionName);
+    const functionPath = path.join(functionDir, 'index.js');
+    const functionJsonPath = path.join(functionDir, 'function.json');
     const functionModule = require(functionPath);
-    
-    app.all(`/api/${functionName}`, async (req, res) => {
-      const context = {
-        log: console.log,
-        req: {
-          method: req.method,
-          url: req.url,
-          headers: req.headers,
-          query: req.query,
-          body: req.body
-        },
-        res: {
-          status: 200,
-          headers: {},
-          body: null
+
+    // Route par défaut
+    let route = `/api/${functionName}`;
+    // Route custom via function.json
+    if (fs.existsSync(functionJsonPath)) {
+      try {
+        const fnConfig = JSON.parse(fs.readFileSync(functionJsonPath, 'utf8'));
+        const httpBinding = (fnConfig.bindings || []).find(b => b.type === 'httpTrigger');
+        if (httpBinding && httpBinding.route) {
+          route = `/api/${httpBinding.route}`;
         }
+      } catch (e) {
+        console.warn(`Warn: invalid function.json for ${functionName}:`, e.message);
+      }
+    }
+
+    // Convert `{param}` to Express `:param`
+    const expressRoute = route.replace(/{([^}]+)}/g, ':$1');
+
+    app.all(expressRoute, async (req, res) => {
+      const context = {
+        log: console,
+        res: { status: 200, headers: {}, body: null }
       };
 
       try {
         await functionModule(context, req);
-        
-        // Envoyer la réponse
+
+        // CORS par défaut
+        res.set('Access-Control-Allow-Origin', '*');
+        res.set('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+        res.set('Access-Control-Allow-Headers', 'Content-Type');
+
         res.status(context.res.status || 200);
-        
         if (context.res.headers) {
-          Object.keys(context.res.headers).forEach(key => {
-            res.setHeader(key, context.res.headers[key]);
-          });
+          Object.entries(context.res.headers).forEach(([k, v]) => res.setHeader(k, v));
         }
-        
-        res.send(context.res.body || { message: 'Success' });
+        const body = context.res.body ?? { message: 'Success' };
+        if (typeof body === 'object') return res.json(body);
+        return res.send(body);
       } catch (error) {
         console.error(`Error in ${functionName}:`, error);
-        res.status(500).json({ error: error.message });
+        res.status(500).json({ error: error.message || String(error) });
       }
     });
-    
-    console.log(`✓ Mounted function: /api/${functionName}`);
+
+    console.log(`✓ Mounted function: ${expressRoute}`);
   } catch (error) {
     console.error(`Failed to load function ${functionName}:`, error.message);
   }
