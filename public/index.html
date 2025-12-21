@@ -1941,14 +1941,14 @@
                     <span class="menu-item-text">Excel AI Expert</span>
                 </button>
                 <!-- Analyse Vision -->
-                <button class="menu-item" id="visionAnalyzeBtn" onclick="showToast('🔜 Analyse Vision - En cours de développement', 'info')" style="padding-left:30px;" title="Analyse Vision - Analyse intelligente d'images">
+                <button class="menu-item" id="visionAnalyzeBtn" onclick="loadVisionModule()" style="padding-left:30px;" title="Analyse Vision - Analyse intelligente d'images">
                     <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
                     </svg>
                     <span class="menu-item-text">Analyse Vision</span>
                 </button>
                 <!-- Hallucination Detector -->
-                <button class="menu-item" onclick="showToast('🔜 Hallucination Detector - En cours de développement', 'info')" style="padding-left:30px;" title="Hallucination Detector - Détection d'hallucinations IA">
+                <button class="menu-item" onclick="loadHallucinationModule()" style="padding-left:30px;" title="Hallucination Detector - Détection d'hallucinations IA">
                     <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/>
                     </svg>
@@ -8527,6 +8527,60 @@ Réponds de manière professionnelle et technique.
                 } else {
                     alert('Erreur lors du chargement d\'AI Finance. Veuillez réessayer.');
                 }
+            };
+            document.head.appendChild(script);
+        }
+        
+        // Variables pour tracker le chargement des modules Vision et Hallucination
+        let visionModuleLoaded = false;
+        let hallucinationModuleLoaded = false;
+        
+        function loadVisionModule() {
+            if (visionModuleLoaded && typeof openVisionModule === 'function') {
+                openVisionModule();
+                return;
+            }
+            
+            const script = document.createElement('script');
+            script.src = '/js/vision-module.js';
+            script.onload = function() {
+                visionModuleLoaded = true;
+                console.log('Module Vision chargé');
+                if (typeof openVisionModule === 'function') {
+                    openVisionModule();
+                } else {
+                    console.error('openVisionModule non disponible');
+                    alert('Erreur lors de l\'ouverture d\'Analyse Vision');
+                }
+            };
+            script.onerror = function() {
+                console.error('Erreur lors du chargement du module Vision');
+                alert('Erreur lors du chargement d\'Analyse Vision. Veuillez réessayer.');
+            };
+            document.head.appendChild(script);
+        }
+        
+        function loadHallucinationModule() {
+            if (hallucinationModuleLoaded && typeof openHallucinationModule === 'function') {
+                openHallucinationModule();
+                return;
+            }
+            
+            const script = document.createElement('script');
+            script.src = '/js/hallucination-module.js';
+            script.onload = function() {
+                hallucinationModuleLoaded = true;
+                console.log('Module Hallucination Detector chargé');
+                if (typeof openHallucinationModule === 'function') {
+                    openHallucinationModule();
+                } else {
+                    console.error('openHallucinationModule non disponible');
+                    alert('Erreur lors de l\'ouverture d\'Hallucination Detector');
+                }
+            };
+            script.onerror = function() {
+                console.error('Erreur lors du chargement du module Hallucination');
+                alert('Erreur lors du chargement d\'Hallucination Detector. Veuillez réessayer.');
             };
             document.head.appendChild(script);
         }
