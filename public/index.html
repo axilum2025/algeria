@@ -4639,6 +4639,9 @@
                 </div>
             `;
 
+            // Ajouter le modal au body AVANT de rendre les éléments
+            document.body.appendChild(modal);
+
             renderTodoFilters();
             renderTodoCategories();
             renderTodoMainView();
@@ -4761,9 +4764,6 @@
                 }
             `;
             document.head.appendChild(style);
-            
-            // Ajouter le modal au body AVANT de rendre les éléments
-            document.body.appendChild(modal);
             
             // Synchroniser les tâches au chargement
             setTimeout(() => {
@@ -13961,9 +13961,11 @@ RÈGLES DE CONVERSATION :
         function checkWelcomePanel() {
             const hasSeenWelcome = localStorage.getItem('hasSeenWelcome');
             if (hasSeenWelcome === 'true') {
-                // Masquer la popup si déjà vue
-                document.getElementById('welcomePanel').style.display = 'none';
-                document.getElementById('welcomeOverlay').style.display = 'none';
+                // Masquer la popup si déjà vue (seulement si les éléments existent)
+                const welcomePanel = document.getElementById('welcomePanel');
+                const welcomeOverlay = document.getElementById('welcomeOverlay');
+                if (welcomePanel) welcomePanel.style.display = 'none';
+                if (welcomeOverlay) welcomeOverlay.style.display = 'none';
             }
         }
         
