@@ -14368,6 +14368,7 @@ RÈGLES DE CONVERSATION :
                     #financeAIOverlay .page-info { font-size: 12px; color: #cbd5e1; }
                     
                     #financeAIOverlay .finance-chat { background: rgba(255,255,255,0.04); border: 1px solid rgba(148,163,184,0.22); border-radius: 16px; padding: 18px; display: flex; flex-direction: column; gap: 12px; box-shadow: 0 16px 50px rgba(0,0,0,0.28); overflow: hidden; }
+                    #financeAIOverlay .upload-btn { padding: 10px; width: 44px; height: 44px; min-width: unset; border-radius: 10px; background: rgba(16,185,129,0.14); border: 1px solid rgba(16,185,129,0.35); color: #a7f3d0; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; }
                     #financeAIOverlay .chat-title { font-size: 16px; font-weight: 800; color: #f8fafc; margin: 0; }
                     #financeAIOverlay .chat-sub { font-size: 12px; color: #cbd5e1; margin: 0; opacity: 0.85; }
                     #financeAIOverlay .status-badge { display: inline-flex; align-items: center; gap: 6px; font-size: 11px; color: #10b981; padding: 4px 10px; background: rgba(16,185,129,0.12); border: 1px solid rgba(16,185,129,0.28); border-radius: 999px; width: fit-content; }
@@ -14495,6 +14496,10 @@ RÈGLES DE CONVERSATION :
                                 </div>
                                 <div style="display: flex; gap: 8px; align-items: flex-end;">
                                     <textarea id="financeMsg" class="chat-textarea" placeholder="Budget, comptabilité, analyse marché, trésorerie..." style="flex: 1; margin: 0;"></textarea>
+                                    <input type="file" id="financeInvoiceFileInput" accept="application/pdf,image/*" style="display:none" onchange="onFinanceInvoiceSelected(event)" />
+                                    <button class="upload-btn" title="Uploader une facture" onclick="openFinanceUpload()">
+                                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                                    </button>
                                     <button class="send-btn" id="financeSendBtn" onclick="sendFinanceMessage()" style="padding: 12px; width: 44px; height: 44px; min-width: unset;">
                                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
                                     </button>
@@ -14619,15 +14624,23 @@ RÈGLES DE CONVERSATION :
             try {
                 const response = await fetch(endpoint, {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
                     body: JSON.stringify(payload || {})
                 });
 
                 if (!response.ok) {
-                    throw new Error(`Erreur ${response.status}`);
+                    throw new Error(`Erreur HTTP ${response.status}`);
                 }
 
-                const data = await response.json();
+                const ct = (response.headers.get('content-type') || '').toLowerCase();
+                let data;
+                if (ct.includes('application/json')) {
+                    data = await response.json();
+                } else {
+                    const text = await response.text();
+                    throw new Error(`Réponse non-JSON (${ct || 'inconnue'}) : ${text.slice(0,200)}...`);
+                }
+
                 const message = typeof formatResult === 'function'
                     ? formatResult(data)
                     : `${label} terminé`;
@@ -14635,6 +14648,47 @@ RÈGLES DE CONVERSATION :
             } catch (error) {
                 financeChatAddMessage('bot', `${label} : ${error.message}`);
             }
+        }
+
+        function openFinanceUpload() {
+            const inp = document.getElementById('financeInvoiceFileInput');
+            if (inp) inp.click();
+        }
+
+        async function onFinanceInvoiceSelected(e) {
+            try {
+                const file = e?.target?.files?.[0];
+                if (!file) return;
+                financeChatAddMessage('bot', `Upload facture: ${file.name} (${Math.round(file.size/1024)} Ko)`);
+                const base64 = await fileToBase64(file);
+                await callFinanceTool({
+                    label: 'Lecture de factures (upload)',
+                    endpoint: '/api/finance/invoices/ocr',
+                    payload: { contentBase64: base64 },
+                    formatResult: (data) => {
+                        const vendor = data.vendor || 'fournisseur inconnu';
+                        const amount = data.amount ? `${data.amount} ${data.currency || ''}` : 'montant non détecté';
+                        const stored = data.storedUrl ? ` • archivé: ${data.storedUrl}` : '';
+                        return `Lecture de factures: ${vendor}, ${amount}${stored}`;
+                    }
+                });
+                e.target.value = '';
+            } catch (err) {
+                financeChatAddMessage('bot', `Upload: ${err.message}`);
+            }
+        }
+
+        function fileToBase64(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = () => {
+                    const res = reader.result || '';
+                    const b64 = String(res).split(',')[1] || '';
+                    resolve(b64);
+                };
+                reader.onerror = reject;
+                reader.readAsDataURL(file);
+            });
         }
 
         function runInvoiceOcr() {
