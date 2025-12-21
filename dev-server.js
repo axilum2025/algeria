@@ -111,8 +111,9 @@ if (fs.existsSync(apiRoot)) {
   console.warn('No api functions directory found at', apiRoot);
 }
 
-// A basic health endpoint
+// Health + route introspection
 app.get('/__health', (req, res) => res.json({ status: 'ok', time: new Date().toISOString() }));
+app.get('/__routes', (req, res) => res.json({ count: Object.keys(routeMap).length, routes: Object.keys(routeMap) }));
 
 // All other routes: if file exists in public serve it, else fallback to index.html
 app.use((req, res, next) => {
