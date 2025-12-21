@@ -222,16 +222,17 @@ Le module Text Pro déjà créé suit cette architecture :
 
 ## Migration Progressive
 
-### Phase 1 : Modules Critiques (En Cours)
+### Phase 1 : Modules Critiques (Complétés)
 - ✅ Text Pro → `/js/text-pro-module.js` (ACTIF - Module complet)
-- ✅ HR Management → `/js/hr-module.js` (ACTIF - Wrapper + code index.html)
-- ⏳ Excel AI → Actuellement sur `/excel-ai-expert.html` (page dédiée)
-  - Module stub créé : `/js/excel-ai-module.js`
-  - Migration prévue en Phase 2
+- ✅ HR Management → `/js/hr-module.js` (ACTIF - Wrapper)
+- ✅ AI R&D → `/js/rnd-module.js` (ACTIF - Wrapper)
+- ✅ AI Marketing → `/js/marketing-module.js` (ACTIF - Wrapper)
 
-### Phase 2 : Migration des Modules Existants
+### Phase 2 : Migration Complète des Modules
 - Excel AI : Convertir excel-ai-expert.html en module overlay
 - HR Management : Migration complète du code vers hr-module.js
+- AI R&D : Migration complète vers rnd-module.js
+- AI Marketing : Migration complète vers marketing-module.js
 - Task Management : Extraire vers task-module.js
 
 ### Phase 3 : Fonctionnalités Complémentaires
@@ -250,9 +251,10 @@ Le module Text Pro déjà créé suit cette architecture :
 |--------|--------|---------|------|
 | **Text Pro** | ✅ Migré | `/js/text-pro-module.js` | Module overlay complet |
 | **HR Management** | ✅ Wrapper | `/js/hr-module.js` | Wrapper + code dans index.html |
+| **AI R&D** | ✅ Wrapper | `/js/rnd-module.js` | Wrapper + code dans index.html |
+| **AI Marketing** | ✅ Wrapper | `/js/marketing-module.js` | Wrapper + code dans index.html |
 | **Excel AI** | ⏳ Préparé | `/js/excel-ai-module.js` (stub) | Page dédiée → Module |
 | **Task Management** | ⏳ À migrer | Dans `index.html` | Intégré → Module |
-| **R&D** | ⏳ À migrer | Dans `index.html` | Intégré → Module |
 
 ### Note sur HR Management
 
