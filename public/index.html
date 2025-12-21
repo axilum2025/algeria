@@ -6809,17 +6809,17 @@
                         <div id="hrContentReviews" class="hr-content" style="display: none;">
                             <!-- Stats Cards -->
                             <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; margin-bottom: 32px;">
-                                <div style="background: linear-gradient(135deg, #6366F1, #8B5CF6); border-radius: 16px; padding: 24px; color: white;">
+                                <div style="background: rgba(255,255,255,0.05); border: 1px solid rgba(99, 102, 241, 0.4); border-radius: 16px; padding: 24px; backdrop-filter: blur(10px); transition: all 0.3s; color: white;" onmouseover="this.style.background='rgba(255,255,255,0.08)'; this.style.transform='translateY(-2px)'" onmouseout="this.style.background='rgba(255,255,255,0.05)'; this.style.transform='translateY(0)'">
                                     <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 16px;">
                                         <div>
-                                            <p style="margin: 0 0 8px; opacity: 0.9; font-size: 13px; font-weight: 600;">Total Évaluations</p>
-                                            <h3 id="totalReviewsCount" style="margin: 0; font-size: 32px; font-weight: 700;">0</h3>
+                                            <p style="margin: 0 0 8px; color: rgba(255,255,255,0.7); font-size: 13px; font-weight: 600;">Total Évaluations</p>
+                                            <h3 id="totalReviewsCount" style="margin: 0; font-size: 32px; font-weight: 700; color: white;">0</h3>
                                         </div>
-                                        <div style="width: 48px; height: 48px; background: rgba(255,255,255,0.2); border-radius: 12px; display: flex; align-items: center; justify-content: center;">
-                                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+                                        <div style="width: 48px; height: 48px; background: rgba(99,102,241,0.2); border: 1px solid rgba(99,102,241,0.3); border-radius: 12px; display: flex; align-items: center; justify-content: center;">
+                                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#6366F1" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
                                         </div>
                                     </div>
-                                    <p style="margin: 0; font-size: 12px; opacity: 0.85;">Évaluations réalisées</p>
+                                    <p style="margin: 0; font-size: 12px; color: rgba(255,255,255,0.6);">Évaluations réalisées</p>
                                 </div>
                                 
                                 <div style="background: white; border-radius: 16px; padding: 24px; border: 2px solid #e5e7eb;">
