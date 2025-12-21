@@ -5984,105 +5984,459 @@
 
         // Text Pro - Traitement de texte professionnel
         function openTextPro() {
-            const content = `
-                <div style="padding: 28px; max-width: 650px; margin: 0 auto;">
-                    <div style="background: linear-gradient(135deg, rgba(59, 130, 246, 0.12) 0%, rgba(99, 102, 241, 0.12) 100%); padding: 22px; border-radius: 14px; margin-bottom: 22px; border: 1px solid rgba(59, 130, 246, 0.25); box-shadow: 0 4px 12px rgba(59, 130, 246, 0.1);">
-                        <p style="margin: 0; color: var(--text-primary); font-size: 15px; line-height: 1.7; font-weight: 500;">
-                            Outils professionnels de traitement de texte. Traduction, réécriture, correction, résumé et bien plus.
-                        </p>
+            // Fermer tout overlay existant
+            const existingOverlay = document.getElementById('textProOverlay');
+            if (existingOverlay) {
+                existingOverlay.remove();
+            }
+            
+            // Créer l'overlay
+            const overlay = document.createElement('div');
+            overlay.id = 'textProOverlay';
+            overlay.style.cssText = `
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: linear-gradient(135deg, #1e3a8a, #0a4d3c, #064e3b);
+                z-index: 10001;
+                animation: fadeIn 0.3s ease;
+                overflow: hidden;
+            `;
+            
+            overlay.innerHTML = `
+                <style>
+                    .textpro-container {
+                        width: 100%;
+                        height: 100%;
+                        display: flex;
+                        flex-direction: column;
+                        color: white;
+                    }
+                    
+                    .textpro-header {
+                        background: rgba(0, 0, 0, 0.3);
+                        padding: 24px 40px;
+                        border-bottom: 1px solid rgba(59, 130, 246, 0.3);
+                        backdrop-filter: blur(10px);
+                        position: relative;
+                    }
+                    
+                    .textpro-title {
+                        font-size: 32px;
+                        font-weight: 700;
+                        background: linear-gradient(135deg, #3b82f6, #06b6d4, #10b981);
+                        -webkit-background-clip: text;
+                        -webkit-text-fill-color: transparent;
+                        background-clip: text;
+                        margin: 0 0 8px;
+                        letter-spacing: -0.5px;
+                    }
+                    
+                    .textpro-subtitle {
+                        font-size: 14px;
+                        color: rgba(255, 255, 255, 0.6);
+                        margin: 0;
+                    }
+                    
+                    .textpro-content {
+                        flex: 1;
+                        overflow-y: auto;
+                        padding: 40px;
+                    }
+                    
+                    .textpro-section {
+                        max-width: 1200px;
+                        margin: 0 auto 32px;
+                    }
+                    
+                    .textpro-intro {
+                        background: rgba(255, 255, 255, 0.05);
+                        border: 1px solid rgba(59, 130, 246, 0.3);
+                        border-radius: 16px;
+                        padding: 24px;
+                        margin-bottom: 32px;
+                        position: relative;
+                        overflow: hidden;
+                    }
+                    
+                    .textpro-intro::before {
+                        content: '';
+                        position: absolute;
+                        top: 0;
+                        left: 0;
+                        right: 0;
+                        height: 3px;
+                        background: linear-gradient(90deg, #3b82f6, #06b6d4, #10b981);
+                    }
+                    
+                    .textpro-grid {
+                        display: grid;
+                        grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+                        gap: 20px;
+                        margin-bottom: 32px;
+                    }
+                    
+                    .textpro-card {
+                        background: rgba(255, 255, 255, 0.05);
+                        border: 1px solid rgba(59, 130, 246, 0.3);
+                        border-radius: 16px;
+                        padding: 24px;
+                        transition: all 0.3s ease;
+                        position: relative;
+                        overflow: hidden;
+                    }
+                    
+                    .textpro-card::before {
+                        content: '';
+                        position: absolute;
+                        top: 0;
+                        left: 0;
+                        right: 0;
+                        height: 3px;
+                        background: linear-gradient(90deg, #3b82f6, #06b6d4);
+                    }
+                    
+                    .textpro-card:hover {
+                        background: rgba(255, 255, 255, 0.08);
+                        border-color: rgba(59, 130, 246, 0.5);
+                        transform: translateY(-4px);
+                        box-shadow: 0 8px 30px rgba(59, 130, 246, 0.3);
+                    }
+                    
+                    .textpro-card-title {
+                        font-size: 18px;
+                        font-weight: 700;
+                        margin: 0 0 16px;
+                        color: white;
+                    }
+                    
+                    .textpro-card-example {
+                        background: rgba(0, 0, 0, 0.2);
+                        padding: 12px 16px;
+                        border-radius: 8px;
+                        margin-bottom: 8px;
+                        font-size: 13px;
+                        color: rgba(255, 255, 255, 0.7);
+                        border-left: 3px solid rgba(59, 130, 246, 0.5);
+                    }
+                    
+                    .textpro-usage {
+                        background: rgba(16, 185, 129, 0.1);
+                        border: 1px solid rgba(16, 185, 129, 0.3);
+                        border-radius: 16px;
+                        padding: 28px;
+                        margin-bottom: 32px;
+                    }
+                    
+                    .textpro-usage-title {
+                        font-size: 20px;
+                        font-weight: 700;
+                        margin: 0 0 16px;
+                        color: white;
+                    }
+                    
+                    .textpro-usage-text {
+                        font-size: 15px;
+                        line-height: 1.7;
+                        color: rgba(255, 255, 255, 0.8);
+                        margin: 0;
+                    }
+                    
+                    .textpro-upload-area {
+                        background: rgba(255, 255, 255, 0.05);
+                        border: 2px dashed rgba(59, 130, 246, 0.4);
+                        border-radius: 16px;
+                        padding: 32px;
+                        margin-bottom: 32px;
+                        text-align: center;
+                        transition: all 0.3s ease;
+                        cursor: pointer;
+                    }
+                    
+                    .textpro-upload-area:hover {
+                        background: rgba(255, 255, 255, 0.08);
+                        border-color: rgba(59, 130, 246, 0.6);
+                    }
+                    
+                    .textpro-upload-title {
+                        font-size: 18px;
+                        font-weight: 700;
+                        color: white;
+                        margin: 0 0 12px;
+                    }
+                    
+                    .textpro-upload-desc {
+                        font-size: 14px;
+                        color: rgba(255, 255, 255, 0.6);
+                        margin: 0 0 20px;
+                    }
+                    
+                    .textpro-upload-btn {
+                        display: inline-block;
+                        padding: 12px 28px;
+                        background: linear-gradient(135deg, #3b82f6, #06b6d4);
+                        border: none;
+                        border-radius: 10px;
+                        color: white;
+                        font-weight: 600;
+                        font-size: 14px;
+                        cursor: pointer;
+                        transition: all 0.3s ease;
+                    }
+                    
+                    .textpro-upload-btn:hover {
+                        transform: translateY(-2px);
+                        box-shadow: 0 8px 20px rgba(59, 130, 246, 0.4);
+                    }
+                    
+                    .textpro-textarea {
+                        width: 100%;
+                        min-height: 200px;
+                        background: rgba(0, 0, 0, 0.3);
+                        border: 1px solid rgba(59, 130, 246, 0.3);
+                        border-radius: 12px;
+                        padding: 16px;
+                        color: white;
+                        font-size: 14px;
+                        font-family: inherit;
+                        resize: vertical;
+                        margin-bottom: 16px;
+                    }
+                    
+                    .textpro-textarea:focus {
+                        outline: none;
+                        border-color: rgba(59, 130, 246, 0.6);
+                        background: rgba(0, 0, 0, 0.4);
+                    }
+                    
+                    .textpro-textarea::placeholder {
+                        color: rgba(255, 255, 255, 0.4);
+                    }
+                    
+                    .textpro-actions {
+                        display: flex;
+                        gap: 16px;
+                        max-width: 600px;
+                        margin: 0 auto;
+                    }
+                    
+                    .textpro-btn {
+                        flex: 1;
+                        padding: 16px 32px;
+                        background: linear-gradient(135deg, #3b82f6, #06b6d4);
+                        border: none;
+                        border-radius: 12px;
+                        color: white;
+                        font-weight: 600;
+                        font-size: 15px;
+                        cursor: pointer;
+                        transition: all 0.3s ease;
+                    }
+                    
+                    .textpro-btn:hover {
+                        transform: translateY(-2px);
+                        box-shadow: 0 8px 20px rgba(59, 130, 246, 0.4);
+                    }
+                    
+                    .textpro-btn-secondary {
+                        background: rgba(255, 255, 255, 0.1);
+                        border: 1px solid rgba(255, 255, 255, 0.2);
+                    }
+                    
+                    .textpro-btn-secondary:hover {
+                        background: rgba(255, 255, 255, 0.15);
+                        box-shadow: 0 4px 16px rgba(255, 255, 255, 0.1);
+                    }
+                    
+                    .textpro-close-btn {
+                        position: absolute;
+                        top: 24px;
+                        right: 40px;
+                        width: 40px;
+                        height: 40px;
+                        background: rgba(255, 255, 255, 0.1);
+                        border: 1px solid rgba(255, 255, 255, 0.2);
+                        border-radius: 10px;
+                        color: white;
+                        cursor: pointer;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        font-size: 24px;
+                        transition: all 0.3s ease;
+                    }
+                    
+                    .textpro-close-btn:hover {
+                        background: rgba(239, 68, 68, 0.2);
+                        border-color: rgba(239, 68, 68, 0.5);
+                        transform: scale(1.1);
+                    }
+                </style>
+                
+                <div class="textpro-container">
+                    <div class="textpro-header">
+                        <h1 class="textpro-title">AI Text Pro</h1>
+                        <p class="textpro-subtitle">Traitement de texte professionnel intelligent</p>
+                        <div class="textpro-close-btn" onclick="closeTextPro()">×</div>
                     </div>
-
-                    <div style="background: linear-gradient(135deg, rgba(16, 185, 129, 0.08) 0%, rgba(59, 130, 246, 0.08) 100%); padding: 20px; border-radius: 14px; margin-bottom: 22px; border: 1px solid rgba(59, 130, 246, 0.2);">
-                        <h4 style="margin: 0 0 10px 0; color: var(--text-primary); font-size: 16px; font-weight: 600;">Utilisation ultra-simple</h4>
-                        <p style="margin: 0; color: var(--text-secondary); line-height: 1.7; font-size: 14px;">
-                            Parlez naturellement dans le chat. L'IA détecte vos demandes et applique automatiquement les traitements.
-                        </p>
-                    </div>
-
-                    <div style="display: grid; gap: 14px; margin-bottom: 22px;">
-                        <div style="background: var(--bg-secondary); padding: 16px; border-radius: 12px; border-left: 4px solid #3B82F6; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);">
-                            <div style="font-weight: 600; color: var(--text-primary); margin-bottom: 8px; font-size: 15px;">Traduction Professionnelle</div>
-                            <div style="color: var(--text-secondary); font-size: 13px; line-height: 1.8;">
-                                <div style="padding-left: 8px; margin-bottom: 4px;">"Traduis ce texte en anglais professionnel"</div>
-                                <div style="padding-left: 8px;">"Traduis en espagnol en gardant le ton formel"</div>
+                    
+                    <div class="textpro-content">
+                        <div class="textpro-section">
+                            <div class="textpro-intro">
+                                <p style="margin: 0; font-size: 15px; line-height: 1.7; color: rgba(255, 255, 255, 0.85);">
+                                    Outils professionnels de traitement de texte. Traduction, réécriture, correction, résumé et bien plus.
+                                </p>
+                            </div>
+                            
+                            <div class="textpro-usage">
+                                <h3 class="textpro-usage-title">Utilisation ultra-simple</h3>
+                                <p class="textpro-usage-text">
+                                    Collez votre texte dans le chat et demandez ce que vous voulez faire. L'IA applique automatiquement le traitement et vous retourne le résultat dans le chat. Vous pouvez vérifier, demander des modifications ou accepter. L'IA créera alors un fichier PDF téléchargeable.
+                                </p>
+                            </div>
+                            
+                            <div class="textpro-upload-area" id="textProUploadArea">
+                                <h3 class="textpro-upload-title">Collez ou uploadez votre texte</h3>
+                                <p class="textpro-upload-desc">Collez directement votre texte ci-dessous ou uploadez un fichier (.txt, .pdf, .docx)</p>
+                                
+                                <textarea id="textProTextarea" class="textpro-textarea" placeholder="Collez votre texte ici..."></textarea>
+                                
+                                <div style="display: flex; gap: 12px; justify-content: center; flex-wrap: wrap;">
+                                    <button class="textpro-upload-btn" onclick="document.getElementById('textProFileInput').click()">
+                                        Choisir un fichier
+                                    </button>
+                                    <input type="file" id="textProFileInput" accept=".txt,.pdf,.doc,.docx" style="display: none;" onchange="handleTextProFileUpload(event)">
+                                    
+                                    <button class="textpro-upload-btn" onclick="sendTextToChat()">
+                                        Envoyer au chat
+                                    </button>
+                                </div>
+                                
+                                <div id="textProFileName" style="margin-top: 12px; font-size: 13px; color: rgba(255, 255, 255, 0.6);"></div>
+                            </div>
+                            
+                            <div class="textpro-grid">
+                                <div class="textpro-card">
+                                    <h4 class="textpro-card-title">Traduction Professionnelle</h4>
+                                    <div class="textpro-card-example">Traduis ce texte en anglais professionnel</div>
+                                    <div class="textpro-card-example">Traduis en espagnol en gardant le ton formel</div>
+                                </div>
+                                
+                                <div class="textpro-card">
+                                    <h4 class="textpro-card-title">Réécriture & Reformulation</h4>
+                                    <div class="textpro-card-example">Réécris ce texte de façon plus formelle</div>
+                                    <div class="textpro-card-example">Rends ce message plus convivial</div>
+                                </div>
+                                
+                                <div class="textpro-card">
+                                    <h4 class="textpro-card-title">Correction Avancée</h4>
+                                    <div class="textpro-card-example">Corrige l'orthographe et la grammaire</div>
+                                    <div class="textpro-card-example">Améliore le style de ce texte</div>
+                                </div>
+                                
+                                <div class="textpro-card">
+                                    <h4 class="textpro-card-title">Résumé Intelligent</h4>
+                                    <div class="textpro-card-example">Résume ce texte en 3 points clés</div>
+                                    <div class="textpro-card-example">Fais un résumé exécutif de ce rapport</div>
+                                </div>
+                                
+                                <div class="textpro-card">
+                                    <h4 class="textpro-card-title">Génération de Contenu</h4>
+                                    <div class="textpro-card-example">Écris un email professionnel de demande de congé</div>
+                                    <div class="textpro-card-example">Rédige une lettre de motivation</div>
+                                </div>
+                                
+                                <div class="textpro-card">
+                                    <h4 class="textpro-card-title">Analyse de Texte</h4>
+                                    <div class="textpro-card-example">Analyse le sentiment de ce message</div>
+                                    <div class="textpro-card-example">Extrais les mots-clés principaux</div>
+                                </div>
+                                
+                                <div class="textpro-card">
+                                    <h4 class="textpro-card-title">Transformation de Format</h4>
+                                    <div class="textpro-card-example">Transforme cette liste en paragraphe structuré</div>
+                                    <div class="textpro-card-example">Convertis ces notes en email formel</div>
+                                </div>
+                                
+                                <div class="textpro-card">
+                                    <h4 class="textpro-card-title">Enrichissement</h4>
+                                    <div class="textpro-card-example">Enrichis ce texte avec du vocabulaire professionnel</div>
+                                    <div class="textpro-card-example">Améliore cette phrase avec des synonymes</div>
+                                </div>
+                            </div>
+                            
+                            <div class="textpro-actions">
+                                <button class="textpro-btn" onclick="closeTextPro(); setTimeout(() => document.getElementById('messageInput').focus(), 300);">
+                                    Commencer à utiliser
+                                </button>
+                                <button class="textpro-btn textpro-btn-secondary" onclick="closeTextPro()">
+                                    Fermer
+                                </button>
                             </div>
                         </div>
-
-                        <div style="background: var(--bg-secondary); padding: 16px; border-radius: 12px; border-left: 4px solid #10B981; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);">
-                            <div style="font-weight: 600; color: var(--text-primary); margin-bottom: 8px; font-size: 15px;">Réécriture & Reformulation</div>
-                            <div style="color: var(--text-secondary); font-size: 13px; line-height: 1.8;">
-                                <div style="padding-left: 8px; margin-bottom: 4px;">"Réécris ce texte de façon plus formelle"</div>
-                                <div style="padding-left: 8px;">"Rends ce message plus convivial"</div>
-                            </div>
-                        </div>
-
-                        <div style="background: var(--bg-secondary); padding: 16px; border-radius: 12px; border-left: 4px solid #F59E0B; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);">
-                            <div style="font-weight: 600; color: var(--text-primary); margin-bottom: 8px; font-size: 15px;">Correction Avancée</div>
-                            <div style="color: var(--text-secondary); font-size: 13px; line-height: 1.8;">
-                                <div style="padding-left: 8px; margin-bottom: 4px;">"Corrige l'orthographe et la grammaire"</div>
-                                <div style="padding-left: 8px;">"Améliore le style de ce texte"</div>
-                            </div>
-                        </div>
-
-                        <div style="background: var(--bg-secondary); padding: 16px; border-radius: 12px; border-left: 4px solid #8B5CF6; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);">
-                            <div style="font-weight: 600; color: var(--text-primary); margin-bottom: 8px; font-size: 15px;">Résumé Intelligent</div>
-                            <div style="color: var(--text-secondary); font-size: 13px; line-height: 1.8;">
-                                <div style="padding-left: 8px; margin-bottom: 4px;">"Résume ce texte en 3 points clés"</div>
-                                <div style="padding-left: 8px;">"Fais un résumé exécutif de ce rapport"</div>
-                            </div>
-                        </div>
-
-                        <div style="background: var(--bg-secondary); padding: 16px; border-radius: 12px; border-left: 4px solid #EC4899; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);">
-                            <div style="font-weight: 600; color: var(--text-primary); margin-bottom: 8px; font-size: 15px;">Génération de Contenu</div>
-                            <div style="color: var(--text-secondary); font-size: 13px; line-height: 1.8;">
-                                <div style="padding-left: 8px; margin-bottom: 4px;">"Écris un email professionnel de demande de congé"</div>
-                                <div style="padding-left: 8px;">"Rédige une lettre de motivation"</div>
-                            </div>
-                        </div>
-
-                        <div style="background: var(--bg-secondary); padding: 16px; border-radius: 12px; border-left: 4px solid #06B6D4; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);">
-                            <div style="font-weight: 600; color: var(--text-primary); margin-bottom: 8px; font-size: 15px;">Analyse de Texte</div>
-                            <div style="color: var(--text-secondary); font-size: 13px; line-height: 1.8;">
-                                <div style="padding-left: 8px; margin-bottom: 4px;">"Analyse le sentiment de ce message"</div>
-                                <div style="padding-left: 8px;">"Extrais les mots-clés principaux"</div>
-                            </div>
-                        </div>
-
-                        <div style="background: var(--bg-secondary); padding: 16px; border-radius: 12px; border-left: 4px solid #F97316; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);">
-                            <div style="font-weight: 600; color: var(--text-primary); margin-bottom: 8px; font-size: 15px;">Transformation de Format</div>
-                            <div style="color: var(--text-secondary); font-size: 13px; line-height: 1.8;">
-                                <div style="padding-left: 8px; margin-bottom: 4px;">"Transforme cette liste en paragraphe structuré"</div>
-                                <div style="padding-left: 8px;">"Convertis ces notes en email formel"</div>
-                            </div>
-                        </div>
-
-                        <div style="background: var(--bg-secondary); padding: 16px; border-radius: 12px; border-left: 4px solid #14B8A6; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);">
-                            <div style="font-weight: 600; color: var(--text-primary); margin-bottom: 8px; font-size: 15px;">Enrichissement</div>
-                            <div style="color: var(--text-secondary); font-size: 13px; line-height: 1.8;">
-                                <div style="padding-left: 8px; margin-bottom: 4px;">"Enrichis ce texte avec du vocabulaire professionnel"</div>
-                                <div style="padding-left: 8px;">"Améliore cette phrase avec des synonymes"</div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div style="padding: 20px; background: linear-gradient(135deg, rgba(16, 185, 129, 0.08) 0%, rgba(59, 130, 246, 0.08) 100%); border-radius: 14px; border: 1px solid rgba(59, 130, 246, 0.2); margin-bottom: 26px;">
-                        <div style="font-weight: 600; color: var(--text-primary); margin-bottom: 10px; font-size: 16px;">Comment ça marche</div>
-                        <p style="margin: 0; color: var(--text-secondary); font-size: 14px; line-height: 1.7;">
-                            Collez votre texte dans le chat et demandez ce que vous voulez faire. L'IA applique automatiquement le traitement et vous retourne le résultat.
-                        </p>
-                    </div>
-
-                    <div style="display: flex; gap: 12px; margin-top: 26px;">
-                        <button class="new-chat-btn" onclick="closeGenericModal(); setTimeout(() => document.getElementById('messageInput').focus(), 300);" style="flex: 2.5; font-weight: 600; font-size: 15px; padding: 14px 24px; box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);">
-                            Commencer à utiliser
-                        </button>
-                        <button class="new-chat-btn" style="flex: 1; background: var(--bg-secondary); color: var(--text-primary); font-weight: 500; border: 1px solid var(--border-color); font-size: 14px; padding: 14px 20px;" onclick="closeGenericModal()">
-                            Fermer
-                        </button>
                     </div>
                 </div>
             `;
-            showGenericModal('', content);
+            
+            document.body.appendChild(overlay);
+        }
+        
+        function closeTextPro() {
+            const overlay = document.getElementById('textProOverlay');
+            if (overlay) {
+                overlay.style.animation = 'fadeOut 0.3s ease';
+                setTimeout(() => overlay.remove(), 300);
+            }
+        }
+        
+        function handleTextProFileUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            
+            const fileNameDiv = document.getElementById('textProFileName');
+            fileNameDiv.textContent = `Fichier sélectionné: ${file.name}`;
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const content = e.target.result;
+                document.getElementById('textProTextarea').value = content;
+            };
+            
+            // Lire le fichier comme texte
+            if (file.type === 'text/plain' || file.name.endsWith('.txt')) {
+                reader.readAsText(file);
+            } else if (file.type === 'application/pdf' || file.name.endsWith('.pdf')) {
+                fileNameDiv.textContent = `Fichier PDF détecté: ${file.name} - Les fichiers PDF nécessitent un traitement spécial. Collez le texte manuellement.`;
+            } else {
+                fileNameDiv.textContent = `Type de fichier: ${file.name} - Collez le contenu manuellement dans la zone de texte.`;
+            }
+        }
+        
+        function sendTextToChat() {
+            const textarea = document.getElementById('textProTextarea');
+            const text = textarea.value.trim();
+            
+            if (!text) {
+                alert('Veuillez d\'abord coller ou uploader du texte.');
+                return;
+            }
+            
+            // Envoyer le texte au chat
+            const messageInput = document.getElementById('messageInput');
+            if (messageInput) {
+                messageInput.value = `Voici le texte à traiter:\n\n${text}\n\nQue souhaitez-vous faire avec ce texte?`;
+                
+                // Fermer l'overlay
+                closeTextPro();
+                
+                // Focus sur le champ de message
+                setTimeout(() => {
+                    messageInput.focus();
+                    messageInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }, 400);
+            }
         }
 
         // Excel AI - Variables globales
