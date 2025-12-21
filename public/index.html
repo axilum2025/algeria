@@ -10829,11 +10829,11 @@ RÈGLES DE CONVERSATION :
             if (payrolls.length === 0) {
                 container.innerHTML = `
                     <div style="grid-column: 1 / -1; text-align: center; padding: 60px 20px;">
-                        <div style="width: 80px; height: 80px; background: rgba(99,102,241,0.1); border-radius: 20px; display: flex; align-items: center; justify-content: center; margin: 0 auto 16px;">
-                            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#6366F1" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+                        <div style="width: 80px; height: 80px; background: rgba(16, 185, 129, 0.1); border-radius: 20px; display: flex; align-items: center; justify-content: center; margin: 0 auto 16px;">
+                            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
                         </div>
-                        <h3 style="margin: 0 0 8px; font-size: 18px; font-weight: 600; color: #1a1a1a;">Aucun bulletin de paie</h3>
-                        <p style="margin: 0; font-size: 14px; color: #6b7280;">Créez votre premier bulletin de paie</p>
+                        <h3 style="margin: 0 0 8px; font-size: 18px; font-weight: 600; color: rgba(255, 255, 255, 0.9);">Aucun bulletin de paie</h3>
+                        <p style="margin: 0; font-size: 14px; color: rgba(255, 255, 255, 0.6);">Créez votre premier bulletin de paie</p>
                     </div>
                 `;
                 return;
@@ -10845,101 +10845,64 @@ RÈGLES DE CONVERSATION :
                 if (!employee) return;
                 
                 const statusColors = {
-                    'pending': { bg: '#FEF3C7', text: '#92400E', label: 'En attente' },
-                    'validated': { bg: '#DBEAFE', text: '#1E40AF', label: 'Validé' },
-                    'paid': { bg: '#D1FAE5', text: '#065F46', label: 'Payé' }
+                    'pending': { bg: 'rgba(251, 191, 36, 0.2)', border: 'rgba(251, 191, 36, 0.4)', text: '#fbbf24', label: 'En attente' },
+                    'validated': { bg: 'rgba(59, 130, 246, 0.2)', border: 'rgba(59, 130, 246, 0.4)', text: '#3b82f6', label: 'Validé' },
+                    'paid': { bg: 'rgba(16, 185, 129, 0.2)', border: 'rgba(16, 185, 129, 0.4)', text: '#10b981', label: 'Payé' }
                 };
                 
                 const status = statusColors[payroll.status] || statusColors.pending;
                 
                 // Format month/year
                 const [year, month] = payroll.period.split('-');
-                const monthNames = ['Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin', 'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre'];
+                const monthNames = ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Jun', 'Jul', 'Aoû', 'Sep', 'Oct', 'Nov', 'Déc'];
                 const periodLabel = `${monthNames[parseInt(month) - 1]} ${year}`;
                 
                 html += `
-                    <div style="background: white; border-radius: 16px; padding: 24px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); border: 2px solid #f3f4f6; transition: all 0.2s;">
-                        <div style="display: flex; align-items: center; gap: 16px; margin-bottom: 20px;">
+                    <div style="background: rgba(255,255,255,0.05); backdrop-filter: blur(10px); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 12px; padding: 16px; transition: all 0.2s; cursor: pointer;" onmouseover="this.style.borderColor='#10b981'; this.style.transform='translateY(-2px)'" onmouseout="this.style.borderColor='rgba(16, 185, 129, 0.3)'; this.style.transform='translateY(0)'" onclick="viewPayrollDetails('${payroll.id}')">
+                        <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 12px;">
                             ${employee.photo ? 
-                                `<img src="${employee.photo}" style="width: 56px; height: 56px; border-radius: 12px; object-fit: cover; border: 2px solid #e5e7eb;">` :
-                                `<div style="width: 56px; height: 56px; background: linear-gradient(135deg, #6366F1, #8B5CF6); border-radius: 12px; display: flex; align-items: center; justify-content: center; color: white; font-weight: 700; font-size: 20px;">
+                                `<img src="${employee.photo}" style="width: 48px; height: 48px; border-radius: 10px; object-fit: cover; border: 2px solid rgba(16, 185, 129, 0.3);">` :
+                                `<div style="width: 48px; height: 48px; background: linear-gradient(135deg, #10b981, #06b6d4); border-radius: 10px; display: flex; align-items: center; justify-content: center; color: white; font-weight: 700; font-size: 16px;">
                                     ${employee.firstName.charAt(0)}${employee.lastName.charAt(0)}
                                 </div>`
                             }
-                            <div style="flex: 1;">
-                                <h4 style="margin: 0 0 4px; font-size: 16px; font-weight: 700; color: #1a1a1a;">${employee.firstName} ${employee.lastName}</h4>
-                                <p style="margin: 0; font-size: 13px; color: #6b7280; font-weight: 500;">${employee.position || 'Employé'}</p>
-                            </div>
-                            <span style="padding: 6px 12px; background: ${status.bg}; color: ${status.text}; border-radius: 8px; font-size: 12px; font-weight: 600;">${status.label}</span>
-                        </div>
-                        
-                        <div style="background: #f9fafb; border-radius: 12px; padding: 16px; margin-bottom: 16px;">
-                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
-                                <span style="font-size: 13px; color: #6b7280; font-weight: 500;">📅 Période</span>
-                                <span style="font-size: 14px; color: #1a1a1a; font-weight: 700;">${periodLabel}</span>
-                            </div>
-                            
-                            <div style="border-top: 1px dashed #e5e7eb; padding-top: 12px; margin-top: 12px;">
-                                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-                                    <span style="font-size: 13px; color: #6b7280;">Salaire de base</span>
-                                    <span style="font-size: 13px; color: #1a1a1a; font-weight: 600;">${payroll.baseSalary.toLocaleString()} ${currency}</span>
-                                </div>
-                                
-                                ${payroll.bonuses > 0 ? `
-                                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-                                    <span style="font-size: 13px; color: #10b981;">+ Primes</span>
-                                    <span style="font-size: 13px; color: #10b981; font-weight: 600;">${payroll.bonuses.toLocaleString()} ${currency}</span>
-                                </div>
-                                ` : ''}
-                                
-                                ${payroll.customDeductions && payroll.customDeductions.length > 0 ? 
-                                    payroll.customDeductions.map(ded => `
-                                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-                                            <span style="font-size: 13px; color: #ef4444;">- ${ded.name} (${ded.rate}%)</span>
-                                            <span style="font-size: 13px; color: #ef4444; font-weight: 600;">${ded.amount.toLocaleString()} ${currency}</span>
-                                        </div>
-                                    `).join('')
-                                : (payroll.deductions ? `
-                                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-                                        <span style="font-size: 13px; color: #ef4444;">- Cotisations sociales (9%)</span>
-                                        <span style="font-size: 13px; color: #ef4444; font-weight: 600;">${payroll.deductions.toLocaleString()} ${currency}</span>
-                                    </div>
-                                ` : '')}
-                                
-                                ${payroll.taxes > 0 ? `
-                                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-                                    <span style="font-size: 13px; color: #ef4444;">- IRG</span>
-                                    <span style="font-size: 13px; color: #ef4444; font-weight: 600;">${payroll.taxes.toLocaleString()} ${currency}</span>
-                                </div>
-                                ` : ''}
-                                
-                                <div style="border-top: 2px solid #e5e7eb; padding-top: 12px; margin-top: 12px; display: flex; justify-content: space-between; align-items: center;">
-                                    <span style="font-size: 14px; color: #1a1a1a; font-weight: 700;">💰 Salaire net</span>
-                                    <span style="font-size: 18px; color: #10b981; font-weight: 700;">${payroll.netSalary.toLocaleString()} ${currency}</span>
-                                </div>
+                            <div style="flex: 1; min-width: 0;">
+                                <h4 style="margin: 0 0 4px; font-size: 15px; font-weight: 600; color: white; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${employee.firstName} ${employee.lastName}</h4>
+                                <p style="margin: 0; font-size: 12px; color: rgba(255, 255, 255, 0.6); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${employee.position || 'Employé'}</p>
                             </div>
                         </div>
                         
-                        <div style="display: flex; gap: 8px;">
-                            ${payroll.status === 'pending' ? `
-                                <button onclick="validatePayroll('${payroll.id}')" style="flex: 1; padding: 10px; background: #3b82f6; color: white; border: none; border-radius: 10px; font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.2s;" onmouseover="this.style.background='#2563eb'" onmouseout="this.style.background='#3b82f6'">
-                                    ✓ Valider
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 12px;">
+                            <div style="background: rgba(255,255,255,0.05); border-radius: 8px; padding: 8px;">
+                                <div style="font-size: 11px; color: rgba(255, 255, 255, 0.6); margin-bottom: 2px;">📅 Période</div>
+                                <div style="font-size: 13px; color: white; font-weight: 600;">${periodLabel}</div>
+                            </div>
+                            <div style="background: rgba(255,255,255,0.05); border-radius: 8px; padding: 8px;">
+                                <div style="font-size: 11px; color: rgba(255, 255, 255, 0.6); margin-bottom: 2px;">💰 Net</div>
+                                <div style="font-size: 13px; color: #10b981; font-weight: 700;">${payroll.netSalary.toLocaleString()} ${currency}</div>
+                            </div>
+                        </div>
+                        
+                        <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px;">
+                            <span style="padding: 4px 10px; background: ${status.bg}; border: 1px solid ${status.border}; color: ${status.text}; border-radius: 6px; font-size: 11px; font-weight: 600;">${status.label}</span>
+                            
+                            <div style="display: flex; gap: 4px;" onclick="event.stopPropagation()">
+                                ${payroll.status === 'pending' ? `
+                                    <button onclick="validatePayroll('${payroll.id}')" style="padding: 6px 10px; background: rgba(59, 130, 246, 0.2); border: 1px solid rgba(59, 130, 246, 0.4); color: #3b82f6; border-radius: 6px; font-size: 11px; font-weight: 600; cursor: pointer; transition: all 0.2s;" onmouseover="this.style.background='rgba(59, 130, 246, 0.3)'" onmouseout="this.style.background='rgba(59, 130, 246, 0.2)'">
+                                        ✓
+                                    </button>
+                                ` : ''}
+                                
+                                ${payroll.status === 'validated' ? `
+                                    <button onclick="markPayrollAsPaid('${payroll.id}')" style="padding: 6px 10px; background: rgba(16, 185, 129, 0.2); border: 1px solid rgba(16, 185, 129, 0.4); color: #10b981; border-radius: 6px; font-size: 11px; font-weight: 600; cursor: pointer; transition: all 0.2s;" onmouseover="this.style.background='rgba(16, 185, 129, 0.3)'" onmouseout="this.style.background='rgba(16, 185, 129, 0.2)'">
+                                        💸
+                                    </button>
+                                ` : ''}
+                                
+                                <button onclick="deletePayroll('${payroll.id}')" style="padding: 6px 10px; background: rgba(220, 38, 38, 0.2); border: 1px solid rgba(220, 38, 38, 0.4); color: #ef4444; border-radius: 6px; font-size: 11px; font-weight: 600; cursor: pointer; transition: all 0.2s;" onmouseover="this.style.background='rgba(220, 38, 38, 0.3)'" onmouseout="this.style.background='rgba(220, 38, 38, 0.2)'">
+                                    🗑️
                                 </button>
-                            ` : ''}
-                            
-                            ${payroll.status === 'validated' ? `
-                                <button onclick="markPayrollAsPaid('${payroll.id}')" style="flex: 1; padding: 10px; background: #10b981; color: white; border: none; border-radius: 10px; font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.2s;" onmouseover="this.style.background='#059669'" onmouseout="this.style.background='#10b981'">
-                                    💸 Marquer comme payé
-                                </button>
-                            ` : ''}
-                            
-                            <button onclick="viewPayrollDetails('${payroll.id}')" style="flex: 1; padding: 10px; background: #f3f4f6; color: #1a1a1a; border: none; border-radius: 10px; font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.2s;" onmouseover="this.style.background='#e5e7eb'" onmouseout="this.style.background='#f3f4f6'">
-                                📄 Détails
-                            </button>
-                            
-                            <button onclick="deletePayroll('${payroll.id}')" style="padding: 10px 16px; background: #fee2e2; color: #dc2626; border: none; border-radius: 10px; font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.2s;" onmouseover="this.style.background='#fecaca'" onmouseout="this.style.background='#fee2e2'">
-                                🗑️
-                            </button>
+                            </div>
                         </div>
                     </div>
                 `;
