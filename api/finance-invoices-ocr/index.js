@@ -10,8 +10,22 @@ module.exports = async function (context, req) {
     });
   };
 
-  const endpoint = (process.env.APPSETTING_FORM_RECOGNIZER_ENDPOINT || process.env.FORM_RECOGNIZER_ENDPOINT || process.env.AZURE_FORM_RECOGNIZER_ENDPOINT || '').trim();
-  const apiKey = (process.env.APPSETTING_FORM_RECOGNIZER_KEY || process.env.FORM_RECOGNIZER_KEY || process.env.AZURE_FORM_RECOGNIZER_KEY || '').trim();
+  const endpoint = (
+    process.env.APPSETTING_FORM_RECOGNIZER_ENDPOINT ||
+    process.env.FORM_RECOGNIZER_ENDPOINT ||
+    process.env.AZURE_FORM_RECOGNIZER_ENDPOINT ||
+    // Alias courants configurés côté Azure Web App
+    process.env.AZURE_VISION_ENDPOINT ||
+    ''
+  ).trim();
+  const apiKey = (
+    process.env.APPSETTING_FORM_RECOGNIZER_KEY ||
+    process.env.FORM_RECOGNIZER_KEY ||
+    process.env.AZURE_FORM_RECOGNIZER_KEY ||
+    // Alias courants configurés côté Azure Web App
+    process.env.AZURE_VISION_KEY ||
+    ''
+  ).trim();
 
   const hasAzure = !!(endpoint && apiKey);
 
