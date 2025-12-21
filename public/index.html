@@ -14347,6 +14347,25 @@ RÈGLES DE CONVERSATION :
                     #financeAIOverlay .tool-name { font-weight: 700; font-size: 14px; color: #f8fafc; margin-bottom: 4px; }
                     #financeAIOverlay .tool-desc { font-size: 12px; color: #cbd5e1; line-height: 1.5; }
                     #financeAIOverlay .coming-badge { display: inline-block; font-size: 10px; background: rgba(251,146,60,0.18); color: #fb923c; padding: 4px 8px; border-radius: 6px; margin-top: 8px; font-weight: 700; }
+
+                    /* List panel for Blob items */
+                    #financeAIOverlay .list-panel { margin-top: 8px; border: 1px solid rgba(148,163,184,0.2); border-radius: 12px; padding: 12px; background: rgba(255,255,255,0.03); }
+                    #financeAIOverlay .list-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+                    #financeAIOverlay .list-title { font-weight: 700; font-size: 14px; color: #f8fafc; }
+                    #financeAIOverlay .list-actions { display: flex; gap: 6px; }
+                    #financeAIOverlay .list-btn { padding: 6px 10px; border-radius: 8px; background: rgba(255,255,255,0.05); border: 1px solid rgba(148,163,184,0.2); color: #e2e8f0; font-size: 11px; cursor: pointer; }
+                    #financeAIOverlay .list-items { display: grid; gap: 8px; }
+                    #financeAIOverlay .list-item { display: flex; justify-content: space-between; align-items: center; padding: 8px; border-radius: 8px; border: 1px solid rgba(148,163,184,0.18); }
+                    #financeAIOverlay .list-name { color: #e2e8f0; font-size: 12px; }
+                    #financeAIOverlay .list-links { display: flex; gap: 6px; align-items: center; }
+                    #financeAIOverlay .link-btn { padding: 6px 10px; border-radius: 8px; background: rgba(59,130,246,0.12); border: 1px solid rgba(59,130,246,0.35); color: #93c5fd; font-size: 11px; cursor: pointer; }
+                    #financeAIOverlay .delete-btn { padding: 6px 10px; border-radius: 8px; background: rgba(239,68,68,0.12); border: 1px solid rgba(239,68,68,0.35); color: #fca5a5; font-size: 11px; cursor: pointer; }
+                    #financeAIOverlay .list-search { display: flex; gap: 8px; align-items: center; margin-bottom: 8px; }
+                    #financeAIOverlay .search-input { flex: 1; padding: 6px 10px; border-radius: 8px; background: rgba(255,255,255,0.05); border: 1px solid rgba(148,163,184,0.2); color: #e2e8f0; font-size: 12px; }
+                    #financeAIOverlay .page-select { padding: 6px 10px; border-radius: 8px; background: rgba(255,255,255,0.05); border: 1px solid rgba(148,163,184,0.2); color: #e2e8f0; font-size: 12px; }
+                    #financeAIOverlay .pagination { display: flex; justify-content: space-between; align-items: center; margin-top: 10px; }
+                    #financeAIOverlay .page-btn { padding: 6px 10px; border-radius: 8px; background: rgba(255,255,255,0.05); border: 1px solid rgba(148,163,184,0.2); color: #e2e8f0; font-size: 11px; cursor: pointer; }
+                    #financeAIOverlay .page-info { font-size: 12px; color: #cbd5e1; }
                     
                     #financeAIOverlay .finance-chat { background: rgba(255,255,255,0.04); border: 1px solid rgba(148,163,184,0.22); border-radius: 16px; padding: 18px; display: flex; flex-direction: column; gap: 12px; box-shadow: 0 16px 50px rgba(0,0,0,0.28); overflow: hidden; }
                     #financeAIOverlay .chat-title { font-size: 16px; font-weight: 800; color: #f8fafc; margin: 0; }
@@ -14394,7 +14413,7 @@ RÈGLES DE CONVERSATION :
                                 Outils d'Automatisation
                             </div>
                             
-                            <div class="tool-card" onclick="showToast('💼 Factures - Bientôt disponible', 'info')">
+                            <div class="tool-card" onclick="runInvoiceOcr()">
                                 <div class="tool-icon" style="background: linear-gradient(135deg, rgba(16,185,129,0.18), rgba(59,130,246,0.18));">
                                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#34d399" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
                                 </div>
@@ -14403,7 +14422,7 @@ RÈGLES DE CONVERSATION :
                                 <div class="coming-badge">Bientôt</div>
                             </div>
                             
-                            <div class="tool-card" onclick="showToast('🚨 Fraudes - Bientôt disponible', 'info')">
+                            <div class="tool-card" onclick="runFraudDetection()">
                                 <div class="tool-icon" style="background: linear-gradient(135deg, rgba(239,68,68,0.18), rgba(220,38,38,0.18));">
                                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
                                 </div>
@@ -14412,7 +14431,7 @@ RÈGLES DE CONVERSATION :
                                 <div class="coming-badge">Bientôt</div>
                             </div>
                             
-                            <div class="tool-card" onclick="showToast('💰 Trésorerie - Bientôt disponible', 'info')">
+                            <div class="tool-card" onclick="runCashflowForecast()">
                                 <div class="tool-icon" style="background: linear-gradient(135deg, rgba(59,130,246,0.18), rgba(37,99,235,0.18));">
                                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" stroke-width="2"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>
                                 </div>
@@ -14421,7 +14440,7 @@ RÈGLES DE CONVERSATION :
                                 <div class="coming-badge">Bientôt</div>
                             </div>
                             
-                            <div class="tool-card" onclick="showToast('📊 Dépenses - Bientôt disponible', 'info')">
+                            <div class="tool-card" onclick="runExpenseClassification()">
                                 <div class="tool-icon" style="background: linear-gradient(135deg, rgba(245,158,11,0.18), rgba(217,119,6,0.18));">
                                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="9" y1="9" x2="15" y2="9"/><line x1="9" y1="15" x2="15" y2="15"/></svg>
                                 </div>
@@ -14430,7 +14449,7 @@ RÈGLES DE CONVERSATION :
                                 <div class="coming-badge">Bientôt</div>
                             </div>
                             
-                            <div class="tool-card" onclick="showToast('📈 Rapports - Bientôt disponible', 'info')">
+                            <div class="tool-card" onclick="runAutoReports()">
                                 <div class="tool-icon" style="background: linear-gradient(135deg, rgba(139,92,246,0.18), rgba(124,58,237,0.18));">
                                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#8b5cf6" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
                                 </div>
@@ -14438,6 +14457,23 @@ RÈGLES DE CONVERSATION :
                                 <div class="tool-desc">Bilans, comptes résultat • Export PDF multiformat</div>
                                 <div class="coming-badge">Bientôt</div>
                             </div>
+
+                            <div class="tool-card" onclick="runListInvoices()">
+                                <div class="tool-icon" style="background: linear-gradient(135deg, rgba(2,132,199,0.18), rgba(14,165,233,0.18));">
+                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#0ea5e9" stroke-width="2"><rect x="3" y="4" width="18" height="16" rx="2"/><line x1="7" y1="8" x2="17" y2="8"/><line x1="7" y1="12" x2="17" y2="12"/><line x1="7" y1="16" x2="13" y2="16"/></svg>
+                                </div>
+                                <div class="tool-name">Lister Factures (Blob)</div>
+                                <div class="tool-desc">Container invoices • URLs + tailles</div>
+                            </div>
+
+                            <div class="tool-card" onclick="runListReports()">
+                                <div class="tool-icon" style="background: linear-gradient(135deg, rgba(21,128,61,0.18), rgba(34,197,94,0.18));">
+                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2"><path d="M4 4h16v16H4z"/><path d="M8 14l2 2 6-6"/></svg>
+                                </div>
+                                <div class="tool-name">Lister Rapports (Blob)</div>
+                                <div class="tool-desc">Container reports • URLs + tailles</div>
+                            </div>
+                            <div id="financeListPanel" class="list-panel" style="display:none;"></div>
                         </div>
                         
                         <!-- Chat Panel -->
@@ -14515,6 +14551,8 @@ RÈGLES DE CONVERSATION :
             chatHist.scrollTop = chatHist.scrollHeight;
             
             // Simuler réponse IA
+            const defaultSendInner = sendBtn.dataset.defaultInner || sendBtn.innerHTML;
+            sendBtn.dataset.defaultInner = defaultSendInner;
             sendBtn.disabled = true;
             sendBtn.textContent = 'Analyse...';
             
@@ -14550,7 +14588,7 @@ RÈGLES DE CONVERSATION :
                     })
                     .finally(() => {
                         sendBtn.disabled = false;
-                        sendBtn.textContent = 'Envoyer';
+                        sendBtn.innerHTML = sendBtn.dataset.defaultInner || defaultSendInner;
                         textarea.focus();
                     });
                 } catch (e) {
@@ -14559,9 +14597,262 @@ RÈGLES DE CONVERSATION :
                     errMsg.textContent = 'Erreur de connexion';
                     chatHist.appendChild(errMsg);
                     sendBtn.disabled = false;
-                    sendBtn.textContent = 'Envoyer';
+                    sendBtn.innerHTML = sendBtn.dataset.defaultInner || defaultSendInner;
                 }
             }, 500);
+        }
+
+        function financeChatAddMessage(role, text) {
+            const chatHist = document.getElementById('financeChatHistory');
+            if (!chatHist) return;
+            const msg = document.createElement('div');
+            const roleClass = role === 'user' ? 'user' : 'bot';
+            msg.className = `chat-msg ${roleClass}`;
+            msg.textContent = text;
+            chatHist.appendChild(msg);
+            financeChatHistory.push({ role: roleClass, text });
+            chatHist.scrollTop = chatHist.scrollHeight;
+        }
+
+        async function callFinanceTool({ label, endpoint, payload, formatResult }) {
+            financeChatAddMessage('bot', `${label} en cours...`);
+            try {
+                const response = await fetch(endpoint, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload || {})
+                });
+
+                if (!response.ok) {
+                    throw new Error(`Erreur ${response.status}`);
+                }
+
+                const data = await response.json();
+                const message = typeof formatResult === 'function'
+                    ? formatResult(data)
+                    : `${label} terminé`;
+                financeChatAddMessage('bot', message);
+            } catch (error) {
+                financeChatAddMessage('bot', `${label} : ${error.message}`);
+            }
+        }
+
+        function runInvoiceOcr() {
+            callFinanceTool({
+                label: 'Lecture de factures',
+                endpoint: '/api/finance/invoices/ocr',
+                payload: {
+                    fileUrl: 'https://example.com/invoice.pdf'
+                },
+                formatResult: (data) => {
+                    const vendor = data.vendor || 'fournisseur inconnu';
+                    const amount = data.amount ? `${data.amount} ${data.currency || ''}` : 'montant non détecté';
+                    return `Lecture de factures : ${vendor}, ${amount}`;
+                }
+            });
+        }
+
+        function runFraudDetection() {
+            callFinanceTool({
+                label: 'Détection de fraudes',
+                endpoint: '/api/finance/fraud/analyze',
+                payload: {
+                    transactions: []
+                },
+                formatResult: (data) => {
+                    const alerts = Array.isArray(data.alerts) ? data.alerts.length : 0;
+                    return `Détection de fraudes : ${alerts} alerte(s) trouvée(s)`;
+                }
+            });
+        }
+
+        function runCashflowForecast() {
+            callFinanceTool({
+                label: 'Prévision de trésorerie',
+                endpoint: '/api/finance/cashflow/forecast',
+                payload: {
+                    horizonDays: 90,
+                    method: 'direct'
+                },
+                formatResult: (data) => {
+                    const summary = data.summary || 'Projection réalisée';
+                    return `Prévision de trésorerie : ${summary}`;
+                }
+            });
+        }
+
+        function runExpenseClassification() {
+            callFinanceTool({
+                label: 'Classification des dépenses',
+                endpoint: '/api/finance/expenses/classify',
+                payload: {
+                    expenses: []
+                },
+                formatResult: (data) => {
+                    const categories = Array.isArray(data.categories) ? data.categories.length : 0;
+                    return `Classification des dépenses : ${categories} catégorie(s) identifiée(s)`;
+                }
+            });
+        }
+
+        function runAutoReports() {
+            callFinanceTool({
+                label: 'Rapports financiers',
+                endpoint: '/api/finance/reports/generate',
+                payload: {
+                    period: 'periode-courante',
+                    format: 'pdf'
+                },
+                formatResult: (data) => {
+                    const link = data.url || 'rapport généré';
+                    return `Rapports financiers : ${link}`;
+                }
+            });
+        }
+
+        function runListInvoices() { openFinanceList('invoices'); }
+        function runListReports() { openFinanceList('reports'); }
+
+        let financeListState = { container: null, items: [], query: '', page: 1, pageSize: 10, filtered: [] };
+        function setFinanceListState(up) { financeListState = Object.assign({}, financeListState, up); }
+
+        async function openFinanceList(container) {
+            const panel = document.getElementById('financeListPanel');
+            if (!panel) return;
+            panel.style.display = 'block';
+            panel.innerHTML = `
+                <div class="list-header">
+                    <div class="list-title">Liste ${container === 'invoices' ? 'Factures' : 'Rapports'}</div>
+                    <div class="list-actions">
+                        <button class="list-btn" onclick="renderFinanceList('${container}')">Rafraîchir</button>
+                        <button class="list-btn" onclick="document.getElementById('financeListPanel').style.display='none'">Fermer</button>
+                    </div>
+                </div>
+                <div class="list-search">
+                    <input id="financeSearchInput" class="search-input" placeholder="Rechercher par nom..." oninput="onFinanceSearchInput(event)" />
+                    <select id="financePageSize" class="page-select" onchange="onFinancePageSizeChange(event)">
+                        <option value="10">10</option>
+                        <option value="20">20</option>
+                        <option value="50">50</option>
+                    </select>
+                </div>
+                <div class="list-items" id="financeListItems"></div>
+                <div class="pagination">
+                    <div id="financePageInfo" class="page-info"></div>
+                    <div class="list-actions">
+                        <button class="page-btn" onclick="financePrevPage()">Précédent</button>
+                        <button class="page-btn" onclick="financeNextPage()">Suivant</button>
+                    </div>
+                </div>
+            `;
+            setFinanceListState({ container, query: '', page: 1, pageSize: 10 });
+            renderFinanceList(container);
+        }
+
+        async function renderFinanceList(container) {
+            const itemsEl = document.getElementById('financeListItems');
+            if (!itemsEl) return;
+            itemsEl.innerHTML = '<div class="list-name">Chargement...</div>';
+            try {
+                const r = await fetch('/api/finance/storage/list', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ container }) });
+                if (!r.ok) throw new Error(`HTTP ${r.status}`);
+                const data = await r.json();
+                const items = Array.isArray(data.items) ? data.items : [];
+                setFinanceListState({ items, container });
+                renderFinanceListUI();
+            } catch (err) {
+                itemsEl.innerHTML = `<div class="list-name">Erreur: ${err.message}</div>`;
+            }
+        }
+
+        function applyFinanceFilter() {
+            const q = (financeListState.query || '').toLowerCase().trim();
+            const filtered = q ? financeListState.items.filter(it => String(it.name || '').toLowerCase().includes(q)) : financeListState.items.slice();
+            setFinanceListState({ filtered });
+        }
+
+        function renderFinanceListUI() {
+            applyFinanceFilter();
+            const itemsEl = document.getElementById('financeListItems');
+            const infoEl = document.getElementById('financePageInfo');
+            if (!itemsEl || !infoEl) return;
+            const total = financeListState.filtered.length;
+            if (total === 0) { itemsEl.innerHTML = '<div class="list-name">Aucun élément</div>'; infoEl.textContent = '0 élément'; return; }
+            const pageSize = financeListState.pageSize;
+            const totalPages = Math.max(1, Math.ceil(total / pageSize));
+            let page = financeListState.page;
+            if (page > totalPages) page = totalPages;
+            if (page < 1) page = 1;
+            setFinanceListState({ page });
+            const start = (page - 1) * pageSize;
+            const end = Math.min(start + pageSize, total);
+            const slice = financeListState.filtered.slice(start, end);
+            itemsEl.innerHTML = '';
+            slice.forEach(item => {
+                const row = document.createElement('div');
+                row.className = 'list-item';
+                const name = document.createElement('div');
+                name.className = 'list-name';
+                name.textContent = `${item.name} ${item.size ? '('+item.size+' o)' : ''}`;
+                const actions = document.createElement('div');
+                actions.className = 'list-links';
+                const viewBtn = document.createElement('button');
+                viewBtn.className = 'link-btn';
+                viewBtn.textContent = 'Ouvrir';
+                viewBtn.onclick = () => { if (item.url) window.open(item.url, '_blank'); };
+                const delBtn = document.createElement('button');
+                delBtn.className = 'delete-btn';
+                delBtn.textContent = 'Supprimer';
+                delBtn.onclick = () => deleteFinanceItem(financeListState.container, item.name);
+                actions.appendChild(viewBtn);
+                actions.appendChild(delBtn);
+                row.appendChild(name);
+                row.appendChild(actions);
+                itemsEl.appendChild(row);
+            });
+            infoEl.textContent = `Page ${page}/${totalPages} · ${total} élément(s)`;
+        }
+
+        function onFinanceSearchInput(e) {
+            const val = e?.target?.value || '';
+            setFinanceListState({ query: val, page: 1 });
+            renderFinanceListUI();
+        }
+
+        function onFinancePageSizeChange(e) {
+            const val = Number(e?.target?.value || 10) || 10;
+            setFinanceListState({ pageSize: val, page: 1 });
+            renderFinanceListUI();
+        }
+
+        function financePrevPage() {
+            const p = Math.max(1, financeListState.page - 1);
+            setFinanceListState({ page: p });
+            renderFinanceListUI();
+        }
+
+        function financeNextPage() {
+            const total = financeListState.filtered.length;
+            const totalPages = Math.max(1, Math.ceil(total / financeListState.pageSize));
+            const p = Math.min(totalPages, financeListState.page + 1);
+            setFinanceListState({ page: p });
+            renderFinanceListUI();
+        }
+
+        async function deleteFinanceItem(container, name) {
+            if (!confirm(`Supprimer ${name} ?`)) return;
+            try {
+                const r = await fetch('/api/finance/storage/delete', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ container, name }) });
+                const data = await r.json().catch(() => ({}));
+                if (r.ok && data.deleted) {
+                    showToast('Supprimé', 'success');
+                    renderFinanceList(container);
+                } else {
+                    showToast('Suppression impossible', 'error');
+                }
+            } catch (e) {
+                showToast('Erreur suppression', 'error');
+            }
         }
         
         function closeFinanceAI() {

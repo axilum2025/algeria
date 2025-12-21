@@ -104,7 +104,7 @@ module.exports = async function (context, req) {
 - Génération de rapports et tableaux de bord
 
 **COMMANDES EXCEL JSON** :
-Quand l'utilisateur demande une modification de son fichier Excel, tu peux générer automatiquement des commandes JSON pour les exécuter directement. Ajoute un bloc ```json avec la commande appropriée à la fin de ta réponse.
+Quand l'utilisateur demande une modification de son fichier Excel, tu peux générer automatiquement des commandes JSON pour les exécuter directement. Ajoute un bloc \`\`\`json avec la commande appropriée à la fin de ta réponse.
 
 Exemples de commandes :
 
