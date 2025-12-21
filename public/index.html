@@ -10233,7 +10233,8 @@ RÈGLES DE CONVERSATION :
                 left: 0;
                 width: 100%;
                 height: 100%;
-                background: rgba(0,0,0,0.5);
+                background: rgba(0,0,0,0.75);
+                backdrop-filter: blur(8px);
                 display: flex;
                 align-items: center;
                 justify-content: center;
@@ -10242,60 +10243,89 @@ RÈGLES DE CONVERSATION :
             `;
             
             const employeeOptions = employees.map(emp => 
-                `<option value="${emp.id}">${emp.firstName} ${emp.lastName} - ${emp.position}</option>`
+                `<option value="${emp.id}" style="background: #1e3a8a; color: white;">${emp.firstName} ${emp.lastName} - ${emp.position}</option>`
             ).join('');
             
             modal.innerHTML = `
-                <div style="background: white; border-radius: 20px; padding: 32px; max-width: 600px; width: 90%; max-height: 90vh; overflow-y: auto; animation: slideIn 0.3s ease;">
+                <div style="background: linear-gradient(135deg, rgba(10, 77, 60, 0.95) 0%, rgba(6, 78, 59, 0.95) 50%, rgba(30, 58, 138, 0.95) 100%); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 20px; padding: 32px; max-width: 600px; width: 90%; max-height: 90vh; overflow-y: auto; animation: slideIn 0.3s ease; box-shadow: 0 20px 60px rgba(0,0,0,0.4);">
                     <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px;">
-                        <h2 style="margin: 0; font-size: 24px; font-weight: 700; color: #1a1a1a;">Nouvelle Demande de Congé</h2>
-                        <button onclick="closeAddLeaveModal()" style="width: 36px; height: 36px; background: #f3f4f6; border: none; border-radius: 10px; cursor: pointer; display: flex; align-items: center; justify-content: center;" onmouseover="this.style.background='#e5e7eb'" onmouseout="this.style.background='#f3f4f6'">
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                        <div>
+                            <h2 style="margin: 0 0 4px; font-size: 24px; font-weight: 700; background: linear-gradient(135deg, #10b981 0%, #06b6d4 50%, #3b82f6 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">Nouvelle Demande de Congé</h2>
+                            <p style="margin: 0; font-size: 13px; color: rgba(255,255,255,0.6);">Remplissez les informations ci-dessous</p>
+                        </div>
+                        <button type="button" onclick="closeAddLeaveModal()" style="width: 36px; height: 36px; background: rgba(255,255,255,0.1); border: 1px solid rgba(239, 68, 68, 0.3); border-radius: 10px; cursor: pointer; display: flex; align-items: center; justify-content: center; color: rgba(255,255,255,0.7); transition: all 0.2s;" onmouseover="this.style.background='rgba(239, 68, 68, 0.2)'; this.style.borderColor='#ef4444'; this.style.color='#ef4444'" onmouseout="this.style.background='rgba(255,255,255,0.1)'; this.style.borderColor='rgba(239, 68, 68, 0.3)'; this.style.color='rgba(255,255,255,0.7)'">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
                         </button>
                     </div>
                     
-                    <form id="addLeaveForm" onsubmit="handleAddLeave(event)" style="display: flex; flex-direction: column; gap: 16px;">
+                    <form id="addLeaveForm" onsubmit="handleAddLeave(event); return false;" style="display: flex; flex-direction: column; gap: 16px;">
                         <div>
-                            <label style="display: block; margin-bottom: 6px; font-size: 14px; font-weight: 600; color: #374151;">Employé *</label>
-                            <select name="employeeId" required style="width: 100%; padding: 12px; border: 1px solid #e5e7eb; border-radius: 10px; font-size: 14px;">
-                                <option value="">Sélectionner un employé...</option>
+                            <label style="display: block; margin-bottom: 8px; font-size: 13px; font-weight: 600; color: rgba(255,255,255,0.9);">
+                                <span style="display: flex; align-items: center; gap: 6px;">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+                                    Employé *
+                                </span>
+                            </label>
+                            <select name="employeeId" required style="width: 100%; padding: 12px 16px; background: rgba(255,255,255,0.08); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 12px; font-size: 14px; color: white; cursor: pointer; transition: all 0.3s;" onfocus="this.style.borderColor='#10b981'; this.style.background='rgba(255,255,255,0.12)'" onblur="this.style.borderColor='rgba(16, 185, 129, 0.3)'; this.style.background='rgba(255,255,255,0.08)'">
+                                <option value="" style="background: #1e3a8a; color: white;">Sélectionner un employé...</option>
                                 ${employeeOptions}
                             </select>
                         </div>
                         
                         <div>
-                            <label style="display: block; margin-bottom: 6px; font-size: 14px; font-weight: 600; color: #374151;">Type de congé *</label>
-                            <select name="type" required style="width: 100%; padding: 12px; border: 1px solid #e5e7eb; border-radius: 10px; font-size: 14px;">
-                                <option value="">Sélectionner...</option>
-                                <option value="paid">☀️ Congé payé</option>
-                                <option value="sick">⚕️ Maladie</option>
-                                <option value="unpaid">� Sans solde</option>
-                                <option value="parental">�‍👩‍👧 Parental</option>
-                                <option value="other">📋 Autre</option>
+                            <label style="display: block; margin-bottom: 8px; font-size: 13px; font-weight: 600; color: rgba(255,255,255,0.9);">
+                                <span style="display: flex; align-items: center; gap: 6px;">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+                                    Type de congé *
+                                </span>
+                            </label>
+                            <select name="type" required style="width: 100%; padding: 12px 16px; background: rgba(255,255,255,0.08); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 12px; font-size: 14px; color: white; cursor: pointer; transition: all 0.3s;" onfocus="this.style.borderColor='#10b981'; this.style.background='rgba(255,255,255,0.12)'" onblur="this.style.borderColor='rgba(16, 185, 129, 0.3)'; this.style.background='rgba(255,255,255,0.08)'">
+                                <option value="" style="background: #1e3a8a; color: white;">Sélectionner...</option>
+                                <option value="paid" style="background: #1e3a8a; color: white;">☀️ Congé payé</option>
+                                <option value="sick" style="background: #1e3a8a; color: white;">⚕️ Maladie</option>
+                                <option value="unpaid" style="background: #1e3a8a; color: white;">💼 Sans solde</option>
+                                <option value="parental" style="background: #1e3a8a; color: white;">👪 Parental</option>
+                                <option value="other" style="background: #1e3a8a; color: white;">📋 Autre</option>
                             </select>
                         </div>
                         
                         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
                             <div>
-                                <label style="display: block; margin-bottom: 6px; font-size: 14px; font-weight: 600; color: #374151;">Date de début *</label>
-                                <input type="date" name="startDate" required style="width: 100%; padding: 12px; border: 1px solid #e5e7eb; border-radius: 10px; font-size: 14px;">
+                                <label style="display: block; margin-bottom: 8px; font-size: 13px; font-weight: 600; color: rgba(255,255,255,0.9);">
+                                    <span style="display: flex; align-items: center; gap: 6px;">
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+                                        Date de début *
+                                    </span>
+                                </label>
+                                <input type="date" name="startDate" required style="width: 100%; padding: 12px 16px; background: rgba(255,255,255,0.08); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 12px; font-size: 14px; color: white; transition: all 0.3s; color-scheme: dark;" onfocus="this.style.borderColor='#10b981'; this.style.background='rgba(255,255,255,0.12)'" onblur="this.style.borderColor='rgba(16, 185, 129, 0.3)'; this.style.background='rgba(255,255,255,0.08)'">
                             </div>
                             <div>
-                                <label style="display: block; margin-bottom: 6px; font-size: 14px; font-weight: 600; color: #374151;">Date de fin *</label>
-                                <input type="date" name="endDate" required style="width: 100%; padding: 12px; border: 1px solid #e5e7eb; border-radius: 10px; font-size: 14px;">
+                                <label style="display: block; margin-bottom: 8px; font-size: 13px; font-weight: 600; color: rgba(255,255,255,0.9);">
+                                    <span style="display: flex; align-items: center; gap: 6px;">
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+                                        Date de fin *
+                                    </span>
+                                </label>
+                                <input type="date" name="endDate" required style="width: 100%; padding: 12px 16px; background: rgba(255,255,255,0.08); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 12px; font-size: 14px; color: white; transition: all 0.3s; color-scheme: dark;" onfocus="this.style.borderColor='#10b981'; this.style.background='rgba(255,255,255,0.12)'" onblur="this.style.borderColor='rgba(16, 185, 129, 0.3)'; this.style.background='rgba(255,255,255,0.08)'">
                             </div>
                         </div>
                         
                         <div>
-                            <label style="display: block; margin-bottom: 6px; font-size: 14px; font-weight: 600; color: #374151;">Motif (optionnel)</label>
-                            <textarea name="reason" rows="3" style="width: 100%; padding: 12px; border: 1px solid #e5e7eb; border-radius: 10px; font-size: 14px; font-family: inherit; resize: vertical;" placeholder="Raison de la demande de congé..."></textarea>
+                            <label style="display: block; margin-bottom: 8px; font-size: 13px; font-weight: 600; color: rgba(255,255,255,0.9);">
+                                <span style="display: flex; align-items: center; gap: 6px;">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+                                    Motif (optionnel)
+                                </span>
+                            </label>
+                            <textarea name="reason" rows="3" style="width: 100%; padding: 12px 16px; background: rgba(255,255,255,0.08); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 12px; font-size: 14px; color: white; font-family: inherit; resize: vertical; transition: all 0.3s;" placeholder="Raison de la demande de congé..." onfocus="this.style.borderColor='#10b981'; this.style.background='rgba(255,255,255,0.12)'" onblur="this.style.borderColor='rgba(16, 185, 129, 0.3)'; this.style.background='rgba(255,255,255,0.08)'"></textarea>
                         </div>
                         
                         <div style="display: flex; gap: 12px; margin-top: 8px;">
-                            <button type="button" onclick="closeAddLeaveModal()" style="flex: 1; padding: 12px; background: #f3f4f6; border: none; border-radius: 10px; font-weight: 600; cursor: pointer;" onmouseover="this.style.background='#e5e7eb'" onmouseout="this.style.background='#f3f4f6'">
+                            <button type="button" onclick="closeAddLeaveModal()" style="flex: 1; padding: 14px; background: rgba(255,255,255,0.1); border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 12px; color: white; font-weight: 600; cursor: pointer; transition: all 0.2s; font-size: 14px;" onmouseover="this.style.background='rgba(255,255,255,0.15)'; this.style.transform='translateY(-1px)'" onmouseout="this.style.background='rgba(255,255,255,0.1)'; this.style.transform='translateY(0)'">
                                 Annuler
                             </button>
-                            <button type="submit" style="flex: 1; padding: 12px; background: #6366F1; border: none; border-radius: 10px; color: white; font-weight: 600; cursor: pointer;" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 12px rgba(99,102,241,0.4)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='none'">
+                            <button type="submit" class="hr-btn" style="flex: 1; padding: 14px; font-size: 14px; display: flex; align-items: center; justify-content: center; gap: 8px;">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
                                 Créer la Demande
                             </button>
                         </div>
