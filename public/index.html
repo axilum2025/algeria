@@ -2564,6 +2564,22 @@
 
         // Initialize
         document.addEventListener('DOMContentLoaded', () => {
+                        // Recherche dynamique employés
+                        const employeeSearchInput = document.getElementById('employeeSearch');
+                        if (employeeSearchInput) {
+                            employeeSearchInput.addEventListener('input', function() {
+                                const search = this.value.trim().toLowerCase();
+                                const employees = JSON.parse(localStorage.getItem('hrEmployees') || '[]');
+                                const filtered = employees.filter(emp =>
+                                    emp.firstName.toLowerCase().includes(search) ||
+                                    emp.lastName.toLowerCase().includes(search) ||
+                                    (emp.position && emp.position.toLowerCase().includes(search)) ||
+                                    (emp.department && emp.department.toLowerCase().includes(search)) ||
+                                    (emp.email && emp.email.toLowerCase().includes(search))
+                                );
+                                renderEmployeesList(filtered);
+                            });
+                        }
             // Log version pour débogage déploiement
             console.log('🚀 AXILUM AI v1.4-DEPLOY-TEST - ' + new Date().toISOString());
             console.log('📦 Build timestamp: ' + Date.now());
