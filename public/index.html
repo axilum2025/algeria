@@ -4762,15 +4762,15 @@
             `;
             document.head.appendChild(style);
             
+            // Ajouter le modal au body AVANT de rendre les éléments
+            document.body.appendChild(modal);
+            
             // Synchroniser les tâches au chargement
             setTimeout(() => {
                 syncTasksFromServer().then(() => {
                     renderTodoMainView();
                 });
             }, 500);
-            
-            // Ajouter le modal au body
-            document.body.appendChild(modal);
         }
 
         function closeTodoAi() {
@@ -13666,10 +13666,13 @@ RÈGLES DE CONVERSATION :
             };
         }
         
-        // Filtre des candidats par offre
-        document.getElementById('filterJobId').addEventListener('change', function() {
-            renderCandidatesList();
-        });
+        // Filtre des candidats par offre (seulement si l'élément existe)
+        const filterJobId = document.getElementById('filterJobId');
+        if (filterJobId) {
+            filterJobId.addEventListener('change', function() {
+                renderCandidatesList();
+            });
+        }
         
         // ========== FIN PERFORMANCE REVIEWS ==========
         
