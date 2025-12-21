@@ -9299,16 +9299,16 @@ Réponds de manière professionnelle, data-driven et orientée résultats.
     <div style="text-align: right; margin-bottom: 30px;">
         <strong>Fait à ${company.city.split(',')[0]}, le ${today}</strong>
     </div>
-${employee.birthDate ? new Date(employee.birthDate).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' }) : '[Date de naissance à compléter]'}<br>
-            Résidant à : ${employee.address || '[Adresse à compléter]'}/div>
+
+    <div class="title">Attestation de Travail</div>
 
     <div class="content">
         <p>Je soussigné(e), représentant(e) légal(e) de <strong>${company.name}</strong>, certifie par la présente que :</p>
         
         <div class="info-box">
             <strong>Monsieur/Madame ${employee.firstName} ${employee.lastName}</strong><br>
-            Né(e) le : [Date de naissance à compléter]<br>
-            Résidant à : [Adresse à compléter]
+            Né(e) le : ${employee.birthDate ? new Date(employee.birthDate).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' }) : '[Date de naissance à compléter]'}<br>
+            Résidant à : ${employee.address || '[Adresse à compléter]'}
         </div>
 
         <p>
