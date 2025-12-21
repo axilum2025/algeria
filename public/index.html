@@ -14457,8 +14457,12 @@ RÈGLES DE CONVERSATION :
                                     <button class="quick-btn" onclick="document.getElementById('financeMsg').value='Étude de marché: Impacts actuels de l\'inflation'; document.getElementById('financeMsg').focus();">Marché</button>
                                     <button class="quick-btn" onclick="document.getElementById('financeMsg').value='Comptabilité: Checklist clôture mensuelle'; document.getElementById('financeMsg').focus();">Clôture</button>
                                 </div>
-                                <textarea id="financeMsg" class="chat-textarea" placeholder="Budget, comptabilité, analyse marché, trésorerie..."></textarea>
-                                <button class="send-btn" id="financeSendBtn" onclick="sendFinanceMessage()">Envoyer</button>
+                                <div style="display: flex; gap: 8px; align-items: flex-end;">
+                                    <textarea id="financeMsg" class="chat-textarea" placeholder="Budget, comptabilité, analyse marché, trésorerie..." style="flex: 1; margin: 0;"></textarea>
+                                    <button class="send-btn" id="financeSendBtn" onclick="sendFinanceMessage()" style="padding: 12px; width: 44px; height: 44px; min-width: unset;">
+                                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     </div>
