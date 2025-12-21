@@ -11011,41 +11011,41 @@ RÈGLES DE CONVERSATION :
             
             const modal = document.createElement('div');
             modal.id = 'addPayrollModal';
-            modal.style.cssText = 'position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 10003; animation: fadeIn 0.3s ease;';
+            modal.style.cssText = 'position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(135deg, #0a4d3c 0%, #064e3b 50%, #1e3a8a 100%); display: flex; align-items: center; justify-content: center; z-index: 10003; animation: fadeIn 0.3s ease; overflow-y: auto; padding: 20px;';
             
             modal.innerHTML = `
-                <div style="background: white; border-radius: 20px; padding: 32px; max-width: 600px; width: 90%; max-height: 90vh; overflow-y: auto; animation: slideIn 0.3s ease;">
+                <div style="background: rgba(255,255,255,0.05); backdrop-filter: blur(10px); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 20px; padding: 32px; max-width: 600px; width: 100%; max-height: 90vh; overflow-y: auto; animation: slideIn 0.3s ease;">
                     <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px;">
-                        <h2 style="margin: 0; font-size: 24px; font-weight: 700; color: #1a1a1a;">Nouveau Bulletin de Paie</h2>
-                        <button onclick="closeAddPayrollModal()" style="width: 36px; height: 36px; background: #f3f4f6; border: none; border-radius: 10px; cursor: pointer; display: flex; align-items: center; justify-content: center;" onmouseover="this.style.background='#e5e7eb'" onmouseout="this.style.background='#f3f4f6'">
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                        <h2 style="margin: 0; font-size: 24px; font-weight: 700; background: linear-gradient(135deg, #10b981 0%, #06b6d4 50%, #3b82f6 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">Nouveau Bulletin de Paie</h2>
+                        <button onclick="closeAddPayrollModal()" style="width: 36px; height: 36px; background: rgba(255,255,255,0.1); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 10px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.15)'" onmouseout="this.style.background='rgba(255,255,255,0.1)'">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
                         </button>
                     </div>
                     
-                    <form id="addPayrollForm" onsubmit="handleAddPayroll(event)" style="display: flex; flex-direction: column; gap: 16px;">
+                    <form id="addPayrollForm" onsubmit="handleAddPayroll(event); return false;" style="display: flex; flex-direction: column; gap: 16px;">
                         <div>
-                            <label style="display: block; margin-bottom: 6px; font-size: 14px; font-weight: 600; color: #374151;">Employé *</label>
-                            <select id="payrollEmployeeSelect" name="employeeId" required onchange="fillEmployeeSalary()" style="width: 100%; padding: 12px; border: 1px solid #e5e7eb; border-radius: 10px; font-size: 14px;">
-                                <option value="">Sélectionner un employé...</option>
+                            <label style="display: block; margin-bottom: 6px; font-size: 14px; font-weight: 600; color: rgba(255, 255, 255, 0.9);">Employé *</label>
+                            <select id="payrollEmployeeSelect" name="employeeId" required onchange="fillEmployeeSalary()" style="width: 100%; padding: 12px; background: rgba(255,255,255,0.08); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 10px; font-size: 14px; color: white; cursor: pointer; transition: all 0.2s;" onfocus="this.style.borderColor='#10b981'; this.style.background='rgba(255,255,255,0.12)'" onblur="this.style.borderColor='rgba(16, 185, 129, 0.3)'; this.style.background='rgba(255,255,255,0.08)'">
+                                <option value="" style="background: #1e3a8a; color: white;">Sélectionner un employé...</option>
                                 ${employeeOptions}
                             </select>
                         </div>
                         
                         <div>
-                            <label style="display: block; margin-bottom: 6px; font-size: 14px; font-weight: 600; color: #374151;">Période *</label>
-                            <input type="month" name="period" required value="${new Date().toISOString().slice(0, 7)}" style="width: 100%; padding: 12px; border: 1px solid #e5e7eb; border-radius: 10px; font-size: 14px;">
+                            <label style="display: block; margin-bottom: 6px; font-size: 14px; font-weight: 600; color: rgba(255, 255, 255, 0.9);">Période *</label>
+                            <input type="month" name="period" required value="${new Date().toISOString().slice(0, 7)}" style="width: 100%; padding: 12px; background: rgba(255,255,255,0.08); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 10px; font-size: 14px; color: white; transition: all 0.2s;" onfocus="this.style.borderColor='#10b981'; this.style.background='rgba(255,255,255,0.12)'" onblur="this.style.borderColor='rgba(16, 185, 129, 0.3)'; this.style.background='rgba(255,255,255,0.08)'">
                         </div>
                         
                         <div>
-                            <label style="display: block; margin-bottom: 6px; font-size: 14px; font-weight: 600; color: #374151;">Salaire de base *</label>
-                            <input type="number" id="payrollBaseSalary" name="baseSalary" required min="0" step="0.01" placeholder="45000" style="width: 100%; padding: 12px; border: 1px solid #e5e7eb; border-radius: 10px; font-size: 14px;" oninput="calculatePayroll()">
+                            <label style="display: block; margin-bottom: 6px; font-size: 14px; font-weight: 600; color: rgba(255, 255, 255, 0.9);">Salaire de base *</label>
+                            <input type="number" id="payrollBaseSalary" name="baseSalary" required min="0" step="0.01" placeholder="45000" style="width: 100%; padding: 12px; background: rgba(255,255,255,0.08); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 10px; font-size: 14px; color: white; transition: all 0.2s;" onfocus="this.style.borderColor='#10b981'; this.style.background='rgba(255,255,255,0.12)'" onblur="this.style.borderColor='rgba(16, 185, 129, 0.3)'; this.style.background='rgba(255,255,255,0.08)'" oninput="calculatePayroll()">
                         </div>
                         
                         <!-- Section Primes/Bonus personnalisés -->
-                        <div style="background: #f0fdf4; border-radius: 12px; padding: 16px; border: 2px solid #bbf7d0;">
+                        <div style="background: rgba(16, 185, 129, 0.1); border-radius: 12px; padding: 16px; border: 1px solid rgba(16, 185, 129, 0.3);">
                             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
-                                <h4 style="margin: 0; font-size: 14px; font-weight: 700; color: #166534;">➕ Primes & Bonus</h4>
-                                <button type="button" onclick="addBonusRow()" style="padding: 6px 12px; background: #10b981; color: white; border: none; border-radius: 8px; font-size: 12px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 4px;" onmouseover="this.style.background='#059669'" onmouseout="this.style.background='#10b981'">
+                                <h4 style="margin: 0; font-size: 14px; font-weight: 700; color: #10b981;">➕ Primes & Bonus</h4>
+                                <button type="button" onclick="addBonusRow()" style="padding: 6px 12px; background: rgba(16, 185, 129, 0.2); border: 1px solid rgba(16, 185, 129, 0.4); border-radius: 8px; color: #10b981; font-size: 12px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 4px; transition: all 0.2s;" onmouseover="this.style.background='rgba(16, 185, 129, 0.3)'" onmouseout="this.style.background='rgba(16, 185, 129, 0.2)'">
                                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
                                     Ajouter
                                 </button>
@@ -11055,25 +11055,25 @@ RÈGLES DE CONVERSATION :
                                 <!-- Bonus dynamiques -->
                             </div>
                             
-                            <p style="margin: 0; font-size: 11px; color: #15803d; font-style: italic;">💡 Ajoutez des primes, bonus ou indemnités supplémentaires</p>
+                            <p style="margin: 0; font-size: 11px; color: rgba(16, 185, 129, 0.8); font-style: italic;">💡 Ajoutez des primes, bonus ou indemnités supplémentaires</p>
                         </div>
                         
                         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
                             <div>
-                                <label style="display: block; margin-bottom: 6px; font-size: 14px; font-weight: 600; color: #374151;">Primes</label>
-                                <input type="number" name="bonuses" min="0" step="0.01" value="0" placeholder="0" style="width: 100%; padding: 12px; border: 1px solid #e5e7eb; border-radius: 10px; font-size: 14px;" oninput="calculatePayroll()">
+                                <label style="display: block; margin-bottom: 6px; font-size: 14px; font-weight: 600; color: rgba(255, 255, 255, 0.9);">Primes</label>
+                                <input type="number" name="bonuses" min="0" step="0.01" value="0" placeholder="0" style="width: 100%; padding: 12px; background: rgba(255,255,255,0.08); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 10px; font-size: 14px; color: white; transition: all 0.2s;" onfocus="this.style.borderColor='#10b981'; this.style.background='rgba(255,255,255,0.12)'" onblur="this.style.borderColor='rgba(16, 185, 129, 0.3)'; this.style.background='rgba(255,255,255,0.08)'" oninput="calculatePayroll()">
                             </div>
                             
                             <div>
-                                <label style="display: block; margin-bottom: 6px; font-size: 14px; font-weight: 600; color: #374151;">Heures sup. (h)</label>
-                                <input type="number" name="overtime" min="0" step="0.5" value="0" placeholder="0" style="width: 100%; padding: 12px; border: 1px solid #e5e7eb; border-radius: 10px; font-size: 14px;" oninput="calculatePayroll()">
+                                <label style="display: block; margin-bottom: 6px; font-size: 14px; font-weight: 600; color: rgba(255, 255, 255, 0.9);">Heures sup. (h)</label>
+                                <input type="number" name="overtime" min="0" step="0.5" value="0" placeholder="0" style="width: 100%; padding: 12px; background: rgba(255,255,255,0.08); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 10px; font-size: 14px; color: white; transition: all 0.2s;" onfocus="this.style.borderColor='#10b981'; this.style.background='rgba(255,255,255,0.12)'" onblur="this.style.borderColor='rgba(16, 185, 129, 0.3)'; this.style.background='rgba(255,255,255,0.08)'" oninput="calculatePayroll()">
                             </div>
                         </div>
                         
-                        <div style="background: #f9fafb; border-radius: 12px; padding: 16px;">
+                        <div style="background: rgba(255,255,255,0.05); border-radius: 12px; padding: 16px; border: 1px solid rgba(16, 185, 129, 0.3);">
                             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
-                                <h4 style="margin: 0; font-size: 14px; font-weight: 700; color: #1a1a1a;">Déductions</h4>
-                                <button type="button" onclick="addDeductionRow()" style="padding: 6px 12px; background: #6366F1; color: white; border: none; border-radius: 8px; font-size: 12px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 4px;" onmouseover="this.style.background='#4f46e5'" onmouseout="this.style.background='#6366F1'">
+                                <h4 style="margin: 0; font-size: 14px; font-weight: 700; color: rgba(255, 255, 255, 0.9);">Déductions</h4>
+                                <button type="button" onclick="addDeductionRow()" style="padding: 6px 12px; background: rgba(99, 102, 241, 0.2); border: 1px solid rgba(99, 102, 241, 0.4); border-radius: 8px; color: #6366F1; font-size: 12px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 4px; transition: all 0.2s;" onmouseover="this.style.background='rgba(99, 102, 241, 0.3)'" onmouseout="this.style.background='rgba(99, 102, 241, 0.2)'">
                                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
                                     Ajouter
                                 </button>
@@ -11083,10 +11083,10 @@ RÈGLES DE CONVERSATION :
                                 <!-- Déductions dynamiques -->
                             </div>
                             
-                            <div style="background: white; border-radius: 8px; padding: 12px; margin-bottom: 12px;">
+                            <div style="background: rgba(255,255,255,0.08); border-radius: 8px; padding: 12px; margin-bottom: 12px; backdrop-filter: blur(10px);">
                                 <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
-                                    <span style="font-size: 13px; color: #6b7280;">Salaire brut</span>
-                                    <span id="calculatedGrossSalary" style="font-size: 13px; color: #1a1a1a; font-weight: 600;">0</span>
+                                    <span style="font-size: 13px; color: rgba(255, 255, 255, 0.7);">Salaire brut</span>
+                                    <span id="calculatedGrossSalary" style="font-size: 13px; color: white; font-weight: 600;">0</span>
                                 </div>
                                 <div id="bonusesSummary" style="margin-bottom: 8px;">
                                     <!-- Résumé des bonus personnalisés -->
@@ -11096,17 +11096,17 @@ RÈGLES DE CONVERSATION :
                                 </div>
                             </div>
                             
-                            <div style="border-top: 2px solid #e5e7eb; padding-top: 12px; display: flex; justify-content: space-between;">
-                                <span style="font-size: 14px; color: #1a1a1a; font-weight: 700;">💰 Salaire net</span>
+                            <div style="border-top: 1px solid rgba(16, 185, 129, 0.3); padding-top: 12px; display: flex; justify-content: space-between;">
+                                <span style="font-size: 14px; color: rgba(255, 255, 255, 0.9); font-weight: 700;">💰 Salaire net</span>
                                 <span id="calculatedNetSalary" style="font-size: 16px; color: #10b981; font-weight: 700;">0</span>
                             </div>
                         </div>
                         
                         <div style="display: flex; gap: 12px; margin-top: 8px;">
-                            <button type="button" onclick="closeAddPayrollModal()" style="flex: 1; padding: 12px; background: #f3f4f6; border: none; border-radius: 10px; font-weight: 600; cursor: pointer;" onmouseover="this.style.background='#e5e7eb'" onmouseout="this.style.background='#f3f4f6'">
+                            <button type="button" onclick="closeAddPayrollModal()" style="flex: 1; padding: 12px; background: rgba(255,255,255,0.1); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 10px; color: white; font-weight: 600; cursor: pointer; transition: all 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.15)'" onmouseout="this.style.background='rgba(255,255,255,0.1)'">
                                 Annuler
                             </button>
-                            <button type="submit" style="flex: 1; padding: 12px; background: #10b981; border: none; border-radius: 10px; color: white; font-weight: 600; cursor: pointer;" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 12px rgba(16,185,129,0.4)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='none'">
+                            <button type="submit" class="hr-btn" style="flex: 1; padding: 12px; font-size: 14px; font-weight: 600;">
                                 Créer le Bulletin
                             </button>
                         </div>
@@ -11149,12 +11149,12 @@ RÈGLES DE CONVERSATION :
             row.style.cssText = 'display: grid; grid-template-columns: 2fr 1fr auto; gap: 8px; margin-bottom: 8px; align-items: center;';
             
             row.innerHTML = `
-                <input type="text" placeholder="Ex: Cotisations sociales" class="deduction-name" style="padding: 8px 12px; border: 1px solid #e5e7eb; border-radius: 8px; font-size: 13px;" oninput="calculatePayroll()">
+                <input type="text" placeholder="Ex: Cotisations sociales" class="deduction-name" style="padding: 8px 12px; background: rgba(255,255,255,0.08); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 8px; font-size: 13px; color: white; transition: all 0.2s;" onfocus="this.style.borderColor='#10b981'; this.style.background='rgba(255,255,255,0.12)'" onblur="this.style.borderColor='rgba(16, 185, 129, 0.3)'; this.style.background='rgba(255,255,255,0.08)'" oninput="calculatePayroll()">
                 <div style="position: relative;">
-                    <input type="number" placeholder="%" class="deduction-rate" min="0" max="100" step="0.01" style="padding: 8px 12px; padding-right: 28px; border: 1px solid #e5e7eb; border-radius: 8px; font-size: 13px; width: 100%;" oninput="calculatePayroll()">
-                    <span style="position: absolute; right: 12px; top: 50%; transform: translateY(-50%); color: #6b7280; font-size: 13px; pointer-events: none;">%</span>
+                    <input type="number" placeholder="%" class="deduction-rate" min="0" max="100" step="0.01" style="padding: 8px 12px; padding-right: 28px; background: rgba(255,255,255,0.08); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 8px; font-size: 13px; color: white; width: 100%; transition: all 0.2s;" onfocus="this.style.borderColor='#10b981'; this.style.background='rgba(255,255,255,0.12)'" onblur="this.style.borderColor='rgba(16, 185, 129, 0.3)'; this.style.background='rgba(255,255,255,0.08)'" oninput="calculatePayroll()">
+                    <span style="position: absolute; right: 12px; top: 50%; transform: translateY(-50%); color: rgba(255, 255, 255, 0.6); font-size: 13px; pointer-events: none;">%</span>
                 </div>
-                <button type="button" onclick="removeDeductionRow('${rowId}')" style="padding: 8px; background: #fee2e2; color: #dc2626; border: none; border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center;" onmouseover="this.style.background='#fecaca'" onmouseout="this.style.background='#fee2e2'">
+                <button type="button" onclick="removeDeductionRow('${rowId}')" style="padding: 8px; background: rgba(220, 38, 38, 0.2); color: #ef4444; border: 1px solid rgba(220, 38, 38, 0.4); border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.2s;" onmouseover="this.style.background='rgba(220, 38, 38, 0.3)'" onmouseout="this.style.background='rgba(220, 38, 38, 0.2)'">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
                 </button>
             `;
@@ -11181,12 +11181,12 @@ RÈGLES DE CONVERSATION :
             const currency = getCurrency();
             
             row.innerHTML = `
-                <input type="text" placeholder="Ex: Prime de rendement" class="bonus-name" style="padding: 8px 12px; border: 1px solid #e5e7eb; border-radius: 8px; font-size: 13px;" oninput="calculatePayroll()">
+                <input type="text" placeholder="Ex: Prime de rendement" class="bonus-name" style="padding: 8px 12px; background: rgba(255,255,255,0.08); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 8px; font-size: 13px; color: white; transition: all 0.2s;" onfocus="this.style.borderColor='#10b981'; this.style.background='rgba(255,255,255,0.12)'" onblur="this.style.borderColor='rgba(16, 185, 129, 0.3)'; this.style.background='rgba(255,255,255,0.08)'" oninput="calculatePayroll()">
                 <div style="position: relative;">
-                    <input type="number" placeholder="Montant" class="bonus-amount" min="0" step="0.01" style="padding: 8px 12px; padding-right: 50px; border: 1px solid #e5e7eb; border-radius: 8px; font-size: 13px; width: 100%;" oninput="calculatePayroll()">
-                    <span style="position: absolute; right: 12px; top: 50%; transform: translateY(-50%); color: #6b7280; font-size: 11px; pointer-events: none;">${currency}</span>
+                    <input type="number" placeholder="Montant" class="bonus-amount" min="0" step="0.01" style="padding: 8px 12px; padding-right: 50px; background: rgba(255,255,255,0.08); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 8px; font-size: 13px; color: white; width: 100%; transition: all 0.2s;" onfocus="this.style.borderColor='#10b981'; this.style.background='rgba(255,255,255,0.12)'" onblur="this.style.borderColor='rgba(16, 185, 129, 0.3)'; this.style.background='rgba(255,255,255,0.08)'" oninput="calculatePayroll()">
+                    <span style="position: absolute; right: 12px; top: 50%; transform: translateY(-50%); color: rgba(255, 255, 255, 0.6); font-size: 11px; pointer-events: none;">${currency}</span>
                 </div>
-                <button type="button" onclick="removeBonusRow('${rowId}')" style="padding: 8px; background: #dcfce7; color: #16a34a; border: none; border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center;" onmouseover="this.style.background='#bbf7d0'" onmouseout="this.style.background='#dcfce7'">
+                <button type="button" onclick="removeBonusRow('${rowId}')" style="padding: 8px; background: rgba(16, 185, 129, 0.2); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.4); border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.2s;" onmouseover="this.style.background='rgba(16, 185, 129, 0.3)'" onmouseout="this.style.background='rgba(16, 185, 129, 0.2)'">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
                 </button>
             `;
