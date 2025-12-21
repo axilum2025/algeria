@@ -1908,9 +1908,17 @@
                 <!-- AI Marketing -->
                 <button class="menu-item" onclick="loadMarketingModule()" style="padding-left:30px;" title="AI Marketing - Business & Growth">
                     <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.488 9H15V3.512A9.025 9.025 0 0120.488 9z"/>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 3.055A9.001 0 1020.945 13H11V3.055z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.488 9H15V3.512A9.025 9.025 0 0120.488 9z"/>
                     </svg>
                     <span class="menu-item-text">AI Marketing</span>
+                </button>
+                
+                <!-- AI Finance & Comptabilité -->
+                <button class="menu-item" onclick="loadFinanceModule()" style="padding-left:30px;" title="AI Finance & Comptabilité">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
+                    <span class="menu-item-text">AI Finance & Compta</span>
                 </button>
             </div>
             
@@ -8482,6 +8490,42 @@ Réponds de manière professionnelle et technique.
                     openOfficePro();
                 } else {
                     alert('Erreur lors du chargement d\'AI Task. Veuillez réessayer.');
+                }
+            };
+            document.head.appendChild(script);
+        }
+        
+        // Variable pour tracker le chargement du module Finance
+        let financeModuleLoaded = false;
+        
+        function loadFinanceModule() {
+            // Si le module est déjà chargé et les fonctions disponibles
+            if (financeModuleLoaded && typeof openFinanceAI === 'function') {
+                openFinanceAI();
+                return;
+            }
+            
+            // Charger le wrapper module
+            const script = document.createElement('script');
+            script.src = '/js/finance-module.js';
+            script.onload = function() {
+                financeModuleLoaded = true;
+                console.log('Module Finance wrapper chargé');
+                // Appeler directement openFinanceAI qui est déjà dans index.html
+                if (typeof openFinanceAI === 'function') {
+                    openFinanceAI();
+                } else {
+                    console.error('openFinanceAI non disponible');
+                    alert('Erreur lors de l\'ouverture d\'AI Finance');
+                }
+            };
+            script.onerror = function() {
+                console.error('Erreur lors du chargement du module Finance');
+                // Fallback: essayer d'appeler directement la fonction
+                if (typeof openFinanceAI === 'function') {
+                    openFinanceAI();
+                } else {
+                    alert('Erreur lors du chargement d\'AI Finance. Veuillez réessayer.');
                 }
             };
             document.head.appendChild(script);
