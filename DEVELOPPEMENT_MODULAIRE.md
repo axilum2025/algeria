@@ -223,19 +223,53 @@ Le module Text Pro déjà créé suit cette architecture :
 ## Migration Progressive
 
 ### Phase 1 : Modules Critiques (En Cours)
-- ✅ Text Pro → `/js/text-pro-module.js`
-- ⏳ Excel AI → `/js/excel-ai-module.js`
-- ⏳ HR Management → `/js/hr-module.js`
+- ✅ Text Pro → `/js/text-pro-module.js` (ACTIF)
+- ⏳ Excel AI → Actuellement sur `/excel-ai-expert.html` (page dédiée)
+  - Module stub créé : `/js/excel-ai-module.js`
+  - Migration prévue en Phase 2
+- ⏳ HR Management → Dans `index.html` (intégré)
+  - À migrer vers `/js/hr-module.js`
 
-### Phase 2 : Fonctionnalités Complémentaires
-- Task Management
+### Phase 2 : Migration des Modules Existants
+- Excel AI : Convertir excel-ai-expert.html en module overlay
+- HR Management : Extraire vers hr-module.js
+- Task Management : Extraire vers task-module.js
+
+### Phase 3 : Fonctionnalités Complémentaires
 - R&D Module
 - Autres agents AI
+- Outils supplémentaires
 
-### Phase 3 : Refactoring Complet
+### Phase 4 : Refactoring Complet
 - Extraire tout le JavaScript de index.html
 - Core application dans `/js/app.js`
 - Modules dans `/js/modules/`
+
+## État Actuel de la Migration
+
+| Module | Status | Fichier | Type |
+|--------|--------|---------|------|
+| **Text Pro** | ✅ Migré | `/js/text-pro-module.js` | Module overlay |
+| **Excel AI** | ⏳ Préparé | `/js/excel-ai-module.js` (stub) | Page dédiée → Module |
+| **HR Management** | ⏳ À migrer | Dans `index.html` | Intégré → Module |
+| **Task Management** | ⏳ À migrer | Dans `index.html` | Intégré → Module |
+| **R&D** | ⏳ À migrer | Dans `index.html` | Intégré → Module |
+
+### Note Importante sur Excel AI
+
+Excel AI utilise actuellement une **page dédiée complète** (`/excel-ai-expert.html`).
+Cette approche est stable et fonctionnelle. La migration en module overlay apportera :
+
+**Avantages de la migration :**
+- Pas de rechargement de page
+- Contexte conservé
+- Intégration avec le chat principal
+- Chargement plus rapide
+
+**Pour l'instant :**
+- La redirection vers la page dédiée reste active
+- Le module stub est préparé
+- La migration se fera progressivement sans casser la fonctionnalité
 
 ## Dépannage
 

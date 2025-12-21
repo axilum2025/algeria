@@ -16878,8 +16878,40 @@ Réponds UNIQUEMENT dans ce format JSON:
         }
 
         // Excel AI - Redirection vers la page Excel AI Expert
+        // Note: Excel AI est sur une page séparée complète
+        // Pour la migration modulaire future, voir excel-ai-module.js
+        let excelAiModuleLoaded = false;
+        
         function openExcelPro() {
+            // Option 1: Redirection vers page dédiée (actuelle - stable)
             window.location.href = '/excel-ai-expert.html';
+            
+            // Option 2: Chargement en module overlay (future migration)
+            // loadExcelAiModule();
+        }
+        
+        // Fonction pour charger Excel AI en module (préparée pour migration future)
+        function loadExcelAiModule() {
+            if (excelAiModuleLoaded && typeof window.openExcelAiModule === 'function') {
+                window.openExcelAiModule();
+                return;
+            }
+            
+            const script = document.createElement('script');
+            script.src = '/js/excel-ai-module.js';
+            script.onload = function() {
+                excelAiModuleLoaded = true;
+                console.log('Module Excel AI chargé');
+                if (typeof window.openExcelAiModule === 'function') {
+                    window.openExcelAiModule();
+                }
+            };
+            script.onerror = function() {
+                console.error('Erreur lors du chargement du module Excel AI');
+                // Fallback vers la page dédiée
+                window.location.href = '/excel-ai-expert.html';
+            };
+            document.head.appendChild(script);
         }
 
         // ============== DUPLICATIONS SUPPRIMÉES ==============
