@@ -417,11 +417,24 @@
                             <div class="textpro-message-content">
                                 Bonjour ! Je suis votre Agent Text Pro. 
                                 
-                                🎤 Utilisez le microphone pour dicter votre texte
-                                🔊 Cliquez sur le haut-parleur pour écouter mes réponses
-                                📄 Uploadez un fichier ou collez votre texte directement
+                                � Mes capacités :
+                                • Traduction dans 7 langues avec 7 modes spécialisés (💬 Général, 🎓 Académique, 🔬 Scientifique, ⚖️ Juridique, 🏥 Médical, 💻 Technique, 💼 Business)
+                                • Correction orthographique et grammaticale
+                                • Résumé et synthèse de textes
+                                • Réécriture et amélioration de style
+                                • Analyse et structuration de contenu
                                 
-                                Je peux traduire, corriger, résumer, réécrire et bien plus !
+                                🛠️ Fonctionnalités disponibles :
+                                • 🎯 Vue Comparaison : Comparez texte original et traduction côte à côte
+                                • 📥 Téléchargement multi-format : PDF, TXT, DOCX
+                                • 📋 Copier : Copiez instantanément vos traductions
+                                • 🎙️ Speech-to-Text : Dictez votre texte au microphone
+                                • 🔊 Text-to-Speech : Écoutez mes réponses
+                                • 🌍 Traduction vocale instantanée
+                                • 📄 Upload de fichiers : TXT, PDF, DOC, DOCX
+                                • 📊 Compteur : Caractères et mots en temps réel
+                                
+                                Choisissez votre langue source et cible dans le panneau latéral, puis envoyez-moi votre texte !
                             </div>
                         </div>
                     </div>
@@ -1268,6 +1281,7 @@
             .textpro-speaker-btn {
                 display: inline-block;
                 margin-left: 8px;
+                margin-right: 8px;
                 padding: 4px 8px;
                 background: rgba(139, 92, 246, 0.2);
                 border: 1px solid rgba(139, 92, 246, 0.4);
@@ -2128,11 +2142,24 @@
                         <div class="textpro-message-content">
                             Bonjour ! Je suis votre Agent Text Pro. 
                             
-                            🎤 Utilisez le microphone pour dicter votre texte
-                            🔊 Cliquez sur le haut-parleur pour écouter mes réponses
-                            📄 Uploadez un fichier ou collez votre texte directement
+                            � Mes capacités :
+                            • Traduction dans 7 langues avec 7 modes spécialisés (💬 Général, 🎓 Académique, 🔬 Scientifique, ⚖️ Juridique, 🏥 Médical, 💻 Technique, 💼 Business)
+                            • Correction orthographique et grammaticale
+                            • Résumé et synthèse de textes
+                            • Réécriture et amélioration de style
+                            • Analyse et structuration de contenu
                             
-                            Je peux traduire, corriger, résumer, réécrire et bien plus !
+                            🛠️ Fonctionnalités disponibles :
+                            • 🎯 Vue Comparaison : Comparez texte original et traduction côte à côte
+                            • 📥 Téléchargement multi-format : PDF, TXT, DOCX
+                            • 📋 Copier : Copiez instantanément vos traductions
+                            • 🎙️ Speech-to-Text : Dictez votre texte au microphone
+                            • 🔊 Text-to-Speech : Écoutez mes réponses
+                            • 🌍 Traduction vocale instantanée
+                            • 📄 Upload de fichiers : TXT, PDF, DOC, DOCX
+                            • 📊 Compteur : Caractères et mots en temps réel
+                            
+                            Choisissez votre langue source et cible dans le panneau latéral, puis envoyez-moi votre texte !
                         </div>
                     </div>
                 `;
@@ -2382,8 +2409,34 @@
             // Préparer les messages
             const modeInfo = translationModes[currentTranslationMode];
             const systemPrompt = modeInfo 
-                ? `Tu es Agent Text Pro, un assistant spécialisé dans le traitement de texte professionnel. ${modeInfo.prompt} Tu peux traduire, réécrire, corriger, résumer, analyser et améliorer des textes. Quand un utilisateur uploade un fichier, il sera marqué par [FICHIER UPLOADÉ: nom] ... [FIN DU FICHIER]. Prends en compte tout le contenu du fichier dans tes réponses.`
-                : 'Tu es Agent Text Pro, un assistant spécialisé dans le traitement de texte professionnel. Tu peux traduire, réécrire, corriger, résumer, analyser et améliorer des textes. Quand un utilisateur uploade un fichier, il sera marqué par [FICHIER UPLOADÉ: nom] ... [FIN DU FICHIER]. Prends en compte tout le contenu du fichier dans tes réponses.';
+                ? `Tu es Agent Text Pro, un assistant spécialisé dans le traitement de texte professionnel. ${modeInfo.prompt}
+
+Fonctionnalités disponibles pour l'utilisateur :
+- 7 modes de traduction spécialisés (Général, Académique, Scientifique, Juridique, Médical, Technique, Business)
+- Traduction dans 7 langues : Français, Anglais, Espagnol, Allemand, Italien, Arabe, Chinois
+- Vue Comparaison côte à côte du texte original et de la traduction
+- Téléchargement des traductions en PDF, TXT ou DOCX
+- Copie instantanée des traductions dans le presse-papiers
+- Speech-to-Text et Text-to-Speech
+- Traduction vocale instantanée
+- Upload de fichiers (TXT, PDF, DOC, DOCX)
+- Compteur de caractères et mots en temps réel
+
+Tu peux traduire, réécrire, corriger, résumer, analyser et améliorer des textes. Quand un utilisateur uploade un fichier, il sera marqué par [FICHIER UPLOADÉ: nom] ... [FIN DU FICHIER]. Prends en compte tout le contenu du fichier dans tes réponses. Quand tu traduis un texte, propose toujours le téléchargement du résultat.`
+                : `Tu es Agent Text Pro, un assistant spécialisé dans le traitement de texte professionnel.
+
+Fonctionnalités disponibles pour l'utilisateur :
+- 7 modes de traduction spécialisés (Général, Académique, Scientifique, Juridique, Médical, Technique, Business)
+- Traduction dans 7 langues : Français, Anglais, Espagnol, Allemand, Italien, Arabe, Chinois
+- Vue Comparaison côte à côte du texte original et de la traduction
+- Téléchargement des traductions en PDF, TXT ou DOCX
+- Copie instantanée des traductions dans le presse-papiers
+- Speech-to-Text et Text-to-Speech
+- Traduction vocale instantanée
+- Upload de fichiers (TXT, PDF, DOC, DOCX)
+- Compteur de caractères et mots en temps réel
+
+Tu peux traduire, réécrire, corriger, résumer, analyser et améliorer des textes. Quand un utilisateur uploade un fichier, il sera marqué par [FICHIER UPLOADÉ: nom] ... [FIN DU FICHIER]. Prends en compte tout le contenu du fichier dans tes réponses. Quand tu traduis un texte, propose toujours le téléchargement du résultat.`;
             
             const messages = [
                 {
