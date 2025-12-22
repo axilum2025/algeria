@@ -1068,6 +1068,7 @@
                 line-height: 1.6;
                 white-space: pre-wrap;
                 word-wrap: break-word;
+                text-align: left;
             }
             
             .textpro-message.user .textpro-message-content {
