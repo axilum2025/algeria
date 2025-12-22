@@ -17,6 +17,78 @@
     let currentUtterance = null;
     
     /**
+     * Bibliothèque d'icônes SVG
+     */
+    const SVGIcons = {
+        microphone: `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path>
+            <path d="M19 10v2a7 7 0 0 1-14 0v-2"></path>
+            <line x1="12" y1="19" x2="12" y2="23"></line>
+            <line x1="8" y1="23" x2="16" y2="23"></line>
+        </svg>`,
+        
+        microphoneOff: `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="1" y1="1" x2="23" y2="23"></line>
+            <path d="M9 9v3a3 3 0 0 0 5.12 2.12M15 9.34V4a3 3 0 0 0-5.94-.6"></path>
+            <path d="M17 16.95A7 7 0 0 1 5 12v-2m14 0v2a7 7 0 0 1-.11 1.23"></path>
+            <line x1="12" y1="19" x2="12" y2="23"></line>
+            <line x1="8" y1="23" x2="16" y2="23"></line>
+        </svg>`,
+        
+        speaker: `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+            <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path>
+        </svg>`,
+        
+        send: `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="22" y1="2" x2="11" y2="13"></line>
+            <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+        </svg>`,
+        
+        file: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"></path>
+            <polyline points="13 2 13 9 20 9"></polyline>
+        </svg>`,
+        
+        download: `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+            <polyline points="7 10 12 15 17 10"></polyline>
+            <line x1="12" y1="15" x2="12" y2="3"></line>
+        </svg>`,
+        
+        upload: `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+            <polyline points="17 8 12 3 7 8"></polyline>
+            <line x1="12" y1="3" x2="12" y2="15"></line>
+        </svg>`,
+        
+        translate: `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="5 9 2 9 2 15 5 15"></polyline>
+            <path d="M10 3h3a6 6 0 0 1 6 6v0a6 6 0 0 1-6 6h-3"></path>
+            <path d="M10 15h3a6 6 0 0 1 6 6v0a6 6 0 0 1-6 6h-3"></path>
+            <line x1="2" y1="12" x2="10" y2="12"></line>
+        </svg>`,
+        
+        edit: `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+            <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+        </svg>`,
+        
+        check: `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="20 6 9 17 4 12"></polyline>
+        </svg>`,
+        
+        list: `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="8" y1="6" x2="21" y2="6"></line>
+            <line x1="8" y1="12" x2="21" y2="12"></line>
+            <line x1="8" y1="18" x2="21" y2="18"></line>
+            <line x1="3" y1="6" x2="3.01" y2="6"></line>
+            <line x1="3" y1="12" x2="3.01" y2="12"></line>
+            <line x1="3" y1="18" x2="3.01" y2="18"></line>
+        </svg>`
+    };
+    
+    /**
      * Ouvrir l'interface Text Pro
      */
     window.openTextProModule = function() {
@@ -96,7 +168,8 @@
                     <div class="textpro-upload-section">
                         <h3 class="textpro-section-title">Upload de fichier</h3>
                         <button class="textpro-upload-btn" onclick="document.getElementById('textProFileInput').click()">
-                            Choisir un fichier
+                            ${SVGIcons.upload}
+                            <span>Choisir un fichier</span>
                         </button>
                         <input type="file" id="textProFileInput" accept=".txt,.pdf,.doc,.docx" style="display: none;" onchange="window.handleTextProFileUpload(event)">
                         <div id="textProFileStatus" class="textpro-file-status"></div>
@@ -106,33 +179,45 @@
                         <h3 class="textpro-section-title">Exemples de commandes</h3>
                         
                         <div class="textpro-example-card">
-                            <h4>Traduction</h4>
-                            <p>Traduis en anglais professionnel</p>
+                            <div class="textpro-example-icon">${SVGIcons.translate}</div>
+                            <div>
+                                <h4>Traduction</h4>
+                                <p>Traduis en anglais professionnel</p>
+                            </div>
                         </div>
                         
                         <div class="textpro-example-card">
-                            <h4>Correction</h4>
-                            <p>Corrige l'orthographe et la grammaire</p>
+                            <div class="textpro-example-icon">${SVGIcons.check}</div>
+                            <div>
+                                <h4>Correction</h4>
+                                <p>Corrige l'orthographe et la grammaire</p>
+                            </div>
                         </div>
                         
                         <div class="textpro-example-card">
-                            <h4>Résumé</h4>
-                            <p>Résume ce texte en 3 points</p>
+                            <div class="textpro-example-icon">${SVGIcons.list}</div>
+                            <div>
+                                <h4>Résumé</h4>
+                                <p>Résume ce texte en 3 points</p>
+                            </div>
                         </div>
                         
                         <div class="textpro-example-card">
-                            <h4>Réécriture</h4>
-                            <p>Réécris de façon plus formelle</p>
+                            <div class="textpro-example-icon">${SVGIcons.edit}</div>
+                            <div>
+                                <h4>Réécriture</h4>
+                                <p>Réécris de façon plus formelle</p>
+                            </div>
                         </div>
                     </div>
                     
                     <div class="textpro-features">
                         <h3 class="textpro-section-title">Fonctionnalités</h3>
                         <div class="textpro-feature-list">
-                            <div class="textpro-feature-item">🎤 Speech-to-Text</div>
-                            <div class="textpro-feature-item">🔊 Text-to-Speech</div>
-                            <div class="textpro-feature-item">📄 Upload de fichiers</div>
-                            <div class="textpro-feature-item">💾 Téléchargement PDF</div>
+                            <div class="textpro-feature-item">${SVGIcons.microphone} Speech-to-Text</div>
+                            <div class="textpro-feature-item">${SVGIcons.speaker} Text-to-Speech</div>
+                            <div class="textpro-feature-item">${SVGIcons.file} Upload de fichiers</div>
+                            <div class="textpro-feature-item">${SVGIcons.download} Téléchargement PDF</div>
                         </div>
                     </div>
                 </div>
@@ -171,10 +256,10 @@
                             ></textarea>
                             <div class="textpro-input-buttons">
                                 <button class="textpro-mic-btn" id="textProMicBtn" onclick="window.toggleTextProRecording()" title="Enregistrer un message vocal">
-                                    🎤
+                                    ${SVGIcons.microphone}
                                 </button>
                                 <button class="textpro-send-btn" onclick="window.sendTextProMessage()" title="Envoyer le message">
-                                    📤
+                                    ${SVGIcons.send}
                                 </button>
                             </div>
                         </div>
@@ -248,6 +333,10 @@
                 font-size: 13px;
                 cursor: pointer;
                 transition: all 0.3s ease;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                gap: 8px;
             }
             
             .textpro-upload-btn:hover {
@@ -271,6 +360,37 @@
                 border-radius: 8px;
                 padding: 12px;
                 margin-bottom: 12px;
+                display: flex;
+                align-items: flex-start;
+                gap: 12px;
+                transition: all 0.3s ease;
+            }
+            
+            .textpro-example-card:hover {
+                background: rgba(255, 255, 255, 0.08);
+                border-color: rgba(59, 130, 246, 0.5);
+                transform: translateX(4px);
+            }
+            
+            .textpro-example-icon {
+                flex-shrink: 0;
+                width: 36px;
+                height: 36px;
+                background: rgba(59, 130, 246, 0.2);
+                border-radius: 8px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                color: #3b82f6;
+            }
+            
+            .textpro-example-icon svg {
+                width: 18px;
+                height: 18px;
+            }
+            
+            .textpro-example-card > div:last-child {
+                flex: 1;
             }
             
             .textpro-example-card h4 {
@@ -306,6 +426,13 @@
                 display: flex;
                 align-items: center;
                 gap: 8px;
+            }
+            
+            .textpro-feature-item svg {
+                width: 16px;
+                height: 16px;
+                color: #3b82f6;
+                flex-shrink: 0;
             }
             
             .textpro-chat-panel {
@@ -452,6 +579,11 @@
                 justify-content: center;
             }
             
+            .textpro-mic-btn svg {
+                width: 20px;
+                height: 20px;
+            }
+            
             .textpro-mic-btn:hover {
                 background: rgba(139, 92, 246, 0.3);
                 transform: translateY(-2px);
@@ -487,6 +619,14 @@
                 font-size: 14px;
                 cursor: pointer;
                 transition: all 0.3s ease;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+            
+            .textpro-send-btn svg {
+                width: 20px;
+                height: 20px;
             }
             
             .textpro-send-btn:hover:not(:disabled) {
@@ -511,6 +651,18 @@
                 font-size: 9px;
                 cursor: pointer;
                 transition: all 0.2s ease;
+                display: inline-flex;
+                align-items: center;
+                gap: 4px;
+            }
+            
+            .textpro-download-btn svg {
+                width: 12px;
+                height: 12px;
+            }
+            
+            .textpro-download-btn span {
+                font-size: 9px;
             }
             
             .textpro-download-btn:hover {
@@ -529,6 +681,12 @@
                 font-size: 16px;
                 cursor: pointer;
                 transition: all 0.2s ease;
+                vertical-align: middle;
+            }
+            
+            .textpro-speaker-btn svg {
+                width: 16px;
+                height: 16px;
                 vertical-align: middle;
             }
             
@@ -677,7 +835,7 @@
         if (role === 'assistant') {
             const speakerBtn = document.createElement('button');
             speakerBtn.className = 'textpro-speaker-btn';
-            speakerBtn.textContent = '🔊';
+            speakerBtn.innerHTML = SVGIcons.speaker;
             speakerBtn.title = 'Écouter le message';
             speakerBtn.onclick = function() {
                 window.speakTextProMessage(content, speakerBtn);
@@ -690,7 +848,7 @@
         if (offerDownload && role === 'assistant') {
             const downloadBtn = document.createElement('button');
             downloadBtn.className = 'textpro-download-btn';
-            downloadBtn.textContent = 'Télécharger';
+            downloadBtn.innerHTML = SVGIcons.download + ' <span>Télécharger</span>';
             downloadBtn.onclick = function() {
                 downloadTextProResult(content);
             };
@@ -809,7 +967,7 @@
                     recognition.onstart = function() {
                         isRecording = true;
                         micBtn.classList.add('recording');
-                        micBtn.textContent = '⏹️';
+                        micBtn.innerHTML = SVGIcons.microphoneOff;
                         micBtn.title = 'Arrêter l\'enregistrement';
                         console.log('🎤 Enregistrement vocal démarré');
                     };
@@ -850,7 +1008,7 @@
                     mediaRecorder.start();
                     isRecording = true;
                     micBtn.classList.add('recording');
-                    micBtn.textContent = '⏹️';
+                    micBtn.innerHTML = SVGIcons.microphoneOff;
                     micBtn.title = 'Arrêter l\'enregistrement';
                     console.log('🎤 Enregistrement audio démarré (fallback)');
                 }
@@ -872,7 +1030,7 @@
         const micBtn = document.getElementById('textProMicBtn');
         if (micBtn) {
             micBtn.classList.remove('recording');
-            micBtn.textContent = '🎤';
+            micBtn.innerHTML = SVGIcons.microphone;
             micBtn.title = 'Enregistrer un message vocal';
         }
         
@@ -986,7 +1144,7 @@
             input.value = '';
             
             sendBtn.disabled = true;
-            sendBtn.textContent = '⏳';
+            sendBtn.innerHTML = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>';
             
             // Préparer les messages
             const messages = [
@@ -1036,7 +1194,7 @@
             const input = document.getElementById('textProChatInput');
             if (sendBtn) {
                 sendBtn.disabled = false;
-                sendBtn.textContent = '📤';
+                sendBtn.innerHTML = SVGIcons.send;
             }
             if (input) input.focus();
         }
