@@ -186,6 +186,11 @@
             <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
             <line x1="10" y1="11" x2="10" y2="17"></line>
             <line x1="14" y1="11" x2="14" y2="17"></line>
+        </svg>`,
+        
+        arrowRight: `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="5" y1="12" x2="19" y2="12"></line>
+            <polyline points="12 5 19 12 12 19"></polyline>
         </svg>`
     };
     
@@ -282,6 +287,40 @@
                         </select>
                         <div id="modeDescription" class="textpro-mode-description">
                             Traduction standard polyvalente
+                        </div>
+                    </div>
+                    
+                    <!-- Sélection des langues -->
+                    <div class="textpro-lang-section">
+                        <h3 class="textpro-section-title">
+                            ${SVGIcons.globe} Langues de traduction
+                        </h3>
+                        <div class="textpro-lang-controls">
+                            <div class="textpro-lang-selector">
+                                <label>De:</label>
+                                <select id="sourceLangSelect" onchange="window.updateTranslationLanguages()">
+                                    <option value="fr-FR">Français</option>
+                                    <option value="en-US">Anglais</option>
+                                    <option value="es-ES">Espagnol</option>
+                                    <option value="de-DE">Allemand</option>
+                                    <option value="it-IT">Italien</option>
+                                    <option value="ar-SA">Arabe</option>
+                                    <option value="zh-CN">Chinois</option>
+                                </select>
+                            </div>
+                            <div class="textpro-lang-arrow">${SVGIcons.arrowRight}</div>
+                            <div class="textpro-lang-selector">
+                                <label>Vers:</label>
+                                <select id="targetLangSelect" onchange="window.updateTranslationLanguages()">
+                                    <option value="en">Anglais</option>
+                                    <option value="fr">Français</option>
+                                    <option value="es">Espagnol</option>
+                                    <option value="de">Allemand</option>
+                                    <option value="it">Italien</option>
+                                    <option value="ar">Arabe</option>
+                                    <option value="zh">Chinois</option>
+                                </select>
+                            </div>
                         </div>
                     </div>
                     
@@ -392,33 +431,6 @@
                                 <button class="textpro-send-btn" onclick="window.sendTextProMessage()" title="Envoyer le message">
                                     ${SVGIcons.send}
                                 </button>
-                            </div>
-                        </div>
-                        <div class="textpro-translation-controls" id="textProTranslationControls" style="display: none;">
-                            <div class="textpro-lang-selector">
-                                <label>De:</label>
-                                <select id="sourceLangSelect" onchange="window.updateTranslationLanguages()">
-                                    <option value="fr-FR">Français</option>
-                                    <option value="en-US">Anglais</option>
-                                    <option value="es-ES">Espagnol</option>
-                                    <option value="de-DE">Allemand</option>
-                                    <option value="it-IT">Italien</option>
-                                    <option value="ar-SA">Arabe</option>
-                                    <option value="zh-CN">Chinois</option>
-                                </select>
-                            </div>
-                            <div class="textpro-lang-arrow">→</div>
-                            <div class="textpro-lang-selector">
-                                <label>Vers:</label>
-                                <select id="targetLangSelect" onchange="window.updateTranslationLanguages()">
-                                    <option value="en">Anglais</option>
-                                    <option value="fr">Français</option>
-                                    <option value="es">Espagnol</option>
-                                    <option value="de">Allemand</option>
-                                    <option value="it">Italien</option>
-                                    <option value="ar">Arabe</option>
-                                    <option value="zh">Chinois</option>
-                                </select>
                             </div>
                         </div>
                     </div>
@@ -536,6 +548,21 @@
                 border-radius: 12px;
                 padding: 16px;
                 margin-bottom: 20px;
+            }
+            
+            .textpro-lang-section {
+                background: rgba(16, 185, 129, 0.1);
+                border: 1px solid rgba(16, 185, 129, 0.3);
+                border-radius: 12px;
+                padding: 16px;
+                margin-bottom: 20px;
+            }
+            
+            .textpro-lang-controls {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                gap: 8px;
             }
             
             .textpro-mode-select {
@@ -1234,35 +1261,29 @@
                 }
             }
             
-            .textpro-translation-controls {
-                padding: 12px;
-                background: rgba(0, 0, 0, 0.2);
-                border-top: 1px solid rgba(236, 72, 153, 0.3);
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                gap: 16px;
-            }
-            
             .textpro-lang-selector {
                 display: flex;
-                align-items: center;
-                gap: 8px;
+                flex-direction: column;
+                gap: 6px;
+                flex: 1;
             }
             
             .textpro-lang-selector label {
-                font-size: 12px;
+                font-size: 11px;
                 color: rgba(255, 255, 255, 0.7);
-                font-weight: 500;
+                font-weight: 600;
+                text-transform: uppercase;
+                letter-spacing: 0.5px;
             }
             
             .textpro-lang-selector select {
-                padding: 6px 12px;
+                width: 100%;
+                padding: 8px 10px;
                 background: rgba(255, 255, 255, 0.1);
-                border: 1px solid rgba(236, 72, 153, 0.3);
-                border-radius: 6px;
+                border: 1px solid rgba(16, 185, 129, 0.4);
+                border-radius: 8px;
                 color: white;
-                font-size: 12px;
+                font-size: 13px;
                 font-weight: 500;
                 cursor: pointer;
                 transition: all 0.3s ease;
@@ -1270,19 +1291,26 @@
             
             .textpro-lang-selector select:hover {
                 background: rgba(255, 255, 255, 0.15);
-                border-color: rgba(236, 72, 153, 0.5);
+                border-color: rgba(16, 185, 129, 0.6);
             }
             
             .textpro-lang-selector select:focus {
                 outline: none;
-                border-color: #ec4899;
-                box-shadow: 0 0 0 2px rgba(236, 72, 153, 0.2);
+                border-color: #10b981;
+                box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.2);
             }
             
             .textpro-lang-arrow {
-                font-size: 18px;
-                color: #ec4899;
-                font-weight: bold;
+                color: #10b981;
+                margin-top: 18px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+            
+            .textpro-lang-arrow svg {
+                width: 20px;
+                height: 20px;
             }
             
             @keyframes slideInUp {
@@ -1944,20 +1972,13 @@
      */
     window.toggleInstantTranslation = async function() {
         const translateBtn = document.getElementById('textProTranslateBtn');
-        const controlsDiv = document.getElementById('textProTranslationControls');
         
         if (!isTranslating) {
             // Démarrer la traduction instantanée
             try {
-                // Afficher les contrôles de langue
-                if (controlsDiv) {
-                    controlsDiv.style.display = 'flex';
-                }
-                
                 // Vérifier si Web Speech API est disponible
                 if (!('webkitSpeechRecognition' in window || 'SpeechRecognition' in window)) {
                     alert('Désolé, la reconnaissance vocale n\'est pas supportée par votre navigateur. Utilisez Chrome, Edge ou Safari.');
-                    if (controlsDiv) controlsDiv.style.display = 'none';
                     return;
                 }
                 
@@ -2030,7 +2051,6 @@
             } catch (error) {
                 console.error('Erreur accès microphone:', error);
                 alert('Impossible d\'accéder au microphone. Vérifiez les permissions.');
-                if (controlsDiv) controlsDiv.style.display = 'none';
             }
         } else {
             // Arrêter la traduction instantanée
@@ -2044,15 +2064,10 @@
     function stopInstantTranslation() {
         isTranslating = false;
         const translateBtn = document.getElementById('textProTranslateBtn');
-        const controlsDiv = document.getElementById('textProTranslationControls');
         
         if (translateBtn) {
             translateBtn.classList.remove('translating');
             translateBtn.title = 'Traduction vocale instantanée';
-        }
-        
-        if (controlsDiv) {
-            controlsDiv.style.display = 'none';
         }
         
         if (translationRecognition) {
