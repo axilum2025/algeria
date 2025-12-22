@@ -448,14 +448,13 @@
                     try {
                         const base64 = e.target.result.split(',')[1];
                         
-                        // Appeler l'API parseCV pour extraire le texte
-                        const response = await fetch('/api/parseCV', {
+                        // Appeler l'API extractText pour extraire le texte (simple OCR sans OpenAI)
+                        const response = await fetch('/api/extractText', {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
                             body: JSON.stringify({ 
                                 file: base64,
-                                fileName: file.name,
-                                fileType: file.type 
+                                fileName: file.name
                             })
                         });
                         
@@ -465,7 +464,7 @@
                         }
                         
                         const data = await response.json();
-                        const extractedText = data.text || data.extractedText || data.parsedText || '';
+                        const extractedText = data.text || '';
                         
                         if (extractedText) {
                             statusDiv.textContent = `✓ ${file.name} analysé (${Math.round(extractedText.length/1024)} Ko de texte extrait)`;
