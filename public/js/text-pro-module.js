@@ -407,15 +407,15 @@
             .textpro-download-btn {
                 display: inline-flex;
                 align-items: center;
-                gap: 8px;
-                margin-top: 12px;
-                padding: 10px 20px;
+                gap: 6px;
+                margin-top: 8px;
+                padding: 6px 12px;
                 background: linear-gradient(135deg, #10b981, #06b6d4);
                 border: 1px solid rgba(16, 185, 129, 0.3);
-                border-radius: 8px;
+                border-radius: 6px;
                 color: white;
-                font-weight: 600;
-                font-size: 13px;
+                font-weight: 500;
+                font-size: 11px;
                 cursor: pointer;
                 transition: all 0.3s ease;
                 animation: slideInUp 0.5s ease;
@@ -428,8 +428,8 @@
             }
             
             .textpro-download-btn svg {
-                width: 16px;
-                height: 16px;
+                width: 14px;
+                height: 14px;
             }
             
             @keyframes slideInUp {
