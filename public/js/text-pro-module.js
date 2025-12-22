@@ -875,7 +875,8 @@
             }
             
             .textpro-sync-btn,
-            .textpro-download-comparison-btn {
+            .textpro-download-comparison-btn,
+            .textpro-clear-comparison-btn {
                 padding: 10px 20px;
                 background: rgba(59, 130, 246, 0.2);
                 border: 1px solid rgba(59, 130, 246, 0.4);
@@ -891,7 +892,8 @@
             }
             
             .textpro-sync-btn:hover,
-            .textpro-download-comparison-btn:hover {
+            .textpro-download-comparison-btn:hover,
+            .textpro-clear-comparison-btn:hover {
                 background: rgba(59, 130, 246, 0.3);
                 transform: translateY(-2px);
             }
@@ -914,7 +916,6 @@
             
             .textpro-clear-comparison-btn:hover {
                 background: rgba(239, 68, 68, 0.3);
-                transform: translateY(-2px);
             }
             
             .textpro-chat-panel {
@@ -1849,7 +1850,7 @@
                        `${'-'.repeat(80)}\n` +
                        `${lastTranslatedText}\n`;
         
-        downloadTextProResult(content, 'txt');
+        downloadTextProResult(content, 'pdf');
     };
     
     /**
