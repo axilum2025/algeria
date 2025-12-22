@@ -403,6 +403,45 @@
                 opacity: 0.5;
                 cursor: not-allowed;
             }
+            
+            .textpro-download-btn {
+                display: inline-flex;
+                align-items: center;
+                gap: 8px;
+                margin-top: 12px;
+                padding: 10px 20px;
+                background: linear-gradient(135deg, #10b981, #06b6d4);
+                border: 1px solid rgba(16, 185, 129, 0.3);
+                border-radius: 8px;
+                color: white;
+                font-weight: 600;
+                font-size: 13px;
+                cursor: pointer;
+                transition: all 0.3s ease;
+                animation: slideInUp 0.5s ease;
+            }
+            
+            .textpro-download-btn:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 4px 16px rgba(16, 185, 129, 0.4);
+                background: linear-gradient(135deg, #059669, #0891b2);
+            }
+            
+            .textpro-download-btn svg {
+                width: 16px;
+                height: 16px;
+            }
+            
+            @keyframes slideInUp {
+                from {
+                    opacity: 0;
+                    transform: translateY(10px);
+                }
+                to {
+                    opacity: 1;
+                    transform: translateY(0);
+                }
+            }
         `;
     }
     
@@ -505,7 +544,7 @@
     /**
      * Ajouter un message au chat
      */
-    function addTextProMessage(content, role) {
+    function addTextProMessage(content, role, offerDownload = false) {
         const messagesDiv = document.getElementById('textProMessages');
         if (!messagesDiv) return;
         
@@ -517,10 +556,62 @@
         contentDiv.textContent = content;
         
         messageDiv.appendChild(contentDiv);
+        
+        // Ajouter le bouton de téléchargement si proposé
+        if (offerDownload && role === 'assistant') {
+            const downloadBtn = document.createElement('button');
+            downloadBtn.className = 'textpro-download-btn';
+            downloadBtn.innerHTML = `
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
+                </svg>
+                Télécharger le résultat
+            `;
+            downloadBtn.onclick = function() {
+                downloadTextProResult(content);
+            };
+            messageDiv.appendChild(downloadBtn);
+        }
+        
         messagesDiv.appendChild(messageDiv);
         messagesDiv.scrollTop = messagesDiv.scrollHeight;
         
         textProChatHistory.push({ role, content });
+    }
+    
+    /**
+     * Télécharger le résultat de Text Pro
+     */
+    function downloadTextProResult(content) {
+        try {
+            // Créer un nom de fichier avec timestamp
+            const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, -5);
+            const filename = `textpro-resultat-${timestamp}.txt`;
+            
+            // Créer un blob avec le contenu
+            const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
+            
+            // Créer un lien de téléchargement
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            a.style.display = 'none';
+            
+            document.body.appendChild(a);
+            a.click();
+            
+            // Nettoyer
+            setTimeout(() => {
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+            }, 100);
+            
+            console.log('✓ Résultat téléchargé:', filename);
+        } catch (error) {
+            console.error('Erreur téléchargement:', error);
+            alert('Erreur lors du téléchargement. Veuillez réessayer.');
+        }
     }
     
     /**
@@ -578,7 +669,7 @@
             if (!response.ok) throw new Error('Erreur API');
             
             const data = await response.json();
-            addTextProMessage(data.response || 'Désolé, je n\'ai pas pu traiter votre demande.', 'assistant');
+            addTextProMessage(data.response || 'Désolé, je n\'ai pas pu traiter votre demande.', 'assistant', data.offerDownload);
             
         } catch (error) {
             console.error('Erreur:', error);

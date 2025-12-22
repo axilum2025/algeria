@@ -1,5 +1,48 @@
 const axios = require('axios');
 
+/**
+ * Détecte si on doit proposer le téléchargement du résultat
+ * Basé sur le contexte de la conversation et le type de réponse
+ */
+function detectDownloadOffer(messages, assistantMessage) {
+  // Ne pas proposer si la conversation est trop courte
+  if (messages.length < 3) return false;
+
+  const lastUserMessage = messages[messages.length - 1]?.content?.toLowerCase() || '';
+  const assistantLower = assistantMessage.toLowerCase();
+
+  // Mots-clés indiquant une tâche terminée
+  const completionKeywords = [
+    'voici', 'voilà', 'j\'ai terminé', 'terminé', 'fini',
+    'résultat', 'version corrigée', 'version traduite',
+    'résumé', 'analyse complète', 'rapport'
+  ];
+
+  // Mots-clés de l'utilisateur indiquant une demande de production
+  const taskKeywords = [
+    'traduis', 'corrige', 'résume', 'réécris', 'analyse',
+    'génère', 'crée', 'rédige', 'améliore'
+  ];
+
+  // Vérifier si l'assistant a produit un résultat substantiel
+  const hasSubstantialContent = assistantMessage.length > 300;
+
+  // Vérifier si l'assistant a utilisé des mots de complétion
+  const hasCompletionWords = completionKeywords.some(keyword => 
+    assistantLower.includes(keyword)
+  );
+
+  // Vérifier si l'utilisateur a demandé une tâche de production
+  const userRequestedTask = taskKeywords.some(keyword => 
+    lastUserMessage.includes(keyword)
+  );
+
+  // Proposer le téléchargement si:
+  // 1. L'assistant a produit un contenu substantiel ET
+  // 2. (L'assistant utilise des mots de complétion OU l'utilisateur a demandé une tâche)
+  return hasSubstantialContent && (hasCompletionWords || userRequestedTask);
+}
+
 module.exports = async function (context, req) {
   const setCors = () => {
     context.res = context.res || {};
@@ -66,13 +109,17 @@ module.exports = async function (context, req) {
 
     const assistantMessage = groqResponse.data.choices?.[0]?.message?.content || 'Pas de réponse générée.';
 
+    // Détecter si on doit proposer le téléchargement
+    const shouldOfferDownload = detectDownloadOffer(messages, assistantMessage);
+
     setCors();
     context.res.status = 200;
     context.res.headers['Content-Type'] = 'application/json';
     context.res.body = {
       response: assistantMessage,
       userId,
-      context: reqContext
+      context: reqContext,
+      offerDownload: shouldOfferDownload
     };
 
   } catch (error) {
