@@ -956,7 +956,7 @@
     /**
      * Ajouter un message au chat
      */
-    function addTextProMessage(content, role, offerDownload = false) {
+    function addTextProMessage(content, role, offerDownload = false, translationContent = null) {
         const messagesDiv = document.getElementById('textProMessages');
         if (!messagesDiv) return;
         
@@ -986,7 +986,9 @@
             downloadBtn.className = 'textpro-download-btn';
             downloadBtn.innerHTML = SVGIcons.download + ' <span>Télécharger</span>';
             downloadBtn.onclick = function() {
-                downloadTextProResult(content);
+                // Utiliser translationContent si disponible (pour avoir seulement le texte traduit sans le préfixe)
+                const textToDownload = translationContent || content;
+                downloadTextProResult(textToDownload);
             };
             contentDiv.appendChild(downloadBtn);
         }
@@ -1000,86 +1002,141 @@
     }
     
     /**
-     * Télécharger le résultat de Text Pro au format PDF
+     * Télécharger le résultat de Text Pro au format PDF, TXT ou DOCX
      */
-    function downloadTextProResult(content) {
+    function downloadTextProResult(content, format = 'auto') {
         try {
             const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, -5);
-            const filename = `textpro-resultat-${timestamp}.pdf`;
             
-            // Vérifier si jsPDF est disponible
-            const jsPDFLib = window.jspdf?.jsPDF || window.jsPDF;
-            
-            if (jsPDFLib) {
-                const doc = new jsPDFLib({
-                    orientation: 'portrait',
-                    unit: 'mm',
-                    format: 'a4'
-                });
+            // Demander le format si en mode auto
+            if (format === 'auto') {
+                const userChoice = prompt('Choisissez le format de téléchargement:\n1. PDF (par défaut)\n2. TXT (texte brut)\n3. DOCX (Word)\n\nEntrez 1, 2 ou 3:', '1');
                 
-                // Configuration du texte
-                doc.setFont('helvetica');
-                doc.setFontSize(11);
+                if (userChoice === null) return; // Annulé
                 
-                // Marges et dimensions
-                const margin = 15;
-                const pageWidth = doc.internal.pageSize.getWidth();
-                const pageHeight = doc.internal.pageSize.getHeight();
-                const maxWidth = pageWidth - (2 * margin);
-                
-                // Diviser le texte en lignes
-                const lines = doc.splitTextToSize(content, maxWidth);
-                let y = margin;
-                
-                lines.forEach((line, index) => {
-                    if (y > pageHeight - margin) {
-                        doc.addPage();
-                        y = margin;
-                    }
-                    doc.text(line, margin, y);
-                    y += 6;
-                });
-                
-                // Télécharger le PDF
-                doc.save(filename);
-                console.log('✓ PDF téléchargé:', filename);
-            } else {
-                // Fallback TXT si jsPDF n'est vraiment pas disponible
-                console.warn('jsPDF non disponible, téléchargement en TXT');
-                const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
-                const url = URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = `textpro-resultat-${timestamp}.txt`;
-                a.style.display = 'none';
-                document.body.appendChild(a);
-                a.click();
-                setTimeout(() => {
-                    document.body.removeChild(a);
-                    URL.revokeObjectURL(url);
-                }, 100);
+                switch (userChoice.trim()) {
+                    case '2':
+                        format = 'txt';
+                        break;
+                    case '3':
+                        format = 'docx';
+                        break;
+                    default:
+                        format = 'pdf';
+                }
             }
+            
+            // Téléchargement selon le format choisi
+            switch (format) {
+                case 'txt':
+                    downloadAsText(content, timestamp);
+                    break;
+                case 'docx':
+                    downloadAsDocx(content, timestamp);
+                    break;
+                case 'pdf':
+                default:
+                    downloadAsPDF(content, timestamp);
+                    break;
+            }
+            
         } catch (error) {
-            console.error('Erreur téléchargement PDF:', error);
-            // Fallback TXT en cas d'erreur
-            try {
-                const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, -5);
-                const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
-                const url = URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = `textpro-resultat-${timestamp}.txt`;
-                a.style.display = 'none';
-                document.body.appendChild(a);
-                a.click();
-                setTimeout(() => {
-                    document.body.removeChild(a);
-                    URL.revokeObjectURL(url);
-                }, 100);
-            } catch (e) {
-                alert('Erreur lors du téléchargement. Veuillez réessayer.');
-            }
+            console.error('Erreur téléchargement:', error);
+            alert('Erreur lors du téléchargement. Veuillez réessayer.');
         }
+    }
+    
+    /**
+     * Télécharger en format TXT
+     */
+    function downloadAsText(content, timestamp) {
+        const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `textpro-traduction-${timestamp}.txt`;
+        a.style.display = 'none';
+        document.body.appendChild(a);
+        a.click();
+        setTimeout(() => {
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }, 100);
+        console.log('✓ Fichier TXT téléchargé');
+    }
+    
+    /**
+     * Télécharger en format PDF
+     */
+    function downloadAsPDF(content, timestamp) {
+        // Vérifier si jsPDF est disponible
+        const jsPDFLib = window.jspdf?.jsPDF || window.jsPDF;
+        
+        if (jsPDFLib) {
+            const doc = new jsPDFLib({
+                orientation: 'portrait',
+                unit: 'mm',
+                format: 'a4'
+            });
+            
+            // Configuration du texte
+            doc.setFont('helvetica');
+            doc.setFontSize(11);
+            
+            // Marges et dimensions
+            const margin = 15;
+            const pageWidth = doc.internal.pageSize.getWidth();
+            const pageHeight = doc.internal.pageSize.getHeight();
+            const maxWidth = pageWidth - (2 * margin);
+            
+            // Diviser le texte en lignes
+            const lines = doc.splitTextToSize(content, maxWidth);
+            let y = margin;
+            
+            lines.forEach((line) => {
+                if (y > pageHeight - margin) {
+                    doc.addPage();
+                    y = margin;
+                }
+                doc.text(line, margin, y);
+                y += 6;
+            });
+            
+            // Télécharger le PDF
+            const filename = `textpro-traduction-${timestamp}.pdf`;
+            doc.save(filename);
+            console.log('✓ PDF téléchargé:', filename);
+        } else {
+            console.warn('jsPDF non disponible, téléchargement en TXT');
+            downloadAsText(content, timestamp);
+        }
+    }
+    
+    /**
+     * Télécharger en format DOCX (simulation basique)
+     */
+    function downloadAsDocx(content, timestamp) {
+        // Pour un vrai DOCX, il faudrait utiliser une bibliothèque comme docx.js
+        // Ici on crée un format RTF qui peut être ouvert par Word
+        const rtfContent = `{\\rtf1\\ansi\\deff0
+{\\fonttbl{\\f0\\fnil\\fcharset0 Arial;}}
+{\\colortbl;\\red0\\green0\\blue0;}
+\\viewkind4\\uc1\\pard\\cf1\\f0\\fs22 ${content.replace(/\n/g, '\\par\n')}
+}`;
+        
+        const blob = new Blob([rtfContent], { type: 'application/rtf' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `textpro-traduction-${timestamp}.rtf`;
+        a.style.display = 'none';
+        document.body.appendChild(a);
+        a.click();
+        setTimeout(() => {
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }, 100);
+        console.log('✓ Fichier RTF téléchargé (compatible Word)');
     }
     
     /**
@@ -1328,8 +1385,8 @@
                     try {
                         const translation = await translateText(transcript, sourceLang, targetLang);
                         
-                        // Afficher la traduction
-                        addTextProMessage(`📝 Traduction: ${translation}`, 'assistant');
+                        // Afficher la traduction avec option de téléchargement
+                        addTextProMessage(`📝 Traduction: ${translation}`, 'assistant', true, translation);
                         
                         // Lire la traduction à voix haute
                         speakTranslation(translation, targetLang);
