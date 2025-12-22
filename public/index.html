@@ -14299,6 +14299,214 @@ RÈGLES DE CONVERSATION :
         // Variables pour tracker le chat Finance
         let financeChatHistory = [];
         let financeConversationId = sessionStorage.getItem('financeConversationId') || `finance-${Date.now()}`;
+        let currentConversationName = '';
+        
+        // Sauvegarde automatique des conversations
+        function saveFinanceConversation() {
+            try {
+                const conversations = JSON.parse(localStorage.getItem('financeConversations') || '{}');
+                conversations[financeConversationId] = {
+                    id: financeConversationId,
+                    name: currentConversationName || `Conversation ${new Date().toLocaleDateString('fr-FR')}`,
+                    history: financeChatHistory,
+                    context: financeContext,
+                    lastUpdated: new Date().toISOString(),
+                    messageCount: financeChatHistory.length
+                };
+                localStorage.setItem('financeConversations', JSON.stringify(conversations));
+                console.log('[Finance] Conversation sauvegardée:', financeConversationId);
+            } catch (error) {
+                console.error('[Finance] Erreur sauvegarde:', error);
+            }
+        }
+        
+        function loadFinanceConversation(conversationId) {
+            try {
+                const conversations = JSON.parse(localStorage.getItem('financeConversations') || '{}');
+                const conv = conversations[conversationId];
+                if (!conv) {
+                    console.warn('[Finance] Conversation non trouvée:', conversationId);
+                    return false;
+                }
+                
+                financeConversationId = conv.id;
+                currentConversationName = conv.name || '';
+                financeChatHistory = conv.history || [];
+                financeContext = conv.context || financeContext;
+                
+                sessionStorage.setItem('financeConversationId', financeConversationId);
+                
+                // Rafraîchir l'affichage
+                const chatHist = document.getElementById('financeChatHistory');
+                if (chatHist) {
+                    chatHist.innerHTML = '';
+                    financeChatHistory.forEach(msg => {
+                        const el = document.createElement('div');
+                        el.className = `chat-msg ${msg.role}`;
+                        el.textContent = msg.text;
+                        chatHist.appendChild(el);
+                    });
+                    chatHist.scrollTop = chatHist.scrollHeight;
+                }
+                
+                updateConversationTitle();
+                console.log('[Finance] Conversation chargée:', conversationId);
+                return true;
+            } catch (error) {
+                console.error('[Finance] Erreur chargement:', error);
+                return false;
+            }
+        }
+        
+        function getFinanceConversations() {
+            try {
+                const conversations = JSON.parse(localStorage.getItem('financeConversations') || '{}');
+                return Object.values(conversations).sort((a, b) => 
+                    new Date(b.lastUpdated) - new Date(a.lastUpdated)
+                );
+            } catch (error) {
+                console.error('[Finance] Erreur lecture conversations:', error);
+                return [];
+            }
+        }
+        
+        function deleteFinanceConversation(conversationId) {
+            try {
+                const conversations = JSON.parse(localStorage.getItem('financeConversations') || '{}');
+                delete conversations[conversationId];
+                localStorage.setItem('financeConversations', JSON.stringify(conversations));
+                console.log('[Finance] Conversation supprimée:', conversationId);
+                return true;
+            } catch (error) {
+                console.error('[Finance] Erreur suppression:', error);
+                return false;
+            }
+        }
+        
+        function renameFinanceConversation(conversationId, newName) {
+            try {
+                const conversations = JSON.parse(localStorage.getItem('financeConversations') || '{}');
+                if (conversations[conversationId]) {
+                    conversations[conversationId].name = newName;
+                    localStorage.setItem('financeConversations', JSON.stringify(conversations));
+                    if (conversationId === financeConversationId) {
+                        currentConversationName = newName;
+                        updateConversationTitle();
+                    }
+                    console.log('[Finance] Conversation renommée:', conversationId, newName);
+                    return true;
+                }
+                return false;
+            } catch (error) {
+                console.error('[Finance] Erreur renommage:', error);
+                return false;
+            }
+        }
+        
+        function newFinanceConversation() {
+            // Sauvegarder la conversation actuelle
+            if (financeChatHistory.length > 0) {
+                saveFinanceConversation();
+            }
+            
+            // Créer nouvelle conversation
+            financeConversationId = `finance-${Date.now()}`;
+            currentConversationName = '';
+            financeChatHistory = [];
+            sessionStorage.setItem('financeConversationId', financeConversationId);
+            
+            // Réinitialiser l'affichage
+            const chatHist = document.getElementById('financeChatHistory');
+            if (chatHist) {
+                chatHist.innerHTML = '';
+                const welcome = document.createElement('div');
+                welcome.className = 'chat-msg bot';
+                welcome.textContent = 'Prêt à vous aider. Posez vos questions sur finance, comptabilité, budget ou analyses marché.';
+                chatHist.appendChild(welcome);
+                financeChatHistory.push({ role: 'bot', text: welcome.textContent });
+            }
+            
+            updateConversationTitle();
+            console.log('[Finance] Nouvelle conversation créée:', financeConversationId);
+        }
+        
+        function updateConversationTitle() {
+            const titleEl = document.querySelector('#financeAIOverlay .chat-title');
+            if (titleEl && currentConversationName) {
+                titleEl.textContent = currentConversationName;
+            } else if (titleEl) {
+                titleEl.textContent = 'Agent Expert Finance';
+            }
+        }
+        
+        function toggleFinanceHistory() {
+            const panel = document.getElementById('financeHistoryPanel');
+            if (!panel) return;
+            
+            if (panel.style.display === 'none' || !panel.style.display) {
+                panel.style.display = 'block';
+                renderFinanceHistory();
+            } else {
+                panel.style.display = 'none';
+            }
+        }
+        
+        function renderFinanceHistory() {
+            const conversations = getFinanceConversations();
+            const listEl = document.getElementById('financeHistoryList');
+            if (!listEl) return;
+            
+            if (conversations.length === 0) {
+                listEl.innerHTML = '<div class="history-empty">Aucune conversation sauvegardée</div>';
+                return;
+            }
+            
+            listEl.innerHTML = conversations.map(conv => `
+                <div class="history-item ${conv.id === financeConversationId ? 'active' : ''}" data-id="${conv.id}">
+                    <div class="history-info">
+                        <div class="history-name">${conv.name}</div>
+                        <div class="history-meta">
+                            ${conv.messageCount} messages • ${new Date(conv.lastUpdated).toLocaleDateString('fr-FR')}
+                        </div>
+                    </div>
+                    <div class="history-actions">
+                        <button class="history-btn" onclick="loadFinanceConversation('${conv.id}')" title="Charger">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
+                        </button>
+                        <button class="history-btn" onclick="promptRenameConversation('${conv.id}', '${conv.name.replace(/'/g, "\\'")}')", title="Renommer">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                        </button>
+                        <button class="history-btn delete" onclick="confirmDeleteConversation('${conv.id}')" title="Supprimer">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+        }
+        
+        function promptRenameConversation(conversationId, currentName) {
+            const newName = prompt('Nouveau nom de la conversation:', currentName);
+            if (newName && newName.trim()) {
+                if (renameFinanceConversation(conversationId, newName.trim())) {
+                    renderFinanceHistory();
+                    showToast('Conversation renommée', 'success');
+                }
+            }
+        }
+        
+        function confirmDeleteConversation(conversationId) {
+            if (confirm('Voulez-vous vraiment supprimer cette conversation ?')) {
+                if (deleteFinanceConversation(conversationId)) {
+                    renderFinanceHistory();
+                    showToast('Conversation supprimée', 'success');
+                    
+                    // Si c'est la conversation actuelle, créer une nouvelle
+                    if (conversationId === financeConversationId) {
+                        newFinanceConversation();
+                    }
+                }
+            }
+        }
         
         // Contexte entreprise et données financières
         let financeContext = {
@@ -14413,6 +14621,28 @@ RÈGLES DE CONVERSATION :
                     #financeAIOverlay .page-btn { padding: 6px 10px; border-radius: 8px; background: rgba(255,255,255,0.05); border: 1px solid rgba(148,163,184,0.2); color: #e2e8f0; font-size: 11px; cursor: pointer; }
                     #financeAIOverlay .page-info { font-size: 12px; color: #cbd5e1; }
                     
+                    /* Panneau historique */
+                    #financeAIOverlay .history-panel { position: absolute; top: 100px; right: 38px; width: 350px; background: rgba(15,23,42,0.95); border: 1px solid rgba(148,163,184,0.28); border-radius: 16px; padding: 16px; box-shadow: 0 20px 60px rgba(0,0,0,0.4); backdrop-filter: blur(14px); z-index: 100; display: none; max-height: 500px; overflow: hidden; }
+                    #financeAIOverlay .history-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; padding-bottom: 12px; border-bottom: 1px solid rgba(148,163,184,0.2); }
+                    #financeAIOverlay .history-title { font-size: 16px; font-weight: 700; color: #f8fafc; }
+                    #financeAIOverlay .history-close { background: none; border: none; color: #94a3b8; cursor: pointer; padding: 4px; }
+                    #financeAIOverlay .history-list { display: flex; flex-direction: column; gap: 8px; overflow-y: auto; max-height: 400px; }
+                    #financeAIOverlay .history-item { background: rgba(255,255,255,0.04); border: 1px solid rgba(148,163,184,0.18); border-radius: 10px; padding: 12px; display: flex; justify-content: space-between; align-items: center; transition: all 0.2s; cursor: pointer; }
+                    #financeAIOverlay .history-item:hover { background: rgba(59,130,246,0.1); border-color: rgba(59,130,246,0.3); }
+                    #financeAIOverlay .history-item.active { background: rgba(16,185,129,0.12); border-color: rgba(16,185,129,0.35); }
+                    #financeAIOverlay .history-info { flex: 1; }
+                    #financeAIOverlay .history-name { font-size: 13px; font-weight: 600; color: #e2e8f0; margin-bottom: 4px; }
+                    #financeAIOverlay .history-meta { font-size: 11px; color: #94a3b8; }
+                    #financeAIOverlay .history-actions { display: flex; gap: 4px; }
+                    #financeAIOverlay .history-btn { background: rgba(255,255,255,0.05); border: 1px solid rgba(148,163,184,0.2); border-radius: 6px; padding: 6px; cursor: pointer; color: #94a3b8; transition: all 0.2s; }
+                    #financeAIOverlay .history-btn:hover { background: rgba(59,130,246,0.14); border-color: rgba(59,130,246,0.35); color: #60a5fa; }
+                    #financeAIOverlay .history-btn.delete:hover { background: rgba(239,68,68,0.14); border-color: rgba(239,68,68,0.35); color: #f87171; }
+                    #financeAIOverlay .history-empty { text-align: center; padding: 20px; color: #94a3b8; font-size: 13px; }
+                    #financeAIOverlay .new-conv-btn { width: 100%; padding: 10px; background: rgba(16,185,129,0.14); border: 1px solid rgba(16,185,129,0.35); border-radius: 8px; color: #34d399; font-weight: 600; cursor: pointer; margin-bottom: 12px; transition: all 0.2s; }
+                    #financeAIOverlay .new-conv-btn:hover { background: rgba(16,185,129,0.24); border-color: rgba(16,185,129,0.5); }
+                    #financeAIOverlay .history-toggle-btn { width: 44px; height: 44px; border-radius: 12px; background: rgba(255,255,255,0.06); border: 1px solid rgba(148,163,184,0.28); color: #e2e8f0; display: grid; place-items: center; cursor: pointer; transition: all 0.2s; margin-left: 8px; }
+                    #financeAIOverlay .history-toggle-btn:hover { background: rgba(248,250,252,0.12); transform: scale(1.05); }
+                    
                     #financeAIOverlay .finance-chat { background: rgba(255,255,255,0.04); border: 1px solid rgba(148,163,184,0.22); border-radius: 16px; padding: 18px; display: flex; flex-direction: column; gap: 12px; box-shadow: 0 16px 50px rgba(0,0,0,0.28); overflow: hidden; }
                     #financeAIOverlay .upload-btn { padding: 10px; width: 44px; height: 44px; min-width: unset; border-radius: 10px; background: rgba(16,185,129,0.14); border: 1px solid rgba(16,185,129,0.35); color: #a7f3d0; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; }
                     #financeAIOverlay .chat-title { font-size: 16px; font-weight: 800; color: #f8fafc; margin: 0; }
@@ -14447,10 +14677,29 @@ RÈGLES DE CONVERSATION :
                                 <p class="finance-sub">Expert finance, comptabilité, budget et étude de marché</p>
                             </div>
                         </div>
-                        <button class="ghost-btn" onclick="closeFinanceAI()" aria-label="Fermer">
-                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-                        </button>
+                        <div style="display: flex; gap: 8px;">
+                            <button class="history-toggle-btn" onclick="toggleFinanceHistory()" aria-label="Historique" title="Historique des conversations">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                            </button>
+                            <button class="ghost-btn" onclick="closeFinanceAI()" aria-label="Fermer">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                            </button>
+                        </div>
                     </header>
+                    
+                    <!-- Panneau historique -->
+                    <div id="financeHistoryPanel" class="history-panel">
+                        <div class="history-header">
+                            <div class="history-title">Historique</div>
+                            <button class="history-close" onclick="toggleFinanceHistory()">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                            </button>
+                        </div>
+                        <button class="new-conv-btn" onclick="newFinanceConversation(); toggleFinanceHistory();">
+                            + Nouvelle conversation
+                        </button>
+                        <div id="financeHistoryList" class="history-list"></div>
+                    </div>
                     
                     <div class="finance-container">
                         <!-- Tools Panel -->
@@ -14558,23 +14807,41 @@ RÈGLES DE CONVERSATION :
             
             document.body.appendChild(overlay);
             
-            // Restaurer l'historique s'il existe
+            // Tenter de charger la conversation existante depuis localStorage
             const chatHistEl = overlay.querySelector('#financeChatHistory');
-            if (chatHistEl && financeChatHistory.length > 0) {
-                financeChatHistory.forEach(msg => {
-                    const el = document.createElement('div');
-                    el.className = `chat-msg ${msg.role}`;
-                    el.textContent = msg.text;
-                    chatHistEl.appendChild(el);
-                });
-                chatHistEl.scrollTop = chatHistEl.scrollHeight;
-            } else if (chatHistEl) {
-                // Message de bienvenue
-                const welcome = document.createElement('div');
-                welcome.className = 'chat-msg bot';
-                welcome.textContent = 'Prêt à vous aider. Posez vos questions sur finance, comptabilité, budget ou analyses marché.';
-                chatHistEl.appendChild(welcome);
-                financeChatHistory.push({ role: 'bot', text: welcome.textContent });
+            let conversationLoaded = false;
+            
+            if (chatHistEl) {
+                // Essayer de charger depuis localStorage
+                const savedConversations = JSON.parse(localStorage.getItem('financeConversations') || '{}');
+                const savedConv = savedConversations[financeConversationId];
+                
+                if (savedConv && savedConv.history && savedConv.history.length > 0) {
+                    financeChatHistory = savedConv.history;
+                    currentConversationName = savedConv.name || '';
+                    financeContext = savedConv.context || financeContext;
+                    conversationLoaded = true;
+                }
+                
+                // Restaurer l'historique
+                if (financeChatHistory.length > 0) {
+                    financeChatHistory.forEach(msg => {
+                        const el = document.createElement('div');
+                        el.className = `chat-msg ${msg.role}`;
+                        el.textContent = msg.text;
+                        chatHistEl.appendChild(el);
+                    });
+                    chatHistEl.scrollTop = chatHistEl.scrollHeight;
+                } else {
+                    // Message de bienvenue
+                    const welcome = document.createElement('div');
+                    welcome.className = 'chat-msg bot';
+                    welcome.textContent = 'Prêt à vous aider. Posez vos questions sur finance, comptabilité, budget ou analyses marché.';
+                    chatHistEl.appendChild(welcome);
+                    financeChatHistory.push({ role: 'bot', text: welcome.textContent });
+                }
+                
+                updateConversationTitle();
             }
             
             // Focus textarea
@@ -14599,6 +14866,7 @@ RÈGLES DE CONVERSATION :
             chatHist.appendChild(userMsg);
             financeChatHistory.push({ role: 'user', text: message });
             logFinanceAction('user_message', { message }, { timestamp: new Date().toISOString() }, 'info');
+            saveFinanceConversation(); // Sauvegarde auto
             textarea.value = '';
             chatHist.scrollTop = chatHist.scrollHeight;
             
@@ -14645,6 +14913,7 @@ RÈGLES DE CONVERSATION :
                         chatHist.appendChild(botMsg);
                         financeChatHistory.push({ role: 'bot', text: answer });
                         logFinanceAction('agent_response', { query: message }, { answer }, 'success');
+                        saveFinanceConversation(); // Sauvegarde auto
                         chatHist.scrollTop = chatHist.scrollHeight;
                     })
                     .catch(err => {

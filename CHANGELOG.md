@@ -4,6 +4,120 @@ Historique complet des modifications apportées au système Axilum.
 
 ---
 
+## [1.1.0] - 22 Décembre 2024
+
+### 💾 SAUVEGARDE AUTOMATIQUE - AI FINANCE & COMPTABILITÉ
+
+**Nouvelle fonctionnalité majeure** : Système de sauvegarde automatique des conversations avec l'Agent Expert Finance.
+
+#### 📝 Description
+Les utilisateurs peuvent maintenant reprendre leurs conversations financières à tout moment. Toutes les discussions avec l'Agent Expert Finance sont automatiquement sauvegardées dans le navigateur avec possibilité de gérer un historique complet.
+
+#### ✨ Fonctionnalités Ajoutées
+
+##### 1. Sauvegarde Automatique
+- ✅ **Déclenchement automatique** après chaque message (utilisateur et bot)
+- ✅ **Stockage local** dans localStorage du navigateur
+- ✅ **Données sauvegardées** :
+  - Historique complet des messages (role + text)
+  - Contexte financier (KPIs, budgets, plan comptable)
+  - Métadonnées (date, nombre de messages, nom personnalisable)
+- ✅ **Restauration automatique** au chargement de la page
+
+##### 2. Interface de Gestion
+- ✅ **Panneau historique** accessible via bouton ⏱️ dans le header
+- ✅ **Liste des conversations** triée par date (plus récente en premier)
+- ✅ **Affichage détaillé** :
+  - Nom de la conversation (personnalisable)
+  - Nombre de messages échangés
+  - Date de dernière modification
+  - Indicateur visuel de conversation active (vert)
+
+##### 3. Actions Disponibles
+- ✅ **Nouvelle conversation** : Bouton "+ Nouvelle conversation"
+- ✅ **Charger** : Icône 🏠 pour restaurer une conversation
+- ✅ **Renommer** : Icône ✏️ pour personnaliser le nom
+- ✅ **Supprimer** : Icône 🗑️ avec confirmation
+- ✅ **Export** : Fonction `exportFinanceAudit()` pour backup JSON
+
+##### 4. Design Moderne
+- ✅ **Panneau latéral** avec backdrop blur
+- ✅ **Animations** hover et transitions fluides
+- ✅ **Responsive** : S'adapte à toutes les tailles d'écran
+- ✅ **Thème sombre** cohérent avec l'application
+
+#### 🔧 Implémentation Technique
+
+**Fichiers modifiés** :
+- `public/index.html` (lignes 14298-15018) : +200 lignes
+
+**Fonctions ajoutées** :
+```javascript
+saveFinanceConversation()          // Sauvegarde auto
+loadFinanceConversation(id)        // Charger conversation
+getFinanceConversations()          // Liste complète
+newFinanceConversation()           // Créer nouvelle
+renameFinanceConversation(id, name) // Renommer
+deleteFinanceConversation(id)      // Supprimer
+toggleFinanceHistory()             // Afficher/cacher panneau
+renderFinanceHistory()             // Render liste
+updateConversationTitle()          // MAJ titre
+```
+
+**Structure de données** :
+```javascript
+{
+  "finance-1234567890": {
+    id: "finance-1234567890",
+    name: "Conversation personnalisée",
+    history: [{ role: "user|bot", text: "..." }],
+    context: { company, chartOfAccounts, budgets, kpis },
+    lastUpdated: "2024-12-22T10:30:00.000Z",
+    messageCount: 12
+  }
+}
+```
+
+**Stockage** :
+- LocalStorage key : `financeConversations`
+- Format : JSON
+- Capacité : ~5-10 MB (1000-2000 messages)
+
+#### 📚 Documentation
+- ✅ `FINANCE_CHAT_AUTOSAVE.md` : Documentation technique complète
+- ✅ `GUIDE_UTILISATEUR_HISTORIQUE_FINANCE.md` : Guide utilisateur final
+- ✅ `public/test-finance-autosave.html` : Page de tests unitaires
+
+#### 🎯 Avantages
+
+**Pour l'utilisateur** :
+- 📍 Continuité des conversations
+- 📁 Organisation par sujet
+- 🔍 Traçabilité complète
+- 🏷️ Personnalisation des noms
+
+**Pour l'analyse** :
+- 📊 Contexte financier préservé
+- 📝 Historique complet des actions
+- 💾 Export pour backup/audit
+
+#### ⚙️ Configuration
+
+**Capacité** : ~5-10 MB (selon navigateur)
+**Compatibilité** : Chrome, Edge, Firefox, Safari (versions récentes)
+**Sécurité** : Stockage local non chiffré (recommandé pour usage interne)
+
+#### 🚀 Prochaines Améliorations
+
+**Phase 2 (Optionnel)** :
+- Synchronisation cloud (Azure Blob Storage)
+- Partage de conversations
+- Export PDF
+- Recherche dans l'historique
+- Tags et catégories
+
+---
+
 ## [1.0.0] - Janvier 2025
 
 ### 🎉 NOUVELLES FONCTIONNALITÉS MAJEURES

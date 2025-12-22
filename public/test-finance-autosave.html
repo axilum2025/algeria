@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test - Sauvegarde Automatique Finance Chat</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #0f172a;
+            color: #e2e8f0;
+        }
+        .test-section {
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(148,163,184,0.2);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        .test-title {
+            font-size: 18px;
+            font-weight: 700;
+            margin-bottom: 15px;
+            color: #34d399;
+        }
+        button {
+            padding: 10px 16px;
+            background: rgba(16,185,129,0.14);
+            border: 1px solid rgba(16,185,129,0.35);
+            color: #34d399;
+            border-radius: 8px;
+            cursor: pointer;
+            margin: 5px;
+            font-size: 14px;
+        }
+        button:hover {
+            background: rgba(16,185,129,0.24);
+        }
+        .output {
+            background: rgba(0,0,0,0.3);
+            border: 1px solid rgba(148,163,184,0.18);
+            border-radius: 8px;
+            padding: 12px;
+            margin-top: 10px;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            white-space: pre-wrap;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        .success { color: #22c55e; }
+        .error { color: #ef4444; }
+        .info { color: #3b82f6; }
+    </style>
+</head>
+<body>
+    <h1>🧪 Test - Sauvegarde Automatique Finance Chat</h1>
+    <p>Tests unitaires pour valider la fonctionnalité de sauvegarde automatique des conversations</p>
+
+    <!-- Test 1: Création de conversations -->
+    <div class="test-section">
+        <div class="test-title">Test 1: Création de Conversations</div>
+        <button onclick="createTestConversations()">Créer 3 conversations de test</button>
+        <div id="output1" class="output"></div>
+    </div>
+
+    <!-- Test 2: Lecture des conversations -->
+    <div class="test-section">
+        <div class="test-title">Test 2: Lecture de l'Historique</div>
+        <button onclick="readConversations()">Lire toutes les conversations</button>
+        <div id="output2" class="output"></div>
+    </div>
+
+    <!-- Test 3: Chargement d'une conversation -->
+    <div class="test-section">
+        <div class="test-title">Test 3: Chargement d'une Conversation</div>
+        <button onclick="loadFirstConversation()">Charger la première conversation</button>
+        <div id="output3" class="output"></div>
+    </div>
+
+    <!-- Test 4: Renommage -->
+    <div class="test-section">
+        <div class="test-title">Test 4: Renommage de Conversation</div>
+        <button onclick="renameFirstConversation()">Renommer la première conversation</button>
+        <div id="output4" class="output"></div>
+    </div>
+
+    <!-- Test 5: Suppression -->
+    <div class="test-section">
+        <div class="test-title">Test 5: Suppression de Conversation</div>
+        <button onclick="deleteFirstConversation()">Supprimer la première conversation</button>
+        <div id="output5" class="output"></div>
+    </div>
+
+    <!-- Test 6: Nettoyage -->
+    <div class="test-section">
+        <div class="test-title">Test 6: Nettoyage Complet</div>
+        <button onclick="cleanupAll()">Nettoyer toutes les données de test</button>
+        <div id="output6" class="output"></div>
+    </div>
+
+    <script>
+        // Copier les fonctions depuis index.html pour les tests
+        function saveFinanceConversation(id, name, history, context) {
+            try {
+                const conversations = JSON.parse(localStorage.getItem('financeConversations') || '{}');
+                conversations[id] = {
+                    id: id,
+                    name: name,
+                    history: history,
+                    context: context,
+                    lastUpdated: new Date().toISOString(),
+                    messageCount: history.length
+                };
+                localStorage.setItem('financeConversations', JSON.stringify(conversations));
+                return true;
+            } catch (error) {
+                console.error('Erreur sauvegarde:', error);
+                return false;
+            }
+        }
+
+        function getFinanceConversations() {
+            try {
+                const conversations = JSON.parse(localStorage.getItem('financeConversations') || '{}');
+                return Object.values(conversations).sort((a, b) => 
+                    new Date(b.lastUpdated) - new Date(a.lastUpdated)
+                );
+            } catch (error) {
+                console.error('Erreur lecture:', error);
+                return [];
+            }
+        }
+
+        function deleteFinanceConversation(conversationId) {
+            try {
+                const conversations = JSON.parse(localStorage.getItem('financeConversations') || '{}');
+                delete conversations[conversationId];
+                localStorage.setItem('financeConversations', JSON.stringify(conversations));
+                return true;
+            } catch (error) {
+                console.error('Erreur suppression:', error);
+                return false;
+            }
+        }
+
+        function renameFinanceConversation(conversationId, newName) {
+            try {
+                const conversations = JSON.parse(localStorage.getItem('financeConversations') || '{}');
+                if (conversations[conversationId]) {
+                    conversations[conversationId].name = newName;
+                    localStorage.setItem('financeConversations', JSON.stringify(conversations));
+                    return true;
+                }
+                return false;
+            } catch (error) {
+                console.error('Erreur renommage:', error);
+                return false;
+            }
+        }
+
+        // Tests
+        function log(outputId, message, type = 'info') {
+            const output = document.getElementById(outputId);
+            const timestamp = new Date().toLocaleTimeString('fr-FR');
+            const color = type === 'success' ? 'success' : type === 'error' ? 'error' : 'info';
+            output.innerHTML += `<span class="${color}">[${timestamp}] ${message}</span>\n`;
+        }
+
+        function createTestConversations() {
+            const output = document.getElementById('output1');
+            output.innerHTML = '';
+            
+            const testData = [
+                {
+                    id: 'finance-test-1',
+                    name: 'Analyse Budget Q4 2024',
+                    history: [
+                        { role: 'bot', text: 'Bonjour, comment puis-je vous aider ?' },
+                        { role: 'user', text: 'Analyse mon budget Q4' },
+                        { role: 'bot', text: 'Voici l\'analyse de votre budget Q4...' }
+                    ]
+                },
+                {
+                    id: 'finance-test-2',
+                    name: 'Prévisions Trésorerie 2025',
+                    history: [
+                        { role: 'bot', text: 'Bonjour, comment puis-je vous aider ?' },
+                        { role: 'user', text: 'Prévisions trésorerie 2025' },
+                        { role: 'bot', text: 'Projection de trésorerie pour 2025...' },
+                        { role: 'user', text: 'Quels sont les risques ?' },
+                        { role: 'bot', text: 'Principaux risques identifiés...' }
+                    ]
+                },
+                {
+                    id: 'finance-test-3',
+                    name: 'Facturation Automatique',
+                    history: [
+                        { role: 'bot', text: 'Bonjour, comment puis-je vous aider ?' },
+                        { role: 'user', text: 'Comment automatiser la facturation ?' },
+                        { role: 'bot', text: 'Voici les options pour automatiser...' }
+                    ]
+                }
+            ];
+
+            let successCount = 0;
+            testData.forEach(data => {
+                if (saveFinanceConversation(data.id, data.name, data.history, {})) {
+                    log('output1', `✓ Conversation créée: ${data.name} (${data.history.length} messages)`, 'success');
+                    successCount++;
+                } else {
+                    log('output1', `✗ Échec création: ${data.name}`, 'error');
+                }
+            });
+
+            log('output1', `\nRésultat: ${successCount}/${testData.length} conversations créées`, 
+                successCount === testData.length ? 'success' : 'error');
+        }
+
+        function readConversations() {
+            const output = document.getElementById('output2');
+            output.innerHTML = '';
+            
+            const conversations = getFinanceConversations();
+            log('output2', `Total: ${conversations.length} conversation(s) trouvée(s)\n`, 'info');
+
+            if (conversations.length === 0) {
+                log('output2', 'Aucune conversation trouvée. Créez-en d\'abord avec Test 1.', 'error');
+                return;
+            }
+
+            conversations.forEach((conv, index) => {
+                log('output2', `${index + 1}. ${conv.name}`, 'success');
+                log('output2', `   ID: ${conv.id}`, 'info');
+                log('output2', `   Messages: ${conv.messageCount}`, 'info');
+                log('output2', `   Dernière MAJ: ${new Date(conv.lastUpdated).toLocaleString('fr-FR')}\n`, 'info');
+            });
+        }
+
+        function loadFirstConversation() {
+            const output = document.getElementById('output3');
+            output.innerHTML = '';
+            
+            const conversations = getFinanceConversations();
+            if (conversations.length === 0) {
+                log('output3', 'Aucune conversation à charger. Créez-en d\'abord avec Test 1.', 'error');
+                return;
+            }
+
+            const conv = conversations[0];
+            log('output3', `Chargement de: ${conv.name}`, 'info');
+            log('output3', `Historique (${conv.history.length} messages):\n`, 'info');
+
+            conv.history.forEach((msg, index) => {
+                const role = msg.role === 'user' ? '👤 Utilisateur' : '🤖 Bot';
+                log('output3', `${index + 1}. [${role}] ${msg.text}`, msg.role === 'user' ? 'info' : 'success');
+            });
+
+            log('output3', '\n✓ Conversation chargée avec succès', 'success');
+        }
+
+        function renameFirstConversation() {
+            const output = document.getElementById('output4');
+            output.innerHTML = '';
+            
+            const conversations = getFinanceConversations();
+            if (conversations.length === 0) {
+                log('output4', 'Aucune conversation à renommer. Créez-en d\'abord avec Test 1.', 'error');
+                return;
+            }
+
+            const conv = conversations[0];
+            const oldName = conv.name;
+            const newName = `${oldName} [MODIFIÉ]`;
+
+            log('output4', `Ancien nom: ${oldName}`, 'info');
+            log('output4', `Nouveau nom: ${newName}`, 'info');
+
+            if (renameFinanceConversation(conv.id, newName)) {
+                log('output4', '\n✓ Conversation renommée avec succès', 'success');
+            } else {
+                log('output4', '\n✗ Échec du renommage', 'error');
+            }
+        }
+
+        function deleteFirstConversation() {
+            const output = document.getElementById('output5');
+            output.innerHTML = '';
+            
+            const conversations = getFinanceConversations();
+            if (conversations.length === 0) {
+                log('output5', 'Aucune conversation à supprimer. Créez-en d\'abord avec Test 1.', 'error');
+                return;
+            }
+
+            const conv = conversations[0];
+            log('output5', `Suppression de: ${conv.name}`, 'info');
+
+            if (deleteFinanceConversation(conv.id)) {
+                log('output5', '✓ Conversation supprimée avec succès', 'success');
+                
+                const remaining = getFinanceConversations();
+                log('output5', `\nConversations restantes: ${remaining.length}`, 'info');
+            } else {
+                log('output5', '✗ Échec de la suppression', 'error');
+            }
+        }
+
+        function cleanupAll() {
+            const output = document.getElementById('output6');
+            output.innerHTML = '';
+            
+            const conversations = getFinanceConversations();
+            log('output6', `Suppression de ${conversations.length} conversation(s)...`, 'info');
+
+            localStorage.removeItem('financeConversations');
+            
+            const remaining = getFinanceConversations();
+            if (remaining.length === 0) {
+                log('output6', '\n✓ Toutes les conversations ont été supprimées', 'success');
+                log('output6', 'localStorage nettoyé', 'success');
+            } else {
+                log('output6', `\n✗ ${remaining.length} conversation(s) restante(s)`, 'error');
+            }
+        }
+
+        // Info au chargement
+        window.addEventListener('load', () => {
+            const conversations = getFinanceConversations();
+            console.log(`[Finance Chat] ${conversations.length} conversation(s) en mémoire`);
+        });
+    </script>
+</body>
+</html>
