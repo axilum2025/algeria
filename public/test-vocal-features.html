@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Fonctionnalités Vocales - AI Text Pro</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #1e3a8a, #0a4d3c);
+            color: white;
+        }
+        
+        .test-section {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(59, 130, 246, 0.3);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        
+        h1 {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        h2 {
+            color: #3b82f6;
+            margin-top: 0;
+        }
+        
+        button {
+            padding: 12px 24px;
+            background: linear-gradient(135deg, #3b82f6, #06b6d4);
+            border: none;
+            border-radius: 8px;
+            color: white;
+            font-size: 16px;
+            cursor: pointer;
+            margin: 5px;
+            transition: all 0.3s ease;
+        }
+        
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+        }
+        
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        button.recording {
+            background: linear-gradient(135deg, #ef4444, #dc2626);
+            animation: pulse 1.5s ease-in-out infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% {
+                transform: scale(1);
+                box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7);
+            }
+            50% {
+                transform: scale(1.05);
+                box-shadow: 0 0 0 10px rgba(239, 68, 68, 0);
+            }
+        }
+        
+        button.speaking {
+            background: linear-gradient(135deg, #10b981, #059669);
+            animation: speakerPulse 1s ease-in-out infinite;
+        }
+        
+        @keyframes speakerPulse {
+            0%, 100% {
+                transform: scale(1);
+            }
+            50% {
+                transform: scale(1.1);
+            }
+        }
+        
+        textarea {
+            width: 100%;
+            min-height: 100px;
+            padding: 12px;
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(59, 130, 246, 0.3);
+            border-radius: 8px;
+            color: white;
+            font-size: 14px;
+            font-family: inherit;
+            resize: vertical;
+            margin: 10px 0;
+        }
+        
+        .status {
+            padding: 10px;
+            background: rgba(59, 130, 246, 0.2);
+            border-left: 3px solid #3b82f6;
+            border-radius: 4px;
+            margin: 10px 0;
+            font-size: 14px;
+        }
+        
+        .success {
+            background: rgba(16, 185, 129, 0.2);
+            border-left-color: #10b981;
+        }
+        
+        .error {
+            background: rgba(239, 68, 68, 0.2);
+            border-left-color: #ef4444;
+        }
+        
+        .info {
+            background: rgba(139, 92, 246, 0.2);
+            border-left-color: #8b5cf6;
+            font-size: 13px;
+            margin: 15px 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>🎤 Test des Fonctionnalités Vocales</h1>
+    
+    <!-- Test Speech-to-Text -->
+    <div class="test-section">
+        <h2>🎤 Speech-to-Text (Reconnaissance Vocale)</h2>
+        
+        <div class="info">
+            <strong>Instructions:</strong><br>
+            1. Cliquez sur "Démarrer l'enregistrement"<br>
+            2. Autorisez l'accès au microphone<br>
+            3. Parlez clairement en français<br>
+            4. Cliquez sur "Arrêter" ou attendez la fin automatique
+        </div>
+        
+        <button id="recordBtn" onclick="toggleRecording()">🎤 Démarrer l'enregistrement</button>
+        <button onclick="clearSttText()">🗑️ Effacer</button>
+        
+        <div id="sttStatus" class="status" style="display: none;"></div>
+        
+        <textarea id="sttResult" placeholder="Le texte transcrit apparaîtra ici..."></textarea>
+    </div>
+    
+    <!-- Test Text-to-Speech -->
+    <div class="test-section">
+        <h2>🔊 Text-to-Speech (Synthèse Vocale)</h2>
+        
+        <div class="info">
+            <strong>Instructions:</strong><br>
+            1. Saisissez ou collez du texte ci-dessous<br>
+            2. Cliquez sur "Lire le texte"<br>
+            3. Ajustez la vitesse si nécessaire<br>
+            4. Cliquez à nouveau pour arrêter
+        </div>
+        
+        <textarea id="ttsInput" placeholder="Saisissez le texte à lire...">Bonjour ! Ceci est un test de synthèse vocale en français. La technologie Text-to-Speech permet de convertir du texte en parole naturelle.</textarea>
+        
+        <div style="margin: 10px 0;">
+            <label>Vitesse: <span id="rateValue">1.0</span>x</label><br>
+            <input type="range" id="rateSlider" min="0.5" max="2" step="0.1" value="1" 
+                   style="width: 200px;" onchange="updateRate()">
+        </div>
+        
+        <button id="speakBtn" onclick="toggleSpeech()">🔊 Lire le texte</button>
+        <button onclick="stopSpeech()">⏹️ Arrêter</button>
+        
+        <div id="ttsStatus" class="status" style="display: none;"></div>
+    </div>
+    
+    <!-- Informations du navigateur -->
+    <div class="test-section">
+        <h2>ℹ️ Compatibilité du navigateur</h2>
+        <div id="browserInfo"></div>
+    </div>
+
+    <script>
+        // Variables globales
+        let isRecording = false;
+        let recognition = null;
+        let currentUtterance = null;
+        let speechRate = 1.0;
+        
+        // Vérifier la compatibilité du navigateur
+        function checkCompatibility() {
+            const info = document.getElementById('browserInfo');
+            let html = '<ul style="list-style: none; padding: 0;">';
+            
+            // Speech Recognition
+            if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+                html += '<li>✅ Speech Recognition: <strong>Supporté</strong></li>';
+            } else {
+                html += '<li>❌ Speech Recognition: <strong>Non supporté</strong></li>';
+            }
+            
+            // Speech Synthesis
+            if ('speechSynthesis' in window) {
+                html += '<li>✅ Speech Synthesis: <strong>Supporté</strong></li>';
+                
+                // Lister les voix disponibles
+                const voices = speechSynthesis.getVoices();
+                if (voices.length > 0) {
+                    const frVoices = voices.filter(v => v.lang.startsWith('fr'));
+                    html += `<li>🎵 Voix françaises disponibles: <strong>${frVoices.length}</strong></li>`;
+                }
+            } else {
+                html += '<li>❌ Speech Synthesis: <strong>Non supporté</strong></li>';
+            }
+            
+            // MediaDevices
+            if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+                html += '<li>✅ MediaDevices API: <strong>Supporté</strong></li>';
+            } else {
+                html += '<li>❌ MediaDevices API: <strong>Non supporté</strong></li>';
+            }
+            
+            html += '</ul>';
+            info.innerHTML = html;
+        }
+        
+        // Speech-to-Text
+        function toggleRecording() {
+            if (!isRecording) {
+                startRecording();
+            } else {
+                stopRecording();
+            }
+        }
+        
+        function startRecording() {
+            const btn = document.getElementById('recordBtn');
+            const status = document.getElementById('sttStatus');
+            const result = document.getElementById('sttResult');
+            
+            try {
+                const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+                
+                if (!SpeechRecognition) {
+                    showStatus('sttStatus', '❌ Speech Recognition non supporté par ce navigateur', 'error');
+                    return;
+                }
+                
+                recognition = new SpeechRecognition();
+                recognition.lang = 'fr-FR';
+                recognition.continuous = false;
+                recognition.interimResults = false;
+                
+                recognition.onstart = function() {
+                    isRecording = true;
+                    btn.classList.add('recording');
+                    btn.textContent = '⏹️ Arrêter l\'enregistrement';
+                    showStatus('sttStatus', '🎤 Enregistrement en cours... Parlez maintenant !', 'info');
+                };
+                
+                recognition.onresult = function(event) {
+                    const transcript = event.results[0][0].transcript;
+                    const confidence = (event.results[0][0].confidence * 100).toFixed(0);
+                    result.value = (result.value ? result.value + ' ' : '') + transcript;
+                    showStatus('sttStatus', `✅ Transcription réussie (confiance: ${confidence}%)`, 'success');
+                };
+                
+                recognition.onerror = function(event) {
+                    showStatus('sttStatus', `❌ Erreur: ${event.error}`, 'error');
+                    stopRecording();
+                };
+                
+                recognition.onend = function() {
+                    stopRecording();
+                };
+                
+                recognition.start();
+                
+            } catch (error) {
+                showStatus('sttStatus', `❌ Erreur: ${error.message}`, 'error');
+            }
+        }
+        
+        function stopRecording() {
+            isRecording = false;
+            const btn = document.getElementById('recordBtn');
+            btn.classList.remove('recording');
+            btn.textContent = '🎤 Démarrer l\'enregistrement';
+            
+            if (recognition) {
+                recognition.stop();
+                recognition = null;
+            }
+        }
+        
+        function clearSttText() {
+            document.getElementById('sttResult').value = '';
+            document.getElementById('sttStatus').style.display = 'none';
+        }
+        
+        // Text-to-Speech
+        function toggleSpeech() {
+            const text = document.getElementById('ttsInput').value;
+            const btn = document.getElementById('speakBtn');
+            
+            if (!text) {
+                showStatus('ttsStatus', '❌ Veuillez saisir du texte', 'error');
+                return;
+            }
+            
+            if (currentUtterance) {
+                stopSpeech();
+                return;
+            }
+            
+            try {
+                currentUtterance = new SpeechSynthesisUtterance(text);
+                currentUtterance.lang = 'fr-FR';
+                currentUtterance.rate = speechRate;
+                currentUtterance.pitch = 1.0;
+                currentUtterance.volume = 1.0;
+                
+                btn.classList.add('speaking');
+                showStatus('ttsStatus', '🔊 Lecture en cours...', 'info');
+                
+                currentUtterance.onend = function() {
+                    btn.classList.remove('speaking');
+                    showStatus('ttsStatus', '✅ Lecture terminée', 'success');
+                    currentUtterance = null;
+                };
+                
+                currentUtterance.onerror = function(event) {
+                    btn.classList.remove('speaking');
+                    showStatus('ttsStatus', `❌ Erreur: ${event.error}`, 'error');
+                    currentUtterance = null;
+                };
+                
+                speechSynthesis.speak(currentUtterance);
+                
+            } catch (error) {
+                showStatus('ttsStatus', `❌ Erreur: ${error.message}`, 'error');
+            }
+        }
+        
+        function stopSpeech() {
+            if (currentUtterance) {
+                speechSynthesis.cancel();
+                document.getElementById('speakBtn').classList.remove('speaking');
+                showStatus('ttsStatus', '⏹️ Lecture arrêtée', 'info');
+                currentUtterance = null;
+            }
+        }
+        
+        function updateRate() {
+            speechRate = parseFloat(document.getElementById('rateSlider').value);
+            document.getElementById('rateValue').textContent = speechRate.toFixed(1);
+        }
+        
+        // Afficher un statut
+        function showStatus(id, message, type = 'info') {
+            const status = document.getElementById(id);
+            status.textContent = message;
+            status.className = `status ${type}`;
+            status.style.display = 'block';
+        }
+        
+        // Charger les voix
+        if (speechSynthesis.onvoiceschanged !== undefined) {
+            speechSynthesis.onvoiceschanged = checkCompatibility;
+        }
+        
+        // Initialisation
+        window.addEventListener('load', checkCompatibility);
+    </script>
+</body>
+</html>

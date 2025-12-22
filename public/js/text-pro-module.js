@@ -9,6 +9,12 @@
     // Variables du module
     let textProChatHistory = [];
     let textProOverlay = null;
+    let isRecording = false;
+    let mediaRecorder = null;
+    let audioChunks = [];
+    let recognition = null;
+    let speechSynthesis = window.speechSynthesis;
+    let currentUtterance = null;
     
     /**
      * Ouvrir l'interface Text Pro
@@ -119,6 +125,16 @@
                             <p>Réécris de façon plus formelle</p>
                         </div>
                     </div>
+                    
+                    <div class="textpro-features">
+                        <h3 class="textpro-section-title">Fonctionnalités</h3>
+                        <div class="textpro-feature-list">
+                            <div class="textpro-feature-item">🎤 Speech-to-Text</div>
+                            <div class="textpro-feature-item">🔊 Text-to-Speech</div>
+                            <div class="textpro-feature-item">📄 Upload de fichiers</div>
+                            <div class="textpro-feature-item">💾 Téléchargement PDF</div>
+                        </div>
+                    </div>
                 </div>
                 
                 <!-- Panneau de chat -->
@@ -134,7 +150,13 @@
                     <div class="textpro-chat-messages" id="textProMessages">
                         <div class="textpro-message assistant">
                             <div class="textpro-message-content">
-                                Bonjour ! Je suis votre Agent Text Pro. Uploadez un fichier ou collez votre texte directement dans le chat. Je peux traduire, corriger, résumer, réécrire et bien plus !
+                                Bonjour ! Je suis votre Agent Text Pro. 
+                                
+                                🎤 Utilisez le microphone pour dicter votre texte
+                                🔊 Cliquez sur le haut-parleur pour écouter mes réponses
+                                📄 Uploadez un fichier ou collez votre texte directement
+                                
+                                Je peux traduire, corriger, résumer, réécrire et bien plus !
                             </div>
                         </div>
                     </div>
@@ -147,9 +169,14 @@
                                 placeholder="Collez votre texte ou posez votre question..."
                                 onkeydown="if(event.key === 'Enter' && !event.shiftKey) { event.preventDefault(); window.sendTextProMessage(); }"
                             ></textarea>
-                            <button class="textpro-send-btn" onclick="window.sendTextProMessage()">
-                                Envoyer
-                            </button>
+                            <div class="textpro-input-buttons">
+                                <button class="textpro-mic-btn" id="textProMicBtn" onclick="window.toggleTextProRecording()" title="Enregistrer un message vocal">
+                                    🎤
+                                </button>
+                                <button class="textpro-send-btn" onclick="window.sendTextProMessage()" title="Envoyer le message">
+                                    📤
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -257,6 +284,28 @@
                 font-size: 12px;
                 color: rgba(255, 255, 255, 0.7);
                 margin: 0;
+            }
+            
+            .textpro-features {
+                margin-top: 20px;
+            }
+            
+            .textpro-feature-list {
+                display: flex;
+                flex-direction: column;
+                gap: 8px;
+            }
+            
+            .textpro-feature-item {
+                background: rgba(59, 130, 246, 0.1);
+                border: 1px solid rgba(59, 130, 246, 0.3);
+                border-radius: 6px;
+                padding: 8px 12px;
+                font-size: 12px;
+                color: rgba(255, 255, 255, 0.8);
+                display: flex;
+                align-items: center;
+                gap: 8px;
             }
             
             .textpro-chat-panel {
@@ -382,8 +431,54 @@
                 color: rgba(255, 255, 255, 0.4);
             }
             
+            .textpro-input-buttons {
+                display: flex;
+                gap: 8px;
+            }
+            
+            .textpro-mic-btn {
+                width: 48px;
+                height: 48px;
+                padding: 0;
+                background: rgba(139, 92, 246, 0.2);
+                border: 1px solid rgba(139, 92, 246, 0.4);
+                border-radius: 12px;
+                color: white;
+                font-size: 20px;
+                cursor: pointer;
+                transition: all 0.3s ease;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+            
+            .textpro-mic-btn:hover {
+                background: rgba(139, 92, 246, 0.3);
+                transform: translateY(-2px);
+                box-shadow: 0 4px 12px rgba(139, 92, 246, 0.4);
+            }
+            
+            .textpro-mic-btn.recording {
+                background: rgba(239, 68, 68, 0.3);
+                border-color: rgba(239, 68, 68, 0.6);
+                animation: pulse 1.5s ease-in-out infinite;
+            }
+            
+            @keyframes pulse {
+                0%, 100% {
+                    transform: scale(1);
+                    box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7);
+                }
+                50% {
+                    transform: scale(1.05);
+                    box-shadow: 0 0 0 10px rgba(239, 68, 68, 0);
+                }
+            }
+            
             .textpro-send-btn {
-                padding: 12px 28px;
+                width: 48px;
+                height: 48px;
+                padding: 0;
                 background: linear-gradient(135deg, #3b82f6, #06b6d4);
                 border: none;
                 border-radius: 10px;
@@ -421,6 +516,38 @@
             .textpro-download-btn:hover {
                 background: rgba(16, 185, 129, 0.25);
                 border-color: rgba(16, 185, 129, 0.6);
+            }
+            
+            .textpro-speaker-btn {
+                display: inline-block;
+                margin-left: 8px;
+                padding: 4px 8px;
+                background: rgba(139, 92, 246, 0.2);
+                border: 1px solid rgba(139, 92, 246, 0.4);
+                border-radius: 6px;
+                color: #a78bfa;
+                font-size: 16px;
+                cursor: pointer;
+                transition: all 0.2s ease;
+                vertical-align: middle;
+            }
+            
+            .textpro-speaker-btn:hover {
+                background: rgba(139, 92, 246, 0.3);
+                transform: scale(1.1);
+            }
+            
+            .textpro-speaker-btn.speaking {
+                animation: speakerPulse 1s ease-in-out infinite;
+            }
+            
+            @keyframes speakerPulse {
+                0%, 100% {
+                    transform: scale(1);
+                }
+                50% {
+                    transform: scale(1.15);
+                }
             }
             
             @keyframes slideInUp {
@@ -546,12 +673,21 @@
         contentDiv.className = 'textpro-message-content';
         contentDiv.textContent = content;
         
+        // Ajouter le bouton de lecture vocale pour les messages de l'assistant
+        if (role === 'assistant') {
+            const speakerBtn = document.createElement('button');
+            speakerBtn.className = 'textpro-speaker-btn';
+            speakerBtn.textContent = '🔊';
+            speakerBtn.title = 'Écouter le message';
+            speakerBtn.onclick = function() {
+                window.speakTextProMessage(content, speakerBtn);
+            };
+            contentDiv.appendChild(document.createElement('br'));
+            contentDiv.appendChild(speakerBtn);
+        }
+        
         // Ajouter le bouton de téléchargement si proposé (dans le contentDiv)
         if (offerDownload && role === 'assistant') {
-            // Ajouter un saut de ligne pour l'espace
-            const br = document.createElement('br');
-            contentDiv.appendChild(br);
-            
             const downloadBtn = document.createElement('button');
             downloadBtn.className = 'textpro-download-btn';
             downloadBtn.textContent = 'Télécharger';
@@ -653,6 +789,189 @@
     }
     
     /**
+     * Basculer l'enregistrement vocal (Speech-to-Text)
+     */
+    window.toggleTextProRecording = async function() {
+        const micBtn = document.getElementById('textProMicBtn');
+        const textarea = document.getElementById('textProChatInput');
+        
+        if (!isRecording) {
+            // Démarrer l'enregistrement
+            try {
+                // Méthode 1: Utiliser Web Speech API (reconnaissance vocale native du navigateur)
+                if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+                    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+                    recognition = new SpeechRecognition();
+                    recognition.lang = 'fr-FR';
+                    recognition.continuous = false;
+                    recognition.interimResults = false;
+                    
+                    recognition.onstart = function() {
+                        isRecording = true;
+                        micBtn.classList.add('recording');
+                        micBtn.textContent = '⏹️';
+                        micBtn.title = 'Arrêter l\'enregistrement';
+                        console.log('🎤 Enregistrement vocal démarré');
+                    };
+                    
+                    recognition.onresult = function(event) {
+                        const transcript = event.results[0][0].transcript;
+                        textarea.value = (textarea.value ? textarea.value + ' ' : '') + transcript;
+                        console.log('✓ Transcription:', transcript);
+                    };
+                    
+                    recognition.onerror = function(event) {
+                        console.error('Erreur reconnaissance vocale:', event.error);
+                        alert(`Erreur: ${event.error}. Vérifiez les permissions du microphone.`);
+                        stopRecording();
+                    };
+                    
+                    recognition.onend = function() {
+                        stopRecording();
+                    };
+                    
+                    recognition.start();
+                } else {
+                    // Méthode 2: Fallback avec MediaRecorder + API externe (Whisper)
+                    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                    mediaRecorder = new MediaRecorder(stream);
+                    audioChunks = [];
+                    
+                    mediaRecorder.ondataavailable = (event) => {
+                        audioChunks.push(event.data);
+                    };
+                    
+                    mediaRecorder.onstop = async () => {
+                        const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+                        await transcribeAudio(audioBlob);
+                        stream.getTracks().forEach(track => track.stop());
+                    };
+                    
+                    mediaRecorder.start();
+                    isRecording = true;
+                    micBtn.classList.add('recording');
+                    micBtn.textContent = '⏹️';
+                    micBtn.title = 'Arrêter l\'enregistrement';
+                    console.log('🎤 Enregistrement audio démarré (fallback)');
+                }
+            } catch (error) {
+                console.error('Erreur accès microphone:', error);
+                alert('Impossible d\'accéder au microphone. Vérifiez les permissions.');
+            }
+        } else {
+            // Arrêter l'enregistrement
+            stopRecording();
+        }
+    };
+    
+    /**
+     * Arrêter l'enregistrement
+     */
+    function stopRecording() {
+        isRecording = false;
+        const micBtn = document.getElementById('textProMicBtn');
+        if (micBtn) {
+            micBtn.classList.remove('recording');
+            micBtn.textContent = '🎤';
+            micBtn.title = 'Enregistrer un message vocal';
+        }
+        
+        if (recognition) {
+            recognition.stop();
+            recognition = null;
+        }
+        
+        if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+            mediaRecorder.stop();
+        }
+    }
+    
+    /**
+     * Transcrire l'audio via API (Whisper ou autre)
+     */
+    async function transcribeAudio(audioBlob) {
+        try {
+            const textarea = document.getElementById('textProChatInput');
+            textarea.value = 'Transcription en cours...';
+            
+            // Convertir en base64
+            const reader = new FileReader();
+            reader.readAsDataURL(audioBlob);
+            reader.onloadend = async function() {
+                const base64Audio = reader.result.split(',')[1];
+                
+                // Appeler votre API de transcription
+                const response = await fetch('/api/transcribe', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ audio: base64Audio })
+                });
+                
+                if (!response.ok) throw new Error('Erreur transcription');
+                
+                const data = await response.json();
+                textarea.value = data.text || '';
+            };
+        } catch (error) {
+            console.error('Erreur transcription:', error);
+            const textarea = document.getElementById('textProChatInput');
+            textarea.value = '';
+            alert('Erreur lors de la transcription. Veuillez réessayer.');
+        }
+    }
+    
+    /**
+     * Lire un message à voix haute (Text-to-Speech)
+     */
+    window.speakTextProMessage = function(text, button) {
+        // Arrêter toute lecture en cours
+        if (currentUtterance) {
+            speechSynthesis.cancel();
+            currentUtterance = null;
+            
+            // Retirer la classe speaking de tous les boutons
+            document.querySelectorAll('.textpro-speaker-btn.speaking').forEach(btn => {
+                btn.classList.remove('speaking');
+            });
+            
+            // Si on clique sur le même bouton, on arrête là
+            if (button && button.classList.contains('speaking')) {
+                return;
+            }
+        }
+        
+        // Créer une nouvelle lecture
+        currentUtterance = new SpeechSynthesisUtterance(text);
+        currentUtterance.lang = 'fr-FR';
+        currentUtterance.rate = 1.0;
+        currentUtterance.pitch = 1.0;
+        currentUtterance.volume = 1.0;
+        
+        // Ajouter la classe speaking au bouton
+        if (button) {
+            button.classList.add('speaking');
+        }
+        
+        currentUtterance.onend = function() {
+            if (button) {
+                button.classList.remove('speaking');
+            }
+            currentUtterance = null;
+        };
+        
+        currentUtterance.onerror = function(event) {
+            console.error('Erreur TTS:', event);
+            if (button) {
+                button.classList.remove('speaking');
+            }
+            currentUtterance = null;
+        };
+        
+        speechSynthesis.speak(currentUtterance);
+        console.log('🔊 Lecture vocale démarrée');
+    };
+
+    /**
      * Envoyer un message
      */
     window.sendTextProMessage = async function() {
@@ -667,7 +986,7 @@
             input.value = '';
             
             sendBtn.disabled = true;
-            sendBtn.textContent = 'Traitement...';
+            sendBtn.textContent = '⏳';
             
             // Préparer les messages
             const messages = [
@@ -717,7 +1036,7 @@
             const input = document.getElementById('textProChatInput');
             if (sendBtn) {
                 sendBtn.disabled = false;
-                sendBtn.textContent = 'Envoyer';
+                sendBtn.textContent = '📤';
             }
             if (input) input.focus();
         }
