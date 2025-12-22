@@ -191,6 +191,11 @@
         arrowRight: `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <line x1="5" y1="12" x2="19" y2="12"></line>
             <polyline points="12 5 19 12 12 19"></polyline>
+        </svg>`,
+        
+        copy: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+            <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
         </svg>`
     };
     
@@ -399,7 +404,12 @@
                             <h2 class="textpro-chat-title">Agent Text Pro</h2>
                             <p class="textpro-chat-subtitle">Assistant de traitement de texte</p>
                         </div>
-                        <button class="textpro-close-btn" onclick="window.closeTextProModule()">×</button>
+                        <div style="display: flex; gap: 12px; align-items: center;">
+                            <button class="textpro-clear-history-btn" onclick="window.clearTextProHistory()" title="Effacer l'historique">
+                                ${SVGIcons.trash}
+                            </button>
+                            <button class="textpro-close-btn" onclick="window.closeTextProModule()">×</button>
+                        </div>
                     </div>
                     
                     <div class="textpro-chat-messages" id="textProMessages">
@@ -423,7 +433,9 @@
                                 class="textpro-chat-textarea" 
                                 placeholder="Collez votre texte ou posez votre question..."
                                 onkeydown="if(event.key === 'Enter' && !event.shiftKey) { event.preventDefault(); window.sendTextProMessage(); }"
+                                oninput="window.updateTextProCounter()"
                             ></textarea>
+                            <div id="textProCounter" class="textpro-counter">0 caractère | 0 mot</div>
                             <div class="textpro-input-buttons">
                                 <button class="textpro-mic-btn" id="textProMicBtn" onclick="window.toggleTextProRecording()" title="Enregistrer un message vocal">
                                     ${SVGIcons.microphone}
@@ -999,6 +1011,26 @@
                 border-color: rgba(239, 68, 68, 0.5);
             }
             
+            .textpro-clear-history-btn {
+                width: 36px;
+                height: 36px;
+                background: rgba(239, 68, 68, 0.1);
+                border: 1px solid rgba(239, 68, 68, 0.3);
+                border-radius: 8px;
+                color: #ef4444;
+                cursor: pointer;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                transition: all 0.3s ease;
+            }
+            
+            .textpro-clear-history-btn:hover {
+                background: rgba(239, 68, 68, 0.2);
+                border-color: rgba(239, 68, 68, 0.5);
+                transform: scale(1.05);
+            }
+            
             .textpro-chat-messages {
                 flex: 1;
                 overflow-y: auto;
@@ -1152,6 +1184,18 @@
                 cursor: not-allowed;
             }
             
+            .textpro-counter {
+                position: absolute;
+                bottom: 60px;
+                right: 16px;
+                font-size: 11px;
+                color: rgba(255, 255, 255, 0.5);
+                background: rgba(0, 0, 0, 0.3);
+                padding: 4px 10px;
+                border-radius: 12px;
+                pointer-events: none;
+            }
+            
             .textpro-download-btn {
                 display: inline-block;
                 margin-top: 8px;
@@ -1181,6 +1225,44 @@
             .textpro-download-btn:hover {
                 background: rgba(16, 185, 129, 0.25);
                 border-color: rgba(16, 185, 129, 0.6);
+            }
+            
+            .textpro-copy-btn {
+                display: inline-block;
+                margin-top: 8px;
+                margin-left: 6px;
+                padding: 3px 6px;
+                background: rgba(59, 130, 246, 0.1);
+                border: 1px solid rgba(59, 130, 246, 0.3);
+                border-radius: 3px;
+                color: #3b82f6;
+                font-weight: 400;
+                font-size: 9px;
+                cursor: pointer;
+                transition: all 0.2s ease;
+                display: inline-flex;
+                align-items: center;
+                gap: 4px;
+            }
+            
+            .textpro-copy-btn svg {
+                width: 12px;
+                height: 12px;
+            }
+            
+            .textpro-copy-btn span {
+                font-size: 9px;
+            }
+            
+            .textpro-copy-btn:hover {
+                background: rgba(59, 130, 246, 0.25);
+                border-color: rgba(59, 130, 246, 0.6);
+            }
+            
+            .textpro-copy-btn.copied {
+                background: rgba(16, 185, 129, 0.2);
+                border-color: rgba(16, 185, 129, 0.4);
+                color: #10b981;
             }
             
             .textpro-speaker-btn {
@@ -1463,6 +1545,16 @@
                 downloadTextProResult(textToDownload);
             };
             contentDiv.appendChild(downloadBtn);
+            
+            // Ajouter le bouton de copie
+            const copyBtn = document.createElement('button');
+            copyBtn.className = 'textpro-copy-btn';
+            copyBtn.innerHTML = SVGIcons.copy + ' <span>Copier</span>';
+            copyBtn.onclick = function() {
+                const textToCopy = translationContent || content;
+                window.copyTextProMessage(textToCopy, copyBtn);
+            };
+            contentDiv.appendChild(copyBtn);
         }
         
         messageDiv.appendChild(contentDiv);
@@ -1980,6 +2072,81 @@
             if (targetLangLabel) {
                 targetLangLabel.textContent = targetLang.toUpperCase();
             }
+        }
+    };
+    
+    /**
+     * Mettre à jour le compteur de caractères/mots
+     */
+    window.updateTextProCounter = function() {
+        const textarea = document.getElementById('textProChatInput');
+        const counter = document.getElementById('textProCounter');
+        
+        if (textarea && counter) {
+            const text = textarea.value;
+            const chars = text.length;
+            const words = text.trim() === '' ? 0 : text.trim().split(/\s+/).length;
+            
+            counter.textContent = `${chars} caractère${chars > 1 ? 's' : ''} | ${words} mot${words > 1 ? 's' : ''}`;
+        }
+    };
+    
+    /**
+     * Copier le contenu d'un message
+     */
+    window.copyTextProMessage = async function(text, button) {
+        try {
+            await navigator.clipboard.writeText(text);
+            
+            // Feedback visuel
+            const originalHTML = button.innerHTML;
+            button.classList.add('copied');
+            button.innerHTML = `${SVGIcons.check} <span>Copié !</span>`;
+            
+            setTimeout(() => {
+                button.classList.remove('copied');
+                button.innerHTML = originalHTML;
+            }, 2000);
+            
+            console.log('✓ Texte copié dans le presse-papiers');
+        } catch (error) {
+            console.error('Erreur copie:', error);
+            alert('Impossible de copier le texte. Veuillez réessayer.');
+        }
+    };
+    
+    /**
+     * Effacer l'historique du chat
+     */
+    window.clearTextProHistory = function() {
+        if (confirm('Voulez-vous vraiment effacer tout l\'historique du chat ?')) {
+            const messagesDiv = document.getElementById('textProMessages');
+            if (messagesDiv) {
+                // Garder uniquement le message de bienvenue
+                messagesDiv.innerHTML = `
+                    <div class="textpro-message assistant">
+                        <div class="textpro-message-content">
+                            Bonjour ! Je suis votre Agent Text Pro. 
+                            
+                            🎤 Utilisez le microphone pour dicter votre texte
+                            🔊 Cliquez sur le haut-parleur pour écouter mes réponses
+                            📄 Uploadez un fichier ou collez votre texte directement
+                            
+                            Je peux traduire, corriger, résumer, réécrire et bien plus !
+                        </div>
+                    </div>
+                `;
+            }
+            
+            // Vider l'historique
+            textProChatHistory = [];
+            
+            // Réinitialiser le textarea et le compteur
+            const textarea = document.getElementById('textProChatInput');
+            if (textarea) textarea.value = '';
+            window.updateTextProCounter();
+            
+            console.log('✓ Historique effacé');
         }
     };
 
