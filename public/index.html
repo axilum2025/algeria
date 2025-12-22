@@ -14300,6 +14300,52 @@ RÈGLES DE CONVERSATION :
         let financeChatHistory = [];
         let financeConversationId = sessionStorage.getItem('financeConversationId') || `finance-${Date.now()}`;
         
+        // Contexte entreprise et données financières
+        let financeContext = {
+            company: {
+                name: sessionStorage.getItem('companyName') || 'Entreprise',
+                fiscalYear: new Date().getFullYear(),
+                currency: 'EUR',
+                country: 'DZ'
+            },
+            chartOfAccounts: [
+                { code: '401000', name: 'Fournisseurs', type: 'passif' },
+                { code: '411000', name: 'Clients', type: 'actif' },
+                { code: '512000', name: 'Banque', type: 'actif' },
+                { code: '607000', name: 'Achats marchandises', type: 'charge' },
+                { code: '707000', name: 'Ventes marchandises', type: 'produit' },
+                { code: '445660', name: 'TVA déductible', type: 'actif' },
+                { code: '445710', name: 'TVA collectée', type: 'passif' }
+            ],
+            budgets: [],
+            kpis: {
+                ca: 0,
+                charges: 0,
+                resultat: 0,
+                tresorerie: 0,
+                creances: 0,
+                dettes: 0
+            },
+            lastUpdated: null
+        };
+        
+        // Audit trail des actions finance
+        let financeAuditLog = [];
+        
+        function logFinanceAction(action, input, output, status = 'success') {
+            const entry = {
+                timestamp: new Date().toISOString(),
+                action,
+                input,
+                output,
+                status,
+                conversationId: financeConversationId
+            };
+            financeAuditLog.push(entry);
+            if (financeAuditLog.length > 100) financeAuditLog.shift();
+            console.log('[Finance Audit]', entry);
+        }
+        
         function openFinanceAI() {
             // Fermer autres overlays
             const hrOverlay = document.getElementById('hrManagementOverlay');
@@ -14552,6 +14598,7 @@ RÈGLES DE CONVERSATION :
             userMsg.textContent = message;
             chatHist.appendChild(userMsg);
             financeChatHistory.push({ role: 'user', text: message });
+            logFinanceAction('user_message', { message }, { timestamp: new Date().toISOString() }, 'info');
             textarea.value = '';
             chatHist.scrollTop = chatHist.scrollHeight;
             
@@ -14564,12 +14611,26 @@ RÈGLES DE CONVERSATION :
             setTimeout(() => {
                 try {
                     const endpoint = typeof getEndpoint === 'function' ? getEndpoint() : '/api/agents/axilum/invoke';
-                    
+                    const systemPrompt = [
+                        '[FINANCE_EXPERT_V2]',
+                        'Rôle: directeur financier, expert-comptable, analyste marché.',
+                        'Priorités: exactitude, contrôle, conformité, traçabilité, réponses concises en français.',
+                        'Outils disponibles (déjà câblés côté UI/API, à déclencher sur demande utilisateur):',
+                        '- Lecture factures OCR (/api/finance/invoices/ocr)',
+                        '- Détection fraudes (/api/finance/fraud/analyze)',
+                        '- Prévision trésorerie (/api/finance/cashflow/forecast)',
+                        '- Classification dépenses (/api/finance/expenses/classify)',
+                        '- Rapports financiers (/api/finance/reports/generate)',
+                        '- Listing Blob invoices/reports (/api/finance/storage/list)',
+                        'Quand l’utilisateur demande une action liée à ces outils, proposer clairement l’action et les paramètres à lancer (ne pas inventer d’ID).',
+                        'Structure de réponse: 1) Recommandation/action, 2) Données/contrôles requis, 3) Risques/alertes, 4) Prochain pas (outil ou saisie).'
+                    ].join('\n');
+
                     fetch(endpoint, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({
-                            message: `[FINANCE_EXPERT] Tu es un directeur financier expert-comptable et analyste marché. Réponds en français format concis. 1/ Recommandations, 2/ Contrôles, 3/ Chiffres attendus, 4/ Risques. Q: ${message}`,
+                            message: `${systemPrompt}\nQuestion: ${message}`,
                             conversationId: financeConversationId,
                             history: financeChatHistory.map(m => ({ type: m.role === 'bot' ? 'assistant' : 'user', content: m.text })),
                             useV2: false
@@ -14583,6 +14644,7 @@ RÈGLES DE CONVERSATION :
                         botMsg.textContent = answer;
                         chatHist.appendChild(botMsg);
                         financeChatHistory.push({ role: 'bot', text: answer });
+                        logFinanceAction('agent_response', { query: message }, { answer }, 'success');
                         chatHist.scrollTop = chatHist.scrollHeight;
                     })
                     .catch(err => {
@@ -14590,6 +14652,7 @@ RÈGLES DE CONVERSATION :
                         errMsg.className = 'chat-msg bot';
                         errMsg.textContent = 'Erreur: ' + err.message;
                         chatHist.appendChild(errMsg);
+                        logFinanceAction('agent_error', { query: message }, { error: err.message }, 'error');
                     })
                     .finally(() => {
                         sendBtn.disabled = false;
@@ -14621,7 +14684,10 @@ RÈGLES DE CONVERSATION :
 
         async function callFinanceTool({ label, endpoint, payload, formatResult }) {
             financeChatAddMessage('bot', `${label} en cours...`);
+            const startTime = Date.now();
             try {
+                logFinanceAction('tool_call_start', { label, endpoint, payload }, { timestamp: new Date().toISOString() }, 'info');
+                
                 const response = await fetch(endpoint, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
@@ -14645,8 +14711,14 @@ RÈGLES DE CONVERSATION :
                     ? formatResult(data)
                     : `${label} terminé`;
                 financeChatAddMessage('bot', message);
+                
+                const duration = Date.now() - startTime;
+                logFinanceAction('tool_call_success', { label, endpoint, duration }, { data, message }, 'success');
             } catch (error) {
-                financeChatAddMessage('bot', `${label} : ${error.message}`);
+                const errorMsg = `${label} : ${error.message}`;
+                financeChatAddMessage('bot', errorMsg);
+                const duration = Date.now() - startTime;
+                logFinanceAction('tool_call_error', { label, endpoint, duration }, { error: error.message }, 'error');
             }
         }
 
@@ -14916,6 +14988,33 @@ RÈGLES DE CONVERSATION :
                 setTimeout(() => overlay.remove(), 300);
             }
         }
+        
+        // Export audit trail et contexte pour analyse
+        window.exportFinanceAudit = function() {
+            const exportData = {
+                context: financeContext,
+                conversationId: financeConversationId,
+                chatHistory: financeChatHistory,
+                auditLog: financeAuditLog,
+                exportedAt: new Date().toISOString()
+            };
+            const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `finance-audit-${financeConversationId}.json`;
+            a.click();
+            URL.revokeObjectURL(url);
+            console.log('[Finance] Audit exporté', exportData);
+        };
+        
+        // Mise à jour du contexte entreprise (appelable depuis UI)
+        window.updateFinanceContext = function(updates) {
+            financeContext = Object.assign({}, financeContext, updates);
+            financeContext.lastUpdated = new Date().toISOString();
+            logFinanceAction('context_update', updates, { context: financeContext }, 'info');
+            console.log('[Finance] Contexte mis à jour', financeContext);
+        };
         // ========== FIN AI FINANCE & COMPTABILITÉ ==========
         
         
