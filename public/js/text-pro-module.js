@@ -498,6 +498,17 @@
                 }))
             ];
             
+            // Debug: vérifier le contenu
+            console.log('📤 Envoi à l\'API:', messages.length, 'messages');
+            console.log('📝 Historique complet:', textProChatHistory);
+            const fileMessages = messages.filter(m => m.content.includes('[FICHIER UPLOADÉ'));
+            if (fileMessages.length > 0) {
+                console.log('📄 Fichiers trouvés:', fileMessages.length);
+                fileMessages.forEach(fm => {
+                    console.log('  - Taille:', fm.content.length, 'caractères');
+                });
+            }
+            
             // Appeler l'API
             const currentUser = JSON.parse(localStorage.getItem('currentUser') || 'null');
             const response = await fetch('/api/chat', {

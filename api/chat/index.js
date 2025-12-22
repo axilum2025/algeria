@@ -28,6 +28,15 @@ module.exports = async function (context, req) {
       return;
     }
 
+    context.log('📨 Chat API - Reçu:', messages.length, 'messages');
+    const fileMessages = messages.filter(m => m.content && m.content.includes('[FICHIER UPLOADÉ'));
+    if (fileMessages.length > 0) {
+      context.log('📄 Fichiers détectés:', fileMessages.length);
+      fileMessages.forEach((fm, i) => {
+        context.log(`  Fichier ${i+1}: ${fm.content.length} caractères`);
+      });
+    }
+
     const groqKey = process.env.APPSETTING_GROQ_API_KEY || process.env.GROQ_API_KEY;
     
     if (!groqKey) {
