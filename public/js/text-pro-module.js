@@ -407,29 +407,27 @@
             .textpro-download-btn {
                 display: inline-flex;
                 align-items: center;
-                gap: 6px;
-                margin-top: 8px;
-                padding: 6px 12px;
-                background: linear-gradient(135deg, #10b981, #06b6d4);
-                border: 1px solid rgba(16, 185, 129, 0.3);
-                border-radius: 6px;
-                color: white;
+                gap: 4px;
+                margin-top: 10px;
+                padding: 4px 8px;
+                background: rgba(16, 185, 129, 0.15);
+                border: 1px solid rgba(16, 185, 129, 0.4);
+                border-radius: 4px;
+                color: #10b981;
                 font-weight: 500;
-                font-size: 11px;
+                font-size: 10px;
                 cursor: pointer;
-                transition: all 0.3s ease;
-                animation: slideInUp 0.5s ease;
+                transition: all 0.2s ease;
             }
             
             .textpro-download-btn:hover {
-                transform: translateY(-2px);
-                box-shadow: 0 4px 16px rgba(16, 185, 129, 0.4);
-                background: linear-gradient(135deg, #059669, #0891b2);
+                background: rgba(16, 185, 129, 0.25);
+                border-color: rgba(16, 185, 129, 0.6);
             }
             
             .textpro-download-btn svg {
-                width: 14px;
-                height: 14px;
+                width: 12px;
+                height: 12px;
             }
             
             @keyframes slideInUp {
@@ -555,9 +553,7 @@
         contentDiv.className = 'textpro-message-content';
         contentDiv.textContent = content;
         
-        messageDiv.appendChild(contentDiv);
-        
-        // Ajouter le bouton de téléchargement si proposé
+        // Ajouter le bouton de téléchargement si proposé (dans le contentDiv)
         if (offerDownload && role === 'assistant') {
             const downloadBtn = document.createElement('button');
             downloadBtn.className = 'textpro-download-btn';
@@ -565,13 +561,15 @@
                 <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
                 </svg>
-                Télécharger le résultat
+                Télécharger
             `;
             downloadBtn.onclick = function() {
                 downloadTextProResult(content);
             };
-            messageDiv.appendChild(downloadBtn);
+            contentDiv.appendChild(downloadBtn);
         }
+        
+        messageDiv.appendChild(contentDiv);
         
         messagesDiv.appendChild(messageDiv);
         messagesDiv.scrollTop = messagesDiv.scrollHeight;
