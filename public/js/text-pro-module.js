@@ -1394,12 +1394,6 @@
     }
     
     /**
-     * Lire un message à voix haute (Text-to-Speech)
-     */
-    window.speakTextProMessage = function(text, button) {
-        // Arrêter toute lecture en cours
-        
-    /**
      * Changer le mode de traduction
      */
     window.changeTranslationMode = function(mode) {
@@ -1625,8 +1619,6 @@
                         {
                             role: 'system',
                             content: `${modePrompt}Traduis le texte de ${getLanguageName(fromLang)} vers ${getLanguageName(toLang, true)}. Ne fournis que la traduction, sans explications supplémentaires.`
-                        },
-                            content: `Tu es un traducteur professionnel. Traduis le texte de ${getLanguageName(fromLang)} vers ${getLanguageName(toLang, true)}. Ne fournis que la traduction, sans explications supplémentaires.`
                         },
                         {
                             role: 'user',
