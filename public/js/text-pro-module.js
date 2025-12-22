@@ -407,15 +407,15 @@
             .textpro-download-btn {
                 display: inline-flex;
                 align-items: center;
-                gap: 4px;
-                margin-top: 10px;
-                padding: 4px 8px;
-                background: rgba(16, 185, 129, 0.15);
-                border: 1px solid rgba(16, 185, 129, 0.4);
-                border-radius: 4px;
+                gap: 3px;
+                margin-top: 8px;
+                padding: 3px 6px;
+                background: rgba(16, 185, 129, 0.1);
+                border: 1px solid rgba(16, 185, 129, 0.3);
+                border-radius: 3px;
                 color: #10b981;
-                font-weight: 500;
-                font-size: 10px;
+                font-weight: 400;
+                font-size: 9px;
                 cursor: pointer;
                 transition: all 0.2s ease;
             }
@@ -426,8 +426,8 @@
             }
             
             .textpro-download-btn svg {
-                width: 12px;
-                height: 12px;
+                width: 10px;
+                height: 10px;
             }
             
             @keyframes slideInUp {
