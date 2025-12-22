@@ -259,10 +259,31 @@ OPENAI_API_KEY=sk-proj-...
 - [ ] Export audio MP3
 
 ### Général
-- [ ] Traduction vocale en temps réel
+- [x] **Traduction vocale en temps réel** ✅ IMPLÉMENTÉ
 - [ ] Synthèse vocale multilingue
 - [ ] Historique des enregistrements
 - [ ] Transcription de fichiers audio uploadés
+
+## ✨ Nouvelle fonctionnalité: Traduction Vocale Instantanée
+
+### Caractéristiques
+- **Bouton globe** pour activer/désactiver la traduction instantanée
+- **Sélecteurs de langue** (source → cible)
+- **Reconnaissance continue** avec traduction automatique
+- **Lecture vocale** de la traduction
+- **Support multilingue**: Français, Anglais, Espagnol, Allemand, Italien, Arabe, Chinois
+
+### Fonctionnement
+1. Cliquer sur le bouton globe (🌍)
+2. Choisir la langue source et la langue cible
+3. Parler dans le microphone
+4. Le texte est capturé, traduit et lu automatiquement
+5. La conversation continue jusqu'à l'arrêt manuel
+
+### Technologies
+- **Web Speech API** pour la reconnaissance vocale continue
+- **API Azure OpenAI** pour la traduction
+- **Web Speech Synthesis** pour la lecture de la traduction
 
 ## 📝 Notes
 
