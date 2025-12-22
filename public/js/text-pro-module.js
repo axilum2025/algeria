@@ -179,6 +179,13 @@
         arrows: `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <polyline points="17 11 12 6 7 11"></polyline>
             <polyline points="17 18 12 13 7 18"></polyline>
+        </svg>`,
+        
+        trash: `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="3 6 5 6 21 6"></polyline>
+            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+            <line x1="10" y1="11" x2="10" y2="17"></line>
+            <line x1="14" y1="11" x2="14" y2="17"></line>
         </svg>`
     };
     
@@ -457,6 +464,10 @@
                     </div>
                     
                     <div class="textpro-comparison-footer">
+                        <button class="textpro-clear-comparison-btn" onclick="window.clearComparison()" title="Effacer la comparaison">
+                            ${SVGIcons.trash}
+                            <span>Effacer</span>
+                        </button>
                         <button class="textpro-sync-btn" onclick="window.syncComparisonScroll()" title="Synchroniser le défilement">
                             ${SVGIcons.sync}
                             <span>Synchroniser</span>
@@ -893,6 +904,17 @@
             
             .textpro-download-comparison-btn:hover {
                 background: rgba(16, 185, 129, 0.3);
+            }
+            
+            .textpro-clear-comparison-btn {
+                background: rgba(239, 68, 68, 0.2);
+                border-color: rgba(239, 68, 68, 0.4);
+                color: #ef4444;
+            }
+            
+            .textpro-clear-comparison-btn:hover {
+                background: rgba(239, 68, 68, 0.3);
+                transform: translateY(-2px);
             }
             
             .textpro-chat-panel {
@@ -1774,6 +1796,35 @@
             
             addTextProMessage('✅ Synchronisation du défilement activée', 'assistant');
         }
+    };
+    
+    /**
+     * Effacer la vue comparaison
+     */
+    window.clearComparison = function() {
+        // Réinitialiser les variables
+        lastSourceText = '';
+        lastTranslatedText = '';
+        
+        // Vider les panneaux
+        const sourceDisplay = document.getElementById('sourceTextDisplay');
+        const targetDisplay = document.getElementById('targetTextDisplay');
+        
+        if (sourceDisplay) {
+            sourceDisplay.innerHTML = `<div class="textpro-comparison-placeholder">
+                Le texte original apparaîtra ici après la traduction
+            </div>`;
+        }
+        
+        if (targetDisplay) {
+            targetDisplay.innerHTML = `<div class="textpro-comparison-placeholder">
+                La traduction apparaîtra ici
+            </div>`;
+        }
+        
+        // Message de confirmation
+        addTextProMessage('🗑️ Vue comparaison effacée. Prêt pour une nouvelle traduction.', 'assistant');
+        console.log('Vue comparaison réinitialisée');
     };
     
     /**
