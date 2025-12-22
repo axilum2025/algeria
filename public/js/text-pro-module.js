@@ -548,6 +548,10 @@
         
         // Ajouter le bouton de téléchargement si proposé (dans le contentDiv)
         if (offerDownload && role === 'assistant') {
+            // Ajouter un saut de ligne pour l'espace
+            const br = document.createElement('br');
+            contentDiv.appendChild(br);
+            
             const downloadBtn = document.createElement('button');
             downloadBtn.className = 'textpro-download-btn';
             downloadBtn.textContent = 'Télécharger';
@@ -566,34 +570,65 @@
     }
     
     /**
-     * Télécharger le résultat de Text Pro
+     * Télécharger le résultat de Text Pro au format PDF
      */
     function downloadTextProResult(content) {
         try {
             // Créer un nom de fichier avec timestamp
             const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, -5);
-            const filename = `textpro-resultat-${timestamp}.txt`;
+            const filename = `textpro-resultat-${timestamp}.pdf`;
             
-            // Créer un blob avec le contenu
-            const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
-            
-            // Créer un lien de téléchargement
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = filename;
-            a.style.display = 'none';
-            
-            document.body.appendChild(a);
-            a.click();
-            
-            // Nettoyer
-            setTimeout(() => {
-                document.body.removeChild(a);
-                URL.revokeObjectURL(url);
-            }, 100);
-            
-            console.log('✓ Résultat téléchargé:', filename);
+            // Créer un blob avec le contenu au format PDF
+            // Utiliser jsPDF pour créer un PDF
+            if (window.jsPDF) {
+                const { jsPDF } = window.jsPDF;
+                const doc = new jsPDF({
+                    orientation: 'portrait',
+                    unit: 'mm',
+                    format: 'a4'
+                });
+                
+                // Définir les propriétés du document
+                doc.setFont('helvetica');
+                doc.setFontSize(12);
+                
+                // Ajouter le contenu avec wrapping automatique
+                const margin = 10;
+                const pageWidth = doc.internal.pageSize.getWidth();
+                const pageHeight = doc.internal.pageSize.getHeight();
+                const maxWidth = pageWidth - (2 * margin);
+                
+                const lines = doc.splitTextToSize(content, maxWidth);
+                let y = margin + 10;
+                
+                lines.forEach(line => {
+                    if (y > pageHeight - margin) {
+                        doc.addPage();
+                        y = margin;
+                    }
+                    doc.text(line, margin, y);
+                    y += 7;
+                });
+                
+                // Télécharger le PDF
+                doc.save(filename);
+                console.log('✓ PDF téléchargé:', filename);
+            } else {
+                // Fallback: créer un fichier TXT si jsPDF n'est pas disponible
+                console.warn('jsPDF non disponible, création de TXT');
+                const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = filename.replace('.pdf', '.txt');
+                a.style.display = 'none';
+                document.body.appendChild(a);
+                a.click();
+                setTimeout(() => {
+                    document.body.removeChild(a);
+                    URL.revokeObjectURL(url);
+                }, 100);
+            }
         } catch (error) {
             console.error('Erreur téléchargement:', error);
             alert('Erreur lors du téléchargement. Veuillez réessayer.');
