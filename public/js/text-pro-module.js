@@ -206,10 +206,13 @@
             textProOverlay = createTextProInterface();
             document.body.appendChild(textProOverlay);
             
-            // Focus sur le textarea
+            // Initialiser les badges de langue dans la vue comparaison
             setTimeout(() => {
                 const textarea = document.getElementById('textProChatInput');
                 if (textarea) textarea.focus();
+                
+                // Mettre à jour les badges de langue avec les valeurs par défaut
+                window.updateTranslationLanguages();
             }, 300);
             
             console.log('Text Pro Module chargé avec succès');
@@ -1964,6 +1967,19 @@
             sourceLang = sourceSelect.value;
             targetLang = targetSelect.value;
             console.log(`📝 Langues mises à jour: ${sourceLang} → ${targetLang}`);
+            
+            // Mettre à jour les badges de langue dans la vue comparaison
+            const sourceLangLabel = document.getElementById('sourceLangLabel');
+            const targetLangLabel = document.getElementById('targetLangLabel');
+            
+            if (sourceLangLabel) {
+                const srcLang = sourceLang.split('-')[0].toUpperCase();
+                sourceLangLabel.textContent = srcLang;
+            }
+            
+            if (targetLangLabel) {
+                targetLangLabel.textContent = targetLang.toUpperCase();
+            }
         }
     };
 
