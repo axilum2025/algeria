@@ -22,6 +22,55 @@
     let sourceLang = 'fr-FR';
     let targetLang = 'en';
     
+    // Variables pour les modes de traduction
+    let currentTranslationMode = 'general';
+    
+    // Définition des modes de traduction
+    const translationModes = {
+        general: {
+            name: 'Général',
+            icon: '💬',
+            description: 'Traduction standard polyvalente',
+            prompt: 'Tu es un traducteur professionnel généraliste.'
+        },
+        academic: {
+            name: 'Académique',
+            icon: '🎓',
+            description: 'Style formel pour travaux universitaires',
+            prompt: 'Tu es un traducteur académique spécialisé. Utilise un style formel, précis et respectueux des normes universitaires. Privilégie la clarté et la rigueur scientifique.'
+        },
+        scientific: {
+            name: 'Scientifique',
+            icon: '🔬',
+            description: 'Terminologie scientifique et technique',
+            prompt: 'Tu es un traducteur scientifique expert. Utilise la terminologie scientifique précise, respecte les conventions de notation et préserve l\'exactitude des concepts techniques.'
+        },
+        legal: {
+            name: 'Juridique',
+            icon: '⚖️',
+            description: 'Vocabulaire juridique et contractuel',
+            prompt: 'Tu es un traducteur juridique spécialisé. Utilise le vocabulaire juridique approprié, respecte les formulations légales et maintiens la précision contractuelle.'
+        },
+        medical: {
+            name: 'Médical',
+            icon: '🏥',
+            description: 'Termes médicaux et pharmaceutiques',
+            prompt: 'Tu es un traducteur médical expert. Utilise la terminologie médicale et pharmaceutique correcte, respecte les noms de pathologies et de traitements.'
+        },
+        technical: {
+            name: 'Technique',
+            icon: '💻',
+            description: 'Jargon IT, ingénierie et technologie',
+            prompt: 'Tu es un traducteur technique spécialisé en IT et ingénierie. Utilise le jargon technique approprié, respecte les termes informatiques et technologiques.'
+        },
+        business: {
+            name: 'Business',
+            icon: '💼',
+            description: 'Langage professionnel et commercial',
+            prompt: 'Tu es un traducteur business spécialisé. Utilise un langage professionnel, adapté au monde des affaires, avec un ton approprié pour la communication d\'entreprise.'
+        }
+    };
+    
     /**
      * Bibliothèque d'icônes SVG
      */
@@ -97,6 +146,11 @@
             <circle cx="12" cy="12" r="10"></circle>
             <line x1="2" y1="12" x2="22" y2="12"></line>
             <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
+        </svg>`,
+        
+        settings: `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="3"></circle>
+            <path d="M12 1v6m0 6v6M5.64 5.64l4.24 4.24m4.24 4.24l4.24 4.24M1 12h6m6 0h6M5.64 18.36l4.24-4.24m4.24-4.24l4.24-4.24"></path>
         </svg>`
     };
     
@@ -175,6 +229,25 @@
                     <div class="textpro-info-header">
                         <h1 class="textpro-info-title">AI Text Pro</h1>
                         <p class="textpro-info-subtitle">Traitement de texte intelligent</p>
+                    </div>
+                    
+                    <!-- Sélecteur de mode de traduction -->
+                    <div class="textpro-mode-section">
+                        <h3 class="textpro-section-title">
+                            ${SVGIcons.settings} Mode de traduction
+                        </h3>
+                        <select id="translationModeSelect" class="textpro-mode-select" onchange="window.changeTranslationMode(this.value)">
+                            <option value="general">💬 Général</option>
+                            <option value="academic">🎓 Académique</option>
+                            <option value="scientific">🔬 Scientifique</option>
+                            <option value="legal">⚖️ Juridique</option>
+                            <option value="medical">🏥 Médical</option>
+                            <option value="technical">💻 Technique</option>
+                            <option value="business">💼 Business</option>
+                        </select>
+                        <div id="modeDescription" class="textpro-mode-description">
+                            Traduction standard polyvalente
+                        </div>
                     </div>
                     
                     <div class="textpro-upload-section">
@@ -354,6 +427,55 @@
                 font-weight: 700;
                 color: white;
                 margin: 0 0 12px;
+                display: flex;
+                align-items: center;
+                gap: 8px;
+            }
+            
+            .textpro-mode-section {
+                background: rgba(59, 130, 246, 0.1);
+                border: 1px solid rgba(59, 130, 246, 0.3);
+                border-radius: 12px;
+                padding: 16px;
+                margin-bottom: 20px;
+            }
+            
+            .textpro-mode-select {
+                width: 100%;
+                padding: 10px 12px;
+                background: rgba(255, 255, 255, 0.1);
+                border: 1px solid rgba(59, 130, 246, 0.4);
+                border-radius: 8px;
+                color: white;
+                font-size: 14px;
+                font-weight: 500;
+                cursor: pointer;
+                transition: all 0.3s ease;
+                margin-bottom: 8px;
+            }
+            
+            .textpro-mode-select:hover {
+                background: rgba(255, 255, 255, 0.15);
+                border-color: rgba(59, 130, 246, 0.6);
+            }
+            
+            .textpro-mode-select:focus {
+                outline: none;
+                border-color: #3b82f6;
+                box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+            }
+            
+            .textpro-mode-select option {
+                background: #1e293b;
+                color: white;
+                padding: 8px;
+            }
+            
+            .textpro-mode-description {
+                font-size: 12px;
+                color: rgba(255, 255, 255, 0.6);
+                font-style: italic;
+                line-height: 1.4;
             }
             
             .textpro-upload-section {
@@ -1276,6 +1398,33 @@
      */
     window.speakTextProMessage = function(text, button) {
         // Arrêter toute lecture en cours
+        
+    /**
+     * Changer le mode de traduction
+     */
+    window.changeTranslationMode = function(mode) {
+        currentTranslationMode = mode;
+        const modeInfo = translationModes[mode];
+        
+        // Mettre à jour la description
+        const descriptionDiv = document.getElementById('modeDescription');
+        if (descriptionDiv && modeInfo) {
+            descriptionDiv.textContent = modeInfo.description;
+        }
+        
+        // Ajouter un message de confirmation dans le chat
+        const modeName = modeInfo ? modeInfo.name : mode;
+        const modeIcon = modeInfo ? modeInfo.icon : '💬';
+        addTextProMessage(`${modeIcon} Mode de traduction changé: ${modeName}`, 'assistant');
+        
+        console.log('Mode de traduction:', mode);
+    };
+    
+    /**
+     * Lire un message à voix haute (Text-to-Speech)
+     */
+    window.speakTextProMessage = function(text, button) {
+        // Arrêter toute lecture en cours
         if (currentUtterance) {
             speechSynthesis.cancel();
             currentUtterance = null;
@@ -1461,6 +1610,12 @@
             // Extraire le code de langue simplifié (fr-FR -> fr)
             const fromCode = fromLang.split('-')[0];
             
+            // Obtenir le prompt selon le mode
+            const modeInfo = translationModes[currentTranslationMode];
+            const modePrompt = modeInfo 
+                ? `${modeInfo.prompt} ` 
+                : 'Tu es un traducteur professionnel généraliste. ';
+            
             const currentUser = JSON.parse(localStorage.getItem('currentUser') || 'null');
             const response = await fetch('/api/chat', {
                 method: 'POST',
@@ -1469,6 +1624,8 @@
                     messages: [
                         {
                             role: 'system',
+                            content: `${modePrompt}Traduis le texte de ${getLanguageName(fromLang)} vers ${getLanguageName(toLang, true)}. Ne fournis que la traduction, sans explications supplémentaires.`
+                        },
                             content: `Tu es un traducteur professionnel. Traduis le texte de ${getLanguageName(fromLang)} vers ${getLanguageName(toLang, true)}. Ne fournis que la traduction, sans explications supplémentaires.`
                         },
                         {
@@ -1566,10 +1723,15 @@
             sendBtn.innerHTML = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>';
             
             // Préparer les messages
+            const modeInfo = translationModes[currentTranslationMode];
+            const systemPrompt = modeInfo 
+                ? `Tu es Agent Text Pro, un assistant spécialisé dans le traitement de texte professionnel. ${modeInfo.prompt} Tu peux traduire, réécrire, corriger, résumer, analyser et améliorer des textes. Quand un utilisateur uploade un fichier, il sera marqué par [FICHIER UPLOADÉ: nom] ... [FIN DU FICHIER]. Prends en compte tout le contenu du fichier dans tes réponses.`
+                : 'Tu es Agent Text Pro, un assistant spécialisé dans le traitement de texte professionnel. Tu peux traduire, réécrire, corriger, résumer, analyser et améliorer des textes. Quand un utilisateur uploade un fichier, il sera marqué par [FICHIER UPLOADÉ: nom] ... [FIN DU FICHIER]. Prends en compte tout le contenu du fichier dans tes réponses.';
+            
             const messages = [
                 {
                     role: 'system',
-                    content: 'Tu es Agent Text Pro, un assistant spécialisé dans le traitement de texte professionnel. Tu peux traduire, réécrire, corriger, résumer, analyser et améliorer des textes. Quand un utilisateur uploade un fichier, il sera marqué par [FICHIER UPLOADÉ: nom] ... [FIN DU FICHIER]. Prends en compte tout le contenu du fichier dans tes réponses.'
+                    content: systemPrompt
                 },
                 ...textProChatHistory.map(msg => ({
                     role: msg.role === 'assistant' ? 'assistant' : 'user',
