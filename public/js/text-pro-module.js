@@ -405,9 +405,7 @@
             }
             
             .textpro-download-btn {
-                display: inline-flex;
-                align-items: center;
-                gap: 3px;
+                display: inline-block;
                 margin-top: 8px;
                 padding: 3px 6px;
                 background: rgba(16, 185, 129, 0.1);
@@ -423,11 +421,6 @@
             .textpro-download-btn:hover {
                 background: rgba(16, 185, 129, 0.25);
                 border-color: rgba(16, 185, 129, 0.6);
-            }
-            
-            .textpro-download-btn svg {
-                width: 10px;
-                height: 10px;
             }
             
             @keyframes slideInUp {
@@ -557,12 +550,7 @@
         if (offerDownload && role === 'assistant') {
             const downloadBtn = document.createElement('button');
             downloadBtn.className = 'textpro-download-btn';
-            downloadBtn.innerHTML = `
-                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
-                </svg>
-                Télécharger
-            `;
+            downloadBtn.textContent = 'Télécharger';
             downloadBtn.onclick = function() {
                 downloadTextProResult(content);
             };
