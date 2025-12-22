@@ -420,12 +420,22 @@
             if (file.type === 'text/plain' || file.name.endsWith('.txt')) {
                 reader.onload = function(e) {
                     const content = e.target.result;
-                    statusDiv.textContent = `✓ ${file.name} chargé`;
+                    statusDiv.textContent = `✓ ${file.name} chargé (${Math.round(content.length/1024)} Ko)`;
                     statusDiv.style.color = 'rgba(16, 185, 129, 0.8)';
                     
-                    addTextProMessage(`Fichier: ${file.name}\n\n${content}`, 'user');
+                    // Ajouter le fichier avec un marqueur clair
+                    const fileMessage = `[FICHIER UPLOADÉ: ${file.name}]\n\n${content}\n\n[FIN DU FICHIER]`;
+                    addTextProMessage(fileMessage, 'user');
+                    
+                    // Afficher un message visuel plus simple
+                    const messagesDiv = document.getElementById('textProMessages');
+                    const lastUserMsg = messagesDiv.querySelector('.textpro-message.user:last-child .textpro-message-content');
+                    if (lastUserMsg) {
+                        lastUserMsg.textContent = `📄 Fichier uploadé: ${file.name} (${Math.round(content.length/1024)} Ko)`;
+                    }
+                    
                     setTimeout(() => {
-                        addTextProMessage(`J'ai bien reçu votre fichier "${file.name}". Que souhaitez-vous que je fasse avec ce texte ?`, 'assistant');
+                        addTextProMessage(`J'ai bien reçu votre fichier "${file.name}" (${Math.round(content.length/1024)} Ko de texte). Que souhaitez-vous que je fasse avec ce contenu ? Je peux le traduire, le résumer, le corriger, le réécrire, etc.`, 'assistant');
                     }, 500);
                 };
                 reader.readAsText(file);
@@ -480,7 +490,7 @@
             const messages = [
                 {
                     role: 'system',
-                    content: 'Tu es Agent Text Pro, un assistant spécialisé dans le traitement de texte professionnel. Tu peux traduire, réécrire, corriger, résumer, analyser et améliorer des textes.'
+                    content: 'Tu es Agent Text Pro, un assistant spécialisé dans le traitement de texte professionnel. Tu peux traduire, réécrire, corriger, résumer, analyser et améliorer des textes. Quand un utilisateur uploade un fichier, il sera marqué par [FICHIER UPLOADÉ: nom] ... [FIN DU FICHIER]. Prends en compte tout le contenu du fichier dans tes réponses.'
                 },
                 ...textProChatHistory.map(msg => ({
                     role: msg.role === 'assistant' ? 'assistant' : 'user',
