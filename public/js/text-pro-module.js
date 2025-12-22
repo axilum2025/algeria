@@ -218,6 +218,30 @@
                 
                 // Mettre à jour les badges de langue avec les valeurs par défaut
                 window.updateTranslationLanguages();
+                
+                // Ajouter le message d'accueil
+                const welcomeMessage = `Bienvenue dans AI Text Pro
+Votre assistant intelligent de traitement et traduction de texte.
+
+CAPACITÉS PRINCIPALES
+• Traduction professionnelle dans 7 langues
+• 7 modes spécialisés : Général, Académique, Scientifique, Juridique, Médical, Technique, Business
+• Correction orthographique et grammaticale
+• Résumé et synthèse de documents
+• Réécriture et optimisation de style
+• Analyse et structuration de contenu
+
+OUTILS DISPONIBLES
+• Vue Comparaison source/cible
+• Export multi-format (PDF, TXT, DOCX)
+• Copie instantanée
+• Synthèse vocale et dictation
+• Traduction vocale en temps réel
+• Import de fichiers
+• Compteur de mots et caractères
+
+Pour commencer, sélectionnez vos langues dans le panneau latéral et saisissez votre texte.`;
+                addTextProMessage(welcomeMessage, 'assistant');
             }, 300);
             
             console.log('Text Pro Module chargé avec succès');
@@ -413,31 +437,6 @@
                     </div>
                     
                     <div class="textpro-chat-messages" id="textProMessages">
-                        <div class="textpro-message assistant">
-                            <div class="textpro-message-content">
-                                Bienvenue dans AI Text Pro
-                                Votre assistant intelligent de traitement et traduction de texte.
-                                
-                                CAPACITÉS PRINCIPALES
-                                • Traduction professionnelle dans 7 langues
-                                • 7 modes spécialisés : Général, Académique, Scientifique, Juridique, Médical, Technique, Business
-                                • Correction orthographique et grammaticale
-                                • Résumé et synthèse de documents
-                                • Réécriture et optimisation de style
-                                • Analyse et structuration de contenu
-                                
-                                OUTILS DISPONIBLES
-                                • Vue Comparaison source/cible
-                                • Export multi-format (PDF, TXT, DOCX)
-                                • Copie instantanée
-                                • Synthèse vocale et dictation
-                                • Traduction vocale en temps réel
-                                • Import de fichiers
-                                • Compteur de mots et caractères
-                                
-                                Pour commencer, sélectionnez vos langues dans le panneau latéral et saisissez votre texte.
-                            </div>
-                        </div>
                     </div>
                     
                     <div class="textpro-chat-input-area">
@@ -2138,38 +2137,36 @@
         if (confirm('Voulez-vous vraiment effacer tout l\'historique du chat ?')) {
             const messagesDiv = document.getElementById('textProMessages');
             if (messagesDiv) {
-                // Garder uniquement le message de bienvenue
-                messagesDiv.innerHTML = `
-                    <div class="textpro-message assistant">
-                        <div class="textpro-message-content">
-                            Bienvenue dans AI Text Pro
-                            Votre assistant intelligent de traitement et traduction de texte.
-                            
-                            CAPACITÉS PRINCIPALES
-                            • Traduction professionnelle dans 7 langues
-                            • 7 modes spécialisés : Général, Académique, Scientifique, Juridique, Médical, Technique, Business
-                            • Correction orthographique et grammaticale
-                            • Résumé et synthèse de documents
-                            • Réécriture et optimisation de style
-                            • Analyse et structuration de contenu
-                            
-                            OUTILS DISPONIBLES
-                            • Vue Comparaison source/cible
-                            • Export multi-format (PDF, TXT, DOCX)
-                            • Copie instantanée
-                            • Synthèse vocale et dictation
-                            • Traduction vocale en temps réel
-                            • Import de fichiers
-                            • Compteur de mots et caractères
-                            
-                            Pour commencer, sélectionnez vos langues dans le panneau latéral et saisissez votre texte.
-                        </div>
-                    </div>
-                `;
+                // Vider tout le contenu
+                messagesDiv.innerHTML = '';
             }
             
             // Vider l'historique
             textProChatHistory = [];
+            
+            // Régénérer le message d'accueil
+            const welcomeMessage = `Bienvenue dans AI Text Pro
+Votre assistant intelligent de traitement et traduction de texte.
+
+CAPACITÉS PRINCIPALES
+• Traduction professionnelle dans 7 langues
+• 7 modes spécialisés : Général, Académique, Scientifique, Juridique, Médical, Technique, Business
+• Correction orthographique et grammaticale
+• Résumé et synthèse de documents
+• Réécriture et optimisation de style
+• Analyse et structuration de contenu
+
+OUTILS DISPONIBLES
+• Vue Comparaison source/cible
+• Export multi-format (PDF, TXT, DOCX)
+• Copie instantanée
+• Synthèse vocale et dictation
+• Traduction vocale en temps réel
+• Import de fichiers
+• Compteur de mots et caractères
+
+Pour commencer, sélectionnez vos langues dans le panneau latéral et saisissez votre texte.`;
+            addTextProMessage(welcomeMessage, 'assistant');
             
             // Réinitialiser le textarea et le compteur
             const textarea = document.getElementById('textProChatInput');
