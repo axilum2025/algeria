@@ -1186,7 +1186,7 @@
             
             .textpro-counter {
                 position: absolute;
-                bottom: 60px;
+                bottom: 80px;
                 right: 16px;
                 font-size: 11px;
                 color: rgba(255, 255, 255, 0.5);
