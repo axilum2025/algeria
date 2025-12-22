@@ -439,6 +439,57 @@
                     }, 500);
                 };
                 reader.readAsText(file);
+            } else if (file.type === 'application/pdf' || file.name.endsWith('.pdf')) {
+                // Gérer les PDF via extraction OCR
+                statusDiv.textContent = `⏳ Extraction du texte de ${file.name}...`;
+                statusDiv.style.color = 'rgba(59, 130, 246, 0.8)';
+                
+                reader.onload = async function(e) {
+                    try {
+                        const base64 = e.target.result.split(',')[1];
+                        
+                        // Appeler l'API parseCV pour extraire le texte
+                        const response = await fetch('/api/parseCV', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ 
+                                contentBase64: base64,
+                                filename: file.name 
+                            })
+                        });
+                        
+                        if (!response.ok) throw new Error('Erreur extraction PDF');
+                        
+                        const data = await response.json();
+                        const extractedText = data.text || data.extractedText || '';
+                        
+                        if (extractedText) {
+                            statusDiv.textContent = `✓ ${file.name} analysé (${Math.round(extractedText.length/1024)} Ko de texte extrait)`;
+                            statusDiv.style.color = 'rgba(16, 185, 129, 0.8)';
+                            
+                            const fileMessage = `[FICHIER PDF UPLOADÉ: ${file.name}]\n\n${extractedText}\n\n[FIN DU FICHIER]`;
+                            addTextProMessage(fileMessage, 'user');
+                            
+                            const messagesDiv = document.getElementById('textProMessages');
+                            const lastUserMsg = messagesDiv.querySelector('.textpro-message.user:last-child .textpro-message-content');
+                            if (lastUserMsg) {
+                                lastUserMsg.textContent = `📄 PDF uploadé: ${file.name} (${Math.round(extractedText.length/1024)} Ko de texte extrait)`;
+                            }
+                            
+                            setTimeout(() => {
+                                addTextProMessage(`J'ai extrait le texte de votre PDF "${file.name}" (${Math.round(extractedText.length/1024)} Ko). Que voulez-vous que je fasse avec ce contenu ?`, 'assistant');
+                            }, 500);
+                        } else {
+                            throw new Error('Aucun texte extrait');
+                        }
+                    } catch (error) {
+                        console.error('Erreur extraction PDF:', error);
+                        statusDiv.textContent = `❌ Erreur: ${error.message}`;
+                        statusDiv.style.color = 'rgba(239, 68, 68, 0.8)';
+                        addTextProMessage(`Désolé, je n'ai pas pu extraire le texte du PDF "${file.name}". Vous pouvez essayer de copier-coller le contenu manuellement.`, 'assistant');
+                    }
+                };
+                reader.readAsDataURL(file);
             } else {
                 statusDiv.textContent = `✓ ${file.name} détecté - Collez le contenu dans le chat`;
                 statusDiv.style.color = 'rgba(59, 130, 246, 0.8)';
