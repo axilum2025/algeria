@@ -415,26 +415,27 @@
                     <div class="textpro-chat-messages" id="textProMessages">
                         <div class="textpro-message assistant">
                             <div class="textpro-message-content">
-                                Bonjour ! Je suis votre Agent Text Pro, votre assistant de traitement de texte intelligent.
+                                Bienvenue dans AI Text Pro
+                                Votre assistant intelligent de traitement et traduction de texte.
                                 
-                                🎯 Mes capacités :
-                                • Traduction dans 7 langues avec 7 modes spécialisés (💬 Général, 🎓 Académique, 🔬 Scientifique, ⚖️ Juridique, 🏥 Médical, 💻 Technique, 💼 Business)
+                                CAPACITÉS PRINCIPALES
+                                • Traduction professionnelle dans 7 langues
+                                • 7 modes spécialisés : Général, Académique, Scientifique, Juridique, Médical, Technique, Business
                                 • Correction orthographique et grammaticale
-                                • Résumé et synthèse de textes
-                                • Réécriture et amélioration de style
+                                • Résumé et synthèse de documents
+                                • Réécriture et optimisation de style
                                 • Analyse et structuration de contenu
                                 
-                                🛠️ Fonctionnalités disponibles :
-                                • 🎯 Vue Comparaison : Comparez texte original et traduction côte à côte
-                                • 📥 Téléchargement multi-format : PDF, TXT, DOCX
-                                • 📋 Copier : Copiez instantanément vos traductions
-                                • 🎙️ Speech-to-Text : Dictez votre texte au microphone
-                                • 🔊 Text-to-Speech : Écoutez mes réponses
-                                • 🌍 Traduction vocale instantanée
-                                • 📄 Upload de fichiers : TXT, PDF, DOC, DOCX
-                                • 📊 Compteur : Caractères et mots en temps réel
+                                OUTILS DISPONIBLES
+                                • Vue Comparaison source/cible
+                                • Export multi-format (PDF, TXT, DOCX)
+                                • Copie instantanée
+                                • Synthèse vocale et dictation
+                                • Traduction vocale en temps réel
+                                • Import de fichiers
+                                • Compteur de mots et caractères
                                 
-                                Choisissez votre langue source et cible dans le panneau latéral, puis envoyez-moi votre texte !
+                                Pour commencer, sélectionnez vos langues dans le panneau latéral et saisissez votre texte.
                             </div>
                         </div>
                     </div>
@@ -2140,26 +2141,27 @@
                 messagesDiv.innerHTML = `
                     <div class="textpro-message assistant">
                         <div class="textpro-message-content">
-                            Bonjour ! Je suis votre Agent Text Pro, votre assistant de traitement de texte intelligent.
+                            Bienvenue dans AI Text Pro
+                            Votre assistant intelligent de traitement et traduction de texte.
                             
-                            🎯 Mes capacités :
-                            • Traduction dans 7 langues avec 7 modes spécialisés (💬 Général, 🎓 Académique, 🔬 Scientifique, ⚖️ Juridique, 🏥 Médical, 💻 Technique, 💼 Business)
+                            CAPACITÉS PRINCIPALES
+                            • Traduction professionnelle dans 7 langues
+                            • 7 modes spécialisés : Général, Académique, Scientifique, Juridique, Médical, Technique, Business
                             • Correction orthographique et grammaticale
-                            • Résumé et synthèse de textes
-                            • Réécriture et amélioration de style
+                            • Résumé et synthèse de documents
+                            • Réécriture et optimisation de style
                             • Analyse et structuration de contenu
                             
-                            🛠️ Fonctionnalités disponibles :
-                            • 🎯 Vue Comparaison : Comparez texte original et traduction côte à côte
-                            • 📥 Téléchargement multi-format : PDF, TXT, DOCX
-                            • 📋 Copier : Copiez instantanément vos traductions
-                            • 🎙️ Speech-to-Text : Dictez votre texte au microphone
-                            • 🔊 Text-to-Speech : Écoutez mes réponses
-                            • 🌍 Traduction vocale instantanée
-                            • 📄 Upload de fichiers : TXT, PDF, DOC, DOCX
-                            • 📊 Compteur : Caractères et mots en temps réel
+                            OUTILS DISPONIBLES
+                            • Vue Comparaison source/cible
+                            • Export multi-format (PDF, TXT, DOCX)
+                            • Copie instantanée
+                            • Synthèse vocale et dictation
+                            • Traduction vocale en temps réel
+                            • Import de fichiers
+                            • Compteur de mots et caractères
                             
-                            Choisissez votre langue source et cible dans le panneau latéral, puis envoyez-moi votre texte !
+                            Pour commencer, sélectionnez vos langues dans le panneau latéral et saisissez votre texte.
                         </div>
                     </div>
                 `;
