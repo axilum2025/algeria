@@ -415,9 +415,9 @@
                     <div class="textpro-chat-messages" id="textProMessages">
                         <div class="textpro-message assistant">
                             <div class="textpro-message-content">
-                                Bonjour ! Je suis votre Agent Text Pro. 
+                                Bonjour ! Je suis votre Agent Text Pro, votre assistant de traitement de texte intelligent.
                                 
-                                � Mes capacités :
+                                🎯 Mes capacités :
                                 • Traduction dans 7 langues avec 7 modes spécialisés (💬 Général, 🎓 Académique, 🔬 Scientifique, ⚖️ Juridique, 🏥 Médical, 💻 Technique, 💼 Business)
                                 • Correction orthographique et grammaticale
                                 • Résumé et synthèse de textes
@@ -2140,9 +2140,9 @@
                 messagesDiv.innerHTML = `
                     <div class="textpro-message assistant">
                         <div class="textpro-message-content">
-                            Bonjour ! Je suis votre Agent Text Pro. 
+                            Bonjour ! Je suis votre Agent Text Pro, votre assistant de traitement de texte intelligent.
                             
-                            � Mes capacités :
+                            🎯 Mes capacités :
                             • Traduction dans 7 langues avec 7 modes spécialisés (💬 Général, 🎓 Académique, 🔬 Scientifique, ⚖️ Juridique, 🏥 Médical, 💻 Technique, 💼 Business)
                             • Correction orthographique et grammaticale
                             • Résumé et synthèse de textes
