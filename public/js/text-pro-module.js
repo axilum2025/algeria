@@ -453,15 +453,19 @@
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
                             body: JSON.stringify({ 
-                                contentBase64: base64,
-                                filename: file.name 
+                                file: base64,
+                                fileName: file.name,
+                                fileType: file.type 
                             })
                         });
                         
-                        if (!response.ok) throw new Error('Erreur extraction PDF');
+                        if (!response.ok) {
+                            const errorData = await response.json().catch(() => ({}));
+                            throw new Error(errorData.error || `HTTP ${response.status}`);
+                        }
                         
                         const data = await response.json();
-                        const extractedText = data.text || data.extractedText || '';
+                        const extractedText = data.text || data.extractedText || data.parsedText || '';
                         
                         if (extractedText) {
                             statusDiv.textContent = `✓ ${file.name} analysé (${Math.round(extractedText.length/1024)} Ko de texte extrait)`;
