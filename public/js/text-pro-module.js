@@ -25,6 +25,11 @@
     // Variables pour les modes de traduction
     let currentTranslationMode = 'general';
     
+    // Variables pour la vue comparaison
+    let comparisonMode = false;
+    let lastSourceText = '';
+    let lastTranslatedText = '';
+    
     // Définition des modes de traduction
     const translationModes = {
         general: {
@@ -151,6 +156,29 @@
         settings: `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <circle cx="12" cy="12" r="3"></circle>
             <path d="M12 1v6m0 6v6M5.64 5.64l4.24 4.24m4.24 4.24l4.24 4.24M1 12h6m6 0h6M5.64 18.36l4.24-4.24m4.24-4.24l4.24-4.24"></path>
+        </svg>`,
+        
+        compare: `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="3" width="7" height="18" rx="1"></rect>
+            <rect x="14" y="3" width="7" height="18" rx="1"></rect>
+            <line x1="10" y1="12" x2="14" y2="12"></line>
+            <polyline points="12 10 14 12 12 14"></polyline>
+        </svg>`,
+        
+        closeCompare: `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+        </svg>`,
+        
+        sync: `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="23 4 23 10 17 10"></polyline>
+            <polyline points="1 20 1 14 7 14"></polyline>
+            <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
+        </svg>`,
+        
+        arrows: `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="17 11 12 6 7 11"></polyline>
+            <polyline points="17 18 12 13 7 18"></polyline>
         </svg>`
     };
     
@@ -248,6 +276,14 @@
                         <div id="modeDescription" class="textpro-mode-description">
                             Traduction standard polyvalente
                         </div>
+                    </div>
+                    
+                    <!-- Bouton Vue Comparaison -->
+                    <div class="textpro-comparison-toggle">
+                        <button id="comparisonToggleBtn" class="textpro-compare-btn" onclick="window.toggleComparisonMode()" title="Activer la vue comparaison">
+                            ${SVGIcons.compare}
+                            <span>Vue Comparaison</span>
+                        </button>
                     </div>
                     
                     <div class="textpro-upload-section">
@@ -378,6 +414,57 @@
                                 </select>
                             </div>
                         </div>
+                    </div>
+                </div>
+                
+                <!-- Vue Comparaison (cachée par défaut) -->
+                <div id="comparisonView" class="textpro-comparison-view" style="display: none;">
+                    <div class="textpro-comparison-header">
+                        <h3>${SVGIcons.compare} Vue Comparaison Source / Traduction</h3>
+                        <button class="textpro-close-comparison-btn" onclick="window.toggleComparisonMode()" title="Fermer la vue comparaison">
+                            ${SVGIcons.closeCompare}
+                        </button>
+                    </div>
+                    
+                    <div class="textpro-comparison-content">
+                        <div class="textpro-comparison-panel textpro-source-panel">
+                            <div class="textpro-comparison-panel-header">
+                                <h4>${SVGIcons.file} Texte Original</h4>
+                                <span id="sourceLangLabel" class="textpro-lang-badge">FR</span>
+                            </div>
+                            <div id="sourceTextDisplay" class="textpro-comparison-text">
+                                <div class="textpro-comparison-placeholder">
+                                    Le texte original apparaîtra ici après la traduction
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="textpro-comparison-divider">
+                            ${SVGIcons.arrows}
+                        </div>
+                        
+                        <div class="textpro-comparison-panel textpro-target-panel">
+                            <div class="textpro-comparison-panel-header">
+                                <h4>${SVGIcons.translate} Traduction</h4>
+                                <span id="targetLangLabel" class="textpro-lang-badge">EN</span>
+                            </div>
+                            <div id="targetTextDisplay" class="textpro-comparison-text">
+                                <div class="textpro-comparison-placeholder">
+                                    La traduction apparaîtra ici
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="textpro-comparison-footer">
+                        <button class="textpro-sync-btn" onclick="window.syncComparisonScroll()" title="Synchroniser le défilement">
+                            ${SVGIcons.sync}
+                            <span>Synchroniser</span>
+                        </button>
+                        <button class="textpro-download-comparison-btn" onclick="window.downloadComparison()" title="Télécharger la comparaison">
+                            ${SVGIcons.download}
+                            <span>Télécharger</span>
+                        </button>
                     </div>
                 </div>
             </div>
@@ -597,6 +684,215 @@
                 height: 16px;
                 color: #3b82f6;
                 flex-shrink: 0;
+            }
+            
+            .textpro-comparison-toggle {
+                margin-bottom: 20px;
+            }
+            
+            .textpro-compare-btn {
+                width: 100%;
+                padding: 12px 20px;
+                background: linear-gradient(135deg, #10b981, #059669);
+                border: none;
+                border-radius: 8px;
+                color: white;
+                font-weight: 600;
+                font-size: 14px;
+                cursor: pointer;
+                transition: all 0.3s ease;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                gap: 10px;
+            }
+            
+            .textpro-compare-btn:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 4px 16px rgba(16, 185, 129, 0.4);
+            }
+            
+            .textpro-compare-btn.active {
+                background: linear-gradient(135deg, #ef4444, #dc2626);
+            }
+            
+            .textpro-comparison-view {
+                position: absolute;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                background: rgba(0, 0, 0, 0.95);
+                z-index: 1000;
+                display: flex;
+                flex-direction: column;
+                animation: fadeIn 0.3s ease;
+            }
+            
+            .textpro-comparison-header {
+                background: rgba(16, 185, 129, 0.2);
+                border-bottom: 1px solid rgba(16, 185, 129, 0.3);
+                padding: 16px 24px;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+            }
+            
+            .textpro-comparison-header h3 {
+                margin: 0;
+                font-size: 18px;
+                font-weight: 700;
+                color: white;
+                display: flex;
+                align-items: center;
+                gap: 10px;
+            }
+            
+            .textpro-close-comparison-btn {
+                background: rgba(239, 68, 68, 0.2);
+                border: 1px solid rgba(239, 68, 68, 0.4);
+                border-radius: 6px;
+                color: #ef4444;
+                width: 32px;
+                height: 32px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                cursor: pointer;
+                transition: all 0.3s ease;
+            }
+            
+            .textpro-close-comparison-btn:hover {
+                background: rgba(239, 68, 68, 0.3);
+                transform: rotate(90deg);
+            }
+            
+            .textpro-comparison-content {
+                flex: 1;
+                display: grid;
+                grid-template-columns: 1fr auto 1fr;
+                gap: 0;
+                overflow: hidden;
+            }
+            
+            .textpro-comparison-panel {
+                display: flex;
+                flex-direction: column;
+                border-right: 1px solid rgba(59, 130, 246, 0.2);
+            }
+            
+            .textpro-target-panel {
+                border-right: none;
+                border-left: 1px solid rgba(59, 130, 246, 0.2);
+            }
+            
+            .textpro-comparison-panel-header {
+                background: rgba(0, 0, 0, 0.3);
+                padding: 16px 20px;
+                border-bottom: 1px solid rgba(59, 130, 246, 0.3);
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+            }
+            
+            .textpro-comparison-panel-header h4 {
+                margin: 0;
+                font-size: 15px;
+                font-weight: 600;
+                color: white;
+                display: flex;
+                align-items: center;
+                gap: 8px;
+            }
+            
+            .textpro-lang-badge {
+                background: rgba(59, 130, 246, 0.2);
+                border: 1px solid rgba(59, 130, 246, 0.4);
+                border-radius: 6px;
+                padding: 4px 10px;
+                font-size: 11px;
+                font-weight: 700;
+                color: #3b82f6;
+                text-transform: uppercase;
+            }
+            
+            .textpro-comparison-text {
+                flex: 1;
+                padding: 24px;
+                overflow-y: auto;
+                font-size: 15px;
+                line-height: 1.8;
+                color: rgba(255, 255, 255, 0.9);
+            }
+            
+            .textpro-comparison-placeholder {
+                color: rgba(255, 255, 255, 0.4);
+                font-style: italic;
+                text-align: center;
+                padding-top: 60px;
+            }
+            
+            .textpro-comparison-divider {
+                width: 60px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                background: rgba(0, 0, 0, 0.3);
+                border-left: 1px solid rgba(59, 130, 246, 0.2);
+                border-right: 1px solid rgba(59, 130, 246, 0.2);
+                color: rgba(59, 130, 246, 0.6);
+            }
+            
+            .textpro-comparison-divider svg {
+                width: 24px;
+                height: 24px;
+                animation: pulse 2s infinite;
+            }
+            
+            @keyframes pulse {
+                0%, 100% { opacity: 0.5; transform: scale(1); }
+                50% { opacity: 1; transform: scale(1.1); }
+            }
+            
+            .textpro-comparison-footer {
+                background: rgba(0, 0, 0, 0.3);
+                border-top: 1px solid rgba(16, 185, 129, 0.3);
+                padding: 16px 24px;
+                display: flex;
+                gap: 12px;
+                justify-content: center;
+            }
+            
+            .textpro-sync-btn,
+            .textpro-download-comparison-btn {
+                padding: 10px 20px;
+                background: rgba(59, 130, 246, 0.2);
+                border: 1px solid rgba(59, 130, 246, 0.4);
+                border-radius: 8px;
+                color: #3b82f6;
+                font-weight: 600;
+                font-size: 13px;
+                cursor: pointer;
+                transition: all 0.3s ease;
+                display: flex;
+                align-items: center;
+                gap: 8px;
+            }
+            
+            .textpro-sync-btn:hover,
+            .textpro-download-comparison-btn:hover {
+                background: rgba(59, 130, 246, 0.3);
+                transform: translateY(-2px);
+            }
+            
+            .textpro-download-comparison-btn {
+                background: rgba(16, 185, 129, 0.2);
+                border-color: rgba(16, 185, 129, 0.4);
+                color: #10b981;
+            }
+            
+            .textpro-download-comparison-btn:hover {
+                background: rgba(16, 185, 129, 0.3);
             }
             
             .textpro-chat-panel {
@@ -1394,6 +1690,118 @@
     }
     
     /**
+     * Basculer la vue comparaison
+     */
+    window.toggleComparisonMode = function() {
+        comparisonMode = !comparisonMode;
+        const comparisonView = document.getElementById('comparisonView');
+        const chatPanel = document.querySelector('.textpro-chat-panel');
+        const toggleBtn = document.getElementById('comparisonToggleBtn');
+        
+        if (comparisonMode) {
+            // Activer la vue comparaison
+            if (comparisonView) comparisonView.style.display = 'flex';
+            if (chatPanel) chatPanel.style.display = 'none';
+            if (toggleBtn) {
+                toggleBtn.classList.add('active');
+                toggleBtn.innerHTML = `${SVGIcons.closeCompare}<span>Fermer Comparaison</span>`;
+            }
+            
+            // Afficher les derniers textes si disponibles
+            if (lastSourceText && lastTranslatedText) {
+                updateComparisonView(lastSourceText, lastTranslatedText);
+            }
+        } else {
+            // Désactiver la vue comparaison
+            if (comparisonView) comparisonView.style.display = 'none';
+            if (chatPanel) chatPanel.style.display = 'flex';
+            if (toggleBtn) {
+                toggleBtn.classList.remove('active');
+                toggleBtn.innerHTML = `${SVGIcons.compare}<span>Vue Comparaison</span>`;
+            }
+        }
+    };
+    
+    /**
+     * Mettre à jour la vue comparaison
+     */
+    function updateComparisonView(sourceText, targetText) {
+        const sourceDisplay = document.getElementById('sourceTextDisplay');
+        const targetDisplay = document.getElementById('targetTextDisplay');
+        const sourceLangLabel = document.getElementById('sourceLangLabel');
+        const targetLangLabel = document.getElementById('targetLangLabel');
+        
+        if (sourceDisplay) {
+            sourceDisplay.innerHTML = `<p>${sourceText.replace(/\n/g, '<br>')}</p>`;
+        }
+        
+        if (targetDisplay) {
+            targetDisplay.innerHTML = `<p>${targetText.replace(/\n/g, '<br>')}</p>`;
+        }
+        
+        // Mettre à jour les labels de langue
+        if (sourceLangLabel) {
+            const srcLang = sourceLang.split('-')[0].toUpperCase();
+            sourceLangLabel.textContent = srcLang;
+        }
+        
+        if (targetLangLabel) {
+            targetLangLabel.textContent = targetLang.toUpperCase();
+        }
+        
+        // Sauvegarder pour référence
+        lastSourceText = sourceText;
+        lastTranslatedText = targetText;
+    }
+    
+    /**
+     * Synchroniser le défilement des panneaux
+     */
+    window.syncComparisonScroll = function() {
+        const sourceText = document.getElementById('sourceTextDisplay');
+        const targetText = document.getElementById('targetTextDisplay');
+        
+        if (sourceText && targetText) {
+            // Synchroniser les positions de défilement
+            const syncScroll = (e) => {
+                const scrollPercentage = e.target.scrollTop / (e.target.scrollHeight - e.target.clientHeight);
+                const otherPanel = e.target === sourceText ? targetText : sourceText;
+                otherPanel.scrollTop = scrollPercentage * (otherPanel.scrollHeight - otherPanel.clientHeight);
+            };
+            
+            sourceText.addEventListener('scroll', syncScroll);
+            targetText.addEventListener('scroll', syncScroll);
+            
+            addTextProMessage('✅ Synchronisation du défilement activée', 'assistant');
+        }
+    };
+    
+    /**
+     * Télécharger la comparaison
+     */
+    window.downloadComparison = function() {
+        if (!lastSourceText || !lastTranslatedText) {
+            alert('Aucune comparaison disponible à télécharger.');
+            return;
+        }
+        
+        const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, -5);
+        const content = `COMPARAISON DE TRADUCTION\n` +
+                       `Date: ${new Date().toLocaleString()}\n` +
+                       `Mode: ${translationModes[currentTranslationMode].name}\n` +
+                       `\n${'='.repeat(80)}\n\n` +
+                       `TEXTE ORIGINAL:\n` +
+                       `${'-'.repeat(80)}\n` +
+                       `${lastSourceText}\n\n` +
+                       `${'='.repeat(80)}\n\n` +
+                       `TRADUCTION:\n` +
+                       `${'-'.repeat(80)}\n` +
+                       `${lastTranslatedText}\n`;
+        
+        downloadTextProResult(content, 'txt');
+    };
+    
+    /**
      * Changer le mode de traduction
      */
     window.changeTranslationMode = function(mode) {
@@ -1530,6 +1938,13 @@
                         
                         // Afficher la traduction avec option de téléchargement
                         addTextProMessage(`📝 Traduction: ${translation}`, 'assistant', true, translation);
+                        
+                        // Mettre à jour la vue comparaison
+                        lastSourceText = transcript;
+                        lastTranslatedText = translation;
+                        if (comparisonMode) {
+                            updateComparisonView(transcript, translation);
+                        }
                         
                         // Lire la traduction à voix haute
                         speakTranslation(translation, targetLang);
@@ -1757,7 +2172,19 @@
             if (!response.ok) throw new Error('Erreur API');
             
             const data = await response.json();
-            addTextProMessage(data.response || 'Désolé, je n\'ai pas pu traiter votre demande.', 'assistant', data.offerDownload);
+            const responseText = data.response || 'Désolé, je n\'ai pas pu traiter votre demande.';
+            addTextProMessage(responseText, 'assistant', data.offerDownload);
+            
+            // Détecter si c'est une traduction et mettre à jour la vue comparaison
+            if (message.toLowerCase().includes('tradui') && responseText.length > 10) {
+                lastSourceText = message;
+                lastTranslatedText = responseText;
+                
+                // Si la vue comparaison est active, mettre à jour
+                if (comparisonMode) {
+                    updateComparisonView(message, responseText);
+                }
+            }
             
         } catch (error) {
             console.error('Erreur:', error);
