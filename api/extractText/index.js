@@ -48,10 +48,10 @@ module.exports = async function (context, req) {
 
     context.log(`📦 File size: ${imageBuffer.length} bytes`);
 
-    // Extract text using Azure Vision OCR
-    const analyzeUrl = `${visionEndpoint}/computervision/imageanalysis:analyze?api-version=2024-02-01&features=read`;
+    // Use Read API for OCR (supports PDF and images)
+    const readUrl = `${visionEndpoint}/vision/v3.2/read/analyze`;
 
-    const visionResponse = await fetch(analyzeUrl, {
+    const readResponse = await fetch(readUrl, {
       method: 'POST',
       headers: {
         'Ocp-Apim-Subscription-Key': visionKey,
@@ -60,24 +60,71 @@ module.exports = async function (context, req) {
       body: imageBuffer
     });
 
-    if (!visionResponse.ok) {
-      const errorText = await visionResponse.text();
-      context.log.error('❌ Azure Vision Error:', visionResponse.status, errorText);
+    if (!readResponse.ok) {
+      const errorText = await readResponse.text();
+      context.log.error('❌ Azure Vision Read Error:', readResponse.status, errorText);
       setCors();
       context.res.status = 500;
       context.res.headers['Content-Type'] = 'application/json';
       context.res.body = {
-        error: `Azure Vision API error: ${visionResponse.status}`,
+        error: `Azure Vision Read API error: ${readResponse.status}`,
         details: errorText
       };
       return;
     }
 
-    const visionData = await visionResponse.json();
+    // Get operation location from headers
+    const operationLocation = readResponse.headers.get('operation-location');
+    if (!operationLocation) {
+      setCors();
+      context.res.status = 500;
+      context.res.headers['Content-Type'] = 'application/json';
+      context.res.body = { error: 'No operation location in response' };
+      return;
+    }
 
-    // Extract all text from OCR
-    const extractedText = visionData.readResult?.blocks
-      ?.flatMap(block => block.lines.map(line => line.text))
+    // Poll for results
+    let result = null;
+    const maxAttempts = 20;
+    const delayMs = 500;
+    
+    for (let i = 0; i < maxAttempts; i++) {
+      await new Promise(resolve => setTimeout(resolve, delayMs));
+      
+      const resultResponse = await fetch(operationLocation, {
+        headers: { 'Ocp-Apim-Subscription-Key': visionKey }
+      });
+      
+      if (!resultResponse.ok) {
+        context.log.warn('⚠️ Poll attempt failed:', resultResponse.status);
+        continue;
+      }
+      
+      const resultData = await resultResponse.json();
+      
+      if (resultData.status === 'succeeded') {
+        result = resultData;
+        break;
+      } else if (resultData.status === 'failed') {
+        setCors();
+        context.res.status = 500;
+        context.res.headers['Content-Type'] = 'application/json';
+        context.res.body = { error: 'OCR processing failed' };
+        return;
+      }
+    }
+
+    if (!result) {
+      setCors();
+      context.res.status = 500;
+      context.res.headers['Content-Type'] = 'application/json';
+      context.res.body = { error: 'OCR timeout - operation did not complete' };
+      return;
+    }
+
+    // Extract text from results
+    const extractedText = result.analyzeResult?.readResults
+      ?.flatMap(page => page.lines.map(line => line.text))
       .join('\n') || '';
 
     if (!extractedText || extractedText.trim().length < 10) {
