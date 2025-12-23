@@ -5774,11 +5774,21 @@
                         completed: false,
                         inProgress: false,
                         createdAt: new Date().toISOString(),
-                        subtasks: task.subtasks || []
+                        subtasks: task.subtasks || [],
+                        notifyEnabled: false,
+                        notificationEnabled: false,
+                        projectId: null,
+                        progress: 0,
+                        userId: currentUser?.email || 'guest'
                     };
                     
                     userTasks.push(newTask);
                     localStorage.setItem('userTasks', JSON.stringify(userTasks));
+                    
+                    // Programmer la notification si une date d'échéance est définie
+                    if (dueDate) {
+                        scheduleNotification(newTask);
+                    }
                     
                     // Message avec priorité si urgente
                     const priorityEmoji = priority === 'high' ? '🔴 ' : '';
@@ -5792,8 +5802,8 @@
             })
             .catch(error => {
                 console.error('Erreur API:', error);
-                // Fallback: création simple
-                addTask(description, 'medium', null, 'Autre');
+                // Fallback: création simple avec tous les champs nécessaires
+                addTask(description, null, 'medium', 'Autre');
                 showToast('⚠️ Tâche créée (mode simple - IA indisponible)', 'info');
                 renderTodoFilters();
                 renderTodoCategories();
