@@ -5212,13 +5212,43 @@
         function toggleTaskNotification(taskId, enabled) {
             // Convertir taskId en number si c'est une string
             const id = typeof taskId === 'string' ? parseInt(taskId) : taskId;
+            
+            console.log('🔔 toggleTaskNotification appelé:', {
+                taskIdOriginal: taskId,
+                taskIdType: typeof taskId,
+                idConverted: id,
+                enabled: enabled,
+                userTasksLength: userTasks.length
+            });
+            
             const task = userTasks.find(t => t.id === id);
+            
+            console.log('🔍 Tâche trouvée:', task ? {
+                id: task.id,
+                title: task.title,
+                notifyEnabledAvant: task.notifyEnabled
+            } : 'AUCUNE TÂCHE TROUVÉE');
+            
             if (task) {
                 task.notifyEnabled = enabled;
                 task.notificationEnabled = enabled;
                 
+                console.log('✅ Tâche mise à jour:', {
+                    id: task.id,
+                    notifyEnabledApres: task.notifyEnabled
+                });
+                
                 // Sauvegarder immédiatement dans localStorage
                 localStorage.setItem('userTasks', JSON.stringify(userTasks));
+                console.log('💾 Sauvegardé dans localStorage');
+                
+                // Vérifier la sauvegarde
+                const saved = JSON.parse(localStorage.getItem('userTasks'));
+                const savedTask = saved.find(t => t.id === id);
+                console.log('✓ Vérification localStorage:', savedTask ? {
+                    id: savedTask.id,
+                    notifyEnabled: savedTask.notifyEnabled
+                } : 'TÂCHE NON TROUVÉE DANS localStorage');
                 
                 // Mettre à jour selectedTask si c'est la tâche actuelle
                 if (selectedTask && selectedTask.id === id) {
