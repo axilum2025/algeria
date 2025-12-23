@@ -2560,6 +2560,27 @@
         let userProjects = JSON.parse(localStorage.getItem('userProjects') || '[]');
         let notificationSettings = JSON.parse(localStorage.getItem('notificationSettings') || '{"enabled": false, "reminderMinutes": 15}');
         
+        // 🔄 Migration des données: Normaliser les tâches pour ajouter les propriétés manquantes
+        userTasks = userTasks.map(task => {
+            // S'assurer que toutes les propriétés essentielles existent
+            return {
+                ...task,
+                notifyEnabled: task.notifyEnabled !== undefined ? task.notifyEnabled : false,
+                notificationEnabled: task.notificationEnabled !== undefined ? task.notificationEnabled : false,
+                projectId: task.projectId !== undefined ? task.projectId : null,
+                progress: task.progress !== undefined ? task.progress : 0,
+                subtasks: task.subtasks || [],
+                userId: task.userId || currentUser?.email || 'guest',
+                description: task.description || '',
+                category: task.category || 'général',
+                priority: task.priority || 'normal'
+            };
+        });
+        // Sauvegarder les tâches normalisées
+        if (userTasks.length > 0) {
+            localStorage.setItem('userTasks', JSON.stringify(userTasks));
+        }
+        
         // Email Verification
         let pendingUser = null;
 
@@ -5830,6 +5851,17 @@
             if (!selectedTask) {
                 console.error('Tâche non trouvée:', taskId, 'Type:', typeof taskId);
                 return;
+            }
+            
+            // 🔄 Normaliser la tâche pour s'assurer que toutes les propriétés existent
+            if (selectedTask.notifyEnabled === undefined) {
+                selectedTask.notifyEnabled = false;
+            }
+            if (selectedTask.notificationEnabled === undefined) {
+                selectedTask.notificationEnabled = false;
+            }
+            if (selectedTask.subtasks === undefined) {
+                selectedTask.subtasks = [];
             }
 
             const panel = document.getElementById('todoDetailsPanel');
