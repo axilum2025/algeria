@@ -3208,7 +3208,31 @@
                 
                 // Métriques de qualité
                 
-                if (data.response && data.response.includes('HI:')) {
+                // Priorité 1: Utiliser les propriétés directes du backend
+                if (data.hallucinationIndex !== undefined && data.hallucinationIndex !== null) {
+                    const hiValue = data.hallucinationIndex;
+                    const color = hiValue < 15 ? '#10B981' : hiValue < 30 ? '#F59E0B' : '#EF4444';
+                    metrics.quality.push({
+                        icon: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>', 
+                        label: 'HI', 
+                        value: `${hiValue}%`, 
+                        color: color
+                    });
+                }
+                
+                if (data.contextHistoryRatio !== undefined && data.contextHistoryRatio !== null) {
+                    const chrValue = data.contextHistoryRatio;
+                    const color = chrValue < 15 ? '#10B981' : chrValue < 30 ? '#F59E0B' : '#EF4444';
+                    metrics.quality.push({
+                        icon: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/></svg>', 
+                        label: 'CHR', 
+                        value: `${chrValue}%`, 
+                        color: color
+                    });
+                }
+                
+                // Priorité 2: Fallback sur parsing du texte si propriétés absentes
+                if (metrics.quality.length === 0 && data.response && data.response.includes('HI:')) {
                     const hiMatch = data.response.match(/HI: ([0-9.]+)%/);
                     const chrMatch = data.response.match(/CHR: ([0-9.]+)%/);
                     
