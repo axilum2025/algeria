@@ -5195,22 +5195,42 @@
             if (task) {
                 task.notifyEnabled = enabled;
                 task.notificationEnabled = enabled;
-                // Sauvegarder dans localStorage
+                
+                // Sauvegarder immédiatement dans localStorage
                 localStorage.setItem('userTasks', JSON.stringify(userTasks));
+                
+                // Mettre à jour selectedTask si c'est la tâche actuelle
+                if (selectedTask && selectedTask.id === id) {
+                    selectedTask.notifyEnabled = enabled;
+                    selectedTask.notificationEnabled = enabled;
+                }
+                
                 showToast(enabled ? '🔔 Notification activée pour cette tâche' : '🔕 Notification désactivée', 'info');
                 
-                // Rafraîchir le panneau de détails si ouvert
-                if (detailsPanelOpen && selectedTask && selectedTask.id === id) {
-                    showTaskDetails(id);
+                // Démarrer la vérification des notifications si activé
+                if (enabled) {
+                    if (!notificationsEnabled) {
+                        // Auto-activer les notifications globales
+                        requestNotificationPermission().then(granted => {
+                            if (granted) {
+                                startNotificationCheck();
+                                setTimeout(() => {
+                                    showToast('✅ Notifications globales activées', 'success');
+                                }, 500);
+                            } else {
+                                setTimeout(() => {
+                                    showToast('💡 Activez les notifications dans votre navigateur', 'info');
+                                }, 500);
+                            }
+                        });
+                    } else {
+                        // Vérifier immédiatement cette tâche
+                        checkTaskNotifications();
+                    }
                 }
                 
-                if (enabled && !notificationsEnabled) {
-                    setTimeout(() => {
-                        showToast('💡 Activez les notifications globales en haut', 'info');
-                    }, 1000);
-                    // Auto-activer les notifications globales
-                    requestNotificationPermission();
-                }
+                // Ne pas rafraîchir le panneau pour éviter de perdre le focus
+                // Le checkbox est déjà mis à jour par le onChange du HTML
             }
         }
 
@@ -5932,6 +5952,17 @@
         }
 
         function closeTaskDetails() {
+            // Sauvegarder les changements de la tâche sélectionnée avant de fermer
+            if (selectedTask) {
+                // S'assurer que les modifications sont persistées
+                const taskIndex = userTasks.findIndex(t => t.id === selectedTask.id);
+                if (taskIndex !== -1) {
+                    // Mettre à jour avec les données de selectedTask
+                    userTasks[taskIndex] = { ...userTasks[taskIndex], ...selectedTask };
+                    localStorage.setItem('userTasks', JSON.stringify(userTasks));
+                }
+            }
+            
             const panel = document.getElementById('todoDetailsPanel');
             panel.style.width = '0';
             panel.style.padding = '0';
