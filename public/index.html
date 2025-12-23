@@ -4332,7 +4332,16 @@
                 bot: botData.response,
                 timestamp: Date.now(),
                 hiScore: hiMatch ? parseFloat(hiMatch[1]) : 0,
-                chrScore: chrMatch ? parseFloat(chrMatch[1]) : 0
+                chrScore: chrMatch ? parseFloat(chrMatch[1]) : 0,
+                // Sauvegarder toutes les métriques pour restauration
+                hallucinationIndex: botData.hallucinationIndex,
+                contextHistoryRatio: botData.contextHistoryRatio,
+                responseTime: botData.responseTime,
+                processingTime: botData.processingTime,
+                cached: botData.cached,
+                usage: botData.usage,
+                model: botData.model,
+                rag_verification: botData.rag_verification
             };
             
             // Sauvegarder les données d'image si présentes
@@ -4484,12 +4493,21 @@
             conv.messages.forEach(msg => {
                 addMessage(msg.user, 'user');
                 
-                // Restaurer les données d'image si présentes
-                const botData = msg.imageUrl && msg.imageGenerated ? {
+                // Restaurer toutes les données (image et métriques)
+                const botData = {
+                    response: msg.bot,
+                    hallucinationIndex: msg.hallucinationIndex,
+                    contextHistoryRatio: msg.contextHistoryRatio,
+                    responseTime: msg.responseTime,
+                    processingTime: msg.processingTime,
+                    cached: msg.cached,
+                    usage: msg.usage,
+                    model: msg.model,
+                    rag_verification: msg.rag_verification,
                     imageUrl: msg.imageUrl,
-                    imageGenerated: true,
+                    imageGenerated: msg.imageGenerated,
                     prompt: msg.prompt
-                } : null;
+                };
                 
                 addMessage(msg.bot, 'bot', botData);
             });
