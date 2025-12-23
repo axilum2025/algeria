@@ -2836,7 +2836,16 @@
             const message = input.value.trim();
             if (!message) return;
 
-            // 📅 DÉTECTION AUTOMATIQUE DES COMMANDES TO DO
+            // � MODE DÉTECTION D'HALLUCINATIONS
+            if (hallucinationDetectorActive) {
+                await handleHallucinationDetection(message);
+                input.value = '';
+                adjustTextareaHeight();
+                hallucinationDetectorActive = false; // Désactiver après analyse
+                return;
+            }
+
+            // �📅 DÉTECTION AUTOMATIQUE DES COMMANDES TO DO
             const todoResult = detectAndHandleTodoCommand(message);
             if (todoResult.handled) {
                 addMessage(message, 'user');
@@ -8907,28 +8916,191 @@ Réponds de manière professionnelle et technique.
         }
         
         function loadHallucinationModule() {
-            if (hallucinationModuleLoaded && typeof openHallucinationModule === 'function') {
-                openHallucinationModule();
-                return;
+            // Activer le mode détection d'hallucinations dans le chat
+            activateHallucinationDetectorMode();
+        }
+        
+        // Mode Détecteur d'Hallucinations
+        let hallucinationDetectorActive = false;
+        
+        function activateHallucinationDetectorMode() {
+            hallucinationDetectorActive = true;
+            
+            // Afficher le message guide dans le chat
+            const guideMessage = `🔍 **Mode Détection d'Hallucinations activé**
+
+Je vais analyser une réponse d'IA pour détecter :
+✓ Faits inventés (noms, dates, chiffres, lois)
+✓ Citations ou sources inexistantes
+✓ Contradictions internes
+✓ Affirmations sans preuve vérifiable
+
+📝 **Instructions :**
+1. Collez la réponse à vérifier ci-dessous
+2. (Optionnel) Indiquez le nom de l'IA source : "Source : ChatGPT" ou "IA : Gemini"
+3. J'analyserai et vous donnerai un rapport détaillé avec :
+   • Faits vérifiés ✅
+   • Faits suspects ⚠️
+   • Hallucinations détectées ❌
+   • Index de fiabilité 📊
+
+💡 **Exemple :**
+\`\`\`
+Source : ChatGPT
+[Collez ici la réponse à vérifier...]
+\`\`\`
+
+⚠️ **Sécurité :** Les conseils médicaux ou juridiques non sourcés seront bloqués.`;
+
+            addMessage(guideMessage, 'bot');
+            
+            // Fermer le sidebar si ouvert
+            if (window.innerWidth <= 768) {
+                toggleSidebar();
             }
             
-            const script = document.createElement('script');
-            script.src = '/js/hallucination-module.js';
-            script.onload = function() {
-                hallucinationModuleLoaded = true;
-                console.log('Module Hallucination Detector chargé');
-                if (typeof openHallucinationModule === 'function') {
-                    openHallucinationModule();
-                } else {
-                    console.error('openHallucinationModule non disponible');
-                    alert('Erreur lors de l\'ouverture d\'Hallucination Detector');
+            // Focus sur l'input
+            document.getElementById('userInput').focus();
+            
+            showToast('🔍 Mode Détection activé - Collez le texte à vérifier', 'success');
+        }
+        
+        // Gérer l'analyse d'hallucination
+        async function handleHallucinationDetection(text) {
+            const sendBtn = document.getElementById('sendBtn');
+            const input = document.getElementById('userInput');
+            
+            // Désactiver l'input pendant l'analyse
+            sendBtn.disabled = true;
+            input.disabled = true;
+            
+            // Ajouter le message utilisateur
+            addMessage(text, 'user');
+            
+            // Afficher indicateur d'analyse
+            showTyping();
+            
+            try {
+                // Extraire la source si mentionnée
+                const sourceMatch = text.match(/(?:Source|IA|AI)\s*:\s*([^\n]+)/i);
+                const source = sourceMatch ? sourceMatch[1].trim() : null;
+                
+                // Retirer la ligne source du texte à analyser
+                const textToAnalyze = sourceMatch 
+                    ? text.replace(/(?:Source|IA|AI)\s*:\s*[^\n]+/i, '').trim()
+                    : text;
+                
+                // Appeler l'API de vérification
+                const response = await fetch('/api/verify-hallucination', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        text: textToAnalyze,
+                        source: source
+                    })
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`Erreur ${response.status}`);
                 }
-            };
-            script.onerror = function() {
-                console.error('Erreur lors du chargement du module Hallucination');
-                alert('Erreur lors du chargement d\'Hallucination Detector. Veuillez réessayer.');
-            };
-            document.head.appendChild(script);
+                
+                const report = await response.json();
+                
+                // Générer le rapport formaté
+                const reportMessage = formatHallucinationReport(report);
+                
+                hideTyping();
+                addMessage(reportMessage, 'bot', {
+                    hallucinationIndex: report.hallucinationIndex,
+                    hallucinationSources: report.hallucinationSources
+                });
+                
+                // Sauvegarder dans la conversation
+                saveMessage(text, {
+                    response: reportMessage,
+                    hallucinationIndex: report.hallucinationIndex,
+                    hallucinationSources: report.hallucinationSources
+                });
+                
+                showToast('✅ Analyse terminée', 'success');
+                
+            } catch (error) {
+                hideTyping();
+                console.error('Erreur analyse hallucination:', error);
+                addMessage(`❌ Erreur lors de l'analyse: ${error.message}\n\nVeuillez réessayer.`, 'bot');
+                showToast('❌ Erreur lors de l\'analyse', 'error');
+            } finally {
+                sendBtn.disabled = false;
+                input.disabled = false;
+                input.focus();
+            }
+        }
+        
+        // Formater le rapport d'hallucination
+        function formatHallucinationReport(report) {
+            let message = `🔍 **Rapport d'Analyse d'Hallucinations**\n\n`;
+            message += `📌 **Source analysée** : ${report.source}\n`;
+            message += `📝 **Longueur** : ${report.textLength} caractères\n`;
+            message += `📊 **Index d'hallucination** : ${report.hallucinationIndex !== undefined ? report.hallucinationIndex.toFixed(1) : 'N/A'}\n\n`;
+            message += `---\n\n`;
+            
+            // Faits vérifiés
+            if (report.verifiedFacts && report.verifiedFacts.length > 0) {
+                message += `✅ **FAITS VÉRIFIÉS** (${report.verifiedFacts.length})\n`;
+                report.verifiedFacts.forEach(f => {
+                    message += `• "${f.fact}" ✓ Confirmé par ${f.source}\n`;
+                });
+                message += `\n`;
+            }
+            
+            // Faits suspects
+            if (report.suspiciousFacts && report.suspiciousFacts.length > 0) {
+                message += `⚠️ **FAITS SUSPECTS** (${report.suspiciousFacts.length})\n`;
+                report.suspiciousFacts.forEach(f => {
+                    message += `• "${f.fact}" ⚠️ ${f.reason}\n`;
+                });
+                message += `\n`;
+            }
+            
+            // Hallucinations
+            if (report.hallucinations && report.hallucinations.length > 0) {
+                message += `❌ **HALLUCINATIONS DÉTECTÉES** (${report.hallucinations.length})\n`;
+                report.hallucinations.forEach(h => {
+                    message += `• "${h.fact}" ❌ ${h.reason}\n`;
+                });
+                message += `\n`;
+            }
+            
+            // Contradictions
+            if (report.contradictions && report.contradictions.length > 0) {
+                message += `🔄 **CONTRADICTIONS INTERNES**\n`;
+                report.contradictions.forEach(c => {
+                    message += `• ${c.description}\n`;
+                });
+                message += `\n`;
+            }
+            
+            // Warnings de sécurité
+            if (report.securityWarnings && report.securityWarnings.length > 0) {
+                message += `🚨 **ALERTES SÉCURITÉ**\n`;
+                report.securityWarnings.forEach(w => {
+                    message += `${w.message}\n`;
+                });
+                message += `\n`;
+            }
+            
+            // Score et recommandation
+            message += `---\n\n`;
+            message += `📊 **FIABILITÉ GLOBALE : ${report.reliabilityScore}/100**\n\n`;
+            message += `💡 **RECOMMANDATION**\n`;
+            message += `${report.recommendation}\n\n`;
+            
+            // Sources hallucination detector
+            if (report.hallucinationSources && report.hallucinationSources.length > 0) {
+                message += `📚 **Sources de vérification** : ${report.hallucinationSources.join(', ')}\n`;
+            }
+            
+            return message;
         }
         
         function openMarketing() {
