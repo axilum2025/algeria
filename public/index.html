@@ -3287,35 +3287,37 @@
                 
                 // Créer l'icône élégante si des métriques existent
                 if (metrics.performance.length > 0 || metrics.quality.length > 0) {
-                    // Chercher d'abord le bouton dans le bloc RAG
-                    const ragMetricsIcon = messageWrapper.querySelector('.metrics-icon-rag');
-                    
-                    if (ragMetricsIcon) {
-                        // Si le bloc RAG existe avec son bouton, utiliser celui-ci
-                        ragMetricsIcon.addEventListener('click', function(e) {
-                            e.stopPropagation();
-                            showMetricsModal(metrics);
-                        });
-                        ragMetricsIcon.style.opacity = '1'; // Rendre visible
-                    } else {
-                        // Sinon, créer le bouton en haut à droite comme avant
-                        const metricsIcon = document.createElement('div');
-                        metricsIcon.className = 'metrics-icon';
-                        metricsIcon.innerHTML = `
-                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <circle cx="12" cy="12" r="10"/>
-                                <path d="M12 16v-4M12 8h.01"/>
-                            </svg>
-                        `;
+                    // Chercher d'abord le bouton dans le bloc RAG après l'ajout au DOM
+                    setTimeout(() => {
+                        const ragMetricsIcon = messageWrapper.querySelector('.metrics-icon-rag');
                         
-                        metricsIcon.addEventListener('click', function(e) {
-                            e.stopPropagation();
-                            showMetricsModal(metrics);
-                        });
-                        
-                        messageWrapper.style.position = 'relative';
-                        messageWrapper.appendChild(metricsIcon);
-                    }
+                        if (ragMetricsIcon) {
+                            // Si le bloc RAG existe avec son bouton, utiliser celui-ci
+                            ragMetricsIcon.addEventListener('click', function(e) {
+                                e.stopPropagation();
+                                showMetricsModal(metrics);
+                            });
+                            ragMetricsIcon.style.opacity = '1'; // Rendre visible
+                        } else {
+                            // Sinon, créer le bouton en haut à droite comme avant
+                            const metricsIcon = document.createElement('div');
+                            metricsIcon.className = 'metrics-icon';
+                            metricsIcon.innerHTML = `
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <circle cx="12" cy="12" r="10"/>
+                                    <path d="M12 16v-4M12 8h.01"/>
+                                </svg>
+                            `;
+                            
+                            metricsIcon.addEventListener('click', function(e) {
+                                e.stopPropagation();
+                                showMetricsModal(metrics);
+                            });
+                            
+                            messageWrapper.style.position = 'relative';
+                            messageWrapper.appendChild(metricsIcon);
+                        }
+                    }, 10);
                 }
             }
 
