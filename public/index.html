@@ -3097,32 +3097,7 @@
                     <span class="message-sender">${senderName}</span>
                     <span class="message-time">${time}</span>
                 </div>
-                <div class="message-content">
-                    ${contentHTML}
-                    ${type === 'bot' && displayText && displayText.length > 0 ? `
-                    <button class="tts-button-inline" data-speaking="false" data-text="${displayText.replace(/"/g, '&quot;')}" title="Écouter ce message" style="
-                        display: inline-flex;
-                        align-items: center;
-                        justify-content: center;
-                        width: 24px;
-                        height: 24px;
-                        margin-left: 8px;
-                        border-radius: 50%;
-                        background: var(--bg-secondary);
-                        border: none;
-                        cursor: pointer;
-                        transition: all 0.3s ease;
-                        color: var(--text-secondary);
-                        opacity: 0.6;
-                        vertical-align: middle;
-                    ">
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/>
-                            <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"/>
-                        </svg>
-                    </button>
-                    ` : ''}
-                </div>
+                <div class="message-content">${contentHTML}</div>
                 ${ragSources.length > 0 ? `
                 <div class="rag-sources" style="
                     margin-top: 12px;
@@ -3344,15 +3319,63 @@
                 }
             }
 
-            // 🔊 Ajouter événements TTS pour le bouton inline
+            // 🔊 Ajouter bouton TTS inline dans le dernier élément de texte
             if (type === 'bot' && displayText && displayText.length > 0) {
                 // Attendre que le DOM soit mis à jour
                 setTimeout(() => {
-                    const ttsButton = messageWrapper.querySelector('.tts-button-inline');
-                    if (ttsButton) {
+                    const messageContent = messageWrapper.querySelector('.message-content');
+                    if (messageContent) {
+                        // Trouver le dernier élément de texte (p, div, span, etc.)
+                        const allElements = messageContent.querySelectorAll('p, div, span, li');
+                        let lastTextElement = allElements.length > 0 ? allElements[allElements.length - 1] : messageContent;
+                        
+                        // Si aucun élément trouvé, utiliser directement le contenu
+                        if (allElements.length === 0 && messageContent.childNodes.length > 0) {
+                            // Chercher le dernier nœud de texte
+                            for (let i = messageContent.childNodes.length - 1; i >= 0; i--) {
+                                if (messageContent.childNodes[i].nodeType === Node.TEXT_NODE || 
+                                    messageContent.childNodes[i].nodeType === Node.ELEMENT_NODE) {
+                                    lastTextElement = messageContent.childNodes[i].nodeType === Node.ELEMENT_NODE 
+                                        ? messageContent.childNodes[i] 
+                                        : messageContent;
+                                    break;
+                                }
+                            }
+                        }
+                        
+                        // Créer le bouton TTS
+                        const ttsButton = document.createElement('button');
+                        ttsButton.className = 'tts-button-inline';
+                        ttsButton.dataset.speaking = 'false';
+                        ttsButton.dataset.text = displayText;
+                        ttsButton.title = 'Écouter ce message';
+                        ttsButton.style.cssText = `
+                            display: inline-flex;
+                            align-items: center;
+                            justify-content: center;
+                            width: 20px;
+                            height: 20px;
+                            margin-left: 4px;
+                            border-radius: 50%;
+                            background: var(--bg-secondary);
+                            border: none;
+                            cursor: pointer;
+                            transition: all 0.3s ease;
+                            color: var(--text-secondary);
+                            opacity: 0.6;
+                            vertical-align: text-bottom;
+                        `;
+                        ttsButton.innerHTML = `
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/>
+                                <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"/>
+                            </svg>
+                        `;
+                        
+                        // Ajouter les événements
                         ttsButton.addEventListener('mouseenter', function() {
                             this.style.opacity = '1';
-                            this.style.transform = 'scale(1.1)';
+                            this.style.transform = 'scale(1.15)';
                             this.style.background = 'var(--accent)';
                             this.style.color = 'white';
                         });
@@ -3368,6 +3391,13 @@
                             e.stopPropagation();
                             toggleTTS(this);
                         });
+                        
+                        // Insérer le bouton dans le dernier élément de texte
+                        if (lastTextElement.nodeType === Node.TEXT_NODE) {
+                            lastTextElement.parentNode.appendChild(ttsButton);
+                        } else {
+                            lastTextElement.appendChild(ttsButton);
+                        }
                     }
                 }, 10);
             }
@@ -18251,7 +18281,7 @@ Réponds UNIQUEMENT dans ce format JSON:
                     // Réinitialiser tous les boutons TTS (anciennes et nouvelles versions)
                     document.querySelectorAll('.tts-button, .tts-button-inline').forEach(btn => {
                         btn.dataset.speaking = 'false';
-                        const svgSize = btn.classList.contains('tts-button-inline') ? '14' : '18';
+                        const svgSize = btn.classList.contains('tts-button-inline') ? '12' : '18';
                         btn.innerHTML = `
                             <svg width="${svgSize}" height="${svgSize}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                 <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/>
@@ -18299,7 +18329,7 @@ Réponds UNIQUEMENT dans ce format JSON:
                 utterance.onstart = () => {
                     if (button) {
                         button.dataset.speaking = 'true';
-                        const svgSize = button.classList.contains('tts-button-inline') ? '14' : '18';
+                        const svgSize = button.classList.contains('tts-button-inline') ? '12' : '18';
                         button.innerHTML = `
                             <svg width="${svgSize}" height="${svgSize}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                 <rect x="6" y="4" width="4" height="16"/>
@@ -18316,7 +18346,7 @@ Réponds UNIQUEMENT dans ce format JSON:
                 utterance.onend = () => {
                     if (button) {
                         button.dataset.speaking = 'false';
-                        const svgSize = button.classList.contains('tts-button-inline') ? '14' : '18';
+                        const svgSize = button.classList.contains('tts-button-inline') ? '12' : '18';
                         button.innerHTML = `
                             <svg width="${svgSize}" height="${svgSize}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                 <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/>
@@ -18338,7 +18368,7 @@ Réponds UNIQUEMENT dans ce format JSON:
                     
                     if (button) {
                         button.dataset.speaking = 'false';
-                        const svgSize = button.classList.contains('tts-button-inline') ? '14' : '18';
+                        const svgSize = button.classList.contains('tts-button-inline') ? '12' : '18';
                         button.innerHTML = `
                             <svg width="${svgSize}" height="${svgSize}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                 <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/>
