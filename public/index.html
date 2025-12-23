@@ -5285,6 +5285,56 @@
             }
         }
 
+        // Fonction spéciale pour les notifications des tâches créées par l'agent (avec IDs string)
+        function toggleTaskNotificationAgent(taskId, enabled) {
+            console.log('🤖 toggleTaskNotificationAgent appelé pour ID:', taskId, 'Type:', typeof taskId);
+            
+            // Chercher la tâche par ID exact (string ou number)
+            let task = userTasks.find(t => t.id === taskId || String(t.id) === String(taskId));
+            
+            console.log('🔍 Tâche agent trouvée:', task ? {
+                id: task.id,
+                title: task.title,
+                notifyEnabledAvant: task.notifyEnabled
+            } : 'AUCUNE TÂCHE TROUVÉE');
+            
+            if (task) {
+                task.notifyEnabled = enabled;
+                task.notificationEnabled = enabled;
+                
+                console.log('✅ Tâche agent mise à jour:', {
+                    id: task.id,
+                    notifyEnabledApres: task.notifyEnabled
+                });
+                
+                // Sauvegarder immédiatement
+                localStorage.setItem('userTasks', JSON.stringify(userTasks));
+                console.log('💾 Sauvegardé dans localStorage');
+                
+                // Mettre à jour selectedTask
+                if (selectedTask && (selectedTask.id === taskId || String(selectedTask.id) === String(taskId))) {
+                    selectedTask.notifyEnabled = enabled;
+                    selectedTask.notificationEnabled = enabled;
+                }
+                
+                showToast(enabled ? '🔔 Notification activée' : '🔕 Notification désactivée', 'info');
+                
+                // Auto-activer les notifications globales si nécessaire
+                if (enabled && !notificationsEnabled) {
+                    requestNotificationPermission().then(granted => {
+                        if (granted) {
+                            startNotificationCheck();
+                            setTimeout(() => showToast('✅ Notifications globales activées', 'success'), 500);
+                        }
+                    });
+                } else if (enabled) {
+                    checkTaskNotifications();
+                }
+            } else {
+                console.error('❌ Impossible de trouver la tâche agent avec ID:', taskId);
+            }
+        }
+
         function startNotificationCheck() {
             if (notificationCheckInterval) return;
             
@@ -5992,7 +6042,7 @@
                 ${selectedTask.dueDate && !selectedTask.completed ? `
                     <div style="margin-top: 16px; padding: 12px; background: var(--bg-secondary); border-radius: 8px; border: 1px solid var(--border-color);">
                         <label style="display: flex; align-items: center; gap: 10px; cursor: pointer;">
-                            <input type="checkbox" ${selectedTask.notifyEnabled ? 'checked' : ''} onchange="toggleTaskNotification('${selectedTask.id}', this.checked)" style="width: 18px; height: 18px; cursor: pointer;">
+                            <input type="checkbox" ${selectedTask.notifyEnabled ? 'checked' : ''} onchange="${typeof selectedTask.id === 'string' && /[a-zA-Z]/.test(selectedTask.id) ? 'toggleTaskNotificationAgent' : 'toggleTaskNotification'}('${selectedTask.id}', this.checked)" style="width: 18px; height: 18px; cursor: pointer;">
                             <div style="flex: 1;">
                                 <div style="color: var(--text-primary); font-size: 13px; font-weight: 600; margin-bottom: 2px;">Me notifier</div>
                                 <div style="color: var(--text-secondary); font-size: 12px;">Recevoir une notification 15 min avant</div>
