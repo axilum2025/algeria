@@ -8965,7 +8965,7 @@ Source : ChatGPT
             showToast('🔍 Mode Détection activé - Collez le texte à vérifier', 'success');
         }
         
-        // Gérer l'analyse d'hallucination
+        // Gérer l'analyse d'hallucination avec AI Axilum
         async function handleHallucinationDetection(text) {
             const sendBtn = document.getElementById('sendBtn');
             const input = document.getElementById('userInput');
@@ -8983,20 +8983,64 @@ Source : ChatGPT
             try {
                 // Extraire la source si mentionnée
                 const sourceMatch = text.match(/(?:Source|IA|AI)\s*:\s*([^\n]+)/i);
-                const source = sourceMatch ? sourceMatch[1].trim() : null;
+                const source = sourceMatch ? sourceMatch[1].trim() : 'IA non spécifiée';
                 
                 // Retirer la ligne source du texte à analyser
                 const textToAnalyze = sourceMatch 
                     ? text.replace(/(?:Source|IA|AI)\s*:\s*[^\n]+/i, '').trim()
                     : text;
                 
-                // Appeler l'API de vérification
-                const response = await fetch('/api/verify-hallucination', {
+                // Créer un prompt spécial pour AI Axilum en mode analyse détaillée
+                const detectionPrompt = `🔍 MODE ANALYSE D'HALLUCINATIONS ACTIVÉ
+
+Je dois analyser le texte suivant provenant de "${source}" pour détecter les hallucinations potentielles.
+
+TEXTE À ANALYSER:
+"""
+${textToAnalyze}
+"""
+
+CONSIGNES D'ANALYSE DÉTAILLÉE:
+1. Examine chaque affirmation factuelle (dates, noms, chiffres, événements, lois, citations)
+2. Identifie les faits vérifiables et ceux qui semblent suspects
+3. Détecte les contradictions internes
+4. Repère les affirmations absolues sans nuances
+5. Vérifie la cohérence temporelle et logique
+6. Identifie les conseils médicaux/juridiques non sourcés
+
+STRUCTURE DE TA RÉPONSE:
+📊 **Index d'hallucination estimé**: [0-100%]
+📝 **Longueur**: ${textToAnalyze.length} caractères
+📌 **Source**: ${source}
+
+✅ **FAITS VÉRIFIABLES**
+[Liste les affirmations qui semblent correctes avec justification]
+
+⚠️ **FAITS SUSPECTS**
+[Liste les affirmations douteuses avec raison]
+
+❌ **HALLUCINATIONS POTENTIELLES**
+[Liste les erreurs factuelles évidentes]
+
+🔄 **CONTRADICTIONS**
+[Liste les incohérences internes]
+
+🚨 **ALERTES**
+[Signale conseils médicaux/juridiques non sourcés]
+
+📊 **FIABILITÉ GLOBALE**: [0-100]/100
+💡 **RECOMMANDATION**: [Ton verdict final]
+
+Sois exhaustif, précis et détaillé dans ton analyse.`;
+
+                // Appeler AI Axilum avec le prompt de détection
+                const response = await fetch('/api/invoke', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
-                        text: textToAnalyze,
-                        source: source
+                        prompt: detectionPrompt,
+                        useGroq: true,
+                        temperature: 0.1 // Mode déterministe pour l'analyse
                     })
                 });
                 
@@ -9004,31 +9048,36 @@ Source : ChatGPT
                     throw new Error(`Erreur ${response.status}`);
                 }
                 
-                const report = await response.json();
-                
-                // Générer le rapport formaté
-                const reportMessage = formatHallucinationReport(report);
+                const data = await response.json();
+                const analysisReport = data.response;
                 
                 hideTyping();
-                addMessage(reportMessage, 'bot', {
-                    hallucinationIndex: report.hallucinationIndex,
-                    hallucinationSources: report.hallucinationSources
+                addMessage(analysisReport, 'bot', {
+                    hallucinationIndex: data.hallucinationIndex,
+                    contextHistoryRatio: data.contextHistoryRatio
                 });
                 
                 // Sauvegarder dans la conversation
                 saveMessage(text, {
-                    response: reportMessage,
-                    hallucinationIndex: report.hallucinationIndex,
-                    hallucinationSources: report.hallucinationSources
+                    response: analysisReport,
+                    hallucinationIndex: data.hallucinationIndex,
+                    contextHistoryRatio: data.contextHistoryRatio,
+                    model: data.model
                 });
                 
-                showToast('✅ Analyse terminée', 'success');
+                showToast('✅ Analyse terminée - Mode normal rétabli', 'success');
+                
+                // Désactiver le mode détection après l'analyse
+                hallucinationDetectorActive = false;
                 
             } catch (error) {
                 hideTyping();
                 console.error('Erreur analyse hallucination:', error);
                 addMessage(`❌ Erreur lors de l'analyse: ${error.message}\n\nVeuillez réessayer.`, 'bot');
                 showToast('❌ Erreur lors de l\'analyse', 'error');
+                
+                // Désactiver le mode en cas d'erreur aussi
+                hallucinationDetectorActive = false;
             } finally {
                 sendBtn.disabled = false;
                 input.disabled = false;
@@ -9036,72 +9085,6 @@ Source : ChatGPT
             }
         }
         
-        // Formater le rapport d'hallucination
-        function formatHallucinationReport(report) {
-            let message = `🔍 **Rapport d'Analyse d'Hallucinations**\n\n`;
-            message += `📌 **Source analysée** : ${report.source}\n`;
-            message += `📝 **Longueur** : ${report.textLength} caractères\n`;
-            message += `📊 **Index d'hallucination** : ${report.hallucinationIndex !== undefined ? report.hallucinationIndex.toFixed(1) : 'N/A'}\n\n`;
-            message += `---\n\n`;
-            
-            // Faits vérifiés
-            if (report.verifiedFacts && report.verifiedFacts.length > 0) {
-                message += `✅ **FAITS VÉRIFIÉS** (${report.verifiedFacts.length})\n`;
-                report.verifiedFacts.forEach(f => {
-                    message += `• "${f.fact}" ✓ Confirmé par ${f.source}\n`;
-                });
-                message += `\n`;
-            }
-            
-            // Faits suspects
-            if (report.suspiciousFacts && report.suspiciousFacts.length > 0) {
-                message += `⚠️ **FAITS SUSPECTS** (${report.suspiciousFacts.length})\n`;
-                report.suspiciousFacts.forEach(f => {
-                    message += `• "${f.fact}" ⚠️ ${f.reason}\n`;
-                });
-                message += `\n`;
-            }
-            
-            // Hallucinations
-            if (report.hallucinations && report.hallucinations.length > 0) {
-                message += `❌ **HALLUCINATIONS DÉTECTÉES** (${report.hallucinations.length})\n`;
-                report.hallucinations.forEach(h => {
-                    message += `• "${h.fact}" ❌ ${h.reason}\n`;
-                });
-                message += `\n`;
-            }
-            
-            // Contradictions
-            if (report.contradictions && report.contradictions.length > 0) {
-                message += `🔄 **CONTRADICTIONS INTERNES**\n`;
-                report.contradictions.forEach(c => {
-                    message += `• ${c.description}\n`;
-                });
-                message += `\n`;
-            }
-            
-            // Warnings de sécurité
-            if (report.securityWarnings && report.securityWarnings.length > 0) {
-                message += `🚨 **ALERTES SÉCURITÉ**\n`;
-                report.securityWarnings.forEach(w => {
-                    message += `${w.message}\n`;
-                });
-                message += `\n`;
-            }
-            
-            // Score et recommandation
-            message += `---\n\n`;
-            message += `📊 **FIABILITÉ GLOBALE : ${report.reliabilityScore}/100**\n\n`;
-            message += `💡 **RECOMMANDATION**\n`;
-            message += `${report.recommendation}\n\n`;
-            
-            // Sources hallucination detector
-            if (report.hallucinationSources && report.hallucinationSources.length > 0) {
-                message += `📚 **Sources de vérification** : ${report.hallucinationSources.join(', ')}\n`;
-            }
-            
-            return message;
-        }
         
         function openMarketing() {
             // Fermer AI Management s'il est ouvert
