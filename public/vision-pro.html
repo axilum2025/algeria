@@ -692,6 +692,25 @@
                     })
                 });
 
+                const contentType = response.headers.get('content-type');
+                
+                // Vérifier si la réponse est du JSON
+                if (!contentType || !contentType.includes('application/json')) {
+                    const textResponse = await response.text();
+                    hideTyping();
+                    statusText.textContent = 'Erreur';
+                    
+                    // Si c'est du HTML, c'est probablement une page d'erreur Azure
+                    if (textResponse.includes('<!DOCTYPE') || textResponse.includes('<html')) {
+                        addMessage(`L'API vision-${currentFunction} n'est pas encore déployée sur Azure. Mode démo activé.`, 'bot');
+                        // Utiliser des données de démonstration
+                        displayMockResults(currentFunction);
+                    } else {
+                        addMessage(`Erreur serveur : ${textResponse.substring(0, 200)}`, 'bot');
+                    }
+                    return;
+                }
+
                 const data = await response.json();
                 hideTyping();
                 statusText.textContent = 'Azure Vision Active';
@@ -704,8 +723,39 @@
             } catch (error) {
                 hideTyping();
                 statusText.textContent = 'Erreur';
-                addMessage(`Erreur réseau : ${error.message}`, 'bot');
+                addMessage(`Erreur réseau : ${error.message}. Affichage des résultats de démonstration.`, 'bot');
+                displayMockResults(currentFunction);
             }
+        }
+
+        function displayMockResults(functionType) {
+            const mockData = {
+                analyze: {
+                    description: 'Une image d\'exemple pour la démonstration',
+                    tags: ['demo', 'test', 'example'],
+                    objects: [{object: 'demo', confidence: 0.95}]
+                },
+                ocr: {
+                    text: 'Texte de démonstration\nLes APIs Azure Vision doivent être configurées.'
+                },
+                face: {
+                    faces: [{age: 30, gender: 'Male'}]
+                },
+                moderate: {
+                    isAdultContent: false,
+                    adultScore: 0.01,
+                    isRacyContent: false,
+                    racyScore: 0.02
+                },
+                detect: {
+                    objects: [{object: 'demo object', confidence: 0.9}]
+                },
+                brand: {
+                    brands: []
+                }
+            };
+
+            displayResults(mockData[functionType] || {}, functionType);
         }
 
         function displayResults(data, functionType) {
