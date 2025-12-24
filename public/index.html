@@ -2837,13 +2837,6 @@
             if (!message) return;
 
             // � MODE DÉTECTION D'HALLUCINATIONS
-            if (hallucinationDetectorActive) {
-                await handleHallucinationDetection(message);
-                input.value = '';
-                adjustTextareaHeight();
-                hallucinationDetectorActive = false; // Désactiver après analyse
-                return;
-            }
 
             // �📅 DÉTECTION AUTOMATIQUE DES COMMANDES TO DO
             const todoResult = detectAndHandleTodoCommand(message);
@@ -8916,175 +8909,19 @@ Réponds de manière professionnelle et technique.
         }
         
         function loadHallucinationModule() {
-            // Activer le mode détection d'hallucinations dans le chat
-            activateHallucinationDetectorMode();
+            // Envoyer un message simple à AI Axilum pour activer le mode
+            const activationMessage = "Active le mode analyse d'hallucinations. Je vais te donner un texte d'une autre IA à analyser pour détecter les erreurs factuelles, hallucinations et contradictions.";
+            
+            // Simuler l'envoi du message
+            const userInput = document.getElementById('userInput');
+            userInput.value = activationMessage;
+            
+            // Déclencher l'envoi
+            sendMessage();
+            
+            // Toast pour l'utilisateur
+            showToast('🔍 Demande d\'activation envoyée à AI Axilum', 'success');
         }
-        
-        // Mode Détecteur d'Hallucinations
-        let hallucinationDetectorActive = false;
-        
-        function activateHallucinationDetectorMode() {
-            hallucinationDetectorActive = true;
-            
-            // Afficher le message guide dans le chat
-            const guideMessage = `🔍 **Mode Détection d'Hallucinations activé**
-
-Je vais analyser une réponse d'IA pour détecter :
-✓ Faits inventés (noms, dates, chiffres, lois)
-✓ Citations ou sources inexistantes
-✓ Contradictions internes
-✓ Affirmations sans preuve vérifiable
-
-📝 **Instructions :**
-1. Collez la réponse à vérifier ci-dessous
-2. (Optionnel) Indiquez le nom de l'IA source : "Source : ChatGPT" ou "IA : Gemini"
-3. J'analyserai et vous donnerai un rapport détaillé avec :
-   • Faits vérifiés ✅
-   • Faits suspects ⚠️
-   • Hallucinations détectées ❌
-   • Index de fiabilité 📊
-
-💡 **Exemple :**
-\`\`\`
-Source : ChatGPT
-[Collez ici la réponse à vérifier...]
-\`\`\`
-
-⚠️ **Sécurité :** Les conseils médicaux ou juridiques non sourcés seront bloqués.`;
-
-            addMessage(guideMessage, 'bot');
-            
-            // Fermer le sidebar si ouvert
-            if (window.innerWidth <= 768) {
-                toggleSidebar();
-            }
-            
-            // Focus sur l'input
-            document.getElementById('userInput').focus();
-            
-            showToast('🔍 Mode Détection activé - Collez le texte à vérifier', 'success');
-        }
-        
-        // Gérer l'analyse d'hallucination avec AI Axilum
-        async function handleHallucinationDetection(text) {
-            const sendBtn = document.getElementById('sendBtn');
-            const input = document.getElementById('userInput');
-            
-            // Désactiver l'input pendant l'analyse
-            sendBtn.disabled = true;
-            input.disabled = true;
-            
-            // Ajouter le message utilisateur
-            addMessage(text, 'user');
-            
-            // Afficher indicateur d'analyse
-            showTyping();
-            
-            try {
-                // Extraire la source si mentionnée
-                const sourceMatch = text.match(/(?:Source|IA|AI)\s*:\s*([^\n]+)/i);
-                const source = sourceMatch ? sourceMatch[1].trim() : 'IA non spécifiée';
-                
-                // Retirer la ligne source du texte à analyser
-                const textToAnalyze = sourceMatch 
-                    ? text.replace(/(?:Source|IA|AI)\s*:\s*[^\n]+/i, '').trim()
-                    : text;
-                
-                // Créer un prompt spécial pour AI Axilum en mode analyse détaillée
-                const detectionPrompt = `🔍 MODE ANALYSE D'HALLUCINATIONS ACTIVÉ
-
-Je dois analyser le texte suivant provenant de "${source}" pour détecter les hallucinations potentielles.
-
-TEXTE À ANALYSER:
-"""
-${textToAnalyze}
-"""
-
-CONSIGNES D'ANALYSE DÉTAILLÉE:
-1. Examine chaque affirmation factuelle (dates, noms, chiffres, événements, lois, citations)
-2. Identifie les faits vérifiables et ceux qui semblent suspects
-3. Détecte les contradictions internes
-4. Repère les affirmations absolues sans nuances
-5. Vérifie la cohérence temporelle et logique
-6. Identifie les conseils médicaux/juridiques non sourcés
-
-STRUCTURE DE TA RÉPONSE:
-📊 **Index d'hallucination estimé**: [0-100%]
-📝 **Longueur**: ${textToAnalyze.length} caractères
-📌 **Source**: ${source}
-
-✅ **FAITS VÉRIFIABLES**
-[Liste les affirmations qui semblent correctes avec justification]
-
-⚠️ **FAITS SUSPECTS**
-[Liste les affirmations douteuses avec raison]
-
-❌ **HALLUCINATIONS POTENTIELLES**
-[Liste les erreurs factuelles évidentes]
-
-🔄 **CONTRADICTIONS**
-[Liste les incohérences internes]
-
-🚨 **ALERTES**
-[Signale conseils médicaux/juridiques non sourcés]
-
-📊 **FIABILITÉ GLOBALE**: [0-100]/100
-💡 **RECOMMANDATION**: [Ton verdict final]
-
-Sois exhaustif, précis et détaillé dans ton analyse.`;
-
-                // Appeler AI Axilum avec le prompt de détection
-                const response = await fetch('/api/invoke', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        prompt: detectionPrompt,
-                        useGroq: true,
-                        temperature: 0.1 // Mode déterministe pour l'analyse
-                    })
-                });
-                
-                if (!response.ok) {
-                    throw new Error(`Erreur ${response.status}`);
-                }
-                
-                const data = await response.json();
-                const analysisReport = data.response;
-                
-                hideTyping();
-                addMessage(analysisReport, 'bot', {
-                    hallucinationIndex: data.hallucinationIndex,
-                    contextHistoryRatio: data.contextHistoryRatio
-                });
-                
-                // Sauvegarder dans la conversation
-                saveMessage(text, {
-                    response: analysisReport,
-                    hallucinationIndex: data.hallucinationIndex,
-                    contextHistoryRatio: data.contextHistoryRatio,
-                    model: data.model
-                });
-                
-                showToast('✅ Analyse terminée - Mode normal rétabli', 'success');
-                
-                // Désactiver le mode détection après l'analyse
-                hallucinationDetectorActive = false;
-                
-            } catch (error) {
-                hideTyping();
-                console.error('Erreur analyse hallucination:', error);
-                addMessage(`❌ Erreur lors de l'analyse: ${error.message}\n\nVeuillez réessayer.`, 'bot');
-                showToast('❌ Erreur lors de l\'analyse', 'error');
-                
-                // Désactiver le mode en cas d'erreur aussi
-                hallucinationDetectorActive = false;
-            } finally {
-                sendBtn.disabled = false;
-                input.disabled = false;
-                input.focus();
-            }
-        }
-        
         
         function openMarketing() {
             // Fermer AI Management s'il est ouvert
