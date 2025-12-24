@@ -13,6 +13,22 @@ module.exports = async function (context, req) {
         return;
     }
 
+    // Helper function outside try/catch
+    function getSafetyRecommendation(adult) {
+        if (!adult) return 'Safe';
+        
+        if (adult.isAdultContent || adult.isGoryContent) {
+            return 'Unsafe - Block content';
+        }
+        if (adult.isRacyContent) {
+            return 'Caution - Review recommended';
+        }
+        if (adult.adultScore > 0.6 || adult.racyScore > 0.6 || adult.goreScore > 0.6) {
+            return 'Moderate risk - Monitor';
+        }
+        return 'Safe';
+    }
+
     try {
         const { imageBase64 } = req.body;
         
@@ -42,6 +58,8 @@ module.exports = async function (context, req) {
         // Use Analyze API with Adult feature
         const analyzeUrl = `${azureEndpoint}/vision/v3.2/analyze?visualFeatures=Adult`;
         
+        context.log('Calling Azure Vision:', analyzeUrl);
+        
         const response = await fetch(analyzeUrl, {
             method: 'POST',
             headers: {
@@ -50,6 +68,9 @@ module.exports = async function (context, req) {
             },
             body: imageBuffer
         });
+
+        context.log('Response status:', response.status);
+        context.log('Response content-type:', response.headers.get('content-type'));
 
         if (!response.ok) {
             const errorText = await response.text();
@@ -63,6 +84,7 @@ module.exports = async function (context, req) {
         }
 
         const data = await response.json();
+        context.log('Azure response data:', JSON.stringify(data));
         
         const result = {
             isAdultContent: data.adult?.isAdultContent || false,
@@ -74,21 +96,6 @@ module.exports = async function (context, req) {
             recommendation: getSafetyRecommendation(data.adult)
         };
 
-        function getSafetyRecommendation(adult) {
-            if (!adult) return 'Safe';
-            
-            if (adult.isAdultContent || adult.isGoryContent) {
-                return 'Unsafe - Block content';
-            }
-            if (adult.isRacyContent) {
-                return 'Caution - Review recommended';
-            }
-            if (adult.adultScore > 0.6 || adult.racyScore > 0.6 || adult.goreScore > 0.6) {
-                return 'Moderate risk - Monitor';
-            }
-            return 'Safe';
-        }
-
         context.res = {
             status: 200,
             headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
@@ -96,7 +103,7 @@ module.exports = async function (context, req) {
         };
 
     } catch (error) {
-        context.log.error('Error:', error);
+        context.log.error('Error details:', error);
         context.res = {
             status: 500,
             headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
