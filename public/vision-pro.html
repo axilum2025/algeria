@@ -504,16 +504,6 @@
                     <div class="function-desc">Détection de visages, âge, émotions, accessoires</div>
                 </div>
 
-                <div class="function-item" data-function="moderate">
-                    <div class="function-title">
-                        <svg class="svg-icon" viewBox="0 0 24 24">
-                            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
-                        </svg>
-                        Content Moderation
-                    </div>
-                    <div class="function-desc">Détection de contenu inapproprié, scores de sécurité</div>
-                </div>
-
                 <div class="function-item" data-function="detect">
                     <div class="function-title">
                         <svg class="svg-icon" viewBox="0 0 24 24">
@@ -789,11 +779,6 @@
                     } else {
                         resultHTML += `<div class="result-item">Aucun visage détecté</div>`;
                     }
-                    break;
-
-                case 'moderate':
-                    resultHTML += `<div class="result-item"><div class="result-label">Contenu adulte</div>${data.isAdultContent ? 'Détecté' : 'Non détecté'} (${(data.adultScore * 100).toFixed(1)}%)</div>`;
-                    resultHTML += `<div class="result-item"><div class="result-label">Contenu racé</div>${data.isRacyContent ? 'Détecté' : 'Non détecté'} (${(data.racyScore * 100).toFixed(1)}%)</div>`;
                     break;
 
                 case 'detect':
