@@ -2803,6 +2803,7 @@
         function switchToPlan(plan) {
             currentPlan = plan;
             localStorage.setItem('axilum_plan', plan);
+            localStorage.setItem('selectedPlan', plan.toUpperCase()); // Synchroniser avec selectedPlan
             
             // Update UI
             const freeBadge = document.getElementById('planBadgeFree');
@@ -2811,9 +2812,11 @@
             if (plan === 'free') {
                 freeBadge.classList.add('active');
                 proBadge.classList.remove('active');
+                showToast('Mode FREE activé - Phi-3', 'info');
             } else {
                 proBadge.classList.add('active');
                 freeBadge.classList.remove('active');
+                showToast('Mode PRO activé - Llama 3.3 70B + Azure Functions', 'success');
             }
         }
 
