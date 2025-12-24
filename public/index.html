@@ -1941,11 +1941,11 @@
                     <span class="menu-item-text">Excel AI Expert</span>
                 </button>
                 <!-- Analyse Vision -->
-                <button class="menu-item" id="visionAnalyzeBtn" onclick="loadVisionModule()" style="padding-left:30px;" title="Analyse Vision - Analyse intelligente d'images">
+                <button class="menu-item" id="visionAnalyzeBtn" onclick="openVisionPro()" style="padding-left:30px;" title="AI Vision PRO - Analyse avancée Azure">
                     <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
                     </svg>
-                    <span class="menu-item-text">Analyse Vision</span>
+                    <span class="menu-item-text">AI Vision PRO</span>
                 </button>
                 <!-- Hallucination Detector -->
                 <button class="menu-item" onclick="loadHallucinationModule()" style="padding-left:30px;" title="Hallucination Detector - Détection d'hallucinations IA">
@@ -8883,29 +8883,17 @@ Réponds de manière professionnelle et technique.
         let visionModuleLoaded = false;
         let hallucinationModuleLoaded = false;
         
-        function loadVisionModule() {
-            if (visionModuleLoaded && typeof openVisionModule === 'function') {
-                openVisionModule();
+        function openVisionPro() {
+            // Vérifier si l'utilisateur est en mode PRO
+            const currentPlan = localStorage.getItem('selectedPlan') || 'FREE';
+            
+            if (currentPlan !== 'PRO') {
+                showToast('AI Vision PRO est réservé aux utilisateurs PRO. Passez au plan PRO pour accéder à cette fonctionnalité.', 'error');
                 return;
             }
             
-            const script = document.createElement('script');
-            script.src = '/js/vision-module.js';
-            script.onload = function() {
-                visionModuleLoaded = true;
-                console.log('Module Vision chargé');
-                if (typeof openVisionModule === 'function') {
-                    openVisionModule();
-                } else {
-                    console.error('openVisionModule non disponible');
-                    alert('Erreur lors de l\'ouverture d\'Analyse Vision');
-                }
-            };
-            script.onerror = function() {
-                console.error('Erreur lors du chargement du module Vision');
-                alert('Erreur lors du chargement d\'Analyse Vision. Veuillez réessayer.');
-            };
-            document.head.appendChild(script);
+            // Ouvrir la page Vision PRO dans un nouvel onglet
+            window.open('/vision-pro.html', '_blank');
         }
         
         function loadHallucinationModule() {
