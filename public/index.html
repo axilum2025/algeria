@@ -2924,18 +2924,19 @@
             const message = input.value.trim();
             if (!message) return;
 
-            // � MODE DÉTECTION D'HALLUCINATIONS
+            // MODE DÉTECTION D'HALLUCINATIONS
 
-            // �📅 DÉTECTION AUTOMATIQUE DES COMMANDES TO DO
-            const todoResult = detectAndHandleTodoCommand(message);
-            if (todoResult.handled) {
-                addMessage(message, 'user');
-                addMessage(todoResult.response, 'bot');
-                input.value = '';
-                adjustTextareaHeight();
-                saveMessage(message, { response: todoResult.response });
-                return;
-            }
+            // 📅 DÉTECTION AUTOMATIQUE DES COMMANDES TO DO - DÉSACTIVÉE
+            // AI Axilum reste un assistant général. Pour gérer les tâches, utilisez le module AI Task.
+            // const todoResult = detectAndHandleTodoCommand(message);
+            // if (todoResult.handled) {
+            //     addMessage(message, 'user');
+            //     addMessage(todoResult.response, 'bot');
+            //     input.value = '';
+            //     adjustTextareaHeight();
+            //     saveMessage(message, { response: todoResult.response });
+            //     return;
+            // }
 
             // Fermer la sidebar automatiquement
             closeSidebar();
