@@ -1122,8 +1122,11 @@
             
             excelData = uniqueRows;
 
-            // Mettre à jour l'affichage
+            // Mettre à jour l'affichage du tableau
             displayExcelData();
+            
+            // Sauvegarder la session avec les données nettoyées
+            saveSession();
 
             // Message de confirmation détaillé
             let message = `✅ **Nettoyage terminé !**\n\n`;
