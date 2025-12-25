@@ -1932,8 +1932,8 @@ La colonne Remise a été ajoutée avec succès !"
                     aiMessage = 'Suggère-moi des FORMULES EXCEL utiles (format =...) pour mes données. Explique comment créer des formules dans Excel (comme =A1*B1, =SOMME(A1:A10), =MOYENNE(), etc.). NE calcule RIEN, NE modifie RIEN, suggère SEULEMENT les formules que je peux écrire manuellement dans Excel. Donne des exemples concrets avec les noms de mes colonnes et explique à quoi sert chaque formule.';
                     break;
                 case 'kpi':
-                    userMessage = 'Génère des KPI pertinents pour ces données';
-                    aiMessage = userMessage;
+                    userMessage = 'Suggère des KPI pertinents';
+                    aiMessage = 'Suggère-moi des KPI (Indicateurs Clés de Performance) pertinents pour mes données. Explique quels KPI seraient utiles à suivre et COMMENT les calculer avec des formules Excel. NE calcule RIEN, NE modifie RIEN. Suggère seulement les KPI à créer et les formules Excel correspondantes. Par exemple : "Chiffre d\'affaires total : =SOMME(Prix*Quantité)", "Valeur moyenne : =MOYENNE(Prix)", etc. Sois pédagogique et concret.';
                     break;
                 case 'duplicate':
                     userMessage = 'Détecte les doublons dans mes données';
