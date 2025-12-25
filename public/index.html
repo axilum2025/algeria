@@ -9170,11 +9170,209 @@ STYLE DE RÉPONSE :
         }
         
         function viewProjectDetails(projectId) {
-            // TODO: Implémenter la vue détaillée du projet
             const projects = JSON.parse(localStorage.getItem('rndProjects') || '[]');
             const project = projects.find(p => p.id === projectId);
-            if (project) {
-                alert(`Projet: ${project.titre}\\nDomaine: ${project.domaine}\\nPhase: ${project.phase}\\nAvancement: ${project.avancement}%`);
+            if (!project) return;
+            
+            // Calculer les métriques
+            const phasesList = ['découverte', 'idéation', 'expérimentation', 'validation', 'déploiement'];
+            const currentPhaseIndex = phasesList.indexOf(project.phase);
+            const budgetPercent = project.budget.prevu > 0 ? Math.min((project.budget.depense / project.budget.prevu) * 100, 100) : 0;
+            const teamSize = project.equipe.length || 0;
+            const techCount = project.technologies.length || 0;
+            const daysElapsed = Math.floor((new Date() - new Date(project.created)) / (1000 * 60 * 60 * 24));
+            
+            // Créer le modal
+            const modal = document.createElement('div');
+            modal.id = 'projectDetailsModal';
+            modal.style.cssText = `
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: rgba(0, 0, 0, 0.85);
+                backdrop-filter: blur(15px);
+                z-index: 10003;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                animation: fadeIn 0.3s ease;
+                overflow-y: auto;
+                padding: 20px;
+            `;
+            
+            modal.innerHTML = `
+                <div style="background: linear-gradient(135deg, #0f172a, #1e293b); border: 1px solid rgba(99, 102, 241, 0.4); border-radius: 20px; width: 95%; max-width: 1200px; max-height: 95vh; overflow-y: auto; box-shadow: 0 25px 80px rgba(99, 102, 241, 0.3);">
+                    
+                    <!-- Header -->
+                    <div style="background: linear-gradient(135deg, #6366f1, #8b5cf6); padding: 24px 32px; border-radius: 20px 20px 0 0; display: flex; justify-content: space-between; align-items: center;">
+                        <div>
+                            <h2 style="margin: 0 0 8px; font-size: 28px; color: white; font-weight: 700;">${project.titre}</h2>
+                            <div style="display: flex; gap: 12px; align-items: center;">
+                                <span style="background: rgba(255, 255, 255, 0.2); padding: 6px 12px; border-radius: 6px; font-size: 13px; color: white; font-weight: 600;">📂 ${project.domaine}</span>
+                                <span style="background: rgba(255, 255, 255, 0.2); padding: 6px 12px; border-radius: 6px; font-size: 13px; color: white; font-weight: 600;">🔄 ${project.phase.charAt(0).toUpperCase() + project.phase.slice(1)}</span>
+                                <span style="background: rgba(255, 255, 255, 0.2); padding: 6px 12px; border-radius: 6px; font-size: 13px; color: white; font-weight: 600;">⏱️ ${daysElapsed}j</span>
+                            </div>
+                        </div>
+                        <button onclick="closeProjectDetailsModal()" style="background: rgba(255, 255, 255, 0.2); border: none; color: white; font-size: 32px; cursor: pointer; width: 40px; height: 40px; border-radius: 8px; display: flex; align-items: center; justify-content: center; transition: background 0.2s;">×</button>
+                    </div>
+                    
+                    <div style="padding: 32px;">
+                        
+                        <!-- Progression Visuelle des 5 Phases -->
+                        <div style="background: rgba(99, 102, 241, 0.05); border: 1px solid rgba(99, 102, 241, 0.2); border-radius: 16px; padding: 24px; margin-bottom: 24px;">
+                            <h3 style="margin: 0 0 20px; font-size: 18px; color: white; font-weight: 600;">📊 Progression du Projet</h3>
+                            
+                            <!-- Timeline 5 phases -->
+                            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; position: relative;">
+                                ${phasesList.map((phase, index) => {
+                                    const isActive = index === currentPhaseIndex;
+                                    const isPassed = index < currentPhaseIndex;
+                                    const isFuture = index > currentPhaseIndex;
+                                    
+                                    return `
+                                        <div style="flex: 1; text-align: center; position: relative; z-index: 2;">
+                                            <div style="width: 50px; height: 50px; margin: 0 auto 8px; border-radius: 50%; background: ${isActive ? 'linear-gradient(135deg, #6366f1, #8b5cf6)' : isPassed ? 'linear-gradient(135deg, #10b981, #059669)' : 'rgba(255, 255, 255, 0.1)'}; display: flex; align-items: center; justify-content: center; border: 3px solid ${isActive ? '#8b5cf6' : isPassed ? '#10b981' : 'rgba(255, 255, 255, 0.2)'}; box-shadow: ${isActive ? '0 0 20px rgba(139, 92, 246, 0.6)' : 'none'};">
+                                                <span style="font-size: 20px;">${['🔍', '💡', '🧪', '✅', '🚀'][index]}</span>
+                                            </div>
+                                            <div style="font-size: 12px; color: ${isActive ? '#a78bfa' : isPassed ? '#6ee7b7' : 'rgba(255, 255, 255, 0.5)'}; font-weight: ${isActive ? '700' : '600'}; text-transform: capitalize;">${phase}</div>
+                                        </div>
+                                        ${index < 4 ? `<div style="flex: 1; height: 4px; background: ${index < currentPhaseIndex ? 'linear-gradient(90deg, #10b981, #059669)' : 'rgba(255, 255, 255, 0.1)'}; margin: 0 -10px; margin-bottom: 30px; border-radius: 2px;"></div>` : ''}
+                                    `;
+                                }).join('')}
+                            </div>
+                            
+                            <!-- Barre de progression globale -->
+                            <div style="margin-top: 24px;">
+                                <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                                    <span style="font-size: 14px; color: rgba(255, 255, 255, 0.8); font-weight: 600;">Avancement Global</span>
+                                    <span style="font-size: 16px; color: #6ee7b7; font-weight: 700;">${project.avancement}%</span>
+                                </div>
+                                <div style="background: rgba(255, 255, 255, 0.1); height: 12px; border-radius: 6px; overflow: hidden; position: relative;">
+                                    <div style="background: linear-gradient(90deg, #6366f1, #8b5cf6, #a78bfa); height: 100%; width: ${project.avancement}%; transition: width 0.5s ease; box-shadow: 0 0 15px rgba(139, 92, 246, 0.5);"></div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Métriques Clés -->
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 16px; margin-bottom: 24px;">
+                            
+                            <!-- Budget -->
+                            <div style="background: linear-gradient(135deg, rgba(16, 185, 129, 0.1), rgba(5, 150, 105, 0.05)); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 12px; padding: 20px;">
+                                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
+                                    <span style="font-size: 32px;">💰</span>
+                                    <span style="font-size: 12px; color: rgba(255, 255, 255, 0.6); font-weight: 600;">BUDGET</span>
+                                </div>
+                                <div style="font-size: 24px; color: #6ee7b7; font-weight: 700; margin-bottom: 8px;">${project.budget.prevu.toLocaleString()} ${project.budget.devise}</div>
+                                <div style="font-size: 13px; color: rgba(255, 255, 255, 0.7); margin-bottom: 12px;">Dépensé: ${project.budget.depense.toLocaleString()} ${project.budget.devise}</div>
+                                <div style="background: rgba(255, 255, 255, 0.1); height: 6px; border-radius: 3px; overflow: hidden;">
+                                    <div style="background: linear-gradient(90deg, #10b981, #059669); height: 100%; width: ${budgetPercent}%; transition: width 0.5s ease;"></div>
+                                </div>
+                            </div>
+                            
+                            <!-- Équipe -->
+                            <div style="background: linear-gradient(135deg, rgba(99, 102, 241, 0.1), rgba(139, 92, 246, 0.05)); border: 1px solid rgba(99, 102, 241, 0.3); border-radius: 12px; padding: 20px;">
+                                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
+                                    <span style="font-size: 32px;">👥</span>
+                                    <span style="font-size: 12px; color: rgba(255, 255, 255, 0.6); font-weight: 600;">ÉQUIPE</span>
+                                </div>
+                                <div style="font-size: 24px; color: #a78bfa; font-weight: 700; margin-bottom: 8px;">${teamSize} membres</div>
+                                <div style="font-size: 13px; color: rgba(255, 255, 255, 0.7);">${project.equipe.join(', ') || 'Aucun membre'}</div>
+                            </div>
+                            
+                            <!-- Technologies -->
+                            <div style="background: linear-gradient(135deg, rgba(251, 191, 36, 0.1), rgba(245, 158, 11, 0.05)); border: 1px solid rgba(251, 191, 36, 0.3); border-radius: 12px; padding: 20px;">
+                                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
+                                    <span style="font-size: 32px;">⚡</span>
+                                    <span style="font-size: 12px; color: rgba(255, 255, 255, 0.6); font-weight: 600;">TECHNOLOGIES</span>
+                                </div>
+                                <div style="font-size: 24px; color: #fbbf24; font-weight: 700; margin-bottom: 8px;">${techCount} technos</div>
+                                <div style="font-size: 13px; color: rgba(255, 255, 255, 0.7);">${project.technologies.join(', ') || 'Aucune'}</div>
+                            </div>
+                            
+                            <!-- Durée -->
+                            <div style="background: linear-gradient(135deg, rgba(236, 72, 153, 0.1), rgba(219, 39, 119, 0.05)); border: 1px solid rgba(236, 72, 153, 0.3); border-radius: 12px; padding: 20px;">
+                                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
+                                    <span style="font-size: 32px;">⏰</span>
+                                    <span style="font-size: 12px; color: rgba(255, 255, 255, 0.6); font-weight: 600;">DURÉE</span>
+                                </div>
+                                <div style="font-size: 24px; color: #ec4899; font-weight: 700; margin-bottom: 8px;">${project.duree} mois</div>
+                                <div style="font-size: 13px; color: rgba(255, 255, 255, 0.7);">Démarré il y a ${daysElapsed} jours</div>
+                            </div>
+                            
+                        </div>
+                        
+                        <!-- Description & Problème -->
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 24px;">
+                            <div style="background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 12px; padding: 20px;">
+                                <h4 style="margin: 0 0 12px; font-size: 14px; color: rgba(255, 255, 255, 0.6); font-weight: 600; text-transform: uppercase;">📝 Description</h4>
+                                <p style="margin: 0; color: rgba(255, 255, 255, 0.85); font-size: 14px; line-height: 1.6;">${project.description}</p>
+                            </div>
+                            <div style="background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 12px; padding: 20px;">
+                                <h4 style="margin: 0 0 12px; font-size: 14px; color: rgba(255, 255, 255, 0.6); font-weight: 600; text-transform: uppercase;">🎯 Problème à Résoudre</h4>
+                                <p style="margin: 0; color: rgba(255, 255, 255, 0.85); font-size: 14px; line-height: 1.6;">${project.probleme}</p>
+                            </div>
+                        </div>
+                        
+                        <!-- Public Cible -->
+                        ${project.cible ? `
+                        <div style="background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 12px; padding: 20px; margin-bottom: 24px;">
+                            <h4 style="margin: 0 0 12px; font-size: 14px; color: rgba(255, 255, 255, 0.6); font-weight: 600; text-transform: uppercase;">🎯 Public Cible</h4>
+                            <p style="margin: 0; color: rgba(255, 255, 255, 0.85); font-size: 14px;">${project.cible}</p>
+                        </div>
+                        ` : ''}
+                        
+                        <!-- Actions -->
+                        <div style="display: flex; gap: 12px; justify-content: flex-end; margin-top: 24px;">
+                            <button onclick="closeProjectDetailsModal()" style="padding: 12px 24px; background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 8px; color: white; font-size: 14px; cursor: pointer; font-weight: 600; transition: background 0.2s;">Fermer</button>
+                            <button onclick="editProject(${project.id})" style="padding: 12px 24px; background: rgba(99, 102, 241, 0.2); border: 1px solid rgba(99, 102, 241, 0.4); border-radius: 8px; color: #a78bfa; font-size: 14px; cursor: pointer; font-weight: 600; transition: background 0.2s;">✏️ Modifier</button>
+                            <button onclick="advanceProjectPhase(${project.id})" style="padding: 12px 24px; background: linear-gradient(135deg, #6366f1, #8b5cf6); border: none; border-radius: 8px; color: white; font-size: 14px; cursor: pointer; font-weight: 600; box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4); transition: transform 0.2s;">➡️ Phase Suivante</button>
+                        </div>
+                        
+                    </div>
+                    
+                </div>
+            `;
+            
+            document.body.appendChild(modal);
+        }
+        
+        function closeProjectDetailsModal() {
+            const modal = document.getElementById('projectDetailsModal');
+            if (modal) {
+                modal.style.animation = 'fadeOut 0.3s ease';
+                setTimeout(() => modal.remove(), 300);
+            }
+        }
+        
+        function editProject(projectId) {
+            closeProjectDetailsModal();
+            alert('Fonction d\'édition en cours de développement');
+            // TODO: Ouvrir modal d'édition
+        }
+        
+        function advanceProjectPhase(projectId) {
+            const projects = JSON.parse(localStorage.getItem('rndProjects') || '[]');
+            const project = projects.find(p => p.id === projectId);
+            if (!project) return;
+            
+            const phasesList = ['découverte', 'idéation', 'expérimentation', 'validation', 'déploiement'];
+            const currentIndex = phasesList.indexOf(project.phase);
+            
+            if (currentIndex < phasesList.length - 1) {
+                project.phase = phasesList[currentIndex + 1];
+                project.avancement = Math.min((currentIndex + 2) * 20, 100);
+                project.updated = new Date().toISOString();
+                
+                localStorage.setItem('rndProjects', JSON.stringify(projects));
+                closeProjectDetailsModal();
+                renderProjectsList();
+                initializeRnDData();
+                
+                setTimeout(() => viewProjectDetails(projectId), 300);
+            } else {
+                alert('🎉 Projet terminé ! Félicitations pour le déploiement réussi !');
             }
         }
         
