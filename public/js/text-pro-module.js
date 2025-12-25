@@ -299,7 +299,7 @@ Pour commencer, sélectionnez vos langues dans le panneau latéral et saisissez 
                 <!-- Panneau d'informations -->
                 <div class="textpro-info-panel">
                     <div class="textpro-info-header">
-                        <h1 class="textpro-info-title">Agent Tony</h1>
+                        <h1 class="textpro-info-title">AI Text Pro</h1>
                         <p class="textpro-info-subtitle">Traitement de texte intelligent</p>
                     </div>
                     
