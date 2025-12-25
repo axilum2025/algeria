@@ -8572,7 +8572,11 @@ RÈGLES IMPORTANTES:
                         <div id="rndAgent" class="rnd-tab-content" style="display: none;">
                             <div style="margin-bottom: 24px;">
                                 <h2 style="margin: 0 0 8px; font-size: 24px; color: white;">Agent Dev</h2>
-                                <p style="margin: 0; color: rgba(255, 255, 255, 0.6); font-size: 14px;">Assistant IA spécialisé en R&D et innovation technologique</p>
+                                <p style="margin: 0 0 12px; color: rgba(255, 255, 255, 0.6); font-size: 14px;">Assistant IA spécialisé en R&D et innovation multi-domaines</p>
+                                <label style="display: flex; align-items: center; gap: 8px; color: rgba(255, 255, 255, 0.8); font-size: 13px; cursor: pointer;">
+                                    <input type="checkbox" id="rndWebSearchEnabled" checked style="cursor: pointer;">
+                                    <span>Activer la recherche web (Brave Search) pour des infos à jour</span>
+                                </label>
                             </div>
                             
                             <div class="rnd-chat-container">
@@ -8786,8 +8790,9 @@ RÈGLES IMPORTANTES:
             const input = document.getElementById('rndChatInput');
             const message = input.value.trim();
             if (!message) return;
-            
+
             const messagesContainer = document.getElementById('rndChatMessages');
+            const webSearchEnabled = document.getElementById('rndWebSearchEnabled')?.checked || false;
             
             // Add user message
             messagesContainer.innerHTML += `
@@ -8802,10 +8807,13 @@ RÈGLES IMPORTANTES:
             messagesContainer.scrollTop = messagesContainer.scrollHeight;
             
             // Add typing indicator
+            const typingIndicator = webSearchEnabled 
+                ? 'Agent Dev recherche sur le web...' 
+                : 'Agent Dev analyse...';
             messagesContainer.innerHTML += `
                 <div id="rndTyping" style="margin-bottom: 16px;">
                     <div style="display: inline-block; background: rgba(255, 255, 255, 0.1); padding: 12px 16px; border-radius: 12px;">
-                        <p style="margin: 0; color: rgba(255, 255, 255, 0.6); font-size: 14px;">Agent Dev analyse...</p>
+                        <p style="margin: 0; color: rgba(255, 255, 255, 0.6); font-size: 14px;">${typingIndicator}</p>
                     </div>
                 </div>
             `;
@@ -8873,12 +8881,46 @@ STYLE DE RÉPONSE :
 - Anticipe les obstacles et propose des solutions
 `;
 
+                // Brave Web Search si activé
+                let webSearchResults = '';
+                if (webSearchEnabled) {
+                    try {
+                        // Déterminer si la question nécessite une recherche web
+                        const needsWebSearch = /quoi de neuf|dernières?|nouveautés?|tendances?|actualités?|innovations?|récent|2024|2025|état de l'art|state of the art/i.test(message);
+                        
+                        if (needsWebSearch) {
+                            // Effectuer la recherche Brave
+                            const searchEndpoint = (window.location.hostname === 'localhost')
+                                ? 'http://localhost:7071/api/invoke'
+                                : '/api/invoke';
+                            
+                            const searchResponse = await fetch(searchEndpoint, {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({
+                                    message: `[RECHERCHE WEB BRAVE] ${message}`,
+                                    conversationId: 'rnd-web-search',
+                                    history: []
+                                })
+                            });
+                            
+                            const searchData = await searchResponse.json();
+                            
+                            if (searchData.response && searchData.sources) {
+                                webSearchResults = `\n\n[RÉSULTATS DE RECHERCHE WEB BRAVE] :\n${searchData.response}\n\nSOURCES :\n${searchData.sources.map((s, i) => `${i+1}. ${s.title} - ${s.url}`).join('\n')}\n`;
+                            }
+                        }
+                    } catch (searchError) {
+                        console.error('Erreur recherche Brave:', searchError);
+                        webSearchResults = '\n\n[Note: La recherche web n\'a pas pu être effectuée]\n';
+                    }
+                }
                 
                 const response = await fetch(endpoint, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
-                        message: rndContext + '\n\nQuestion: ' + message,
+                        message: rndContext + webSearchResults + '\n\nQuestion: ' + message,
                         conversationId: 'rnd-agent',
                         history: []
                     })
@@ -8889,11 +8931,22 @@ STYLE DE RÉPONSE :
                 // Remove typing indicator
                 document.getElementById('rndTyping')?.remove();
                 
+                // Format response with sources if available
+                let responseHtml = data.response || 'Erreur de réponse';
+                
+                // Add sources if from web search
+                if (data.sources && data.sources.length > 0) {
+                    responseHtml += '<br><br><strong style="color: #fcd34d;">Sources :</strong><br>';
+                    responseHtml += data.sources.map((s, i) => 
+                        `<small>${i+1}. <a href="${s.url}" target="_blank" style="color: #60a5fa; text-decoration: none;">${s.title}</a></small>`
+                    ).join('<br>');
+                }
+                
                 // Add bot response
                 messagesContainer.innerHTML += `
                     <div style="margin-bottom: 16px;">
                         <div style="display: inline-block; background: rgba(255, 255, 255, 0.1); padding: 12px 16px; border-radius: 12px; max-width: 70%; border: 1px solid rgba(99, 102, 241, 0.3);">
-                            <p style="margin: 0; color: white; font-size: 14px; line-height: 1.6;">${data.response || 'Erreur de réponse'}</p>
+                            <p style="margin: 0; color: white; font-size: 14px; line-height: 1.6;">${responseHtml}</p>
                         </div>
                     </div>
                 `;
