@@ -1928,8 +1928,8 @@ La colonne Remise a été ajoutée avec succès !"
                     aiMessage = 'Fais une analyse DESCRIPTIVE UNIQUEMENT de mon fichier Excel : nombre de lignes, nombre de colonnes, noms des colonnes, types de données, aperçu des valeurs. NE FAIS AUCUN CALCUL (pas de somme, moyenne, total). Décris seulement ce qui existe dans le fichier pour que je comprenne sa structure.';
                     break;
                 case 'formulas':
-                    userMessage = 'Suggère-moi des formules utiles pour ces données';
-                    aiMessage = userMessage;
+                    userMessage = 'Suggère-moi des formules utiles';
+                    aiMessage = 'Suggère-moi des FORMULES EXCEL utiles (format =...) pour mes données. Explique comment créer des formules dans Excel (comme =A1*B1, =SOMME(A1:A10), =MOYENNE(), etc.). NE calcule RIEN, NE modifie RIEN, suggère SEULEMENT les formules que je peux écrire manuellement dans Excel. Donne des exemples concrets avec les noms de mes colonnes et explique à quoi sert chaque formule.';
                     break;
                 case 'kpi':
                     userMessage = 'Génère des KPI pertinents pour ces données';
