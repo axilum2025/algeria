@@ -1090,6 +1090,9 @@
 
         // Nettoyer les données (supprime doublons et cellules vides)
         function cleanData() {
+            console.log('🧹 cleanData() appelée');
+            console.log('📊 excelData avant nettoyage:', excelData.length, 'lignes');
+            
             if (excelData.length === 0) {
                 addChatMessage('⚠️ Aucune donnée à nettoyer.', 'bot');
                 return;
@@ -1100,17 +1103,19 @@
             let removedEmptyRows = 0;
 
             // 1. Supprimer les lignes complètement vides
-            excelData = excelData.filter(row => {
+            const filteredData = excelData.filter(row => {
                 const isEmpty = row.every(cell => cell === '' || cell === null || cell === undefined);
                 if (isEmpty) removedEmptyRows++;
                 return !isEmpty;
             });
+            
+            console.log('📊 Après suppression lignes vides:', filteredData.length, 'lignes');
 
             // 2. Supprimer les doublons (lignes identiques)
             const uniqueRows = [];
             const seen = new Set();
             
-            excelData.forEach(row => {
+            filteredData.forEach(row => {
                 const rowKey = row.join('|||'); // Créer une clé unique pour la ligne
                 if (!seen.has(rowKey)) {
                     seen.add(rowKey);
@@ -1120,13 +1125,21 @@
                 }
             });
             
-            excelData = uniqueRows;
+            console.log('📊 Après suppression doublons:', uniqueRows.length, 'lignes');
+            
+            // Mettre à jour excelData
+            excelData.length = 0; // Vider le tableau
+            excelData.push(...uniqueRows); // Ajouter les lignes nettoyées
+            
+            console.log('📊 excelData après nettoyage:', excelData.length, 'lignes');
 
             // Mettre à jour l'affichage du tableau
             displayExcelData();
             
             // Sauvegarder la session avec les données nettoyées
             saveSession();
+            
+            console.log('✅ Nettoyage terminé et sauvegardé');
 
             // Message de confirmation détaillé
             let message = `✅ **Nettoyage terminé !**\n\n`;
