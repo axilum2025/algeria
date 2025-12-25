@@ -8502,9 +8502,9 @@ RÈGLES IMPORTANTES:
                     
                     <div class="rnd-tabs">
                         <button class="rnd-tab active" onclick="showRnDTab('dashboard')">Dashboard</button>
-                        <button class="rnd-tab" onclick="showRnDTab('veille')">Veille Technologique</button>
-                        <button class="rnd-tab" onclick="showRnDTab('idees')">Idées Innovation</button>
                         <button class="rnd-tab" onclick="showRnDTab('projets')">Projets R&D</button>
+                        <button class="rnd-tab" onclick="showRnDTab('jalons')">Jalons & KPIs</button>
+                        <button class="rnd-tab" onclick="showRnDTab('docs')">Documentation & Risques</button>
                         <button class="rnd-tab" onclick="showRnDTab('agent')">Agent Dev</button>
                     </div>
                     
@@ -8513,20 +8513,20 @@ RÈGLES IMPORTANTES:
                         <div id="rndDashboard" class="rnd-tab-content">
                             <div class="rnd-dashboard">
                                 <div class="rnd-stat-card">
-                                    <div class="rnd-stat-value" id="rndTechCount">0</div>
-                                    <div class="rnd-stat-label">Technologies Suivies</div>
-                                </div>
-                                <div class="rnd-stat-card">
-                                    <div class="rnd-stat-value" id="rndIdeasCount">0</div>
-                                    <div class="rnd-stat-label">Idées Innovation</div>
-                                </div>
-                                <div class="rnd-stat-card">
                                     <div class="rnd-stat-value" id="rndProjectsCount">0</div>
                                     <div class="rnd-stat-label">Projets Actifs</div>
                                 </div>
                                 <div class="rnd-stat-card">
-                                    <div class="rnd-stat-value" id="rndPocCount">0</div>
-                                    <div class="rnd-stat-label">POCs Validés</div>
+                                    <div class="rnd-stat-value" id="rndMilestonesCount">0</div>
+                                    <div class="rnd-stat-label">Jalons à Venir</div>
+                                </div>
+                                <div class="rnd-stat-card">
+                                    <div class="rnd-stat-value" id="rndDocsCount">0</div>
+                                    <div class="rnd-stat-label">Documents</div>
+                                </div>
+                                <div class="rnd-stat-card">
+                                    <div class="rnd-stat-value" id="rndRisksCount">0</div>
+                                    <div class="rnd-stat-label">Risques Actifs</div>
                                 </div>
                             </div>
                             
@@ -8541,22 +8541,31 @@ RÈGLES IMPORTANTES:
                             </div>
                         </div>
                         
-                        <!-- Veille Technologique -->
-                        <div id="rndVeille" class="rnd-tab-content" style="display: none;">
+                        <!-- Jalons & KPIs -->
+                        <div id="rndJalons" class="rnd-tab-content" style="display: none;">
                             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
-                                <h2 style="margin: 0; font-size: 24px; color: white;">Veille Technologique</h2>
-                                <button class="rnd-btn" onclick="showAddTechModal()">Ajouter Technologie</button>
+                                <h2 style="margin: 0; font-size: 24px; color: white;">Jalons & Indicateurs de Performance</h2>
+                                <button class="rnd-btn" onclick="showAddMilestoneModal()">Ajouter Jalon</button>
                             </div>
-                            <div id="rndTechList"></div>
+                            <div id="rndMilestonesList"></div>
                         </div>
                         
-                        <!-- Idées Innovation -->
-                        <div id="rndIdees" class="rnd-tab-content" style="display: none;">
-                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
-                                <h2 style="margin: 0; font-size: 24px; color: white;">Pipeline d'Innovation</h2>
-                                <button class="rnd-btn" onclick="showAddIdeaModal()">Nouvelle Idée</button>
+                        <!-- Documentation & Risques -->
+                        <div id="rndDocs" class="rnd-tab-content" style="display: none;">
+                            <div style="margin-bottom: 32px;">
+                                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+                                    <h2 style="margin: 0; font-size: 24px; color: white;">Documents Projet</h2>
+                                    <button class="rnd-btn" onclick="showAddDocumentModal()">Ajouter Document</button>
+                                </div>
+                                <div id="rndDocsList"></div>
                             </div>
-                            <div id="rndIdeasList"></div>
+                            <div>
+                                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+                                    <h2 style="margin: 0; font-size: 24px; color: white;">Gestion des Risques</h2>
+                                    <button class="rnd-btn" onclick="showAddRiskModal()">Ajouter Risque</button>
+                                </div>
+                                <div id="rndRisksList"></div>
+                            </div>
                         </div>
                         
                         <!-- Projets R&D -->
@@ -8619,9 +8628,9 @@ RÈGLES IMPORTANTES:
             // Show selected tab
             const tabMap = {
                 'dashboard': 'rndDashboard',
-                'veille': 'rndVeille',
-                'idees': 'rndIdees',
                 'projets': 'rndProjets',
+                'jalons': 'rndJalons',
+                'docs': 'rndDocs',
                 'agent': 'rndAgent'
             };
             
@@ -8632,87 +8641,203 @@ RÈGLES IMPORTANTES:
             
             // Set active tab button
             event.target.classList.add('active');
+            
+            // Render content if needed
+            if (tabName === 'jalons') renderMilestonesList();
+            if (tabName === 'docs') {
+                renderDocsList();
+                renderRisksList();
+            }
         }
         
         function initializeRnDData() {
-            const technologies = JSON.parse(localStorage.getItem('rdTechnologies') || '[]');
-            const ideas = JSON.parse(localStorage.getItem('rdIdeas') || '[]');
             const projects = JSON.parse(localStorage.getItem('rndProjects') || '[]');
+            const milestones = JSON.parse(localStorage.getItem('rndMilestones') || '[]');
+            const documents = JSON.parse(localStorage.getItem('rndDocuments') || '[]');
+            const risks = JSON.parse(localStorage.getItem('rndRisks') || '[]');
             
             // Update stats
-            document.getElementById('rndTechCount').textContent = technologies.length;
-            document.getElementById('rndIdeasCount').textContent = ideas.length;
             document.getElementById('rndProjectsCount').textContent = projects.filter(p => p.statut === 'actif').length;
-            document.getElementById('rndPocCount').textContent = projects.filter(p => p.phase === 'poc' && p.status === 'validated').length;
+            document.getElementById('rndMilestonesCount').textContent = milestones.filter(m => new Date(m.date) >= new Date()).length;
+            document.getElementById('rndDocsCount').textContent = documents.length;
+            document.getElementById('rndRisksCount').textContent = risks.filter(r => r.statut === 'actif').length;
             
             // Render lists
-            renderTechList();
-            renderIdeasList();
             renderProjectsList();
             renderDashboardTrends();
             renderDashboardPriority();
         }
         
-        function renderTechList() {
-            const technologies = JSON.parse(localStorage.getItem('rdTechnologies') || '[]');
-            const container = document.getElementById('rndTechList');
+        function renderMilestonesList() {
+            const milestones = JSON.parse(localStorage.getItem('rndMilestones') || '[]');
+            const container = document.getElementById('rndMilestonesList');
             
             if (!container) return;
             
-            if (technologies.length === 0) {
+            if (milestones.length === 0) {
                 container.innerHTML = `
                     <div class="rnd-empty">
-                        <div class="rnd-empty-title">Aucune technologie suivie</div>
-                        <p>Commencez à surveiller les nouvelles technologies</p>
+                        <div class="rnd-empty-title">Aucun jalon défini</div>
+                        <p>Ajoutez des jalons pour suivre l'avancement de vos projets</p>
                     </div>
                 `;
                 return;
             }
             
-            container.innerHTML = technologies.map(tech => `
-                <div class="rnd-item">
+            // Trier par date
+            const sortedMilestones = [...milestones].sort((a, b) => new Date(a.date) - new Date(b.date));
+            
+            container.innerHTML = sortedMilestones.map(milestone => {
+                const isPast = new Date(milestone.date) < new Date();
+                const project = JSON.parse(localStorage.getItem('rndProjects') || '[]').find(p => p.id === milestone.projectId);
+                
+                return `
+                <div class="rnd-item" style="opacity: ${milestone.statut === 'complété' ? '0.7' : '1'};">
                     <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 12px;">
-                        <div>
-                            <h3 style="margin: 0 0 4px; font-size: 18px; color: white;">${tech.name}</h3>
-                            <span class="rnd-badge rnd-badge-${tech.status === 'adoption' ? 'high' : tech.status === 'prototype' ? 'medium' : 'low'}">${tech.status}</span>
+                        <div style="flex: 1;">
+                            <h3 style="margin: 0 0 4px; font-size: 18px; color: white;">${milestone.titre}</h3>
+                            <p style="margin: 0 0 8px; color: rgba(255, 255, 255, 0.7); font-size: 14px;">${milestone.description}</p>
+                            ${project ? `<div style="font-size: 12px; color: rgba(99, 102, 241, 0.9);">Projet: ${project.titre}</div>` : ''}
                         </div>
-                        <div style="font-size: 24px; color: #fcd34d;">${'★'.repeat(tech.relevanceScore)}${'☆'.repeat(5-tech.relevanceScore)}</div>
+                        <div style="text-align: right;">
+                            <span class="rnd-badge rnd-badge-${milestone.statut === 'complété' ? 'high' : isPast ? 'error' : 'medium'}">
+                                ${milestone.statut === 'complété' ? '✓ Complété' : isPast ? '⚠ Retard' : '⏳ À venir'}
+                            </span>
+                            <div style="margin-top: 8px; font-size: 14px; color: rgba(255, 255, 255, 0.9); font-weight: 600;">
+                                ${new Date(milestone.date).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })}
+                            </div>
+                        </div>
                     </div>
-                    <p style="margin: 0 0 8px; color: rgba(255, 255, 255, 0.7); font-size: 14px;">${tech.description}</p>
-                    <div style="font-size: 12px; color: rgba(255, 255, 255, 0.5);">Catégorie: ${tech.category} • Mise à jour: ${new Date(tech.lastUpdate).toLocaleDateString()}</div>
+                    ${milestone.kpis && milestone.kpis.length > 0 ? `
+                        <div style="margin-top: 12px; padding-top: 12px; border-top: 1px solid rgba(255, 255, 255, 0.1);">
+                            <div style="font-size: 12px; color: rgba(255, 255, 255, 0.6); margin-bottom: 8px;">KPIs Associés:</div>
+                            <div style="display: flex; flex-wrap: wrap; gap: 8px;">
+                                ${milestone.kpis.map(kpi => `
+                                    <div style="background: rgba(99, 102, 241, 0.1); padding: 6px 12px; border-radius: 6px; font-size: 12px;">
+                                        <span style="color: rgba(255, 255, 255, 0.7);">${kpi.nom}:</span>
+                                        <span style="color: white; font-weight: 600; margin-left: 4px;">${kpi.valeur} ${kpi.unite}</span>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </div>
+                    ` : ''}
                 </div>
-            `).join('');
+                `;
+            }).join('');
         }
         
-        function renderIdeasList() {
-            const ideas = JSON.parse(localStorage.getItem('rdIdeas') || '[]');
-            const container = document.getElementById('rndIdeasList');
+        function renderDocsList() {
+            const documents = JSON.parse(localStorage.getItem('rndDocuments') || '[]');
+            const container = document.getElementById('rndDocsList');
             
             if (!container) return;
             
-            if (ideas.length === 0) {
+            if (documents.length === 0) {
                 container.innerHTML = `
                     <div class="rnd-empty">
-                        <div class="rnd-empty-title">Aucune idée enregistrée</div>
-                        <p>Proposez des innovations pour l'entreprise</p>
+                        <div class="rnd-empty-title">Aucun document</div>
+                        <p>Ajoutez des documents importants pour vos projets</p>
                     </div>
                 `;
                 return;
             }
             
-            container.innerHTML = ideas.map(idea => `
+            const docIcons = {
+                'specs': '📋',
+                'architecture': '🏗️',
+                'rapport': '📊',
+                'presentation': '📽️',
+                'contrat': '📄',
+                'autre': '📎'
+            };
+            
+            container.innerHTML = documents.map(doc => {
+                const project = JSON.parse(localStorage.getItem('rndProjects') || '[]').find(p => p.id === doc.projectId);
+                
+                return `
                 <div class="rnd-item">
-                    <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 12px;">
-                        <h3 style="margin: 0; font-size: 18px; color: white;">${idea.title}</h3>
-                        <div style="display: flex; gap: 8px;">
-                            <span class="rnd-badge rnd-badge-${idea.impact}">${idea.impact} Impact</span>
-                            <span class="rnd-badge rnd-badge-${idea.effort}">${idea.effort} Effort</span>
+                    <div style="display: flex; gap: 16px; align-items: start;">
+                        <div style="font-size: 32px;">${docIcons[doc.type] || '📎'}</div>
+                        <div style="flex: 1;">
+                            <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 8px;">
+                                <div>
+                                    <h3 style="margin: 0 0 4px; font-size: 18px; color: white;">${doc.titre}</h3>
+                                    ${project ? `<div style="font-size: 12px; color: rgba(99, 102, 241, 0.9);">Projet: ${project.titre}</div>` : ''}
+                                </div>
+                                <span class="rnd-badge rnd-badge-low">${doc.type}</span>
+                            </div>
+                            <p style="margin: 0 0 8px; color: rgba(255, 255, 255, 0.7); font-size: 14px;">${doc.description}</p>
+                            <div style="display: flex; gap: 16px; align-items: center; font-size: 12px; color: rgba(255, 255, 255, 0.5);">
+                                <span>Ajouté le ${new Date(doc.created).toLocaleDateString('fr-FR')}</span>
+                                ${doc.url ? `<a href="${doc.url}" target="_blank" style="color: rgba(99, 102, 241, 0.9); text-decoration: none;">🔗 Voir le document</a>` : ''}
+                            </div>
                         </div>
                     </div>
-                    <p style="margin: 0 0 8px; color: rgba(255, 255, 255, 0.7); font-size: 14px;">${idea.description}</p>
-                    <div style="font-size: 12px; color: rgba(255, 255, 255, 0.5);">Par: ${idea.submittedBy} • ${new Date(idea.createdAt).toLocaleDateString()}</div>
                 </div>
-            `).join('');
+                `;
+            }).join('');
+        }
+        
+        function renderRisksList() {
+            const risks = JSON.parse(localStorage.getItem('rndRisks') || '[]');
+            const container = document.getElementById('rndRisksList');
+            
+            if (!container) return;
+            
+            if (risks.length === 0) {
+                container.innerHTML = `
+                    <div class="rnd-empty">
+                        <div class="rnd-empty-title">Aucun risque identifié</div>
+                        <p>Identifiez et suivez les risques de vos projets</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            // Trier par criticité
+            const sortedRisks = [...risks].sort((a, b) => {
+                const critOrder = { 'critique': 3, 'élevée': 2, 'moyenne': 1, 'faible': 0 };
+                return (critOrder[b.criticite] || 0) - (critOrder[a.criticite] || 0);
+            });
+            
+            container.innerHTML = sortedRisks.map(risk => {
+                const project = JSON.parse(localStorage.getItem('rndProjects') || '[]').find(p => p.id === risk.projectId);
+                const critColors = {
+                    'critique': 'error',
+                    'élevée': 'medium',
+                    'moyenne': 'low',
+                    'faible': 'low'
+                };
+                
+                return `
+                <div class="rnd-item" style="border-left: 4px solid ${risk.criticite === 'critique' ? '#ef4444' : risk.criticite === 'élevée' ? '#f59e0b' : '#10b981'};">
+                    <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 12px;">
+                        <div style="flex: 1;">
+                            <div style="display: flex; gap: 8px; align-items: center; margin-bottom: 8px;">
+                                <h3 style="margin: 0; font-size: 18px; color: white;">${risk.titre}</h3>
+                                <span class="rnd-badge rnd-badge-${critColors[risk.criticite]}">${risk.criticite}</span>
+                            </div>
+                            ${project ? `<div style="font-size: 12px; color: rgba(99, 102, 241, 0.9); margin-bottom: 8px;">Projet: ${project.titre}</div>` : ''}
+                            <p style="margin: 0 0 8px; color: rgba(255, 255, 255, 0.7); font-size: 14px;">${risk.description}</p>
+                            ${risk.mitigation ? `
+                                <div style="background: rgba(16, 185, 129, 0.1); padding: 8px 12px; border-radius: 6px; margin-top: 8px;">
+                                    <div style="font-size: 12px; color: rgba(16, 185, 129, 0.9); font-weight: 600; margin-bottom: 4px;">Plan d'atténuation:</div>
+                                    <div style="font-size: 13px; color: rgba(255, 255, 255, 0.8);">${risk.mitigation}</div>
+                                </div>
+                            ` : ''}
+                        </div>
+                        <div style="text-align: right; min-width: 100px;">
+                            <span class="rnd-badge rnd-badge-${risk.statut === 'résolu' ? 'high' : risk.statut === 'en-cours' ? 'medium' : 'low'}">
+                                ${risk.statut === 'résolu' ? '✓ Résolu' : risk.statut === 'en-cours' ? '🔄 En cours' : '⚠ Actif'}
+                            </span>
+                            <div style="margin-top: 8px; font-size: 12px; color: rgba(255, 255, 255, 0.5);">
+                                Impact: ${risk.impact}%
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                `;
+            }).join('');
         }
         
         function renderProjectsList() {
@@ -8850,18 +8975,13 @@ RÈGLES IMPORTANTES:
                     : '/api/agents/axilum/invoke';
                 
                 // Get R&D context
-                const technologies = JSON.parse(localStorage.getItem('rdTechnologies') || '[]');
-                const ideas = JSON.parse(localStorage.getItem('rdIdeas') || '[]');
                 const projects = JSON.parse(localStorage.getItem('rndProjects') || '[]');
+                const milestones = JSON.parse(localStorage.getItem('rndMilestones') || '[]');
+                const documents = JSON.parse(localStorage.getItem('rndDocuments') || '[]');
+                const risks = JSON.parse(localStorage.getItem('rndRisks') || '[]');
                 
                 const rndContext = `
 CONTEXTE R&D COMPLET :
-
-TECHNOLOGIES SUIVIES (${technologies.length}) :
-${technologies.length > 0 ? technologies.map(t => `- ${t.name} (${t.category}): ${t.relevanceScore}/5 étoiles - ${t.status}`).join('\n') : 'Aucune technologie suivie'}
-
-IDÉES INNOVATION (${ideas.length}) :
-${ideas.length > 0 ? ideas.map(i => `- ${i.title}: Impact ${i.impact}, Effort ${i.effort} - ${i.status}`).join('\n') : 'Aucune idée enregistrée'}
 
 PROJETS R&D ACTIFS (${projects.filter(p => p.statut === 'actif').length}/${projects.length} total) :
 ${projects.filter(p => p.statut === 'actif').length > 0 ? projects.filter(p => p.statut === 'actif').map(p => `
@@ -8875,6 +8995,24 @@ ${projects.filter(p => p.statut === 'actif').length > 0 ? projects.filter(p => p
   Problème: ${p.probleme}
   Créé le: ${new Date(p.created).toLocaleDateString('fr-FR')}
 `).join('\n') : 'Aucun projet actif'}
+
+JALONS À VENIR (${milestones.filter(m => new Date(m.date) >= new Date() && m.statut !== 'complété').length}) :
+${milestones.filter(m => new Date(m.date) >= new Date() && m.statut !== 'complété').length > 0 ? milestones.filter(m => new Date(m.date) >= new Date() && m.statut !== 'complété').map(m => {
+    const project = projects.find(p => p.id === m.projectId);
+    return `- ${m.titre} (${new Date(m.date).toLocaleDateString('fr-FR')}) - Projet: ${project?.titre || 'N/A'}`;
+}).join('\n') : 'Aucun jalon à venir'}
+
+DOCUMENTS (${documents.length}) :
+${documents.length > 0 ? documents.slice(0, 5).map(d => {
+    const project = projects.find(p => p.id === d.projectId);
+    return `- ${d.titre} (${d.type}) - Projet: ${project?.titre || 'N/A'}`;
+}).join('\n') : 'Aucun document'}
+
+RISQUES ACTIFS (${risks.filter(r => r.statut === 'actif').length}) :
+${risks.filter(r => r.statut === 'actif').length > 0 ? risks.filter(r => r.statut === 'actif').map(r => {
+    const project = projects.find(p => p.id === r.projectId);
+    return `- ${r.titre} (${r.criticite}) - Impact: ${r.impact}% - Projet: ${project?.titre || 'N/A'}`;
+}).join('\n') : 'Aucun risque actif'}
 
 === TU ES AGENT DEV - COACH INNOVATION MULTI-DOMAINES ===
 
@@ -9002,12 +9140,294 @@ STYLE DE RÉPONSE :
         }
         
         // Modal stubs (to be implemented)
-        function showAddTechModal() {
-            alert('Fonctionnalité en développement: Ajout de technologie');
+        function showAddMilestoneModal() {
+            const projects = JSON.parse(localStorage.getItem('rndProjects') || '[]');
+            
+            if (projects.length === 0) {
+                alert('Créez d\'abord un projet avant d\'ajouter des jalons.');
+                return;
+            }
+            
+            const modal = document.createElement('div');
+            modal.id = 'rndMilestoneModal';
+            modal.style.cssText = `
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: rgba(0, 0, 0, 0.8);
+                backdrop-filter: blur(10px);
+                z-index: 10002;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                animation: fadeIn 0.3s ease;
+            `;
+            
+            modal.innerHTML = `
+                <div style="background: linear-gradient(135deg, #1a1a2e, #16213e); border: 1px solid rgba(99, 102, 241, 0.3); border-radius: 16px; padding: 32px; width: 90%; max-width: 600px; box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);">
+                    <h2 style="margin: 0 0 24px; font-size: 24px; color: white;">Ajouter un Jalon</h2>
+                    <form id="milestoneForm" onsubmit="saveMilestone(event)">
+                        <div style="margin-bottom: 16px;">
+                            <label style="display: block; color: rgba(255, 255, 255, 0.9); font-size: 14px; margin-bottom: 8px;">Projet *</label>
+                            <select id="milestoneProject" required style="width: 100%; padding: 12px; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(99, 102, 241, 0.3); border-radius: 8px; color: white; font-size: 14px;">
+                                <option value="">-- Sélectionner --</option>
+                                ${projects.map(p => `<option value="${p.id}">${p.titre}</option>`).join('')}
+                            </select>
+                        </div>
+                        <div style="margin-bottom: 16px;">
+                            <label style="display: block; color: rgba(255, 255, 255, 0.9); font-size: 14px; margin-bottom: 8px;">Titre *</label>
+                            <input type="text" id="milestoneTitle" required placeholder="Ex: MVP Ready" style="width: 100%; padding: 12px; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(99, 102, 241, 0.3); border-radius: 8px; color: white; font-size: 14px;">
+                        </div>
+                        <div style="margin-bottom: 16px;">
+                            <label style="display: block; color: rgba(255, 255, 255, 0.9); font-size: 14px; margin-bottom: 8px;">Description</label>
+                            <textarea id="milestoneDescription" rows="2" placeholder="Description du jalon" style="width: 100%; padding: 12px; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(99, 102, 241, 0.3); border-radius: 8px; color: white; font-size: 14px; resize: vertical;"></textarea>
+                        </div>
+                        <div style="margin-bottom: 16px;">
+                            <label style="display: block; color: rgba(255, 255, 255, 0.9); font-size: 14px; margin-bottom: 8px;">Date cible *</label>
+                            <input type="date" id="milestoneDate" required style="width: 100%; padding: 12px; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(99, 102, 241, 0.3); border-radius: 8px; color: white; font-size: 14px;">
+                        </div>
+                        <div style="display: flex; gap: 12px; justify-content: flex-end;">
+                            <button type="button" onclick="closeMilestoneModal()" style="padding: 12px 24px; background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 8px; color: white; cursor: pointer;">Annuler</button>
+                            <button type="submit" style="padding: 12px 24px; background: linear-gradient(135deg, #6366f1, #8b5cf6); border: none; border-radius: 8px; color: white; cursor: pointer; box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4);">Ajouter</button>
+                        </div>
+                    </form>
+                </div>
+            `;
+            
+            document.body.appendChild(modal);
         }
         
-        function showAddIdeaModal() {
-            alert('Fonctionnalité en développement: Nouvelle idée');
+        function closeMilestoneModal() {
+            const modal = document.getElementById('rndMilestoneModal');
+            if (modal) modal.remove();
+        }
+        
+        function saveMilestone(event) {
+            event.preventDefault();
+            
+            const milestone = {
+                id: Date.now(),
+                projectId: parseInt(document.getElementById('milestoneProject').value),
+                titre: document.getElementById('milestoneTitle').value.trim(),
+                description: document.getElementById('milestoneDescription').value.trim(),
+                date: document.getElementById('milestoneDate').value,
+                statut: 'à-venir',
+                kpis: [],
+                created: new Date().toISOString()
+            };
+            
+            const milestones = JSON.parse(localStorage.getItem('rndMilestones') || '[]');
+            milestones.push(milestone);
+            localStorage.setItem('rndMilestones', JSON.stringify(milestones));
+            
+            closeMilestoneModal();
+            initializeRnDData();
+            renderMilestonesList();
+            alert('✅ Jalon ajouté avec succès');
+        }
+        
+        function showAddDocumentModal() {
+            const projects = JSON.parse(localStorage.getItem('rndProjects') || '[]');
+            
+            if (projects.length === 0) {
+                alert('Créez d\'abord un projet avant d\'ajouter des documents.');
+                return;
+            }
+            
+            const modal = document.createElement('div');
+            modal.id = 'rndDocumentModal';
+            modal.style.cssText = `
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: rgba(0, 0, 0, 0.8);
+                backdrop-filter: blur(10px);
+                z-index: 10002;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                animation: fadeIn 0.3s ease;
+            `;
+            
+            modal.innerHTML = `
+                <div style="background: linear-gradient(135deg, #1a1a2e, #16213e); border: 1px solid rgba(99, 102, 241, 0.3); border-radius: 16px; padding: 32px; width: 90%; max-width: 600px; box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);">
+                    <h2 style="margin: 0 0 24px; font-size: 24px; color: white;">Ajouter un Document</h2>
+                    <form id="documentForm" onsubmit="saveDocument(event)">
+                        <div style="margin-bottom: 16px;">
+                            <label style="display: block; color: rgba(255, 255, 255, 0.9); font-size: 14px; margin-bottom: 8px;">Projet *</label>
+                            <select id="documentProject" required style="width: 100%; padding: 12px; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(99, 102, 241, 0.3); border-radius: 8px; color: white; font-size: 14px;">
+                                <option value="">-- Sélectionner --</option>
+                                ${projects.map(p => `<option value="${p.id}">${p.titre}</option>`).join('')}
+                            </select>
+                        </div>
+                        <div style="margin-bottom: 16px;">
+                            <label style="display: block; color: rgba(255, 255, 255, 0.9); font-size: 14px; margin-bottom: 8px;">Titre *</label>
+                            <input type="text" id="documentTitle" required placeholder="Ex: Spécifications techniques" style="width: 100%; padding: 12px; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(99, 102, 241, 0.3); border-radius: 8px; color: white; font-size: 14px;">
+                        </div>
+                        <div style="margin-bottom: 16px;">
+                            <label style="display: block; color: rgba(255, 255, 255, 0.9); font-size: 14px; margin-bottom: 8px;">Type *</label>
+                            <select id="documentType" required style="width: 100%; padding: 12px; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(99, 102, 241, 0.3); border-radius: 8px; color: white; font-size: 14px;">
+                                <option value="specs">Spécifications</option>
+                                <option value="architecture">Architecture</option>
+                                <option value="rapport">Rapport</option>
+                                <option value="presentation">Présentation</option>
+                                <option value="contrat">Contrat</option>
+                                <option value="autre">Autre</option>
+                            </select>
+                        </div>
+                        <div style="margin-bottom: 16px;">
+                            <label style="display: block; color: rgba(255, 255, 255, 0.9); font-size: 14px; margin-bottom: 8px;">Description</label>
+                            <textarea id="documentDescription" rows="2" placeholder="Description du document" style="width: 100%; padding: 12px; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(99, 102, 241, 0.3); border-radius: 8px; color: white; font-size: 14px; resize: vertical;"></textarea>
+                        </div>
+                        <div style="margin-bottom: 16px;">
+                            <label style="display: block; color: rgba(255, 255, 255, 0.9); font-size: 14px; margin-bottom: 8px;">URL ou lien</label>
+                            <input type="url" id="documentUrl" placeholder="https://..." style="width: 100%; padding: 12px; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(99, 102, 241, 0.3); border-radius: 8px; color: white; font-size: 14px;">
+                        </div>
+                        <div style="display: flex; gap: 12px; justify-content: flex-end;">
+                            <button type="button" onclick="closeDocumentModal()" style="padding: 12px 24px; background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 8px; color: white; cursor: pointer;">Annuler</button>
+                            <button type="submit" style="padding: 12px 24px; background: linear-gradient(135deg, #6366f1, #8b5cf6); border: none; border-radius: 8px; color: white; cursor: pointer; box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4);">Ajouter</button>
+                        </div>
+                    </form>
+                </div>
+            `;
+            
+            document.body.appendChild(modal);
+        }
+        
+        function closeDocumentModal() {
+            const modal = document.getElementById('rndDocumentModal');
+            if (modal) modal.remove();
+        }
+        
+        function saveDocument(event) {
+            event.preventDefault();
+            
+            const document = {
+                id: Date.now(),
+                projectId: parseInt(document.getElementById('documentProject').value),
+                titre: document.getElementById('documentTitle').value.trim(),
+                type: document.getElementById('documentType').value,
+                description: document.getElementById('documentDescription').value.trim(),
+                url: document.getElementById('documentUrl').value.trim(),
+                created: new Date().toISOString()
+            };
+            
+            const documents = JSON.parse(localStorage.getItem('rndDocuments') || '[]');
+            documents.push(document);
+            localStorage.setItem('rndDocuments', JSON.stringify(documents));
+            
+            closeDocumentModal();
+            initializeRnDData();
+            renderDocsList();
+            alert('✅ Document ajouté avec succès');
+        }
+        
+        function showAddRiskModal() {
+            const projects = JSON.parse(localStorage.getItem('rndProjects') || '[]');
+            
+            if (projects.length === 0) {
+                alert('Créez d\'abord un projet avant d\'ajouter des risques.');
+                return;
+            }
+            
+            const modal = document.createElement('div');
+            modal.id = 'rndRiskModal';
+            modal.style.cssText = `
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: rgba(0, 0, 0, 0.8);
+                backdrop-filter: blur(10px);
+                z-index: 10002;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                animation: fadeIn 0.3s ease;
+            `;
+            
+            modal.innerHTML = `
+                <div style="background: linear-gradient(135deg, #1a1a2e, #16213e); border: 1px solid rgba(99, 102, 241, 0.3); border-radius: 16px; padding: 32px; width: 90%; max-width: 600px; box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);">
+                    <h2 style="margin: 0 0 24px; font-size: 24px; color: white;">Ajouter un Risque</h2>
+                    <form id="riskForm" onsubmit="saveRisk(event)">
+                        <div style="margin-bottom: 16px;">
+                            <label style="display: block; color: rgba(255, 255, 255, 0.9); font-size: 14px; margin-bottom: 8px;">Projet *</label>
+                            <select id="riskProject" required style="width: 100%; padding: 12px; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(99, 102, 241, 0.3); border-radius: 8px; color: white; font-size: 14px;">
+                                <option value="">-- Sélectionner --</option>
+                                ${projects.map(p => `<option value="${p.id}">${p.titre}</option>`).join('')}
+                            </select>
+                        </div>
+                        <div style="margin-bottom: 16px;">
+                            <label style="display: block; color: rgba(255, 255, 255, 0.9); font-size: 14px; margin-bottom: 8px;">Titre *</label>
+                            <input type="text" id="riskTitle" required placeholder="Ex: Dépendance technologique" style="width: 100%; padding: 12px; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(99, 102, 241, 0.3); border-radius: 8px; color: white; font-size: 14px;">
+                        </div>
+                        <div style="margin-bottom: 16px;">
+                            <label style="display: block; color: rgba(255, 255, 255, 0.9); font-size: 14px; margin-bottom: 8px;">Description</label>
+                            <textarea id="riskDescription" rows="2" placeholder="Description du risque" style="width: 100%; padding: 12px; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(99, 102, 241, 0.3); border-radius: 8px; color: white; font-size: 14px; resize: vertical;"></textarea>
+                        </div>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px;">
+                            <div>
+                                <label style="display: block; color: rgba(255, 255, 255, 0.9); font-size: 14px; margin-bottom: 8px;">Criticité *</label>
+                                <select id="riskCriticality" required style="width: 100%; padding: 12px; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(99, 102, 241, 0.3); border-radius: 8px; color: white; font-size: 14px;">
+                                    <option value="faible">Faible</option>
+                                    <option value="moyenne">Moyenne</option>
+                                    <option value="élevée">Élevée</option>
+                                    <option value="critique">Critique</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label style="display: block; color: rgba(255, 255, 255, 0.9); font-size: 14px; margin-bottom: 8px;">Impact (%) *</label>
+                                <input type="number" id="riskImpact" required min="0" max="100" value="50" style="width: 100%; padding: 12px; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(99, 102, 241, 0.3); border-radius: 8px; color: white; font-size: 14px;">
+                            </div>
+                        </div>
+                        <div style="margin-bottom: 16px;">
+                            <label style="display: block; color: rgba(255, 255, 255, 0.9); font-size: 14px; margin-bottom: 8px;">Plan d'atténuation</label>
+                            <textarea id="riskMitigation" rows="2" placeholder="Actions pour réduire le risque" style="width: 100%; padding: 12px; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(99, 102, 241, 0.3); border-radius: 8px; color: white; font-size: 14px; resize: vertical;"></textarea>
+                        </div>
+                        <div style="display: flex; gap: 12px; justify-content: flex-end;">
+                            <button type="button" onclick="closeRiskModal()" style="padding: 12px 24px; background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 8px; color: white; cursor: pointer;">Annuler</button>
+                            <button type="submit" style="padding: 12px 24px; background: linear-gradient(135deg, #6366f1, #8b5cf6); border: none; border-radius: 8px; color: white; cursor: pointer; box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4);">Ajouter</button>
+                        </div>
+                    </form>
+                </div>
+            `;
+            
+            document.body.appendChild(modal);
+        }
+        
+        function closeRiskModal() {
+            const modal = document.getElementById('rndRiskModal');
+            if (modal) modal.remove();
+        }
+        
+        function saveRisk(event) {
+            event.preventDefault();
+            
+            const risk = {
+                id: Date.now(),
+                projectId: parseInt(document.getElementById('riskProject').value),
+                titre: document.getElementById('riskTitle').value.trim(),
+                description: document.getElementById('riskDescription').value.trim(),
+                criticite: document.getElementById('riskCriticality').value,
+                impact: parseInt(document.getElementById('riskImpact').value),
+                mitigation: document.getElementById('riskMitigation').value.trim(),
+                statut: 'actif',
+                created: new Date().toISOString()
+            };
+            
+            const risks = JSON.parse(localStorage.getItem('rndRisks') || '[]');
+            risks.push(risk);
+            localStorage.setItem('rndRisks', JSON.stringify(risks));
+            
+            closeRiskModal();
+            initializeRnDData();
+            renderRisksList();
+            alert('✅ Risque ajouté avec succès');
         }
         
         function showAddProjectModal() {
