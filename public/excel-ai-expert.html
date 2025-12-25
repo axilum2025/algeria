@@ -1085,6 +1085,66 @@
         }
 
         // ==================================================
+        // NETTOYAGE DONNÉES - ACTION DIRECTE
+        // ==================================================
+
+        // Nettoyer les données (supprime doublons et cellules vides)
+        function cleanData() {
+            if (excelData.length === 0) {
+                addChatMessage('⚠️ Aucune donnée à nettoyer.', 'bot');
+                return;
+            }
+
+            const initialRowCount = excelData.length;
+            let removedDuplicates = 0;
+            let removedEmptyRows = 0;
+
+            // 1. Supprimer les lignes complètement vides
+            excelData = excelData.filter(row => {
+                const isEmpty = row.every(cell => cell === '' || cell === null || cell === undefined);
+                if (isEmpty) removedEmptyRows++;
+                return !isEmpty;
+            });
+
+            // 2. Supprimer les doublons (lignes identiques)
+            const uniqueRows = [];
+            const seen = new Set();
+            
+            excelData.forEach(row => {
+                const rowKey = row.join('|||'); // Créer une clé unique pour la ligne
+                if (!seen.has(rowKey)) {
+                    seen.add(rowKey);
+                    uniqueRows.push(row);
+                } else {
+                    removedDuplicates++;
+                }
+            });
+            
+            excelData = uniqueRows;
+
+            // Mettre à jour l'affichage
+            updateTable();
+            updateStats();
+
+            // Message de confirmation détaillé
+            let message = `✅ **Nettoyage terminé !**\n\n`;
+            message += `📊 **Résultats :**\n`;
+            message += `- Lignes initiales : **${initialRowCount}**\n`;
+            message += `- Lignes vides supprimées : **${removedEmptyRows}**\n`;
+            message += `- Doublons supprimés : **${removedDuplicates}**\n`;
+            message += `- Lignes finales : **${excelData.length}**\n\n`;
+            message += `💡 **Besoin d'aide ?**\n`;
+            message += `Je suis votre Expert Excel AI ! Vous pouvez :\n`;
+            message += `- 📝 **Me parler dans le chat** pour toute question ou aide\n`;
+            message += `- 🎯 **Utiliser les actions rapides** ci-dessus pour analyser, créer des formules, KPI, graphiques, etc.\n`;
+            message += `- 📥 **Télécharger le fichier nettoyé** avec le bouton Exporter\n\n`;
+            message += `Que souhaitez-vous faire maintenant ? 😊`;
+
+            addChatMessage(message, 'bot');
+            addHistory(`Nettoyage: ${removedEmptyRows} vides, ${removedDuplicates} doublons supprimés`);
+        }
+
+        // ==================================================
         // COMMANDES JSON - MODIFICATION EXCEL PAR L'AI
         // ==================================================
 
@@ -1920,9 +1980,9 @@ La colonne Remise a été ajoutée avec succès !"
             
             switch(action) {
                 case 'clean':
-                    userMessage = 'Nettoie mes données en supprimant les doublons et les cellules vides';
-                    aiMessage = userMessage;
-                    break;
+                    // Action directe : nettoyer sans passer par l'agent
+                    cleanData();
+                    return; // Ne pas continuer vers sendMessage()
                 case 'analyze':
                     userMessage = 'Analyse mon fichier Excel';
                     aiMessage = 'Fais une analyse DESCRIPTIVE UNIQUEMENT de mon fichier Excel : nombre de lignes, nombre de colonnes, noms des colonnes, types de données, aperçu des valeurs. NE FAIS AUCUN CALCUL (pas de somme, moyenne, total). Décris seulement ce qui existe dans le fichier pour que je comprenne sa structure.';
