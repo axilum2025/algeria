@@ -1965,7 +1965,8 @@ La colonne Remise a été ajoutée avec succès !"
 
         // Quick actions
         function quickAction(action) {
-            if (excelData.length === 0) {
+            // Action 'clean' gère sa propre vérification de données
+            if (action !== 'clean' && excelData.length === 0) {
                 addChatMessage('⚠️ Veuillez d\'abord importer un fichier Excel.', 'bot');
                 return;
             }
