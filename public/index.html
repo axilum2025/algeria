@@ -8575,8 +8575,21 @@ RÈGLES IMPORTANTES:
                         <!-- Agent Dev -->
                         <div id="rndAgent" class="rnd-tab-content" style="display: none;">
                             <div style="margin-bottom: 24px;">
-                                <h2 style="margin: 0 0 8px; font-size: 24px; color: white;">Agent Dev</h2>
-                                <p style="margin: 0 0 12px; color: rgba(255, 255, 255, 0.6); font-size: 14px;">Assistant IA spécialisé en R&D et innovation multi-domaines</p>
+                                <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 12px;">
+                                    <div style="flex: 1;">
+                                        <h2 style="margin: 0 0 8px; font-size: 24px; color: white;">Agent Dev</h2>
+                                        <p style="margin: 0 0 12px; color: rgba(255, 255, 255, 0.6); font-size: 14px;">Assistant IA spécialisé en R&D et innovation multi-domaines</p>
+                                    </div>
+                                    <button onclick="clearRnDChatHistory()" title="Effacer l'historique du chat" style="padding: 10px 16px; background: rgba(239, 68, 68, 0.2); border: 1px solid rgba(239, 68, 68, 0.4); border-radius: 8px; color: #fca5a5; cursor: pointer; font-size: 13px; font-weight: 600; display: flex; align-items: center; gap: 6px; transition: all 0.2s;" onmouseover="this.style.background='rgba(239, 68, 68, 0.3)'" onmouseout="this.style.background='rgba(239, 68, 68, 0.2)'">
+                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                            <polyline points="3 6 5 6 21 6"></polyline>
+                                            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                                            <line x1="10" y1="11" x2="10" y2="17"></line>
+                                            <line x1="14" y1="11" x2="14" y2="17"></line>
+                                        </svg>
+                                        Effacer chat
+                                    </button>
+                                </div>
                                 <label style="display: flex; align-items: center; gap: 8px; color: rgba(255, 255, 255, 0.8); font-size: 13px; cursor: pointer;">
                                     <input type="checkbox" id="rndWebSearchEnabled" checked style="cursor: pointer;">
                                     <span>Activer la recherche web (Brave Search) pour des infos à jour</span>
@@ -8599,6 +8612,9 @@ RÈGLES IMPORTANTES:
             
             // Initialize R&D data
             initializeRnDData();
+            
+            // Charger l'historique du chat Agent Dev si l'onglet est activé
+            loadRnDChatHistory();
         }
         
         function closeRnD() {
@@ -8643,6 +8659,7 @@ RÈGLES IMPORTANTES:
                 renderDocsList();
                 renderRisksList();
             }
+            if (tabName === 'agent') loadRnDChatHistory();
         }
         
         function initializeRnDData() {
@@ -9041,6 +9058,90 @@ RÈGLES IMPORTANTES:
             `).join('');
         }
         
+        // ========== GESTION DE L'HISTORIQUE DU CHAT AGENT DEV ==========
+        let rndChatHistory = JSON.parse(localStorage.getItem('rndChatHistory') || '[]');
+        
+        function loadRnDChatHistory() {
+            const messagesContainer = document.getElementById('rndChatMessages');
+            if (!messagesContainer) return;
+            
+            // Vider le conteneur
+            messagesContainer.innerHTML = '';
+            
+            // Afficher l'historique sauvegardé
+            if (rndChatHistory.length === 0) {
+                // Message de bienvenue si pas d'historique
+                messagesContainer.innerHTML = `
+                    <div style="margin-bottom: 16px;">
+                        <div style="display: inline-block; background: rgba(255, 255, 255, 0.1); padding: 12px 16px; border-radius: 12px; max-width: 70%; border: 1px solid rgba(99, 102, 241, 0.3);">
+                            <p style="margin: 0; color: white; font-size: 14px; line-height: 1.6;">👋 Bonjour! Je suis Agent Dev, votre assistant IA spécialisé en R&D et innovation multi-domaines.<br><br>Je peux vous aider avec :<br>• Conseils sur vos projets de recherche<br>• Analyse de tendances et innovations<br>• Méthodologies d'innovation<br>• Gestion des risques R&D<br>• Optimisation de processus<br><br>Comment puis-je vous accompagner aujourd'hui?</p>
+                        </div>
+                    </div>
+                `;
+            } else {
+                // Afficher chaque message de l'historique
+                rndChatHistory.forEach(msg => {
+                    if (msg.role === 'user') {
+                        messagesContainer.innerHTML += `
+                            <div style="margin-bottom: 16px; text-align: right;">
+                                <div style="display: inline-block; background: linear-gradient(135deg, #6366f1, #8b5cf6); padding: 12px 16px; border-radius: 12px; max-width: 70%;">
+                                    <p style="margin: 0; color: white; font-size: 14px;">${msg.content}</p>
+                                </div>
+                            </div>
+                        `;
+                    } else if (msg.role === 'assistant') {
+                        messagesContainer.innerHTML += `
+                            <div style="margin-bottom: 16px;">
+                                <div style="display: inline-block; background: rgba(255, 255, 255, 0.1); padding: 12px 16px; border-radius: 12px; max-width: 70%; border: 1px solid rgba(99, 102, 241, 0.3);">
+                                    <p style="margin: 0; color: white; font-size: 14px; line-height: 1.6;">${msg.content}</p>
+                                </div>
+                            </div>
+                        `;
+                    }
+                });
+            }
+            
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }
+        
+        function clearRnDChatHistory() {
+            if (!confirm('⚠️ Êtes-vous sûr de vouloir effacer tout l\'historique des conversations avec Agent Dev?\n\nCette action est irréversible.')) return;
+            
+            // Effacer l'historique
+            rndChatHistory = [];
+            localStorage.setItem('rndChatHistory', '[]');
+            
+            // Recharger l'affichage
+            loadRnDChatHistory();
+            
+            // Notification de succès
+            const overlay = document.getElementById('rndOverlay');
+            if (overlay) {
+                const toast = document.createElement('div');
+                toast.style.cssText = `
+                    position: fixed;
+                    top: 20px;
+                    right: 20px;
+                    background: linear-gradient(135deg, #10b981, #059669);
+                    color: white;
+                    padding: 16px 24px;
+                    border-radius: 12px;
+                    font-size: 14px;
+                    font-weight: 600;
+                    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+                    z-index: 10003;
+                    animation: slideIn 0.3s ease;
+                `;
+                toast.textContent = '🗑️ Historique du chat effacé avec succès';
+                overlay.appendChild(toast);
+                
+                setTimeout(() => {
+                    toast.style.animation = 'fadeOut 0.3s ease';
+                    setTimeout(() => toast.remove(), 300);
+                }, 3000);
+            }
+        }
+        
         async function sendRnDMessage() {
             const input = document.getElementById('rndChatInput');
             const message = input.value.trim();
@@ -9057,6 +9158,14 @@ RÈGLES IMPORTANTES:
                     </div>
                 </div>
             `;
+            
+            // Sauvegarder le message utilisateur dans l'historique
+            rndChatHistory.push({
+                role: 'user',
+                content: message,
+                timestamp: new Date().toISOString()
+            });
+            localStorage.setItem('rndChatHistory', JSON.stringify(rndChatHistory));
             
             input.value = '';
             messagesContainer.scrollTop = messagesContainer.scrollHeight;
@@ -9228,6 +9337,20 @@ STYLE DE RÉPONSE :
                         </div>
                     </div>
                 `;
+                
+                // Sauvegarder la réponse de l'assistant dans l'historique
+                rndChatHistory.push({
+                    role: 'assistant',
+                    content: responseHtml,
+                    timestamp: new Date().toISOString()
+                });
+                
+                // Limiter l'historique à 50 messages pour éviter de surcharger localStorage
+                if (rndChatHistory.length > 50) {
+                    rndChatHistory = rndChatHistory.slice(-50);
+                }
+                
+                localStorage.setItem('rndChatHistory', JSON.stringify(rndChatHistory));
                 
             } catch (error) {
                 document.getElementById('rndTyping')?.remove();
