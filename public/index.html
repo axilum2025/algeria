@@ -9182,6 +9182,27 @@ STYLE DE RÉPONSE :
             const techCount = project.technologies.length || 0;
             const daysElapsed = Math.floor((new Date() - new Date(project.created)) / (1000 * 60 * 60 * 24));
             
+            // SVG Icons avec couleurs cohérentes R&D
+            const svgIcons = {
+                search: `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="11" cy="11" r="8" stroke="url(#grad1)" stroke-width="2" fill="none"/><path d="M21 21l-4.35-4.35" stroke="url(#grad1)" stroke-width="2" stroke-linecap="round"/><defs><linearGradient id="grad1" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:rgba(99,102,241,0.8);stop-opacity:1"/><stop offset="100%" style="stop-color:rgba(139,92,246,0.3);stop-opacity:1"/></linearGradient></defs></svg>`,
+                bulb: `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M9 21h6M12 3a6 6 0 0 1 4.24 10.24c-.85.85-1.24 1.39-1.24 2.26V18H9v-2.5c0-.87-.39-1.41-1.24-2.26A6 6 0 0 1 12 3z" stroke="url(#grad2)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="rgba(251,191,36,0.1)"/><defs><linearGradient id="grad2" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:rgba(251,191,36,0.8);stop-opacity:1"/><stop offset="100%" style="stop-color:rgba(245,158,11,0.3);stop-opacity:1"/></linearGradient></defs></svg>`,
+                flask: `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M9 3h6M10 3v5.586a1 1 0 0 0 .293.707l5.414 5.414A2 2 0 0 1 16 16.414V19a2 2 0 0 1-2 2h-4a2 2 0 0 1-2-2v-2.586a2 2 0 0 1 .293-1.707l5.414-5.414A1 1 0 0 0 14 8.586V3" stroke="url(#grad3)" stroke-width="2" stroke-linecap="round" fill="rgba(139,92,246,0.1)"/><defs><linearGradient id="grad3" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:rgba(139,92,246,0.8);stop-opacity:1"/><stop offset="100%" style="stop-color:rgba(167,139,250,0.3);stop-opacity:1"/></linearGradient></defs></svg>`,
+                check: `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="12" cy="12" r="10" stroke="url(#grad4)" stroke-width="2" fill="rgba(16,185,129,0.1)"/><path d="M8 12l3 3 5-6" stroke="url(#grad4)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/><defs><linearGradient id="grad4" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:rgba(16,185,129,0.9);stop-opacity:1"/><stop offset="100%" style="stop-color:rgba(110,231,183,0.3);stop-opacity:1"/></linearGradient></defs></svg>`,
+                rocket: `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09zM12 15l-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z" stroke="url(#grad5)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="rgba(99,102,241,0.1)"/><path d="M9 12H4s.55-3.03 2-4c1.62-1.08 5 0 5 0M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5" stroke="url(#grad5)" stroke-width="2" stroke-linecap="round"/><defs><linearGradient id="grad5" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:rgba(99,102,241,0.9);stop-opacity:1"/><stop offset="100%" style="stop-color:rgba(139,92,246,0.3);stop-opacity:1"/></linearGradient></defs></svg>`,
+                money: `<svg width="28" height="28" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="12" cy="12" r="10" stroke="url(#gradMoney)" stroke-width="2" fill="rgba(16,185,129,0.08)"/><path d="M12 6v12M15 9a3 3 0 0 0-6 0v0a3 3 0 0 0 6 0v6a3 3 0 0 1-6 0" stroke="url(#gradMoney)" stroke-width="2" stroke-linecap="round"/><defs><linearGradient id="gradMoney" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:rgba(16,185,129,0.9);stop-opacity:1"/><stop offset="100%" style="stop-color:rgba(5,150,105,0.2);stop-opacity:1"/></linearGradient></defs></svg>`,
+                users: `<svg width="28" height="28" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" stroke="url(#gradUsers)" stroke-width="2" stroke-linecap="round" fill="rgba(99,102,241,0.08)"/><circle cx="9" cy="7" r="4" stroke="url(#gradUsers)" stroke-width="2" fill="rgba(99,102,241,0.08)"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" stroke="url(#gradUsers)" stroke-width="2" stroke-linecap="round"/><defs><linearGradient id="gradUsers" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:rgba(99,102,241,0.9);stop-opacity:1"/><stop offset="100%" style="stop-color:rgba(139,92,246,0.2);stop-opacity:1"/></linearGradient></defs></svg>`,
+                zap: `<svg width="28" height="28" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M13 2L3 14h8l-1 8 10-12h-8l1-8z" stroke="url(#gradZap)" stroke-width="2" stroke-linejoin="round" fill="rgba(251,191,36,0.08)"/><defs><linearGradient id="gradZap" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:rgba(251,191,36,0.95);stop-opacity:1"/><stop offset="100%" style="stop-color:rgba(245,158,11,0.2);stop-opacity:1"/></linearGradient></defs></svg>`,
+                clock: `<svg width="28" height="28" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="12" cy="12" r="10" stroke="url(#gradClock)" stroke-width="2" fill="rgba(236,72,153,0.08)"/><path d="M12 6v6l4 2" stroke="url(#gradClock)" stroke-width="2" stroke-linecap="round"/><defs><linearGradient id="gradClock" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:rgba(236,72,153,0.9);stop-opacity:1"/><stop offset="100%" style="stop-color:rgba(219,39,119,0.2);stop-opacity:1"/></linearGradient></defs></svg>`,
+                file: `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9l-7-7z" stroke="url(#gradFile)" stroke-width="2" stroke-linejoin="round" fill="rgba(167,139,250,0.05)"/><path d="M13 2v7h7" stroke="url(#gradFile)" stroke-width="2" stroke-linejoin="round"/><defs><linearGradient id="gradFile" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:rgba(167,139,250,0.7);stop-opacity:1"/><stop offset="100%" style="stop-color:rgba(139,92,246,0.2);stop-opacity:1"/></linearGradient></defs></svg>`,
+                target: `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="12" cy="12" r="10" stroke="url(#gradTarget)" stroke-width="2" fill="none"/><circle cx="12" cy="12" r="6" stroke="url(#gradTarget)" stroke-width="2" fill="rgba(99,102,241,0.1)"/><circle cx="12" cy="12" r="2" fill="url(#gradTarget)"/><defs><linearGradient id="gradTarget" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:rgba(99,102,241,0.8);stop-opacity:1"/><stop offset="100%" style="stop-color:rgba(139,92,246,0.2);stop-opacity:1"/></linearGradient></defs></svg>`,
+                edit: `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" stroke="url(#gradEdit)" stroke-width="2" stroke-linecap="round"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" stroke="url(#gradEdit)" stroke-width="2" stroke-linejoin="round" fill="rgba(167,139,250,0.1)"/><defs><linearGradient id="gradEdit" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:rgba(167,139,250,0.9);stop-opacity:1"/><stop offset="100%" style="stop-color:rgba(139,92,246,0.3);stop-opacity:1"/></linearGradient></defs></svg>`,
+                arrow: `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M5 12h14M12 5l7 7-7 7" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
+                chart: `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M3 3v18h18" stroke="url(#gradChart)" stroke-width="2" stroke-linecap="round"/><path d="M18 17l-5-5-3 3-4-4" stroke="url(#gradChart)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><circle cx="18" cy="17" r="2" fill="url(#gradChart)"/><defs><linearGradient id="gradChart" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:rgba(99,102,241,0.9);stop-opacity:1"/><stop offset="100%" style="stop-color:rgba(139,92,246,0.3);stop-opacity:1"/></linearGradient></defs></svg>`,
+                folder: `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z" stroke="rgba(167,139,250,0.7)" stroke-width="2" fill="rgba(167,139,250,0.1)"/></svg>`,
+                refresh: `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M23 4v6h-6M1 20v-6h6" stroke="rgba(167,139,250,0.7)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15" stroke="rgba(167,139,250,0.7)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
+                time: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="12" cy="12" r="10" stroke="rgba(167,139,250,0.7)" stroke-width="2"/><path d="M12 6v6l4 2" stroke="rgba(167,139,250,0.7)" stroke-width="2" stroke-linecap="round"/></svg>`
+            };
+            
             // Créer le modal
             const modal = document.createElement('div');
             modal.id = 'projectDetailsModal';
@@ -9210,9 +9231,9 @@ STYLE DE RÉPONSE :
                         <div>
                             <h2 style="margin: 0 0 8px; font-size: 28px; color: white; font-weight: 700;">${project.titre}</h2>
                             <div style="display: flex; gap: 12px; align-items: center;">
-                                <span style="background: rgba(255, 255, 255, 0.2); padding: 6px 12px; border-radius: 6px; font-size: 13px; color: white; font-weight: 600;">📂 ${project.domaine}</span>
-                                <span style="background: rgba(255, 255, 255, 0.2); padding: 6px 12px; border-radius: 6px; font-size: 13px; color: white; font-weight: 600;">🔄 ${project.phase.charAt(0).toUpperCase() + project.phase.slice(1)}</span>
-                                <span style="background: rgba(255, 255, 255, 0.2); padding: 6px 12px; border-radius: 6px; font-size: 13px; color: white; font-weight: 600;">⏱️ ${daysElapsed}j</span>
+                                <span style="background: rgba(255, 255, 255, 0.2); padding: 6px 12px; border-radius: 6px; font-size: 13px; color: white; font-weight: 600; display: flex; align-items: center; gap: 6px;">${svgIcons.folder} ${project.domaine}</span>
+                                <span style="background: rgba(255, 255, 255, 0.2); padding: 6px 12px; border-radius: 6px; font-size: 13px; color: white; font-weight: 600; display: flex; align-items: center; gap: 6px;">${svgIcons.refresh} ${project.phase.charAt(0).toUpperCase() + project.phase.slice(1)}</span>
+                                <span style="background: rgba(255, 255, 255, 0.2); padding: 6px 12px; border-radius: 6px; font-size: 13px; color: white; font-weight: 600; display: flex; align-items: center; gap: 6px;">${svgIcons.time} ${daysElapsed}j</span>
                             </div>
                         </div>
                         <button onclick="closeProjectDetailsModal()" style="background: rgba(255, 255, 255, 0.2); border: none; color: white; font-size: 32px; cursor: pointer; width: 40px; height: 40px; border-radius: 8px; display: flex; align-items: center; justify-content: center; transition: background 0.2s;">×</button>
@@ -9222,7 +9243,7 @@ STYLE DE RÉPONSE :
                         
                         <!-- Progression Visuelle des 5 Phases -->
                         <div style="background: rgba(99, 102, 241, 0.05); border: 1px solid rgba(99, 102, 241, 0.2); border-radius: 16px; padding: 24px; margin-bottom: 24px;">
-                            <h3 style="margin: 0 0 20px; font-size: 18px; color: white; font-weight: 600;">📊 Progression du Projet</h3>
+                            <h3 style="margin: 0 0 20px; font-size: 18px; color: white; font-weight: 600; display: flex; align-items: center; gap: 8px;">${svgIcons.chart} Progression du Projet</h3>
                             
                             <!-- Timeline 5 phases -->
                             <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; position: relative;">
@@ -9234,7 +9255,7 @@ STYLE DE RÉPONSE :
                                     return `
                                         <div style="flex: 1; text-align: center; position: relative; z-index: 2;">
                                             <div style="width: 50px; height: 50px; margin: 0 auto 8px; border-radius: 50%; background: ${isActive ? 'linear-gradient(135deg, #6366f1, #8b5cf6)' : isPassed ? 'linear-gradient(135deg, #10b981, #059669)' : 'rgba(255, 255, 255, 0.1)'}; display: flex; align-items: center; justify-content: center; border: 3px solid ${isActive ? '#8b5cf6' : isPassed ? '#10b981' : 'rgba(255, 255, 255, 0.2)'}; box-shadow: ${isActive ? '0 0 20px rgba(139, 92, 246, 0.6)' : 'none'};">
-                                                <span style="font-size: 20px;">${['🔍', '💡', '🧪', '✅', '🚀'][index]}</span>
+                                                ${[svgIcons.search, svgIcons.bulb, svgIcons.flask, svgIcons.check, svgIcons.rocket][index]}
                                             </div>
                                             <div style="font-size: 12px; color: ${isActive ? '#a78bfa' : isPassed ? '#6ee7b7' : 'rgba(255, 255, 255, 0.5)'}; font-weight: ${isActive ? '700' : '600'}; text-transform: capitalize;">${phase}</div>
                                         </div>
@@ -9261,7 +9282,7 @@ STYLE DE RÉPONSE :
                             <!-- Budget -->
                             <div style="background: linear-gradient(135deg, rgba(16, 185, 129, 0.1), rgba(5, 150, 105, 0.05)); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 12px; padding: 20px;">
                                 <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
-                                    <span style="font-size: 32px;">💰</span>
+                                    <div style="width: 40px; height: 40px; display: flex; align-items: center; justify-content: center;">${svgIcons.money}</div>
                                     <span style="font-size: 12px; color: rgba(255, 255, 255, 0.6); font-weight: 600;">BUDGET</span>
                                 </div>
                                 <div style="font-size: 24px; color: #6ee7b7; font-weight: 700; margin-bottom: 8px;">${project.budget.prevu.toLocaleString()} ${project.budget.devise}</div>
@@ -9274,7 +9295,7 @@ STYLE DE RÉPONSE :
                             <!-- Équipe -->
                             <div style="background: linear-gradient(135deg, rgba(99, 102, 241, 0.1), rgba(139, 92, 246, 0.05)); border: 1px solid rgba(99, 102, 241, 0.3); border-radius: 12px; padding: 20px;">
                                 <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
-                                    <span style="font-size: 32px;">👥</span>
+                                    <div style="width: 40px; height: 40px; display: flex; align-items: center; justify-content: center;">${svgIcons.users}</div>
                                     <span style="font-size: 12px; color: rgba(255, 255, 255, 0.6); font-weight: 600;">ÉQUIPE</span>
                                 </div>
                                 <div style="font-size: 24px; color: #a78bfa; font-weight: 700; margin-bottom: 8px;">${teamSize} membres</div>
@@ -9284,7 +9305,7 @@ STYLE DE RÉPONSE :
                             <!-- Technologies -->
                             <div style="background: linear-gradient(135deg, rgba(251, 191, 36, 0.1), rgba(245, 158, 11, 0.05)); border: 1px solid rgba(251, 191, 36, 0.3); border-radius: 12px; padding: 20px;">
                                 <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
-                                    <span style="font-size: 32px;">⚡</span>
+                                    <div style="width: 40px; height: 40px; display: flex; align-items: center; justify-content: center;">${svgIcons.zap}</div>
                                     <span style="font-size: 12px; color: rgba(255, 255, 255, 0.6); font-weight: 600;">TECHNOLOGIES</span>
                                 </div>
                                 <div style="font-size: 24px; color: #fbbf24; font-weight: 700; margin-bottom: 8px;">${techCount} technos</div>
@@ -9294,7 +9315,7 @@ STYLE DE RÉPONSE :
                             <!-- Durée -->
                             <div style="background: linear-gradient(135deg, rgba(236, 72, 153, 0.1), rgba(219, 39, 119, 0.05)); border: 1px solid rgba(236, 72, 153, 0.3); border-radius: 12px; padding: 20px;">
                                 <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
-                                    <span style="font-size: 32px;">⏰</span>
+                                    <div style="width: 40px; height: 40px; display: flex; align-items: center; justify-content: center;">${svgIcons.clock}</div>
                                     <span style="font-size: 12px; color: rgba(255, 255, 255, 0.6); font-weight: 600;">DURÉE</span>
                                 </div>
                                 <div style="font-size: 24px; color: #ec4899; font-weight: 700; margin-bottom: 8px;">${project.duree} mois</div>
@@ -9306,11 +9327,11 @@ STYLE DE RÉPONSE :
                         <!-- Description & Problème -->
                         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 24px;">
                             <div style="background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 12px; padding: 20px;">
-                                <h4 style="margin: 0 0 12px; font-size: 14px; color: rgba(255, 255, 255, 0.6); font-weight: 600; text-transform: uppercase;">📝 Description</h4>
+                                <h4 style="margin: 0 0 12px; font-size: 14px; color: rgba(255, 255, 255, 0.6); font-weight: 600; text-transform: uppercase; display: flex; align-items: center; gap: 8px;">${svgIcons.file} Description</h4>
                                 <p style="margin: 0; color: rgba(255, 255, 255, 0.85); font-size: 14px; line-height: 1.6;">${project.description}</p>
                             </div>
                             <div style="background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 12px; padding: 20px;">
-                                <h4 style="margin: 0 0 12px; font-size: 14px; color: rgba(255, 255, 255, 0.6); font-weight: 600; text-transform: uppercase;">🎯 Problème à Résoudre</h4>
+                                <h4 style="margin: 0 0 12px; font-size: 14px; color: rgba(255, 255, 255, 0.6); font-weight: 600; text-transform: uppercase; display: flex; align-items: center; gap: 8px;">${svgIcons.target} Problème à Résoudre</h4>
                                 <p style="margin: 0; color: rgba(255, 255, 255, 0.85); font-size: 14px; line-height: 1.6;">${project.probleme}</p>
                             </div>
                         </div>
@@ -9318,7 +9339,7 @@ STYLE DE RÉPONSE :
                         <!-- Public Cible -->
                         ${project.cible ? `
                         <div style="background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 12px; padding: 20px; margin-bottom: 24px;">
-                            <h4 style="margin: 0 0 12px; font-size: 14px; color: rgba(255, 255, 255, 0.6); font-weight: 600; text-transform: uppercase;">🎯 Public Cible</h4>
+                            <h4 style="margin: 0 0 12px; font-size: 14px; color: rgba(255, 255, 255, 0.6); font-weight: 600; text-transform: uppercase; display: flex; align-items: center; gap: 8px;">${svgIcons.target} Public Cible</h4>
                             <p style="margin: 0; color: rgba(255, 255, 255, 0.85); font-size: 14px;">${project.cible}</p>
                         </div>
                         ` : ''}
@@ -9326,8 +9347,8 @@ STYLE DE RÉPONSE :
                         <!-- Actions -->
                         <div style="display: flex; gap: 12px; justify-content: flex-end; margin-top: 24px;">
                             <button onclick="closeProjectDetailsModal()" style="padding: 12px 24px; background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 8px; color: white; font-size: 14px; cursor: pointer; font-weight: 600; transition: background 0.2s;">Fermer</button>
-                            <button onclick="editProject(${project.id})" style="padding: 12px 24px; background: rgba(99, 102, 241, 0.2); border: 1px solid rgba(99, 102, 241, 0.4); border-radius: 8px; color: #a78bfa; font-size: 14px; cursor: pointer; font-weight: 600; transition: background 0.2s;">✏️ Modifier</button>
-                            <button onclick="advanceProjectPhase(${project.id})" style="padding: 12px 24px; background: linear-gradient(135deg, #6366f1, #8b5cf6); border: none; border-radius: 8px; color: white; font-size: 14px; cursor: pointer; font-weight: 600; box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4); transition: transform 0.2s;">➡️ Phase Suivante</button>
+                            <button onclick="editProject(${project.id})" style="padding: 12px 24px; background: rgba(99, 102, 241, 0.2); border: 1px solid rgba(99, 102, 241, 0.4); border-radius: 8px; color: #a78bfa; font-size: 14px; cursor: pointer; font-weight: 600; transition: background 0.2s; display: inline-flex; align-items: center; gap: 8px;">${svgIcons.edit} Modifier</button>
+                            <button onclick="advanceProjectPhase(${project.id})" style="padding: 12px 24px; background: linear-gradient(135deg, #6366f1, #8b5cf6); border: none; border-radius: 8px; color: white; font-size: 14px; cursor: pointer; font-weight: 600; box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4); transition: transform 0.2s; display: inline-flex; align-items: center; gap: 8px;">${svgIcons.arrow} Phase Suivante</button>
                         </div>
                         
                     </div>
