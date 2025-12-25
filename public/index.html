@@ -8908,94 +8908,204 @@ RÈGLES IMPORTANTES:
                 return;
             }
             
+            // Calculs pour le graphique global
+            const phaseDistribution = {
+                'découverte': activeProjects.filter(p => p.phase === 'découverte').length,
+                'idéation': activeProjects.filter(p => p.phase === 'idéation').length,
+                'expérimentation': activeProjects.filter(p => p.phase === 'expérimentation').length,
+                'validation': activeProjects.filter(p => p.phase === 'validation').length,
+                'déploiement': activeProjects.filter(p => p.phase === 'déploiement').length
+            };
+            
+            const avgProgress = Math.round(activeProjects.reduce((sum, p) => sum + p.avancement, 0) / activeProjects.length);
+            const totalBudget = activeProjects.reduce((sum, p) => sum + (p.budget?.prevu || 0), 0);
+            const totalRisks = risks.filter(r => r.statut === 'actif').length;
+            
             container.innerHTML = `
-                <div style="background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(99, 102, 241, 0.2); border-radius: 12px; overflow: hidden;">
-                    <!-- En-tête du tableau -->
-                    <div style="display: grid; grid-template-columns: 2fr 1fr 1.5fr 1fr 1fr; gap: 16px; padding: 16px 20px; background: linear-gradient(135deg, rgba(99, 102, 241, 0.15), rgba(139, 92, 246, 0.1)); border-bottom: 1px solid rgba(99, 102, 241, 0.3);">
-                        <div style="color: rgba(255, 255, 255, 0.9); font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px;">Projet</div>
-                        <div style="color: rgba(255, 255, 255, 0.9); font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; text-align: center;">Durée</div>
-                        <div style="color: rgba(255, 255, 255, 0.9); font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px;">Progression</div>
-                        <div style="color: rgba(255, 255, 255, 0.9); font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; text-align: center;">Jalons</div>
-                        <div style="color: rgba(255, 255, 255, 0.9); font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; text-align: center;">Risques</div>
-                    </div>
+                <!-- Graphique Global -->
+                <div style="background: linear-gradient(135deg, rgba(99, 102, 241, 0.1), rgba(139, 92, 246, 0.05)); border: 1px solid rgba(99, 102, 241, 0.3); border-radius: 16px; padding: 24px; margin-bottom: 24px;">
+                    <h3 style="margin: 0 0 20px; color: white; font-size: 20px; font-weight: 700;">📊 Vue Globale - Tous les Projets</h3>
                     
-                    <!-- Lignes des projets -->
-                    ${activeProjects.map((project, index) => {
-                        // Calculer les données
-                        const projectMilestones = milestones.filter(m => m.projectId === project.id && new Date(m.date) >= new Date() && m.statut !== 'complété');
-                        const projectRisks = risks.filter(r => r.projectId === project.id && r.statut === 'actif');
-                        const criticalRisks = projectRisks.filter(r => r.criticite === 'critique').length;
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 24px;">
                         
-                        // Calculer le temps écoulé / restant
+                        <!-- Distribution des Phases -->
+                        <div>
+                            <div style="color: rgba(255, 255, 255, 0.8); font-size: 13px; font-weight: 600; margin-bottom: 16px; text-transform: uppercase; letter-spacing: 1px;">Distribution des Phases</div>
+                            <svg width="100%" height="200" viewBox="0 0 300 200">
+                                <defs>
+                                    <linearGradient id="grad1" x1="0%" y1="0%" x2="0%" y2="100%">
+                                        <stop offset="0%" style="stop-color:#6366f1;stop-opacity:1" />
+                                        <stop offset="100%" style="stop-color:#8b5cf6;stop-opacity:1" />
+                                    </linearGradient>
+                                    <linearGradient id="grad2" x1="0%" y1="0%" x2="0%" y2="100%">
+                                        <stop offset="0%" style="stop-color:#10b981;stop-opacity:1" />
+                                        <stop offset="100%" style="stop-color:#6ee7b7;stop-opacity:1" />
+                                    </linearGradient>
+                                    <linearGradient id="grad3" x1="0%" y1="0%" x2="0%" y2="100%">
+                                        <stop offset="0%" style="stop-color:#fbbf24;stop-opacity:1" />
+                                        <stop offset="100%" style="stop-color:#f59e0b;stop-opacity:1" />
+                                    </linearGradient>
+                                    <linearGradient id="grad4" x1="0%" y1="0%" x2="0%" y2="100%">
+                                        <stop offset="0%" style="stop-color:#ec4899;stop-opacity:1" />
+                                        <stop offset="100%" style="stop-color:#f472b6;stop-opacity:1" />
+                                    </linearGradient>
+                                    <linearGradient id="grad5" x1="0%" y1="0%" x2="0%" y2="100%">
+                                        <stop offset="0%" style="stop-color:#8b5cf6;stop-opacity:1" />
+                                        <stop offset="100%" style="stop-color:#a78bfa;stop-opacity:1" />
+                                    </linearGradient>
+                                </defs>
+                                ${Object.entries(phaseDistribution).map(([phase, count], index) => {
+                                    const maxCount = Math.max(...Object.values(phaseDistribution), 1);
+                                    const height = (count / maxCount) * 140;
+                                    const x = 30 + (index * 50);
+                                    const gradId = `grad${index + 1}`;
+                                    return `
+                                        <g>
+                                            <rect x="${x}" y="${160 - height}" width="35" height="${height}" fill="url(#${gradId})" rx="4" opacity="0.9">
+                                                <animate attributeName="height" from="0" to="${height}" dur="0.8s" fill="freeze" />
+                                                <animate attributeName="y" from="160" to="${160 - height}" dur="0.8s" fill="freeze" />
+                                            </rect>
+                                            <text x="${x + 17.5}" y="175" fill="rgba(255,255,255,0.7)" font-size="10" text-anchor="middle">${phase.substring(0, 3)}</text>
+                                            <text x="${x + 17.5}" y="${150 - height}" fill="white" font-size="14" font-weight="bold" text-anchor="middle">${count}</text>
+                                        </g>
+                                    `;
+                                }).join('')}
+                            </svg>
+                        </div>
+                        
+                        <!-- Progression Globale (Jauge circulaire) -->
+                        <div>
+                            <div style="color: rgba(255, 255, 255, 0.8); font-size: 13px; font-weight: 600; margin-bottom: 16px; text-transform: uppercase; letter-spacing: 1px;">Progression Moyenne</div>
+                            <svg width="100%" height="200" viewBox="0 0 200 200">
+                                <defs>
+                                    <linearGradient id="circleGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                                        <stop offset="0%" style="stop-color:#6366f1;stop-opacity:1" />
+                                        <stop offset="100%" style="stop-color:#8b5cf6;stop-opacity:1" />
+                                    </linearGradient>
+                                </defs>
+                                <!-- Cercle de fond -->
+                                <circle cx="100" cy="100" r="70" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="15"/>
+                                <!-- Cercle de progression -->
+                                <circle cx="100" cy="100" r="70" fill="none" stroke="url(#circleGrad)" stroke-width="15" 
+                                    stroke-dasharray="${2 * Math.PI * 70}" 
+                                    stroke-dashoffset="${2 * Math.PI * 70 * (1 - avgProgress / 100)}"
+                                    transform="rotate(-90 100 100)"
+                                    stroke-linecap="round">
+                                    <animate attributeName="stroke-dashoffset" 
+                                        from="${2 * Math.PI * 70}" 
+                                        to="${2 * Math.PI * 70 * (1 - avgProgress / 100)}" 
+                                        dur="1.5s" 
+                                        fill="freeze" />
+                                </circle>
+                                <!-- Texte central -->
+                                <text x="100" y="95" fill="white" font-size="36" font-weight="bold" text-anchor="middle">${avgProgress}%</text>
+                                <text x="100" y="115" fill="rgba(255,255,255,0.6)" font-size="12" text-anchor="middle">${activeProjects.length} projets</text>
+                            </svg>
+                        </div>
+                        
+                        <!-- Métriques Rapides -->
+                        <div style="display: flex; flex-direction: column; gap: 16px; justify-content: center;">
+                            <div style="background: rgba(99, 102, 241, 0.1); border-left: 4px solid #6366f1; padding: 16px; border-radius: 8px;">
+                                <div style="color: rgba(255, 255, 255, 0.6); font-size: 11px; margin-bottom: 4px;">Budget Total</div>
+                                <div style="color: white; font-size: 24px; font-weight: 700;">${totalBudget.toLocaleString()} DA</div>
+                            </div>
+                            <div style="background: rgba(16, 185, 129, 0.1); border-left: 4px solid #10b981; padding: 16px; border-radius: 8px;">
+                                <div style="color: rgba(255, 255, 255, 0.6); font-size: 11px; margin-bottom: 4px;">Jalons à Venir</div>
+                                <div style="color: white; font-size: 24px; font-weight: 700;">${milestones.filter(m => new Date(m.date) >= new Date() && m.statut !== 'complété').length}</div>
+                            </div>
+                            <div style="background: rgba(239, 68, 68, 0.1); border-left: 4px solid #ef4444; padding: 16px; border-radius: 8px;">
+                                <div style="color: rgba(255, 255, 255, 0.6); font-size: 11px; margin-bottom: 4px;">Risques Actifs</div>
+                                <div style="color: white; font-size: 24px; font-weight: 700;">${totalRisks}</div>
+                            </div>
+                        </div>
+                        
+                    </div>
+                </div>
+                
+                <!-- Graphiques par Projet -->
+                <div style="color: rgba(255, 255, 255, 0.8); font-size: 13px; font-weight: 600; margin-bottom: 16px; text-transform: uppercase; letter-spacing: 1px;">📈 Cycle de Vie par Projet</div>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(450px, 1fr)); gap: 20px;">
+                    ${activeProjects.map(project => {
                         const createdDate = new Date(project.created);
                         const durationMonths = project.duree || 12;
                         const endDate = new Date(createdDate.getTime() + (durationMonths * 30 * 24 * 60 * 60 * 1000));
                         const today = new Date();
                         const totalDays = Math.ceil((endDate - createdDate) / (1000 * 60 * 60 * 24));
                         const daysElapsed = Math.ceil((today - createdDate) / (1000 * 60 * 60 * 24));
-                        const daysRemaining = Math.max(0, totalDays - daysElapsed);
                         const timeProgress = Math.min(100, Math.round((daysElapsed / totalDays) * 100));
                         
+                        const projectMilestones = milestones.filter(m => m.projectId === project.id);
+                        const projectRisks = risks.filter(r => r.projectId === project.id && r.statut === 'actif');
+                        
                         return `
-                        <div style="display: grid; grid-template-columns: 2fr 1fr 1.5fr 1fr 1fr; gap: 16px; padding: 20px; border-bottom: 1px solid rgba(99, 102, 241, 0.1); transition: background 0.2s ease; cursor: pointer;" onclick="viewProjectDetails(${project.id})" onmouseover="this.style.background='rgba(99, 102, 241, 0.05)'" onmouseout="this.style.background='transparent'">
+                        <div style="background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(99, 102, 241, 0.2); border-radius: 12px; padding: 20px; cursor: pointer; transition: all 0.3s ease;" onclick="viewProjectDetails(${project.id})" onmouseover="this.style.background='rgba(99, 102, 241, 0.08)'; this.style.borderColor='rgba(99, 102, 241, 0.5)'" onmouseout="this.style.background='rgba(255, 255, 255, 0.03)'; this.style.borderColor='rgba(99, 102, 241, 0.2)'">
                             
-                            <!-- Nom du projet -->
-                            <div>
-                                <div style="color: white; font-weight: 600; font-size: 15px; margin-bottom: 4px;">${project.titre}</div>
-                                <div style="display: inline-block; background: rgba(99, 102, 241, 0.2); padding: 4px 8px; border-radius: 4px; font-size: 11px; color: rgba(139, 92, 246, 0.9);">${project.phase}</div>
-                            </div>
-                            
-                            <!-- Durée -->
-                            <div style="text-align: center;">
-                                <div style="color: white; font-size: 20px; font-weight: 700; margin-bottom: 4px;">${daysRemaining}</div>
-                                <div style="color: rgba(255, 255, 255, 0.6); font-size: 11px;">jours restants</div>
-                                <div style="margin-top: 8px; background: rgba(255, 255, 255, 0.1); height: 4px; border-radius: 2px; overflow: hidden;">
-                                    <div style="background: linear-gradient(90deg, #10b981, #6ee7b7); height: 100%; width: ${timeProgress}%; border-radius: 2px;"></div>
+                            <!-- En-tête -->
+                            <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 20px;">
+                                <div>
+                                    <div style="color: white; font-size: 16px; font-weight: 700; margin-bottom: 4px;">${project.titre}</div>
+                                    <div style="display: inline-block; background: rgba(99, 102, 241, 0.2); padding: 4px 10px; border-radius: 6px; font-size: 11px; color: rgba(139, 92, 246, 0.9); text-transform: uppercase; letter-spacing: 0.5px;">${project.phase}</div>
+                                </div>
+                                <div style="text-align: right;">
+                                    <div style="color: white; font-size: 28px; font-weight: 700;">${project.avancement}%</div>
+                                    <div style="color: rgba(255, 255, 255, 0.5); font-size: 11px;">${Math.max(0, Math.ceil((endDate - today) / (1000 * 60 * 60 * 24)))}j restants</div>
                                 </div>
                             </div>
                             
-                            <!-- Progression -->
-                            <div>
-                                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
-                                    <span style="color: white; font-size: 18px; font-weight: 700;">${project.avancement}%</span>
-                                    <span style="color: rgba(255, 255, 255, 0.6); font-size: 11px;">${project.avancement >= timeProgress ? '✓ Dans les temps' : '⚠ Retard'}</span>
-                                </div>
-                                <div style="background: rgba(255, 255, 255, 0.1); height: 8px; border-radius: 4px; overflow: hidden;">
-                                    <div style="background: linear-gradient(90deg, #6366f1, #8b5cf6); height: 100%; width: ${project.avancement}%; border-radius: 4px; box-shadow: 0 0 8px rgba(99, 102, 241, 0.4); transition: width 0.5s ease;"></div>
-                                </div>
-                                <div style="margin-top: 4px; height: 2px; background: rgba(255, 255, 255, 0.2); position: relative; border-radius: 1px;">
-                                    <div style="position: absolute; left: ${timeProgress}%; top: -3px; width: 2px; height: 8px; background: #10b981; border-radius: 1px;"></div>
-                                </div>
+                            <!-- Graphique Timeline -->
+                            <div style="margin-bottom: 16px;">
+                                <svg width="100%" height="80" viewBox="0 0 400 80">
+                                    <defs>
+                                        <linearGradient id="timeGrad${project.id}" x1="0%" y1="0%" x2="100%" y2="0%">
+                                            <stop offset="0%" style="stop-color:#10b981;stop-opacity:0.8" />
+                                            <stop offset="50%" style="stop-color:#6366f1;stop-opacity:0.8" />
+                                            <stop offset="100%" style="stop-color:#8b5cf6;stop-opacity:0.8" />
+                                        </linearGradient>
+                                        <linearGradient id="progGrad${project.id}" x1="0%" y1="0%" x2="100%" y2="0%">
+                                            <stop offset="0%" style="stop-color:#6366f1;stop-opacity:1" />
+                                            <stop offset="100%" style="stop-color:#8b5cf6;stop-opacity:1" />
+                                        </linearGradient>
+                                    </defs>
+                                    
+                                    <!-- Ligne du temps -->
+                                    <line x1="20" y1="25" x2="380" y2="25" stroke="rgba(255,255,255,0.2)" stroke-width="2"/>
+                                    <rect x="20" y="22" width="${(380 - 20) * timeProgress / 100}" height="6" fill="url(#timeGrad${project.id})" rx="3">
+                                        <animate attributeName="width" from="0" to="${(380 - 20) * timeProgress / 100}" dur="1s" fill="freeze" />
+                                    </rect>
+                                    <text x="20" y="20" fill="rgba(255,255,255,0.6)" font-size="10">Début</text>
+                                    <text x="380" y="20" fill="rgba(255,255,255,0.6)" font-size="10" text-anchor="end">Fin prévue</text>
+                                    
+                                    <!-- Barre de progression travail -->
+                                    <line x1="20" y1="55" x2="380" y2="55" stroke="rgba(255,255,255,0.2)" stroke-width="2"/>
+                                    <rect x="20" y="48" width="${(380 - 20) * project.avancement / 100}" height="14" fill="url(#progGrad${project.id})" rx="7">
+                                        <animate attributeName="width" from="0" to="${(380 - 20) * project.avancement / 100}" dur="1.2s" fill="freeze" />
+                                    </rect>
+                                    <text x="20" y="78" fill="rgba(255,255,255,0.6)" font-size="10">Progression</text>
+                                    
+                                    <!-- Indicateur de position actuelle sur timeline -->
+                                    <circle cx="${20 + (380 - 20) * timeProgress / 100}" cy="25" r="5" fill="#10b981">
+                                        <animate attributeName="r" values="4;6;4" dur="1.5s" repeatCount="indefinite" />
+                                    </circle>
+                                </svg>
                             </div>
                             
-                            <!-- Jalons -->
-                            <div style="text-align: center;">
-                                <div style="display: flex; align-items: center; justify-content: center; gap: 6px; margin-bottom: 4px;">
-                                    <span style="font-size: 24px;">🎯</span>
-                                    <span style="color: white; font-size: 20px; font-weight: 700;">${projectMilestones.length}</span>
+                            <!-- Métriques du projet -->
+                            <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-top: 16px;">
+                                <div style="background: rgba(16, 185, 129, 0.1); border-radius: 8px; padding: 12px; text-align: center;">
+                                    <div style="font-size: 20px; margin-bottom: 4px;">🎯</div>
+                                    <div style="color: white; font-size: 18px; font-weight: 700;">${projectMilestones.length}</div>
+                                    <div style="color: rgba(255, 255, 255, 0.5); font-size: 10px;">Jalons</div>
                                 </div>
-                                <div style="color: rgba(255, 255, 255, 0.6); font-size: 11px;">${projectMilestones.length > 0 ? 'à venir' : 'aucun'}</div>
-                                ${projectMilestones.length > 0 ? `
-                                    <div style="margin-top: 8px; font-size: 10px; color: rgba(16, 185, 129, 0.9); background: rgba(16, 185, 129, 0.1); padding: 4px 8px; border-radius: 4px;">
-                                        Prochain: ${Math.ceil((new Date(projectMilestones[0].date) - today) / (1000 * 60 * 60 * 24))}j
-                                    </div>
-                                ` : ''}
-                            </div>
-                            
-                            <!-- Risques -->
-                            <div style="text-align: center;">
-                                <div style="display: flex; align-items: center; justify-content: center; gap: 6px; margin-bottom: 4px;">
-                                    <span style="font-size: 24px;">${criticalRisks > 0 ? '🔴' : projectRisks.length > 0 ? '⚠️' : '✅'}</span>
-                                    <span style="color: white; font-size: 20px; font-weight: 700;">${projectRisks.length}</span>
+                                <div style="background: rgba(251, 191, 36, 0.1); border-radius: 8px; padding: 12px; text-align: center;">
+                                    <div style="font-size: 20px; margin-bottom: 4px;">💰</div>
+                                    <div style="color: white; font-size: 18px; font-weight: 700;">${(project.budget?.prevu || 0).toLocaleString()}</div>
+                                    <div style="color: rgba(255, 255, 255, 0.5); font-size: 10px;">${project.budget?.devise || 'DA'}</div>
                                 </div>
-                                <div style="color: ${criticalRisks > 0 ? 'rgba(239, 68, 68, 0.9)' : projectRisks.length > 0 ? 'rgba(251, 191, 36, 0.9)' : 'rgba(16, 185, 129, 0.9)'}; font-size: 11px; font-weight: 600;">
-                                    ${criticalRisks > 0 ? `${criticalRisks} critique${criticalRisks > 1 ? 's' : ''}` : projectRisks.length > 0 ? 'actifs' : 'OK'}
+                                <div style="background: rgba(239, 68, 68, 0.1); border-radius: 8px; padding: 12px; text-align: center;">
+                                    <div style="font-size: 20px; margin-bottom: 4px;">${projectRisks.length > 0 ? '⚠️' : '✅'}</div>
+                                    <div style="color: white; font-size: 18px; font-weight: 700;">${projectRisks.length}</div>
+                                    <div style="color: rgba(255, 255, 255, 0.5); font-size: 10px;">Risques</div>
                                 </div>
-                                ${criticalRisks > 0 ? `
-                                    <div style="margin-top: 8px; background: rgba(239, 68, 68, 0.2); height: 4px; border-radius: 2px; overflow: hidden;">
-                                        <div style="background: linear-gradient(90deg, #ef4444, #dc2626); height: 100%; width: 100%; border-radius: 2px;"></div>
-                                    </div>
-                                ` : ''}
                             </div>
                             
                         </div>
