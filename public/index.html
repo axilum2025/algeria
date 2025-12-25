@@ -14764,7 +14764,7 @@ RÈGLES DE CONVERSATION :
             if (titleEl && currentConversationName) {
                 titleEl.textContent = currentConversationName;
             } else if (titleEl) {
-                titleEl.textContent = 'Agent Expert Finance';
+                titleEl.textContent = 'Agent Alex';
             }
         }
         
@@ -15104,7 +15104,7 @@ RÈGLES DE CONVERSATION :
                         <!-- Chat Panel -->
                         <div class="finance-chat">
                             <div>
-                                <h2 class="chat-title">Agent Expert Finance</h2>
+                                <h2 class="chat-title">Agent Alex</h2>
                                 <p class="chat-sub">Posez vos questions de gestion financière et comptable</p>
                                 <div class="status-badge" id="financeStatus">
                                     <span style="width:6px; height:6px; background:#22c55e; border-radius:50%;"></span>
@@ -15210,7 +15210,7 @@ RÈGLES DE CONVERSATION :
                     const endpoint = typeof getEndpoint === 'function' ? getEndpoint() : '/api/agents/axilum/invoke';
                     const systemPrompt = [
                         '[FINANCE_EXPERT_V2]',
-                        'Rôle: expert financier, expert-comptable, analyste marché.',
+                        'Tu es Agent Alex, expert financier, expert-comptable, analyste marché.',
                         'Priorités: exactitude, contrôle, conformité, traçabilité, réponses concises en français.',
                         'Outils disponibles (déjà câblés côté UI/API, à déclencher sur demande utilisateur):',
                         '- Lecture factures OCR (/api/finance/invoices/ocr)',
