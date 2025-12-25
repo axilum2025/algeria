@@ -1821,11 +1821,16 @@ La colonne Remise a été ajoutée avec succès !"
                     loadingMsg.remove();
                     chatHistory.pop(); // Retirer du historique aussi
 
-                    // Parser et exécuter les commandes JSON si présentes
-                    const commandExecuted = parseAndExecuteJSONCommands(aiResponse);
+                    // 🆕 Parser et exécuter les commandes JSON SEULEMENT pour actions 'write'
+                    // Pour actions 'readonly' (analyze, formulas, kpi, etc.) : pas d'exécution
+                    const isReadOnlyAction = window.currentActionType === 'readonly';
+                    const commandExecuted = isReadOnlyAction ? false : parseAndExecuteJSONCommands(aiResponse);
+                    
+                    // 🆕 Réinitialiser le flag d'action
+                    delete window.currentActionType;
                     
                     // Si demande de modification mais pas de JSON, ajouter un hint
-                    if (!commandExecuted && excelData.length > 0) {
+                    if (!commandExecuted && excelData.length > 0 && !isReadOnlyAction) {
                         const modificationKeywords = /ajoute|calcul|supprime|modifi|tri|rename|total|somme|moyenne/i;
                         if (modificationKeywords.test(message)) {
                             console.warn('⚠️ Demande de modification détectée mais pas de JSON généré par l\'AI');
@@ -1901,13 +1906,18 @@ La colonne Remise a été ajoutée avec succès !"
                 return;
             }
 
+            // 🆕 Classification des actions (readonly = pas de modification du fichier)
+            const READONLY_ACTIONS = ['analyze', 'formulas', 'kpi', 'chart', 'duplicate', 'pivot'];
+            const isReadOnly = READONLY_ACTIONS.includes(action);
+            window.currentActionType = isReadOnly ? 'readonly' : 'write';
+
             let message = '';
             switch(action) {
                 case 'clean':
                     message = 'Nettoie mes données en supprimant les doublons et les cellules vides';
                     break;
                 case 'analyze':
-                    message = 'Analyse mes données et donne-moi des statistiques clés';
+                    message = 'Fais une analyse DESCRIPTIVE UNIQUEMENT de mon fichier Excel : nombre de lignes, nombre de colonnes, noms des colonnes, types de données, aperçu des valeurs. NE FAIS AUCUN CALCUL (pas de somme, moyenne, total). Décris seulement ce qui existe dans le fichier pour que je comprenne sa structure.';
                     break;
                 case 'formulas':
                     message = 'Suggère-moi des formules utiles pour ces données';
