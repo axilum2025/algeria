@@ -2550,6 +2550,91 @@
         let isRecording = false;
         let recognition = null;
         
+        // ===================================
+        // 🎯 SYSTÈME DE TRACKING CONTEXTUEL
+        // ===================================
+        const AxilumContext = {
+            // Base de connaissance des agents et pages
+            agents: {
+                'Agent Alex': { module: 'Finance & Accounting Hub', specialite: 'finance, comptabilité, budgets, rapports financiers' },
+                'Agent Xcel': { module: 'Excel AI Expert', specialite: 'Excel, tableaux, formules, graphiques, analyse de données' },
+                'Agent Tony': { module: 'AI Text Pro', specialite: 'traduction, rédaction, correction, génération de texte' },
+                'Agent Eve': { module: 'AI Vision', specialite: 'analyse d\'images, OCR, détection d\'objets, vision par ordinateur' },
+                'Agent RH': { module: 'HR Management Hub', specialite: 'ressources humaines, recrutement, gestion des employés, congés, paie' },
+                'Agent Dev': { module: 'Research & Development Hub', specialite: 'recherche, développement, innovation, projets R&D' },
+                'Agent Mark': { module: 'Marketing & Business Hub', specialite: 'marketing, stratégie commerciale, analyse de marché' },
+                'Agent ToDo': { module: 'AI Task', specialite: 'gestion de tâches, to-do lists, organisation, productivité' }
+            },
+            
+            // Suivre l'activité utilisateur
+            updateActivity(moduleName, agentName, action) {
+                const activity = JSON.parse(localStorage.getItem('axilumActivity') || '{}');
+                const timestamp = new Date().toISOString();
+                
+                activity.current = {
+                    module: moduleName,
+                    agent: agentName,
+                    action: action,
+                    timestamp: timestamp
+                };
+                
+                if (!activity.history) activity.history = [];
+                activity.history.unshift({
+                    module: moduleName,
+                    agent: agentName,
+                    action: action,
+                    timestamp: timestamp
+                });
+                
+                // Garder seulement les 10 dernières activités
+                if (activity.history.length > 10) {
+                    activity.history = activity.history.slice(0, 10);
+                }
+                
+                localStorage.setItem('axilumActivity', JSON.stringify(activity));
+                console.log('🎯 Contexte mis à jour:', activity.current);
+            },
+            
+            // Obtenir le contexte enrichi pour AI Axilum
+            getEnrichedContext() {
+                const activity = JSON.parse(localStorage.getItem('axilumActivity') || '{}');
+                
+                if (!activity.current) return '';
+                
+                const agent = this.agents[activity.current.agent];
+                let context = `\n\n[📍 Contexte utilisateur actuel]:\n`;
+                context += `- Page active: ${activity.current.module}\n`;
+                context += `- Agent utilisé: ${activity.current.agent}\n`;
+                
+                if (agent) {
+                    context += `- Spécialité: ${agent.specialite}\n`;
+                }
+                
+                if (activity.current.action) {
+                    context += `- Action: ${activity.current.action}\n`;
+                }
+                
+                // Ajouter l'historique récent
+                if (activity.history && activity.history.length > 1) {
+                    context += `\n[📚 Activité récente]:\n`;
+                    activity.history.slice(1, 4).forEach((h, i) => {
+                        context += `${i + 1}. ${h.module} - ${h.action}\n`;
+                    });
+                }
+                
+                context += `\n💡 Tu peux utiliser ce contexte pour mieux comprendre les besoins de l'utilisateur et suggérer des actions pertinentes dans les modules appropriés.\n`;
+                
+                return context;
+            },
+            
+            // Réinitialiser le contexte (quand l'utilisateur revient sur AI Axilum)
+            clearCurrent() {
+                const activity = JSON.parse(localStorage.getItem('axilumActivity') || '{}');
+                activity.current = null;
+                localStorage.setItem('axilumActivity', JSON.stringify(activity));
+            }
+        };
+        
         // Auth State
         let currentUser = JSON.parse(localStorage.getItem('currentUser') || 'null');
         let users = JSON.parse(localStorage.getItem('users') || '[]');
@@ -2911,7 +2996,7 @@
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ 
-                        message,
+                        message: message + AxilumContext.getEnrichedContext(),  // 🎯 Enrichir avec le contexte
                         conversationId: currentConversationId,
                         history: history,
                         useV2: useV2  // ✨ Paramètre pour activer V2
@@ -6345,6 +6430,9 @@
         let textProModuleLoaded = false;
         
         function loadTextProModule() {
+            // 🎯 Tracking: Utilisateur ouvre Text Pro
+            AxilumContext.updateActivity('AI Text Pro', 'Agent Tony', 'Ouverture du module');
+            
             if (textProModuleLoaded && typeof window.openTextProModule === 'function') {
                 window.openTextProModule();
                 return;
@@ -6851,6 +6939,9 @@
         let hrModuleLoaded = false;
         
         function loadHRModule() {
+            // 🎯 Tracking: Utilisateur ouvre HR Management
+            AxilumContext.updateActivity('HR Management Hub', 'Agent RH', 'Ouverture du module');
+            
             // Si le module est déjà chargé et les fonctions disponibles
             if (hrModuleLoaded && typeof openHRManagement === 'function') {
                 openHRManagement();
@@ -8001,6 +8092,9 @@
         let rndModuleLoaded = false;
         
         function loadRnDModule() {
+            // 🎯 Tracking: Utilisateur ouvre Research & Development
+            AxilumContext.updateActivity('Research & Development Hub', 'Agent Dev', 'Ouverture du module');
+            
             // Si le module est déjà chargé et les fonctions disponibles
             if (rndModuleLoaded && typeof openRnD === 'function') {
                 openRnD();
@@ -8778,6 +8872,9 @@ Réponds de manière professionnelle et technique.
         let marketingModuleLoaded = false;
         
         function loadMarketingModule() {
+            // 🎯 Tracking: Utilisateur ouvre Marketing & Business
+            AxilumContext.updateActivity('Marketing & Business Hub', 'Agent Mark', 'Ouverture du module');
+            
             // Si le module est déjà chargé et les fonctions disponibles
             if (marketingModuleLoaded && typeof openMarketing === 'function') {
                 openMarketing();
@@ -8814,6 +8911,9 @@ Réponds de manière professionnelle et technique.
         let taskModuleLoaded = false;
         
         function loadTaskModule() {
+            // 🎯 Tracking: Utilisateur ouvre AI Task
+            AxilumContext.updateActivity('AI Task', 'Agent ToDo', 'Ouverture du module');
+            
             // Si le module est déjà chargé et les fonctions disponibles
             if (taskModuleLoaded && typeof openOfficePro === 'function') {
                 openOfficePro();
@@ -8850,6 +8950,9 @@ Réponds de manière professionnelle et technique.
         let financeModuleLoaded = false;
         
         function loadFinanceModule() {
+            // 🎯 Tracking: Utilisateur ouvre Finance & Accounting
+            AxilumContext.updateActivity('Finance & Accounting Hub', 'Agent Alex', 'Ouverture du module');
+            
             // Si le module est déjà chargé et les fonctions disponibles
             if (financeModuleLoaded && typeof openFinanceAI === 'function') {
                 openFinanceAI();
@@ -8894,6 +8997,9 @@ Réponds de manière professionnelle et technique.
                 showToast('AI Vision PRO est réservé aux utilisateurs PRO. Passez au plan PRO pour accéder à cette fonctionnalité.', 'error');
                 return;
             }
+            
+            // 🎯 Tracking: Utilisateur ouvre AI Vision
+            AxilumContext.updateActivity('AI Vision', 'Agent Eve', 'Ouverture du module');
             
             // Ouvrir la page Vision PRO dans un nouvel onglet
             window.open('/vision-pro.html', '_blank');
@@ -18216,6 +18322,9 @@ Réponds UNIQUEMENT dans ce format JSON:
         
         // Fonction pour charger Excel AI en module (préparée pour migration future)
         function loadExcelAiModule() {
+            // 🎯 Tracking: Utilisateur ouvre Excel AI Expert
+            AxilumContext.updateActivity('Excel AI Expert', 'Agent Xcel', 'Ouverture du module');
+            
             if (excelAiModuleLoaded && typeof window.openExcelAiModule === 'function') {
                 window.openExcelAiModule();
                 return;
