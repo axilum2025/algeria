@@ -2602,27 +2602,24 @@
                 if (!activity.current) return '';
                 
                 const agent = this.agents[activity.current.agent];
-                let context = `\n\n[📍 Contexte utilisateur actuel]:\n`;
-                context += `- Page active: ${activity.current.module}\n`;
-                context += `- Agent utilisé: ${activity.current.agent}\n`;
+                let context = `\n\n[📍 INFORMATION CONTEXTUELLE - Ne change PAS ton comportement]:\n`;
+                context += `L'utilisateur a récemment visité: ${activity.current.module}\n`;
                 
                 if (agent) {
-                    context += `- Spécialité: ${agent.specialite}\n`;
+                    context += `Module spécialisé en: ${agent.specialite}\n`;
                 }
                 
-                if (activity.current.action) {
-                    context += `- Action: ${activity.current.action}\n`;
-                }
-                
-                // Ajouter l'historique récent
+                // Ajouter l'historique récent uniquement
                 if (activity.history && activity.history.length > 1) {
-                    context += `\n[📚 Activité récente]:\n`;
-                    activity.history.slice(1, 4).forEach((h, i) => {
-                        context += `${i + 1}. ${h.module} - ${h.action}\n`;
-                    });
+                    context += `\nAutres pages visitées: `;
+                    const recent = activity.history.slice(1, 3).map(h => h.module).join(', ');
+                    context += recent + '\n';
                 }
                 
-                context += `\n💡 Tu peux utiliser ce contexte pour mieux comprendre les besoins de l'utilisateur et suggérer des actions pertinentes dans les modules appropriés.\n`;
+                context += `\n⚠️ IMPORTANT: Tu restes AI Axilum, assistant général et polyvalent.\n`;
+                context += `Tu ne dois PAS te comporter comme ${activity.current.agent} ou simuler le module ${activity.current.module}.\n`;
+                context += `Utilise ce contexte uniquement pour comprendre les intérêts de l'utilisateur et donner des conseils pertinents.\n`;
+                context += `Si l'utilisateur veut utiliser un module spécialisé, suggère-lui d'y aller directement.\n`;
                 
                 return context;
             },
@@ -2940,6 +2937,9 @@
 
             // Fermer la sidebar automatiquement
             closeSidebar();
+            
+            // 🎯 Effacer le contexte "current" car l'utilisateur interagit avec AI Axilum
+            AxilumContext.clearCurrent();
 
             // Disable input
             const sendBtn = document.getElementById('sendBtn');
