@@ -299,7 +299,7 @@ Pour commencer, sélectionnez vos langues dans le panneau latéral et saisissez 
                 <!-- Panneau d'informations -->
                 <div class="textpro-info-panel">
                     <div class="textpro-info-header">
-                        <h1 class="textpro-info-title">AI Text Pro</h1>
+                        <h1 class="textpro-info-title">Agent Tony</h1>
                         <p class="textpro-info-subtitle">Traitement de texte intelligent</p>
                     </div>
                     
@@ -425,7 +425,7 @@ Pour commencer, sélectionnez vos langues dans le panneau latéral et saisissez 
                 <div class="textpro-chat-panel">
                     <div class="textpro-chat-header">
                         <div>
-                            <h2 class="textpro-chat-title">Agent Text Pro</h2>
+                            <h2 class="textpro-chat-title">Agent Tony</h2>
                             <p class="textpro-chat-subtitle">Assistant de traitement de texte</p>
                         </div>
                         <div style="display: flex; gap: 12px; align-items: center;">
@@ -2409,7 +2409,7 @@ Pour commencer, sélectionnez vos langues dans le panneau latéral et saisissez 
             // Préparer les messages
             const modeInfo = translationModes[currentTranslationMode];
             const systemPrompt = modeInfo 
-                ? `Tu es Agent Text Pro, un assistant spécialisé dans le traitement de texte professionnel. ${modeInfo.prompt}
+                ? `Tu es Agent Tony, assistant spécialisé dans le traitement de texte professionnel. ${modeInfo.prompt}
 
 Fonctionnalités disponibles pour l'utilisateur :
 - 7 modes de traduction spécialisés (Général, Académique, Scientifique, Juridique, Médical, Technique, Business)
@@ -2423,7 +2423,7 @@ Fonctionnalités disponibles pour l'utilisateur :
 - Compteur de caractères et mots en temps réel
 
 Tu peux traduire, réécrire, corriger, résumer, analyser et améliorer des textes. Quand un utilisateur uploade un fichier, il sera marqué par [FICHIER UPLOADÉ: nom] ... [FIN DU FICHIER]. Prends en compte tout le contenu du fichier dans tes réponses. Quand tu traduis un texte, propose toujours le téléchargement du résultat.`
-                : `Tu es Agent Text Pro, un assistant spécialisé dans le traitement de texte professionnel.
+                : `Tu es Agent Tony, assistant spécialisé dans le traitement de texte professionnel.
 
 Fonctionnalités disponibles pour l'utilisateur :
 - 7 modes de traduction spécialisés (Général, Académique, Scientifique, Juridique, Médical, Technique, Business)
