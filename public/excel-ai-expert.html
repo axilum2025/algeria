@@ -1718,6 +1718,10 @@
             const sendBtn = document.getElementById('sendBtn');
             sendBtn.disabled = true;
 
+            // 🆕 Utiliser le message détaillé pour l'IA si disponible
+            const aiMessage = window.pendingAiMessage || message;
+            delete window.pendingAiMessage; // Nettoyer après utilisation
+
             // Ajouter un indicateur de chargement
             const loadingMsg = addChatMessage('⏳ Traitement en cours...', 'bot');
 
@@ -1786,7 +1790,7 @@ La colonne Remise a été ajoutée avec succès !"
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ 
-                            message: excelContext + "\n\nQuestion: " + message,
+                            message: excelContext + "\n\nQuestion: " + aiMessage,
                             conversationId: 'excel-ai-expert',
                             chatType: 'excel-expert',
                             history: historyForBackend
@@ -1911,32 +1915,44 @@ La colonne Remise a été ajoutée avec succès !"
             const isReadOnly = READONLY_ACTIONS.includes(action);
             window.currentActionType = isReadOnly ? 'readonly' : 'write';
 
-            let message = '';
+            let userMessage = ''; // Message court affiché à l'utilisateur
+            let aiMessage = ''; // Message détaillé envoyé à l'IA
+            
             switch(action) {
                 case 'clean':
-                    message = 'Nettoie mes données en supprimant les doublons et les cellules vides';
+                    userMessage = 'Nettoie mes données en supprimant les doublons et les cellules vides';
+                    aiMessage = userMessage;
                     break;
                 case 'analyze':
-                    message = 'Fais une analyse DESCRIPTIVE UNIQUEMENT de mon fichier Excel : nombre de lignes, nombre de colonnes, noms des colonnes, types de données, aperçu des valeurs. NE FAIS AUCUN CALCUL (pas de somme, moyenne, total). Décris seulement ce qui existe dans le fichier pour que je comprenne sa structure.';
+                    userMessage = 'Analyse mon fichier Excel';
+                    aiMessage = 'Fais une analyse DESCRIPTIVE UNIQUEMENT de mon fichier Excel : nombre de lignes, nombre de colonnes, noms des colonnes, types de données, aperçu des valeurs. NE FAIS AUCUN CALCUL (pas de somme, moyenne, total). Décris seulement ce qui existe dans le fichier pour que je comprenne sa structure.';
                     break;
                 case 'formulas':
-                    message = 'Suggère-moi des formules utiles pour ces données';
+                    userMessage = 'Suggère-moi des formules utiles pour ces données';
+                    aiMessage = userMessage;
                     break;
                 case 'kpi':
-                    message = 'Génère des KPI pertinents pour ces données';
+                    userMessage = 'Génère des KPI pertinents pour ces données';
+                    aiMessage = userMessage;
                     break;
                 case 'duplicate':
-                    message = 'Détecte les doublons dans mes données';
+                    userMessage = 'Détecte les doublons dans mes données';
+                    aiMessage = userMessage;
                     break;
                 case 'pivot':
-                    message = 'Crée un tableau croisé dynamique';
+                    userMessage = 'Crée un tableau croisé dynamique';
+                    aiMessage = userMessage;
                     break;
                 case 'chart':
-                    message = 'Suggère des graphiques adaptés à mes données';
+                    userMessage = 'Suggère des graphiques adaptés à mes données';
+                    aiMessage = userMessage;
                     break;
             }
 
-            document.getElementById('chatInput').value = message;
+            // Stocker le message IA pour sendMessage()
+            window.pendingAiMessage = aiMessage;
+            
+            document.getElementById('chatInput').value = userMessage;
             sendMessage();
         }
 
