@@ -9381,8 +9381,161 @@ STYLE DE RÉPONSE :
         
         function editProject(projectId) {
             closeProjectDetailsModal();
-            alert('Fonction d\'édition en cours de développement');
-            // TODO: Ouvrir modal d'édition
+            
+            const projects = JSON.parse(localStorage.getItem('rndProjects') || '[]');
+            const project = projects.find(p => p.id === projectId);
+            if (!project) return;
+            
+            // Créer le modal d'édition
+            const modal = document.createElement('div');
+            modal.id = 'rndEditModal';
+            modal.style.cssText = `
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: rgba(0, 0, 0, 0.8);
+                backdrop-filter: blur(10px);
+                z-index: 10002;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                animation: fadeIn 0.3s ease;
+            `;
+            
+            modal.innerHTML = `
+                <div style="background: linear-gradient(135deg, #1a1a2e, #16213e); border: 1px solid rgba(99, 102, 241, 0.3); border-radius: 16px; padding: 32px; width: 90%; max-width: 800px; max-height: 90vh; overflow-y: auto; box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+                        <h2 style="margin: 0; font-size: 28px; color: white; background: linear-gradient(135deg, #6366f1, #8b5cf6); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
+                            Modifier le Projet
+                        </h2>
+                        <button onclick="closeEditModal()" style="background: none; border: none; color: rgba(255, 255, 255, 0.6); font-size: 28px; cursor: pointer; padding: 0; width: 32px; height: 32px; line-height: 1;">×</button>
+                    </div>
+                    
+                    <form id="rndEditForm" onsubmit="saveEditedProject(event, ${projectId})">
+                        <div style="margin-bottom: 20px;">
+                            <label style="display: block; color: rgba(255, 255, 255, 0.9); font-size: 14px; font-weight: 600; margin-bottom: 8px;">Titre du projet *</label>
+                            <input type="text" id="editProjectTitle" required value="${project.titre.replace(/"/g, '&quot;')}" placeholder="Ex: Plateforme de télémédecine rurale" style="width: 100%; padding: 12px; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(99, 102, 241, 0.3); border-radius: 8px; color: white; font-size: 14px;">
+                        </div>
+                        
+                        <div style="margin-bottom: 20px;">
+                            <label style="display: block; color: rgba(255, 255, 255, 0.9); font-size: 14px; font-weight: 600; margin-bottom: 8px;">Domaine d'innovation *</label>
+                            <select id="editProjectDomain" required style="width: 100%; padding: 12px; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(99, 102, 241, 0.3); border-radius: 8px; color: white; font-size: 14px;">
+                                <option value="">-- Sélectionner --</option>
+                                <option value="technologie" ${project.domaine === 'technologie' ? 'selected' : ''}>Technologie & Digital</option>
+                                <option value="santé" ${project.domaine === 'santé' ? 'selected' : ''}>Santé & Biotechnologie</option>
+                                <option value="éducation" ${project.domaine === 'éducation' ? 'selected' : ''}>Éducation & Formation</option>
+                                <option value="agriculture" ${project.domaine === 'agriculture' ? 'selected' : ''}>Agriculture & Agroalimentaire</option>
+                                <option value="environnement" ${project.domaine === 'environnement' ? 'selected' : ''}>Environnement & Dév. Durable</option>
+                                <option value="business" ${project.domaine === 'business' ? 'selected' : ''}>Business & Entrepreneuriat</option>
+                                <option value="arts" ${project.domaine === 'arts' ? 'selected' : ''}>Arts & Culture</option>
+                                <option value="sciences" ${project.domaine === 'sciences' ? 'selected' : ''}>Sciences & Recherche</option>
+                                <option value="énergie" ${project.domaine === 'énergie' ? 'selected' : ''}>Énergie & Infrastructure</option>
+                                <option value="social" ${project.domaine === 'social' ? 'selected' : ''}>Social & Impact</option>
+                                <option value="autre" ${project.domaine === 'autre' ? 'selected' : ''}>Autre</option>
+                            </select>
+                        </div>
+                        
+                        <div style="margin-bottom: 20px;">
+                            <label style="display: block; color: rgba(255, 255, 255, 0.9); font-size: 14px; font-weight: 600; margin-bottom: 8px;">Description *</label>
+                            <textarea id="editProjectDescription" required rows="3" placeholder="Décrivez votre projet..." style="width: 100%; padding: 12px; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(99, 102, 241, 0.3); border-radius: 8px; color: white; font-size: 14px; resize: vertical;">${project.description}</textarea>
+                        </div>
+                        
+                        <div style="margin-bottom: 20px;">
+                            <label style="display: block; color: rgba(255, 255, 255, 0.9); font-size: 14px; font-weight: 600; margin-bottom: 8px;">Problème à résoudre *</label>
+                            <textarea id="editProjectProblem" required rows="2" placeholder="Ex: Manque d'accès aux soins en zone rurale" style="width: 100%; padding: 12px; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(99, 102, 241, 0.3); border-radius: 8px; color: white; font-size: 14px; resize: vertical;">${project.probleme}</textarea>
+                        </div>
+                        
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 20px;">
+                            <div>
+                                <label style="display: block; color: rgba(255, 255, 255, 0.9); font-size: 14px; font-weight: 600; margin-bottom: 8px;">Budget</label>
+                                <div style="display: flex; gap: 8px;">
+                                    <input type="number" id="editProjectBudget" min="0" step="1000" value="${project.budget?.prevu || 0}" placeholder="500000" style="flex: 1; padding: 12px; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(99, 102, 241, 0.3); border-radius: 8px; color: white; font-size: 14px;">
+                                    <select id="editProjectCurrency" style="padding: 12px; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(99, 102, 241, 0.3); border-radius: 8px; color: white; font-size: 14px; min-width: 90px;">
+                                        <option value="DA" ${project.budget?.devise === 'DA' ? 'selected' : ''}>DA</option>
+                                        <option value="EUR" ${project.budget?.devise === 'EUR' ? 'selected' : ''}>EUR</option>
+                                        <option value="USD" ${project.budget?.devise === 'USD' ? 'selected' : ''}>USD</option>
+                                        <option value="GBP" ${project.budget?.devise === 'GBP' ? 'selected' : ''}>GBP</option>
+                                        <option value="CAD" ${project.budget?.devise === 'CAD' ? 'selected' : ''}>CAD</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div>
+                                <label style="display: block; color: rgba(255, 255, 255, 0.9); font-size: 14px; font-weight: 600; margin-bottom: 8px;">Durée (mois)</label>
+                                <input type="number" id="editProjectDuration" min="1" max="60" value="${project.duree || 12}" placeholder="12" style="width: 100%; padding: 12px; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(99, 102, 241, 0.3); border-radius: 8px; color: white; font-size: 14px;">
+                            </div>
+                        </div>
+                        
+                        <div style="margin-bottom: 20px;">
+                            <label style="display: block; color: rgba(255, 255, 255, 0.9); font-size: 14px; font-weight: 600; margin-bottom: 8px;">Équipe (séparés par virgules)</label>
+                            <input type="text" id="editProjectTeam" value="${project.equipe?.join(', ') || ''}" placeholder="Jean, Marie, Ahmed" style="width: 100%; padding: 12px; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(99, 102, 241, 0.3); border-radius: 8px; color: white; font-size: 14px;">
+                        </div>
+                        
+                        <div style="margin-bottom: 20px;">
+                            <label style="display: block; color: rgba(255, 255, 255, 0.9); font-size: 14px; font-weight: 600; margin-bottom: 8px;">Technologies utilisées</label>
+                            <input type="text" id="editProjectTech" value="${project.technologies?.join(', ') || ''}" placeholder="React, Azure, IoT" style="width: 100%; padding: 12px; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(99, 102, 241, 0.3); border-radius: 8px; color: white; font-size: 14px;">
+                        </div>
+                        
+                        <div style="margin-bottom: 24px;">
+                            <label style="display: block; color: rgba(255, 255, 255, 0.9); font-size: 14px; font-weight: 600; margin-bottom: 8px;">Public cible</label>
+                            <input type="text" id="editProjectTarget" value="${project.cible || ''}" placeholder="Population rurale, PME..." style="width: 100%; padding: 12px; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(99, 102, 241, 0.3); border-radius: 8px; color: white; font-size: 14px;">
+                        </div>
+                        
+                        <div style="display: flex; gap: 12px; justify-content: flex-end;">
+                            <button type="button" onclick="closeEditModal()" style="padding: 12px 24px; background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 8px; color: white; font-size: 14px; cursor: pointer; font-weight: 600;">Annuler</button>
+                            <button type="submit" style="padding: 12px 24px; background: linear-gradient(135deg, #6366f1, #8b5cf6); border: none; border-radius: 8px; color: white; font-size: 14px; cursor: pointer; font-weight: 600; box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4);">Enregistrer</button>
+                        </div>
+                    </form>
+                </div>
+            `;
+            
+            document.body.appendChild(modal);
+        }
+        
+        function closeEditModal() {
+            const modal = document.getElementById('rndEditModal');
+            if (modal) {
+                modal.style.animation = 'fadeOut 0.3s ease';
+                setTimeout(() => modal.remove(), 300);
+            }
+        }
+        
+        function saveEditedProject(event, projectId) {
+            event.preventDefault();
+            
+            const projects = JSON.parse(localStorage.getItem('rndProjects') || '[]');
+            const projectIndex = projects.findIndex(p => p.id === projectId);
+            if (projectIndex === -1) return;
+            
+            // Conserver les données importantes (id, phase, avancement, statut, created, etc.)
+            projects[projectIndex] = {
+                ...projects[projectIndex],
+                titre: document.getElementById('editProjectTitle').value.trim(),
+                domaine: document.getElementById('editProjectDomain').value,
+                description: document.getElementById('editProjectDescription').value.trim(),
+                probleme: document.getElementById('editProjectProblem').value.trim(),
+                budget: {
+                    ...projects[projectIndex].budget,
+                    prevu: parseInt(document.getElementById('editProjectBudget').value) || 0,
+                    devise: document.getElementById('editProjectCurrency').value
+                },
+                duree: parseInt(document.getElementById('editProjectDuration').value) || 12,
+                equipe: document.getElementById('editProjectTeam').value.split(',').map(m => m.trim()).filter(m => m),
+                technologies: document.getElementById('editProjectTech').value.split(',').map(t => t.trim()).filter(t => t),
+                cible: document.getElementById('editProjectTarget').value.trim(),
+                updated: new Date().toISOString()
+            };
+            
+            localStorage.setItem('rndProjects', JSON.stringify(projects));
+            
+            closeEditModal();
+            renderProjectsList();
+            initializeRnDData();
+            
+            setTimeout(() => {
+                alert(`✅ Projet "${projects[projectIndex].titre}" mis à jour avec succès.`);
+            }, 300);
         }
         
         function deleteProject(projectId) {
