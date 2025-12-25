@@ -550,7 +550,7 @@
             <div class="chat-container">
                 <div class="chat-messages" id="chatMessages">
                     <div class="message system">
-                        Bienvenue sur AI Vision PRO. Sélectionnez une fonction dans le menu latéral et uploadez une image pour commencer l'analyse.
+                        Bonjour ! Je suis Agent Eve, votre experte Azure Vision. Sélectionnez une fonction dans le menu latéral et uploadez une image pour commencer l'analyse, ou posez-moi vos questions sur Azure Vision.
                     </div>
                 </div>
 
@@ -662,12 +662,63 @@
             addMessage(message, 'user');
             messageInput.value = '';
             
-            // Process user message
+            // Agent Eve - IA conversationnelle pour Azure Vision
             showTyping();
-            setTimeout(() => {
+            
+            try {
+                const endpoint = '/api/agents/axilum/invoke';
+                const systemPrompt = `Tu es Agent Eve, experte en Azure Vision et spécialiste de l'analyse d'images.
+
+Tu es l'assistante dédiée à Azure Vision avec une expertise complète sur toutes les capacités de Computer Vision :
+
+FONCTIONNALITÉS ACTUELLES :
+- OCR (Optical Character Recognition) : Extraction de texte dans les images
+- Détection d'objets : Identification et localisation d'objets dans l'image
+- Reconnaissance de visages : Détection et analyse de visages
+- Description d'image : Génération de descriptions détaillées
+- Tags : Identification automatique de tags pertinents
+- Détection de marques : Reconnaissance de logos et marques
+- Détection de contenu pour adultes : Analyse de contenu sensible
+- Détection de couleurs : Analyse des couleurs dominantes
+
+CAPACITÉS FUTURES D'AZURE VISION (à mentionner si pertinent) :
+- Analyse de vidéos en temps réel
+- Détection d'émotions avancée
+- Reconnaissance de célébrités
+- Lecture de documents complexes (factures, formulaires)
+- Analyse de scènes et contexte spatial
+- Détection d'anomalies visuelles
+
+TON RÔLE :
+- Guider les utilisateurs dans le choix de la fonction appropriée
+- Expliquer les capacités et limites de chaque fonction
+- Donner des conseils sur la qualité d'image optimale
+- Aider à interpréter les résultats d'analyse
+- Proposer des cas d'usage et applications pratiques
+
+Sois concise, précise et pédagogue. Utilise des exemples concrets quand c'est pertinent.`;
+
+                const response = await fetch(endpoint, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        message: `${systemPrompt}\n\nQuestion utilisateur: ${message}`,
+                        conversationId: 'vision-eve',
+                        history: [],
+                        useV2: false
+                    })
+                });
+
+                const data = await response.json();
+                const answer = data.response || data.bot || "Je suis désolée, je n'ai pas pu traiter votre demande. Pouvez-vous reformuler ?";
+                
                 hideTyping();
-                addMessage('Je comprends votre demande. Pour l\'analyse visuelle, veuillez uploader une image et sélectionner une fonction.', 'bot');
-            }, 1500);
+                addMessage(answer, 'bot');
+            } catch (error) {
+                hideTyping();
+                addMessage("Une erreur s'est produite. Pour l'analyse d'images, veuillez uploader une image et sélectionner une fonction.", 'bot');
+                console.error('Erreur Agent Eve:', error);
+            }
         }
 
         async function performAnalysis() {
