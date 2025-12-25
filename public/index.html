@@ -9306,7 +9306,7 @@ STYLE DE RÉPONSE :
         function saveDocument(event) {
             event.preventDefault();
             
-            const document = {
+            const newDoc = {
                 id: Date.now(),
                 projectId: parseInt(document.getElementById('documentProject').value),
                 titre: document.getElementById('documentTitle').value.trim(),
@@ -9317,7 +9317,7 @@ STYLE DE RÉPONSE :
             };
             
             const documents = JSON.parse(localStorage.getItem('rndDocuments') || '[]');
-            documents.push(document);
+            documents.push(newDoc);
             localStorage.setItem('rndDocuments', JSON.stringify(documents));
             
             closeDocumentModal();
