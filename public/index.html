@@ -4127,7 +4127,7 @@
             }
             
             // AJOUTER UNE TÂCHE
-            if (lowerMsg.match(/ajoute|cr[ée]e.*t[aâ]che|nouvelle t[aâ]che|note|rappel/i)) {
+            if (lowerMsg.match(/^(ajoute|cr[ée]e) (une |la |)t[aâ]che|^nouvelle t[aâ]che|^note (une |la |)t[aâ]che|^rappel[- ]moi/i)) {
                 // Détecter la catégorie
                 let category = 'général';
                 if (lowerMsg.includes('travail') || lowerMsg.includes('professionnel')) category = 'travail';
@@ -4211,9 +4211,9 @@
             }
             
             // AJOUTER UN ÉVÉNEMENT / RDV
-            if (lowerMsg.match(/cr[ée]e.*r[ée]union|rendez[- ]vous|[ée]v[ée]nement|planifie/i)) {
+            if (lowerMsg.match(/^(cr[ée]e|ajoute|planifie) (un |une |)(r[ée]union|rendez[- ]?vous|[ée]v[ée]nement)|^nouveau (rendez[- ]?vous|[ée]v[ée]nement)/i)) {
                 // Extraire les détails basiques
-                let eventTitle = message.replace(/(cr[ée]e|nouvelle|un|une|r[ée]union|rendez[- ]vous|[ée]v[ée]nement|à)/gi, '').trim();
+                let eventTitle = message.replace(/(cr[ée]e|nouvelle|un|une|r[ée]union|rendez[- ]vous|[ée]v[ée]nement|à|ajoute|planifie|nouveau)/gi, '').trim();
                 
                 // Détection de date simple
                 const tomorrow = lowerMsg.includes('demain');
@@ -4248,7 +4248,7 @@
             }
             
             // MONTRER LE CALENDRIER
-            if (lowerMsg.match(/calendrier|emploi du temps|planning|rendez[- ]vous|[ée]v[ée]nements/i)) {
+            if (lowerMsg.match(/^(montre|affiche|voir) (mon |le |mes |)(calendrier|emploi du temps|planning|rendez[- ]?vous|[ée]v[ée]nements)|^(calendrier|planning)$/i)) {
                 const todayEvents = getTodayEvents();
                 const weekEvents = getWeekEvents();
                 
