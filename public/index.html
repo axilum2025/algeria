@@ -9227,16 +9227,16 @@ STYLE DE RÉPONSE :
                 <div style="background: linear-gradient(135deg, #0f172a, #1e293b); border: 1px solid rgba(99, 102, 241, 0.4); border-radius: 20px; width: 95%; max-width: 1200px; max-height: 95vh; overflow-y: auto; box-shadow: 0 25px 80px rgba(99, 102, 241, 0.3);">
                     
                     <!-- Header -->
-                    <div style="background: linear-gradient(135deg, #6366f1, #8b5cf6); padding: 24px 32px; border-radius: 20px 20px 0 0; display: flex; justify-content: space-between; align-items: center;">
+                    <div style="background: linear-gradient(135deg, rgba(99, 102, 241, 0.15), rgba(139, 92, 246, 0.1)); border-bottom: 1px solid rgba(99, 102, 241, 0.3); padding: 24px 32px; border-radius: 20px 20px 0 0; display: flex; justify-content: space-between; align-items: center;">
                         <div>
-                            <h2 style="margin: 0 0 8px; font-size: 28px; color: white; font-weight: 700;">${project.titre}</h2>
+                            <h2 style="margin: 0 0 8px; font-size: 28px; background: linear-gradient(135deg, #a78bfa, #6366f1); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; font-weight: 700;">${project.titre}</h2>
                             <div style="display: flex; gap: 12px; align-items: center;">
-                                <span style="background: rgba(255, 255, 255, 0.2); padding: 6px 12px; border-radius: 6px; font-size: 13px; color: white; font-weight: 600; display: flex; align-items: center; gap: 6px;">${svgIcons.folder} ${project.domaine}</span>
-                                <span style="background: rgba(255, 255, 255, 0.2); padding: 6px 12px; border-radius: 6px; font-size: 13px; color: white; font-weight: 600; display: flex; align-items: center; gap: 6px;">${svgIcons.refresh} ${project.phase.charAt(0).toUpperCase() + project.phase.slice(1)}</span>
-                                <span style="background: rgba(255, 255, 255, 0.2); padding: 6px 12px; border-radius: 6px; font-size: 13px; color: white; font-weight: 600; display: flex; align-items: center; gap: 6px;">${svgIcons.time} ${daysElapsed}j</span>
+                                <span style="background: rgba(99, 102, 241, 0.2); padding: 6px 12px; border-radius: 6px; font-size: 13px; color: rgba(167, 139, 250, 0.9); font-weight: 600; display: flex; align-items: center; gap: 6px; border: 1px solid rgba(99, 102, 241, 0.3);">${svgIcons.folder} ${project.domaine}</span>
+                                <span style="background: rgba(99, 102, 241, 0.2); padding: 6px 12px; border-radius: 6px; font-size: 13px; color: rgba(167, 139, 250, 0.9); font-weight: 600; display: flex; align-items: center; gap: 6px; border: 1px solid rgba(99, 102, 241, 0.3);">${svgIcons.refresh} ${project.phase.charAt(0).toUpperCase() + project.phase.slice(1)}</span>
+                                <span style="background: rgba(99, 102, 241, 0.2); padding: 6px 12px; border-radius: 6px; font-size: 13px; color: rgba(167, 139, 250, 0.9); font-weight: 600; display: flex; align-items: center; gap: 6px; border: 1px solid rgba(99, 102, 241, 0.3);">${svgIcons.time} ${daysElapsed}j</span>
                             </div>
                         </div>
-                        <button onclick="closeProjectDetailsModal()" style="background: rgba(255, 255, 255, 0.2); border: none; color: white; font-size: 32px; cursor: pointer; width: 40px; height: 40px; border-radius: 8px; display: flex; align-items: center; justify-content: center; transition: background 0.2s;">×</button>
+                        <button onclick="closeProjectDetailsModal()" style="background: rgba(99, 102, 241, 0.2); border: 1px solid rgba(99, 102, 241, 0.3); color: rgba(167, 139, 250, 0.9); font-size: 32px; cursor: pointer; width: 40px; height: 40px; border-radius: 8px; display: flex; align-items: center; justify-content: center; transition: all 0.2s; hover: background: rgba(99, 102, 241, 0.3);">×</button>
                     </div>
                     
                     <div style="padding: 32px;">
