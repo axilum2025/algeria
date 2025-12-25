@@ -8752,7 +8752,6 @@ RÈGLES IMPORTANTES:
                             <div style="font-size: 16px; color: #6ee7b7; font-weight: 600;">${project.budget.prevu.toLocaleString()} ${project.budget.devise}</div>
                         </div>
                     </div>
-                    <p style="margin: 0 0 12px; color: rgba(255, 255, 255, 0.7); font-size: 14px;">${project.description}</p>
                     <div style="margin-bottom: 8px;">
                         <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
                             <span style="font-size: 12px; color: rgba(255, 255, 255, 0.7);">Progression</span>
@@ -8763,9 +8762,7 @@ RÈGLES IMPORTANTES:
                         </div>
                     </div>
                     <div style="font-size: 12px; color: rgba(255, 255, 255, 0.5);">
-                        Équipe: ${project.equipe.length || 0} membres • 
-                        Durée: ${project.duree} mois • 
-                        ${new Date(project.created).toLocaleDateString()}
+                        Créé le ${new Date(project.created).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })}
                     </div>
                 </div>
             `).join('');
