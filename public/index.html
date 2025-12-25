@@ -8531,8 +8531,8 @@ RÈGLES IMPORTANTES:
                             </div>
                             
                             <div class="rnd-section">
-                                <div class="rnd-section-title">Tendances Technologiques</div>
-                                <div id="rndTrendsContainer"></div>
+                                <div class="rnd-section-title">📊 Tableau de Bord des Métriques KPI</div>
+                                <div id="rndMetricsContainer"></div>
                             </div>
                             
                             <div class="rnd-section">
@@ -8664,7 +8664,7 @@ RÈGLES IMPORTANTES:
             
             // Render lists
             renderProjectsList();
-            renderDashboardTrends();
+            renderDashboardMetrics();
             renderDashboardPriority();
         }
         
@@ -8893,26 +8893,105 @@ RÈGLES IMPORTANTES:
             `).join('');
         }
         
-        function renderDashboardTrends() {
-            const technologies = JSON.parse(localStorage.getItem('rdTechnologies') || '[]');
-            const container = document.getElementById('rndTrendsContainer');
+        function renderDashboardMetrics() {
+            const projects = JSON.parse(localStorage.getItem('rndProjects') || '[]');
+            const milestones = JSON.parse(localStorage.getItem('rndMilestones') || '[]');
+            const risks = JSON.parse(localStorage.getItem('rndRisks') || '[]');
+            const container = document.getElementById('rndMetricsContainer');
             
             if (!container) return;
             
-            if (technologies.length === 0) {
-                container.innerHTML = '<div class="rnd-empty"><p>Aucune tendance à afficher</p></div>';
-                return;
-            }
+            const activeProjects = projects.filter(p => p.statut === 'actif');
             
-            const topTech = technologies.sort((a, b) => b.relevanceScore - a.relevanceScore).slice(0, 3);
-            container.innerHTML = topTech.map(tech => `
-                <div style="padding: 12px 0; border-bottom: 1px solid rgba(99, 102, 241, 0.2);">
-                    <div style="display: flex; justify-content: space-between; align-items: center;">
-                        <span style="color: white; font-weight: 600;">${tech.name}</span>
-                        <span style="color: #fcd34d;">${'★'.repeat(tech.relevanceScore)}</span>
+            // Calculer la progression moyenne
+            const avgProgress = activeProjects.length > 0 
+                ? Math.round(activeProjects.reduce((sum, p) => sum + p.avancement, 0) / activeProjects.length)
+                : 0;
+            
+            // Jalons à venir
+            const upcomingMilestones = milestones.filter(m => 
+                new Date(m.date) >= new Date() && m.statut !== 'complété'
+            ).length;
+            
+            // Risques actifs par criticité
+            const criticalRisks = risks.filter(r => r.statut === 'actif' && r.criticite === 'critique').length;
+            const highRisks = risks.filter(r => r.statut === 'actif' && r.criticite === 'élevée').length;
+            const activeRisks = risks.filter(r => r.statut === 'actif').length;
+            
+            container.innerHTML = `
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px;">
+                    
+                    <!-- Métrique Progression -->
+                    <div style="background: linear-gradient(135deg, rgba(99, 102, 241, 0.15), rgba(139, 92, 246, 0.1)); border: 1px solid rgba(99, 102, 241, 0.3); border-radius: 12px; padding: 20px; position: relative; overflow: hidden;">
+                        <div style="position: absolute; top: -20px; right: -20px; font-size: 80px; opacity: 0.1;">📈</div>
+                        <div style="position: relative; z-index: 1;">
+                            <div style="color: rgba(255, 255, 255, 0.7); font-size: 13px; font-weight: 600; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 1px;">Progression Moyenne</div>
+                            <div style="display: flex; align-items: baseline; gap: 8px; margin-bottom: 16px;">
+                                <div style="font-size: 36px; font-weight: 700; color: white;">${avgProgress}%</div>
+                                <div style="color: rgba(16, 185, 129, 0.9); font-size: 14px; font-weight: 600;">↗ ${activeProjects.length} projets actifs</div>
+                            </div>
+                            <div style="background: rgba(255, 255, 255, 0.1); height: 8px; border-radius: 4px; overflow: hidden;">
+                                <div style="background: linear-gradient(90deg, #6366f1, #8b5cf6); height: 100%; width: ${avgProgress}%; border-radius: 4px; transition: width 0.5s ease; box-shadow: 0 0 10px rgba(99, 102, 241, 0.5);"></div>
+                            </div>
+                        </div>
                     </div>
+                    
+                    <!-- Métrique Jalons -->
+                    <div style="background: linear-gradient(135deg, rgba(16, 185, 129, 0.15), rgba(110, 231, 183, 0.1)); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 12px; padding: 20px; position: relative; overflow: hidden;">
+                        <div style="position: absolute; top: -20px; right: -20px; font-size: 80px; opacity: 0.1;">🎯</div>
+                        <div style="position: relative; z-index: 1;">
+                            <div style="color: rgba(255, 255, 255, 0.7); font-size: 13px; font-weight: 600; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 1px;">Jalons & KPIs</div>
+                            <div style="display: flex; align-items: baseline; gap: 8px; margin-bottom: 16px;">
+                                <div style="font-size: 36px; font-weight: 700; color: white;">${upcomingMilestones}</div>
+                                <div style="color: rgba(16, 185, 129, 0.9); font-size: 14px; font-weight: 600;">à venir</div>
+                            </div>
+                            <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                                ${milestones.slice(0, 2).map(m => {
+                                    const daysLeft = Math.ceil((new Date(m.date) - new Date()) / (1000 * 60 * 60 * 24));
+                                    return `
+                                        <div style="background: rgba(16, 185, 129, 0.2); padding: 6px 12px; border-radius: 6px; font-size: 11px; color: rgba(255, 255, 255, 0.9);">
+                                            ${daysLeft > 0 ? `J-${daysLeft}` : 'En retard'}
+                                        </div>
+                                    `;
+                                }).join('')}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Métrique Risques -->
+                    <div style="background: linear-gradient(135deg, rgba(239, 68, 68, 0.15), rgba(252, 165, 165, 0.1)); border: 1px solid rgba(239, 68, 68, 0.3); border-radius: 12px; padding: 20px; position: relative; overflow: hidden;">
+                        <div style="position: absolute; top: -20px; right: -20px; font-size: 80px; opacity: 0.1;">⚠️</div>
+                        <div style="position: relative; z-index: 1;">
+                            <div style="color: rgba(255, 255, 255, 0.7); font-size: 13px; font-weight: 600; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 1px;">Risques Actifs</div>
+                            <div style="display: flex; align-items: baseline; gap: 8px; margin-bottom: 16px;">
+                                <div style="font-size: 36px; font-weight: 700; color: white;">${activeRisks}</div>
+                                <div style="color: ${criticalRisks > 0 ? 'rgba(239, 68, 68, 0.9)' : 'rgba(16, 185, 129, 0.9)'}; font-size: 14px; font-weight: 600;">
+                                    ${criticalRisks > 0 ? `${criticalRisks} critique${criticalRisks > 1 ? 's' : ''}` : '✓ Sous contrôle'}
+                                </div>
+                            </div>
+                            <div style="display: flex; gap: 12px; align-items: center;">
+                                ${criticalRisks > 0 ? `
+                                    <div style="flex: 1;">
+                                        <div style="font-size: 11px; color: rgba(255, 255, 255, 0.6); margin-bottom: 4px;">Critique</div>
+                                        <div style="background: rgba(255, 255, 255, 0.1); height: 6px; border-radius: 3px; overflow: hidden;">
+                                            <div style="background: linear-gradient(90deg, #ef4444, #dc2626); height: 100%; width: 100%; border-radius: 3px;"></div>
+                                        </div>
+                                    </div>
+                                ` : ''}
+                                ${highRisks > 0 ? `
+                                    <div style="flex: 1;">
+                                        <div style="font-size: 11px; color: rgba(255, 255, 255, 0.6); margin-bottom: 4px;">Élevé</div>
+                                        <div style="background: rgba(255, 255, 255, 0.1); height: 6px; border-radius: 3px; overflow: hidden;">
+                                            <div style="background: linear-gradient(90deg, #f59e0b, #d97706); height: 100%; width: ${(highRisks / activeRisks) * 100}%; border-radius: 3px;"></div>
+                                        </div>
+                                    </div>
+                                ` : ''}
+                            </div>
+                        </div>
+                    </div>
+                    
                 </div>
-            `).join('');
+            `;
         }
         
         function renderDashboardPriority() {
