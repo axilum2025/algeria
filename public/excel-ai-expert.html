@@ -290,8 +290,28 @@
             background: white;
         }
 
+        .excel-table td.editable-cell {
+            cursor: text;
+            transition: background-color 0.2s;
+        }
+
+        .excel-table td.editable-cell:hover {
+            background: #fffef0;
+            outline: 1px solid #1976d2;
+        }
+
+        .excel-table td.editable-cell:focus {
+            background: #fff8dc;
+            outline: 2px solid #1976d2;
+            box-shadow: 0 0 0 2px rgba(25, 118, 210, 0.1);
+        }
+
         .excel-table tr:hover td {
             background: var(--excel-green-bg);
+        }
+        
+        .excel-table tr:hover td.editable-cell {
+            background: #fffef0;
         }
 
         /* Sidebar Panel */
@@ -1049,10 +1069,11 @@
 
             // Create rows normales (max 100)
             let bodyHTML = '';
-            normalRows.slice(0, 100).forEach(row => {
+            normalRows.slice(0, 100).forEach((row, rowIndex) => {
                 bodyHTML += '<tr>';
-                excelColumns.forEach((col, idx) => {
-                    bodyHTML += `<td>${row[idx] || ''}</td>`;
+                excelColumns.forEach((col, colIndex) => {
+                    const cellValue = row[colIndex] || '';
+                    bodyHTML += `<td contenteditable="true" data-row="${rowIndex}" data-col="${colIndex}" class="editable-cell">${cellValue}</td>`;
                 });
                 bodyHTML += '</tr>';
             });
@@ -1065,7 +1086,7 @@
                         const cellValue = row[idx] || '';
                         // Formater les nombres avec 2 décimales
                         const displayValue = typeof cellValue === 'number' ? cellValue.toFixed(2) : cellValue;
-                        bodyHTML += `<td>${displayValue}</td>`;
+                        bodyHTML += `<td contenteditable="false">${displayValue}</td>`;
                     });
                     bodyHTML += '</tr>';
                 });
@@ -1073,6 +1094,33 @@
             }
             
             tableBody.innerHTML = bodyHTML;
+            
+            // Ajouter les événements pour l'édition des cellules
+            document.querySelectorAll('.editable-cell').forEach(cell => {
+                cell.addEventListener('blur', function() {
+                    const rowIndex = parseInt(this.dataset.row);
+                    const colIndex = parseInt(this.dataset.col);
+                    const newValue = this.textContent.trim();
+                    
+                    // Mettre à jour excelData
+                    if (excelData[rowIndex] && excelData[rowIndex][colIndex] !== undefined) {
+                        excelData[rowIndex][colIndex] = newValue;
+                        console.log(`✏️ Cellule modifiée: ligne ${rowIndex}, colonne ${colIndex}, nouvelle valeur: "${newValue}"`);
+                        
+                        // Sauvegarder automatiquement
+                        saveSession();
+                    }
+                });
+                
+                // Sélectionner tout le texte au focus
+                cell.addEventListener('focus', function() {
+                    const range = document.createRange();
+                    range.selectNodeContents(this);
+                    const selection = window.getSelection();
+                    selection.removeAllRanges();
+                    selection.addRange(range);
+                });
+            });
         }
 
         // ==================================================
