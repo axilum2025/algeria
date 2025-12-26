@@ -17443,16 +17443,57 @@ RÈGLES DE CONVERSATION :
         }
 
         function runFraudDetection() {
+            // Simplifier les données pour éviter erreurs de sérialisation
+            const simplifiedInvoices = (financeContext.invoices || []).map(inv => ({
+                vendor: inv.vendor || '',
+                amount: inv.amount || 0,
+                date: inv.date || new Date().toISOString().split('T')[0],
+                invoiceNumber: inv.invoiceNumber || '',
+                currency: inv.currency || 'EUR'
+            }));
+            
             callFinanceTool({
                 label: 'Détection de fraudes',
                 endpoint: '/api/finance/fraud/analyze',
                 payload: {
-                    invoices: financeContext.invoices || []
+                    invoices: simplifiedInvoices
                 },
                 formatResult: (data) => {
-                    const alerts = Array.isArray(data.alerts) ? data.alerts.length : 0;
-                    const riskLevel = data.summary?.riskLevel || 'unknown';
-                    return `Détection de fraudes : ${alerts} alerte(s) trouvée(s) - Niveau de risque: ${riskLevel}`;
+                    if (!data.summary) {
+                        return data.summary || data.message || 'Analyse terminée';
+                    }
+                    
+                    const s = data.summary;
+                    const alerts = data.alerts || [];
+                    
+                    let result = `📊 **Analyse de ${s.totalTransactions} transaction(s)**\n\n`;
+                    result += `💰 Montant total: ${s.totalAmount}€\n`;
+                    result += `📈 Montant moyen: ${s.averageAmount}€\n`;
+                    result += `🚨 Niveau de risque: **${s.riskLevel}**\n\n`;
+                    
+                    if (alerts.length > 0) {
+                        result += `⚠️ **${alerts.length} alerte(s) détectée(s):**\n\n`;
+                        alerts.slice(0, 5).forEach((alert, i) => {
+                            const icon = alert.severity === 'critical' ? '🔴' : alert.severity === 'high' ? '🟠' : alert.severity === 'warning' ? '🟡' : 'ℹ️';
+                            result += `${icon} ${alert.description}\n`;
+                            result += `   → ${alert.recommendation}\n\n`;
+                        });
+                        if (alerts.length > 5) {
+                            result += `... et ${alerts.length - 5} autre(s) alerte(s)\n\n`;
+                        }
+                    } else {
+                        result += `✅ Aucune anomalie détectée\n\n`;
+                    }
+                    
+                    // Top fournisseurs
+                    if (data.vendorAnalysis && data.vendorAnalysis.length > 0) {
+                        result += `🏢 **Top 5 fournisseurs:**\n`;
+                        data.vendorAnalysis.slice(0, 5).forEach((v, i) => {
+                            result += `${i+1}. ${v.vendor}: ${v.totalSpent}€ (${v.transactionCount} facture(s))\n`;
+                        });
+                    }
+                    
+                    return result;
                 }
             });
         }
