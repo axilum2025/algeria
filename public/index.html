@@ -16523,9 +16523,9 @@ RÈGLES DE CONVERSATION :
                     #financeAIOverlay .page-btn { padding: 6px 10px; border-radius: 8px; background: rgba(255,255,255,0.05); border: 1px solid rgba(148,163,184,0.2); color: #e2e8f0; font-size: 11px; cursor: pointer; }
                     #financeAIOverlay .page-info { font-size: 12px; color: #cbd5e1; }
                     
-                    /* Panneau historique */
-                    #financeAIOverlay .history-panel { position: absolute; top: 100px; right: 38px; width: 350px; background: rgba(15,23,42,0.95); border: 1px solid rgba(148,163,184,0.28); border-radius: 16px; padding: 16px; box-shadow: 0 20px 60px rgba(0,0,0,0.4); backdrop-filter: blur(14px); z-index: 100; display: none; max-height: 500px; overflow: hidden; }
-                    #financeAIOverlay .history-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; padding-bottom: 12px; border-bottom: 1px solid rgba(148,163,184,0.2); }
+                    /* Panneau historique et paramètres */
+                    #financeAIOverlay .history-panel { position: absolute; top: 100px; right: 38px; width: 350px; background: rgba(15,23,42,0.95); border: 1px solid rgba(148,163,184,0.28); border-radius: 16px; box-shadow: 0 20px 60px rgba(0,0,0,0.4); backdrop-filter: blur(14px); z-index: 100; display: none; max-height: calc(100vh - 140px); overflow-y: auto; overflow-x: hidden; }
+                    #financeAIOverlay .history-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; padding: 16px 16px 12px; border-bottom: 1px solid rgba(148,163,184,0.2); position: sticky; top: 0; background: rgba(15,23,42,0.95); z-index: 1; }
                     #financeAIOverlay .history-title { font-size: 16px; font-weight: 700; color: #f8fafc; }
                     #financeAIOverlay .history-close { background: none; border: none; color: #94a3b8; cursor: pointer; padding: 4px; }
                     #financeAIOverlay .history-list { display: flex; flex-direction: column; gap: 8px; overflow-y: auto; max-height: 400px; }
