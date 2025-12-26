@@ -464,12 +464,12 @@ module.exports = async function (context, req) {
               const arrayBuf = await srcResp.arrayBuffer();
               const buf = Buffer.from(arrayBuf);
               const guessName = (new URL(fileUrl)).pathname.split('/').pop() || `invoice-${Date.now()}.pdf`;
-              storedUrl = await uploadBuffer('invoices', guessName, buf, srcResp.headers.get('content-type') || 'application/octet-stream');
+              storedUrl = await uploadBuffer('invoices', guessName, buf, srcResp.headers.get('content-type') || 'application/pdf');
             }
           } else if (contentBase64) {
             const buf = Buffer.from(String(contentBase64), 'base64');
-            const name = `invoice-${Date.now()}.bin`;
-            storedUrl = await uploadBuffer('invoices', name, buf, 'application/octet-stream');
+            const name = `invoice-${Date.now()}.pdf`;
+            storedUrl = await uploadBuffer('invoices', name, buf, 'application/pdf');
           }
         } catch {}
 
@@ -642,12 +642,12 @@ module.exports = async function (context, req) {
           const arrayBuf = await srcResp.arrayBuffer();
           const buf = Buffer.from(arrayBuf);
           const guessName = (new URL(fileUrl)).pathname.split('/').pop() || `invoice-${Date.now()}.pdf`;
-          storedUrl = await uploadBuffer('invoices', guessName, buf, srcResp.headers.get('content-type') || 'application/octet-stream');
+          storedUrl = await uploadBuffer('invoices', guessName, buf, srcResp.headers.get('content-type') || 'application/pdf');
         }
       } else if (contentBase64) {
         const buf = Buffer.from(String(contentBase64), 'base64');
-        const name = `invoice-${Date.now()}.bin`;
-        storedUrl = await uploadBuffer('invoices', name, buf, 'application/octet-stream');
+        const name = `invoice-${Date.now()}.pdf`;
+        storedUrl = await uploadBuffer('invoices', name, buf, 'application/pdf');
       }
     } catch {}
 
