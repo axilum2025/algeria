@@ -17742,13 +17742,18 @@ RÈGLES DE CONVERSATION :
                 if (r.ok && data.deleted) {
                     // Supprimer aussi du localStorage pour éviter faux positifs de doublons
                     try {
-                        const conversations = JSON.parse(localStorage.getItem('financeConversations') || '[]');
+                        const conversations = JSON.parse(localStorage.getItem('financeConversations') || '{}');
                         let found = false;
-                        conversations.forEach(conv => {
-                            if (conv.invoices && Array.isArray(conv.invoices)) {
-                                const originalLength = conv.invoices.length;
-                                conv.invoices = conv.invoices.filter(inv => inv.blobName !== name);
-                                if (conv.invoices.length < originalLength) found = true;
+                        Object.keys(conversations).forEach(convId => {
+                            const conv = conversations[convId];
+                            if (conv.context && conv.context.invoices && Array.isArray(conv.context.invoices)) {
+                                const originalLength = conv.context.invoices.length;
+                                conv.context.invoices = conv.context.invoices.filter(inv => {
+                                    const match = inv.storedUrl && inv.storedUrl.includes(name);
+                                    if (match) console.log(`[Finance] 🗑️ Suppression: ${inv.vendor} - ${inv.amount} (${name})`);
+                                    return !match;
+                                });
+                                if (conv.context.invoices.length < originalLength) found = true;
                             }
                         });
                         localStorage.setItem('financeConversations', JSON.stringify(conversations));
