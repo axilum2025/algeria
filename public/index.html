@@ -17529,6 +17529,11 @@ RÈGLES DE CONVERSATION :
                 </div>
                 <div class="list-search">
                     <input id="financeSearchInput" class="search-input" placeholder="Rechercher par nom..." oninput="onFinanceSearchInput(event)" />
+                    <select id="financeFilterType" class="page-select" onchange="onFinanceFilterChange(event)" style="margin-right: 8px;">
+                        <option value="all">Toutes les factures</option>
+                        <option value="duplicates">Doublons uniquement</option>
+                        <option value="unique">Sans doublons</option>
+                    </select>
                     <select id="financePageSize" class="page-select" onchange="onFinancePageSizeChange(event)">
                         <option value="10">10</option>
                         <option value="20">20</option>
@@ -17556,18 +17561,71 @@ RÈGLES DE CONVERSATION :
                 const r = await fetch('/api/finance/storage/list', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ container }) });
                 if (!r.ok) throw new Error(`HTTP ${r.status}`);
                 const data = await r.json();
-                const items = Array.isArray(data.items) ? data.items : [];
-                setFinanceListState({ items, container });
+                let items = Array.isArray(data.items) ? data.items : [];
+                
+                // Marquer les doublons basés sur les factures enregistrées
+                if (container === 'invoices') {
+                    items = markDuplicatesInBlobList(items);
+                }
+                
+                setFinanceListState({ items, container, filterType: 'all' });
                 renderFinanceListUI();
             } catch (err) {
                 itemsEl.innerHTML = `<div class="list-name">Erreur: ${err.message}</div>`;
             }
         }
 
+        function markDuplicatesInBlobList(items) {
+            // Charger toutes les factures enregistrées
+            let allInvoices = [];
+            try {
+                if (financeContext.invoices) allInvoices = [...financeContext.invoices];
+                const conversations = JSON.parse(localStorage.getItem('financeConversations') || '{}');
+                Object.values(conversations).forEach(conv => {
+                    if (conv.context && conv.context.invoices) {
+                        allInvoices = allInvoices.concat(conv.context.invoices);
+                    }
+                });
+            } catch (error) {
+                console.error('[Finance] Erreur chargement factures pour marquage doublons:', error);
+            }
+            
+            // Marquer chaque item du blob s'il est enregistré et est un doublon
+            return items.map(item => {
+                const matchingInvoices = allInvoices.filter(inv => 
+                    inv.storedUrl && inv.storedUrl.includes(item.name)
+                );
+                
+                const isDuplicate = matchingInvoices.some(inv => inv.isDuplicate === true);
+                return { ...item, isDuplicate, matchCount: matchingInvoices.length };
+            });
+        }
+
         function applyFinanceFilter() {
             const q = (financeListState.query || '').toLowerCase().trim();
-            const filtered = q ? financeListState.items.filter(it => String(it.name || '').toLowerCase().includes(q)) : financeListState.items.slice();
+            const filterType = financeListState.filterType || 'all';
+            
+            let filtered = financeListState.items.slice();
+            
+            // Filtre par type (doublons)
+            if (filterType === 'duplicates') {
+                filtered = filtered.filter(it => it.isDuplicate === true);
+            } else if (filterType === 'unique') {
+                filtered = filtered.filter(it => !it.isDuplicate);
+            }
+            
+            // Filtre par recherche texte
+            if (q) {
+                filtered = filtered.filter(it => String(it.name || '').toLowerCase().includes(q));
+            }
+            
             setFinanceListState({ filtered });
+        }
+        
+        function onFinanceFilterChange(e) {
+            const val = e?.target?.value || 'all';
+            setFinanceListState({ filterType: val, page: 1 });
+            renderFinanceListUI();
         }
 
         function renderFinanceListUI() {
@@ -17592,13 +17650,38 @@ RÈGLES DE CONVERSATION :
                 row.className = 'list-item';
                 const name = document.createElement('div');
                 name.className = 'list-name';
-                name.textContent = `${item.name} ${item.size ? '('+item.size+' o)' : ''}`;
+                
+                // Ajouter badge doublon si applicable
+                const duplicateBadge = item.isDuplicate ? ' <span style="display: inline-block; background: linear-gradient(135deg, #f59e0b, #dc2626); color: white; font-size: 9px; font-weight: 700; padding: 2px 5px; border-radius: 6px; margin-left: 6px;">⚠️ DOUBLON</span>' : '';
+                name.innerHTML = `${item.name} ${item.size ? '('+item.size+' o)' : ''}${duplicateBadge}`;
+                
                 const actions = document.createElement('div');
                 actions.className = 'list-links';
                 const viewBtn = document.createElement('button');
                 viewBtn.className = 'link-btn';
                 viewBtn.textContent = 'Ouvrir';
-                viewBtn.onclick = () => { if (item.url) window.open(item.url, '_blank'); };
+                viewBtn.onclick = async () => { 
+                    if (item.url) {
+                        window.open(item.url, '_blank');
+                    } else {
+                        // Tenter de récupérer l'URL si manquante
+                        try {
+                            const r = await fetch('/api/finance/storage/get-url', { 
+                                method: 'POST', 
+                                headers: { 'Content-Type': 'application/json' }, 
+                                body: JSON.stringify({ container: financeListState.container, name: item.name }) 
+                            });
+                            const data = await r.json();
+                            if (data.url) {
+                                window.open(data.url, '_blank');
+                            } else {
+                                showToast('URL non disponible', 'error');
+                            }
+                        } catch (err) {
+                            showToast('Erreur ouverture: ' + err.message, 'error');
+                        }
+                    }
+                };
                 const delBtn = document.createElement('button');
                 delBtn.className = 'delete-btn';
                 delBtn.textContent = 'Supprimer';

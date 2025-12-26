@@ -12,6 +12,56 @@ function detectTransactionType(fullText, vendor, extractedFields) {
   let chargeScore = 0;
   let revenueScore = 0;
   
+  // === DÉTECTION PRIORITAIRE: Fournisseurs d'énergie et services publics ===
+  // Ces entreprises sont TOUJOURS des charges pour le client
+  const utilityProviders = [
+    // Électricité
+    'edp', 'edf', 'engie', 'direct energie', 'total energie', 'eni',
+    'planète oui', 'ekwateur', 'ilek', 'mint energie', 'ohm energie',
+    'sonelgaz', 'steg', // Algérie/Tunisie
+    // Gaz
+    'gaz de france', 'grdf', 'antargaz', 'butagaz', 'primagaz',
+    // Eau
+    'veolia', 'suez', 'saur', 'eau de paris', 'seaal', 'ade', 'alger',
+    // Télécom
+    'orange', 'sfr', 'bouygues', 'free', 'djezzy', 'ooredoo', 'mobilis',
+    'algerie telecom', 'att', 'verizon', 'vodafone',
+    // Internet/TV
+    'netflix', 'spotify', 'amazon prime', 'disney+', 'canal+',
+    // Assurances
+    'axa', 'allianz', 'generali', 'maif', 'macif', 'matmut', 'caar',
+    // Banques (frais)
+    'société générale', 'bnp paribas', 'crédit agricole', 'badr', 'bna'
+  ];
+  
+  // Si le fournisseur est un service public/utilitaire → CHARGE automatique
+  if (utilityProviders.some(provider => vendorLower.includes(provider))) {
+    return {
+      type: 'expense',
+      label: 'Charge (Service Public/Utilitaire)',
+      confidence: 0.99,
+      scores: { revenue: 0, charge: 100 },
+      reason: 'Fournisseur de service identifié'
+    };
+  }
+  
+  // Mots-clés utilitaires dans le texte
+  const utilityKeywords = [
+    'consommation électrique', 'kwh', 'kilowatt', 'compteur électrique',
+    'consommation gaz', 'm3 gaz', 'compteur gaz',
+    'consommation eau', 'm3 eau', 'compteur eau', 'abonnement eau',
+    'forfait mobile', 'forfait internet', 'box internet', 'fibre optique',
+    'abonnement téléphone', 'hors forfait', 'data mobile',
+    'prime d\'assurance', 'cotisation', 'police d\'assurance',
+    'frais bancaires', 'agios', 'commission bancaire'
+  ];
+  
+  utilityKeywords.forEach(keyword => {
+    if (text.includes(keyword)) {
+      chargeScore += 10; // Poids très élevé
+    }
+  });
+  
   // === Indicateurs de CHARGES (Dépenses) ===
   // Mots-clés fréquents sur les factures fournisseurs
   const chargeKeywords = [
