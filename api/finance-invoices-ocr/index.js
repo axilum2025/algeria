@@ -1,5 +1,130 @@
 const { uploadBuffer } = require('../utils/storage');
 
+/**
+ * Détecte si une facture est une CHARGE (dépense) ou un REVENU (bénéfice)
+ * Basé sur l'analyse du texte complet de la facture
+ */
+function detectTransactionType(fullText, vendor, extractedFields) {
+  const text = String(fullText || '').toLowerCase();
+  const vendorLower = String(vendor || '').toLowerCase();
+  
+  // Compteurs de mots-clés
+  let chargeScore = 0;
+  let revenueScore = 0;
+  
+  // === Indicateurs de CHARGES (Dépenses) ===
+  // Mots-clés fréquents sur les factures fournisseurs
+  const chargeKeywords = [
+    // Termes directs
+    'facture', 'invoice', 'bill', 'fournisseur', 'supplier', 'vendor',
+    'payer', 'payment due', 'due date', 'échéance', 'à payer',
+    // Types d'achats
+    'achat', 'purchase', 'fourniture', 'prestation', 'service',
+    'matériel', 'equipment', 'material', 'supplies',
+    // Frais courants
+    'loyer', 'rent', 'électricité', 'electricity', 'eau', 'water',
+    'téléphone', 'internet', 'abonnement', 'subscription',
+    'salaire', 'salary', 'wages', 'paie', 'payroll',
+    'assurance', 'insurance', 'maintenance', 'entretien',
+    'transport', 'carburant', 'fuel', 'essence',
+    // Mentions spécifiques
+    'veuillez payer', 'please pay', 'montant dû', 'amount due',
+    'total à payer', 'total due', 'nous facturons'
+  ];
+  
+  // === Indicateurs de REVENUS (Ventes) ===
+  // Mots-clés sur les factures émises aux clients
+  const revenueKeywords = [
+    // Termes directs
+    'devis', 'quote', 'quotation', 'proposition commerciale',
+    'facture client', 'customer invoice', 'sales invoice',
+    'reçu', 'receipt', 'vente', 'sale', 'sold to',
+    // Client identifié
+    'client', 'customer', 'buyer', 'acheteur',
+    'facturé à', 'billed to', 'bill to', 'ship to',
+    // Revenus
+    'revenu', 'revenue', 'chiffre d\'affaires', 'ca', 'turnover',
+    'encaissement', 'collection', 'paiement reçu', 'payment received',
+    // Mentions spécifiques
+    'merci de votre achat', 'thank you for your purchase',
+    'commande', 'order', 'livraison', 'delivery',
+    'votre commande', 'your order'
+  ];
+  
+  // Compter les occurrences
+  chargeKeywords.forEach(keyword => {
+    const count = (text.match(new RegExp(keyword, 'gi')) || []).length;
+    chargeScore += count;
+  });
+  
+  revenueKeywords.forEach(keyword => {
+    const count = (text.match(new RegExp(keyword, 'gi')) || []).length;
+    revenueScore += count;
+  });
+  
+  // === Analyse des champs structurés (si disponibles) ===
+  if (extractedFields) {
+    // Présence de champ client = probablement une vente
+    if (extractedFields.customerName || extractedFields.customerId || 
+        extractedFields.billTo || extractedFields.shipTo) {
+      revenueScore += 3;
+    }
+    
+    // Présence de champ fournisseur = probablement un achat
+    if (extractedFields.vendorName || extractedFields.remittanceAddress) {
+      chargeScore += 3;
+    }
+    
+    // Présence de conditions de paiement = souvent achat
+    if (extractedFields.paymentTerms || extractedFields.dueDate) {
+      chargeScore += 1;
+    }
+  }
+  
+  // === Heuristiques supplémentaires ===
+  // Nom du fournisseur contient des indicateurs typiques
+  const vendorChargeIndicators = ['corp', 'ltd', 'sarl', 'sas', 'inc', 'llc', 'gmbh'];
+  if (vendorChargeIndicators.some(ind => vendorLower.includes(ind))) {
+    chargeScore += 1;
+  }
+  
+  // Détection de TVA/Tax avec mentions "nous" = charge
+  if (text.includes('tva') || text.includes('tax')) {
+    if (text.includes('nous vous') || text.includes('veuillez')) {
+      chargeScore += 1;
+    }
+  }
+  
+  // === Décision finale ===
+  // Seuils: besoin d'un minimum de confiance
+  const minConfidence = 2;
+  
+  if (revenueScore >= minConfidence && revenueScore > chargeScore) {
+    return {
+      type: 'revenue',
+      label: 'Revenu (Vente/Encaissement)',
+      confidence: revenueScore / (chargeScore + revenueScore),
+      scores: { revenue: revenueScore, charge: chargeScore }
+    };
+  } else if (chargeScore >= minConfidence) {
+    return {
+      type: 'expense',
+      label: 'Charge (Dépense/Achat)',
+      confidence: chargeScore / (chargeScore + revenueScore),
+      scores: { revenue: revenueScore, charge: chargeScore }
+    };
+  } else {
+    // Par défaut: considérer comme charge (plus sûr pour la comptabilité)
+    return {
+      type: 'expense',
+      label: 'Charge (Dépense/Achat) - par défaut',
+      confidence: 0.5,
+      scores: { revenue: revenueScore, charge: chargeScore },
+      note: 'Classification incertaine - vérification manuelle recommandée'
+    };
+  }
+}
+
 module.exports = async function (context, req) {
   const setCors = () => {
     context.res = context.res || {};
@@ -298,6 +423,9 @@ module.exports = async function (context, req) {
           }
         } catch {}
 
+        // Détection du type de transaction
+        const transactionType = detectTransactionType(text, vendor, null);
+        
         setCors();
         context.res.status = 200;
         context.res.headers['Content-Type'] = 'application/json';
@@ -308,6 +436,9 @@ module.exports = async function (context, req) {
           date,
           invoiceNumber: null,
           fields: {},
+          fullText: text,
+          fullTextLength: text.length,
+          transactionType, // Type détecté
           source: fileUrl || (contentBase64 ? 'inline' : null),
           storedUrl,
           method: 'azure-computer-vision-read'
@@ -470,6 +601,10 @@ module.exports = async function (context, req) {
       }
     } catch {}
 
+    // === DÉTECTION TYPE TRANSACTION (Charge vs Revenu) ===
+    const transactionType = detectTransactionType(fullText, vendor, extractedFields);
+    context.log('[OCR] Transaction type detected:', transactionType);
+    
     setCors();
     context.res.status = 200;
     context.res.headers['Content-Type'] = 'application/json';
@@ -482,6 +617,7 @@ module.exports = async function (context, req) {
       extractedFields, // Tous les champs extraits avec leurs valeurs
       fullText, // TEXTE COMPLET pour analyse IA approfondie
       fullTextLength: fullText.length,
+      transactionType, // Type détecté: expense ou revenue
       fields: {
         VendorName: fields.VendorName || null,
         InvoiceId: fields.InvoiceId || null,

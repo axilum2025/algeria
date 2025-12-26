@@ -16684,6 +16684,24 @@ RÈGLES DE CONVERSATION :
                         contextInfo += '\n[DERNIÈRE FACTURE ANALYSÉE]\n';
                         contextInfo += `Fournisseur: ${financeContext.lastInvoice.vendor}\n`;
                         contextInfo += `Montant: ${financeContext.lastInvoice.amount || 'N/A'} ${financeContext.lastInvoice.currency || ''}\n`;
+                        
+                        // Type de transaction (très important pour les calculs)
+                        const txType = financeContext.lastInvoice.transactionType || {};
+                        const isExpense = txType.type === 'expense';
+                        const isRevenue = txType.type === 'revenue';
+                        contextInfo += `Type: ${txType.label || 'Inconnu'}\n`;
+                        if (isExpense) {
+                            contextInfo += `⚠️ CHARGE - Ce montant doit être soustrait (dépense/sortie d'argent)\n`;
+                        } else if (isRevenue) {
+                            contextInfo += `✅ REVENU - Ce montant doit être ajouté (entrée d'argent/vente)\n`;
+                        }
+                        if (txType.confidence) {
+                            contextInfo += `Confiance: ${(txType.confidence * 100).toFixed(0)}%\n`;
+                        }
+                        if (txType.note) {
+                            contextInfo += `Note: ${txType.note}\n`;
+                        }
+                        
                         contextInfo += `Date: ${financeContext.lastInvoice.date || 'N/A'}\n`;
                         contextInfo += `Numéro: ${financeContext.lastInvoice.invoiceNumber || 'N/A'}\n`;
                         contextInfo += `Fichier: ${financeContext.lastInvoice.filename}\n`;
@@ -16740,7 +16758,22 @@ RÈGLES DE CONVERSATION :
                         '[FINANCE_EXPERT_V2]',
                         'Tu es Agent Alex, expert financier, expert-comptable, analyste marché.',
                         'Priorités: exactitude, contrôle, conformité, traçabilité, réponses concises en français.',
+                        '',
+                        '=== CALCULS FINANCIERS - RÈGLES ESSENTIELLES ===',
+                        'Les factures ont un champ "transactionType" avec:',
+                        '• type: "expense" = CHARGE/DÉPENSE → Montant à SOUSTRAIRE (sortie d\'argent)',
+                        '• type: "revenue" = REVENU/VENTE → Montant à AJOUTER (entrée d\'argent)',
+                        '',
+                        'FORMULES DE CALCUL:',
+                        '- Total Charges = Σ montants où type="expense"',
+                        '- Total Revenus = Σ montants où type="revenue"',
+                        '- Bénéfice Net = Total Revenus - Total Charges',
+                        '- Trésorerie = Solde initial + Revenus - Charges',
+                        '- Prévisions = Projections futures basées sur historique Revenus vs Charges',
+                        '',
+                        'Vérifie TOUJOURS le champ transactionType.type avant tout calcul!',
                         contextInfo,
+                        '',
                         'Outils disponibles (déjà câblés côté UI/API, à déclencher sur demande utilisateur):',
                         '- Lecture factures OCR (/api/finance/invoices/ocr)',
                         '- Détection fraudes (/api/finance/fraud/analyze)',
@@ -16899,6 +16932,7 @@ RÈGLES DE CONVERSATION :
                         extractedFields: data.extractedFields || {}, // Tous les champs détaillés
                         fullText: data.fullText || '', // TEXTE COMPLET de la facture
                         fullTextLength: data.fullTextLength || 0,
+                        transactionType: data.transactionType || { type: 'expense', label: 'Inconnu', confidence: 0 }, // Type: expense ou revenue
                         storedUrl: data.storedUrl || null,
                         extractedAt: new Date().toISOString(),
                         method: data.method || 'unknown'
@@ -16920,9 +16954,17 @@ RÈGLES DE CONVERSATION :
                     const invoiceNum = data.invoiceNumber ? `\n🔢 Numéro: ${data.invoiceNumber}` : '';
                     const stored = data.storedUrl ? `\n📦 Archivé: ${data.storedUrl.substring(0, 60)}...` : '';
                     
+                    // Type de transaction (Charge ou Revenu)
+                    const txType = data.transactionType || {};
+                    const typeIcon = txType.type === 'revenue' ? '💵' : '💸';
+                    const typeLabel = txType.label || 'Type inconnu';
+                    const typeConfidence = txType.confidence ? ` (confiance: ${(txType.confidence * 100).toFixed(0)}%)` : '';
+                    const typeNote = txType.note ? `\n⚠️ ${txType.note}` : '';
+                    
                     let detailedMessage = `✓ Facture analysée avec succès!\n\n`;
                     detailedMessage += `🏢 Fournisseur: ${vendor}\n`;
-                    detailedMessage += `💰 Montant: ${amount}`;
+                    detailedMessage += `💰 Montant: ${amount}\n`;
+                    detailedMessage += `${typeIcon} Type: ${typeLabel}${typeConfidence}${typeNote}`;
                     detailedMessage += date + invoiceNum + stored;
                     
                     // Affichage des champs supplémentaires extraits
