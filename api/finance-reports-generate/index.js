@@ -2,17 +2,26 @@ const PDFDocument = require('pdfkit');
 const { uploadBuffer, buildBlobUrl } = require('../utils/storage');
 
 module.exports = async function (context, req) {
+  // Initialiser context.res dès le début
+  context.res = {
+    status: 200,
+    headers: {},
+    body: null
+  };
+
   const setCors = () => {
-    context.res = context.res || {};
     context.res.headers = Object.assign({}, context.res.headers, {
       'Access-Control-Allow-Origin': '*',
       'Access-Control-Allow-Methods': 'POST, OPTIONS',
-      'Access-Control-Allow-Headers': 'Content-Type'
+      'Access-Control-Allow-Headers': 'Content-Type',
+      'Content-Type': 'application/json'
     });
   };
 
+  // Toujours définir les headers CORS dès le début
+  setCors();
+
   if (req.method === 'OPTIONS') {
-    setCors();
     context.res.status = 200;
     context.res.body = '';
     return;
@@ -27,9 +36,7 @@ module.exports = async function (context, req) {
 
     // Si pas de factures, retourner message d'info
     if (invoices.length === 0) {
-      setCors();
       context.res.status = 200;
-      context.res.headers['Content-Type'] = 'application/json';
       context.res.body = {
         message: 'Aucune facture fournie. Uploadez des factures pour générer un rapport.',
         recommendation: 'Utilisez le bouton Upload pour importer vos factures.',
@@ -55,9 +62,7 @@ module.exports = async function (context, req) {
     const mimeType = format === 'pdf' ? 'application/pdf' : 'application/json';
     const azureUrl = await uploadBuffer('reports', filename, pdfBuffer, mimeType);
 
-    setCors();
     context.res.status = 200;
-    context.res.headers['Content-Type'] = 'application/json';
     context.res.body = {
       url: azureUrl,
       period,
@@ -70,9 +75,7 @@ module.exports = async function (context, req) {
     };
   } catch (err) {
     context.log('[Report Generation Error]', err);
-    setCors();
     context.res.status = 500;
-    context.res.headers['Content-Type'] = 'application/json';
     context.res.body = { error: err.message || String(err) };
   }
 };
@@ -233,10 +236,3 @@ async function generatePDFReport(reportType, analysis, period) {
     doc.end();
   });
 }
-  } catch (err) {
-    setCors();
-    context.res.status = 500;
-    context.res.headers['Content-Type'] = 'application/json';
-    context.res.body = { error: err.message || String(err) };
-  }
-};
