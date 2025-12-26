@@ -16839,12 +16839,12 @@ RÈGLES DE CONVERSATION :
 
                     const data = await response.json();
                     
-                    // Debug: voir ce que l'API retourne
+                    // Debug: voir ce que l'API retourne (console uniquement)
                     console.log('[Finance OCR] API Response:', data);
                     
-                    // Debug visible dans le chat pour mobile
-                    if (data.warning || data.method === 'heuristic-stub' || data.method === 'heuristic-text-parsing') {
-                        financeChatAddMessage('bot', `⚠️ DEBUG OCR:\nMéthode: ${data.method}\nWarning: ${data.warning || 'N/A'}\nVendor détecté: ${data.vendor}\nAmount: ${data.amount}\nCurrency: ${data.currency}`);
+                    // Debug visible SEULEMENT si erreur ou fallback (pas pour azure-form-recognizer normal)
+                    if (data.warning || data.method === 'heuristic-stub' || data.method === 'heuristic-text-parsing' || data.method?.includes('timeout') || data.method?.includes('error')) {
+                        financeChatAddMessage('bot', `⚠️ DEBUG OCR:\nMéthode: ${data.method}\nWarning: ${data.warning || 'N/A'}\nVendor: ${data.vendor}\nAmount: ${data.amount}\nCurrency: ${data.currency}`);
                     }
                     
                     // IMPORTANT: Enregistrer les données extraites dans le contexte de l'agent
@@ -16870,13 +16870,23 @@ RÈGLES DE CONVERSATION :
                     // Sauvegarder le contexte
                     financeContext.lastUpdated = new Date().toISOString();
                     
-                    // Formater le message pour l'utilisateur
+                    // Formater un message détaillé pour l'utilisateur
                     const vendor = data.vendor || 'fournisseur inconnu';
                     const amount = data.amount ? `${data.amount} ${data.currency || ''}` : 'montant non détecté';
-                    const stored = data.storedUrl ? ` • archivé: ${data.storedUrl}` : '';
-                    const message = `✓ Lecture de factures: ${vendor}, ${amount}${stored}`;
+                    const date = data.date ? `\n📅 Date: ${data.date}` : '';
+                    const invoiceNum = data.invoiceNumber ? `\n🔢 Numéro: ${data.invoiceNumber}` : '';
+                    const stored = data.storedUrl ? `\n📦 Archivé: ${data.storedUrl.substring(0, 60)}...` : '';
                     
-                    financeChatAddMessage('bot', message);
+                    let detailedMessage = `✓ Facture analysée avec succès!\n\n`;
+                    detailedMessage += `🏢 Fournisseur: ${vendor}\n`;
+                    detailedMessage += `💰 Montant: ${amount}`;
+                    detailedMessage += date + invoiceNum + stored;
+                    
+                    if (data.fields && Object.keys(data.fields).length > 0) {
+                        detailedMessage += `\n\n📊 Détails supplémentaires disponibles. Demandez-moi plus d'informations!`;
+                    }
+                    
+                    financeChatAddMessage('bot', detailedMessage);
                     
                     const duration = Date.now() - startTime;
                     logFinanceAction('invoice_upload_success', { filename: file.name, duration }, { data, message }, 'success');
