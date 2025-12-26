@@ -379,6 +379,20 @@ module.exports = async function (context, req) {
     const amount = pick('InvoiceTotal') || pick('AmountDue') || null;
     const currency = pick('Currency') || null;
 
+    // Extraction du TEXTE COMPLET pour analyse détaillée
+    let fullText = '';
+    const pages = resRoot.pages || [];
+    pages.forEach((page, pageIdx) => {
+      if (page.lines) {
+        fullText += `\n--- Page ${pageIdx + 1} ---\n`;
+        page.lines.forEach(line => {
+          fullText += (line.content || '') + '\n';
+        });
+      }
+    });
+    
+    context.log('[OCR] Texte extrait: ', fullText.length, 'caractères');
+
     // Extraction avancée de tous les champs disponibles
     const extractedFields = {};
     const fieldMappings = {
@@ -466,6 +480,8 @@ module.exports = async function (context, req) {
       date,
       invoiceNumber,
       extractedFields, // Tous les champs extraits avec leurs valeurs
+      fullText, // TEXTE COMPLET pour analyse IA approfondie
+      fullTextLength: fullText.length,
       fields: {
         VendorName: fields.VendorName || null,
         InvoiceId: fields.InvoiceId || null,

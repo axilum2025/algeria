@@ -16719,6 +16719,17 @@ RÈGLES DE CONVERSATION :
                                 }
                             }
                         }
+                        
+                        // Ajouter le TEXTE COMPLET pour analyse approfondie
+                        if (financeContext.lastInvoice.fullText && financeContext.lastInvoice.fullText.length > 0) {
+                            // Limiter à 3000 premiers caractères pour ne pas surcharger le contexte
+                            const textSample = financeContext.lastInvoice.fullText.substring(0, 3000);
+                            contextInfo += `\n[TEXTE COMPLET DE LA FACTURE - ${financeContext.lastInvoice.fullTextLength} caractères]\n`;
+                            contextInfo += textSample;
+                            if (financeContext.lastInvoice.fullText.length > 3000) {
+                                contextInfo += `\n... (${financeContext.lastInvoice.fullText.length - 3000} caractères supplémentaires disponibles)\n`;
+                            }
+                        }
                     }
                     
                     if (financeContext.invoices && financeContext.invoices.length > 1) {
@@ -16738,7 +16749,7 @@ RÈGLES DE CONVERSATION :
                         '- Rapports financiers (/api/finance/reports/generate)',
                         '- Listing Blob invoices/reports (/api/finance/storage/list)',
                         'Quand l’utilisateur demande une action liée à ces outils, proposer clairement l’action et les paramètres à lancer (ne pas inventer d’ID).',
-                        'IMPORTANT: Si l\'utilisateur demande plus d\'infos sur la facture déjà analysée (contexte ci-dessus), réponds DIRECTEMENT avec tous les détails disponibles. Ne demande PAS ce qu\'il faut faire, donne l\'information immédiatement.'
+                        'IMPORTANT: Si l\'utilisateur demande plus d\'infos: Utilise champs structurés ET TEXTE COMPLET fourni. Analyse lignes facturation, services, quantités, tarifs. Explique répartition coûts. Donne analyse complète immédiatement.'
                     ].join('\n');
 
                     fetch(endpoint, {
@@ -16886,6 +16897,8 @@ RÈGLES DE CONVERSATION :
                         invoiceNumber: data.invoiceNumber || null,
                         fields: data.fields || {},
                         extractedFields: data.extractedFields || {}, // Tous les champs détaillés
+                        fullText: data.fullText || '', // TEXTE COMPLET de la facture
+                        fullTextLength: data.fullTextLength || 0,
                         storedUrl: data.storedUrl || null,
                         extractedAt: new Date().toISOString(),
                         method: data.method || 'unknown'
