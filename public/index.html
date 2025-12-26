@@ -16709,7 +16709,7 @@ RÈGLES DE CONVERSATION :
                         '- Rapports financiers (/api/finance/reports/generate)',
                         '- Listing Blob invoices/reports (/api/finance/storage/list)',
                         'Quand l’utilisateur demande une action liée à ces outils, proposer clairement l’action et les paramètres à lancer (ne pas inventer d’ID).',
-                        'Structure de réponse: 1) Recommandation/action, 2) Données/contrôles requis, 3) Risques/alertes, 4) Prochain pas (outil ou saisie).'
+                        'IMPORTANT: Si l\'utilisateur demande plus d\'infos sur la facture déjà analysée (contexte ci-dessus), réponds DIRECTEMENT avec tous les détails disponibles. Ne demande PAS ce qu\'il faut faire, donne l\'information immédiatement.'
                     ].join('\n');
 
                     fetch(endpoint, {
@@ -16889,7 +16889,7 @@ RÈGLES DE CONVERSATION :
                     financeChatAddMessage('bot', detailedMessage);
                     
                     const duration = Date.now() - startTime;
-                    logFinanceAction('invoice_upload_success', { filename: file.name, duration }, { data, message }, 'success');
+                    logFinanceAction('invoice_upload_success', { filename: file.name, duration }, { data, detailedMessage }, 'success');
                     
                     // Sauvegarder la conversation avec le nouveau contexte
                     saveFinanceConversation();
