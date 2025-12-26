@@ -16839,6 +16839,9 @@ RÈGLES DE CONVERSATION :
 
                     const data = await response.json();
                     
+                    // Debug: voir ce que l'API retourne
+                    console.log('[Finance OCR] API Response:', data);
+                    
                     // IMPORTANT: Enregistrer les données extraites dans le contexte de l'agent
                     financeContext.lastInvoice = {
                         filename: file.name,

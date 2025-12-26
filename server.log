@@ -1,4 +1,4 @@
-[dotenv@17.2.3] injecting env (4) from api/.env -- tip: 🛠️  run anywhere with `dotenvx run -- yourcommand`
+[dotenv@17.2.3] injecting env (4) from api/.env -- tip: 🔐 prevent building .env in docker: https://dotenvx.com/prebuild
 ✅ Variables d'environnement chargées depuis api/.env
 Serving static files from /workspaces/algeria/public
 Mounting /api/analyze-image -> /workspaces/algeria/api/analyzeImage/index.js
