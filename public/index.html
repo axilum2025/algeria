@@ -16842,6 +16842,11 @@ RÈGLES DE CONVERSATION :
                     // Debug: voir ce que l'API retourne
                     console.log('[Finance OCR] API Response:', data);
                     
+                    // Debug visible dans le chat pour mobile
+                    if (data.warning || data.method === 'heuristic-stub' || data.method === 'heuristic-text-parsing') {
+                        financeChatAddMessage('bot', `⚠️ DEBUG OCR:\nMéthode: ${data.method}\nWarning: ${data.warning || 'N/A'}\nVendor détecté: ${data.vendor}\nAmount: ${data.amount}\nCurrency: ${data.currency}`);
+                    }
+                    
                     // IMPORTANT: Enregistrer les données extraites dans le contexte de l'agent
                     financeContext.lastInvoice = {
                         filename: file.name,
