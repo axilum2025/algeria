@@ -16240,13 +16240,104 @@ RÈGLES DE CONVERSATION :
         
         function toggleFinanceHistory() {
             const panel = document.getElementById('financeHistoryPanel');
+            const settingsPanel = document.getElementById('financeSettingsPanel');
             if (!panel) return;
+            
+            // Fermer le panneau des paramètres s'il est ouvert
+            if (settingsPanel && settingsPanel.style.display === 'block') {
+                settingsPanel.style.display = 'none';
+            }
             
             if (panel.style.display === 'none' || !panel.style.display) {
                 panel.style.display = 'block';
                 renderFinanceHistory();
             } else {
                 panel.style.display = 'none';
+            }
+        }
+        
+        function toggleFinanceSettings() {
+            const panel = document.getElementById('financeSettingsPanel');
+            const historyPanel = document.getElementById('financeHistoryPanel');
+            if (!panel) return;
+            
+            // Fermer le panneau historique s'il est ouvert
+            if (historyPanel && historyPanel.style.display === 'block') {
+                historyPanel.style.display = 'none';
+            }
+            
+            if (panel.style.display === 'none' || !panel.style.display) {
+                panel.style.display = 'block';
+                loadFinanceCompanySettings();
+            } else {
+                panel.style.display = 'none';
+            }
+        }
+        
+        function loadFinanceCompanySettings() {
+            const settings = financeContext.companySettings || {};
+            
+            if (settings.name) document.getElementById('financeCompanyName').value = settings.name;
+            if (settings.activity) document.getElementById('financeCompanyActivity').value = settings.activity;
+            if (settings.address) document.getElementById('financeCompanyAddress').value = settings.address;
+            if (settings.phone) document.getElementById('financeCompanyPhone').value = settings.phone;
+            if (settings.email) document.getElementById('financeCompanyEmail').value = settings.email;
+            if (settings.currency) document.getElementById('financeCompanyCurrency').value = settings.currency;
+            if (settings.registration) document.getElementById('financeCompanyRegistration').value = settings.registration;
+        }
+        
+        function saveFinanceCompanySettings() {
+            const settings = {
+                name: document.getElementById('financeCompanyName').value.trim(),
+                activity: document.getElementById('financeCompanyActivity').value.trim(),
+                address: document.getElementById('financeCompanyAddress').value.trim(),
+                phone: document.getElementById('financeCompanyPhone').value.trim(),
+                email: document.getElementById('financeCompanyEmail').value.trim(),
+                currency: document.getElementById('financeCompanyCurrency').value,
+                registration: document.getElementById('financeCompanyRegistration').value.trim()
+            };
+            
+            // Validation des champs obligatoires
+            if (!settings.name || !settings.activity || !settings.address || !settings.phone || !settings.email) {
+                alert('❌ Veuillez remplir tous les champs obligatoires (*)');
+                return;
+            }
+            
+            // Validation email basique
+            if (!settings.email.includes('@') || !settings.email.includes('.')) {
+                alert('❌ Email invalide');
+                return;
+            }
+            
+            // Sauvegarder dans financeContext
+            financeContext.companySettings = settings;
+            financeContext.lastUpdated = new Date().toISOString();
+            
+            // Sauvegarder dans localStorage
+            try {
+                const financeData = JSON.parse(localStorage.getItem('axilum_finance_data') || '{}');
+                financeData.companySettings = settings;
+                financeData.lastUpdated = financeContext.lastUpdated;
+                localStorage.setItem('axilum_finance_data', JSON.stringify(financeData));
+                
+                console.log('[Finance] Paramètres entreprise sauvegardés:', settings);
+                
+                // Message de confirmation
+                const chatHist = document.getElementById('financeChatHistory');
+                if (chatHist) {
+                    const msg = document.createElement('div');
+                    msg.className = 'chat-msg bot';
+                    msg.textContent = `✅ Informations de l'entreprise "${settings.name}" enregistrées avec succès!\n\nCes informations vont améliorer la précision de l'analyse financière et la détection automatique des types de factures.`;
+                    chatHist.appendChild(msg);
+                    chatHist.scrollTop = chatHist.scrollHeight;
+                }
+                
+                // Fermer le panneau
+                toggleFinanceSettings();
+                
+            } catch (error) {
+                console.error('[Finance] Erreur sauvegarde paramètres:', error);
+                alert('❌ Erreur lors de la sauvegarde');
             }
         }
         
@@ -16315,6 +16406,7 @@ RÈGLES DE CONVERSATION :
                 currency: 'EUR',
                 country: 'DZ'
             },
+            companySettings: null, // Sera chargé depuis localStorage
             chartOfAccounts: [
                 { code: '401000', name: 'Fournisseurs', type: 'passif' },
                 { code: '411000', name: 'Clients', type: 'actif' },
@@ -16360,6 +16452,17 @@ RÈGLES DE CONVERSATION :
             
             const existingOverlay = document.getElementById('financeAIOverlay');
             if (existingOverlay) existingOverlay.remove();
+            
+            // Charger les paramètres entreprise depuis localStorage
+            try {
+                const financeData = JSON.parse(localStorage.getItem('axilum_finance_data') || '{}');
+                if (financeData.companySettings) {
+                    financeContext.companySettings = financeData.companySettings;
+                    console.log('[Finance] Paramètres entreprise chargés:', financeContext.companySettings);
+                }
+            } catch (error) {
+                console.error('[Finance] Erreur chargement paramètres:', error);
+            }
             
             sessionStorage.setItem('financeConversationId', financeConversationId);
             
@@ -16480,11 +16583,89 @@ RÈGLES DE CONVERSATION :
                             <button class="history-toggle-btn" onclick="toggleFinanceHistory()" aria-label="Historique" title="Historique des conversations">
                                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                             </button>
+                            <button class="ghost-btn" onclick="toggleFinanceSettings()" aria-label="Paramètres" title="Paramètres de l'entreprise">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 1v6m0 6v6M5.64 5.64l4.24 4.24m4.24 4.24l4.24 4.24M1 12h6m6 0h6M5.64 18.36l4.24-4.24m4.24-4.24l4.24-4.24"/></svg>
+                            </button>
                             <button class="ghost-btn" onclick="closeFinanceAI()" aria-label="Fermer">
                                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
                             </button>
                         </div>
                     </header>
+                    
+                    <!-- Panneau des paramètres entreprise -->
+                    <div id="financeSettingsPanel" class="history-panel" style="display: none;">
+                        <div class="history-header">
+                            <div class="history-title">⚙️ Paramètres Entreprise</div>
+                            <button class="history-close" onclick="toggleFinanceSettings()">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                            </button>
+                        </div>
+                        
+                        <div style="padding: 16px; color: #6b7280; font-size: 13px; line-height: 1.6;">
+                            Informations de votre entreprise pour améliorer la précision de l'analyse financière.
+                        </div>
+                        
+                        <div style="padding: 0 16px 16px; display: flex; flex-direction: column; gap: 16px;">
+                            <div>
+                                <label style="display: block; font-size: 13px; font-weight: 600; color: #374151; margin-bottom: 6px;">
+                                    Nom de l'entreprise <span style="color: #ef4444;">*</span>
+                                </label>
+                                <input type="text" id="financeCompanyName" placeholder="Ex: Axilum" style="width: 100%; padding: 10px; border: 1px solid rgba(59,130,246,0.3); border-radius: 8px; background: rgba(255,255,255,0.05); color: white; font-size: 14px;" />
+                            </div>
+                            
+                            <div>
+                                <label style="display: block; font-size: 13px; font-weight: 600; color: #374151; margin-bottom: 6px;">
+                                    Domaine d'activité <span style="color: #ef4444;">*</span>
+                                </label>
+                                <input type="text" id="financeCompanyActivity" placeholder="Ex: Technologies, Commerce, Services..." style="width: 100%; padding: 10px; border: 1px solid rgba(59,130,246,0.3); border-radius: 8px; background: rgba(255,255,255,0.05); color: white; font-size: 14px;" />
+                            </div>
+                            
+                            <div>
+                                <label style="display: block; font-size: 13px; font-weight: 600; color: #374151; margin-bottom: 6px;">
+                                    Adresse complète <span style="color: #ef4444;">*</span>
+                                </label>
+                                <textarea id="financeCompanyAddress" placeholder="Rue, ville, code postal, pays..." rows="2" style="width: 100%; padding: 10px; border: 1px solid rgba(59,130,246,0.3); border-radius: 8px; background: rgba(255,255,255,0.05); color: white; font-size: 14px; resize: vertical;"></textarea>
+                            </div>
+                            
+                            <div>
+                                <label style="display: block; font-size: 13px; font-weight: 600; color: #374151; margin-bottom: 6px;">
+                                    Téléphone <span style="color: #ef4444;">*</span>
+                                </label>
+                                <input type="tel" id="financeCompanyPhone" placeholder="+213 XX XX XX XX" style="width: 100%; padding: 10px; border: 1px solid rgba(59,130,246,0.3); border-radius: 8px; background: rgba(255,255,255,0.05); color: white; font-size: 14px;" />
+                            </div>
+                            
+                            <div>
+                                <label style="display: block; font-size: 13px; font-weight: 600; color: #374151; margin-bottom: 6px;">
+                                    Email <span style="color: #ef4444;">*</span>
+                                </label>
+                                <input type="email" id="financeCompanyEmail" placeholder="contact@entreprise.com" style="width: 100%; padding: 10px; border: 1px solid rgba(59,130,246,0.3); border-radius: 8px; background: rgba(255,255,255,0.05); color: white; font-size: 14px;" />
+                            </div>
+                            
+                            <div>
+                                <label style="display: block; font-size: 13px; font-weight: 600; color: #374151; margin-bottom: 6px;">
+                                    Devise <span style="color: #ef4444;">*</span>
+                                </label>
+                                <select id="financeCompanyCurrency" style="width: 100%; padding: 10px; border: 1px solid rgba(59,130,246,0.3); border-radius: 8px; background: rgba(255,255,255,0.05); color: white; font-size: 14px;">
+                                    <option value="EUR">EUR (€)</option>
+                                    <option value="DZD">DZD (DA)</option>
+                                    <option value="USD">USD ($)</option>
+                                    <option value="GBP">GBP (£)</option>
+                                    <option value="MAD">MAD (Dirham)</option>
+                                </select>
+                            </div>
+                            
+                            <div>
+                                <label style="display: block; font-size: 13px; font-weight: 600; color: #374151; margin-bottom: 6px;">
+                                    Numéro SIRET/RC <span style="color: #9ca3af; font-weight: 400;">(optionnel)</span>
+                                </label>
+                                <input type="text" id="financeCompanyRegistration" placeholder="Ex: 123 456 789 00012" style="width: 100%; padding: 10px; border: 1px solid rgba(59,130,246,0.3); border-radius: 8px; background: rgba(255,255,255,0.05); color: white; font-size: 14px;" />
+                            </div>
+                            
+                            <button onclick="saveFinanceCompanySettings()" style="width: 100%; padding: 12px; background: linear-gradient(135deg, #3b82f6, #2563eb); color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; margin-top: 8px;" onmouseover="this.style.opacity='0.9'" onmouseout="this.style.opacity='1'">
+                                Enregistrer les informations
+                            </button>
+                        </div>
+                    </div>
                     
                     <!-- Panneau historique -->
                     <div id="financeHistoryPanel" class="history-panel">
@@ -16678,8 +16859,28 @@ RÈGLES DE CONVERSATION :
             setTimeout(() => {
                 try {
                     const endpoint = typeof getEndpoint === 'function' ? getEndpoint() : '/api/agents/axilum/invoke';
-                    // Préparer le contexte enrichi avec les factures
+                    // Préparer le contexte enrichi avec les factures ET les infos entreprise
                     let contextInfo = '';
+                    
+                    // INFORMATIONS DE L'ENTREPRISE (pour améliorer la détection)
+                    if (financeContext.companySettings) {
+                        const cs = financeContext.companySettings;
+                        contextInfo += '\n[INFORMATIONS ENTREPRISE]\n';
+                        contextInfo += `Nom: ${cs.name}\n`;
+                        contextInfo += `Activité: ${cs.activity}\n`;
+                        contextInfo += `Adresse: ${cs.address}\n`;
+                        contextInfo += `Contact: ${cs.email} | ${cs.phone}\n`;
+                        contextInfo += `Devise: ${cs.currency}\n`;
+                        if (cs.registration) contextInfo += `SIRET/RC: ${cs.registration}\n`;
+                        contextInfo += '\nIMPORTANT: Ces informations vous aident à identifier si une facture est:\n';
+                        contextInfo += `- CHARGE (dépense): Facture REÇUE par ${cs.name} d'un fournisseur\n`;
+                        contextInfo += `- REVENU (vente): Facture ÉMISE par ${cs.name} à un client\n`;
+                        contextInfo += `Si le nom du fournisseur = "${cs.name}" → c'est un REVENU (vous facturez un client)\n`;
+                        contextInfo += `Si le nom du fournisseur ≠ "${cs.name}" → c'est probablement une CHARGE (on vous facture)\n\n`;
+                    } else {
+                        contextInfo += '\n⚠️ Paramètres entreprise non configurés. Cliquez sur ⚙️ en haut pour renseigner les informations.\n\n';
+                    }
+                    
                     if (financeContext.lastInvoice) {
                         contextInfo += '\n[DERNIÈRE FACTURE ANALYSÉE]\n';
                         contextInfo += `Fournisseur: ${financeContext.lastInvoice.vendor}\n`;
