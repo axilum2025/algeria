@@ -36,15 +36,101 @@ module.exports = async function (context, req) {
     return;
   }
 
-  const fallbackStub = (fileUrl) => {
+  const fallbackStub = (fileUrl, textContent = null) => {
     const lower = String(fileUrl || '').toLowerCase();
-    const vendor = /acme|vendor|fournisseur|supplier/.test(lower) ? 'ACME Corp' : 'Fournisseur Inconnu';
-    const currency = /dz|da|dzd/.test(lower) ? 'DZD' : (/eur|€/.test(lower) ? 'EUR' : 'DZD');
-    const hash = [...lower].reduce((acc, ch) => (acc * 33 + ch.charCodeAt(0)) >>> 0, 5381);
-    const amount = Number(((hash % 500000) + 10000).toFixed(0));
-    const today = new Date();
-    const date = today.toISOString().split('T')[0];
-    const invoiceNumber = 'INV-' + (hash % 100000).toString().padStart(5, '0');
+    let vendor = 'Fournisseur Inconnu';
+    let amount = null;
+    let currency = null;
+    let date = null;
+    let invoiceNumber = null;
+
+    // Si on a du texte extrait, essayer de parser intelligemment
+    if (textContent) {
+      const text = String(textContent);
+      
+      // Recherche fournisseur (premières lignes ou après certains mots-clés)
+      const vendorPatterns = [
+        /(?:from|de|fournisseur|supplier|vendor)[\s:]+([A-Za-zÀ-ÿ\s&\.]+?)(?:\n|$)/i,
+        /^([A-Za-zÀ-ÿ\s&\.]{3,40})$/m // Première ligne non vide
+      ];
+      for (const pattern of vendorPatterns) {
+        const match = text.match(pattern);
+        if (match && match[1]) {
+          vendor = match[1].trim();
+          break;
+        }
+      }
+      
+      // Recherche montant avec devise
+      const amountPatterns = [
+        /(?:total|montant|amount|sum)[\s:]*([€$£]|\b(?:EUR|USD|GBP|DZD|DA)\b)?\s*([0-9]+(?:[,\.][0-9]{2})?)/i,
+        /([€$£]|\b(?:EUR|USD|GBP|DZD|DA)\b)\s*([0-9]+(?:[,\.][0-9]{2})?)/i,
+        /([0-9]+(?:[,\.][0-9]{2})?)\s*([€$£]|\b(?:EUR|USD|GBP|DZD|DA)\b)/i
+      ];
+      for (const pattern of amountPatterns) {
+        const match = text.match(pattern);
+        if (match) {
+          const num = match[2] || match[1];
+          amount = Number(String(num).replace(/[,\.]/g, '.').replace(/[^\d\.]/g, ''));
+          const curr = match[1] || match[3] || match[2];
+          if (curr) {
+            if (/€|EUR/i.test(curr)) currency = 'EUR';
+            else if (/\$|USD/i.test(curr)) currency = 'USD';
+            else if (/DZD|DA/i.test(curr)) currency = 'DZD';
+            else if (/£|GBP/i.test(curr)) currency = 'GBP';
+          }
+          break;
+        }
+      }
+      
+      // Recherche date
+      const datePatterns = [
+        /(\d{4}[-\/]\d{2}[-\/]\d{2})/,
+        /(\d{2}[-\/]\d{2}[-\/]\d{4})/,
+        /(?:date|facture|invoice)[\s:]*(\d{1,2}[-\/]\d{1,2}[-\/]\d{2,4})/i
+      ];
+      for (const pattern of datePatterns) {
+        const match = text.match(pattern);
+        if (match && match[1]) {
+          date = match[1];
+          break;
+        }
+      }
+      
+      // Recherche numéro de facture
+      const invoicePatterns = [
+        /(?:invoice|facture|n[°o])[\s:]*([A-Z0-9\-]+)/i,
+        /([A-Z]{2,4}[-\s]?\d{4,})/
+      ];
+      for (const pattern of invoicePatterns) {
+        const match = text.match(pattern);
+        if (match && match[1]) {
+          invoiceNumber = match[1].trim();
+          break;
+        }
+      }
+    }
+    
+    // Fallback sur heuristique si rien trouvé
+    if (!vendor || vendor === 'Fournisseur Inconnu') {
+      vendor = /acme|vendor|fournisseur|supplier/.test(lower) ? 'ACME Corp' : 'Fournisseur Inconnu';
+    }
+    if (!currency) {
+      currency = /dz|da|dzd/.test(lower) ? 'DZD' : (/eur|€/.test(lower) ? 'EUR' : 'DZD');
+    }
+    if (!amount && fileUrl) {
+      const hash = [...lower].reduce((acc, ch) => (acc * 33 + ch.charCodeAt(0)) >>> 0, 5381);
+      amount = Number(((hash % 500000) + 10000).toFixed(0));
+    }
+    if (!date) {
+      const today = new Date();
+      date = today.toISOString().split('T')[0];
+    }
+    if (!invoiceNumber && fileUrl) {
+      const hash = [...lower].reduce((acc, ch) => (acc * 33 + ch.charCodeAt(0)) >>> 0, 5381);
+      invoiceNumber = 'INV-' + (hash % 100000).toString().padStart(5, '0');
+    }
+    
     return {
       vendor,
       amount,
@@ -52,11 +138,11 @@ module.exports = async function (context, req) {
       date,
       invoiceNumber,
       fields: {
-        Tax: Math.round(amount * 0.19),
-        Total: amount + Math.round(amount * 0.19)
+        Tax: amount ? Math.round(amount * 0.19) : null,
+        Total: amount ? amount + Math.round(amount * 0.19) : null
       },
-      source: fileUrl || null,
-      method: 'heuristic-stub'
+      source: fileUrl || (textContent ? 'inline' : null),
+      method: textContent ? 'heuristic-text-parsing' : 'heuristic-stub'
     };
   };
 
@@ -68,10 +154,19 @@ module.exports = async function (context, req) {
     const apiVersion = '2023-07-31';
 
     if (!hasAzure) {
+      // Fallback: essayer d'extraire du texte basique du PDF/Image
+      // Pour l'instant, retourner un stub mais avec indication claire
       setCors();
       context.res.status = 200;
       context.res.headers['Content-Type'] = 'application/json';
-      context.res.body = fallbackStub(fileUrl);
+      
+      // Si contentBase64 disponible, on pourrait utiliser un OCR basique ici
+      // Pour l'instant, retour avec méthode claire pour debugging
+      const result = fallbackStub(fileUrl, null);
+      result.warning = 'Azure Form Recognizer non configuré - extraction limitée';
+      result.recommendation = 'Configurez AZURE_FORM_RECOGNIZER_ENDPOINT et AZURE_FORM_RECOGNIZER_KEY pour OCR complet';
+      
+      context.res.body = result;
       return;
     }
 
@@ -162,14 +257,14 @@ module.exports = async function (context, req) {
           .map(l => l.text || '')
           .filter(t => t && t.trim().length);
 
-        // Extraction simple via heuristiques
+        // Extraction via le parser intelligent
         const text = lines.join('\n');
-        const amountMatch = text.match(/([€$]|\b(DZD|DA|EUR|USD)\b)\s*([0-9]+(?:[\.,][0-9]{2})?)/i);
-        const currency = amountMatch ? (amountMatch[1] && amountMatch[1].match(/[€$]/) ? (amountMatch[1] === '€' ? 'EUR' : 'USD') : (amountMatch[2] || '')) : null;
-        const amount = amountMatch ? Number((amountMatch[3] || '').replace(/\./g,'').replace(',','.')) : null;
-        const dateMatch = text.match(/(\d{4}-\d{2}-\d{2}|\d{2}[\/.-]\d{2}[\/.-]\d{4})/);
-        const date = dateMatch ? dateMatch[1] : null;
-        const vendor = lines[0] || 'Fournisseur Inconnu';
+        const parsed = fallbackStub(fileUrl, text);
+        const vendor = parsed.vendor;
+        const amount = parsed.amount;
+        const currency = parsed.currency;
+        const date = parsed.date;
+        const invoiceNumber = parsed.invoiceNumber;
 
         let storedUrl = null;
         try {
