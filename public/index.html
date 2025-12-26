@@ -17057,9 +17057,10 @@ RÈGLES DE CONVERSATION :
             financeChatAddMessage('bot', `${label} en cours...`);
             const startTime = Date.now();
             try {
+                console.log('[callFinanceTool] 🚀 Démarrage:', { label, endpoint, payload });
                 logFinanceAction('tool_call_start', { label, endpoint, payload }, { timestamp: new Date().toISOString() }, 'info');
                 
-                const response = await fetch(endpoint, {
+                const fetchOptions = {
                     method: 'POST',
                     headers: { 
                         'Content-Type': 'application/json', 
@@ -17069,29 +17070,50 @@ RÈGLES DE CONVERSATION :
                     },
                     cache: 'no-store',
                     body: JSON.stringify(payload || {})
+                };
+                console.log('[callFinanceTool] 📤 Envoi requête:', { endpoint, options: fetchOptions });
+                
+                const response = await fetch(endpoint, fetchOptions);
+                console.log('[callFinanceTool] 📥 Réponse reçue:', { 
+                    status: response.status, 
+                    statusText: response.statusText,
+                    headers: Object.fromEntries(response.headers.entries()),
+                    url: response.url
                 });
 
                 if (!response.ok) {
+                    console.error('[callFinanceTool] ❌ Erreur HTTP:', response.status, response.statusText);
                     throw new Error(`Erreur HTTP ${response.status}`);
                 }
 
                 const ct = (response.headers.get('content-type') || '').toLowerCase();
+                console.log('[callFinanceTool] 🔍 Content-Type détecté:', ct);
+                
                 let data;
                 if (ct.includes('application/json')) {
                     data = await response.json();
+                    console.log('[callFinanceTool] ✅ JSON parsé:', data);
                 } else {
                     const text = await response.text();
+                    console.error('[callFinanceTool] ❌ Réponse non-JSON:', { contentType: ct, textPreview: text.slice(0,500) });
                     throw new Error(`Réponse non-JSON (${ct || 'inconnue'}) : ${text.slice(0,200)}...`);
                 }
 
                 const message = typeof formatResult === 'function'
                     ? formatResult(data)
                     : `${label} terminé`;
+                console.log('[callFinanceTool] 🎉 Succès:', { message, data });
                 financeChatAddMessage('bot', message);
                 
                 const duration = Date.now() - startTime;
                 logFinanceAction('tool_call_success', { label, endpoint, duration }, { data, message }, 'success');
             } catch (error) {
+                console.error('[callFinanceTool] 💥 Erreur capturée:', { 
+                    error: error.message, 
+                    stack: error.stack,
+                    label,
+                    endpoint
+                });
                 const errorMsg = `${label} : ${error.message}`;
                 financeChatAddMessage('bot', errorMsg);
                 const duration = Date.now() - startTime;

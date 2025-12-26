@@ -64,6 +64,14 @@ if (fs.existsSync(apiRoot)) {
         routeMap[expressRoute] = { handler, name };
 
         app.all(expressRoute, async (req, res) => {
+          console.log(`[dev-server] 📨 Request received: ${req.method} ${req.path}`, {
+            query: req.query,
+            headers: {
+              'content-type': req.headers['content-type'],
+              'accept': req.headers['accept']
+            }
+          });
+
           const logFn = (...args) => console.log(`[${name}]`, ...args);
           logFn.info = (...args) => console.log(`[${name}]`, ...args);
           logFn.warn = (...args) => console.warn(`[${name}]`, ...args);
@@ -91,6 +99,13 @@ if (fs.existsSync(apiRoot)) {
             if (context.res) {
               const status = context.res.status || 200;
               const headers = context.res.headers || {};
+              console.log(`[dev-server] 📤 Sending response:`, {
+                status,
+                headers,
+                bodyType: typeof context.res.body,
+                bodyPreview: typeof context.res.body === 'string' ? context.res.body.slice(0, 100) : 'object'
+              });
+
               if (headers) Object.entries(headers).forEach(([k, v]) => res.set(k, v));
               
               // Always set CORS headers
@@ -104,9 +119,10 @@ if (fs.existsSync(apiRoot)) {
               return res.status(status).send(context.res.body);
             }
 
+            console.log(`[dev-server] ⚠️ No context.res, sending default response`);
             res.status(200).json({ ok: true });
           } catch (err) {
-            console.error(`Handler error for ${name}:`, err);
+            console.error(`[dev-server] 💥 Handler error for ${name}:`, err);
             res.status(500).json({ error: String(err.message || err) });
           }
         });

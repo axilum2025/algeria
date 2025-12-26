@@ -43,33 +43,48 @@ module.exports = async function (context, req) {
     const invoices = Array.isArray(body.invoices) ? body.invoices : [];
     const reportType = body.reportType || 'summary'; // 'summary', 'detailed', 'vat', 'cashflow'
 
+    context.log('[Finance Reports] 📊 Processing request:', { 
+      period, 
+      format, 
+      reportType, 
+      invoicesCount: invoices.length 
+    });
+
     // Si pas de factures, retourner message d'info
     if (invoices.length === 0) {
+      context.log('[Finance Reports] ℹ️ No invoices provided, returning info message');
       context.res.status = 200;
       context.res.body = {
         message: 'Aucune facture fournie. Uploadez des factures pour générer un rapport.',
         recommendation: 'Utilisez le bouton Upload pour importer vos factures.',
         reportType
       };
+      context.log('[Finance Reports] ✅ Response prepared:', context.res);
       return;
     }
 
     // Analyse des données
     const analysis = analyzeInvoicesForReport(invoices);
+    context.log('[Finance Reports] 📈 Analysis completed:', { summary: analysis.summary });
     
     // Génération du rapport selon le type
     let pdfBuffer;
     if (format === 'pdf') {
+      context.log('[Finance Reports] 📄 Generating PDF report...');
       pdfBuffer = await generatePDFReport(reportType, analysis, period);
+      context.log('[Finance Reports] ✅ PDF generated, size:', pdfBuffer.length, 'bytes');
     } else {
       // JSON format
       pdfBuffer = Buffer.from(JSON.stringify(analysis, null, 2));
+      context.log('[Finance Reports] 📋 JSON report generated');
     }
 
     // Upload vers Azure Blob Storage
     const filename = `finance-report-${reportType}-${period}-${Date.now()}.${format}`;
     const mimeType = format === 'pdf' ? 'application/pdf' : 'application/json';
+    context.log('[Finance Reports] ☁️ Uploading to Azure:', { filename, mimeType });
     const azureUrl = await uploadBuffer('reports', filename, pdfBuffer, mimeType);
+    context.log('[Finance Reports] ✅ Upload successful:', azureUrl);
 
     context.res.status = 200;
     context.res.body = {
@@ -82,10 +97,12 @@ module.exports = async function (context, req) {
       summary: analysis.summary,
       generatedAt: new Date().toISOString()
     };
+    context.log('[Finance Reports] 🎉 Success! Response prepared:', context.res);
   } catch (err) {
     context.log('[Report Generation Error]', err);
     context.res.status = 500;
     context.res.body = { error: err.message || String(err) };
+    context.log('[Finance Reports] ❌ Error response prepared:', context.res);
   }
 };
 
