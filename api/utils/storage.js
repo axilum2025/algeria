@@ -53,7 +53,14 @@ async function listBlobs(container) {
   const out = [];
   const containerClient = svc.getContainerClient(container);
   for await (const item of containerClient.listBlobsFlat()) {
-    out.push({ name: item.name, size: item.properties?.contentLength || null, url: buildBlobUrl(container, item.name) });
+    // Essayer buildBlobUrl d'abord, sinon utiliser l'URL du blockBlob
+    let url = buildBlobUrl(container, item.name);
+    if (!url) {
+      // Fallback: construire l'URL depuis le containerClient
+      const blockBlob = containerClient.getBlockBlobClient(item.name);
+      url = blockBlob.url;
+    }
+    out.push({ name: item.name, size: item.properties?.contentLength || null, url });
   }
   return out;
 }

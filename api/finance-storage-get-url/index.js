@@ -1,4 +1,4 @@
-const { buildBlobUrl } = require('../utils/storage');
+const { buildBlobUrl, getBlobServiceClient } = require('../utils/storage');
 
 module.exports = async function (context, req) {
   const setCors = () => {
@@ -29,7 +29,18 @@ module.exports = async function (context, req) {
       return;
     }
     
-    const url = buildBlobUrl(container, name);
+    // Essayer buildBlobUrl d'abord
+    let url = buildBlobUrl(container, name);
+    
+    // Si null, utiliser l'URL du blob directement
+    if (!url) {
+      const svc = getBlobServiceClient();
+      if (svc) {
+        const containerClient = svc.getContainerClient(container);
+        const blockBlob = containerClient.getBlockBlobClient(name);
+        url = blockBlob.url;
+      }
+    }
     
     setCors();
     context.res.status = 200;
