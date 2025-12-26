@@ -16951,16 +16951,15 @@ RÈGLES DE CONVERSATION :
                     
                     // Type suggéré par le système (mais l'utilisateur va choisir)
                     const txType = data.transactionType || {};
-                    const suggestedIcon = txType.type === 'revenue' ? '💵' : '💸';
                     const suggestedLabel = txType.type === 'revenue' ? 'Revenu' : 'Charge';
                     const typeConfidence = txType.confidence ? ` (${(txType.confidence * 100).toFixed(0)}% confiance)` : '';
                     
                     let detailedMessage = `✓ Facture analysée avec succès!\n\n`;
-                    detailedMessage += `🏢 Fournisseur: ${vendor}\n`;
-                    detailedMessage += `💰 Montant: ${amount}`;
+                    detailedMessage += `Fournisseur: ${vendor}\n`;
+                    detailedMessage += `Montant: ${amount}`;
                     detailedMessage += date + invoiceNum + stored;
-                    detailedMessage += `\n\n🤖 Suggestion IA: ${suggestedIcon} ${suggestedLabel}${typeConfidence}`;
-                    detailedMessage += `\n\n❓ Cette facture est-elle une CHARGE ou un REVENU ?`;
+                    detailedMessage += `\n\nSuggestion IA: ${suggestedLabel}${typeConfidence}`;
+                    detailedMessage += `\n\nCette facture est-elle une CHARGE ou un REVENU ?`;
                     
                     // Affichage des champs supplémentaires extraits
                     if (data.extractedFields) {
@@ -16990,18 +16989,18 @@ RÈGLES DE CONVERSATION :
                     
                     const expenseBtn = document.createElement('button');
                     expenseBtn.className = 'finance-type-btn expense';
-                    expenseBtn.innerHTML = '💸 CHARGE<br><span style="font-size: 11px; opacity: 0.8;">(Dépense/Achat)</span>';
-                    expenseBtn.style.cssText = 'flex: 1; padding: 16px 20px; background: linear-gradient(135deg, #ef4444, #dc2626); color: white; border: 2px solid rgba(239,68,68,0.5); border-radius: 10px; font-size: 15px; font-weight: 700; cursor: pointer; transition: all 0.3s; text-align: center;';
-                    expenseBtn.onmouseover = () => expenseBtn.style.transform = 'scale(1.05)';
-                    expenseBtn.onmouseout = () => expenseBtn.style.transform = 'scale(1)';
+                    expenseBtn.innerHTML = 'CHARGE<br><span style="font-size: 11px; opacity: 0.7;">(Dépense/Achat)</span>';
+                    expenseBtn.style.cssText = 'flex: 1; padding: 16px 20px; background: linear-gradient(135deg, #f59e0b, #d97706); color: white; border: 2px solid rgba(245,158,11,0.4); border-radius: 10px; font-size: 15px; font-weight: 700; cursor: pointer; transition: all 0.3s; text-align: center;';
+                    expenseBtn.onmouseover = () => { expenseBtn.style.transform = 'scale(1.05)'; expenseBtn.style.borderColor = 'rgba(245,158,11,0.8)'; };
+                    expenseBtn.onmouseout = () => { expenseBtn.style.transform = 'scale(1)'; expenseBtn.style.borderColor = 'rgba(245,158,11,0.4)'; };
                     expenseBtn.onclick = () => confirmInvoiceType('expense', buttonContainer);
                     
                     const revenueBtn = document.createElement('button');
                     revenueBtn.className = 'finance-type-btn revenue';
-                    revenueBtn.innerHTML = '💵 REVENU<br><span style="font-size: 11px; opacity: 0.8;">(Vente/Encaissement)</span>';
-                    revenueBtn.style.cssText = 'flex: 1; padding: 16px 20px; background: linear-gradient(135deg, #10b981, #059669); color: white; border: 2px solid rgba(16,185,129,0.5); border-radius: 10px; font-size: 15px; font-weight: 700; cursor: pointer; transition: all 0.3s; text-align: center;';
-                    revenueBtn.onmouseover = () => revenueBtn.style.transform = 'scale(1.05)';
-                    revenueBtn.onmouseout = () => revenueBtn.style.transform = 'scale(1)';
+                    revenueBtn.innerHTML = 'REVENU<br><span style="font-size: 11px; opacity: 0.7;">(Vente/Encaissement)</span>';
+                    revenueBtn.style.cssText = 'flex: 1; padding: 16px 20px; background: linear-gradient(135deg, #3b82f6, #2563eb); color: white; border: 2px solid rgba(59,130,246,0.4); border-radius: 10px; font-size: 15px; font-weight: 700; cursor: pointer; transition: all 0.3s; text-align: center;';
+                    revenueBtn.onmouseover = () => { revenueBtn.style.transform = 'scale(1.05)'; revenueBtn.style.borderColor = 'rgba(59,130,246,0.8)'; };
+                    revenueBtn.onmouseout = () => { revenueBtn.style.transform = 'scale(1)'; revenueBtn.style.borderColor = 'rgba(59,130,246,0.4)'; };
                     revenueBtn.onclick = () => confirmInvoiceType('revenue', buttonContainer);
                     
                     buttonContainer.appendChild(expenseBtn);
@@ -17092,12 +17091,11 @@ RÈGLES DE CONVERSATION :
             financeContext.lastUpdated = new Date().toISOString();
             
             // Message de confirmation
-            const icon = chosenType === 'expense' ? '💸' : '💵';
             const label = chosenType === 'expense' ? 'CHARGE' : 'REVENU';
             const action = chosenType === 'expense' ? 'sera soustrait' : 'sera ajouté';
             
-            let confirmMsg = `✅ Facture enregistrée comme ${icon} ${label}\n\n`;
-            confirmMsg += `📊 Résumé:\n`;
+            let confirmMsg = `✅ Facture enregistrée comme ${label}\n\n`;
+            confirmMsg += `Résumé:\n`;
             confirmMsg += `• Fournisseur: ${pending.vendor}\n`;
             confirmMsg += `• Montant: ${pending.amount} ${pending.currency || ''}\n`;
             confirmMsg += `• Type: ${label} (confirmé manuellement)\n`;
@@ -17106,7 +17104,7 @@ RÈGLES DE CONVERSATION :
             // Vérifier si différent de la suggestion IA
             if (pending.suggestedType && pending.suggestedType.type !== chosenType) {
                 const suggestedLabel = pending.suggestedType.type === 'expense' ? 'Charge' : 'Revenu';
-                confirmMsg += `\n💡 Note: L'IA avait suggéré "${suggestedLabel}" mais votre choix est prioritaire.`;
+                confirmMsg += `\nℹ️ Note: L'IA avait suggéré "${suggestedLabel}" mais votre choix est prioritaire.`;
             }
             
             financeChatAddMessage('bot', confirmMsg);
