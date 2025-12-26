@@ -17563,6 +17563,11 @@ RÈGLES DE CONVERSATION :
                 const data = await r.json();
                 let items = Array.isArray(data.items) ? data.items : [];
                 
+                console.log('[Finance] 📋 Items reçus de l\'API:', items.length);
+                if (items.length > 0) {
+                    console.log('[Finance] 📋 Premier item:', items[0]);
+                }
+                
                 // Marquer les doublons basés sur les factures enregistrées
                 if (container === 'invoices') {
                     items = markDuplicatesInBlobList(items);
@@ -17661,9 +17666,13 @@ RÈGLES DE CONVERSATION :
                 viewBtn.className = 'link-btn';
                 viewBtn.textContent = 'Ouvrir';
                 viewBtn.onclick = async () => { 
+                    console.log('[Finance] 🔗 Tentative ouverture:', { name: item.name, url: item.url });
+                    
                     if (item.url) {
+                        console.log('[Finance] 🔗 URL disponible, ouverture:', item.url);
                         window.open(item.url, '_blank');
                     } else {
+                        console.log('[Finance] 🔗 URL manquante, appel API get-url...');
                         // Tenter de récupérer l'URL si manquante
                         try {
                             const r = await fetch('/api/finance/storage/get-url', { 
@@ -17672,12 +17681,16 @@ RÈGLES DE CONVERSATION :
                                 body: JSON.stringify({ container: financeListState.container, name: item.name }) 
                             });
                             const data = await r.json();
+                            console.log('[Finance] 🔗 Réponse API:', data);
                             if (data.url) {
+                                console.log('[Finance] 🔗 Ouverture URL récupérée:', data.url);
                                 window.open(data.url, '_blank');
                             } else {
+                                console.error('[Finance] 🔗 Pas d\'URL dans la réponse');
                                 showToast('URL non disponible', 'error');
                             }
                         } catch (err) {
+                            console.error('[Finance] 🔗 Erreur:', err);
                             showToast('Erreur ouverture: ' + err.message, 'error');
                         }
                     }
