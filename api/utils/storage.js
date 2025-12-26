@@ -2,9 +2,18 @@ const { BlobServiceClient, StorageSharedKeyCredential, generateBlobSASQueryParam
 
 function getConfig() {
   const conn = (process.env.APPSETTING_AZURE_STORAGE_CONNECTION_STRING || process.env.AZURE_STORAGE_CONNECTION_STRING || '').trim();
-  const account = (process.env.APPSETTING_AZURE_STORAGE_ACCOUNT || process.env.AZURE_STORAGE_ACCOUNT || '').trim();
-  const key = (process.env.APPSETTING_AZURE_STORAGE_KEY || process.env.AZURE_STORAGE_KEY || '').trim();
+  let account = (process.env.APPSETTING_AZURE_STORAGE_ACCOUNT || process.env.AZURE_STORAGE_ACCOUNT || '').trim();
+  let key = (process.env.APPSETTING_AZURE_STORAGE_KEY || process.env.AZURE_STORAGE_KEY || '').trim();
   const sas = (process.env.APPSETTING_AZURE_STORAGE_SAS_TOKEN || process.env.AZURE_STORAGE_SAS_TOKEN || '').trim();
+  
+  // Si connection string fournie, extraire account et key
+  if (conn && (!account || !key)) {
+    const accountMatch = conn.match(/AccountName=([^;]+)/);
+    const keyMatch = conn.match(/AccountKey=([^;]+)/);
+    if (accountMatch) account = accountMatch[1];
+    if (keyMatch) key = keyMatch[1];
+  }
+  
   return { conn, account, key, sas };
 }
 
