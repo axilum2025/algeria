@@ -29,6 +29,11 @@ module.exports = async function (context, req) {
 
   const hasAzure = !!(endpoint && apiKey);
 
+  // Debug logging
+  context.log('[OCR] hasAzure:', hasAzure);
+  context.log('[OCR] endpoint:', endpoint ? endpoint.substring(0, 30) + '...' : 'NOT SET');
+  context.log('[OCR] apiKey:', apiKey ? 'SET (length: ' + apiKey.length + ')' : 'NOT SET');
+
   if (req.method === 'OPTIONS') {
     setCors();
     context.res.status = 200;
@@ -153,12 +158,17 @@ module.exports = async function (context, req) {
     const modelId = 'prebuilt-invoice';
     const apiVersion = '2023-07-31';
 
+    context.log('[OCR] Request - fileUrl:', fileUrl ? 'PROVIDED' : 'EMPTY');
+    context.log('[OCR] Request - contentBase64:', contentBase64 ? 'PROVIDED (length: ' + contentBase64.length + ')' : 'EMPTY');
+
     if (!hasAzure) {
       // Fallback: essayer d'extraire du texte basique du PDF/Image
       // Pour l'instant, retourner un stub mais avec indication claire
       setCors();
       context.res.status = 200;
       context.res.headers['Content-Type'] = 'application/json';
+      
+      context.log('[OCR] Azure not configured - using fallback');
       
       // Si contentBase64 disponible, on pourrait utiliser un OCR basique ici
       // Pour l'instant, retour avec méthode claire pour debugging
@@ -197,7 +207,12 @@ module.exports = async function (context, req) {
     postHeaders['Content-Type'] = contentType;
 
     const analyzeResp = await fetch(analyzeUrl, { method: 'POST', headers: postHeaders, body: postBody });
+    context.log('[OCR] Azure Form Recognizer response status:', analyzeResp.status);
+    
     if (analyzeResp.status !== 202) {
+      const errText = await analyzeResp.text().catch(() => '');
+      context.log('[OCR] Form Recognizer error:', errText.substring(0, 200));
+      
       // Tentative fallback via Computer Vision Read API si l'endpoint configuré est ComputerVision
       try {
         const cvUrl = `${baseUrl}/vision/v3.2/read/analyze`;
