@@ -1,0 +1,52 @@
+[dotenv@17.2.3] injecting env (4) from api/.env -- tip: 🛠️  run anywhere with `dotenvx run -- yourcommand`
+✅ Variables d'environnement chargées depuis api/.env
+Serving static files from /workspaces/algeria/public
+Mounting /api/analyze-image -> /workspaces/algeria/api/analyzeImage/index.js
+Mounting /api/analyze-image-pro -> /workspaces/algeria/api/analyzeImagePro/index.js
+Mounting /api/assign-role -> /workspaces/algeria/api/assignRole/index.js
+Mounting /api/chat -> /workspaces/algeria/api/chat/index.js
+Mounting /api/diagnostic-email -> /workspaces/algeria/api/diagnosticEmail/index.js
+Mounting /api/excelAssistant -> /workspaces/algeria/api/excelAssistant/index.js
+Mounting /api/extractText -> /workspaces/algeria/api/extractText/index.js
+Mounting /api/finance/cashflow/forecast -> /workspaces/algeria/api/finance-cashflow-forecast/index.js
+Mounting /api/finance/expenses/classify -> /workspaces/algeria/api/finance-expenses-classify/index.js
+Mounting /api/finance/fraud/analyze -> /workspaces/algeria/api/finance-fraud-analyze/index.js
+Mounting /api/finance/invoices/ocr -> /workspaces/algeria/api/finance-invoices-ocr/index.js
+Mounting /api/finance/reports/delete -> /workspaces/algeria/api/finance-reports-delete/index.js
+Mounting /api/finance/reports/generate -> /workspaces/algeria/api/finance-reports-generate/index.js
+Mounting /api/finance/reports/list -> /workspaces/algeria/api/finance-reports-list/index.js
+Mounting /api/finance/storage/delete -> /workspaces/algeria/api/finance-storage-delete/index.js
+Mounting /api/finance/storage/list -> /workspaces/algeria/api/finance-storage-list/index.js
+Mounting /api/generate-image -> /workspaces/algeria/api/generateImage/index.js
+Mounting /api/generate-instant-code -> /workspaces/algeria/api/generateInstantCode/index.js
+Mounting /api/agents/axilum/invoke -> /workspaces/algeria/api/invoke/index.js
+Mounting /api/invoke-v2 -> /workspaces/algeria/api/invoke-v2/index.js
+Mounting /api/invoke-free -> /workspaces/algeria/api/invokeFree/index.js
+Mounting /api/map-google-user -> /workspaces/algeria/api/mapGoogleUser/index.js
+Mounting /api/microsoftCalendar -> /workspaces/algeria/api/microsoftCalendar/index.js
+Mounting /api/parseCV -> /workspaces/algeria/api/parseCV/index.js
+Mounting /api/remove-role -> /workspaces/algeria/api/removeRole/index.js
+Mounting /api/roles -> /workspaces/algeria/api/roles/index.js
+Mounting /api/send-verification-email -> /workspaces/algeria/api/sendVerificationEmail/index.js
+Mounting /api/tasks/:action? -> /workspaces/algeria/api/taskManager/index.js
+Mounting /api/testConfig -> /workspaces/algeria/api/testConfig/index.js
+Mounting /api/test-send-email -> /workspaces/algeria/api/testSendEmail/index.js
+Failed to load handler /workspaces/algeria/api/transcribe/index.js Cannot find module 'node-fetch'
+Require stack:
+- /workspaces/algeria/api/transcribe/index.js
+- /workspaces/algeria/dev-server.js
+Mounting /api/translate -> /workspaces/algeria/api/translate/index.js
+Mounting /api/user-roles -> /workspaces/algeria/api/userRoles/index.js
+Mounting /api/verify-hallucination -> /workspaces/algeria/api/verify-hallucination/index.js
+Mounting /api/verifyCode -> /workspaces/algeria/api/verifyCode/index.js
+Mounting /api/verify-email -> /workspaces/algeria/api/verifyEmail/index.js
+Mounting /api/verify-instant-code -> /workspaces/algeria/api/verifyInstantCode/index.js
+Mounting /api/vision-analyze -> /workspaces/algeria/api/vision-analyze/index.js
+Mounting /api/vision-brand -> /workspaces/algeria/api/vision-brand/index.js
+Mounting /api/vision-detect -> /workspaces/algeria/api/vision-detect/index.js
+Mounting /api/vision-face -> /workspaces/algeria/api/vision-face/index.js
+Failed to load handler /workspaces/algeria/api/vision-moderate/index.js Unexpected end of JSON input
+Mounting /api/vision-ocr -> /workspaces/algeria/api/vision-ocr/index.js
+Loaded 41 API routes
+Dev server listening on http://localhost:8080
+Static root: /workspaces/algeria/public

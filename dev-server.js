@@ -3,6 +3,16 @@ const path = require('path');
 const fs = require('fs');
 const cors = require('cors');
 
+// Charger les variables d'environnement depuis api/.env
+const dotenv = require('dotenv');
+const envPath = path.join(__dirname, 'api', '.env');
+if (fs.existsSync(envPath)) {
+  dotenv.config({ path: envPath });
+  console.log('✅ Variables d\'environnement chargées depuis api/.env');
+} else {
+  console.warn('⚠️  Fichier api/.env non trouvé - Mode développement sans Azure OCR');
+}
+
 const app = express();
 const PORT = process.env.PORT || 8080;
 
