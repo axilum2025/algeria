@@ -16678,10 +16678,29 @@ RÈGLES DE CONVERSATION :
             setTimeout(() => {
                 try {
                     const endpoint = typeof getEndpoint === 'function' ? getEndpoint() : '/api/agents/axilum/invoke';
+                    // Préparer le contexte enrichi avec les factures
+                    let contextInfo = '';
+                    if (financeContext.lastInvoice) {
+                        contextInfo += '\n[DERNIÈRE FACTURE ANALYSÉE]\n';
+                        contextInfo += `Fournisseur: ${financeContext.lastInvoice.vendor}\n`;
+                        contextInfo += `Montant: ${financeContext.lastInvoice.amount || 'N/A'} ${financeContext.lastInvoice.currency || ''}\n`;
+                        contextInfo += `Date: ${financeContext.lastInvoice.date || 'N/A'}\n`;
+                        contextInfo += `Numéro: ${financeContext.lastInvoice.invoiceNumber || 'N/A'}\n`;
+                        contextInfo += `Fichier: ${financeContext.lastInvoice.filename}\n`;
+                        if (financeContext.lastInvoice.storedUrl) {
+                            contextInfo += `URL: ${financeContext.lastInvoice.storedUrl}\n`;
+                        }
+                    }
+                    
+                    if (financeContext.invoices && financeContext.invoices.length > 1) {
+                        contextInfo += `\n[HISTORIQUE: ${financeContext.invoices.length} facture(s) au total]\n`;
+                    }
+                    
                     const systemPrompt = [
                         '[FINANCE_EXPERT_V2]',
                         'Tu es Agent Alex, expert financier, expert-comptable, analyste marché.',
                         'Priorités: exactitude, contrôle, conformité, traçabilité, réponses concises en français.',
+                        contextInfo,
                         'Outils disponibles (déjà câblés côté UI/API, à déclencher sur demande utilisateur):',
                         '- Lecture factures OCR (/api/finance/invoices/ocr)',
                         '- Détection fraudes (/api/finance/fraud/analyze)',
@@ -16801,17 +16820,69 @@ RÈGLES DE CONVERSATION :
                 if (!file) return;
                 financeChatAddMessage('bot', `Upload facture: ${file.name} (${Math.round(file.size/1024)} Ko)`);
                 const base64 = await fileToBase64(file);
-                await callFinanceTool({
-                    label: 'Lecture de factures (upload)',
-                    endpoint: '/api/finance/invoices/ocr',
-                    payload: { contentBase64: base64 },
-                    formatResult: (data) => {
-                        const vendor = data.vendor || 'fournisseur inconnu';
-                        const amount = data.amount ? `${data.amount} ${data.currency || ''}` : 'montant non détecté';
-                        const stored = data.storedUrl ? ` • archivé: ${data.storedUrl}` : '';
-                        return `Lecture de factures: ${vendor}, ${amount}${stored}`;
+                
+                // Appel API avec capture des données extraites
+                const chatHist = document.getElementById('financeChatHistory');
+                const startTime = Date.now();
+                financeChatAddMessage('bot', 'Lecture de factures (upload) en cours...');
+                
+                try {
+                    const response = await fetch('/api/finance/invoices/ocr', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+                        body: JSON.stringify({ contentBase64: base64 })
+                    });
+
+                    if (!response.ok) {
+                        throw new Error(`Erreur HTTP ${response.status}`);
                     }
-                });
+
+                    const data = await response.json();
+                    
+                    // IMPORTANT: Enregistrer les données extraites dans le contexte de l'agent
+                    financeContext.lastInvoice = {
+                        filename: file.name,
+                        vendor: data.vendor || 'fournisseur inconnu',
+                        amount: data.amount || null,
+                        currency: data.currency || null,
+                        date: data.date || null,
+                        invoiceNumber: data.invoiceNumber || null,
+                        fields: data.fields || {},
+                        storedUrl: data.storedUrl || null,
+                        extractedAt: new Date().toISOString(),
+                        method: data.method || 'unknown'
+                    };
+                    
+                    // Ajouter l'historique des factures
+                    if (!financeContext.invoices) {
+                        financeContext.invoices = [];
+                    }
+                    financeContext.invoices.push(financeContext.lastInvoice);
+                    
+                    // Sauvegarder le contexte
+                    financeContext.lastUpdated = new Date().toISOString();
+                    
+                    // Formater le message pour l'utilisateur
+                    const vendor = data.vendor || 'fournisseur inconnu';
+                    const amount = data.amount ? `${data.amount} ${data.currency || ''}` : 'montant non détecté';
+                    const stored = data.storedUrl ? ` • archivé: ${data.storedUrl}` : '';
+                    const message = `✓ Lecture de factures: ${vendor}, ${amount}${stored}`;
+                    
+                    financeChatAddMessage('bot', message);
+                    
+                    const duration = Date.now() - startTime;
+                    logFinanceAction('invoice_upload_success', { filename: file.name, duration }, { data, message }, 'success');
+                    
+                    // Sauvegarder la conversation avec le nouveau contexte
+                    saveFinanceConversation();
+                    
+                } catch (error) {
+                    const errorMsg = `Lecture de factures (upload) : ${error.message}`;
+                    financeChatAddMessage('bot', errorMsg);
+                    const duration = Date.now() - startTime;
+                    logFinanceAction('invoice_upload_error', { filename: file.name, duration }, { error: error.message }, 'error');
+                }
+                
                 e.target.value = '';
             } catch (err) {
                 financeChatAddMessage('bot', `Upload: ${err.message}`);
