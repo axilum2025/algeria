@@ -17255,7 +17255,14 @@ RÈGLES DE CONVERSATION :
             const pending = window.financePendingInvoice;
             
             // VÉRIFIER LES DOUBLONS avant d'enregistrer
+            console.log('[Finance] 🔍 Vérification doublon pour:', {
+                vendor: pending.vendor,
+                amount: pending.amount,
+                date: pending.date,
+                invoiceNumber: pending.invoiceNumber
+            });
             const isDuplicate = checkDuplicateInvoice(pending);
+            console.log('[Finance] 🔍 Résultat vérification doublon:', isDuplicate);
             
             // Supprimer les boutons
             if (buttonContainer && buttonContainer.parentNode) {
@@ -17343,6 +17350,13 @@ RÈGLES DE CONVERSATION :
         }
 
         function checkDuplicateInvoice(newInvoice) {
+            console.log('[Finance] 🔍 checkDuplicateInvoice appelée avec:', {
+                vendor: newInvoice.vendor,
+                amount: newInvoice.amount,
+                date: newInvoice.date,
+                invoiceNumber: newInvoice.invoiceNumber
+            });
+            
             // Charger TOUTES les factures de TOUTES les conversations pour détecter les doublons
             let allInvoices = [];
             
@@ -17350,12 +17364,17 @@ RÈGLES DE CONVERSATION :
                 // 1. Ajouter les factures de la session en cours
                 if (financeContext.invoices && financeContext.invoices.length > 0) {
                     allInvoices = [...financeContext.invoices];
+                    console.log(`[Finance] 📋 ${financeContext.invoices.length} facture(s) dans la session en cours`);
                 }
                 
                 // 2. Charger toutes les conversations depuis localStorage
                 const conversations = JSON.parse(localStorage.getItem('financeConversations') || '{}');
+                const convCount = Object.keys(conversations).length;
+                console.log(`[Finance] 📋 ${convCount} conversation(s) dans localStorage`);
+                
                 Object.values(conversations).forEach(conv => {
                     if (conv.context && conv.context.invoices && conv.context.invoices.length > 0) {
+                        console.log(`[Finance] 📋 Conversation ${conv.id}: ${conv.context.invoices.length} facture(s)`);
                         // Ajouter les factures de cette conversation (si ce n'est pas la conversation actuelle)
                         if (conv.id !== financeConversationId) {
                             allInvoices = allInvoices.concat(conv.context.invoices);
@@ -17363,7 +17382,7 @@ RÈGLES DE CONVERSATION :
                     }
                 });
                 
-                console.log(`[Finance] Vérification doublons: ${allInvoices.length} facture(s) à comparer`);
+                console.log(`[Finance] 🔍 Total: ${allInvoices.length} facture(s) à comparer`);
                 
             } catch (error) {
                 console.error('[Finance] Erreur chargement factures pour détection doublons:', error);
@@ -17378,34 +17397,43 @@ RÈGLES DE CONVERSATION :
             for (let i = 0; i < allInvoices.length; i++) {
                 const existing = allInvoices[i];
                 
+                console.log(`[Finance] 🔍 Comparaison ${i+1}/${allInvoices.length}:`, {
+                    existing: { vendor: existing.vendor, amount: existing.amount, date: existing.date, invoiceNumber: existing.invoiceNumber },
+                    new: { vendor: newInvoice.vendor, amount: newInvoice.amount, date: newInvoice.date, invoiceNumber: newInvoice.invoiceNumber }
+                });
+                
                 // Critères de détection de doublon:
                 // 1. Même numéro de facture (si disponible)
                 if (newInvoice.invoiceNumber && existing.invoiceNumber && 
                     newInvoice.invoiceNumber === existing.invoiceNumber) {
-                    console.log('[Finance] 🔍 DOUBLON détecté: même numéro de facture');
+                    console.log('[Finance] 🔍 ✅ DOUBLON détecté: même numéro de facture');
                     return { found: true, original: existing, reason: 'same_invoice_number' };
                 }
                 
-                // 2. Même fournisseur + même montant + même date
-                if (newInvoice.vendor && existing.vendor && 
-                    newInvoice.amount && existing.amount &&
-                    newInvoice.vendor.toLowerCase().trim() === existing.vendor.toLowerCase().trim() &&
-                    parseFloat(newInvoice.amount) === parseFloat(existing.amount)) {
-                    
+                // 2. Même fournisseur + même montant
+                const vendorMatch = newInvoice.vendor && existing.vendor && 
+                    newInvoice.vendor.toLowerCase().trim() === existing.vendor.toLowerCase().trim();
+                const amountMatch = newInvoice.amount && existing.amount &&
+                    parseFloat(newInvoice.amount) === parseFloat(existing.amount);
+                
+                console.log(`[Finance] 🔍 vendorMatch: ${vendorMatch}, amountMatch: ${amountMatch}`);
+                
+                if (vendorMatch && amountMatch) {
                     // Vérifier la date si disponible
                     if (newInvoice.date && existing.date && newInvoice.date === existing.date) {
-                        console.log('[Finance] 🔍 DOUBLON détecté: même fournisseur + montant + date');
+                        console.log('[Finance] 🔍 ✅ DOUBLON détecté: même fournisseur + montant + date');
                         return { found: true, original: existing, reason: 'same_vendor_amount_date' };
                     }
                     
                     // Si pas de date ou dates manquantes, considérer comme doublon potentiel
                     if (!newInvoice.date || !existing.date) {
-                        console.log('[Finance] 🔍 DOUBLON détecté: même fournisseur + montant (pas de date)');
+                        console.log('[Finance] 🔍 ✅ DOUBLON détecté: même fournisseur + montant (pas de date)');
                         return { found: true, original: existing, reason: 'same_vendor_amount' };
                     }
                 }
             }
             
+            console.log('[Finance] 🔍 ❌ Aucun doublon détecté');
             return { found: false, original: null };
         }
 
