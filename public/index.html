@@ -17740,6 +17740,23 @@ RÈGLES DE CONVERSATION :
                 const r = await fetch('/api/finance/storage/delete', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ container, name }) });
                 const data = await r.json().catch(() => ({}));
                 if (r.ok && data.deleted) {
+                    // Supprimer aussi du localStorage pour éviter faux positifs de doublons
+                    try {
+                        const conversations = JSON.parse(localStorage.getItem('financeConversations') || '[]');
+                        let found = false;
+                        conversations.forEach(conv => {
+                            if (conv.invoices && Array.isArray(conv.invoices)) {
+                                const originalLength = conv.invoices.length;
+                                conv.invoices = conv.invoices.filter(inv => inv.blobName !== name);
+                                if (conv.invoices.length < originalLength) found = true;
+                            }
+                        });
+                        localStorage.setItem('financeConversations', JSON.stringify(conversations));
+                        console.log(`[Finance] 🗑️ Facture ${name} supprimée du localStorage:`, found);
+                    } catch (err) {
+                        console.error('[Finance] Erreur suppression localStorage:', err);
+                    }
+                    
                     showToast('Supprimé', 'success');
                     renderFinanceList(container);
                 } else {
