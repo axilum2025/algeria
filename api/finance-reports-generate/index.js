@@ -14,12 +14,21 @@ module.exports = async function (context, req) {
       'Access-Control-Allow-Origin': '*',
       'Access-Control-Allow-Methods': 'POST, OPTIONS',
       'Access-Control-Allow-Headers': 'Content-Type',
-      'Content-Type': 'application/json'
+      'Content-Type': 'application/json',
+      'Cache-Control': 'no-cache, no-store, must-revalidate',
+      'Pragma': 'no-cache',
+      'Expires': '0'
     });
   };
 
   // Toujours définir les headers CORS dès le début
   setCors();
+
+  context.log('[Finance Reports] Request received:', { 
+    method: req.method, 
+    headers: req.headers,
+    bodyKeys: Object.keys(req.body || {})
+  });
 
   if (req.method === 'OPTIONS') {
     context.res.status = 200;

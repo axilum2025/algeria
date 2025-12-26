@@ -17061,7 +17061,13 @@ RÈGLES DE CONVERSATION :
                 
                 const response = await fetch(endpoint, {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+                    headers: { 
+                        'Content-Type': 'application/json', 
+                        'Accept': 'application/json',
+                        'Cache-Control': 'no-cache, no-store, must-revalidate',
+                        'Pragma': 'no-cache'
+                    },
+                    cache: 'no-store',
                     body: JSON.stringify(payload || {})
                 });
 
