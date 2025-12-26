@@ -1851,33 +1851,43 @@ Contexte Excel actuel :
 - Colonnes : ${excelColumns.join(', ')}
 - Aperçu des données : ${JSON.stringify(excelData.slice(0, 3))}
 
-Tu es Agent Xcel, un expert Excel AI qui AIDE et SUGGÈRE mais NE MODIFIE JAMAIS le fichier automatiquement.
+Tu es Agent Xcel, expert Excel AI. Tu peux modifier directement les fichiers Excel en générant des commandes JSON.
 
-**TON RÔLE:**
-- ✅ SUGGÉRER comment modifier (ex: "Tu peux ajouter une colonne Remise...")
-- ✅ EXPLIQUER les étapes (ex: "Clique sur la cellule D1, écris 'Remise'...")
-- ✅ DONNER des exemples de formules Excel (ex: "Tu peux calculer avec =B2*0.1")
-- ✅ CONSEILLER sur les meilleures pratiques Excel
-- ❌ JAMAIS modifier, calculer, ajouter, supprimer automatiquement
-- ❌ JAMAIS générer de commandes JSON
-- ❌ JAMAIS faire de calculs directs sur les données
+COMMANDES JSON DISPONIBLES :
+1. Ajouter colonne : {"action":"addColumn","name":"NomColonne","defaultValue":""}
+2. Colonne calculée : {"action":"calculateColumn","name":"Total","formula":"Prix * Quantite"}
+3. Ajouter ligne : {"action":"addRow","values":["val1","val2","val3"]}
+3b. Ligne de totaux : {"action":"addSummaryRow","label":"TOTAL","columns":{"Total":"SUM","Prix":"AVG"}}
+4. Supprimer colonne : {"action":"deleteColumn","name":"NomColonne"}
+5. Supprimer ligne : {"action":"deleteRow","index":0}
+6. Modifier cellule : {"action":"updateCell","row":0,"columnName":"Prix","value":"150"}
+7. Renommer colonne : {"action":"renameColumn","oldName":"Ancien","newName":"Nouveau"}
+8. Trier données : {"action":"sortData","columnName":"Prix","order":"desc"}
 
-**IMPORTANT:**
-Les cellules du tableau sont éditables ! L'utilisateur peut cliquer sur n'importe quelle cellule pour la modifier directement.
+OPÉRATIONS DE TOTAUX (addSummaryRow) :
+- SUM/SOMME : somme de la colonne
+- AVG/MOYENNE : moyenne des valeurs
+- COUNT/COMPTE : nombre de valeurs
+- MIN/MINIMUM : valeur minimale
+- MAX/MAXIMUM : valeur maximale
 
-**EXEMPLE CORRECT:**
-User: "Ajoute une colonne Remise de 10%"
-Tu réponds: "Pour ajouter une colonne Remise avec 10% du prix :
+RÈGLES :
+- Utilise les NOMS EXACTS des colonnes (respecte la casse)
+- Pour les formules, utilise les noms de colonnes comme variables
+- Explique toujours ce que tu vas faire AVANT le JSON
+- Mets le JSON dans un bloc \`\`\`json ... \`\`\`
+- Tu peux combiner plusieurs commandes dans un tableau : [cmd1, cmd2]
 
-1. Clique sur la première cellule vide à droite (après la dernière colonne)
-2. Écris 'Remise' comme nom de colonne
-3. Dans la cellule en dessous, tu peux calculer : Prix × 0.1
-4. Par exemple si le Prix est en colonne C : =C2*0.1
-5. Copie cette formule vers le bas pour toutes les lignes
+EXEMPLE :
+User: "Ajoute une colonne Remise qui calcule 10% du Prix"
+Tu réponds:
+"Je vais ajouter une colonne Remise calculant 10% du prix.
 
-Les cellules du tableau sont éditables, tu peux cliquer dessus pour les modifier directement ! 😊"
+\`\`\`json
+{"action":"calculateColumn","name":"Remise","formula":"Prix * 0.1"}
+\`\`\`
 
-**MODE CONSULTATION PURE - Suggère, n'exécute pas.**
+La colonne Remise a été ajoutée avec succès !"
 ` : `Tu es Agent Xcel, expert Excel AI. Aide l'utilisateur avec Excel : formules, analyses, Power Query, tableaux croisés dynamiques, etc.`;
 
                     // Convertir l'historique au format backend
@@ -1929,16 +1939,27 @@ Les cellules du tableau sont éditables, tu peux cliquer dessus pour les modifie
                     loadingMsg.remove();
                     chatHistory.pop(); // Retirer du historique aussi
 
-                    // 🚫 DÉSACTIVÉ : L'agent ne modifie JAMAIS le fichier automatiquement
-                    // L'agent suggère seulement, l'utilisateur modifie manuellement les cellules
-                    const commandExecuted = false; // parseAndExecuteJSONCommands(aiResponse) désactivé
+                    // 🆕 Parser et exécuter les commandes JSON SEULEMENT pour actions 'write'
+                    // Pour actions 'readonly' (analyze, formulas, kpi, etc.) : pas d'exécution
+                    const isReadOnlyAction = window.currentActionType === 'readonly';
+                    const commandExecuted = isReadOnlyAction ? false : parseAndExecuteJSONCommands(aiResponse);
                     
-                    // Réinitialiser le flag d'action
+                    // 🆕 Réinitialiser le flag d'action
                     delete window.currentActionType;
                     
-                    // Afficher la réponse de l'agent (suggestions uniquement)
-                    if (aiResponse) {
-                        addChatMessage(aiResponse, 'bot');
+                    // Si demande de modification mais pas de JSON, ajouter un hint
+                    if (!commandExecuted && excelData.length > 0 && !isReadOnlyAction) {
+                        const modificationKeywords = /ajoute|calcul|supprime|modifi|tri|rename|total|somme|moyenne/i;
+                        if (modificationKeywords.test(message)) {
+                            console.warn('⚠️ Demande de modification détectée mais pas de JSON généré par l\'AI');
+                            addChatMessage('💡 <strong>Note</strong>: Pour que je puisse modifier directement votre fichier, demandez-moi par exemple: "Calcule le total en multipliant prix par quantité" ou "Ajoute une colonne Total"', 'bot');
+                        }
+                    }
+                    
+                    // Afficher la réponse nettoyée (sans les blocs JSON)
+                    const cleanResponse = commandExecuted ? cleanAIResponse(aiResponse) : aiResponse;
+                    if (cleanResponse) {
+                        addChatMessage(cleanResponse, 'bot');
                     }
                     
                     sendBtn.disabled = false;
