@@ -1,4 +1,4 @@
-const { BlobServiceClient, StorageSharedKeyCredential } = require('@azure/storage-blob');
+const { BlobServiceClient, StorageSharedKeyCredential, generateBlobSASQueryParameters, BlobSASPermissions } = require('@azure/storage-blob');
 
 function getConfig() {
   const conn = (process.env.APPSETTING_AZURE_STORAGE_CONNECTION_STRING || process.env.AZURE_STORAGE_CONNECTION_STRING || '').trim();
@@ -19,15 +19,50 @@ function getBlobServiceClient() {
   return null;
 }
 
-function buildBlobUrl(container, blobName) {
-  const { account, sas } = getConfig();
-  if (!account) return null;
-  const base = `https://${account}.blob.core.windows.net/${container}/${encodeURIComponent(blobName)}`;
+function buildBlobUrlWithSAS(container, blobName, expiryMinutes = 60) {
+  const { account, key, sas } = getConfig();
+  
+  // Si SAS token global fourni, l'utiliser
   if (sas) {
+    if (!account) return null;
+    const base = `https://${account}.blob.core.windows.net/${container}/${encodeURIComponent(blobName)}`;
     const q = sas.startsWith('?') ? sas : `?${sas}`;
     return `${base}${q}`;
   }
-  return base;
+  
+  // Sinon, générer un SAS token temporaire
+  if (account && key) {
+    try {
+      const startsOn = new Date();
+      const expiresOn = new Date(startsOn.getTime() + expiryMinutes * 60 * 1000);
+      
+      const permissions = BlobSASPermissions.parse('r'); // Read only
+      const credential = new StorageSharedKeyCredential(account, key);
+      
+      const sasToken = generateBlobSASQueryParameters(
+        {
+          containerName: container,
+          blobName: blobName,
+          permissions,
+          startsOn,
+          expiresOn
+        },
+        credential
+      ).toString();
+      
+      return `https://${account}.blob.core.windows.net/${container}/${encodeURIComponent(blobName)}?${sasToken}`;
+    } catch (error) {
+      console.error('Error generating SAS token:', error);
+      return null;
+    }
+  }
+  
+  return null;
+}
+
+// Backward compatibility
+function buildBlobUrl(container, blobName) {
+  return buildBlobUrlWithSAS(container, blobName);
 }
 
 async function ensureContainer(containerClient) {
@@ -53,19 +88,49 @@ async function listBlobs(container) {
   const out = [];
   const containerClient = svc.getContainerClient(container);
   for await (const item of containerClient.listBlobsFlat()) {
-    // Essayer buildBlobUrl d'abord, sinon utiliser l'URL du blockBlob
+    // Essayer buildBlobUrl avec SAS token
     let url = buildBlobUrl(container, item.name);
+    
+    // Si toujours pas d'URL, fallback sur generateBlobSASUrl
     if (!url) {
-      // Fallback: construire l'URL depuis le containerClient
-      const blockBlob = containerClient.getBlockBlobClient(item.name);
-      url = blockBlob.url;
+      try {
+        const blockBlob = containerClient.getBlockBlobClient(item.name);
+        const { account, key } = getConfig();
+        
+        if (account && key) {
+          // Générer SAS directement
+          const startsOn = new Date();
+          const expiresOn = new Date(startsOn.getTime() + 60 * 60 * 1000); // 1 heure
+          const permissions = BlobSASPermissions.parse('r');
+          const credential = new StorageSharedKeyCredential(account, key);
+          
+          const sasToken = generateBlobSASQueryParameters(
+            {
+              containerName: container,
+              blobName: item.name,
+              permissions,
+              startsOn,
+              expiresOn
+            },
+            credential
+          ).toString();
+          
+          url = `${blockBlob.url}?${sasToken}`;
+        } else {
+          url = blockBlob.url;
+        }
+      } catch (error) {
+        console.error('Error generating SAS for blob:', item.name, error);
+        url = null;
+      }
     }
+    
     out.push({ name: item.name, size: item.properties?.contentLength || null, url });
   }
   return out;
 }
 
-module.exports = { getBlobServiceClient, uploadBuffer, listBlobs, buildBlobUrl };
+module.exports = { getBlobServiceClient, uploadBuffer, listBlobs, buildBlobUrl, getConfig };
 
 async function deleteBlob(container, blobName) {
   const svc = getBlobServiceClient();

@@ -1,4 +1,5 @@
-const { buildBlobUrl, getBlobServiceClient } = require('../utils/storage');
+const { buildBlobUrl, getBlobServiceClient, getConfig } = require('../utils/storage');
+const { generateBlobSASQueryParameters, BlobSASPermissions, StorageSharedKeyCredential } = require('@azure/storage-blob');
 
 module.exports = async function (context, req) {
   const setCors = () => {
@@ -29,16 +30,44 @@ module.exports = async function (context, req) {
       return;
     }
     
-    // Essayer buildBlobUrl d'abord
+    // Essayer buildBlobUrl d'abord (avec SAS si disponible)
     let url = buildBlobUrl(container, name);
     
-    // Si null, utiliser l'URL du blob directement
+    // Si null, générer un SAS token directement
     if (!url) {
       const svc = getBlobServiceClient();
       if (svc) {
         const containerClient = svc.getContainerClient(container);
         const blockBlob = containerClient.getBlockBlobClient(name);
-        url = blockBlob.url;
+        const config = getConfig();
+        
+        if (config.account && config.key) {
+          try {
+            const startsOn = new Date();
+            const expiresOn = new Date(startsOn.getTime() + 60 * 60 * 1000); // 1 heure
+            const permissions = BlobSASPermissions.parse('r');
+            const credential = new StorageSharedKeyCredential(config.account, config.key);
+            
+            const sasToken = generateBlobSASQueryParameters(
+              {
+                containerName: container,
+                blobName: name,
+                permissions,
+                startsOn,
+                expiresOn
+              },
+              credential
+            ).toString();
+            
+            url = `${blockBlob.url}?${sasToken}`;
+          } catch (error) {
+            context.log.error('Error generating SAS token:', error);
+          }
+        }
+        
+        if (!url) {
+          url = blockBlob.url;
+        }
       }
     }
     
