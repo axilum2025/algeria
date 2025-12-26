@@ -149,6 +149,11 @@ azuredev-2641/
 Configurez la clé dans le portail Azure :
 - Static Web App → Configuration → Ajouter `AZURE_AI_API_KEY`
 
+### Problèmes de Codespace / Facturation
+
+Si votre Codespace s'est arrêté pour des raisons de facturation :
+- 📖 Voir [CODESPACE_BILLING_TROUBLESHOOTING.md](../CODESPACE_BILLING_TROUBLESHOOTING.md)
+
 📖 **Plus d'aide** : Voir [DEPLOYMENT_GUIDE.md](DEPLOYMENT_GUIDE.md)
 python3 -m http.server 8080
 # ou
