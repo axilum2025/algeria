@@ -17150,11 +17150,17 @@ RÈGLES DE CONVERSATION :
                     const invoiceNum = data.invoiceNumber ? `\n🔢 Numéro: ${data.invoiceNumber}` : '';
                     const stored = data.storedUrl ? `\n📦 Archivé: ${data.storedUrl.substring(0, 60)}...` : '';
                     
+                    // Type suggéré par le système (mais l'utilisateur va choisir)
+                    const txType = data.transactionType || {};
+                    const suggestedLabel = txType.type === 'revenue' ? 'Revenu' : 'Charge';
+                    const typeConfidence = txType.confidence ? ` (${(txType.confidence * 100).toFixed(0)}% confiance)` : '';
+                    
                     let detailedMessage = `✓ Facture analysée avec succès!\n\n`;
                     detailedMessage += `Fournisseur: ${vendor}\n`;
                     detailedMessage += `Montant: ${amount}`;
                     detailedMessage += date + invoiceNum + stored;
-                    detailedMessage += `\n\nVeuillez classifier cette facture :`;
+                    detailedMessage += `\n\nSuggestion IA: ${suggestedLabel}${typeConfidence}`;
+                    detailedMessage += `\n\nCette facture est-elle une CHARGE ou un REVENU ?`;
                     
                     // Affichage des champs supplémentaires extraits
                     if (data.extractedFields) {
@@ -17295,12 +17301,6 @@ RÈGLES DE CONVERSATION :
             confirmMsg += `• Montant: ${pending.amount} ${pending.currency || ''}\n`;
             confirmMsg += `• Type: ${label} (confirmé manuellement)\n`;
             confirmMsg += `• Impact: Ce montant ${action} dans vos calculs financiers\n`;
-            
-            // Vérifier si différent de la suggestion IA
-            if (pending.suggestedType && pending.suggestedType.type !== chosenType) {
-                const suggestedLabel = pending.suggestedType.type === 'expense' ? 'Charge' : 'Revenu';
-                confirmMsg += `\nℹ️ Note: L'IA avait suggéré "${suggestedLabel}" mais votre choix est prioritaire.`;
-            }
             
             financeChatAddMessage('bot', confirmMsg);
             
