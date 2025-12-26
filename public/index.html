@@ -17150,17 +17150,11 @@ RÈGLES DE CONVERSATION :
                     const invoiceNum = data.invoiceNumber ? `\n🔢 Numéro: ${data.invoiceNumber}` : '';
                     const stored = data.storedUrl ? `\n📦 Archivé: ${data.storedUrl.substring(0, 60)}...` : '';
                     
-                    // Type suggéré par le système (mais l'utilisateur va choisir)
-                    const txType = data.transactionType || {};
-                    const suggestedLabel = txType.type === 'revenue' ? 'Revenu' : 'Charge';
-                    const typeConfidence = txType.confidence ? ` (${(txType.confidence * 100).toFixed(0)}% confiance)` : '';
-                    
                     let detailedMessage = `✓ Facture analysée avec succès!\n\n`;
                     detailedMessage += `Fournisseur: ${vendor}\n`;
                     detailedMessage += `Montant: ${amount}`;
                     detailedMessage += date + invoiceNum + stored;
-                    detailedMessage += `\n\nSuggestion IA: ${suggestedLabel}${typeConfidence}`;
-                    detailedMessage += `\n\nCette facture est-elle une CHARGE ou un REVENU ?`;
+                    detailedMessage += `\n\nVeuillez classifier cette facture :`;
                     
                     // Affichage des champs supplémentaires extraits
                     if (data.extractedFields) {
