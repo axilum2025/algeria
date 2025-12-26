@@ -16992,11 +16992,12 @@ RÈGLES DE CONVERSATION :
                 label: 'Détection de fraudes',
                 endpoint: '/api/finance/fraud/analyze',
                 payload: {
-                    transactions: []
+                    invoices: financeContext.invoices || []
                 },
                 formatResult: (data) => {
                     const alerts = Array.isArray(data.alerts) ? data.alerts.length : 0;
-                    return `Détection de fraudes : ${alerts} alerte(s) trouvée(s)`;
+                    const riskLevel = data.summary?.riskLevel || 'unknown';
+                    return `Détection de fraudes : ${alerts} alerte(s) trouvée(s) - Niveau de risque: ${riskLevel}`;
                 }
             });
         }
@@ -17006,12 +17007,14 @@ RÈGLES DE CONVERSATION :
                 label: 'Prévision de trésorerie',
                 endpoint: '/api/finance/cashflow/forecast',
                 payload: {
+                    historicalInvoices: financeContext.invoices || [],
                     horizonDays: 90,
-                    method: 'direct'
+                    recurringExpenses: []
                 },
                 formatResult: (data) => {
-                    const summary = data.summary || 'Projection réalisée';
-                    return `Prévision de trésorerie : ${summary}`;
+                    const risks = Array.isArray(data.risks) ? data.risks.length : 0;
+                    const forecast = Array.isArray(data.forecast) ? data.forecast.length : 0;
+                    return `Prévision de trésorerie : ${forecast} jour(s) projetés - ${risks} risque(s) identifié(s)`;
                 }
             });
         }
@@ -17021,11 +17024,12 @@ RÈGLES DE CONVERSATION :
                 label: 'Classification des dépenses',
                 endpoint: '/api/finance/expenses/classify',
                 payload: {
-                    expenses: []
+                    invoices: financeContext.invoices || []
                 },
                 formatResult: (data) => {
                     const categories = Array.isArray(data.categories) ? data.categories.length : 0;
-                    return `Classification des dépenses : ${categories} catégorie(s) identifiée(s)`;
+                    const deductible = data.summary?.deductiblePercentage || 0;
+                    return `Classification des dépenses : ${categories} dépense(s) classifiée(s) - ${deductible.toFixed(1)}% déductibles`;
                 }
             });
         }
@@ -17035,12 +17039,17 @@ RÈGLES DE CONVERSATION :
                 label: 'Rapports financiers',
                 endpoint: '/api/finance/reports/generate',
                 payload: {
-                    period: 'periode-courante',
+                    invoices: financeContext.invoices || [],
+                    reportType: 'summary',
                     format: 'pdf'
                 },
                 formatResult: (data) => {
-                    const link = data.url || 'rapport généré';
-                    return `Rapports financiers : ${link}`;
+                    const url = data.url || 'rapport généré';
+                    const count = data.invoicesAnalyzed || 0;
+                    if (url.startsWith('http')) {
+                        return `Rapports financiers : <a href="${url}" target="_blank">${count} facture(s) analysée(s) - Télécharger PDF</a>`;
+                    }
+                    return `Rapports financiers : ${count} facture(s) analysée(s)`;
                 }
             });
         }
