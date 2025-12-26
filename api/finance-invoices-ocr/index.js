@@ -248,8 +248,8 @@ module.exports = async function (context, req) {
         }
 
         // Poll Computer Vision Read result
-        const maxCvTries = 10;
-        const cvDelayMs = 800;
+        const maxCvTries = 30; // Augmenté de 10 à 30
+        const cvDelayMs = 1000; // Augmenté de 800ms à 1s
         let cvResult = null;
         for (let i = 0; i < maxCvTries; i++) {
           const r = await fetch(cvOpLoc, { headers: { 'Ocp-Apim-Subscription-Key': apiKey } });
@@ -332,17 +332,26 @@ module.exports = async function (context, req) {
       return;
     }
 
-    const maxTries = 10;
-    const delayMs = 800;
+    // Augmenté pour les PDFs volumineux (384 Ko+)
+    const maxTries = 30; // 30 tentatives au lieu de 10
+    const delayMs = 1000; // 1 seconde entre chaque tentative (au lieu de 800ms)
     let resultData = null;
+
+    context.log('[OCR] Polling operation-location, max tries:', maxTries);
 
     for (let i = 0; i < maxTries; i++) {
       const getResp = await fetch(opLoc, { headers: { 'Ocp-Apim-Subscription-Key': apiKey } });
       const data = await getResp.json().catch(() => null);
       if (!data) break;
       const status = data.status || data.analyzeResult?.status;
+      
+      context.log(`[OCR] Polling attempt ${i+1}/${maxTries}, status:`, status);
+      
       if (status === 'succeeded') { resultData = data; break; }
-      if (status === 'failed') { break; }
+      if (status === 'failed') { 
+        context.log('[OCR] Analysis failed:', data.error || 'Unknown error');
+        break; 
+      }
       await new Promise(r => setTimeout(r, delayMs));
     }
 
