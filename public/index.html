@@ -17516,16 +17516,24 @@ RÈGLES DE CONVERSATION :
         }
 
         function runExpenseClassification() {
+            const simplifiedInvoices = (financeContext.invoices || []).map(inv => ({
+                vendor: inv.vendor || '', description: inv.vendor || '', amount: inv.amount || 0,
+                date: inv.date || new Date().toISOString().split('T')[0], currency: inv.currency || 'EUR'
+            }));
             callFinanceTool({
                 label: 'Classification des dépenses',
                 endpoint: '/api/finance/expenses/classify',
-                payload: {
-                    invoices: financeContext.invoices || []
-                },
+                payload: { invoices: simplifiedInvoices },
                 formatResult: (data) => {
-                    const categories = Array.isArray(data.categories) ? data.categories.length : 0;
-                    const deductible = data.summary?.deductiblePercentage || 0;
-                    return `Classification des dépenses : ${categories} dépense(s) classifiée(s) - ${deductible.toFixed(1)}% déductibles`;
+                    if (!data.summary) return data.summary || data.message || 'Classification terminée';
+                    const s = data.summary; const catSummary = data.categorySummary || [];
+                    let result = `📊 Classification de ${s.totalExpenses} dépense(s)\n💰 Total: ${s.totalAmount}€\n✅ Déductible: ${s.deductibleAmount}€ (${s.deductiblePercentage})\n📁 ${s.categoriesUsed} catégories\n\n`;
+                    if (catSummary.length > 0) {
+                        result += `📂 Top catégories:\n`;
+                        catSummary.slice(0, 5).forEach((cat, i) => { result += `${i+1}. ${cat.category}: ${cat.totalAmount}€ (${cat.percentage})\n`; });
+                        if (catSummary.length > 5) result += `... +${catSummary.length - 5} autre(s)\n`;
+                    }
+                    return result;
                 }
             });
         }
