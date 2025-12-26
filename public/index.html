@@ -16920,8 +16920,12 @@ RÈGLES DE CONVERSATION :
                         financeChatAddMessage('bot', `⚠️ DEBUG OCR:\nMéthode: ${data.method}\nWarning: ${data.warning || 'N/A'}\nVendor: ${data.vendor}\nAmount: ${data.amount}\nCurrency: ${data.currency}`);
                     }
                     
-                    // IMPORTANT: Enregistrer les données extraites dans le contexte de l'agent
-                    financeContext.lastInvoice = {
+                    // STOCKER TEMPORAIREMENT les données en attendant la confirmation utilisateur
+                    if (!window.financePendingInvoice) {
+                        window.financePendingInvoice = {};
+                    }
+                    
+                    window.financePendingInvoice = {
                         filename: file.name,
                         vendor: data.vendor || 'fournisseur inconnu',
                         amount: data.amount || null,
@@ -16929,23 +16933,14 @@ RÈGLES DE CONVERSATION :
                         date: data.date || null,
                         invoiceNumber: data.invoiceNumber || null,
                         fields: data.fields || {},
-                        extractedFields: data.extractedFields || {}, // Tous les champs détaillés
-                        fullText: data.fullText || '', // TEXTE COMPLET de la facture
+                        extractedFields: data.extractedFields || {},
+                        fullText: data.fullText || '',
                         fullTextLength: data.fullTextLength || 0,
-                        transactionType: data.transactionType || { type: 'expense', label: 'Inconnu', confidence: 0 }, // Type: expense ou revenue
+                        suggestedType: data.transactionType || { type: 'expense', label: 'Inconnu', confidence: 0 },
                         storedUrl: data.storedUrl || null,
                         extractedAt: new Date().toISOString(),
                         method: data.method || 'unknown'
                     };
-                    
-                    // Ajouter l'historique des factures
-                    if (!financeContext.invoices) {
-                        financeContext.invoices = [];
-                    }
-                    financeContext.invoices.push(financeContext.lastInvoice);
-                    
-                    // Sauvegarder le contexte
-                    financeContext.lastUpdated = new Date().toISOString();
                     
                     // Formater un message détaillé pour l'utilisateur
                     const vendor = data.vendor || 'fournisseur inconnu';
@@ -16954,18 +16949,18 @@ RÈGLES DE CONVERSATION :
                     const invoiceNum = data.invoiceNumber ? `\n🔢 Numéro: ${data.invoiceNumber}` : '';
                     const stored = data.storedUrl ? `\n📦 Archivé: ${data.storedUrl.substring(0, 60)}...` : '';
                     
-                    // Type de transaction (Charge ou Revenu)
+                    // Type suggéré par le système (mais l'utilisateur va choisir)
                     const txType = data.transactionType || {};
-                    const typeIcon = txType.type === 'revenue' ? '💵' : '💸';
-                    const typeLabel = txType.label || 'Type inconnu';
-                    const typeConfidence = txType.confidence ? ` (confiance: ${(txType.confidence * 100).toFixed(0)}%)` : '';
-                    const typeNote = txType.note ? `\n⚠️ ${txType.note}` : '';
+                    const suggestedIcon = txType.type === 'revenue' ? '💵' : '💸';
+                    const suggestedLabel = txType.type === 'revenue' ? 'Revenu' : 'Charge';
+                    const typeConfidence = txType.confidence ? ` (${(txType.confidence * 100).toFixed(0)}% confiance)` : '';
                     
                     let detailedMessage = `✓ Facture analysée avec succès!\n\n`;
                     detailedMessage += `🏢 Fournisseur: ${vendor}\n`;
-                    detailedMessage += `💰 Montant: ${amount}\n`;
-                    detailedMessage += `${typeIcon} Type: ${typeLabel}${typeConfidence}${typeNote}`;
+                    detailedMessage += `💰 Montant: ${amount}`;
                     detailedMessage += date + invoiceNum + stored;
+                    detailedMessage += `\n\n🤖 Suggestion IA: ${suggestedIcon} ${suggestedLabel}${typeConfidence}`;
+                    detailedMessage += `\n\n❓ Cette facture est-elle une CHARGE ou un REVENU ?`;
                     
                     // Affichage des champs supplémentaires extraits
                     if (data.extractedFields) {
@@ -16986,17 +16981,38 @@ RÈGLES DE CONVERSATION :
                         }
                     }
                     
-                    if (data.fields && Object.keys(data.fields).length > 0) {
-                        detailedMessage += `\n\n📊 Détails complets disponibles. Demandez "Plus d'informations" ou "Détails complets"!`;
-                    }
-                    
                     financeChatAddMessage('bot', detailedMessage);
                     
-                    const duration = Date.now() - startTime;
-                    logFinanceAction('invoice_upload_success', { filename: file.name, duration }, { data, detailedMessage }, 'success');
+                    // AJOUTER LES BOUTONS DE CHOIX
+                    const buttonContainer = document.createElement('div');
+                    buttonContainer.className = 'finance-type-choice';
+                    buttonContainer.style.cssText = 'display: flex; gap: 12px; padding: 16px; background: rgba(255,255,255,0.05); border-radius: 12px; margin: 12px 0;';
                     
-                    // Sauvegarder la conversation avec le nouveau contexte
-                    saveFinanceConversation();
+                    const expenseBtn = document.createElement('button');
+                    expenseBtn.className = 'finance-type-btn expense';
+                    expenseBtn.innerHTML = '💸 CHARGE<br><span style="font-size: 11px; opacity: 0.8;">(Dépense/Achat)</span>';
+                    expenseBtn.style.cssText = 'flex: 1; padding: 16px 20px; background: linear-gradient(135deg, #ef4444, #dc2626); color: white; border: 2px solid rgba(239,68,68,0.5); border-radius: 10px; font-size: 15px; font-weight: 700; cursor: pointer; transition: all 0.3s; text-align: center;';
+                    expenseBtn.onmouseover = () => expenseBtn.style.transform = 'scale(1.05)';
+                    expenseBtn.onmouseout = () => expenseBtn.style.transform = 'scale(1)';
+                    expenseBtn.onclick = () => confirmInvoiceType('expense', buttonContainer);
+                    
+                    const revenueBtn = document.createElement('button');
+                    revenueBtn.className = 'finance-type-btn revenue';
+                    revenueBtn.innerHTML = '💵 REVENU<br><span style="font-size: 11px; opacity: 0.8;">(Vente/Encaissement)</span>';
+                    revenueBtn.style.cssText = 'flex: 1; padding: 16px 20px; background: linear-gradient(135deg, #10b981, #059669); color: white; border: 2px solid rgba(16,185,129,0.5); border-radius: 10px; font-size: 15px; font-weight: 700; cursor: pointer; transition: all 0.3s; text-align: center;';
+                    revenueBtn.onmouseover = () => revenueBtn.style.transform = 'scale(1.05)';
+                    revenueBtn.onmouseout = () => revenueBtn.style.transform = 'scale(1)';
+                    revenueBtn.onclick = () => confirmInvoiceType('revenue', buttonContainer);
+                    
+                    buttonContainer.appendChild(expenseBtn);
+                    buttonContainer.appendChild(revenueBtn);
+                    chatHist.appendChild(buttonContainer);
+                    chatHist.scrollTop = chatHist.scrollHeight;
+                    
+                    const duration = Date.now() - startTime;
+                    logFinanceAction('invoice_upload_success', { filename: file.name, duration }, { data, awaitingUserChoice: true }, 'success');
+                    
+                    // NOTE: La conversation sera sauvegardée APRÈS le choix de l'utilisateur
                     
                 } catch (error) {
                     const errorMsg = `Lecture de factures (upload) : ${error.message}`;
@@ -17022,6 +17038,91 @@ RÈGLES DE CONVERSATION :
                 reader.onerror = reject;
                 reader.readAsDataURL(file);
             });
+        }
+
+        // Fonction appelée quand l'utilisateur clique sur CHARGE ou REVENU
+        function confirmInvoiceType(chosenType, buttonContainer) {
+            if (!window.financePendingInvoice) {
+                financeChatAddMessage('bot', '❌ Erreur: Aucune facture en attente');
+                return;
+            }
+            
+            const pending = window.financePendingInvoice;
+            
+            // Supprimer les boutons
+            if (buttonContainer && buttonContainer.parentNode) {
+                buttonContainer.remove();
+            }
+            
+            // Créer l'objet transactionType basé sur le choix utilisateur
+            const userChoice = {
+                type: chosenType,
+                label: chosenType === 'expense' ? 'Charge (Dépense/Achat)' : 'Revenu (Vente/Encaissement)',
+                confidence: 1.0, // 100% de confiance car choix manuel
+                userConfirmed: true,
+                suggestedType: pending.suggestedType?.type,
+                confirmedAt: new Date().toISOString()
+            };
+            
+            // ENREGISTRER dans le contexte Finance
+            financeContext.lastInvoice = {
+                filename: pending.filename,
+                vendor: pending.vendor,
+                amount: pending.amount,
+                currency: pending.currency,
+                date: pending.date,
+                invoiceNumber: pending.invoiceNumber,
+                fields: pending.fields,
+                extractedFields: pending.extractedFields,
+                fullText: pending.fullText,
+                fullTextLength: pending.fullTextLength,
+                transactionType: userChoice, // Type confirmé par l'utilisateur
+                storedUrl: pending.storedUrl,
+                extractedAt: pending.extractedAt,
+                method: pending.method
+            };
+            
+            // Ajouter à l'historique
+            if (!financeContext.invoices) {
+                financeContext.invoices = [];
+            }
+            financeContext.invoices.push(financeContext.lastInvoice);
+            
+            // Mise à jour timestamp
+            financeContext.lastUpdated = new Date().toISOString();
+            
+            // Message de confirmation
+            const icon = chosenType === 'expense' ? '💸' : '💵';
+            const label = chosenType === 'expense' ? 'CHARGE' : 'REVENU';
+            const action = chosenType === 'expense' ? 'sera soustrait' : 'sera ajouté';
+            
+            let confirmMsg = `✅ Facture enregistrée comme ${icon} ${label}\n\n`;
+            confirmMsg += `📊 Résumé:\n`;
+            confirmMsg += `• Fournisseur: ${pending.vendor}\n`;
+            confirmMsg += `• Montant: ${pending.amount} ${pending.currency || ''}\n`;
+            confirmMsg += `• Type: ${label} (confirmé manuellement)\n`;
+            confirmMsg += `• Impact: Ce montant ${action} dans vos calculs financiers\n`;
+            
+            // Vérifier si différent de la suggestion IA
+            if (pending.suggestedType && pending.suggestedType.type !== chosenType) {
+                const suggestedLabel = pending.suggestedType.type === 'expense' ? 'Charge' : 'Revenu';
+                confirmMsg += `\n💡 Note: L'IA avait suggéré "${suggestedLabel}" mais votre choix est prioritaire.`;
+            }
+            
+            financeChatAddMessage('bot', confirmMsg);
+            
+            // Sauvegarder la conversation
+            saveFinanceConversation();
+            
+            // Logger l'action
+            logFinanceAction('invoice_type_confirmed', 
+                { type: chosenType, filename: pending.filename }, 
+                { invoice: financeContext.lastInvoice }, 
+                'success'
+            );
+            
+            // Nettoyer
+            window.financePendingInvoice = null;
         }
 
         function runInvoiceOcr() {
