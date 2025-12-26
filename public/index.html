@@ -16351,10 +16351,18 @@ RÈGLES DE CONVERSATION :
                 return;
             }
             
-            listEl.innerHTML = conversations.map(conv => `
+            listEl.innerHTML = conversations.map(conv => {
+                // Compter les doublons dans cette conversation
+                let duplicateCount = 0;
+                if (conv.context && conv.context.invoices) {
+                    duplicateCount = conv.context.invoices.filter(inv => inv.isDuplicate).length;
+                }
+                const duplicateBadge = duplicateCount > 0 ? `<span class="duplicate-badge" title="${duplicateCount} doublon(s) détecté(s)">⚠️ ${duplicateCount}</span>` : '';
+                
+                return `
                 <div class="history-item ${conv.id === financeConversationId ? 'active' : ''}" data-id="${conv.id}">
                     <div class="history-info">
-                        <div class="history-name">${conv.name}</div>
+                        <div class="history-name">${conv.name} ${duplicateBadge}</div>
                         <div class="history-meta">
                             ${conv.messageCount} messages • ${new Date(conv.lastUpdated).toLocaleDateString('fr-FR')}
                         </div>
@@ -16532,6 +16540,7 @@ RÈGLES DE CONVERSATION :
                     #financeAIOverlay .history-item { background: rgba(255,255,255,0.04); border: 1px solid rgba(148,163,184,0.18); border-radius: 10px; padding: 12px; display: flex; justify-content: space-between; align-items: center; transition: all 0.2s; cursor: pointer; }
                     #financeAIOverlay .history-item:hover { background: rgba(59,130,246,0.1); border-color: rgba(59,130,246,0.3); }
                     #financeAIOverlay .history-item.active { background: rgba(16,185,129,0.12); border-color: rgba(16,185,129,0.35); }
+                    #financeAIOverlay .duplicate-badge { display: inline-block; background: linear-gradient(135deg, #f59e0b, #dc2626); color: white; font-size: 10px; font-weight: 700; padding: 2px 6px; border-radius: 8px; margin-left: 6px; }
                     #financeAIOverlay .history-info { flex: 1; }
                     #financeAIOverlay .history-name { font-size: 13px; font-weight: 600; color: #e2e8f0; margin-bottom: 4px; }
                     #financeAIOverlay .history-meta { font-size: 11px; color: #94a3b8; }
@@ -17244,6 +17253,9 @@ RÈGLES DE CONVERSATION :
             
             const pending = window.financePendingInvoice;
             
+            // VÉRIFIER LES DOUBLONS avant d'enregistrer
+            const isDuplicate = checkDuplicateInvoice(pending);
+            
             // Supprimer les boutons
             if (buttonContainer && buttonContainer.parentNode) {
                 buttonContainer.remove();
@@ -17274,7 +17286,9 @@ RÈGLES DE CONVERSATION :
                 transactionType: userChoice, // Type confirmé par l'utilisateur
                 storedUrl: pending.storedUrl,
                 extractedAt: pending.extractedAt,
-                method: pending.method
+                method: pending.method,
+                isDuplicate: isDuplicate.found, // Marquer si doublon
+                duplicateOf: isDuplicate.found ? isDuplicate.originalIndex : null
             };
             
             // Ajouter à l'historique
@@ -17291,6 +17305,20 @@ RÈGLES DE CONVERSATION :
             const action = chosenType === 'expense' ? 'sera soustrait' : 'sera ajouté';
             
             let confirmMsg = `✅ Facture enregistrée comme ${label}\n\n`;
+            
+            // AVERTISSEMENT DOUBLON
+            if (isDuplicate.found) {
+                const origInvoice = financeContext.invoices[isDuplicate.originalIndex];
+                confirmMsg += `⚠️ DOUBLON DÉTECTÉ!\n`;
+                confirmMsg += `Cette facture ressemble à une facture déjà enregistrée:\n`;
+                confirmMsg += `• Fournisseur: ${origInvoice.vendor}\n`;
+                confirmMsg += `• Montant: ${origInvoice.amount} ${origInvoice.currency || ''}\n`;
+                confirmMsg += `• Date: ${origInvoice.date || 'N/A'}\n`;
+                if (origInvoice.invoiceNumber) confirmMsg += `• N°: ${origInvoice.invoiceNumber}\n`;
+                confirmMsg += `• Enregistrée le: ${new Date(origInvoice.extractedAt).toLocaleDateString('fr-FR')}\n\n`;
+                confirmMsg += `⚠️ Veuillez vérifier si c'est une erreur!\n\n`;
+            }
+            
             confirmMsg += `Résumé:\n`;
             confirmMsg += `• Fournisseur: ${pending.vendor}\n`;
             confirmMsg += `• Montant: ${pending.amount} ${pending.currency || ''}\n`;
@@ -17304,13 +17332,50 @@ RÈGLES DE CONVERSATION :
             
             // Logger l'action
             logFinanceAction('invoice_type_confirmed', 
-                { type: chosenType, filename: pending.filename }, 
+                { type: chosenType, filename: pending.filename, isDuplicate: isDuplicate.found }, 
                 { invoice: financeContext.lastInvoice }, 
-                'success'
+                isDuplicate.found ? 'warning' : 'success'
             );
             
             // Nettoyer
             window.financePendingInvoice = null;
+        }
+
+        function checkDuplicateInvoice(newInvoice) {
+            // Vérifier si une facture similaire existe déjà
+            if (!financeContext.invoices || financeContext.invoices.length === 0) {
+                return { found: false, originalIndex: null };
+            }
+            
+            for (let i = 0; i < financeContext.invoices.length; i++) {
+                const existing = financeContext.invoices[i];
+                
+                // Critères de détection de doublon:
+                // 1. Même numéro de facture (si disponible)
+                if (newInvoice.invoiceNumber && existing.invoiceNumber && 
+                    newInvoice.invoiceNumber === existing.invoiceNumber) {
+                    return { found: true, originalIndex: i, reason: 'same_invoice_number' };
+                }
+                
+                // 2. Même fournisseur + même montant + même date
+                if (newInvoice.vendor && existing.vendor && 
+                    newInvoice.amount && existing.amount &&
+                    newInvoice.vendor.toLowerCase().trim() === existing.vendor.toLowerCase().trim() &&
+                    parseFloat(newInvoice.amount) === parseFloat(existing.amount)) {
+                    
+                    // Vérifier la date si disponible
+                    if (newInvoice.date && existing.date && newInvoice.date === existing.date) {
+                        return { found: true, originalIndex: i, reason: 'same_vendor_amount_date' };
+                    }
+                    
+                    // Si pas de date ou dates manquantes, considérer comme doublon potentiel
+                    if (!newInvoice.date || !existing.date) {
+                        return { found: true, originalIndex: i, reason: 'same_vendor_amount' };
+                    }
+                }
+            }
+            
+            return { found: false, originalIndex: null };
         }
 
         function runInvoiceOcr() {
