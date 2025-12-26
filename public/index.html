@@ -16911,18 +16911,8 @@ RÈGLES DE CONVERSATION :
         }
 
         function runInvoiceOcr() {
-            callFinanceTool({
-                label: 'Lecture de factures',
-                endpoint: '/api/finance/invoices/ocr',
-                payload: {
-                    fileUrl: 'https://example.com/invoice.pdf'
-                },
-                formatResult: (data) => {
-                    const vendor = data.vendor || 'fournisseur inconnu';
-                    const amount = data.amount ? `${data.amount} ${data.currency || ''}` : 'montant non détecté';
-                    return `Lecture de factures : ${vendor}, ${amount}`;
-                }
-            });
+            // Suggérer d'utiliser le bouton d'upload plutôt que ce bouton
+            financeChatAddMessage('bot', '📄 Pour analyser une facture, utilisez le bouton d\'upload (flèche verte ⬆️) à côté du champ de message.\n\nVous pouvez uploader :\n• Fichiers PDF\n• Images (JPG, PNG)\n• Taille max: 5 MB\n\nL\'OCR Azure extraira automatiquement : fournisseur, montant, date, numéro de facture.');
         }
 
         function runFraudDetection() {
