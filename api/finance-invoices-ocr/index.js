@@ -379,6 +379,66 @@ module.exports = async function (context, req) {
     const amount = pick('InvoiceTotal') || pick('AmountDue') || null;
     const currency = pick('Currency') || null;
 
+    // Extraction avancée de tous les champs disponibles
+    const extractedFields = {};
+    const fieldMappings = {
+      // Informations fournisseur
+      VendorName: 'vendorName',
+      VendorAddress: 'vendorAddress',
+      VendorAddressRecipient: 'vendorAddressRecipient',
+      VendorTaxId: 'vendorTaxId',
+      
+      // Informations client
+      CustomerName: 'customerName',
+      CustomerAddress: 'customerAddress',
+      CustomerAddressRecipient: 'customerAddressRecipient',
+      CustomerTaxId: 'customerTaxId',
+      CustomerId: 'customerId',
+      
+      // Détails facture
+      InvoiceId: 'invoiceId',
+      InvoiceDate: 'invoiceDate',
+      DueDate: 'dueDate',
+      PaymentTerm: 'paymentTerm',
+      PurchaseOrder: 'purchaseOrder',
+      BillingAddress: 'billingAddress',
+      ShippingAddress: 'shippingAddress',
+      
+      // Montants
+      InvoiceTotal: 'invoiceTotal',
+      AmountDue: 'amountDue',
+      SubTotal: 'subTotal',
+      TotalTax: 'totalTax',
+      PreviousUnpaidBalance: 'previousUnpaidBalance',
+      
+      // Items de ligne
+      Items: 'items'
+    };
+
+    for (const [azureField, localField] of Object.entries(fieldMappings)) {
+      const val = pick(azureField);
+      if (val !== null && val !== undefined) {
+        extractedFields[localField] = val;
+      }
+    }
+
+    // Extraction spéciale pour les items de ligne (tableaux)
+    if (fields.Items && fields.Items.values) {
+      extractedFields.items = fields.Items.values.map(item => {
+        const itemFields = item.properties || {};
+        return {
+          description: itemFields.Description?.value ?? itemFields.Description?.content ?? null,
+          quantity: itemFields.Quantity?.value ?? itemFields.Quantity?.content ?? null,
+          unitPrice: itemFields.UnitPrice?.value ?? itemFields.UnitPrice?.content ?? null,
+          amount: itemFields.Amount?.value ?? itemFields.Amount?.content ?? null,
+          productCode: itemFields.ProductCode?.value ?? itemFields.ProductCode?.content ?? null,
+          unit: itemFields.Unit?.value ?? itemFields.Unit?.content ?? null,
+          date: itemFields.Date?.value ?? itemFields.Date?.content ?? null,
+          tax: itemFields.Tax?.value ?? itemFields.Tax?.content ?? null
+        };
+      }).filter(item => item.description || item.amount);
+    }
+
     let storedUrl = null;
     try {
       if (fileUrl) {
@@ -405,6 +465,7 @@ module.exports = async function (context, req) {
       currency,
       date,
       invoiceNumber,
+      extractedFields, // Tous les champs extraits avec leurs valeurs
       fields: {
         VendorName: fields.VendorName || null,
         InvoiceId: fields.InvoiceId || null,

@@ -16690,6 +16690,35 @@ RÈGLES DE CONVERSATION :
                         if (financeContext.lastInvoice.storedUrl) {
                             contextInfo += `URL: ${financeContext.lastInvoice.storedUrl}\n`;
                         }
+                        
+                        // Ajouter les champs extraits détaillés
+                        if (financeContext.lastInvoice.extractedFields) {
+                            const ef = financeContext.lastInvoice.extractedFields;
+                            contextInfo += '\n[DÉTAILS COMPLETS]\n';
+                            
+                            if (ef.customerName) contextInfo += `Client: ${ef.customerName}\n`;
+                            if (ef.customerId) contextInfo += `N° Client: ${ef.customerId}\n`;
+                            if (ef.customerAddress) contextInfo += `Adresse client: ${ef.customerAddress}\n`;
+                            if (ef.vendorAddress) contextInfo += `Adresse fournisseur: ${ef.vendorAddress}\n`;
+                            if (ef.vendorTaxId) contextInfo += `NIF/NIPC fournisseur: ${ef.vendorTaxId}\n`;
+                            if (ef.dueDate) contextInfo += `Date limite: ${ef.dueDate}\n`;
+                            if (ef.paymentTerm) contextInfo += `Conditions paiement: ${ef.paymentTerm}\n`;
+                            if (ef.subTotal) contextInfo += `Sous-total: ${ef.subTotal}\n`;
+                            if (ef.totalTax) contextInfo += `Total taxes: ${ef.totalTax}\n`;
+                            if (ef.previousUnpaidBalance) contextInfo += `Solde antérieur: ${ef.previousUnpaidBalance}\n`;
+                            
+                            if (ef.items && ef.items.length > 0) {
+                                contextInfo += `\n[LIGNES DE FACTURATION (${ef.items.length})]\n`;
+                                ef.items.slice(0, 10).forEach((item, idx) => {
+                                    contextInfo += `${idx + 1}. ${item.description || 'Service'}: ${item.amount || item.unitPrice || 'N/A'}`;
+                                    if (item.quantity) contextInfo += ` (Qté: ${item.quantity})`;
+                                    contextInfo += '\n';
+                                });
+                                if (ef.items.length > 10) {
+                                    contextInfo += `... et ${ef.items.length - 10} ligne(s) supplémentaire(s)\n`;
+                                }
+                            }
+                        }
                     }
                     
                     if (financeContext.invoices && financeContext.invoices.length > 1) {
@@ -16856,6 +16885,7 @@ RÈGLES DE CONVERSATION :
                         date: data.date || null,
                         invoiceNumber: data.invoiceNumber || null,
                         fields: data.fields || {},
+                        extractedFields: data.extractedFields || {}, // Tous les champs détaillés
                         storedUrl: data.storedUrl || null,
                         extractedAt: new Date().toISOString(),
                         method: data.method || 'unknown'
@@ -16882,8 +16912,27 @@ RÈGLES DE CONVERSATION :
                     detailedMessage += `💰 Montant: ${amount}`;
                     detailedMessage += date + invoiceNum + stored;
                     
+                    // Affichage des champs supplémentaires extraits
+                    if (data.extractedFields) {
+                        const ef = data.extractedFields;
+                        let extras = [];
+                        
+                        if (ef.customerName) extras.push(`👤 Client: ${ef.customerName}`);
+                        if (ef.customerId) extras.push(`🆔 N° Client: ${ef.customerId}`);
+                        if (ef.dueDate) extras.push(`📆 Date limite: ${ef.dueDate}`);
+                        if (ef.subTotal) extras.push(`💵 Sous-total: ${ef.subTotal}`);
+                        if (ef.totalTax) extras.push(`💰 Taxes: ${ef.totalTax}`);
+                        if (ef.items && ef.items.length > 0) {
+                            extras.push(`📋 ${ef.items.length} ligne(s) de facturation détectée(s)`);
+                        }
+                        
+                        if (extras.length > 0) {
+                            detailedMessage += `\n\n` + extras.join('\n');
+                        }
+                    }
+                    
                     if (data.fields && Object.keys(data.fields).length > 0) {
-                        detailedMessage += `\n\n📊 Détails supplémentaires disponibles. Demandez-moi plus d'informations!`;
+                        detailedMessage += `\n\n📊 Détails complets disponibles. Demandez "Plus d'informations" ou "Détails complets"!`;
                     }
                     
                     financeChatAddMessage('bot', detailedMessage);
