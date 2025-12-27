@@ -8637,6 +8637,181 @@ RÈGLES IMPORTANTES:
                         margin: 0 0 8px;
                         color: rgba(255, 255, 255, 0.7);
                     }
+                    
+                    /* Responsive Design - Mode Bureau Mobile & Tablette */
+                    @media (max-width: 1200px) {
+                        .rnd-content {
+                            padding: 30px;
+                        }
+                        .rnd-header {
+                            padding: 20px 30px;
+                        }
+                        .rnd-tabs {
+                            padding: 16px 30px;
+                        }
+                        .rnd-title {
+                            font-size: 28px;
+                        }
+                        .rnd-stat-value {
+                            font-size: 36px;
+                        }
+                        .rnd-close-btn {
+                            right: 30px;
+                        }
+                        .rnd-dashboard {
+                            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+                        }
+                    }
+                    
+                    @media (max-width: 768px) {
+                        .rnd-header {
+                            padding: 16px 20px;
+                        }
+                        .rnd-title {
+                            font-size: 24px;
+                        }
+                        .rnd-subtitle {
+                            font-size: 12px;
+                        }
+                        .rnd-close-btn {
+                            top: 16px;
+                            right: 20px;
+                            width: 36px;
+                            height: 36px;
+                        }
+                        .rnd-tabs {
+                            padding: 12px 20px;
+                            gap: 6px;
+                            overflow-x: auto;
+                            -webkit-overflow-scrolling: touch;
+                        }
+                        .rnd-tab {
+                            padding: 10px 16px;
+                            font-size: 13px;
+                            white-space: nowrap;
+                            flex-shrink: 0;
+                        }
+                        .rnd-content {
+                            padding: 20px;
+                        }
+                        .rnd-section {
+                            padding: 20px;
+                            margin-bottom: 16px;
+                        }
+                        .rnd-section-title {
+                            font-size: 18px;
+                        }
+                        .rnd-item {
+                            padding: 16px;
+                        }
+                        .rnd-stat-card {
+                            padding: 20px;
+                        }
+                        .rnd-stat-value {
+                            font-size: 32px;
+                        }
+                        .rnd-stat-label {
+                            font-size: 12px;
+                        }
+                        .rnd-btn {
+                            padding: 10px 20px;
+                            font-size: 13px;
+                        }
+                        .rnd-dashboard {
+                            gap: 16px;
+                            margin-bottom: 24px;
+                        }
+                        .rnd-chat-container {
+                            height: 400px;
+                        }
+                        .rnd-chat-messages {
+                            padding: 16px;
+                        }
+                        .rnd-chat-input {
+                            padding: 16px;
+                        }
+                    }
+                    
+                    @media (max-width: 480px) {
+                        .rnd-header {
+                            padding: 12px 16px;
+                        }
+                        .rnd-title {
+                            font-size: 20px;
+                        }
+                        .rnd-subtitle {
+                            display: none;
+                        }
+                        .rnd-close-btn {
+                            top: 12px;
+                            right: 16px;
+                            width: 32px;
+                            height: 32px;
+                        }
+                        .rnd-tabs {
+                            padding: 10px 16px;
+                            gap: 4px;
+                        }
+                        .rnd-tab {
+                            padding: 8px 12px;
+                            font-size: 12px;
+                        }
+                        .rnd-content {
+                            padding: 16px;
+                        }
+                        .rnd-section {
+                            padding: 12px;
+                            margin-bottom: 12px;
+                            border-radius: 12px;
+                        }
+                        .rnd-section-title {
+                            font-size: 16px;
+                        }
+                        .rnd-section-title::before {
+                            width: 3px;
+                            height: 20px;
+                        }
+                        .rnd-item {
+                            padding: 12px;
+                            margin-bottom: 12px;
+                        }
+                        .rnd-stat-card {
+                            padding: 16px;
+                        }
+                        .rnd-stat-value {
+                            font-size: 28px;
+                        }
+                        .rnd-stat-label {
+                            font-size: 11px;
+                        }
+                        .rnd-btn {
+                            padding: 8px 16px;
+                            font-size: 12px;
+                        }
+                        .rnd-badge {
+                            padding: 3px 8px;
+                            font-size: 10px;
+                        }
+                        .rnd-dashboard {
+                            grid-template-columns: 1fr;
+                            gap: 12px;
+                            margin-bottom: 20px;
+                        }
+                        .rnd-chat-container {
+                            height: 300px;
+                        }
+                        .rnd-chat-messages {
+                            padding: 12px;
+                        }
+                        .rnd-chat-input {
+                            padding: 12px;
+                            gap: 8px;
+                        }
+                        .rnd-input {
+                            padding: 10px 12px;
+                            font-size: 13px;
+                        }
+                    }
                 </style>
                 
                 <div class="rnd-container">
