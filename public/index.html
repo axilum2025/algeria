@@ -17629,12 +17629,6 @@ RÈGLES DE CONVERSATION :
                         report += `\n`;
                     }
                     
-                    // Lien de téléchargement
-                    if (url && url.startsWith('http')) {
-                        report += `📄 <strong><a href="${url}" target="_blank" style="color: #3b82f6; text-decoration: underline;">📥 Télécharger le rapport PDF complet</a></strong>\n`;
-                        report += `<small style="color: #666;">Le PDF contient tous les détails, graphiques et recommandations.</small>`;
-                    }
-                    
                     return report.replace(/\n/g, '<br>');
                 }
             });
