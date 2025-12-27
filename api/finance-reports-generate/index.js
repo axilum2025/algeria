@@ -42,12 +42,14 @@ module.exports = async function (context, req) {
     const format = body.format || 'pdf';
     const invoices = Array.isArray(body.invoices) ? body.invoices : [];
     const reportType = body.reportType || 'summary'; // 'summary', 'detailed', 'vat', 'cashflow'
+    const companyInfo = body.companyInfo || {}; // Informations de l'entreprise
 
     context.log('[Finance Reports] 📊 Processing request:', { 
       period, 
       format, 
       reportType, 
-      invoicesCount: invoices.length 
+      invoicesCount: invoices.length,
+      hasCompanyInfo: !!companyInfo.companyName
     });
 
     // Si pas de factures, retourner message d'info
@@ -71,7 +73,7 @@ module.exports = async function (context, req) {
     let pdfBuffer;
     if (format === 'pdf') {
       context.log('[Finance Reports] 📄 Generating PDF report...');
-      pdfBuffer = await generatePDFReport(reportType, analysis, period);
+      pdfBuffer = await generatePDFReport(reportType, analysis, period, companyInfo);
       context.log('[Finance Reports] ✅ PDF generated, size:', pdfBuffer.length, 'bytes');
     } else {
       // JSON format
@@ -325,7 +327,7 @@ function analyzeInvoicesForReport(invoices) {
   };
 }
 
-async function generatePDFReport(reportType, analysis, period) {
+async function generatePDFReport(reportType, analysis, period, companyInfo = {}) {
   return new Promise((resolve, reject) => {
     const doc = new PDFDocument({ 
       margin: 50,
@@ -341,9 +343,31 @@ async function generatePDFReport(reportType, analysis, period) {
     // Ajouter la première page
     doc.addPage();
 
-    // En-tête
-    doc.fontSize(24).font('Helvetica-Bold').text('RAPPORT FINANCIER', { align: 'center' });
-    doc.moveDown();
+    // En-tête avec logo et informations entreprise
+    doc.fontSize(20).font('Helvetica-Bold').fillColor('#1e40af').text('RAPPORT FINANCIER', { align: 'center' });
+    doc.moveDown(0.5);
+    
+    // Informations de l'entreprise si disponibles
+    if (companyInfo.companyName) {
+      doc.fontSize(12).font('Helvetica-Bold').fillColor('black').text(companyInfo.companyName, { align: 'center' });
+      if (companyInfo.address) {
+        doc.fontSize(10).font('Helvetica').text(companyInfo.address, { align: 'center' });
+      }
+      if (companyInfo.city) {
+        doc.text(companyInfo.city, { align: 'center' });
+      }
+      if (companyInfo.phone || companyInfo.email) {
+        const contact = [companyInfo.phone, companyInfo.email].filter(Boolean).join(' • ');
+        doc.text(contact, { align: 'center' });
+      }
+      if (companyInfo.taxId) {
+        doc.fontSize(9).fillColor('gray').text(`NIF: ${companyInfo.taxId}`, { align: 'center' });
+      }
+      doc.moveDown(1);
+      doc.moveTo(100, doc.y).lineTo(500, doc.y).stroke();
+      doc.moveDown(1);
+    }
+    
     doc.fontSize(12).font('Helvetica').text(`Période: ${period}`, { align: 'center' });
     doc.text(`Date de génération: ${new Date().toLocaleDateString('fr-FR')}`, { align: 'center' });
     doc.text(`Type de rapport: ${reportType}`, { align: 'center' });

@@ -17567,13 +17567,26 @@ RÈGLES DE CONVERSATION :
         }
 
         function runAutoReports() {
+            // Récupérer les informations de l'entreprise
+            const companySettings = getHRData('companySettings', {});
+            const companyInfo = {
+                companyName: companySettings.companyName || '',
+                address: companySettings.address || '',
+                city: companySettings.city || '',
+                phone: companySettings.phone || '',
+                email: companySettings.email || '',
+                taxId: companySettings.taxId || '',
+                registrationNumber: companySettings.registrationNumber || ''
+            };
+            
             callFinanceTool({
                 label: 'Rapports financiers',
                 endpoint: '/api/finance/reports/generate',
                 payload: {
                     invoices: financeContext.invoices || [],
                     reportType: 'summary',
-                    format: 'pdf'
+                    format: 'pdf',
+                    companyInfo: companyInfo
                 },
                 formatResult: (data) => {
                     const count = data.invoicesAnalyzed || 0;
