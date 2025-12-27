@@ -9723,14 +9723,21 @@ RÈGLES IMPORTANTES:
                         }
                         
                         #projectDetailsModal > div > div:first-child > div:first-child > div {
-                            flex-direction: column;
-                            gap: 8px;
+                            flex-direction: row !important;
+                            flex-wrap: wrap;
+                            gap: 6px;
                             align-items: flex-start !important;
                         }
                         
                         #projectDetailsModal > div > div:first-child > div:first-child > div > span {
-                            font-size: 11px !important;
-                            padding: 4px 10px !important;
+                            font-size: 10px !important;
+                            padding: 4px 8px !important;
+                            white-space: nowrap;
+                        }
+                        
+                        #projectDetailsModal > div > div:first-child > div:first-child > div > span svg {
+                            width: 14px !important;
+                            height: 14px !important;
                         }
                         
                         #projectDetailsModal > div > div:first-child button {
