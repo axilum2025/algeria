@@ -7567,6 +7567,94 @@ RÈGLES IMPORTANTES:
                             min-height: 300px !important;
                         }
                     }
+                    
+                    /* Responsive pour le panneau Paie */
+                    @media (max-width: 1200px) {
+                        #hrContentPayroll > div > div {
+                            max-width: 100% !important;
+                            padding-top: 10px !important;
+                        }
+                        #hrContentPayroll h2 {
+                            font-size: 24px !important;
+                        }
+                    }
+                    
+                    @media (max-width: 768px) {
+                        #hrContentPayroll > div {
+                            padding: 16px !important;
+                        }
+                        #hrContentPayroll > div > div {
+                            padding-top: 0 !important;
+                        }
+                        #hrContentPayroll h2 {
+                            font-size: 22px !important;
+                        }
+                        #hrContentPayroll p {
+                            font-size: 13px !important;
+                        }
+                        #hrContentPayroll > div > div > div:first-child {
+                            flex-direction: column !important;
+                            align-items: flex-start !important;
+                            gap: 16px !important;
+                        }
+                        #hrContentPayroll > div > div > div:first-child > button {
+                            width: 100% !important;
+                            justify-content: center !important;
+                        }
+                        #hrContentPayroll > div > div > div:nth-child(2) {
+                            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)) !important;
+                            gap: 16px !important;
+                        }
+                        #hrContentPayroll input,
+                        #hrContentPayroll select,
+                        #hrContentPayroll textarea {
+                            font-size: 13px !important;
+                            padding: 10px 12px !important;
+                        }
+                        #hrContentPayroll button {
+                            font-size: 13px !important;
+                            padding: 10px 20px !important;
+                        }
+                    }
+                    
+                    @media (max-width: 480px) {
+                        #hrContentPayroll > div {
+                            padding: 12px !important;
+                        }
+                        #hrContentPayroll h2 {
+                            font-size: 18px !important;
+                        }
+                        #hrContentPayroll h3 {
+                            font-size: 14px !important;
+                        }
+                        #hrContentPayroll p {
+                            font-size: 12px !important;
+                        }
+                        #hrContentPayroll > div > div > div:nth-child(2) {
+                            grid-template-columns: 1fr !important;
+                            gap: 12px !important;
+                            margin-bottom: 20px !important;
+                        }
+                        #hrContentPayroll > div > div > div:nth-child(2) > div {
+                            padding: 16px !important;
+                        }
+                        #hrContentPayroll > div > div > div:nth-child(2) p:first-of-type {
+                            font-size: 11px !important;
+                        }
+                        #hrContentPayroll > div > div > div:nth-child(2) p:last-of-type {
+                            font-size: 22px !important;
+                        }
+                        #hrContentPayroll input,
+                        #hrContentPayroll select,
+                        #hrContentPayroll textarea {
+                            font-size: 12px !important;
+                            padding: 8px 10px !important;
+                        }
+                        #hrContentPayroll button {
+                            padding: 8px 16px !important;
+                            font-size: 12px !important;
+                        }
+                    }
                 </style>
                 
                 <!-- Interface RH Management -->
