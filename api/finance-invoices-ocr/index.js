@@ -243,7 +243,7 @@ module.exports = async function (context, req) {
       
       // Recherche montant avec devise
       const amountPatterns = [
-        /(?:total|montant|amount|sum)[\s:]*([€$£]|\b(?:EUR|USD|GBP|DZD|DA)\b)?\s*([0-9]+(?:[,\.][0-9]{2})?)/i,
+        /(?:total|montant|amount|sum|total\s*ttc|total\s*con\s*iva)[\s:]*([€$£]|\b(?:EUR|USD|GBP|DZD|DA)\b)?\s*([0-9]+(?:[,\.][0-9]{2})?)/i,
         /([€$£]|\b(?:EUR|USD|GBP|DZD|DA)\b)\s*([0-9]+(?:[,\.][0-9]{2})?)/i,
         /([0-9]+(?:[,\.][0-9]{2})?)\s*([€$£]|\b(?:EUR|USD|GBP|DZD|DA)\b)/i
       ];
@@ -262,12 +262,60 @@ module.exports = async function (context, req) {
           break;
         }
       }
+
+      // Recherche TVA/IVA avec patterns multilingues
+      const vatPatterns = [
+        /(?:tva|iva|vat|tax|imposto)[\s:]*([0-9]+(?:[,\.][0-9]{2})?)/i,
+        /(?:tva|iva|vat|tax)[\s:]*\(?([0-9]+(?:[,\.][0-9]{1,2})?)\s*%?\)?/i,
+        /(?:montant|total)[\s:]*(?:tva|iva|vat)[\s:]*([0-9]+(?:[,\.][0-9]{2})?)/i
+      ];
+      let vatAmount = null;
+      for (const pattern of vatPatterns) {
+        const match = text.match(pattern);
+        if (match && match[1]) {
+          const val = Number(String(match[1]).replace(/,/g, '.'));
+          // Si < 100, c'est probablement un taux, sinon un montant
+          if (val < 100 && amount) {
+            vatAmount = (amount * val) / 100;
+          } else if (val >= 100 || !amount) {
+            vatAmount = val;
+          }
+          break;
+        }
+      }
+      
+      // Recherche montant HT
+      const htPatterns = [
+        /(?:montant|total)[\s:]*(?:ht|sin\s*iva|sem\s*iva|excl\.?\s*(?:vat|tax))[\s:]*([0-9]+(?:[,\.][0-9]{2})?)/i,
+        /(?:subtotal|base\s*imponible|base\s*tributável)[\s:]*([0-9]+(?:[,\.][0-9]{2})?)/i
+      ];
+      let htAmount = null;
+      for (const pattern of htPatterns) {
+        const match = text.match(pattern);
+        if (match && match[1]) {
+          htAmount = Number(String(match[1]).replace(/,/g, '.'));
+          break;
+        }
+      }
+      
+      // Si on a HT et TVA mais pas de total, calculer le total
+      if (htAmount && vatAmount && !amount) {
+        amount = htAmount + vatAmount;
+      }
+      // Si on a total et HT mais pas de TVA, calculer la TVA
+      else if (amount && htAmount && !vatAmount) {
+        vatAmount = amount - htAmount;
+      }
+      // Si on a total et TVA mais pas de HT, calculer le HT
+      else if (amount && vatAmount && !htAmount) {
+        htAmount = amount - vatAmount;
+      }
       
       // Recherche date
       const datePatterns = [
         /(\d{4}[-\/]\d{2}[-\/]\d{2})/,
         /(\d{2}[-\/]\d{2}[-\/]\d{4})/,
-        /(?:date|facture|invoice)[\s:]*(\d{1,2}[-\/]\d{1,2}[-\/]\d{2,4})/i
+        /(?:date|facture|invoice|fecha|data)[\s:]*(\d{1,2}[-\/]\d{1,2}[-\/]\d{2,4})/i
       ];
       for (const pattern of datePatterns) {
         const match = text.match(pattern);
@@ -318,8 +366,9 @@ module.exports = async function (context, req) {
       date,
       invoiceNumber,
       fields: {
-        Tax: amount ? Math.round(amount * 0.19) : null,
-        Total: amount ? amount + Math.round(amount * 0.19) : null
+        Tax: vatAmount || (amount ? Math.round(amount * 0.19) : null),
+        SubTotal: htAmount || (amount && vatAmount ? amount - vatAmount : null),
+        Total: amount ? amount : (htAmount && vatAmount ? htAmount + vatAmount : null)
       },
       source: fileUrl || (textContent ? 'inline' : null),
       method: textContent ? 'heuristic-text-parsing' : 'heuristic-stub'

@@ -244,6 +244,16 @@ function analyzeInvoicesForReport(invoices) {
       income: Math.round(data.income),
       expenses: Math.round(data.expenses),
       net: Math.round(data.income - data.expenses)
+    })),
+    invoiceDetails: invoices.map(inv => ({
+      vendor: inv.vendor || 'Inconnu',
+      amount: Math.abs(parseFloat(inv.amount) || 0),
+      vat: inv.extractedFields?.totalTax || inv.fields?.Tax || 0,
+      total: inv.extractedFields?.invoiceTotal || inv.amount,
+      date: inv.date || inv.invoiceDate,
+      number: inv.invoiceNumber || inv.extractedFields?.invoiceId || 'N/A',
+      type: inv.type || 'expense',
+      category: inv.category || 'Non classifié'
     }))
   };
 }
@@ -321,6 +331,64 @@ async function generatePDFReport(reportType, analysis, period) {
       
       analysis.monthlyTrend.forEach(m => {
         doc.text(`${m.month}: Revenus ${m.income.toLocaleString('fr-FR')} € | Dépenses ${m.expenses.toLocaleString('fr-FR')} € | Net ${m.net.toLocaleString('fr-FR')} €`);
+      });
+    }
+
+    // NOUVEAU: Détail complet des factures
+    if (analysis.invoiceDetails && analysis.invoiceDetails.length > 0) {
+      doc.addPage();
+      doc.fontSize(18).font('Helvetica-Bold').text('DÉTAIL DES FACTURES', { align: 'center' });
+      doc.moveDown(1);
+      
+      // Trier par date
+      const sortedInvoices = [...analysis.invoiceDetails].sort((a, b) => 
+        new Date(b.date || 0) - new Date(a.date || 0)
+      );
+
+      sortedInvoices.forEach((inv, idx) => {
+        // Nouvelle page tous les 6 factures pour éviter débordement
+        if (idx > 0 && idx % 6 === 0) {
+          doc.addPage();
+        }
+
+        const invType = inv.type === 'income' ? 'REVENU' : 'DÉPENSE';
+        const typeColor = inv.type === 'income' ? 'green' : 'red';
+        
+        // En-tête facture
+        doc.fontSize(12).font('Helvetica-Bold')
+           .fillColor(typeColor)
+           .text(`${idx + 1}. ${inv.vendor} [${invType}]`);
+        doc.fillColor('black');
+        
+        // Détails
+        doc.fontSize(9).font('Helvetica');
+        doc.text(`   Numéro: ${inv.number}`);
+        doc.text(`   Date: ${inv.date ? new Date(inv.date).toLocaleDateString('fr-FR') : 'N/A'}`);
+        doc.text(`   Catégorie: ${inv.category}`);
+        
+        // Montants détaillés
+        const amount = parseFloat(inv.amount) || 0;
+        const vat = parseFloat(inv.vat) || 0;
+        const total = parseFloat(inv.total) || amount;
+        const htAmount = vat > 0 ? total - vat : amount;
+        
+        doc.text(`   Montant HT: ${htAmount.toLocaleString('fr-FR')} €`);
+        if (vat > 0) {
+          const vatRate = htAmount > 0 ? ((vat / htAmount) * 100).toFixed(1) : '0';
+          doc.text(`   TVA/IVA (${vatRate}%): ${vat.toLocaleString('fr-FR')} €`);
+        } else {
+          doc.text(`   TVA/IVA: Non détectée`);
+        }
+        doc.font('Helvetica-Bold').text(`   Total TTC: ${total.toLocaleString('fr-FR')} €`);
+        
+        doc.moveDown(0.8);
+        doc.font('Helvetica');
+        
+        // Ligne de séparation
+        if (idx < sortedInvoices.length - 1) {
+          doc.moveTo(50, doc.y).lineTo(550, doc.y).stroke();
+          doc.moveDown(0.5);
+        }
       });
     }
 
