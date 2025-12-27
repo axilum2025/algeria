@@ -381,6 +381,185 @@
             width: 100%;
         }
 
+        /* Welcome Screen Styles */
+        .welcome-screen {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100%;
+            padding: 40px 20px;
+            animation: fadeIn 0.6s ease;
+        }
+
+        .welcome-content {
+            max-width: 900px;
+            width: 100%;
+            text-align: center;
+        }
+
+        .welcome-logo {
+            width: 120px;
+            height: 120px;
+            margin: 0 auto 30px;
+            animation: float 3s ease-in-out infinite;
+        }
+
+        .welcome-logo svg {
+            width: 100%;
+            height: 100%;
+            filter: drop-shadow(0 8px 16px rgba(102, 126, 234, 0.3));
+        }
+
+        .welcome-title {
+            font-size: 2.5rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 12px;
+            animation: slideDown 0.6s ease;
+        }
+
+        .welcome-subtitle {
+            font-size: 1.1rem;
+            color: var(--text-secondary);
+            margin-bottom: 50px;
+            animation: slideDown 0.7s ease;
+        }
+
+        .prompt-suggestions {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 16px;
+            margin-bottom: 40px;
+        }
+
+        .prompt-card {
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 20px;
+            display: flex;
+            align-items: flex-start;
+            gap: 16px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: left;
+            animation: slideUp 0.6s ease backwards;
+        }
+
+        .prompt-card:nth-child(1) { animation-delay: 0.1s; }
+        .prompt-card:nth-child(2) { animation-delay: 0.2s; }
+        .prompt-card:nth-child(3) { animation-delay: 0.3s; }
+        .prompt-card:nth-child(4) { animation-delay: 0.4s; }
+        .prompt-card:nth-child(5) { animation-delay: 0.5s; }
+        .prompt-card:nth-child(6) { animation-delay: 0.6s; }
+
+        .prompt-card:hover {
+            background: rgba(255, 255, 255, 0.08);
+            border-color: var(--accent);
+            transform: translateY(-4px);
+            box-shadow: 0 8px 24px rgba(102, 126, 234, 0.2);
+        }
+
+        .prompt-card svg {
+            width: 32px;
+            height: 32px;
+            color: var(--accent);
+            flex-shrink: 0;
+        }
+
+        .prompt-text h3 {
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 4px;
+        }
+
+        .prompt-text p {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+            line-height: 1.4;
+        }
+
+        .welcome-footer {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 16px;
+            animation: fadeIn 1s ease;
+        }
+
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 16px;
+            background: rgba(16, 185, 129, 0.1);
+            border: 1px solid rgba(16, 185, 129, 0.3);
+            border-radius: 20px;
+            color: #10b981;
+            font-size: 0.875rem;
+            font-weight: 500;
+        }
+
+        .status-badge svg {
+            width: 8px;
+            height: 8px;
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        .welcome-tip {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            opacity: 0.8;
+        }
+
+        /* Animations */
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        /* Hide welcome screen when messages exist */
+        .chat-messages:has(.message) .welcome-screen {
+            display: none;
+        }
+
         /* Plus d'espace en mode bureau */
         @media (min-width: 800px) {
             .chat-messages {
@@ -1212,6 +1391,20 @@
                 padding: 30px 16px 200px;
             }
 
+            /* Welcome screen responsive - Tablette */
+            .welcome-title {
+                font-size: 2rem;
+            }
+
+            .welcome-logo {
+                width: 100px;
+                height: 100px;
+            }
+
+            .prompt-suggestions {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
             .plan-selector {
                 flex-wrap: wrap;
                 gap: 4px;
@@ -1307,6 +1500,44 @@
 
             .message.assistant {
                 max-width: 95%;
+            }
+
+            /* Welcome screen responsive - Mobile */
+            .welcome-screen {
+                padding: 20px 16px;
+            }
+
+            .welcome-title {
+                font-size: 1.75rem;
+            }
+
+            .welcome-subtitle {
+                font-size: 1rem;
+                margin-bottom: 30px;
+            }
+
+            .welcome-logo {
+                width: 80px;
+                height: 80px;
+                margin-bottom: 20px;
+            }
+
+            .prompt-suggestions {
+                grid-template-columns: 1fr;
+                gap: 12px;
+            }
+
+            .prompt-card {
+                padding: 16px;
+            }
+
+            .prompt-card svg {
+                width: 28px;
+                height: 28px;
+            }
+
+            .welcome-footer {
+                gap: 12px;
             }
 
             /* Input area mobile */
@@ -2313,6 +2544,100 @@
     <div class="chat-container" id="chatContainer">
         <div class="chat-messages" id="chatMessages">
             <!-- Messages will appear here -->
+            
+            <!-- Empty State - Welcome Screen -->
+            <div class="welcome-screen" id="welcomeScreen">
+                <div class="welcome-content">
+                    <div class="welcome-logo">
+                        <svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <circle cx="50" cy="50" r="45" stroke="url(#gradient1)" stroke-width="3" opacity="0.3"/>
+                            <circle cx="50" cy="50" r="35" stroke="url(#gradient1)" stroke-width="2" opacity="0.5"/>
+                            <path d="M50 20 L50 45 M50 55 L50 80 M35 50 L45 50 M55 50 L65 50" stroke="url(#gradient1)" stroke-width="4" stroke-linecap="round"/>
+                            <circle cx="50" cy="50" r="5" fill="url(#gradient1)"/>
+                            <defs>
+                                <linearGradient id="gradient1" x1="0%" y1="0%" x2="100%" y2="100%">
+                                    <stop offset="0%" style="stop-color:#667eea;stop-opacity:1" />
+                                    <stop offset="100%" style="stop-color:#764ba2;stop-opacity:1" />
+                                </linearGradient>
+                            </defs>
+                        </svg>
+                    </div>
+                    <h1 class="welcome-title">Bienvenue sur Algeria AI</h1>
+                    <p class="welcome-subtitle">Votre assistant intelligent pour tous vos besoins professionnels</p>
+                    
+                    <div class="prompt-suggestions">
+                        <div class="prompt-card" onclick="useSuggestion('Analyse ce fichier Excel et génère un rapport détaillé')">
+                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+                            </svg>
+                            <div class="prompt-text">
+                                <h3>Analyse Excel</h3>
+                                <p>Génère un rapport détaillé</p>
+                            </div>
+                        </div>
+                        
+                        <div class="prompt-card" onclick="useSuggestion('Crée un rapport financier pour ce mois avec analyse des dépenses et revenus')">
+                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                            </svg>
+                            <div class="prompt-text">
+                                <h3>Rapport financier</h3>
+                                <p>Analyse dépenses et revenus</p>
+                            </div>
+                        </div>
+                        
+                        <div class="prompt-card" onclick="useSuggestion('Recherche des informations détaillées sur [sujet] et résume les points clés')">
+                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                            </svg>
+                            <div class="prompt-text">
+                                <h3>Recherche web</h3>
+                                <p>Trouve et résume des infos</p>
+                            </div>
+                        </div>
+                        
+                        <div class="prompt-card" onclick="useSuggestion('Rédige un email professionnel pour [destinataire] concernant [sujet]')">
+                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+                            </svg>
+                            <div class="prompt-text">
+                                <h3>Rédaction email</h3>
+                                <p>Email professionnel</p>
+                            </div>
+                        </div>
+                        
+                        <div class="prompt-card" onclick="useSuggestion('Analyse cette image et décris en détail ce que tu vois')">
+                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                            </svg>
+                            <div class="prompt-text">
+                                <h3>Vision AI</h3>
+                                <p>Analyse d'images</p>
+                            </div>
+                        </div>
+                        
+                        <div class="prompt-card" onclick="useSuggestion('Aide-moi à organiser mes tâches et crée un planning pour la semaine')">
+                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/>
+                            </svg>
+                            <div class="prompt-text">
+                                <h3>Gestion tâches</h3>
+                                <p>Organisation et planning</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="welcome-footer">
+                        <div class="status-badge">
+                            <svg viewBox="0 0 8 8" fill="currentColor">
+                                <circle cx="4" cy="4" r="3"/>
+                            </svg>
+                            <span>Système opérationnel</span>
+                        </div>
+                        <p class="welcome-tip">💡 Astuce : Basculez entre FREE et PRO en haut à droite selon vos besoins</p>
+                    </div>
+                </div>
+            </div>
         </div>
 
         <div class="input-container">
@@ -3252,6 +3577,21 @@ RÈGLES IMPORTANTES:
         function clearChat() {
             const chatMessages = document.getElementById('chatMessages');
             chatMessages.innerHTML = '';
+            // Restore welcome screen
+            const welcomeScreen = document.getElementById('welcomeScreen');
+            if (welcomeScreen) {
+                welcomeScreen.style.display = 'flex';
+            }
+        }
+
+        // Function to use a suggestion
+        function useSuggestion(text) {
+            const input = document.getElementById('userInput');
+            input.value = text;
+            input.focus();
+            adjustTextareaHeight();
+            // Optional: auto-send the message
+            // sendMessage();
         }
 
         // 🆓💎 Plan Management
@@ -3295,6 +3635,12 @@ RÈGLES IMPORTANTES:
             const input = document.getElementById('userInput');
             const message = input.value.trim();
             if (!message) return;
+
+            // Hide welcome screen on first message
+            const welcomeScreen = document.getElementById('welcomeScreen');
+            if (welcomeScreen) {
+                welcomeScreen.style.display = 'none';
+            }
 
             // MODE DÉTECTION D'HALLUCINATIONS
 
@@ -4980,6 +5326,15 @@ RÈGLES IMPORTANTES:
             if (!conv) return;
 
             clearChat();
+            
+            // Hide welcome screen when loading conversation with messages
+            if (conv.messages && conv.messages.length > 0) {
+                const welcomeScreen = document.getElementById('welcomeScreen');
+                if (welcomeScreen) {
+                    welcomeScreen.style.display = 'none';
+                }
+            }
+            
             conv.messages.forEach(msg => {
                 addMessage(msg.user, 'user');
                 
