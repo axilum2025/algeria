@@ -7482,6 +7482,91 @@ RÈGLES IMPORTANTES:
                             padding: 10px 45px 10px 12px !important;
                         }
                     }
+                    
+                    /* Responsive pour le panneau Employés */
+                    @media (max-width: 1200px) {
+                        #hrContentEmployees > div > div {
+                            max-width: 100% !important;
+                            padding-top: 10px !important;
+                        }
+                        #hrContentEmployees h2 {
+                            font-size: 24px !important;
+                        }
+                    }
+                    
+                    @media (max-width: 768px) {
+                        #hrContentEmployees > div {
+                            padding: 16px !important;
+                        }
+                        #hrContentEmployees > div > div {
+                            padding-top: 0 !important;
+                        }
+                        #hrContentEmployees h2 {
+                            font-size: 22px !important;
+                        }
+                        #hrContentEmployees p {
+                            font-size: 13px !important;
+                        }
+                        #hrContentEmployees > div > div > div:first-child {
+                            flex-direction: column !important;
+                            align-items: flex-start !important;
+                            gap: 16px !important;
+                        }
+                        #hrContentEmployees > div > div > div:first-child > div:last-child {
+                            width: 100% !important;
+                            flex-direction: column !important;
+                        }
+                        #hrContentEmployees > div > div > div:first-child button {
+                            width: 100% !important;
+                            justify-content: center !important;
+                        }
+                        #hrContentEmployees > div > div > div:nth-child(2) > div:last-child {
+                            grid-template-columns: 1fr !important;
+                            gap: 10px !important;
+                        }
+                        #hrContentEmployees input,
+                        #hrContentEmployees select {
+                            font-size: 13px !important;
+                            padding: 10px 12px !important;
+                        }
+                        #employeesList {
+                            padding: 20px !important;
+                        }
+                    }
+                    
+                    @media (max-width: 480px) {
+                        #hrContentEmployees > div {
+                            padding: 12px !important;
+                        }
+                        #hrContentEmployees h2 {
+                            font-size: 18px !important;
+                        }
+                        #hrContentEmployees h3 {
+                            font-size: 14px !important;
+                        }
+                        #hrContentEmployees p {
+                            font-size: 12px !important;
+                        }
+                        #hrContentEmployees > div > div > div:nth-child(2) {
+                            padding: 16px !important;
+                        }
+                        #hrContentEmployees > div > div > div:nth-child(2) h3 {
+                            margin-bottom: 12px !important;
+                        }
+                        #hrContentEmployees input,
+                        #hrContentEmployees select {
+                            font-size: 12px !important;
+                            padding: 8px 10px !important;
+                        }
+                        #hrContentEmployees button {
+                            padding: 10px 16px !important;
+                            font-size: 12px !important;
+                        }
+                        #employeesList {
+                            padding: 16px !important;
+                            min-height: 300px !important;
+                        }
+                    }
                 </style>
                 
                 <!-- Interface RH Management -->
