@@ -9858,6 +9858,18 @@ RÈGLES IMPORTANTES:
                         
                         .rnd-item > div:first-child > div:first-child {
                             width: 100%;
+                            display: flex;
+                            flex-direction: column;
+                            gap: 8px;
+                        }
+                        
+                        .rnd-item > div:first-child > div:first-child h3 {
+                            margin-bottom: 0 !important;
+                        }
+                        
+                        /* Container des badges en ligne horizontale */
+                        .rnd-item > div:first-child > div:first-child > span {
+                            display: inline-block !important;
                         }
                         
                         .rnd-item > div:first-child > div:last-child {
@@ -9869,6 +9881,7 @@ RÈGLES IMPORTANTES:
                             padding: 8px 12px;
                             border-radius: 8px;
                             border: 1px solid rgba(16, 185, 129, 0.3);
+                            flex-shrink: 0;
                         }
                         
                         .rnd-item > div:first-child > div:last-child > div:first-child {
