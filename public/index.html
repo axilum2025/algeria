@@ -17007,11 +17007,33 @@ RÈGLES DE CONVERSATION :
                         financeContext.reports.forEach((report, idx) => {
                             contextInfo += `Rapport ${idx + 1}:\n`;
                             contextInfo += `- Nom: ${report.name}\n`;
+                            contextInfo += `- Date création: ${report.lastModified || report.generatedAt || 'Non définie'}\n`;
                             contextInfo += `- Taille: ${report.size} octets\n`;
-                            contextInfo += `- Date: ${report.lastModified}\n`;
+                            
+                            // Ajouter les détails du contenu si disponible
+                            if (report.summary) {
+                                contextInfo += `\n CONTENU DU RAPPORT:\n`;
+                                contextInfo += `  • Total Revenus: ${report.summary.totalRevenue} €\n`;
+                                contextInfo += `  • Total Charges: ${report.summary.totalExpenses} €\n`;
+                                contextInfo += `  • Résultat Net: ${report.summary.netIncome} €\n`;
+                                contextInfo += `  • Marge: ${report.summary.margin}\n`;
+                                contextInfo += `  • TVA: ${report.summary.totalVAT} €\n`;
+                                contextInfo += `  • Nombre de factures: ${report.summary.invoiceCount}\n`;
+                                contextInfo += `  • Factures revenus: ${report.summary.incomeCount}\n`;
+                                contextInfo += `  • Factures charges: ${report.summary.expenseCount}\n`;
+                                contextInfo += `  • Flux de trésorerie: ${report.summary.cashFlow} €\n`;
+                            }
+                            
+                            if (report.kpis) {
+                                contextInfo += `\n KPIs:\n`;
+                                contextInfo += `  • Rentabilité: ${report.kpis.profitability}\n`;
+                                contextInfo += `  • Tendance: ${report.kpis.trend}\n`;
+                                contextInfo += `  • Taux de croissance: ${report.kpis.growthRate}\n`;
+                            }
+                            
                             contextInfo += `- URL: ${report.url}\n\n`;
                         });
-                        contextInfo += `Tu peux discuter de ces rapports avec l'utilisateur et proposer d'en générer de nouveaux.\n`;
+                        contextInfo += `Tu peux discuter de ces rapports en détail avec l'utilisateur.\n`;
                     } else {
                         contextInfo += `Aucun rapport généré pour le moment.\n`;
                         contextInfo += `Tu peux proposer de générer un premier rapport financier.\n`;
@@ -17645,6 +17667,23 @@ RÈGLES DE CONVERSATION :
                     
                     if (count === 0) {
                         return 'Aucune facture à analyser. Uploadez des factures d\'abord.';
+                    }
+                    
+                    // Stocker les détails du rapport dans le contexte
+                    if (data.summary && data.url) {
+                        const reportDetails = {
+                            name: data.url.split('/').pop().split('?')[0],
+                            url: data.url,
+                            size: data.size || 0,
+                            lastModified: new Date().toISOString(),
+                            summary: data.summary,
+                            kpis: data.kpis,
+                            generatedAt: data.generatedAt
+                        };
+                        // Ajouter au contexte
+                        if (!financeContext.reports) financeContext.reports = [];
+                        financeContext.reports.unshift(reportDetails); // Ajouter au début
+                        console.log('[Finance] 📊 Rapport ajouté au contexte:', reportDetails);
                     }
                     
                     return `✅ Votre rapport financier est bien généré avec ${count} facture(s) analysée(s).<br><br>📄 Vous pouvez le consulter dans la liste des <strong>Rapports (Blob)</strong>.<br><br>💬 Si vous avez des questions à propos du rapport, je suis à votre disposition !`;
