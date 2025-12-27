@@ -526,6 +526,320 @@
         .history-item:last-child {
             margin-bottom: 0;
         }
+
+        /* Responsive Design */
+        @media (max-width: 1200px) {
+            /* Tablette landscape */
+            .main-container {
+                grid-template-columns: 1fr 320px;
+            }
+
+            .ribbon {
+                gap: 16px;
+                overflow-x: auto;
+                padding: 8px 16px;
+            }
+
+            .excel-header {
+                padding: 12px 16px;
+            }
+        }
+
+        @media (max-width: 1024px) {
+            /* Tablette */
+            .main-container {
+                grid-template-columns: 1fr;
+                height: auto;
+            }
+
+            .ai-panel {
+                position: fixed;
+                bottom: 0;
+                left: 0;
+                right: 0;
+                height: 50vh;
+                max-height: 400px;
+                border-right: none;
+                border-top: 2px solid var(--excel-green);
+                transform: translateY(100%);
+                transition: transform 0.3s ease;
+                z-index: 1000;
+            }
+
+            .ai-panel.open {
+                transform: translateY(0);
+            }
+
+            .excel-work-area {
+                height: calc(100vh - 120px);
+                border-right: none;
+            }
+
+            .ribbon {
+                padding: 8px 12px;
+                gap: 12px;
+            }
+
+            .ribbon-btn {
+                padding: 6px 10px;
+                font-size: 12px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            /* Mobile */
+            .excel-header {
+                padding: 10px 12px;
+                flex-direction: column;
+                align-items: stretch;
+                gap: 8px;
+                height: auto;
+            }
+
+            .excel-header-left {
+                justify-content: space-between;
+                width: 100%;
+            }
+
+            .excel-logo {
+                font-size: 16px;
+            }
+
+            .excel-title {
+                font-size: 12px;
+            }
+
+            .header-btn {
+                padding: 6px 10px;
+                font-size: 12px;
+            }
+
+            .icon-btn {
+                width: 28px;
+                height: 28px;
+            }
+
+            .ribbon {
+                padding: 6px 8px;
+                gap: 8px;
+                flex-wrap: wrap;
+            }
+
+            .ribbon-group {
+                min-width: auto;
+            }
+
+            .ribbon-btn {
+                padding: 6px 8px;
+                font-size: 11px;
+            }
+
+            .upload-card {
+                padding: 40px 20px;
+            }
+
+            .upload-icon {
+                width: 48px;
+                height: 48px;
+            }
+
+            .upload-title {
+                font-size: 18px;
+            }
+
+            .upload-subtitle {
+                font-size: 13px;
+            }
+
+            .upload-btn {
+                padding: 10px 20px;
+                font-size: 14px;
+            }
+
+            /* Excel Table Responsive */
+            .excel-table {
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+            }
+
+            .excel-table table {
+                min-width: 100%;
+                font-size: 12px;
+            }
+
+            .excel-table th,
+            .excel-table td {
+                padding: 6px 8px;
+                min-width: 80px;
+            }
+
+            /* AI Panel Mobile */
+            .ai-panel {
+                height: 60vh;
+                max-height: none;
+            }
+
+            .ai-panel-header {
+                padding: 12px;
+            }
+
+            .ai-panel-title {
+                font-size: 14px;
+            }
+
+            .chat-messages {
+                padding: 12px;
+            }
+
+            .chat-message {
+                padding: 10px;
+                font-size: 13px;
+            }
+
+            .chat-input-container {
+                padding: 12px;
+            }
+
+            .chat-input {
+                font-size: 14px;
+                padding: 10px;
+            }
+
+            .send-btn {
+                padding: 10px 12px;
+            }
+
+            .quick-actions-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .quick-action-btn {
+                padding: 12px;
+                font-size: 13px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            /* Petit mobile */
+            .excel-header {
+                padding: 8px;
+            }
+
+            .excel-logo {
+                font-size: 14px;
+                gap: 4px;
+            }
+
+            .excel-title {
+                display: none;
+            }
+
+            .header-btn {
+                padding: 5px 8px;
+                font-size: 11px;
+                gap: 4px;
+            }
+
+            .header-btn span {
+                display: none;
+            }
+
+            .icon-btn {
+                width: 26px;
+                height: 26px;
+            }
+
+            .ribbon {
+                padding: 4px;
+                gap: 4px;
+            }
+
+            .ribbon-btn {
+                padding: 4px 6px;
+                font-size: 10px;
+                gap: 4px;
+            }
+
+            .ribbon-btn svg {
+                width: 14px;
+                height: 14px;
+            }
+
+            .upload-card {
+                padding: 30px 16px;
+            }
+
+            .upload-icon {
+                width: 40px;
+                height: 40px;
+            }
+
+            .upload-title {
+                font-size: 16px;
+            }
+
+            .upload-subtitle {
+                font-size: 12px;
+            }
+
+            .upload-btn {
+                padding: 8px 16px;
+                font-size: 13px;
+            }
+
+            .excel-table table {
+                font-size: 11px;
+            }
+
+            .excel-table th,
+            .excel-table td {
+                padding: 4px 6px;
+                min-width: 60px;
+            }
+
+            .chat-message {
+                padding: 8px;
+                font-size: 12px;
+            }
+
+            .quick-action-btn {
+                padding: 10px;
+                font-size: 12px;
+            }
+        }
+
+        /* Toggle button for mobile AI panel */
+        .ai-panel-toggle {
+            display: none;
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            background: var(--excel-green);
+            color: white;
+            border: none;
+            box-shadow: 0 4px 12px rgba(33, 115, 70, 0.4);
+            cursor: pointer;
+            z-index: 999;
+            font-size: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s;
+        }
+
+        .ai-panel-toggle:hover {
+            background: var(--excel-green-dark);
+            transform: scale(1.1);
+        }
+
+        @media (max-width: 1024px) {
+            .ai-panel-toggle {
+                display: flex;
+            }
+        }
     </style>
 </head>
 <body>

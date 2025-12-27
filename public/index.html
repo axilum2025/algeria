@@ -1209,20 +1209,293 @@
         }
 
         /* Responsive */
-        @media (max-width: 768px) {
+        @media (max-width: 1024px) {
+            /* Tablette */
             .sidebar {
-                width: 100%;
-                left: -100%;
+                width: 50%;
+                max-width: 400px;
             }
 
             .chat-container.sidebar-open {
                 margin-left: 0;
             }
 
+            .chat-messages {
+                padding: 30px 16px 180px;
+            }
+
+            .plan-selector {
+                flex-wrap: wrap;
+                gap: 4px;
+            }
+
+            .plan-badge {
+                padding: 5px 10px;
+                font-size: 11px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            /* Mobile */
+            .sidebar {
+                width: 85%;
+                left: -85%;
+                max-width: none;
+            }
+
+            .sidebar.open {
+                left: 0;
+            }
+
+            .chat-container.sidebar-open {
+                margin-left: 0;
+            }
+
+            .header {
+                height: auto;
+                min-height: 60px;
+                padding: 10px 12px;
+            }
+
+            .header-left {
+                gap: 10px;
+            }
+
             .header-left .logo {
                 font-size: 16px;
             }
+
+            .header-right {
+                gap: 6px;
+            }
+
+            .plan-selector {
+                display: none;
+            }
+
+            .icon-btn {
+                width: 32px;
+                height: 32px;
+            }
+
+            .icon-btn svg {
+                width: 18px;
+                height: 18px;
+            }
+
+            .chat-messages {
+                padding: 20px 12px 160px;
+                max-width: 100%;
+            }
+
+            .message-wrapper {
+                margin-bottom: 12px;
+            }
+
+            .message {
+                padding: 10px 12px;
+                font-size: 14px;
+                max-width: 90%;
+            }
+
+            .message.user {
+                max-width: 85%;
+            }
+
+            .message.assistant {
+                max-width: 95%;
+            }
+
+            /* Input area mobile */
+            .input-area {
+                padding: 12px;
+                gap: 8px;
+            }
+
+            .input-wrapper {
+                gap: 8px;
+            }
+
+            #userMessage {
+                font-size: 14px;
+                padding: 10px 12px;
+                min-height: 44px;
+            }
+
+            #sendBtn {
+                width: 44px;
+                height: 44px;
+                min-width: 44px;
+                min-height: 44px;
+            }
+
+            #sendBtn svg {
+                width: 20px;
+                height: 20px;
+            }
+
+            /* Suggestions mobile */
+            .suggestions-container {
+                padding: 8px 12px;
+                gap: 6px;
+            }
+
+            .suggestion-chip {
+                padding: 8px 12px;
+                font-size: 12px;
+            }
+
+            /* Sidebar mobile */
+            .sidebar-header {
+                padding: 16px;
+            }
+
+            .new-chat-btn,
+            .sessions-toggle-btn {
+                padding: 10px;
+                font-size: 13px;
+            }
+
+            .conv-item {
+                padding: 10px;
+                font-size: 13px;
+            }
+
+            .conv-group-title {
+                font-size: 11px;
+                padding: 8px 10px;
+            }
         }
+
+        @media (max-width: 480px) {
+            /* Petit mobile */
+            .sidebar {
+                width: 100%;
+                left: -100%;
+            }
+
+            .header {
+                padding: 8px 10px;
+                min-height: 56px;
+            }
+
+            .header-left .logo {
+                font-size: 14px;
+            }
+
+            .menu-btn {
+                font-size: 20px;
+                padding: 6px;
+            }
+
+            .icon-btn {
+                width: 30px;
+                height: 30px;
+            }
+
+            .icon-btn svg {
+                width: 16px;
+                height: 16px;
+            }
+
+            .chat-messages {
+                padding: 16px 10px 140px;
+            }
+
+            .message {
+                padding: 8px 10px;
+                font-size: 13px;
+            }
+
+            .input-area {
+                padding: 10px;
+                gap: 6px;
+            }
+
+            #userMessage {
+                font-size: 13px;
+                padding: 8px 10px;
+                min-height: 40px;
+            }
+
+            #sendBtn {
+                width: 40px;
+                height: 40px;
+                min-width: 40px;
+                min-height: 40px;
+            }
+
+            #sendBtn svg {
+                width: 18px;
+                height: 18px;
+            }
+
+            .suggestions-container {
+                padding: 6px 10px;
+                gap: 4px;
+                overflow-x: auto;
+                flex-wrap: nowrap;
+            }
+
+            .suggestion-chip {
+                padding: 6px 10px;
+                font-size: 11px;
+                white-space: nowrap;
+            }
+
+            .sidebar-header {
+                padding: 12px;
+            }
+
+            .new-chat-btn,
+            .sessions-toggle-btn {
+                padding: 8px;
+                font-size: 12px;
+            }
+
+            .conv-item {
+                padding: 8px;
+                font-size: 12px;
+            }
+
+            .conv-group-title {
+                font-size: 10px;
+                padding: 6px 8px;
+            }
+        }
+
+        /* Touch improvements */
+        @media (hover: none) and (pointer: coarse) {
+            /* Augmenter zones touch pour mobile */
+            .menu-btn,
+            .icon-btn,
+            .plan-badge,
+            .conv-item,
+            #sendBtn {
+                min-width: 44px;
+                min-height: 44px;
+            }
+
+            .suggestion-chip {
+                min-height: 36px;
+            }
+        }
+
+        /* Landscape mobile */
+        @media (max-height: 500px) and (orientation: landscape) {
+            .chat-messages {
+                padding: 16px 12px 120px;
+            }
+
+            .input-area {
+                padding: 8px;
+            }
+
+            .suggestions-container {
+                display: none;
+            }
+        }
+
 
         /* Modern Scrollbar */
         ::-webkit-scrollbar {
