@@ -7762,6 +7762,114 @@ RÈGLES IMPORTANTES:
                             height: 16px !important;
                         }
                     }
+                    
+                    /* Responsive pour le modal Nouvel Employé */
+                    @media (max-width: 768px) {
+                        #addEmployeeModal > div {
+                            padding: 24px !important;
+                            width: 95% !important;
+                            max-height: 85vh !important;
+                        }
+                        #addEmployeeModal h2 {
+                            font-size: 22px !important;
+                        }
+                        #addEmployeeModal h3 {
+                            font-size: 14px !important;
+                        }
+                        #addEmployeeModal p {
+                            font-size: 13px !important;
+                        }
+                        #addEmployeeModal label {
+                            font-size: 12px !important;
+                        }
+                        #addEmployeeModal > div > div:first-child {
+                            margin-bottom: 24px !important;
+                            padding-bottom: 16px !important;
+                        }
+                        #addEmployeeModal > div > div:first-child > button {
+                            width: 36px !important;
+                            height: 36px !important;
+                        }
+                        #addEmployeeModal form > div {
+                            padding: 20px !important;
+                        }
+                        #addEmployeeModal form > div > div {
+                            grid-template-columns: 1fr !important;
+                            gap: 12px !important;
+                        }
+                        #addEmployeeModal input,
+                        #addEmployeeModal select,
+                        #addEmployeeModal textarea {
+                            font-size: 13px !important;
+                            padding: 10px 12px !important;
+                        }
+                        #addEmployeeModal button[type="submit"],
+                        #addEmployeeModal button[type="button"] {
+                            font-size: 13px !important;
+                            padding: 12px 20px !important;
+                        }
+                    }
+                    
+                    @media (max-width: 480px) {
+                        #addEmployeeModal > div {
+                            padding: 20px !important;
+                            width: 96% !important;
+                            max-height: 90vh !important;
+                            border-radius: 16px !important;
+                        }
+                        #addEmployeeModal h2 {
+                            font-size: 18px !important;
+                        }
+                        #addEmployeeModal h3 {
+                            font-size: 13px !important;
+                            margin-bottom: 16px !important;
+                        }
+                        #addEmployeeModal p {
+                            font-size: 12px !important;
+                        }
+                        #addEmployeeModal label {
+                            font-size: 11px !important;
+                            margin-bottom: 6px !important;
+                        }
+                        #addEmployeeModal > div > div:first-child {
+                            flex-direction: column !important;
+                            align-items: flex-start !important;
+                            margin-bottom: 20px !important;
+                            padding-bottom: 12px !important;
+                            gap: 12px !important;
+                        }
+                        #addEmployeeModal > div > div:first-child > button {
+                            width: 32px !important;
+                            height: 32px !important;
+                            align-self: flex-end !important;
+                        }
+                        #addEmployeeModal form {
+                            gap: 16px !important;
+                        }
+                        #addEmployeeModal form > div {
+                            padding: 16px !important;
+                            border-radius: 12px !important;
+                        }
+                        #addEmployeeModal form > div h3 svg {
+                            width: 16px !important;
+                            height: 16px !important;
+                        }
+                        #addEmployeeModal input,
+                        #addEmployeeModal select,
+                        #addEmployeeModal textarea {
+                            font-size: 12px !important;
+                            padding: 8px 10px !important;
+                        }
+                        #addEmployeeModal button[type="submit"],
+                        #addEmployeeModal button[type="button"] {
+                            font-size: 12px !important;
+                            padding: 10px 16px !important;
+                        }
+                        #addEmployeeModal form > div:last-child {
+                            flex-direction: column !important;
+                            gap: 10px !important;
+                        }
+                    }
                 </style>
                 
                 <!-- Interface RH Management -->
