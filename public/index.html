@@ -16434,7 +16434,8 @@ RÈGLES DE CONVERSATION :
                 creances: 0,
                 dettes: 0
             },
-            lastUpdated: null
+            lastUpdated: null,
+            reports: [] // Liste des rapports générés
         };
         
         // Audit trail des actions finance
@@ -16472,6 +16473,9 @@ RÈGLES DE CONVERSATION :
             } catch (error) {
                 console.error('[Finance] Erreur chargement paramètres:', error);
             }
+            
+            // Charger la liste des rapports générés
+            loadFinanceReports();
             
             sessionStorage.setItem('financeConversationId', financeConversationId);
             
@@ -16996,11 +17000,22 @@ RÈGLES DE CONVERSATION :
                         contextInfo += `Nombre factures charges: ${financeContext.invoices.filter(i => i.type === 'expense').length}\n`;
                     }
                     
-                    // Info sur les rapports
-                    contextInfo += `\n=== RAPPORTS DISPONIBLES ===\n`;
-                    contextInfo += `Les rapports financiers PDF sont générés à la demande et stockés dans Azure Blob.\n`;
-                    contextInfo += `Tu peux proposer de générer un nouveau rapport si l'utilisateur le souhaite.\n`;
-                    contextInfo += `L'utilisateur peut consulter les rapports existants via "Lister Rapports (Blob)".\n`;
+                    // Info sur les rapports générés
+                    contextInfo += `\n=== RAPPORTS GÉNÉRÉS ===\n`;
+                    if (financeContext.reports && financeContext.reports.length > 0) {
+                        contextInfo += `${financeContext.reports.length} rapport(s) disponible(s):\n\n`;
+                        financeContext.reports.forEach((report, idx) => {
+                            contextInfo += `Rapport ${idx + 1}:\n`;
+                            contextInfo += `- Nom: ${report.name}\n`;
+                            contextInfo += `- Taille: ${report.size} octets\n`;
+                            contextInfo += `- Date: ${report.lastModified}\n`;
+                            contextInfo += `- URL: ${report.url}\n\n`;
+                        });
+                        contextInfo += `Tu peux discuter de ces rapports avec l'utilisateur et proposer d'en générer de nouveaux.\n`;
+                    } else {
+                        contextInfo += `Aucun rapport généré pour le moment.\n`;
+                        contextInfo += `Tu peux proposer de générer un premier rapport financier.\n`;
+                    }
                     
                     const systemPrompt = [
                         '[FINANCE_EXPERT_V2]',
@@ -17639,6 +17654,28 @@ RÈGLES DE CONVERSATION :
 
         function runListInvoices() { openFinanceList('invoices'); }
         function runListReports() { openFinanceList('reports'); }
+        
+        // Charger la liste des rapports dans le contexte
+        async function loadFinanceReports() {
+            try {
+                console.log('[Finance] Chargement des rapports...');
+                const r = await fetch('/api/finance/storage/list', { 
+                    method: 'POST', 
+                    headers: { 'Content-Type': 'application/json' }, 
+                    body: JSON.stringify({ container: 'reports' }) 
+                });
+                if (!r.ok) {
+                    console.error('[Finance] Erreur chargement rapports:', r.status);
+                    return;
+                }
+                const data = await r.json();
+                financeContext.reports = Array.isArray(data.items) ? data.items : [];
+                console.log('[Finance] ✅ Rapports chargés:', financeContext.reports.length);
+            } catch (error) {
+                console.error('[Finance] Erreur chargement rapports:', error);
+                financeContext.reports = [];
+            }
+        }
 
         let financeListState = { container: null, items: [], query: '', page: 1, pageSize: 10, filtered: [] };
         function setFinanceListState(up) { financeListState = Object.assign({}, financeListState, up); }
