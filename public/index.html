@@ -7722,6 +7722,40 @@ RÈGLES IMPORTANTES:
                             padding: 8px 16px !important;
                             font-size: 12px !important;
                         }
+                        /* Grille des bulletins de paie responsive */
+                        #payrollsList {
+                            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)) !important;
+                            gap: 16px !important;
+                            padding: 20px !important;
+                        }
+                        #payrollsList > div {
+                            padding: 14px !important;
+                        }
+                        #payrollsList h4 {
+                            font-size: 14px !important;
+                        }
+                        #payrollsList p {
+                            font-size: 11px !important;
+                        }
+                        #payrollsList img,
+                        #payrollsList > div > div:first-child > div:first-child {
+                            width: 42px !important;
+                            height: 42px !important;
+                            font-size: 14px !important;
+                        }
+                        #payrollsList > div > div:nth-child(2) > div {
+                            padding: 6px !important;
+                        }
+                        #payrollsList > div > div:nth-child(2) > div > div:first-child {
+                            font-size: 10px !important;
+                        }
+                        #payrollsList > div > div:nth-child(2) > div > div:last-child {
+                            font-size: 12px !important;
+                        }
+                        #payrollsList button {
+                            padding: 5px 8px !important;
+                            font-size: 10px !important;
+                        }
                     }
                     
                     /* Responsive pour le panneau Congés */
