@@ -7870,6 +7870,135 @@ RÈGLES IMPORTANTES:
                             gap: 10px !important;
                         }
                     }
+                    
+                    /* Responsive pour le modal Planning des Congés */
+                    @media (max-width: 1200px) {
+                        #leaveCalendarModal > div {
+                            max-width: 100% !important;
+                            padding: 24px !important;
+                        }
+                        #leaveCalendarModal h2 {
+                            font-size: 20px !important;
+                        }
+                    }
+                    
+                    @media (max-width: 768px) {
+                        #leaveCalendarModal {
+                            padding: 12px !important;
+                        }
+                        #leaveCalendarModal > div {
+                            padding: 20px !important;
+                            max-height: 85vh !important;
+                        }
+                        #leaveCalendarModal h2 {
+                            font-size: 18px !important;
+                        }
+                        #leaveCalendarModal h3 {
+                            font-size: 14px !important;
+                        }
+                        #leaveCalendarModal p {
+                            font-size: 13px !important;
+                        }
+                        #leaveCalendarModal label {
+                            font-size: 12px !important;
+                        }
+                        #leaveCalendarModal > div > div:first-child {
+                            flex-direction: column !important;
+                            align-items: flex-start !important;
+                            gap: 12px !important;
+                        }
+                        #leaveCalendarModal > div > div:first-child > button {
+                            align-self: flex-end !important;
+                        }
+                        #leaveCalendarModal select {
+                            font-size: 13px !important;
+                            padding: 10px 12px !important;
+                        }
+                        #leaveCalendarModal #calendarContainer {
+                            padding: 16px !important;
+                            min-height: 350px !important;
+                            overflow-x: auto !important;
+                        }
+                        #leaveCalendarModal .calendar-table {
+                            font-size: 12px !important;
+                        }
+                        #leaveCalendarModal .calendar-table th,
+                        #leaveCalendarModal .calendar-table td {
+                            padding: 6px 4px !important;
+                            font-size: 11px !important;
+                        }
+                        #leaveCalendarModal > div > div:last-child > div {
+                            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)) !important;
+                            gap: 8px !important;
+                        }
+                    }
+                    
+                    @media (max-width: 480px) {
+                        #leaveCalendarModal {
+                            padding: 8px !important;
+                        }
+                        #leaveCalendarModal > div {
+                            padding: 16px !important;
+                            border-radius: 16px !important;
+                        }
+                        #leaveCalendarModal h2 {
+                            font-size: 16px !important;
+                        }
+                        #leaveCalendarModal h2 svg {
+                            width: 20px !important;
+                            height: 20px !important;
+                        }
+                        #leaveCalendarModal h3 {
+                            font-size: 13px !important;
+                        }
+                        #leaveCalendarModal h3 svg {
+                            width: 16px !important;
+                            height: 16px !important;
+                        }
+                        #leaveCalendarModal p {
+                            font-size: 12px !important;
+                        }
+                        #leaveCalendarModal label {
+                            font-size: 11px !important;
+                        }
+                        #leaveCalendarModal > div > div:first-child {
+                            margin-bottom: 16px !important;
+                        }
+                        #leaveCalendarModal > div > div:first-child > button {
+                            width: 32px !important;
+                            height: 32px !important;
+                        }
+                        #leaveCalendarModal select {
+                            font-size: 12px !important;
+                            padding: 8px 10px !important;
+                        }
+                        #leaveCalendarModal #calendarContainer {
+                            padding: 12px !important;
+                            min-height: 300px !important;
+                            border-radius: 12px !important;
+                        }
+                        #leaveCalendarModal .calendar-table {
+                            font-size: 10px !important;
+                            min-width: 100% !important;
+                        }
+                        #leaveCalendarModal .calendar-table th,
+                        #leaveCalendarModal .calendar-table td {
+                            padding: 4px 2px !important;
+                            font-size: 10px !important;
+                        }
+                        #leaveCalendarModal > div > div:last-child {
+                            margin-top: 16px !important;
+                            padding-top: 16px !important;
+                        }
+                        #leaveCalendarModal > div > div:last-child > div {
+                            grid-template-columns: 1fr !important;
+                            gap: 6px !important;
+                        }
+                        #leaveCalendarModal > div > div:last-child > div > div {
+                            font-size: 11px !important;
+                            padding: 8px !important;
+                        }
+                    }
                 </style>
                 
                 <!-- Interface RH Management -->
