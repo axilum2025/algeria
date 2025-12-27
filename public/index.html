@@ -7532,6 +7532,26 @@ RÈGLES IMPORTANTES:
                         #employeesList {
                             padding: 20px !important;
                         }
+                        /* Table des employés responsive */
+                        #employeesList table {
+                            font-size: 13px !important;
+                        }
+                        #employeesList table th {
+                            font-size: 11px !important;
+                            padding: 10px !important;
+                        }
+                        #employeesList table td {
+                            padding: 12px !important;
+                        }
+                        #employeesList table td > div > div:first-child {
+                            width: 36px !important;
+                            height: 36px !important;
+                            font-size: 14px !important;
+                        }
+                        #employeesList table button {
+                            padding: 5px 10px !important;
+                            font-size: 11px !important;
+                        }
                     }
                     
                     @media (max-width: 480px) {
@@ -7565,6 +7585,54 @@ RÈGLES IMPORTANTES:
                         #employeesList {
                             padding: 16px !important;
                             min-height: 300px !important;
+                        }
+                        /* Table des employés très petits écrans */
+                        #employeesList > div {
+                            overflow-x: auto !important;
+                            -webkit-overflow-scrolling: touch !important;
+                        }
+                        #employeesList table {
+                            font-size: 11px !important;
+                            min-width: 600px !important;
+                        }
+                        #employeesList table th {
+                            font-size: 10px !important;
+                            padding: 8px 6px !important;
+                            white-space: nowrap !important;
+                        }
+                        #employeesList table td {
+                            padding: 10px 6px !important;
+                        }
+                        #employeesList table td > div {
+                            gap: 8px !important;
+                        }
+                        #employeesList table td > div > div:first-child {
+                            width: 32px !important;
+                            height: 32px !important;
+                            font-size: 12px !important;
+                        }
+                        #employeesList table td > div > div:last-child {
+                            font-size: 12px !important;
+                        }
+                        #employeesList table td > span {
+                            padding: 3px 8px !important;
+                            font-size: 10px !important;
+                        }
+                        #employeesList table button {
+                            padding: 4px 8px !important;
+                            font-size: 10px !important;
+                            margin-right: 2px !important;
+                        }
+                        /* État vide responsive */
+                        #employeesList > div[style*="text-align: center"] h3 {
+                            font-size: 16px !important;
+                        }
+                        #employeesList > div[style*="text-align: center"] p {
+                            font-size: 13px !important;
+                        }
+                        #employeesList > div[style*="text-align: center"] button {
+                            padding: 10px 20px !important;
+                            font-size: 13px !important;
                         }
                     }
                     
