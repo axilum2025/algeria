@@ -113,53 +113,85 @@ function analyzeInvoicesForReport(invoices) {
   const vendors = {};
   const categories = {};
   const monthly = {};
+  const invoicesByType = { income: [], expense: [] };
 
   invoices.forEach(inv => {
-    const amount = parseFloat(inv.amount) || 0;
-    const vendor = inv.vendor || 'Unknown';
-    const type = inv.type || (amount > 0 ? 'income' : 'expense');
-    const date = new Date(inv.date || inv.invoiceDate || Date.now());
-    const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
-    const category = inv.category || 'Non classifié';
-
-    // Revenus vs Dépenses
-    if (type === 'income' || amount > 0) {
-      totalRevenue += Math.abs(amount);
-    } else {
-      totalExpenses += Math.abs(amount);
+    const amount = Math.abs(parseFloat(inv.amount) || 0);
+    const vendor = inv.vendor || inv.supplier || 'Fournisseur inconnu';
+    // Le type est PRIORITAIRE - si absent, on déduit de keywords
+    let type = inv.type || 'expense'; // Par défaut dépense
+    
+    // Détection intelligente si type manquant
+    if (!inv.type) {
+      const vendorLower = vendor.toLowerCase();
+      const keywords = ['client', 'vente', 'facture client', 'revenue'];
+      if (keywords.some(k => vendorLower.includes(k))) {
+        type = 'income';
+      }
     }
 
-    // TVA (estimation 6% des montants)
-    const vatAmount = Math.abs(amount) * 0.06;
+    // Parser la date correctement
+    let date;
+    const dateStr = inv.date || inv.invoiceDate || inv.created_at;
+    if (dateStr) {
+      date = new Date(dateStr);
+      // Vérifier si la date est valide
+      if (isNaN(date.getTime())) {
+        date = new Date();
+      }
+    } else {
+      date = new Date();
+    }
+    
+    const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+    const category = inv.category || inv.type || 'Non classifié';
+
+    // Classification revenus vs dépenses basée UNIQUEMENT sur le type
+    if (type === 'income') {
+      totalRevenue += amount;
+      invoicesByType.income.push(inv);
+    } else {
+      totalExpenses += amount;
+      invoicesByType.expense.push(inv);
+    }
+
+    // TVA (estimation 20% des montants, standard France)
+    const vatAmount = amount * 0.20;
     totalVAT += vatAmount;
 
-    // Par fournisseur
+    // Par fournisseur avec type
     if (!vendors[vendor]) {
-      vendors[vendor] = { count: 0, total: 0 };
+      vendors[vendor] = { count: 0, total: 0, type: type };
     }
     vendors[vendor].count++;
-    vendors[vendor].total += Math.abs(amount);
+    vendors[vendor].total += amount;
 
     // Par catégorie
     if (!categories[category]) {
-      categories[category] = { count: 0, total: 0 };
+      categories[category] = { count: 0, total: 0, income: 0, expenses: 0 };
     }
     categories[category].count++;
-    categories[category].total += Math.abs(amount);
+    categories[category].total += amount;
+    if (type === 'income') {
+      categories[category].income += amount;
+    } else {
+      categories[category].expenses += amount;
+    }
 
     // Par mois
     if (!monthly[monthKey]) {
       monthly[monthKey] = { income: 0, expenses: 0 };
     }
-    if (type === 'income' || amount > 0) {
-      monthly[monthKey].income += Math.abs(amount);
+    if (type === 'income') {
+      monthly[monthKey].income += amount;
     } else {
-      monthly[monthKey].expenses += Math.abs(amount);
+      monthly[monthKey].expenses += amount;
     }
   });
 
   const netIncome = totalRevenue - totalExpenses;
   const margin = totalRevenue > 0 ? (netIncome / totalRevenue) * 100 : 0;
+  const totalAmount = totalRevenue + totalExpenses;
 
   return {
     summary: {
@@ -168,18 +200,23 @@ function analyzeInvoicesForReport(invoices) {
       netIncome: Math.round(netIncome),
       totalVAT: Math.round(totalVAT),
       margin: margin.toFixed(1) + '%',
-      invoiceCount: invoices.length
+      invoiceCount: invoices.length,
+      incomeCount: invoicesByType.income.length,
+      expenseCount: invoicesByType.expense.length
     },
     topVendors: Object.entries(vendors).map(([vendor, data]) => ({
       vendor,
       count: data.count,
-      total: Math.round(data.total)
+      total: Math.round(data.total),
+      type: data.type === 'income' ? 'Client' : 'Fournisseur'
     })).sort((a, b) => b.total - a.total).slice(0, 10),
     categoryBreakdown: Object.entries(categories).map(([category, data]) => ({
       category,
       count: data.count,
       total: Math.round(data.total),
-      percentage: ((data.total / (totalRevenue + totalExpenses)) * 100).toFixed(1) + '%'
+      income: Math.round(data.income),
+      expenses: Math.round(data.expenses),
+      percentage: totalAmount > 0 ? ((data.total / totalAmount) * 100).toFixed(1) + '%' : '0%'
     })).sort((a, b) => b.total - a.total),
     monthlyTrend: Object.entries(monthly).sort().map(([month, data]) => ({
       month,
@@ -211,24 +248,33 @@ async function generatePDFReport(reportType, analysis, period) {
     doc.fontSize(16).font('Helvetica-Bold').text('RÉSUMÉ FINANCIER');
     doc.moveDown(0.5);
     doc.fontSize(12).font('Helvetica');
+    
+    // Box pour le résumé
+    const summaryY = doc.y;
+    doc.rect(50, summaryY - 5, 500, 150).stroke();
+    doc.moveDown(0.5);
+    
     doc.text(`Revenus totaux: ${analysis.summary.totalRevenue.toLocaleString('fr-FR')} €`, { continued: false });
     doc.text(`Dépenses totales: ${analysis.summary.totalExpenses.toLocaleString('fr-FR')} €`);
-    doc.text(`Résultat net: ${analysis.summary.netIncome.toLocaleString('fr-FR')} €`, { 
-      color: analysis.summary.netIncome >= 0 ? 'green' : 'red' 
-    });
+    
+    // Résultat net avec couleur
+    const netIncome = analysis.summary.netIncome;
+    doc.fillColor(netIncome >= 0 ? 'green' : 'red')
+       .text(`Résultat net: ${netIncome.toLocaleString('fr-FR')} €`);
     doc.fillColor('black');
+    
     doc.text(`Marge: ${analysis.summary.margin}`);
     doc.text(`TVA collectée/déductible: ${analysis.summary.totalVAT.toLocaleString('fr-FR')} €`);
-    doc.text(`Nombre de factures: ${analysis.summary.invoiceCount}`);
+    doc.text(`Nombre de factures: ${analysis.summary.invoiceCount} (${analysis.summary.incomeCount} revenus, ${analysis.summary.expenseCount} dépenses)`);
     doc.moveDown(2);
 
-    // Top Fournisseurs
-    doc.fontSize(16).font('Helvetica-Bold').text('TOP 10 FOURNISSEURS');
+    // Top Fournisseurs/Clients
+    doc.fontSize(16).font('Helvetica-Bold').text('TOP 10 FOURNISSEURS & CLIENTS');
     doc.moveDown(0.5);
     doc.fontSize(10).font('Helvetica');
     
     analysis.topVendors.forEach((v, idx) => {
-      doc.text(`${idx + 1}. ${v.vendor}: ${v.total.toLocaleString('fr-FR')} € (${v.count} facture${v.count > 1 ? 's' : ''})`);
+      doc.text(`${idx + 1}. ${v.vendor} [${v.type}]: ${v.total.toLocaleString('fr-FR')} € (${v.count} facture${v.count > 1 ? 's' : ''})`);
     });
     doc.moveDown(2);
 
@@ -238,7 +284,10 @@ async function generatePDFReport(reportType, analysis, period) {
     doc.fontSize(10).font('Helvetica');
     
     analysis.categoryBreakdown.forEach(cat => {
-      doc.text(`${cat.category}: ${cat.total.toLocaleString('fr-FR')} € (${cat.percentage})`);
+      const details = cat.income > 0 && cat.expenses > 0 
+        ? ` (Revenus: ${cat.income.toLocaleString('fr-FR')}€, Dépenses: ${cat.expenses.toLocaleString('fr-FR')}€)`
+        : cat.income > 0 ? ' (Revenus)' : ' (Dépenses)';
+      doc.text(`${cat.category}: ${cat.total.toLocaleString('fr-FR')} € ${details} - ${cat.percentage}`);
     });
     doc.moveDown(2);
 
