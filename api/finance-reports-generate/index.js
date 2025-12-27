@@ -214,6 +214,36 @@ function analyzeInvoicesForReport(invoices) {
   const margin = totalRevenue > 0 ? (netIncome / totalRevenue) * 100 : 0;
   const totalAmount = totalRevenue + totalExpenses;
 
+  // Calcul de la trésorerie (simplifié)
+  const cashFlow = totalRevenue - totalExpenses; // Flux net
+  const averageInvoiceAmount = invoices.length > 0 ? totalAmount / invoices.length : 0;
+  const averageExpenseAmount = invoicesByType.expense.length > 0 ? 
+    totalExpenses / invoicesByType.expense.length : 0;
+  const averageRevenueAmount = invoicesByType.income.length > 0 ? 
+    totalRevenue / invoicesByType.income.length : 0;
+
+  // Ratios financiers (KPIs)
+  const expenseRatio = totalAmount > 0 ? (totalExpenses / totalAmount) * 100 : 0;
+  const revenueRatio = totalAmount > 0 ? (totalRevenue / totalAmount) * 100 : 0;
+  const vatRatio = totalAmount > 0 ? (totalVAT / totalAmount) * 100 : 0;
+  
+  // Analyse de croissance (si plusieurs mois)
+  const monthlyData = Object.entries(monthly).sort();
+  let growthRate = null;
+  let trend = 'stable';
+  
+  if (monthlyData.length >= 2) {
+    const firstMonth = monthlyData[0][1];
+    const lastMonth = monthlyData[monthlyData.length - 1][1];
+    const firstTotal = firstMonth.income + firstMonth.expenses;
+    const lastTotal = lastMonth.income + lastMonth.expenses;
+    
+    if (firstTotal > 0) {
+      growthRate = ((lastTotal - firstTotal) / firstTotal) * 100;
+      trend = growthRate > 5 ? 'croissance' : growthRate < -5 ? 'décroissance' : 'stable';
+    }
+  }
+
   return {
     summary: {
       totalRevenue: Math.round(totalRevenue),
@@ -223,7 +253,19 @@ function analyzeInvoicesForReport(invoices) {
       margin: margin.toFixed(1) + '%',
       invoiceCount: invoices.length,
       incomeCount: invoicesByType.income.length,
-      expenseCount: invoicesByType.expense.length
+      expenseCount: invoicesByType.expense.length,
+      averageInvoice: Math.round(averageInvoiceAmount),
+      cashFlow: Math.round(cashFlow)
+    },
+    kpis: {
+      expenseRatio: expenseRatio.toFixed(1) + '%',
+      revenueRatio: revenueRatio.toFixed(1) + '%',
+      vatRatio: vatRatio.toFixed(1) + '%',
+      averageExpense: Math.round(averageExpenseAmount),
+      averageRevenue: Math.round(averageRevenueAmount),
+      growthRate: growthRate !== null ? growthRate.toFixed(1) + '%' : 'N/A',
+      trend: trend,
+      profitability: netIncome >= 0 ? 'Rentable' : 'Déficitaire'
     },
     topVendors: Object.entries(vendors).map(([vendor, data]) => ({
       vendor,
@@ -292,6 +334,55 @@ async function generatePDFReport(reportType, analysis, period) {
     doc.text(`Marge: ${analysis.summary.margin}`);
     doc.text(`TVA collectée/déductible: ${analysis.summary.totalVAT.toLocaleString('fr-FR')} €`);
     doc.text(`Nombre de factures: ${analysis.summary.invoiceCount} (${analysis.summary.incomeCount} revenus, ${analysis.summary.expenseCount} dépenses)`);
+    doc.moveDown(2);
+
+    // NOUVEAU: Indicateurs Clés (KPIs)
+    doc.fontSize(16).font('Helvetica-Bold').text('INDICATEURS CLÉS DE PERFORMANCE (KPIs)');
+    doc.moveDown(0.5);
+    doc.fontSize(11).font('Helvetica');
+    
+    doc.text(`Ratio dépenses/total: ${analysis.kpis.expenseRatio}`);
+    doc.text(`Ratio revenus/total: ${analysis.kpis.revenueRatio}`);
+    doc.text(`Ratio TVA/total: ${analysis.kpis.vatRatio}`);
+    doc.text(`Montant moyen par facture: ${analysis.summary.averageInvoice.toLocaleString('fr-FR')} €`);
+    doc.text(`Dépense moyenne: ${analysis.kpis.averageExpense.toLocaleString('fr-FR')} €`);
+    if (analysis.summary.incomeCount > 0) {
+      doc.text(`Revenu moyen: ${analysis.kpis.averageRevenue.toLocaleString('fr-FR')} €`);
+    }
+    doc.font('Helvetica-Bold');
+    doc.fillColor(analysis.kpis.profitability === 'Rentable' ? 'green' : 'red')
+       .text(`Rentabilité: ${analysis.kpis.profitability}`);
+    doc.fillColor('black').font('Helvetica');
+    
+    if (analysis.kpis.growthRate !== 'N/A') {
+      const growthColor = analysis.kpis.trend === 'croissance' ? 'green' : 
+                          analysis.kpis.trend === 'décroissance' ? 'red' : 'orange';
+      doc.fillColor(growthColor)
+         .text(`Tendance: ${analysis.kpis.trend} (${analysis.kpis.growthRate})`);
+      doc.fillColor('black');
+    }
+    doc.moveDown(2);
+
+    // NOUVEAU: Analyse de Trésorerie
+    doc.fontSize(16).font('Helvetica-Bold').text('ANALYSE DE TRÉSORERIE');
+    doc.moveDown(0.5);
+    doc.fontSize(11).font('Helvetica');
+    
+    doc.text(`Flux de trésorerie net: ${analysis.summary.cashFlow.toLocaleString('fr-FR')} €`);
+    doc.text(`Total encaissements (revenus): ${analysis.summary.totalRevenue.toLocaleString('fr-FR')} €`);
+    doc.text(`Total décaissements (dépenses): ${analysis.summary.totalExpenses.toLocaleString('fr-FR')} €`);
+    
+    const cashPosition = analysis.summary.cashFlow >= 0 ? 'Positive' : 'Négative';
+    const cashColor = analysis.summary.cashFlow >= 0 ? 'green' : 'red';
+    doc.fillColor(cashColor)
+       .text(`Position de trésorerie: ${cashPosition}`);
+    doc.fillColor('black');
+    
+    if (analysis.summary.cashFlow < 0) {
+      doc.fontSize(9).fillColor('red')
+         .text('⚠️ Attention: La trésorerie est négative. Surveillez vos liquidités.');
+      doc.fillColor('black').fontSize(11);
+    }
     doc.moveDown(2);
 
     // Top Fournisseurs/Clients
@@ -386,6 +477,86 @@ async function generatePDFReport(reportType, analysis, period) {
         }
       });
     }
+
+    // NOUVEAU: Recommandations et Alertes
+    doc.addPage();
+    doc.fontSize(18).font('Helvetica-Bold').text('RECOMMANDATIONS & ALERTES', { align: 'center' });
+    doc.moveDown(1);
+    doc.fontSize(11).font('Helvetica');
+
+    const recommendations = [];
+    
+    // Analyser et générer des recommandations
+    if (analysis.summary.netIncome < 0) {
+      recommendations.push({
+        type: 'Alerte',
+        color: 'red',
+        icon: '⚠️',
+        text: `Résultat net négatif de ${Math.abs(analysis.summary.netIncome).toLocaleString('fr-FR')} €. Réduisez vos dépenses ou augmentez vos revenus.`
+      });
+    }
+    
+    if (parseFloat(analysis.kpis.expenseRatio) > 70) {
+      recommendations.push({
+        type: 'Attention',
+        color: 'orange',
+        icon: '⚡',
+        text: `Ratio dépenses élevé (${analysis.kpis.expenseRatio}). Optimisez vos coûts pour améliorer la rentabilité.`
+      });
+    }
+    
+    if (analysis.summary.cashFlow < 0) {
+      recommendations.push({
+        type: 'Alerte',
+        color: 'red',
+        icon: '💰',
+        text: 'Flux de trésorerie négatif. Surveillez vos liquidités et planifiez vos paiements.'
+      });
+    }
+    
+    if (analysis.kpis.trend === 'croissance') {
+      recommendations.push({
+        type: 'Succès',
+        color: 'green',
+        icon: '📈',
+        text: `Tendance positive avec ${analysis.kpis.growthRate} de croissance. Continuez sur cette lancée !`
+      });
+    }
+    
+    if (analysis.categoryBreakdown.length > 0) {
+      const topCategory = analysis.categoryBreakdown[0];
+      if (parseFloat(topCategory.percentage) > 50) {
+        recommendations.push({
+          type: 'Info',
+          color: 'blue',
+          icon: 'ℹ️',
+          text: `La catégorie "${topCategory.category}" représente ${topCategory.percentage} du total. Diversifiez si possible.`
+        });
+      }
+    }
+    
+    if (recommendations.length === 0) {
+      recommendations.push({
+        type: 'Info',
+        color: 'green',
+        icon: '✓',
+        text: 'Situation financière saine. Continuez à suivre vos indicateurs régulièrement.'
+      });
+    }
+    
+    // Afficher les recommandations
+    recommendations.forEach((rec, idx) => {
+      doc.font('Helvetica-Bold').fillColor(rec.color || 'black')
+         .text(`${rec.icon} ${rec.type}:`);
+      doc.font('Helvetica').fillColor('black')
+         .text(`   ${rec.text}`);
+      doc.moveDown(0.8);
+    });
+    
+    doc.moveDown(1);
+    doc.fontSize(10).font('Helvetica-Oblique').fillColor('gray');
+    doc.text('Ces recommandations sont générées automatiquement et ne remplacent pas les conseils d\'un expert-comptable.');
+    doc.fillColor('black').font('Helvetica');
 
     // Pied de page
     doc.moveDown(3);
