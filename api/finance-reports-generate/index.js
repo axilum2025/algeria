@@ -137,7 +137,21 @@ function analyzeInvoicesForReport(invoices) {
       date = new Date(dateStr);
       // Vérifier si la date est valide
       if (isNaN(date.getTime())) {
-        date = new Date();
+        // Essayer format DD/MM/YYYY ou similaire
+        const parts = dateStr.toString().match(/(\d{1,2})[\\/\-\s]+(\w+|\d{1,2})[\\/\-\s]+(\d{4})/);
+        if (parts) {
+          // Mapper les mois portugais
+          const monthMap = {
+            'janeiro': 0, 'fevereiro': 1, 'março': 2, 'abril': 3, 'maio': 4, 'junho': 5,
+            'julho': 6, 'agosto': 7, 'setembro': 8, 'outubro': 9, 'novembro': 10, 'dezembro': 11,
+            'de': null
+          };
+          const month = isNaN(parts[2]) ? (monthMap[parts[2].toLowerCase()] ?? 0) : parseInt(parts[2]) - 1;
+          date = new Date(parts[3], month, parts[1]);
+        }
+        if (isNaN(date.getTime())) {
+          date = new Date();
+        }
       }
     } else {
       date = new Date();
@@ -227,7 +241,7 @@ function analyzeInvoicesForReport(invoices) {
   const revenueRatio = totalAmount > 0 ? (totalRevenue / totalAmount) * 100 : 0;
   const vatRatio = totalAmount > 0 ? (totalVAT / totalAmount) * 100 : 0;
   
-  // Analyse de croissance (si plusieurs mois)
+  // Analyse de croissance (si plusieurs mois) - basée sur le résultat net
   const monthlyData = Object.entries(monthly).sort();
   let growthRate = null;
   let trend = 'stable';
@@ -235,12 +249,23 @@ function analyzeInvoicesForReport(invoices) {
   if (monthlyData.length >= 2) {
     const firstMonth = monthlyData[0][1];
     const lastMonth = monthlyData[monthlyData.length - 1][1];
-    const firstTotal = firstMonth.income + firstMonth.expenses;
-    const lastTotal = lastMonth.income + lastMonth.expenses;
+    const firstNet = firstMonth.income - firstMonth.expenses;
+    const lastNet = lastMonth.income - lastMonth.expenses;
     
-    if (firstTotal > 0) {
-      growthRate = ((lastTotal - firstTotal) / firstTotal) * 100;
-      trend = growthRate > 5 ? 'croissance' : growthRate < -5 ? 'décroissance' : 'stable';
+    // Calculer la croissance basée sur le résultat net
+    if (Math.abs(firstNet) > 0) {
+      growthRate = ((lastNet - firstNet) / Math.abs(firstNet)) * 100;
+      // Déterminer la tendance basée sur l'évolution du résultat
+      if (lastNet > firstNet && growthRate > 5) {
+        trend = 'croissance';
+      } else if (lastNet < firstNet && growthRate < -5) {
+        trend = 'décroissance';
+      } else {
+        trend = 'stable';
+      }
+    } else if (lastNet > 0) {
+      trend = 'croissance';
+      growthRate = 100;
     }
   }
 
@@ -514,12 +539,19 @@ async function generatePDFReport(reportType, analysis, period) {
       });
     }
     
-    if (analysis.kpis.trend === 'croissance') {
+    if (analysis.kpis.trend === 'croissance' && analysis.summary.netIncome >= 0) {
       recommendations.push({
         type: 'Succès',
         color: 'green',
         icon: '📈',
         text: `Tendance positive avec ${analysis.kpis.growthRate} de croissance. Continuez sur cette lancée !`
+      });
+    } else if (analysis.kpis.trend === 'décroissance' && analysis.summary.netIncome < 0) {
+      recommendations.push({
+        type: 'Attention',
+        color: 'orange',
+        icon: '📉',
+        text: `Tendance à la baisse avec ${analysis.kpis.growthRate} de variation. Attention à l'évolution de votre situation.`
       });
     }
     
