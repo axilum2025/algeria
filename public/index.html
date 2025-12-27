@@ -17296,19 +17296,39 @@ RÈGLES DE CONVERSATION :
                     buttonContainer.style.cssText = 'display: flex; gap: 12px; padding: 16px; background: rgba(255,255,255,0.05); border-radius: 12px; margin: 12px 0;';
                     
                     const expenseBtn = document.createElement('button');
-                    expenseBtn.className = 'finance-type-btn expense';
-                    expenseBtn.innerHTML = 'CHARGE<br><span style="font-size: 11px; opacity: 0.7;">(Dépense/Achat)</span>';
-                    expenseBtn.style.cssText = 'flex: 1; padding: 16px 20px; background: linear-gradient(135deg, #f59e0b, #d97706); color: white; border: 2px solid rgba(245,158,11,0.4); border-radius: 10px; font-size: 15px; font-weight: 700; cursor: pointer; transition: all 0.3s; text-align: center;';
-                    expenseBtn.onmouseover = () => { expenseBtn.style.transform = 'scale(1.05)'; expenseBtn.style.borderColor = 'rgba(245,158,11,0.8)'; };
-                    expenseBtn.onmouseout = () => { expenseBtn.style.transform = 'scale(1)'; expenseBtn.style.borderColor = 'rgba(245,158,11,0.4)'; };
+                    expenseBtn.className = 'link-btn expense';
+                    expenseBtn.innerHTML = '💸 CHARGE<br><span style="font-size: 10px; opacity: 0.8;">(Dépense/Achat)</span>';
+                    expenseBtn.style.cssText = 'flex: 1; padding: 12px 16px; background: linear-gradient(135deg, rgba(239,68,68,0.15), rgba(220,38,38,0.15)); color: #ef4444; border: 1.5px solid rgba(239,68,68,0.4); border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.2s ease; text-align: center; line-height: 1.4;';
+                    expenseBtn.onmouseover = () => { 
+                        expenseBtn.style.background = 'linear-gradient(135deg, rgba(239,68,68,0.25), rgba(220,38,38,0.25))';
+                        expenseBtn.style.borderColor = 'rgba(239,68,68,0.7)';
+                        expenseBtn.style.transform = 'translateY(-2px)';
+                        expenseBtn.style.boxShadow = '0 4px 12px rgba(239,68,68,0.3)';
+                    };
+                    expenseBtn.onmouseout = () => { 
+                        expenseBtn.style.background = 'linear-gradient(135deg, rgba(239,68,68,0.15), rgba(220,38,38,0.15))';
+                        expenseBtn.style.borderColor = 'rgba(239,68,68,0.4)';
+                        expenseBtn.style.transform = 'translateY(0)';
+                        expenseBtn.style.boxShadow = 'none';
+                    };
                     expenseBtn.onclick = () => confirmInvoiceType('expense', buttonContainer);
                     
                     const revenueBtn = document.createElement('button');
-                    revenueBtn.className = 'finance-type-btn revenue';
-                    revenueBtn.innerHTML = 'REVENU<br><span style="font-size: 11px; opacity: 0.7;">(Vente/Encaissement)</span>';
-                    revenueBtn.style.cssText = 'flex: 1; padding: 16px 20px; background: linear-gradient(135deg, #3b82f6, #2563eb); color: white; border: 2px solid rgba(59,130,246,0.4); border-radius: 10px; font-size: 15px; font-weight: 700; cursor: pointer; transition: all 0.3s; text-align: center;';
-                    revenueBtn.onmouseover = () => { revenueBtn.style.transform = 'scale(1.05)'; revenueBtn.style.borderColor = 'rgba(59,130,246,0.8)'; };
-                    revenueBtn.onmouseout = () => { revenueBtn.style.transform = 'scale(1)'; revenueBtn.style.borderColor = 'rgba(59,130,246,0.4)'; };
+                    revenueBtn.className = 'link-btn revenue';
+                    revenueBtn.innerHTML = '💰 REVENU<br><span style="font-size: 10px; opacity: 0.8;">(Vente/Encaissement)</span>';
+                    revenueBtn.style.cssText = 'flex: 1; padding: 12px 16px; background: linear-gradient(135deg, rgba(34,197,94,0.15), rgba(22,163,74,0.15)); color: #22c55e; border: 1.5px solid rgba(34,197,94,0.4); border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.2s ease; text-align: center; line-height: 1.4;';
+                    revenueBtn.onmouseover = () => { 
+                        revenueBtn.style.background = 'linear-gradient(135deg, rgba(34,197,94,0.25), rgba(22,163,74,0.25))';
+                        revenueBtn.style.borderColor = 'rgba(34,197,94,0.7)';
+                        revenueBtn.style.transform = 'translateY(-2px)';
+                        revenueBtn.style.boxShadow = '0 4px 12px rgba(34,197,94,0.3)';
+                    };
+                    revenueBtn.onmouseout = () => { 
+                        revenueBtn.style.background = 'linear-gradient(135deg, rgba(34,197,94,0.15), rgba(22,163,74,0.15))';
+                        revenueBtn.style.borderColor = 'rgba(34,197,94,0.4)';
+                        revenueBtn.style.transform = 'translateY(0)';
+                        revenueBtn.style.boxShadow = 'none';
+                    };
                     revenueBtn.onclick = () => confirmInvoiceType('revenue', buttonContainer);
                     
                     buttonContainer.appendChild(expenseBtn);
