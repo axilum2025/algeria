@@ -7722,39 +7722,34 @@ RÈGLES IMPORTANTES:
                             padding: 8px 16px !important;
                             font-size: 12px !important;
                         }
-                        /* Grille des bulletins de paie responsive */
+                        /* Table des bulletins de paie responsive */
                         #payrollsList {
-                            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)) !important;
-                            gap: 16px !important;
                             padding: 20px !important;
                         }
-                        #payrollsList > div {
-                            padding: 14px !important;
+                        #payrollsList table {
+                            font-size: 13px !important;
                         }
-                        #payrollsList h4 {
+                        #payrollsList table th {
+                            font-size: 11px !important;
+                            padding: 10px !important;
+                        }
+                        #payrollsList table td {
+                            padding: 12px !important;
+                        }
+                        #payrollsList table td > div > div:first-child {
+                            width: 36px !important;
+                            height: 36px !important;
                             font-size: 14px !important;
                         }
-                        #payrollsList p {
+                        #payrollsList table td > div > div:last-child > div:first-child {
+                            font-size: 13px !important;
+                        }
+                        #payrollsList table td > div > div:last-child > div:last-child {
                             font-size: 11px !important;
                         }
-                        #payrollsList img,
-                        #payrollsList > div > div:first-child > div:first-child {
-                            width: 42px !important;
-                            height: 42px !important;
-                            font-size: 14px !important;
-                        }
-                        #payrollsList > div > div:nth-child(2) > div {
-                            padding: 6px !important;
-                        }
-                        #payrollsList > div > div:nth-child(2) > div > div:first-child {
-                            font-size: 10px !important;
-                        }
-                        #payrollsList > div > div:nth-child(2) > div > div:last-child {
-                            font-size: 12px !important;
-                        }
-                        #payrollsList button {
-                            padding: 5px 8px !important;
-                            font-size: 10px !important;
+                        #payrollsList table button {
+                            padding: 5px 10px !important;
+                            font-size: 11px !important;
                         }
                     }
                     
@@ -8507,7 +8502,7 @@ RÈGLES IMPORTANTES:
                                     </div>
                                     
                                     <!-- Payrolls List -->
-                                    <div id="payrollsList" style="background: rgba(255,255,255,0.05); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 12px; padding: 30px; min-height: 400px; backdrop-filter: blur(10px); display: grid; grid-template-columns: repeat(auto-fill, minmax(380px, 1fr)); gap: 20px;">
+                                    <div id="payrollsList" style="background: rgba(255,255,255,0.05); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 12px; padding: 30px; min-height: 400px; backdrop-filter: blur(10px);">
                                         <!-- Payrolls will be rendered here -->
                                     </div>
                                 </div>
@@ -14242,7 +14237,7 @@ RÈGLES DE CONVERSATION :
             
             if (payrolls.length === 0) {
                 container.innerHTML = `
-                    <div style="grid-column: 1 / -1; text-align: center; padding: 60px 20px;">
+                    <div style="text-align: center; padding: 60px 20px;">
                         <div style="width: 80px; height: 80px; background: rgba(16, 185, 129, 0.1); border-radius: 20px; display: flex; align-items: center; justify-content: center; margin: 0 auto 16px;">
                             <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
                         </div>
@@ -14253,15 +14248,30 @@ RÈGLES DE CONVERSATION :
                 return;
             }
             
-            let html = '';
+            let html = `
+                <div style="overflow-x: auto;">
+                    <table style="width: 100%; border-collapse: collapse;">
+                        <thead>
+                            <tr style="border-bottom: 2px solid rgba(16, 185, 129, 0.3);">
+                                <th style="padding: 12px; text-align: left; font-size: 12px; font-weight: 700; color: rgba(255,255,255,0.7); text-transform: uppercase;">Employé</th>
+                                <th style="padding: 12px; text-align: left; font-size: 12px; font-weight: 700; color: rgba(255,255,255,0.7); text-transform: uppercase;">Période</th>
+                                <th style="padding: 12px; text-align: left; font-size: 12px; font-weight: 700; color: rgba(255,255,255,0.7); text-transform: uppercase;">Salaire Brut</th>
+                                <th style="padding: 12px; text-align: left; font-size: 12px; font-weight: 700; color: rgba(255,255,255,0.7); text-transform: uppercase;">Salaire Net</th>
+                                <th style="padding: 12px; text-align: left; font-size: 12px; font-weight: 700; color: rgba(255,255,255,0.7); text-transform: uppercase;">Statut</th>
+                                <th style="padding: 12px; text-align: center; font-size: 12px; font-weight: 700; color: rgba(255,255,255,0.7); text-transform: uppercase;">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+            `;
+            
             payrolls.forEach(payroll => {
                 const employee = employees.find(e => e.id === payroll.employeeId);
                 if (!employee) return;
                 
                 const statusColors = {
-                    'pending': { bg: 'rgba(251, 191, 36, 0.2)', border: 'rgba(251, 191, 36, 0.4)', text: '#fbbf24', label: 'En attente' },
-                    'validated': { bg: 'rgba(59, 130, 246, 0.2)', border: 'rgba(59, 130, 246, 0.4)', text: '#3b82f6', label: 'Validé' },
-                    'paid': { bg: 'rgba(16, 185, 129, 0.2)', border: 'rgba(16, 185, 129, 0.4)', text: '#10b981', label: 'Payé' }
+                    'pending': { bg: 'rgba(251, 191, 36, 0.2)', text: '#fbbf24', label: 'En attente' },
+                    'validated': { bg: 'rgba(59, 130, 246, 0.2)', text: '#3b82f6', label: 'Validé' },
+                    'paid': { bg: 'rgba(16, 185, 129, 0.2)', text: '#10b981', label: 'Payé' }
                 };
                 
                 const status = statusColors[payroll.status] || statusColors.pending;
@@ -14272,55 +14282,54 @@ RÈGLES DE CONVERSATION :
                 const periodLabel = `${monthNames[parseInt(month) - 1]} ${year}`;
                 
                 html += `
-                    <div style="background: rgba(255,255,255,0.05); backdrop-filter: blur(10px); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 12px; padding: 16px; transition: all 0.2s; cursor: pointer;" onmouseover="this.style.borderColor='#10b981'; this.style.transform='translateY(-2px)'" onmouseout="this.style.borderColor='rgba(16, 185, 129, 0.3)'; this.style.transform='translateY(0)'" onclick="viewPayrollDetails('${payroll.id}')">
-                        <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 12px;">
-                            ${employee.photo ? 
-                                `<img src="${employee.photo}" style="width: 48px; height: 48px; border-radius: 10px; object-fit: cover; border: 2px solid rgba(16, 185, 129, 0.3);">` :
-                                `<div style="width: 48px; height: 48px; background: linear-gradient(135deg, #10b981, #06b6d4); border-radius: 10px; display: flex; align-items: center; justify-content: center; color: white; font-weight: 700; font-size: 16px;">
+                    <tr style="border-bottom: 1px solid rgba(16, 185, 129, 0.2); transition: background 0.2s; cursor: pointer;" onmouseover="this.style.background='rgba(16, 185, 129, 0.05)'" onmouseout="this.style.background='transparent'" onclick="viewPayrollDetails('${payroll.id}')">
+                        <td style="padding: 16px;">
+                            <div style="display: flex; align-items: center; gap: 12px;">
+                                <div style="width: 40px; height: 40px; background: linear-gradient(135deg, #10b981, #06b6d4); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: 700; font-size: 16px;">
                                     ${employee.firstName.charAt(0)}${employee.lastName.charAt(0)}
-                                </div>`
-                            }
-                            <div style="flex: 1; min-width: 0;">
-                                <h4 style="margin: 0 0 4px; font-size: 15px; font-weight: 600; color: white; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${employee.firstName} ${employee.lastName}</h4>
-                                <p style="margin: 0; font-size: 12px; color: rgba(255, 255, 255, 0.6); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${employee.position || 'Employé'}</p>
+                                </div>
+                                <div>
+                                    <div style="font-weight: 600; color: white;">${employee.firstName} ${employee.lastName}</div>
+                                    <div style="font-size: 12px; color: rgba(255, 255, 255, 0.6);">${employee.position || 'Employé'}</div>
+                                </div>
                             </div>
-                        </div>
-                        
-                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 12px;">
-                            <div style="background: rgba(255,255,255,0.05); border-radius: 8px; padding: 8px;">
-                                <div style="font-size: 11px; color: rgba(255, 255, 255, 0.6); margin-bottom: 2px;">📅 Période</div>
-                                <div style="font-size: 13px; color: white; font-weight: 600;">${periodLabel}</div>
-                            </div>
-                            <div style="background: rgba(255,255,255,0.05); border-radius: 8px; padding: 8px;">
-                                <div style="font-size: 11px; color: rgba(255, 255, 255, 0.6); margin-bottom: 2px;">💰 Net</div>
-                                <div style="font-size: 13px; color: #10b981; font-weight: 700;">${payroll.netSalary.toLocaleString()} ${currency}</div>
-                            </div>
-                        </div>
-                        
-                        <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px;">
-                            <span style="padding: 4px 10px; background: ${status.bg}; border: 1px solid ${status.border}; color: ${status.text}; border-radius: 6px; font-size: 11px; font-weight: 600;">${status.label}</span>
-                            
-                            <div style="display: flex; gap: 4px;" onclick="event.stopPropagation()">
+                        </td>
+                        <td style="padding: 16px; color: rgba(255, 255, 255, 0.9);">${periodLabel}</td>
+                        <td style="padding: 16px; color: rgba(255, 255, 255, 0.9);">${payroll.grossSalary.toLocaleString()} ${currency}</td>
+                        <td style="padding: 16px; color: #10b981; font-weight: 700;">${payroll.netSalary.toLocaleString()} ${currency}</td>
+                        <td style="padding: 16px;">
+                            <span style="padding: 4px 12px; background: ${status.bg}; color: ${status.text}; border-radius: 12px; font-size: 12px; font-weight: 600;">
+                                ${status.label}
+                            </span>
+                        </td>
+                        <td style="padding: 16px; text-align: center;" onclick="event.stopPropagation()">
+                            <div style="display: flex; gap: 4px; justify-content: center;">
                                 ${payroll.status === 'pending' ? `
-                                    <button onclick="validatePayroll('${payroll.id}')" style="padding: 6px 10px; background: rgba(59, 130, 246, 0.2); border: 1px solid rgba(59, 130, 246, 0.4); color: #3b82f6; border-radius: 6px; font-size: 11px; font-weight: 600; cursor: pointer; transition: all 0.2s;" onmouseover="this.style.background='rgba(59, 130, 246, 0.3)'" onmouseout="this.style.background='rgba(59, 130, 246, 0.2)'">
-                                        ✓
+                                    <button onclick="validatePayroll('${payroll.id}')" title="Valider" style="padding: 6px 12px; background: rgba(59, 130, 246, 0.2); border: 1px solid rgba(59, 130, 246, 0.4); color: #3b82f6; border-radius: 8px; font-size: 12px; font-weight: 600; cursor: pointer; transition: all 0.2s;" onmouseover="this.style.background='rgba(59, 130, 246, 0.3)'" onmouseout="this.style.background='rgba(59, 130, 246, 0.2)'">
+                                        ✓ Valider
                                     </button>
                                 ` : ''}
                                 
                                 ${payroll.status === 'validated' ? `
-                                    <button onclick="markPayrollAsPaid('${payroll.id}')" style="padding: 6px 10px; background: rgba(16, 185, 129, 0.2); border: 1px solid rgba(16, 185, 129, 0.4); color: #10b981; border-radius: 6px; font-size: 11px; font-weight: 600; cursor: pointer; transition: all 0.2s;" onmouseover="this.style.background='rgba(16, 185, 129, 0.3)'" onmouseout="this.style.background='rgba(16, 185, 129, 0.2)'">
-                                        💸
+                                    <button onclick="markPayrollAsPaid('${payroll.id}')" title="Marquer comme payé" style="padding: 6px 12px; background: rgba(16, 185, 129, 0.2); border: 1px solid rgba(16, 185, 129, 0.4); color: #10b981; border-radius: 8px; font-size: 12px; font-weight: 600; cursor: pointer; transition: all 0.2s;" onmouseover="this.style.background='rgba(16, 185, 129, 0.3)'" onmouseout="this.style.background='rgba(16, 185, 129, 0.2)'">
+                                        💸 Payer
                                     </button>
                                 ` : ''}
                                 
-                                <button onclick="deletePayroll('${payroll.id}')" style="padding: 6px 10px; background: rgba(220, 38, 38, 0.2); border: 1px solid rgba(220, 38, 38, 0.4); color: #ef4444; border-radius: 6px; font-size: 11px; font-weight: 600; cursor: pointer; transition: all 0.2s;" onmouseover="this.style.background='rgba(220, 38, 38, 0.3)'" onmouseout="this.style.background='rgba(220, 38, 38, 0.2)'">
-                                    🗑️
+                                <button onclick="deletePayroll('${payroll.id}')" title="Supprimer" style="padding: 6px 12px; background: rgba(220, 38, 38, 0.2); border: 1px solid rgba(220, 38, 38, 0.4); color: #ef4444; border-radius: 8px; font-size: 12px; font-weight: 600; cursor: pointer; transition: all 0.2s;" onmouseover="this.style.background='rgba(220, 38, 38, 0.3)'" onmouseout="this.style.background='rgba(220, 38, 38, 0.2)'">
+                                    Suppr.
                                 </button>
                             </div>
-                        </div>
-                    </div>
+                        </td>
+                    </tr>
                 `;
             });
+            
+            html += `
+                        </tbody>
+                    </table>
+                </div>
+            `;
             
             container.innerHTML = html;
         }
