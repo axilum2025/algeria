@@ -13646,15 +13646,9 @@ RÈGLES DE CONVERSATION :
             leaves.sort((a, b) => b.createdAt - a.createdAt);
             
             const statusColors = {
-                pending: { bg: 'rgba(245, 158, 11, 0.2)', color: '#f59e0b', border: 'rgba(245, 158, 11, 0.4)', icon: 'clock' },
-                approved: { bg: 'rgba(16, 185, 129, 0.2)', color: '#10b981', border: 'rgba(16, 185, 129, 0.4)', icon: 'check' },
-                rejected: { bg: 'rgba(239, 68, 68, 0.2)', color: '#ef4444', border: 'rgba(239, 68, 68, 0.4)', icon: 'x' }
-            };
-            
-            const statusLabels = {
-                pending: 'En attente',
-                approved: 'Approuvée',
-                rejected: 'Refusée'
+                pending: { color: '#f59e0b', label: 'En attente' },
+                approved: { color: '#10b981', label: 'Approuvée' },
+                rejected: { color: '#ef4444', label: 'Refusée' }
             };
             
             const leaveTypes = {
@@ -13665,7 +13659,22 @@ RÈGLES DE CONVERSATION :
                 other: '📋 Autre'
             };
             
-            let html = '<div style="display: flex; flex-direction: column; gap: 16px;">';
+            let html = `
+                <div style="overflow-x: auto;">
+                    <table style="width: 100%; border-collapse: collapse;">
+                        <thead>
+                            <tr style="border-bottom: 2px solid rgba(16, 185, 129, 0.3);">
+                                <th style="padding: 12px; text-align: left; font-size: 12px; font-weight: 700; color: rgba(255,255,255,0.7); text-transform: uppercase;">Employé</th>
+                                <th style="padding: 12px; text-align: left; font-size: 12px; font-weight: 700; color: rgba(255,255,255,0.7); text-transform: uppercase;">Type</th>
+                                <th style="padding: 12px; text-align: left; font-size: 12px; font-weight: 700; color: rgba(255,255,255,0.7); text-transform: uppercase;">Date Début</th>
+                                <th style="padding: 12px; text-align: left; font-size: 12px; font-weight: 700; color: rgba(255,255,255,0.7); text-transform: uppercase;">Date Fin</th>
+                                <th style="padding: 12px; text-align: left; font-size: 12px; font-weight: 700; color: rgba(255,255,255,0.7); text-transform: uppercase;">Durée</th>
+                                <th style="padding: 12px; text-align: left; font-size: 12px; font-weight: 700; color: rgba(255,255,255,0.7); text-transform: uppercase;">Statut</th>
+                                <th style="padding: 12px; text-align: center; font-size: 12px; font-weight: 700; color: rgba(255,255,255,0.7); text-transform: uppercase;">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+            `;
             
             leaves.forEach(leave => {
                 const employee = getHRData('hrEmployees').find(e => e.id === leave.employeeId);
@@ -13678,68 +13687,52 @@ RÈGLES DE CONVERSATION :
                 const days = Math.ceil((end - start) / (1000 * 60 * 60 * 24)) + 1;
                 
                 html += `
-                    <div style="background: rgba(255,255,255,0.05); border: 1px solid ${statusStyle.border}; border-radius: 12px; padding: 20px; border-left: 4px solid ${statusStyle.color}; backdrop-filter: blur(10px); transition: all 0.3s;" onmouseover="this.style.background='rgba(255,255,255,0.08)'; this.style.transform='translateY(-2px)'" onmouseout="this.style.background='rgba(255,255,255,0.05)'; this.style.transform='translateY(0)'">
-                        <div style="display: flex; align-items: start; justify-content: space-between; gap: 16px;">
-                            <div style="flex: 1;">
-                                <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 8px;">
-                                    <div style="width: 44px; height: 44px; background: linear-gradient(135deg, #10b981, #06b6d4); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: 700; font-size: 16px; border: 2px solid rgba(16, 185, 129, 0.4);">
-                                        ${employee ? employee.firstName.charAt(0) + employee.lastName.charAt(0) : '??'}
-                                    </div>
-                                    <div>
-                                        <h4 style="margin: 0; font-size: 16px; font-weight: 700; color: white;">${employeeName}</h4>
-                                        <p style="margin: 0; font-size: 13px; color: rgba(255,255,255,0.6);">${employee ? employee.position : ''}</p>
-                                    </div>
+                    <tr style="border-bottom: 1px solid rgba(16, 185, 129, 0.2); transition: background 0.2s;" onmouseover="this.style.background='rgba(16, 185, 129, 0.05)'" onmouseout="this.style.background='transparent'">
+                        <td style="padding: 16px;">
+                            <div style="display: flex; align-items: center; gap: 12px;">
+                                <div style="width: 40px; height: 40px; background: linear-gradient(135deg, #10b981, #06b6d4); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: 700; font-size: 16px;">
+                                    ${employee ? employee.firstName.charAt(0) + employee.lastName.charAt(0) : '??'}
                                 </div>
-                                
-                                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; margin: 16px 0;">
-                                    <div>
-                                        <div style="font-size: 11px; color: rgba(255,255,255,0.5); font-weight: 600; text-transform: uppercase; margin-bottom: 4px;">Type</div>
-                                        <div style="font-size: 14px; color: white; font-weight: 600;">${leaveTypes[leave.type] || leave.type}</div>
-                                    </div>
-                                    <div>
-                                        <div style="font-size: 11px; color: rgba(255,255,255,0.5); font-weight: 600; text-transform: uppercase; margin-bottom: 4px;">Période</div>
-                                        <div style="font-size: 14px; color: white;">${new Date(leave.startDate).toLocaleDateString('fr-FR')} → ${new Date(leave.endDate).toLocaleDateString('fr-FR')}</div>
-                                    </div>
-                                    <div>
-                                        <div style="font-size: 11px; color: rgba(255,255,255,0.5); font-weight: 600; text-transform: uppercase; margin-bottom: 4px;">Durée</div>
-                                        <div style="font-size: 14px; color: white; font-weight: 600;">${days} jour${days > 1 ? 's' : ''}</div>
-                                    </div>
+                                <div>
+                                    <div style="font-weight: 600; color: white;">${employeeName}</div>
+                                    <div style="font-size: 12px; color: rgba(255,255,255,0.6);">${employee ? employee.position : ''}</div>
                                 </div>
-                                
-                                ${leave.reason ? `
-                                    <div style="background: rgba(255,255,255,0.05); padding: 12px; border-radius: 8px; margin-top: 12px; border: 1px solid rgba(16, 185, 129, 0.2);">
-                                        <div style="font-size: 11px; color: rgba(255,255,255,0.5); font-weight: 600; text-transform: uppercase; margin-bottom: 4px;">Motif</div>
-                                        <div style="font-size: 13px; color: rgba(255,255,255,0.8); line-height: 1.5;">${leave.reason}</div>
-                                    </div>
-                                ` : ''}
                             </div>
-                            
-                            <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 12px;">
-                                <span style="padding: 6px 14px; background: ${statusStyle.bg}; color: ${statusStyle.color}; border-radius: 20px; font-size: 12px; font-weight: 700; white-space: nowrap; border: 1px solid ${statusStyle.border};">
-                                    ${statusLabels[leave.status]}
-                                </span>
-                                
+                        </td>
+                        <td style="padding: 16px; color: rgba(255,255,255,0.9);">${leaveTypes[leave.type] || leave.type}</td>
+                        <td style="padding: 16px; color: rgba(255,255,255,0.9);">${new Date(leave.startDate).toLocaleDateString('fr-FR')}</td>
+                        <td style="padding: 16px; color: rgba(255,255,255,0.9);">${new Date(leave.endDate).toLocaleDateString('fr-FR')}</td>
+                        <td style="padding: 16px; color: white; font-weight: 600;">${days} jour${days > 1 ? 's' : ''}</td>
+                        <td style="padding: 16px;">
+                            <span style="padding: 4px 12px; background: ${statusStyle.color}20; color: ${statusStyle.color}; border-radius: 12px; font-size: 12px; font-weight: 600;">
+                                ${statusStyle.label}
+                            </span>
+                        </td>
+                        <td style="padding: 16px; text-align: center;" onclick="event.stopPropagation()">
+                            <div style="display: flex; gap: 4px; justify-content: center; flex-wrap: wrap;">
                                 ${leave.status === 'pending' ? `
-                                    <div style="display: flex; gap: 8px;">
-                                        <button onclick="approveLeave('${leave.id}')" title="Approuver" style="padding: 8px 12px; background: rgba(16, 185, 129, 0.2); border: 1px solid rgba(16, 185, 129, 0.4); border-radius: 8px; color: #10b981; cursor: pointer; font-size: 12px; font-weight: 600; transition: all 0.2s;" onmouseover="this.style.background='rgba(16, 185, 129, 0.3)'" onmouseout="this.style.background='rgba(16, 185, 129, 0.2)'">
-                                            ✓ Approuver
-                                        </button>
-                                        <button onclick="rejectLeave('${leave.id}')" title="Refuser" style="padding: 8px 12px; background: rgba(239, 68, 68, 0.2); border: 1px solid rgba(239, 68, 68, 0.4); border-radius: 8px; color: #ef4444; cursor: pointer; font-size: 12px; font-weight: 600; transition: all 0.2s;" onmouseover="this.style.background='rgba(239, 68, 68, 0.3)'" onmouseout="this.style.background='rgba(239, 68, 68, 0.2)'">
-                                            ✗ Refuser
-                                        </button>
-                                    </div>
+                                    <button onclick="approveLeave('${leave.id}')" title="Approuver" style="padding: 6px 12px; background: rgba(16, 185, 129, 0.2); border: 1px solid rgba(16, 185, 129, 0.4); border-radius: 8px; color: #10b981; cursor: pointer; font-size: 12px; font-weight: 600; transition: all 0.2s;" onmouseover="this.style.background='rgba(16, 185, 129, 0.3)'" onmouseout="this.style.background='rgba(16, 185, 129, 0.2)'">
+                                        ✓ Approuver
+                                    </button>
+                                    <button onclick="rejectLeave('${leave.id}')" title="Refuser" style="padding: 6px 12px; background: rgba(239, 68, 68, 0.2); border: 1px solid rgba(239, 68, 68, 0.4); border-radius: 8px; color: #ef4444; cursor: pointer; font-size: 12px; font-weight: 600; transition: all 0.2s;" onmouseover="this.style.background='rgba(239, 68, 68, 0.3)'" onmouseout="this.style.background='rgba(239, 68, 68, 0.2)'">
+                                        ✗ Refuser
+                                    </button>
                                 ` : ''}
-                                
-                                <button onclick="deleteLeave('${leave.id}')" style="padding: 6px 12px; background: rgba(255,255,255,0.05); border: 1px solid rgba(239, 68, 68, 0.3); border-radius: 8px; color: rgba(255,255,255,0.6); cursor: pointer; font-size: 11px; font-weight: 600;" onmouseover="this.style.background='rgba(239, 68, 68, 0.2)'; this.style.color='#ef4444'" onmouseout="this.style.background='rgba(255,255,255,0.05)'; this.style.color='rgba(255,255,255,0.6)'">
-                                    🗑 Supprimer
+                                <button onclick="deleteLeave('${leave.id}')" style="padding: 6px 12px; background: rgba(220, 38, 38, 0.2); border: 1px solid rgba(220, 38, 38, 0.4); color: #ef4444; border-radius: 8px; font-size: 12px; font-weight: 600; cursor: pointer; transition: all 0.2s;" onmouseover="this.style.background='rgba(220, 38, 38, 0.3)'" onmouseout="this.style.background='rgba(220, 38, 38, 0.2)'">
+                                    Suppr.
                                 </button>
                             </div>
-                        </div>
-                    </div>
+                        </td>
+                    </tr>
                 `;
             });
             
-            html += '</div>';
+            html += `
+                        </tbody>
+                    </table>
+                </div>
+            `;
+            
             list.innerHTML = html;
         }
         
