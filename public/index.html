@@ -17576,60 +17576,13 @@ RÈGLES DE CONVERSATION :
                     format: 'pdf'
                 },
                 formatResult: (data) => {
-                    const url = data.url || '';
-                    const summary = data.summary || {};
                     const count = data.invoicesAnalyzed || 0;
                     
-                    if (!summary || count === 0) {
+                    if (count === 0) {
                         return 'Aucune facture à analyser. Uploadez des factures d\'abord.';
                     }
                     
-                    // Construction du rapport formaté pour le chat
-                    let report = `📊 <strong>RAPPORT FINANCIER GÉNÉRÉ</strong>\n\n`;
-                    
-                    // Résumé Financier
-                    report += `💰 <strong>RÉSUMÉ FINANCIER</strong>\n`;
-                    report += `├─ Revenus totaux: <span style="color: green; font-weight: bold;">${summary.totalRevenue?.toLocaleString('fr-FR') || 0} €</span>\n`;
-                    report += `├─ Dépenses totales: <span style="color: red; font-weight: bold;">${summary.totalExpenses?.toLocaleString('fr-FR') || 0} €</span>\n`;
-                    
-                    const netIncome = summary.netIncome || 0;
-                    const netColor = netIncome >= 0 ? 'green' : 'red';
-                    const netIcon = netIncome >= 0 ? '✅' : '⚠️';
-                    report += `├─ Résultat net: ${netIcon} <span style="color: ${netColor}; font-weight: bold;">${netIncome.toLocaleString('fr-FR')} €</span>\n`;
-                    report += `├─ Marge: ${summary.margin || '0%'}\n`;
-                    report += `├─ TVA: ${summary.totalVAT?.toLocaleString('fr-FR') || 0} €\n`;
-                    report += `└─ Factures: ${count} (${summary.incomeCount || 0} revenus, ${summary.expenseCount || 0} dépenses)\n\n`;
-                    
-                    // Flux de trésorerie
-                    if (summary.cashFlow !== undefined) {
-                        const cashColor = summary.cashFlow >= 0 ? 'green' : 'red';
-                        const cashIcon = summary.cashFlow >= 0 ? '💵' : '⚠️';
-                        report += `${cashIcon} <strong>TRÉSORERIE</strong>\n`;
-                        report += `└─ Flux net: <span style="color: ${cashColor};">${summary.cashFlow.toLocaleString('fr-FR')} €</span>\n\n`;
-                    }
-                    
-                    // Indicateurs clés
-                    if (data.kpis) {
-                        report += `📈 <strong>INDICATEURS CLÉS</strong>\n`;
-                        report += `├─ Rentabilité: <strong>${data.kpis.profitability || 'N/A'}</strong>\n`;
-                        if (data.kpis.trend && data.kpis.trend !== 'stable') {
-                            const trendIcon = data.kpis.trend === 'croissance' ? '📈' : '📉';
-                            report += `├─ Tendance: ${trendIcon} ${data.kpis.trend} (${data.kpis.growthRate || 'N/A'})\n`;
-                        }
-                        report += `├─ Ratio dépenses: ${data.kpis.expenseRatio || 'N/A'}\n`;
-                        report += `└─ Montant moyen/facture: ${summary.averageInvoice?.toLocaleString('fr-FR') || 0} €\n\n`;
-                    }
-                    
-                    // Top catégories (si disponible)
-                    if (data.categoryBreakdown && data.categoryBreakdown.length > 0) {
-                        report += `📁 <strong>TOP CATÉGORIES</strong>\n`;
-                        data.categoryBreakdown.slice(0, 3).forEach((cat, i) => {
-                            report += `${i === data.categoryBreakdown.slice(0, 3).length - 1 ? '└─' : '├─'} ${cat.category}: ${cat.total?.toLocaleString('fr-FR') || 0} € (${cat.percentage || '0%'})\n`;
-                        });
-                        report += `\n`;
-                    }
-                    
-                    return report.replace(/\n/g, '<br>');
+                    return `✅ Votre rapport financier est bien généré avec ${count} facture(s) analysée(s).<br><br>📄 Vous pouvez le consulter dans la liste des <strong>Rapports (Blob)</strong>.<br><br>💬 Si vous avez des questions à propos du rapport, je suis à votre disposition !`;
                 }
             });
         }
