@@ -9521,6 +9521,44 @@ RÈGLES IMPORTANTES:
                         #rndAgent > div:first-child label {
                             font-size: 12px !important;
                         }
+                        
+                        /* Modal Informations Projet - Responsive */
+                        #projectDetailsModal {
+                            padding: 16px !important;
+                        }
+                        
+                        #projectDetailsModal > div {
+                            width: 98% !important;
+                            max-height: 90vh !important;
+                        }
+                        
+                        #projectDetailsModal h2 {
+                            font-size: 22px !important;
+                        }
+                        
+                        #projectDetailsModal > div > div:first-child {
+                            padding: 20px 24px !important;
+                            flex-direction: column !important;
+                            gap: 16px;
+                        }
+                        
+                        #projectDetailsModal > div > div:first-child > div:first-child > div {
+                            flex-wrap: wrap;
+                        }
+                        
+                        #projectDetailsModal > div > div:last-child {
+                            padding: 24px !important;
+                        }
+                        
+                        /* Métriques en 2 colonnes sur tablette */
+                        #projectDetailsModal > div > div:last-child > div:nth-child(2) {
+                            grid-template-columns: repeat(2, 1fr) !important;
+                        }
+                        
+                        /* Description et Problème en colonne */
+                        #projectDetailsModal > div > div:last-child > div:nth-child(3) {
+                            grid-template-columns: 1fr !important;
+                        }
                     }
                     
                     @media (max-width: 480px) {
@@ -9631,6 +9669,140 @@ RÈGLES IMPORTANTES:
                         
                         .rnd-btn {
                             width: 100%;
+                        }
+                        
+                        /* Modal Informations Projet - Mobile */
+                        #projectDetailsModal {
+                            padding: 10px !important;
+                            align-items: flex-start !important;
+                        }
+                        
+                        #projectDetailsModal > div {
+                            width: 100% !important;
+                            max-height: 98vh !important;
+                            border-radius: 12px !important;
+                        }
+                        
+                        #projectDetailsModal h2 {
+                            font-size: 18px !important;
+                        }
+                        
+                        #projectDetailsModal > div > div:first-child {
+                            padding: 16px !important;
+                            flex-direction: column !important;
+                            gap: 12px;
+                            border-radius: 12px 12px 0 0 !important;
+                        }
+                        
+                        #projectDetailsModal > div > div:first-child > div:first-child > div {
+                            flex-direction: column;
+                            gap: 8px;
+                            align-items: flex-start !important;
+                        }
+                        
+                        #projectDetailsModal > div > div:first-child > div:first-child > div > span {
+                            font-size: 11px !important;
+                            padding: 4px 10px !important;
+                        }
+                        
+                        #projectDetailsModal > div > div:first-child button {
+                            width: 100%;
+                            height: 36px !important;
+                            font-size: 24px !important;
+                        }
+                        
+                        #projectDetailsModal > div > div:last-child {
+                            padding: 16px !important;
+                        }
+                        
+                        #projectDetailsModal h3 {
+                            font-size: 16px !important;
+                        }
+                        
+                        #projectDetailsModal h4 {
+                            font-size: 12px !important;
+                        }
+                        
+                        /* Timeline phases en colonne sur mobile */
+                        #projectDetailsModal > div > div:last-child > div:first-child > div:nth-child(2) {
+                            flex-direction: column !important;
+                            gap: 16px;
+                        }
+                        
+                        #projectDetailsModal > div > div:last-child > div:first-child > div:nth-child(2) > div {
+                            display: flex !important;
+                            align-items: center;
+                            gap: 12px;
+                            text-align: left !important;
+                        }
+                        
+                        #projectDetailsModal > div > div:last-child > div:first-child > div:nth-child(2) > div > div:first-child {
+                            width: 40px !important;
+                            height: 40px !important;
+                            margin: 0 !important;
+                            flex-shrink: 0;
+                        }
+                        
+                        #projectDetailsModal > div > div:last-child > div:first-child > div:nth-child(2) > div > div:last-child {
+                            margin: 0 !important;
+                        }
+                        
+                        /* Métriques en 1 colonne sur mobile */
+                        #projectDetailsModal > div > div:last-child > div:nth-child(2) {
+                            grid-template-columns: 1fr !important;
+                            gap: 12px !important;
+                        }
+                        
+                        #projectDetailsModal > div > div:last-child > div:nth-child(2) > div {
+                            padding: 16px !important;
+                        }
+                        
+                        #projectDetailsModal > div > div:last-child > div:nth-child(2) > div > div:first-child {
+                            margin-bottom: 8px !important;
+                        }
+                        
+                        #projectDetailsModal > div > div:last-child > div:nth-child(2) > div > div:nth-child(2) {
+                            font-size: 20px !important;
+                        }
+                        
+                        #projectDetailsModal > div > div:last-child > div:nth-child(2) > div > div:nth-child(3) {
+                            font-size: 12px !important;
+                        }
+                        
+                        /* Description et Problème en colonne */
+                        #projectDetailsModal > div > div:last-child > div:nth-child(3) {
+                            grid-template-columns: 1fr !important;
+                            gap: 12px !important;
+                        }
+                        
+                        #projectDetailsModal > div > div:last-child > div:nth-child(3) > div {
+                            padding: 16px !important;
+                        }
+                        
+                        #projectDetailsModal > div > div:last-child > div:nth-child(3) p {
+                            font-size: 13px !important;
+                        }
+                        
+                        /* Public Cible */
+                        #projectDetailsModal > div > div:last-child > div:nth-child(4) {
+                            padding: 16px !important;
+                        }
+                        
+                        #projectDetailsModal > div > div:last-child > div:nth-child(4) p {
+                            font-size: 13px !important;
+                        }
+                        
+                        /* Boutons d'action en colonne */
+                        #projectDetailsModal > div > div:last-child > div:last-child {
+                            flex-direction: column !important;
+                            gap: 8px !important;
+                        }
+                        
+                        #projectDetailsModal > div > div:last-child > div:last-child button {
+                            width: 100% !important;
+                            justify-content: center;
+                            padding: 10px 16px !important;
+                            font-size: 13px !important;
                         }
                     }
                 </style>
