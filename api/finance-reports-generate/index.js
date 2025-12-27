@@ -155,8 +155,29 @@ function analyzeInvoicesForReport(invoices) {
       invoicesByType.expense.push(inv);
     }
 
-    // TVA (estimation 20% des montants, standard France)
-    const vatAmount = amount * 0.20;
+    // TVA - Utiliser les données réelles de la facture
+    let vatAmount = 0;
+    
+    // 1. Priorité: Champ totalTax extrait de la facture
+    if (inv.extractedFields && inv.extractedFields.totalTax) {
+      vatAmount = Math.abs(parseFloat(inv.extractedFields.totalTax) || 0);
+    }
+    // 2. Sinon: Champ Tax dans fields
+    else if (inv.fields && inv.fields.Tax) {
+      vatAmount = Math.abs(parseFloat(inv.fields.Tax) || 0);
+    }
+    // 3. Sinon: Calculer depuis invoiceTotal et subTotal si disponibles
+    else if (inv.extractedFields && inv.extractedFields.invoiceTotal && inv.extractedFields.subTotal) {
+      const total = parseFloat(inv.extractedFields.invoiceTotal) || 0;
+      const subtotal = parseFloat(inv.extractedFields.subTotal) || 0;
+      vatAmount = Math.abs(total - subtotal);
+    }
+    // 4. Sinon: Utiliser le champ vat/tva direct si présent
+    else if (inv.vat || inv.tva) {
+      vatAmount = Math.abs(parseFloat(inv.vat || inv.tva) || 0);
+    }
+    // 5. Pas de TVA détectée - laisser à 0 (ne pas estimer)
+    
     totalVAT += vatAmount;
 
     // Par fournisseur avec type
