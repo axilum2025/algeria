@@ -16963,7 +16963,44 @@ RÈGLES DE CONVERSATION :
                     
                     if (financeContext.invoices && financeContext.invoices.length > 1) {
                         contextInfo += `\n[HISTORIQUE: ${financeContext.invoices.length} facture(s) au total]\n`;
+                        
+                        // Ajouter les détails des factures pour l'agent
+                        contextInfo += '\n=== FACTURES ENREGISTRÉES ===\n';
+                        financeContext.invoices.forEach((inv, idx) => {
+                            contextInfo += `\nFacture ${idx + 1}:\n`;
+                            contextInfo += `- Fournisseur: ${inv.vendor || 'Inconnu'}\n`;
+                            contextInfo += `- Montant: ${Math.abs(parseFloat(inv.amount) || 0)} €\n`;
+                            contextInfo += `- Type: ${inv.type === 'income' ? 'REVENU' : 'CHARGE'}\n`;
+                            contextInfo += `- Date: ${inv.date || 'Non spécifiée'}\n`;
+                            contextInfo += `- Numéro: ${inv.invoiceNumber || 'N/A'}\n`;
+                            contextInfo += `- Catégorie: ${inv.category || 'Non classifié'}\n`;
+                            if (inv.extractedFields?.totalTax || inv.vat) {
+                                contextInfo += `- TVA: ${inv.extractedFields?.totalTax || inv.vat} €\n`;
+                            }
+                        });
+                        
+                        // Calculer les totaux pour l'agent
+                        const totalRevenue = financeContext.invoices
+                            .filter(inv => inv.type === 'income')
+                            .reduce((sum, inv) => sum + Math.abs(parseFloat(inv.amount) || 0), 0);
+                        const totalExpenses = financeContext.invoices
+                            .filter(inv => inv.type === 'expense')
+                            .reduce((sum, inv) => sum + Math.abs(parseFloat(inv.amount) || 0), 0);
+                        const netIncome = totalRevenue - totalExpenses;
+                        
+                        contextInfo += `\n=== RÉSUMÉ FINANCIER ACTUEL ===\n`;
+                        contextInfo += `Total Revenus: ${totalRevenue.toFixed(2)} €\n`;
+                        contextInfo += `Total Charges: ${totalExpenses.toFixed(2)} €\n`;
+                        contextInfo += `Résultat Net: ${netIncome.toFixed(2)} €\n`;
+                        contextInfo += `Nombre factures revenus: ${financeContext.invoices.filter(i => i.type === 'income').length}\n`;
+                        contextInfo += `Nombre factures charges: ${financeContext.invoices.filter(i => i.type === 'expense').length}\n`;
                     }
+                    
+                    // Info sur les rapports
+                    contextInfo += `\n=== RAPPORTS DISPONIBLES ===\n`;
+                    contextInfo += `Les rapports financiers PDF sont générés à la demande et stockés dans Azure Blob.\n`;
+                    contextInfo += `Tu peux proposer de générer un nouveau rapport si l'utilisateur le souhaite.\n`;
+                    contextInfo += `L'utilisateur peut consulter les rapports existants via "Lister Rapports (Blob)".\n`;
                     
                     const systemPrompt = [
                         '[FINANCE_EXPERT_V2]',
