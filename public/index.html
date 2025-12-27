@@ -3976,15 +3976,33 @@ RÈGLES IMPORTANTES:
                     const reader = new FileReader();
                     reader.onload = async (e) => {
                         const base64 = e.target.result;
-                        addMessage(`📸 ${file.name}`, 'user');
                         
-                        // Afficher l'image dans le chat
-                        const imgData = {
-                            imageUrl: base64,
-                            imageGenerated: true,
-                            prompt: file.name
-                        };
-                        addMessage('Votre image :', 'bot', imgData);
+                        // Afficher l'image directement dans le message utilisateur (style ChatGPT/Gemini)
+                        const chatMessages = document.getElementById('chatMessages');
+                        const messageWrapper = document.createElement('div');
+                        messageWrapper.className = 'message-wrapper user';
+                        
+                        const now = new Date();
+                        const time = now.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+                        
+                        messageWrapper.innerHTML = `
+                            <div class="message-header">
+                                <div class="avatar user-avatar">👤</div>
+                                <span class="message-sender">Vous</span>
+                                <span class="message-time">${time}</span>
+                            </div>
+                            <div class="message-content" style="max-width: 400px;">
+                                <img src="${base64}" 
+                                     alt="${file.name}" 
+                                     style="width: 100%; height: auto; border-radius: 12px; cursor: pointer; display: block; margin-bottom: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);"
+                                     onclick="window.open('${base64}', '_blank')"
+                                     loading="eager">
+                                <div style="font-size: 13px; opacity: 0.8; margin-top: 4px;">📸 ${file.name}</div>
+                            </div>
+                        `;
+                        
+                        chatMessages.appendChild(messageWrapper);
+                        chatMessages.scrollTop = chatMessages.scrollHeight;
                         
                         // Réactiver l'analyse uniquement pour le plan PRO
                         const currentPlan = localStorage.getItem('selectedPlan') || 'FREE';
@@ -4030,13 +4048,13 @@ RÈGLES IMPORTANTES:
                                 showToast('❌ Erreur réseau (PRO)', 'error');
                             }
                         } else {
-                            // FREE: pas d'analyse automatique
-                            addMessage("ℹ️ L'image est affichée sans analyse automatique (FREE).", 'bot');
+                            // FREE: afficher message informatif
+                            addMessage("📌 Image reçue ! Vous pouvez me poser des questions dessus.\n\n💡 En mode PRO, l'image serait automatiquement analysée par Azure Vision.", 'bot');
                             const conv = conversations.find(c => c.id === currentConversationId);
                             if (conv) {
                                 conv.messages.push({
                                     user: `📸 ${file.name}`,
-                                    bot: "(Aucune analyse automatique en mode FREE)",
+                                    bot: "Image reçue (mode FREE)",
                                     timestamp: Date.now(),
                                     imageUrl: base64,
                                     hiScore: 0,
