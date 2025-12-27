@@ -1255,10 +1255,12 @@
                 height: auto;
                 min-height: 60px;
                 padding: 10px 12px;
+                flex-wrap: wrap;
             }
 
             .header-left {
                 gap: 10px;
+                flex: 1;
             }
 
             .header-left .logo {
@@ -1267,10 +1269,23 @@
 
             .header-right {
                 gap: 6px;
+                order: 3;
             }
 
             .plan-selector {
-                display: none;
+                order: 2;
+                width: 100%;
+                margin-top: 8px;
+                margin-right: 0;
+                padding: 2px;
+                justify-content: center;
+            }
+
+            .plan-badge {
+                flex: 1;
+                max-width: 140px;
+                padding: 8px 10px;
+                font-size: 12px;
             }
 
             .icon-btn {
@@ -1376,7 +1391,7 @@
 
             .header {
                 padding: 8px 10px;
-                min-height: 56px;
+                min-height: auto;
             }
 
             .header-left .logo {
@@ -1386,6 +1401,17 @@
             .menu-btn {
                 font-size: 20px;
                 padding: 6px;
+            }
+
+            .plan-selector {
+                margin-top: 6px;
+                padding: 2px;
+                gap: 3px;
+            }
+
+            .plan-badge {
+                padding: 6px 8px;
+                font-size: 11px;
             }
 
             .icon-btn {
