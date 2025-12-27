@@ -7443,6 +7443,45 @@ RÈGLES IMPORTANTES:
                             width: 100%;
                         }
                     }
+                    
+                    /* Responsive pour le panneau Agent RH */
+                    @media (max-width: 768px) {
+                        #hrAiChatPanel {
+                            right: 16px !important;
+                            bottom: 16px !important;
+                            width: calc(100% - 32px) !important;
+                            max-width: 420px !important;
+                            height: 500px !important;
+                        }
+                    }
+                    
+                    @media (max-width: 480px) {
+                        #hrAiChatPanel {
+                            right: 8px !important;
+                            bottom: 8px !important;
+                            left: 8px !important;
+                            width: calc(100% - 16px) !important;
+                            max-width: none !important;
+                            height: calc(100vh - 80px) !important;
+                            max-height: 550px !important;
+                        }
+                        #hrAiChatPanel > div:first-child {
+                            padding: 16px !important;
+                        }
+                        #hrAiChatPanel h3 {
+                            font-size: 14px !important;
+                        }
+                        #hrAiChatPanel p {
+                            font-size: 11px !important;
+                        }
+                        #hrChatMessages {
+                            padding: 16px !important;
+                        }
+                        #hrChatInput {
+                            font-size: 13px !important;
+                            padding: 10px 45px 10px 12px !important;
+                        }
+                    }
                 </style>
                 
                 <!-- Interface RH Management -->
