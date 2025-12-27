@@ -280,11 +280,6 @@ async function generatePDFReport(reportType, analysis, period) {
     doc.moveDown(0.5);
     doc.fontSize(12).font('Helvetica');
     
-    // Box pour le résumé
-    const summaryY = doc.y;
-    doc.rect(50, summaryY - 5, 500, 150).stroke();
-    doc.moveDown(0.5);
-    
     doc.text(`Revenus totaux: ${analysis.summary.totalRevenue.toLocaleString('fr-FR')} €`, { continued: false });
     doc.text(`Dépenses totales: ${analysis.summary.totalExpenses.toLocaleString('fr-FR')} €`);
     
