@@ -275,7 +275,7 @@ function analyzeInvoicesForReport(invoices) {
       totalExpenses: Math.round(totalExpenses),
       netIncome: Math.round(netIncome),
       totalVAT: Math.round(totalVAT),
-      margin: margin.toFixed(1) + '%',
+      margin: totalRevenue > 0 ? margin.toFixed(1) + '%' : 'N/A',
       invoiceCount: invoices.length,
       incomeCount: invoicesByType.income.length,
       expenseCount: invoicesByType.expense.length,
@@ -327,12 +327,19 @@ function analyzeInvoicesForReport(invoices) {
 
 async function generatePDFReport(reportType, analysis, period) {
   return new Promise((resolve, reject) => {
-    const doc = new PDFDocument({ margin: 50 });
+    const doc = new PDFDocument({ 
+      margin: 50,
+      bufferPages: true,
+      autoFirstPage: false
+    });
     const chunks = [];
 
     doc.on('data', chunk => chunks.push(chunk));
     doc.on('end', () => resolve(Buffer.concat(chunks)));
     doc.on('error', reject);
+    
+    // Ajouter la première page
+    doc.addPage();
 
     // En-tête
     doc.fontSize(24).font('Helvetica-Bold').text('RAPPORT FINANCIER', { align: 'center' });
@@ -366,11 +373,19 @@ async function generatePDFReport(reportType, analysis, period) {
     doc.moveDown(0.5);
     doc.fontSize(11).font('Helvetica');
     
-    doc.text(`Ratio dépenses/total: ${analysis.kpis.expenseRatio}`);
-    doc.text(`Ratio revenus/total: ${analysis.kpis.revenueRatio}`);
+    // N'afficher les ratios que s'ils ont du sens
+    if (analysis.summary.totalRevenue > 0) {
+      doc.text(`Ratio dépenses/total: ${analysis.kpis.expenseRatio}`);
+      doc.text(`Ratio revenus/total: ${analysis.kpis.revenueRatio}`);
+    } else {
+      doc.text(`Total dépenses: ${analysis.summary.totalExpenses.toLocaleString('fr-FR')} €`);
+      doc.fillColor('gray').text(`(Aucun revenu pour calculer des ratios)`).fillColor('black');
+    }
     doc.text(`Ratio TVA/total: ${analysis.kpis.vatRatio}`);
     doc.text(`Montant moyen par facture: ${analysis.summary.averageInvoice.toLocaleString('fr-FR')} €`);
-    doc.text(`Dépense moyenne: ${analysis.kpis.averageExpense.toLocaleString('fr-FR')} €`);
+    if (analysis.summary.expenseCount > 0) {
+      doc.text(`Dépense moyenne: ${analysis.kpis.averageExpense.toLocaleString('fr-FR')} €`);
+    }
     if (analysis.summary.incomeCount > 0) {
       doc.text(`Revenu moyen: ${analysis.kpis.averageRevenue.toLocaleString('fr-FR')} €`);
     }
@@ -521,7 +536,7 @@ async function generatePDFReport(reportType, analysis, period) {
       });
     }
     
-    if (parseFloat(analysis.kpis.expenseRatio) > 70) {
+    if (parseFloat(analysis.kpis.expenseRatio) > 70 && analysis.summary.totalRevenue > 0) {
       recommendations.push({
         type: 'Attention',
         color: 'orange',
@@ -576,12 +591,12 @@ async function generatePDFReport(reportType, analysis, period) {
       });
     }
     
-    // Afficher les recommandations
+    // Afficher les recommandations (sans émojis pour éviter problèmes d'encodage)
     recommendations.forEach((rec, idx) => {
       doc.font('Helvetica-Bold').fillColor(rec.color || 'black')
-         .text(`${rec.icon} ${rec.type}:`);
+         .text(`[${rec.type}]`);
       doc.font('Helvetica').fillColor('black')
-         .text(`   ${rec.text}`);
+         .text(`${rec.text}`);
       doc.moveDown(0.8);
     });
     
