@@ -16579,7 +16579,101 @@ RÈGLES DE CONVERSATION :
                     #financeAIOverlay .send-btn:hover { background: rgba(52,211,153,0.28); border-color: rgba(52,211,153,0.5); transform: translateY(-2px); }
                     #financeAIOverlay .send-btn:disabled { opacity: 0.5; cursor: not-allowed; }
                     
-                    @media (max-width: 1100px) { #financeAIOverlay .finance-container { grid-template-columns: 1fr; } }
+                    /* Responsive Design - Mode Bureau Mobile & Tablette */
+                    @media (max-width: 1200px) {
+                        #financeAIOverlay .finance-container { 
+                            grid-template-columns: 1fr; 
+                            padding: 20px 24px; 
+                            gap: 16px;
+                        }
+                        #financeAIOverlay .finance-header { padding: 20px 24px; }
+                        #financeAIOverlay .finance-icon { width: 48px; height: 48px; }
+                        #financeAIOverlay .finance-h1 { font-size: 22px; }
+                        #financeAIOverlay .finance-sub { font-size: 12px; }
+                        #financeAIOverlay .history-panel { 
+                            width: 90%; 
+                            max-width: 400px;
+                            right: 5%;
+                            top: 90px;
+                        }
+                    }
+                    
+                    @media (max-width: 768px) {
+                        #financeAIOverlay .finance-container { 
+                            padding: 16px; 
+                            gap: 12px;
+                        }
+                        #financeAIOverlay .finance-header { 
+                            padding: 16px; 
+                            flex-direction: column;
+                            align-items: flex-start;
+                            gap: 12px;
+                        }
+                        #financeAIOverlay .finance-title { gap: 12px; }
+                        #financeAIOverlay .finance-icon { width: 40px; height: 40px; }
+                        #financeAIOverlay .finance-h1 { font-size: 18px; }
+                        #financeAIOverlay .finance-sub { font-size: 11px; }
+                        #financeAIOverlay .ghost-btn, 
+                        #financeAIOverlay .history-toggle-btn { 
+                            width: 38px; 
+                            height: 38px; 
+                        }
+                        #financeAIOverlay .finance-tools, 
+                        #financeAIOverlay .finance-chat { 
+                            padding: 16px; 
+                            border-radius: 12px;
+                        }
+                        #financeAIOverlay .tools-title { font-size: 16px; }
+                        #financeAIOverlay .tool-card { padding: 12px; }
+                        #financeAIOverlay .tool-name { font-size: 13px; }
+                        #financeAIOverlay .tool-desc { font-size: 11px; }
+                        #financeAIOverlay .chat-title { font-size: 15px; }
+                        #financeAIOverlay .chat-textarea { min-height: 60px; font-size: 12px; }
+                        #financeAIOverlay .quick-btn { padding: 6px 10px; font-size: 10px; }
+                        #financeAIOverlay .send-btn, 
+                        #financeAIOverlay .upload-btn { 
+                            width: 38px; 
+                            height: 38px; 
+                            padding: 8px;
+                        }
+                        #financeAIOverlay .history-panel { 
+                            width: calc(100% - 32px);
+                            max-width: none;
+                            left: 16px;
+                            right: 16px;
+                            top: 80px;
+                            max-height: calc(100vh - 120px);
+                        }
+                        #financeAIOverlay .list-item {
+                            flex-direction: column;
+                            align-items: flex-start;
+                            gap: 8px;
+                        }
+                        #financeAIOverlay .list-links {
+                            width: 100%;
+                            justify-content: flex-end;
+                        }
+                    }
+                    
+                    @media (max-width: 480px) {
+                        #financeAIOverlay .finance-header { padding: 12px; }
+                        #financeAIOverlay .finance-container { padding: 12px; gap: 10px; }
+                        #financeAIOverlay .finance-icon { width: 36px; height: 36px; }
+                        #financeAIOverlay .finance-h1 { font-size: 16px; }
+                        #financeAIOverlay .finance-sub { display: none; }
+                        #financeAIOverlay .finance-tools, 
+                        #financeAIOverlay .finance-chat { padding: 12px; }
+                        #financeAIOverlay .tools-title { font-size: 14px; }
+                        #financeAIOverlay .tool-card { padding: 10px; margin-bottom: 10px; }
+                        #financeAIOverlay .tool-icon { width: 36px; height: 36px; }
+                        #financeAIOverlay .chat-history { min-height: 150px; }
+                        #financeAIOverlay .quick-prompts { gap: 4px; }
+                        #financeAIOverlay .quick-btn { 
+                            padding: 5px 8px; 
+                            font-size: 9px;
+                            white-space: nowrap;
+                        }
+                    }
                 </style>
                 
                 <div class="finance-shell">
