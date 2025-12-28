@@ -13960,8 +13960,13 @@ Réponds de manière professionnelle, data-driven et orientée résultats.
             if (tabName === 'dashboard') {
                 const employees = getHRData('hrEmployees');
                 updateHRStats(employees);
+            } else if (tabName === 'employees') {
+                const employees = getHRData('hrEmployees');
+                renderEmployeesList(employees);
             } else if (tabName === 'leaves') {
                 initializeLeavesData();
+            } else if (tabName === 'payroll') {
+                initializePayrollData();
             } else if (tabName === 'reviews') {
                 initializeReviewsData();
             } else if (tabName === 'turnover') {
@@ -13975,26 +13980,16 @@ Réponds de manière professionnelle, data-driven et orientée résultats.
         }
         
         function initializeHRData() {
-            // Load employees from localStorage
+            // Charger les données RH sans rendre immédiatement toutes les listes.
+            // Les listes (employés/congés/paie) sont rendues au moment de l'ouverture de l'onglet.
             const employees = getHRData('hrEmployees');
-            if (employees.length > 0) {
-                renderEmployeesList(employees);
-                updateHRStats(employees);
-            }
-            
-            // Load leaves
+            updateHRStats(employees);
+
             const leaves = getHRData('hrLeaves');
-            if (leaves.length > 0) {
-                renderLeavesList(leaves);
-                updateLeavesStats(leaves);
-            }
-            
-            // Load payrolls
+            updateLeavesStats(leaves);
+
             const payrolls = getHRData('hrPayrolls');
-            if (payrolls.length > 0) {
-                renderPayrollsList(payrolls);
-                updatePayrollStats(payrolls);
-            }
+            updatePayrollStats(payrolls);
         }
         
         function renderEmployeesList(employees) {
@@ -16026,6 +16021,7 @@ RÈGLES DE CONVERSATION :
         function renderPayrollsList(payrolls) {
             const container = document.getElementById('payrollsList');
             const employees = getHRData('hrEmployees');
+            const employeesById = new Map(employees.map(e => [e.id, e]));
             const currency = getCurrency();
             
             if (payrolls.length === 0) {
@@ -16058,7 +16054,7 @@ RÈGLES DE CONVERSATION :
             `;
             
             payrolls.forEach(payroll => {
-                const employee = employees.find(e => e.id === payroll.employeeId);
+                const employee = employeesById.get(payroll.employeeId);
                 if (!employee) return;
                 
                 const statusColors = {
