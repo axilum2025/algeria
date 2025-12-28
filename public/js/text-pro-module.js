@@ -277,7 +277,9 @@ Pour commencer, sélectionnez vos langues dans le panneau latéral et saisissez 
             left: 0;
             width: 100%;
             height: 100%;
-            background: linear-gradient(135deg, #1e3a8a, #0a4d3c, #064e3b);
+            background: radial-gradient(circle at 20% 10%, rgba(59, 130, 246, 0.22), transparent 55%),
+                        radial-gradient(circle at 80% 30%, rgba(6, 182, 212, 0.18), transparent 55%),
+                        linear-gradient(180deg, rgba(0, 0, 0, 0.92), rgba(0, 0, 0, 0.88));
             z-index: 10001;
             animation: fadeIn 0.3s ease;
             display: flex;
@@ -545,6 +547,17 @@ Pour commencer, sélectionnez vos langues dans le panneau latéral et saisissez 
                 display: flex;
                 width: 100%;
                 height: 100%;
+
+                --tp-primary: #3b82f6;
+                --tp-primary-2: #06b6d4;
+                --tp-border: rgba(59, 130, 246, 0.3);
+                --tp-border-strong: rgba(59, 130, 246, 0.4);
+                --tp-panel-bg: rgba(255, 255, 255, 0.05);
+                --tp-panel-bg-strong: rgba(255, 255, 255, 0.08);
+                --tp-muted: rgba(255, 255, 255, 0.6);
+                --tp-muted-2: rgba(255, 255, 255, 0.7);
+                --tp-danger: #ef4444;
+                --tp-success: #10b981;
             }
 
             .textpro-chat-header-left {
@@ -589,8 +602,8 @@ Pour commencer, sélectionnez vos langues dans le panneau latéral et saisissez 
             
             .textpro-info-panel {
                 width: 350px;
-                background: rgba(0, 0, 0, 0.2);
-                border-right: 1px solid rgba(59, 130, 246, 0.3);
+                background: rgba(0, 0, 0, 0.22);
+                border-right: 1px solid var(--tp-border);
                 overflow-y: auto;
                 padding: 24px;
             }
@@ -602,7 +615,7 @@ Pour commencer, sélectionnez vos langues dans le panneau latéral et saisissez 
             .textpro-info-title {
                 font-size: 24px;
                 font-weight: 700;
-                background: linear-gradient(135deg, #3b82f6, #06b6d4);
+                background: linear-gradient(135deg, var(--tp-primary), var(--tp-primary-2));
                 -webkit-background-clip: text;
                 -webkit-text-fill-color: transparent;
                 margin: 0 0 8px;
@@ -610,7 +623,7 @@ Pour commencer, sélectionnez vos langues dans le panneau latéral et saisissez 
             
             .textpro-info-subtitle {
                 font-size: 13px;
-                color: rgba(255, 255, 255, 0.6);
+                color: var(--tp-muted);
                 margin: 0;
             }
             
@@ -626,15 +639,15 @@ Pour commencer, sélectionnez vos langues dans le panneau latéral et saisissez 
             
             .textpro-mode-section {
                 background: rgba(59, 130, 246, 0.1);
-                border: 1px solid rgba(59, 130, 246, 0.3);
+                border: 1px solid var(--tp-border);
                 border-radius: 12px;
                 padding: 16px;
                 margin-bottom: 20px;
             }
             
             .textpro-lang-section {
-                background: rgba(16, 185, 129, 0.1);
-                border: 1px solid rgba(16, 185, 129, 0.3);
+                background: rgba(59, 130, 246, 0.08);
+                border: 1px solid var(--tp-border);
                 border-radius: 12px;
                 padding: 16px;
                 margin-bottom: 20px;
@@ -686,8 +699,8 @@ Pour commencer, sélectionnez vos langues dans le panneau latéral et saisissez 
             }
             
             .textpro-upload-section {
-                background: rgba(255, 255, 255, 0.05);
-                border: 1px solid rgba(59, 130, 246, 0.3);
+                background: var(--tp-panel-bg);
+                border: 1px solid var(--tp-border);
                 border-radius: 12px;
                 padding: 16px;
                 margin-bottom: 20px;
@@ -813,7 +826,7 @@ Pour commencer, sélectionnez vos langues dans le panneau latéral et saisissez 
             .textpro-compare-btn {
                 width: 100%;
                 padding: 12px 20px;
-                background: linear-gradient(135deg, #10b981, #059669);
+                background: linear-gradient(135deg, var(--tp-primary), var(--tp-primary-2));
                 border: none;
                 border-radius: 8px;
                 color: white;
@@ -829,7 +842,7 @@ Pour commencer, sélectionnez vos langues dans le panneau latéral et saisissez 
             
             .textpro-compare-btn:hover {
                 transform: translateY(-2px);
-                box-shadow: 0 4px 16px rgba(16, 185, 129, 0.4);
+                box-shadow: 0 4px 16px rgba(59, 130, 246, 0.4);
             }
             
             .textpro-compare-btn.active {
@@ -850,8 +863,8 @@ Pour commencer, sélectionnez vos langues dans le panneau latéral et saisissez 
             }
             
             .textpro-comparison-header {
-                background: rgba(16, 185, 129, 0.2);
-                border-bottom: 1px solid rgba(16, 185, 129, 0.3);
+                background: rgba(59, 130, 246, 0.18);
+                border-bottom: 1px solid var(--tp-border);
                 padding: 16px 24px;
                 display: flex;
                 justify-content: space-between;
@@ -976,7 +989,7 @@ Pour commencer, sélectionnez vos langues dans le panneau latéral et saisissez 
             
             .textpro-comparison-footer {
                 background: rgba(0, 0, 0, 0.3);
-                border-top: 1px solid rgba(16, 185, 129, 0.3);
+                border-top: 1px solid var(--tp-border);
                 padding: 16px 24px;
                 display: flex;
                 gap: 12px;
@@ -988,9 +1001,9 @@ Pour commencer, sélectionnez vos langues dans le panneau latéral et saisissez 
             .textpro-clear-comparison-btn {
                 padding: 10px 20px;
                 background: rgba(59, 130, 246, 0.2);
-                border: 1px solid rgba(59, 130, 246, 0.4);
+                border: 1px solid var(--tp-border-strong);
                 border-radius: 8px;
-                color: #3b82f6;
+                color: var(--tp-primary);
                 font-weight: 600;
                 font-size: 13px;
                 cursor: pointer;
@@ -1005,16 +1018,6 @@ Pour commencer, sélectionnez vos langues dans le panneau latéral et saisissez 
             .textpro-clear-comparison-btn:hover {
                 background: rgba(59, 130, 246, 0.3);
                 transform: translateY(-2px);
-            }
-            
-            .textpro-download-comparison-btn {
-                background: rgba(16, 185, 129, 0.2);
-                border-color: rgba(16, 185, 129, 0.4);
-                color: #10b981;
-            }
-            
-            .textpro-download-comparison-btn:hover {
-                background: rgba(16, 185, 129, 0.3);
             }
             
             .textpro-clear-comparison-btn {
@@ -1046,7 +1049,7 @@ Pour commencer, sélectionnez vos langues dans le panneau latéral et saisissez 
             .textpro-chat-title {
                 font-size: 22px;
                 font-weight: 700;
-                background: linear-gradient(135deg, #3b82f6, #06b6d4);
+                background: linear-gradient(135deg, var(--tp-primary), var(--tp-primary-2));
                 -webkit-background-clip: text;
                 -webkit-text-fill-color: transparent;
                 margin: 0 0 4px;
@@ -1325,8 +1328,8 @@ Pour commencer, sélectionnez vos langues dans le panneau latéral et saisissez 
                 width: 48px;
                 height: 48px;
                 padding: 0;
-                background: rgba(139, 92, 246, 0.2);
-                border: 1px solid rgba(139, 92, 246, 0.4);
+                background: rgba(59, 130, 246, 0.2);
+                border: 1px solid var(--tp-border-strong);
                 border-radius: 12px;
                 color: white;
                 font-size: 20px;
@@ -1343,9 +1346,9 @@ Pour commencer, sélectionnez vos langues dans le panneau latéral et saisissez 
             }
             
             .textpro-mic-btn:hover {
-                background: rgba(139, 92, 246, 0.3);
+                background: rgba(59, 130, 246, 0.3);
                 transform: translateY(-2px);
-                box-shadow: 0 4px 12px rgba(139, 92, 246, 0.4);
+                box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
             }
             
             .textpro-mic-btn.recording {
@@ -1413,10 +1416,10 @@ Pour commencer, sélectionnez vos langues dans le panneau latéral et saisissez 
                 display: inline-block;
                 margin-top: 8px;
                 padding: 3px 6px;
-                background: rgba(16, 185, 129, 0.1);
-                border: 1px solid rgba(16, 185, 129, 0.3);
+                background: rgba(59, 130, 246, 0.1);
+                border: 1px solid var(--tp-border);
                 border-radius: 3px;
-                color: #10b981;
+                color: var(--tp-primary);
                 font-weight: 400;
                 font-size: 9px;
                 cursor: pointer;
@@ -1436,8 +1439,8 @@ Pour commencer, sélectionnez vos langues dans le panneau latéral et saisissez 
             }
             
             .textpro-download-btn:hover {
-                background: rgba(16, 185, 129, 0.25);
-                border-color: rgba(16, 185, 129, 0.6);
+                background: rgba(59, 130, 246, 0.25);
+                border-color: rgba(59, 130, 246, 0.6);
             }
             
             .textpro-copy-btn {
@@ -1493,10 +1496,10 @@ Pour commencer, sélectionnez vos langues dans le panneau latéral et saisissez 
                 width: 32px;
                 height: 24px;
                 padding: 0;
-                background: rgba(139, 92, 246, 0.2);
-                border: 1px solid rgba(139, 92, 246, 0.4);
+                background: rgba(59, 130, 246, 0.18);
+                border: 1px solid var(--tp-border-strong);
                 border-radius: 6px;
-                color: #a78bfa;
+                color: var(--tp-primary);
                 cursor: pointer;
                 transition: all 0.2s ease;
             }
@@ -1508,7 +1511,7 @@ Pour commencer, sélectionnez vos langues dans le panneau latéral et saisissez 
             }
             
             .textpro-speaker-btn:hover {
-                background: rgba(139, 92, 246, 0.3);
+                background: rgba(59, 130, 246, 0.28);
                 transform: scale(1.1);
             }
             
@@ -1529,10 +1532,10 @@ Pour commencer, sélectionnez vos langues dans le panneau latéral et saisissez 
                 width: 48px;
                 height: 48px;
                 padding: 0;
-                background: rgba(236, 72, 153, 0.2);
-                border: 1px solid rgba(236, 72, 153, 0.4);
+                background: rgba(59, 130, 246, 0.18);
+                border: 1px solid var(--tp-border-strong);
                 border-radius: 10px;
-                color: #ec4899;
+                color: var(--tp-primary);
                 cursor: pointer;
                 transition: all 0.3s ease;
                 display: flex;
@@ -1546,13 +1549,13 @@ Pour commencer, sélectionnez vos langues dans le panneau latéral et saisissez 
             }
             
             .textpro-translate-btn:hover {
-                background: rgba(236, 72, 153, 0.3);
+                background: rgba(59, 130, 246, 0.28);
                 transform: translateY(-2px);
-                box-shadow: 0 4px 12px rgba(236, 72, 153, 0.4);
+                box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
             }
             
             .textpro-translate-btn.translating {
-                background: linear-gradient(135deg, #ec4899, #f97316);
+                background: linear-gradient(135deg, var(--tp-primary), var(--tp-primary-2));
                 color: white;
                 animation: translatePulse 1.5s ease-in-out infinite;
             }
@@ -1560,11 +1563,11 @@ Pour commencer, sélectionnez vos langues dans le panneau latéral et saisissez 
             @keyframes translatePulse {
                 0%, 100% {
                     opacity: 1;
-                    box-shadow: 0 0 0 0 rgba(236, 72, 153, 0.7);
+                    box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.7);
                 }
                 50% {
                     opacity: 0.9;
-                    box-shadow: 0 0 0 10px rgba(236, 72, 153, 0);
+                    box-shadow: 0 0 0 10px rgba(59, 130, 246, 0);
                 }
             }
             
@@ -1587,7 +1590,7 @@ Pour commencer, sélectionnez vos langues dans le panneau latéral et saisissez 
                 width: 100%;
                 padding: 8px 10px;
                 background: rgba(255, 255, 255, 0.1);
-                border: 1px solid rgba(16, 185, 129, 0.4);
+                border: 1px solid rgba(59, 130, 246, 0.4);
                 border-radius: 8px;
                 color: white;
                 font-size: 13px;
@@ -1598,17 +1601,17 @@ Pour commencer, sélectionnez vos langues dans le panneau latéral et saisissez 
             
             .textpro-lang-selector select:hover {
                 background: rgba(255, 255, 255, 0.15);
-                border-color: rgba(16, 185, 129, 0.6);
+                border-color: rgba(59, 130, 246, 0.6);
             }
             
             .textpro-lang-selector select:focus {
                 outline: none;
-                border-color: #10b981;
-                box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.2);
+                border-color: var(--tp-primary);
+                box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
             }
             
             .textpro-lang-arrow {
-                color: #10b981;
+                color: var(--tp-primary);
                 margin-top: 18px;
                 display: flex;
                 align-items: center;
