@@ -17540,6 +17540,72 @@ RÈGLES DE CONVERSATION :
             renderTurnoverList(analyses);
             updateTurnoverStats(analyses);
         }
+
+        function getTurnoverWindowStart(windowMonths = 12) {
+            const d = new Date();
+            d.setMonth(d.getMonth() - Math.max(1, windowMonths));
+            return d;
+        }
+
+        function getTurnoverDate(value) {
+            if (!value) return null;
+            if (typeof value === 'number') {
+                const d = new Date(value);
+                return Number.isFinite(d.getTime()) ? d : null;
+            }
+            if (typeof value === 'string') {
+                const d = new Date(value);
+                return Number.isFinite(d.getTime()) ? d : null;
+            }
+            if (value instanceof Date) {
+                return Number.isFinite(value.getTime()) ? value : null;
+            }
+            return null;
+        }
+
+        function getPayrollPeriodDate(payroll) {
+            if (payroll && typeof payroll.period === 'string' && /^\d{4}-\d{2}$/.test(payroll.period)) {
+                const d = new Date(payroll.period + '-01T00:00:00');
+                if (Number.isFinite(d.getTime())) return d;
+            }
+            return getTurnoverDate(payroll?.createdAt) || getTurnoverDate(payroll?.updatedAt) || null;
+        }
+
+        function getLeaveStartDate(leave) {
+            return getTurnoverDate(leave?.startDate) || getTurnoverDate(leave?.createdAt) || null;
+        }
+
+        function getLeaveEndDate(leave) {
+            return getTurnoverDate(leave?.endDate) || getLeaveStartDate(leave);
+        }
+
+        function getReviewDate(review) {
+            return getTurnoverDate(review?.date) || getTurnoverDate(review?.createdAt) || getTurnoverDate(review?.updatedAt) || null;
+        }
+
+        function clampNumber(value, min, max) {
+            const n = Number(value);
+            if (!Number.isFinite(n)) return min;
+            return Math.min(Math.max(n, min), max);
+        }
+
+        function calcLeaveDaysOverlappingWindow(leave, windowStart, windowEnd) {
+            const start = getLeaveStartDate(leave);
+            const end = getLeaveEndDate(leave);
+            if (!start || !end) return 0;
+
+            const s = start.getTime();
+            const e = end.getTime();
+            if (!Number.isFinite(s) || !Number.isFinite(e)) return 0;
+
+            const a = Math.min(s, e);
+            const b = Math.max(s, e);
+            const overlapStart = Math.max(a, windowStart.getTime());
+            const overlapEnd = Math.min(b, windowEnd.getTime());
+            if (overlapEnd < overlapStart) return 0;
+
+            return Math.ceil((overlapEnd - overlapStart) / (1000 * 60 * 60 * 24)) + 1;
+        }
         
         function analyzeTurnoverRisks() {
             if (!getTurnoverConsent()) {
@@ -17558,8 +17624,8 @@ RÈGLES DE CONVERSATION :
             const leaves = getHRData('hrLeaves');
             const reviews = getHRData('hrReviews');
             const payrolls = getHRData('hrPayrolls');
-            
-            const analyses = employees.map(emp => calculateTurnoverRisk(emp, leaves, reviews, payrolls));
+
+            const analyses = employees.map(emp => calculateTurnoverRisk(emp, leaves, reviews, payrolls, { windowMonths: 12 }));
             
             localStorage.setItem('turnoverAnalyses', JSON.stringify(analyses));
             
@@ -17569,9 +17635,13 @@ RÈGLES DE CONVERSATION :
             showToast('Analyse terminée - ' + analyses.length + ' employés analysés', 'success');
         }
         
-        function calculateTurnoverRisk(employee, allLeaves, allReviews, allPayrolls) {
+        function calculateTurnoverRisk(employee, allLeaves, allReviews, allPayrolls, options = {}) {
             let riskScore = 0;
             const factors = [];
+
+            const windowMonths = clampNumber(options.windowMonths ?? 12, 1, 36);
+            const windowEnd = new Date();
+            const windowStart = getTurnoverWindowStart(windowMonths);
             
             // 1. DONNÉES PROFESSIONNELLES
             
@@ -17588,41 +17658,77 @@ RÈGLES DE CONVERSATION :
             }
             
             // Salaire & évolutions (15% du score)
-            const empPayrolls = allPayrolls.filter(p => p.employeeId === employee.id);
-            if (empPayrolls.length >= 2) {
-                const firstPay = empPayrolls[0].netSalary;
-                const lastPay = empPayrolls[empPayrolls.length - 1].netSalary;
-                const increase = ((lastPay - firstPay) / firstPay) * 100;
-                
+            const empPayrollsAll = allPayrolls
+                .filter(p => p.employeeId === employee.id)
+                .slice()
+                .sort((a, b) => {
+                    const da = getPayrollPeriodDate(a);
+                    const db = getPayrollPeriodDate(b);
+                    const ta = da ? da.getTime() : 0;
+                    const tb = db ? db.getTime() : 0;
+                    return ta - tb;
+                });
+
+            const empPayrollsWindow = empPayrollsAll.filter(p => {
+                const d = getPayrollPeriodDate(p);
+                if (!d) return false;
+                return d >= windowStart && d <= windowEnd;
+            });
+
+            if (empPayrollsWindow.length >= 2) {
+                const firstPay = empPayrollsWindow[0].netSalary;
+                const lastPay = empPayrollsWindow[empPayrollsWindow.length - 1].netSalary;
+                const denom = Math.max(1, Number(firstPay) || 0);
+                const increase = ((Number(lastPay || 0) - Number(firstPay || 0)) / denom) * 100;
+
                 if (increase < 5 && monthsWorked > 12) {
                     riskScore += 15;
-                    factors.push({ name: 'Aucune augmentation significative', impact: 15, category: 'professional' });
+                    factors.push({ name: `Aucune augmentation significative (sur ${windowMonths} mois)`, impact: 15, category: 'professional' });
                 }
             }
             
             // 2. DONNÉES COMPORTEMENTALES
             
             // Absentéisme (20% du score)
-            const empLeaves = allLeaves.filter(l => l.employeeId === employee.id && l.status === 'approved');
-            const absenceDays = empLeaves.reduce((sum, l) => {
-                const start = new Date(l.startDate);
-                const end = new Date(l.endDate);
-                return sum + Math.ceil((end - start) / (1000 * 60 * 60 * 24)) + 1;
-            }, 0);
+            const empLeavesApproved = allLeaves.filter(l => l.employeeId === employee.id && l.status === 'approved');
+            const empLeavesApprovedWindow = empLeavesApproved.filter(l => {
+                const s = getLeaveStartDate(l);
+                const e = getLeaveEndDate(l);
+                if (!s || !e) return false;
+                return !(e < windowStart || s > windowEnd);
+            });
+
+            const absenceDays = empLeavesApprovedWindow.reduce((sum, l) => sum + calcLeaveDaysOverlappingWindow(l, windowStart, windowEnd), 0);
             
             if (absenceDays > 30 && monthsWorked > 6) {
                 riskScore += 20;
-                factors.push({ name: 'Absentéisme élevé (' + absenceDays + ' jours)', impact: 20, category: 'behavioral' });
+                factors.push({ name: `Absentéisme élevé (${absenceDays} jours sur ${windowMonths} mois)`, impact: 20, category: 'behavioral' });
             } else if (absenceDays > 15 && monthsWorked > 6) {
                 riskScore += 10;
-                factors.push({ name: 'Absentéisme modéré (' + absenceDays + ' jours)', impact: 10, category: 'behavioral' });
+                factors.push({ name: `Absentéisme modéré (${absenceDays} jours sur ${windowMonths} mois)`, impact: 10, category: 'behavioral' });
             }
             
             // Baisse de performance (25% du score)
-            const empReviews = allReviews.filter(r => r.employeeId === employee.id).sort((a, b) => new Date(b.date) - new Date(a.date));
-            if (empReviews.length >= 2) {
-                const latestReview = empReviews[0];
-                const previousReview = empReviews[1];
+            const empReviewsAll = allReviews
+                .filter(r => r.employeeId === employee.id)
+                .slice()
+                .sort((a, b) => {
+                    const da = getReviewDate(a);
+                    const db = getReviewDate(b);
+                    const ta = da ? da.getTime() : 0;
+                    const tb = db ? db.getTime() : 0;
+                    return tb - ta;
+                });
+
+            const empReviewsWindow = empReviewsAll.filter(r => {
+                const d = getReviewDate(r);
+                if (!d) return false;
+                return d >= windowStart && d <= windowEnd;
+            });
+
+            if (empReviewsWindow.length >= 2) {
+                const latestReview = empReviewsWindow[0];
+                const previousReview = empReviewsWindow[1];
                 
                 if (latestReview.overallRating < previousReview.overallRating) {
                     const drop = previousReview.overallRating - latestReview.overallRating;
@@ -17639,7 +17745,7 @@ RÈGLES DE CONVERSATION :
                     riskScore += 20;
                     factors.push({ name: 'Performance insatisfaisante', impact: 20, category: 'behavioral' });
                 }
-            } else if (empReviews.length === 1 && empReviews[0].overallRating < 3) {
+            } else if (empReviewsWindow.length === 1 && empReviewsWindow[0].overallRating < 3) {
                 riskScore += 15;
                 factors.push({ name: 'Évaluation médiocre', impact: 15, category: 'behavioral' });
             }
@@ -17647,18 +17753,35 @@ RÈGLES DE CONVERSATION :
             // 3. DONNÉES CONTEXTUELLES
             
             // Pas de promotion/évolution (10% du score)
-            if (monthsWorked > 24 && empReviews.filter(r => r.overallRating >= 4).length > 0) {
+            if (monthsWorked > 24 && empReviewsAll.filter(r => r.overallRating >= 4).length > 0) {
                 riskScore += 10;
                 factors.push({ name: 'Pas de promotion malgré bonne performance', impact: 10, category: 'contextual' });
             }
             
             // Charge de travail (10% du score - basé sur heures sup)
-            const recentPayrolls = empPayrolls.slice(-3);
+            const payrollsForOvertime = (empPayrollsWindow.length > 0 ? empPayrollsWindow : empPayrollsAll);
+            const recentPayrolls = payrollsForOvertime.slice(-3);
             const avgOvertime = recentPayrolls.reduce((sum, p) => sum + (p.overtime || 0), 0) / Math.max(recentPayrolls.length, 1);
             if (avgOvertime > 15) {
                 riskScore += 10;
                 factors.push({ name: 'Surcharge de travail (' + Math.round(avgOvertime) + 'h sup/mois)', impact: 10, category: 'contextual' });
             }
+
+            // Indice de confiance (non-ML) basé sur la couverture des données
+            const payrollCoverage = empPayrollsWindow.length;
+            const reviewCoverage = empReviewsWindow.length;
+            const leaveCoverage = empLeavesApprovedWindow.length;
+
+            const confidence = clampNumber(
+                40 +
+                (payrollCoverage >= 3 ? 20 : payrollCoverage >= 1 ? 12 : 0) +
+                (reviewCoverage >= 2 ? 30 : reviewCoverage === 1 ? 20 : 0) +
+                (leaveCoverage >= 1 ? 10 : 0),
+                0,
+                95
+            );
+
+            const confidenceLevel = confidence >= 75 ? 'high' : confidence >= 50 ? 'medium' : 'low';
             
             // Limite le score à 100
             riskScore = Math.min(riskScore, 100);
@@ -17675,6 +17798,17 @@ RÈGLES DE CONVERSATION :
                 employeeId: employee.id,
                 riskScore,
                 riskLevel,
+                confidence,
+                confidenceLevel,
+                dataCoverage: {
+                    windowMonths,
+                    windowStart: windowStart.toISOString(),
+                    windowEnd: windowEnd.toISOString(),
+                    payrollCount: payrollCoverage,
+                    reviewCount: reviewCoverage,
+                    approvedLeavesCount: leaveCoverage,
+                    approvedAbsenceDays: absenceDays
+                },
                 factors,
                 suggestedActions,
                 analyzedAt: Date.now()
@@ -17816,6 +17950,9 @@ RÈGLES DE CONVERSATION :
                               analysis.riskLevel === 'medium' ? 'rgba(245,158,11,0.18)' : 'rgba(16,185,129,0.18)';
                 
                 const riskLabel = getTurnoverRiskLabelHtml(analysis.riskLevel, riskColor);
+
+                const confidence = typeof analysis.confidence === 'number' ? Math.round(analysis.confidence) : null;
+                const confidenceLabel = confidence === null ? '' : (analysis.confidenceLevel === 'high' ? 'Haute' : analysis.confidenceLevel === 'medium' ? 'Moyenne' : 'Faible');
                 
                 return `
                     <div class="turnover-card" style="background: rgba(255,255,255,0.05); border-radius: 16px; padding: 24px; border: 1px solid rgba(16, 185, 129, 0.3); backdrop-filter: blur(10px); transition: all 0.3s; cursor: pointer;" onclick="viewTurnoverDetails('${analysis.employeeId}')" onmouseover="this.style.background='rgba(255,255,255,0.08)'; this.style.transform='translateY(-2px)'" onmouseout="this.style.background='rgba(255,255,255,0.05)'; this.style.transform='translateY(0)'">
@@ -17838,6 +17975,7 @@ RÈGLES DE CONVERSATION :
                                     ${riskLabel}
                                 </div>
                                 <div class="turnover-card-score-value" style="font-size: 32px; font-weight: 700; color: ${riskColor};">${analysis.riskScore}%</div>
+                                ${confidence === null ? '' : `<div style="margin-top: 4px; font-size: 11px; color: rgba(255,255,255,0.6);">Confiance: <strong style=\"color: rgba(255,255,255,0.85);\">${confidence}%</strong> (${confidenceLabel})</div>`}
                             </div>
                         </div>
                         
@@ -17907,6 +18045,10 @@ RÈGLES DE CONVERSATION :
             
             const riskColor = analysis.riskLevel === 'high' ? '#EF4444' :
                              analysis.riskLevel === 'medium' ? '#F59E0B' : '#10b981';
+
+            const confidence = typeof analysis.confidence === 'number' ? Math.round(analysis.confidence) : null;
+            const confidenceLabel = confidence === null ? '' : (analysis.confidenceLevel === 'high' ? 'Haute' : analysis.confidenceLevel === 'medium' ? 'Moyenne' : 'Faible');
+            const windowMonths = analysis.dataCoverage?.windowMonths || 12;
             
             const modal = document.createElement('div');
             modal.className = 'turnover-modal';
@@ -17936,6 +18078,16 @@ RÈGLES DE CONVERSATION :
                                 <div style="font-size: 12px; opacity: 0.9;">Score de risque</div>
                             </div>
                         </div>
+                        ${confidence === null ? '' : `
+                        <div style="display:flex; gap: 12px; flex-wrap: wrap; align-items: center; justify-content: center;">
+                            <div style="background: rgba(255,255,255,0.18); border: 1px solid rgba(255,255,255,0.25); border-radius: 999px; padding: 8px 14px; font-size: 12px; font-weight: 700;">
+                                Confiance: ${confidence}% (${confidenceLabel})
+                            </div>
+                            <div style="background: rgba(255,255,255,0.12); border: 1px solid rgba(255,255,255,0.2); border-radius: 999px; padding: 8px 14px; font-size: 12px; font-weight: 600; opacity: 0.95;">
+                                Fenêtre: ${windowMonths} derniers mois
+                            </div>
+                        </div>
+                        `}
                     </div>
                     
                     <!-- Facteurs de risque détaillés -->
@@ -17990,6 +18142,7 @@ RÈGLES DE CONVERSATION :
                     <div style="background: #f9fafb; border-radius: 12px; padding: 16px; margin-bottom: 24px; border: 1px solid #e5e7eb;">
                         <p style="margin: 0; font-size: 11px; color: #6b7280; line-height: 1.6;">
                             ${getTurnoverIcon('calendar', { size: 12, stroke: '#6b7280' })} Analyse effectuée le ${new Date(analysis.analyzedAt).toLocaleString('fr-FR')}<br>
+                            ${analysis.dataCoverage ? `${getTurnoverIcon('chart', { size: 12, stroke: '#6b7280' })} Données utilisées (${analysis.dataCoverage.windowMonths} mois): ${analysis.dataCoverage.payrollCount} paie(s), ${analysis.dataCoverage.reviewCount} évaluation(s), ${analysis.dataCoverage.approvedLeavesCount} congé(s) approuvé(s) (${analysis.dataCoverage.approvedAbsenceDays} jours)<br>` : ''}
                             ${getTurnoverIcon('lock', { size: 12, stroke: '#6b7280' })} Ces données sont confidentielles et accessibles uniquement aux RH autorisés<br>
                             ${getTurnoverIcon('scale', { size: 12, stroke: '#6b7280' })} Conformité RGPD: Base légale = Intérêt légitime de l'employeur (gestion RH)
                         </p>
