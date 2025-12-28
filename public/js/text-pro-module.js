@@ -210,6 +210,9 @@
             // Créer l'overlay avec chat intégré
             textProOverlay = createTextProInterface();
             document.body.appendChild(textProOverlay);
+
+            // Responsive mobile: le panneau latéral ne doit pas recouvrir l'écran
+            setupTextProResponsiveSidebar();
             
             // Initialiser les badges de langue dans la vue comparaison
             setTimeout(() => {
@@ -260,6 +263,12 @@ Pour commencer, sélectionnez vos langues dans le panneau latéral et saisissez 
             overlay.style.animation = 'fadeOut 0.3s ease';
             setTimeout(() => overlay.remove(), 300);
         }
+
+        // Nettoyer les listeners (évite l'accumulation après plusieurs ouvertures)
+        if (window.__textProResizeHandler) {
+            window.removeEventListener('resize', window.__textProResizeHandler);
+            window.__textProResizeHandler = null;
+        }
         textProChatHistory = [];
     };
     
@@ -299,6 +308,9 @@ Pour commencer, sélectionnez vos langues dans le panneau latéral et saisissez 
                 <!-- Panneau d'informations -->
                 <div class="textpro-info-panel">
                     <div class="textpro-info-header">
+                        <button class="textpro-sidebar-close-btn" onclick="window.toggleTextProSidebar(false)" title="Fermer le panneau">
+                            ${SVGIcons.closeCompare}
+                        </button>
                         <h1 class="textpro-info-title">AI Text Pro</h1>
                         <p class="textpro-info-subtitle">Traitement de texte intelligent</p>
                     </div>
@@ -424,9 +436,14 @@ Pour commencer, sélectionnez vos langues dans le panneau latéral et saisissez 
                 <!-- Panneau de chat -->
                 <div class="textpro-chat-panel">
                     <div class="textpro-chat-header">
-                        <div>
-                            <h2 class="textpro-chat-title">Agent Tony</h2>
-                            <p class="textpro-chat-subtitle">Assistant de traitement de texte</p>
+                        <div class="textpro-chat-header-left">
+                            <button class="textpro-sidebar-toggle-btn" onclick="window.toggleTextProSidebar()" title="Ouvrir le panneau">
+                                ${SVGIcons.settings}
+                            </button>
+                            <div>
+                                <h2 class="textpro-chat-title">Agent Tony</h2>
+                                <p class="textpro-chat-subtitle">Assistant de traitement de texte</p>
+                            </div>
                         </div>
                         <div style="display: flex; gap: 12px; align-items: center;">
                             <button class="textpro-clear-history-btn" onclick="window.clearTextProHistory()" title="Effacer l'historique">
@@ -531,6 +548,41 @@ Pour commencer, sélectionnez vos langues dans le panneau latéral et saisissez 
                 display: flex;
                 width: 100%;
                 height: 100%;
+            }
+
+            .textpro-chat-header-left {
+                display: flex;
+                align-items: center;
+                gap: 12px;
+                min-width: 0;
+            }
+
+            .textpro-sidebar-toggle-btn {
+                display: none;
+                width: 40px;
+                height: 40px;
+                background: rgba(255, 255, 255, 0.08);
+                border: 1px solid rgba(255, 255, 255, 0.18);
+                border-radius: 10px;
+                color: white;
+                cursor: pointer;
+                align-items: center;
+                justify-content: center;
+                transition: all 0.2s ease;
+                flex-shrink: 0;
+            }
+
+            .textpro-sidebar-toggle-btn svg {
+                width: 18px;
+                height: 18px;
+            }
+
+            .textpro-sidebar-toggle-btn:hover {
+                background: rgba(255, 255, 255, 0.12);
+            }
+
+            .textpro-sidebar-close-btn {
+                display: none;
             }
             
             .textpro-info-panel {
@@ -1048,6 +1100,71 @@ Pour commencer, sélectionnez vos langues dans le panneau latéral et saisissez 
                 flex: 1;
                 overflow-y: auto;
                 padding: 24px;
+                -webkit-overflow-scrolling: touch;
+            }
+
+            /* Mobile/tablette: le panneau info devient un drawer, fermé par défaut */
+            @media (max-width: 1024px) {
+                .textpro-layout {
+                    position: relative;
+                }
+
+                .textpro-info-panel {
+                    position: fixed;
+                    top: 0;
+                    left: 0;
+                    height: 100vh;
+                    width: min(350px, 88vw);
+                    transform: translateX(-105%);
+                    transition: transform 0.25s ease;
+                    z-index: 10002;
+                    border-right: 1px solid rgba(59, 130, 246, 0.3);
+                }
+
+                .textpro-info-panel.open {
+                    transform: translateX(0);
+                }
+
+                .textpro-sidebar-toggle-btn {
+                    display: flex;
+                }
+
+                .textpro-sidebar-close-btn {
+                    display: flex;
+                    position: absolute;
+                    top: 16px;
+                    right: 16px;
+                    width: 40px;
+                    height: 40px;
+                    background: rgba(0, 0, 0, 0.25);
+                    border: 1px solid rgba(255, 255, 255, 0.18);
+                    border-radius: 10px;
+                    color: white;
+                    cursor: pointer;
+                    align-items: center;
+                    justify-content: center;
+                }
+
+                .textpro-sidebar-close-btn svg {
+                    width: 18px;
+                    height: 18px;
+                }
+
+                .textpro-chat-header {
+                    padding: 16px 16px;
+                }
+
+                .textpro-chat-input-area {
+                    padding: 14px 16px;
+                }
+
+                .textpro-chat-messages {
+                    padding: 16px;
+                }
+
+                .textpro-message-content {
+                    max-width: 85%;
+                }
             }
             
             .textpro-message {
@@ -1424,6 +1541,48 @@ Pour commencer, sélectionnez vos langues dans le panneau latéral et saisissez 
                 }
             }
         `;
+    }
+
+    /**
+     * Mobile UX: sidebar (panneau info) replié par défaut sur petits écrans
+     */
+    function setupTextProResponsiveSidebar() {
+        const sidebar = document.querySelector('.textpro-info-panel');
+        const overlay = document.getElementById('textProModuleOverlay');
+        if (!sidebar || !overlay) return;
+
+        const sync = () => {
+            const isNarrow = window.matchMedia && window.matchMedia('(max-width: 1024px)').matches;
+            if (isNarrow) {
+                // Par défaut fermé, sauf si l'utilisateur a explicitement ouvert
+                if (!sidebar.dataset.userToggled) {
+                    sidebar.classList.remove('open');
+                }
+            } else {
+                // Desktop: toujours visible
+                sidebar.classList.remove('open');
+                delete sidebar.dataset.userToggled;
+            }
+        };
+
+        // Exposer un toggle simple
+        window.toggleTextProSidebar = function(forceOpen) {
+            const isNarrow = window.matchMedia && window.matchMedia('(max-width: 1024px)').matches;
+            if (!isNarrow) return;
+
+            sidebar.dataset.userToggled = '1';
+
+            if (typeof forceOpen === 'boolean') {
+                sidebar.classList.toggle('open', forceOpen);
+            } else {
+                sidebar.classList.toggle('open');
+            }
+        };
+
+        // Sync initial + resize
+        sync();
+        window.__textProResizeHandler = sync;
+        window.addEventListener('resize', sync);
     }
     
     /**
