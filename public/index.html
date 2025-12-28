@@ -10124,6 +10124,24 @@ RÈGLES IMPORTANTES:
                         text-transform: uppercase;
                         letter-spacing: 0.5px;
                     }
+
+                    /* Badges (phase + domaine) dans la liste Projets: wrap en mobile */
+                    .rnd-project-badges {
+                        display: flex;
+                        flex-wrap: wrap;
+                        align-items: center;
+                        gap: 8px;
+                        margin-top: 6px;
+                    }
+                    .rnd-project-badges .rnd-badge {
+                        max-width: 100%;
+                    }
+                    /* Domaine peut être long: éviter qu'il s'étire sur mobile */
+                    .rnd-project-badges .rnd-badge.rnd-badge-medium {
+                        overflow: hidden;
+                        text-overflow: ellipsis;
+                        white-space: nowrap;
+                    }
                     
                     .rnd-badge-high {
                         background: rgba(239, 68, 68, 0.2);
@@ -11077,8 +11095,10 @@ RÈGLES IMPORTANTES:
                     <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 12px;">
                         <div>
                             <h3 style="margin: 0 0 4px; font-size: 18px; color: white;">${project.titre}</h3>
-                            <span class="rnd-badge rnd-badge-${phaseColors[project.phase] || 'low'}">${project.phase.charAt(0).toUpperCase() + project.phase.slice(1)}</span>
-                            <span class="rnd-badge rnd-badge-medium" style="margin-left: 8px;">${project.domaine}</span>
+                            <div class="rnd-project-badges">
+                                <span class="rnd-badge rnd-badge-${phaseColors[project.phase] || 'low'}">${project.phase.charAt(0).toUpperCase() + project.phase.slice(1)}</span>
+                                <span class="rnd-badge rnd-badge-medium">${project.domaine}</span>
+                            </div>
                         </div>
                         <div style="text-align: right;">
                             <div style="font-size: 12px; color: rgba(255, 255, 255, 0.5);">Budget</div>
