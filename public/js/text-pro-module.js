@@ -1477,20 +1477,28 @@ Pour commencer, sélectionnez vos langues dans le panneau latéral et saisissez 
                 border-color: rgba(16, 185, 129, 0.4);
                 color: #10b981;
             }
+
+            .textpro-message-actions {
+                display: flex;
+                gap: 8px;
+                align-items: center;
+                flex-wrap: wrap;
+                margin-top: 10px;
+            }
             
             .textpro-speaker-btn {
-                display: inline-block;
-                margin-left: 8px;
-                margin-right: 8px;
-                padding: 4px 8px;
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                width: 32px;
+                height: 24px;
+                padding: 0;
                 background: rgba(139, 92, 246, 0.2);
                 border: 1px solid rgba(139, 92, 246, 0.4);
                 border-radius: 6px;
                 color: #a78bfa;
-                font-size: 16px;
                 cursor: pointer;
                 transition: all 0.2s ease;
-                vertical-align: middle;
             }
             
             .textpro-speaker-btn svg {
@@ -1787,6 +1795,14 @@ Pour commencer, sélectionnez vos langues dans le panneau latéral et saisissez 
         const contentDiv = document.createElement('div');
         contentDiv.className = 'textpro-message-content';
         contentDiv.textContent = content;
+
+        // Actions (speaker / download / copy) for assistant messages
+        let actionsRow = null;
+        if (role === 'assistant') {
+            actionsRow = document.createElement('div');
+            actionsRow.className = 'textpro-message-actions';
+            contentDiv.appendChild(actionsRow);
+        }
         
         // Ajouter le bouton de lecture vocale pour les messages de l'assistant
         if (role === 'assistant') {
@@ -1797,8 +1813,7 @@ Pour commencer, sélectionnez vos langues dans le panneau latéral et saisissez 
             speakerBtn.onclick = function() {
                 window.speakTextProMessage(content, speakerBtn);
             };
-            contentDiv.appendChild(document.createElement('br'));
-            contentDiv.appendChild(speakerBtn);
+            (actionsRow || contentDiv).appendChild(speakerBtn);
         }
         
         // Ajouter le bouton de téléchargement si proposé (dans le contentDiv)
@@ -1811,7 +1826,7 @@ Pour commencer, sélectionnez vos langues dans le panneau latéral et saisissez 
                 const textToDownload = translationContent || content;
                 downloadTextProResult(textToDownload);
             };
-            contentDiv.appendChild(downloadBtn);
+            (actionsRow || contentDiv).appendChild(downloadBtn);
             
             // Ajouter le bouton de copie
             const copyBtn = document.createElement('button');
@@ -1821,7 +1836,7 @@ Pour commencer, sélectionnez vos langues dans le panneau latéral et saisissez 
                 const textToCopy = translationContent || content;
                 window.copyTextProMessage(textToCopy, copyBtn);
             };
-            contentDiv.appendChild(copyBtn);
+            (actionsRow || contentDiv).appendChild(copyBtn);
         }
         
         messageDiv.appendChild(contentDiv);
