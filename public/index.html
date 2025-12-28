@@ -13992,7 +13992,7 @@ Réponds de manière professionnelle, data-driven et orientée résultats.
             updatePayrollStats(payrolls);
         }
         
-        function renderEmployeesList(employees) {
+        function renderEmployeesList(employees, isFiltered = false) {
             const list = document.getElementById('employeesList');
             if (!list) return;
             
@@ -14028,17 +14028,18 @@ Réponds de manière professionnelle, data-driven et orientée résultats.
                         <tbody>
             `;
             
+            const statusColors = {
+                active: '#10b981',
+                onLeave: '#f59e0b',
+                terminated: '#ef4444'
+            };
+            const statusLabels = {
+                active: 'Actif',
+                onLeave: 'En congé',
+                terminated: 'Terminé'
+            };
+
             employees.forEach(emp => {
-                const statusColors = {
-                    active: '#10b981',
-                    onLeave: '#f59e0b',
-                    terminated: '#ef4444'
-                };
-                const statusLabels = {
-                    active: 'Actif',
-                    onLeave: 'En congé',
-                    terminated: 'Terminé'
-                };
                 
                 html += `
                     <tr style="border-bottom: 1px solid #f3f4f6; transition: background 0.2s;" onmouseover="this.style.background='#f9fafb'" onmouseout="this.style.background='transparent'">
@@ -14081,18 +14082,25 @@ Réponds de manière professionnelle, data-driven et orientée résultats.
             list.innerHTML = html;
             // Réattacher l'écouteur de recherche après chaque rendu
             const employeeSearchInput = document.getElementById('employeeSearch');
+            if (employeeSearchInput && !isFiltered) {
+                // Cache source pour filtrage sans relire localStorage à chaque frappe
+                employeeSearchInput._sourceEmployees = employees;
+            }
             if (employeeSearchInput && !employeeSearchInput._filterAttached) {
                 employeeSearchInput.addEventListener('input', function() {
                     const search = this.value.trim().toLowerCase();
-                    const employees = getHRData('hrEmployees');
-                    const filtered = employees.filter(emp =>
+                    const employeesSource = this._sourceEmployees || getHRData('hrEmployees');
+                    if (!this._sourceEmployees) {
+                        this._sourceEmployees = employeesSource;
+                    }
+                    const filtered = employeesSource.filter(emp =>
                         emp.firstName.toLowerCase().includes(search) ||
                         emp.lastName.toLowerCase().includes(search) ||
                         (emp.position && emp.position.toLowerCase().includes(search)) ||
                         (emp.department && emp.department.toLowerCase().includes(search)) ||
                         (emp.email && emp.email.toLowerCase().includes(search))
                     );
-                    renderEmployeesList(filtered);
+                    renderEmployeesList(filtered, true);
                 });
                 employeeSearchInput._filterAttached = true;
             }
