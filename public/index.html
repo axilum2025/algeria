@@ -5588,7 +5588,7 @@ RÈGLES IMPORTANTES:
         // Office Pro - Interface complète To Do AI
         function openOfficePro() {
             // Fermer l'overlay existant s'il y en a un
-            const existingOverlay = document.getElementById('officePro Overlay');
+            const existingOverlay = document.getElementById('officeProOverlay');
             if (existingOverlay) {
                 existingOverlay.remove();
             }
@@ -5612,9 +5612,16 @@ RÈGLES IMPORTANTES:
             
             modal.innerHTML = `
                 <!-- Header -->
-                <div style="background: var(--bg-primary); border-bottom: 1px solid var(--border-color); padding: 16px 24px; display: flex; align-items: center; justify-content: space-between;">
+                <div id="todoHeader" style="background: var(--bg-primary); border-bottom: 1px solid var(--border-color); padding: 16px 24px; display: flex; align-items: center; justify-content: space-between;">
                     <div style="display: flex; align-items: center; gap: 16px;">
-                        <div style="display: flex; align-items: center; gap: 10px; color: var(--text-primary); font-size: 20px; font-weight: 700; margin-right: 60px;">
+                        <button id="todoSidebarToggle" onclick="window.toggleTodoSidebar(true)" style="display: none; padding: 8px; background: var(--bg-secondary); color: var(--text-primary); border: 1px solid var(--border-color); border-radius: 8px; cursor: pointer; transition: all 0.2s;" title="Menu" onmouseover="this.style.background='var(--bg-hover)'" onmouseout="this.style.background='var(--bg-secondary)'">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                <line x1="3" y1="6" x2="21" y2="6"/>
+                                <line x1="3" y1="12" x2="21" y2="12"/>
+                                <line x1="3" y1="18" x2="21" y2="18"/>
+                            </svg>
+                        </button>
+                        <div id="todoTitleBlock" style="display: flex; align-items: center; gap: 10px; color: var(--text-primary); font-size: 20px; font-weight: 700; margin-right: 60px;">
                             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                                 <path d="M9 11l3 3L22 4"/>
                                 <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>
@@ -5622,14 +5629,14 @@ RÈGLES IMPORTANTES:
                             AI Tasks
                         </div>
                     </div>
-                    <div style="display: flex; align-items: center; gap: 12px;">
+                    <div id="todoHeaderActions" style="display: flex; align-items: center; gap: 12px;">
                         <!-- Assistant IA Conversationnel -->
                         <div style="position: relative;">
                             <button id="aiAssistantBtn" onclick="toggleAiAssistant()" style="padding: 8px 16px; background: var(--bg-secondary); color: var(--text-primary); border: 1px solid var(--border-color); border-radius: 8px; cursor: pointer; transition: all 0.2s; font-size: 13px; font-weight: 500;" title="Assistant IA" onmouseover="this.style.background='var(--bg-hover)'; this.style.borderColor='var(--text-secondary)'" onmouseout="this.style.background='var(--bg-secondary)'; this.style.borderColor='var(--border-color)'">
                                 Agent ToDo
                             </button>
                         </div>
-                        <div style="position: relative;">
+                        <div id="todoSearchWrapper" style="position: relative;">
                             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--text-secondary)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); pointer-events: none;">
                                 <circle cx="11" cy="11" r="8"/>
                                 <path d="m21 21-4.35-4.35"/>
@@ -5659,9 +5666,16 @@ RÈGLES IMPORTANTES:
                 </div>
 
                 <!-- Main Container -->
-                <div style="flex: 1; display: flex; overflow: hidden; position: relative;">
+                <div id="todoMainContainer" style="flex: 1; display: flex; overflow: hidden; position: relative;">
+                    <div id="todoSidebarBackdrop" onclick="window.toggleTodoSidebar(false)" style="display: none;"></div>
                     <!-- Sidebar -->
-                    <div style="width: 240px; background: var(--bg-sidebar); border-right: 1px solid var(--border-color); overflow-y: auto; padding: 16px;">
+                    <div id="todoSidebar" style="width: 240px; background: var(--bg-sidebar); border-right: 1px solid var(--border-color); overflow-y: auto; padding: 16px;">
+                        <button id="todoSidebarClose" onclick="window.toggleTodoSidebar(false)" style="display: none; position: absolute; top: 14px; right: 14px; padding: 8px; background: var(--bg-secondary); color: var(--text-primary); border: 1px solid var(--border-color); border-radius: 10px; cursor: pointer; transition: all 0.2s;" title="Fermer" onmouseover="this.style.background='var(--bg-hover)'" onmouseout="this.style.background='var(--bg-secondary)'">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                <line x1="18" y1="6" x2="6" y2="18"/>
+                                <line x1="6" y1="6" x2="18" y2="18"/>
+                            </svg>
+                        </button>
                         <!-- Vues -->
                         <div style="margin-bottom: 24px;">
                             <h3 style="margin-bottom: 8px; color: var(--text-secondary); font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.8px;">Vues</h3>
@@ -5729,6 +5743,9 @@ RÈGLES IMPORTANTES:
             
             // Ajouter styles responsive
             addTodoResponsiveStyles();
+
+            // Mobile UX (sidebar drawer)
+            setupTodoMobileSidebar();
             
             // Event listener pour les boutons de navigation Kanban
             setTimeout(() => {
@@ -5751,9 +5768,38 @@ RÈGLES IMPORTANTES:
             style.textContent = `
                 /* Responsive mobile pour To-Do AI */
                 @media (max-width: 768px) {
+                    #todoHeader {
+                        padding: 12px 12px !important;
+                        flex-wrap: wrap !important;
+                        gap: 10px !important;
+                    }
+
+                    #todoTitleBlock {
+                        margin-right: 0 !important;
+                        font-size: 16px !important;
+                    }
+
+                    #todoSidebarToggle {
+                        display: inline-flex !important;
+                        align-items: center;
+                        justify-content: center;
+                    }
+
+                    #todoHeaderActions {
+                        width: 100% !important;
+                        flex-wrap: wrap !important;
+                        justify-content: flex-end !important;
+                        gap: 8px !important;
+                    }
+
+                    #todoSearchWrapper {
+                        flex: 1 1 180px !important;
+                        min-width: 160px !important;
+                    }
+
                     /* Header responsive */
                     #todoSearchInput {
-                        width: 120px !important;
+                        width: 100% !important;
                     }
                     
                     #addTaskBtnText {
@@ -5763,10 +5809,68 @@ RÈGLES IMPORTANTES:
                     #addTaskBtn {
                         padding: 8px !important;
                     }
+
+                    /* Sidebar devient un drawer */
+                    #todoSidebar {
+                        position: fixed !important;
+                        top: 0 !important;
+                        left: 0 !important;
+                        height: 100vh !important;
+                        width: min(280px, 88vw) !important;
+                        transform: translateX(-105%);
+                        transition: transform 0.25s ease;
+                        z-index: 10040 !important;
+                        padding-top: 58px !important;
+                        box-shadow: 0 20px 60px rgba(0,0,0,0.45);
+                    }
+
+                    #todoSidebar.open {
+                        transform: translateX(0);
+                    }
+
+                    #todoSidebarClose {
+                        display: inline-flex !important;
+                        align-items: center;
+                        justify-content: center;
+                    }
+
+                    #todoSidebarBackdrop {
+                        position: fixed !important;
+                        inset: 0 !important;
+                        background: rgba(0, 0, 0, 0.45) !important;
+                        z-index: 10030 !important;
+                    }
+
+                    /* Details panel fullscreen sur mobile */
+                    #todoDetailsPanel {
+                        position: fixed !important;
+                        top: 0 !important;
+                        right: 0 !important;
+                        bottom: 0 !important;
+                        height: 100vh !important;
+                        max-width: 100vw !important;
+                        z-index: 10050 !important;
+                        box-shadow: none !important;
+                    }
+
+                    #todoDetailsBackdrop {
+                        position: fixed !important;
+                        inset: 0 !important;
+                        z-index: 10045 !important;
+                    }
+
+                    /* Assistant IA sur mobile: pleine largeur */
+                    #aiAssistantPanel > div {
+                        left: 12px !important;
+                        right: 12px !important;
+                        width: auto !important;
+                        bottom: 72px !important;
+                        max-height: 70vh !important;
+                    }
                     
                     /* Conteneur principal sans overflow-y sur mobile */
                     #todoMainArea {
-                        overflow-y: visible !important;
+                        overflow-y: auto !important;
                         overflow-x: visible !important;
                         padding: 12px !important;
                     }
@@ -5825,7 +5929,6 @@ RÈGLES IMPORTANTES:
                 
                 @media (max-width: 480px) {
                     #todoSearchInput {
-                        width: 80px !important;
                         font-size: 12px !important;
                     }
                     
@@ -5847,6 +5950,42 @@ RÈGLES IMPORTANTES:
                     renderTodoMainView();
                 });
             }, 500);
+        }
+
+        function setupTodoMobileSidebar() {
+            const sidebar = document.getElementById('todoSidebar');
+            const backdrop = document.getElementById('todoSidebarBackdrop');
+            if (!sidebar || !backdrop) return;
+
+            window.toggleTodoSidebar = function(forceOpen) {
+                const isMobile = window.matchMedia && window.matchMedia('(max-width: 768px)').matches;
+                if (!isMobile) {
+                    // Desktop: sidebar toujours visible
+                    sidebar.classList.remove('open');
+                    backdrop.style.display = 'none';
+                    return;
+                }
+
+                const shouldOpen = typeof forceOpen === 'boolean' ? forceOpen : !sidebar.classList.contains('open');
+                sidebar.classList.toggle('open', shouldOpen);
+                backdrop.style.display = shouldOpen ? 'block' : 'none';
+            };
+
+            const sync = () => {
+                const isMobile = window.matchMedia && window.matchMedia('(max-width: 768px)').matches;
+                if (!isMobile) {
+                    // Desktop reset
+                    sidebar.classList.remove('open');
+                    backdrop.style.display = 'none';
+                } else {
+                    // Mobile: fermé par défaut
+                    sidebar.classList.remove('open');
+                    backdrop.style.display = 'none';
+                }
+            };
+
+            sync();
+            window.addEventListener('resize', sync);
         }
 
         function closeTodoAi() {
@@ -6842,6 +6981,11 @@ RÈGLES IMPORTANTES:
             
             // Re-render the main view with new selected view
             renderTodoMainView();
+
+            // Mobile: refermer le sidebar après action
+            if (window.toggleTodoSidebar && window.matchMedia && window.matchMedia('(max-width: 768px)').matches) {
+                window.toggleTodoSidebar(false);
+            }
             
             // Activer les boutons de navigation si vue Kanban sur mobile
             if (view === 'kanban' && window.innerWidth <= 768) {
@@ -6895,12 +7039,20 @@ RÈGLES IMPORTANTES:
             todoFilter = filter;
             renderTodoFilters();
             renderTodoMainView();
+
+            if (window.toggleTodoSidebar && window.matchMedia && window.matchMedia('(max-width: 768px)').matches) {
+                window.toggleTodoSidebar(false);
+            }
         }
 
         function switchTodoCategory(category) {
             todoCategory = category;
             renderTodoCategories();
             renderTodoMainView();
+
+            if (window.toggleTodoSidebar && window.matchMedia && window.matchMedia('(max-width: 768px)').matches) {
+                window.toggleTodoSidebar(false);
+            }
         }
 
         function showAddTaskModal() {
@@ -7021,9 +7173,15 @@ RÈGLES IMPORTANTES:
             }
 
             const panel = document.getElementById('todoDetailsPanel');
-            panel.style.width = '420px';
-            panel.style.padding = '20px';
+            const isMobile = window.matchMedia && window.matchMedia('(max-width: 768px)').matches;
+            panel.style.width = isMobile ? '100%' : '420px';
+            panel.style.padding = isMobile ? '16px' : '20px';
             detailsPanelOpen = true;
+
+            // Mobile: fermer le sidebar si ouvert
+            if (isMobile && window.toggleTodoSidebar) {
+                window.toggleTodoSidebar(false);
+            }
             
             // Add backdrop
             let backdrop = document.getElementById('todoDetailsBackdrop');
