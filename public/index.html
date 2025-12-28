@@ -12732,8 +12732,8 @@ STYLE DE RÉPONSE :
             // 🎯 Tracking: Utilisateur ouvre AI Vision
             AxilumContext.updateActivity('AI Vision', 'Agent Eve', 'Ouverture du module');
             
-            // Ouvrir la page Vision PRO dans un nouvel onglet
-            window.open('/vision-pro.html', '_blank');
+            // Ouvrir la page Vision PRO dans le même onglet
+            window.location.assign('/vision-pro.html');
         }
         
         function loadHallucinationModule() {
