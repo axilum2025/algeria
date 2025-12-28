@@ -6188,8 +6188,9 @@ RÈGLES IMPORTANTES:
                 // Réduire au bouton uniquement
                 content.style.width = 'auto';
                 // Position gérée par JS (drag) via left/top
-                content.style.bottom = '';
-                content.style.right = '';
+                // IMPORTANT: forcer right/bottom à auto sinon ça colle à droite (mobile portrait)
+                content.style.bottom = 'auto';
+                content.style.right = 'auto';
                 content.style.left = '';
                 content.style.top = '';
                 if (header) header.style.minHeight = 'auto';
@@ -6211,6 +6212,7 @@ RÈGLES IMPORTANTES:
                 // Restaurer
                 content.style.width = '380px';
                 content.style.bottom = '80px';
+                content.style.right = '20px';
                 content.style.left = '';
                 content.style.top = '';
                 if (header) {
@@ -6256,8 +6258,9 @@ RÈGLES IMPORTANTES:
             if (!content) return;
             content.style.left = `${Math.round(leftPx)}px`;
             content.style.top = `${Math.round(topPx)}px`;
-            content.style.right = '';
-            content.style.bottom = '';
+            // IMPORTANT: must be auto so left/top can control position
+            content.style.right = 'auto';
+            content.style.bottom = 'auto';
         }
 
         function applySavedAiAssistantMinimizedPosition() {
