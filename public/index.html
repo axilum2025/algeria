@@ -5776,6 +5776,7 @@ RÈGLES IMPORTANTES:
                     border: none !important;
                     box-shadow: none !important;
                     overflow: visible !important;
+                    touch-action: none;
                 }
 
                 #aiAssistantPanel.minimized #aiAssistantPanelHeader {
@@ -6349,6 +6350,8 @@ RÈGLES IMPORTANTES:
             btn.addEventListener('pointerdown', (e) => {
                 if (!panel.classList.contains('minimized')) return;
                 if (e.pointerType === 'mouse' && e.button !== 0) return;
+                // Important for Android/Chrome: block scroll/back-swipe gestures so horizontal drag works
+                if (typeof e.preventDefault === 'function') e.preventDefault();
                 dragging = true;
                 moved = false;
                 startX = e.clientX;
@@ -6359,7 +6362,7 @@ RÈGLES IMPORTANTES:
                 btn.setPointerCapture?.(e.pointerId);
                 window.addEventListener('pointermove', onPointerMove, { capture: true, passive: false });
                 window.addEventListener('pointerup', onPointerUp, { capture: true, passive: true });
-            }, { passive: true });
+            }, { passive: false });
         }
 
         // Re-clamp position on viewport changes (mobile portrait/landscape)
