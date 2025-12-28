@@ -8566,6 +8566,34 @@ RÈGLES IMPORTANTES:
                             flex-wrap: wrap;
                         }
                     }
+
+                    /* Mobile: forcer le scroll de l'overlay (iOS/Android) */
+                    @media (max-width: 768px) {
+                        #hrManagementOverlay {
+                            height: 100dvh !important;
+                            overflow-y: auto !important;
+                            overflow-x: hidden !important;
+                            -webkit-overflow-scrolling: touch;
+                            touch-action: pan-y;
+                        }
+                        .hr-content-area {
+                            overflow-y: visible !important;
+                        }
+                    }
+
+                    /* Paysage / faible hauteur: scroll global plus fiable */
+                    @media (max-height: 520px) and (orientation: landscape) {
+                        #hrManagementOverlay {
+                            height: 100dvh !important;
+                            overflow-y: auto !important;
+                            overflow-x: hidden !important;
+                            -webkit-overflow-scrolling: touch;
+                            touch-action: pan-y;
+                        }
+                        .hr-content-area {
+                            overflow-y: visible !important;
+                        }
+                    }
                     
                     @media (max-width: 480px) {
                         .hr-header {
@@ -10909,10 +10937,6 @@ RÈGLES IMPORTANTES:
                         }
 
                         @media (max-width: 768px) {
-                            #hrContentTurnover {
-                                overflow-y: auto !important;
-                                -webkit-overflow-scrolling: touch !important;
-                            }
                             #hrContentTurnover .turnover-rgpd-banner {
                                 padding: 16px !important;
                                 margin-bottom: 16px !important;
@@ -11043,10 +11067,6 @@ RÈGLES IMPORTANTES:
 
                         /* Paysage / faible hauteur: gagner de la place verticale */
                         @media (max-height: 520px) and (orientation: landscape) {
-                            #hrContentTurnover {
-                                overflow-y: auto !important;
-                                -webkit-overflow-scrolling: touch !important;
-                            }
                             #hrContentTurnover .turnover-rgpd-banner {
                                 padding: 14px !important;
                                 margin-bottom: 14px !important;
