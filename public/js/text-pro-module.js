@@ -1163,6 +1163,24 @@ Pour commencer, sélectionnez vos langues dans le panneau latéral et saisissez 
                 .textpro-chat-header {
                     padding: 16px 16px;
                     gap: 10px;
+                    flex-wrap: wrap;
+                }
+
+                /* Empêcher les titres longs de pousser les boutons hors écran */
+                .textpro-chat-header-left > div {
+                    min-width: 0;
+                }
+
+                .textpro-chat-title,
+                .textpro-chat-subtitle {
+                    white-space: nowrap;
+                    overflow: hidden;
+                    text-overflow: ellipsis;
+                    max-width: 100%;
+                }
+
+                .textpro-chat-actions {
+                    margin-left: auto;
                 }
 
                 .textpro-chat-actions {
@@ -1200,6 +1218,32 @@ Pour commencer, sélectionnez vos langues dans le panneau latéral et saisissez 
                     width: 42px;
                     height: 42px;
                     border-radius: 10px;
+                }
+            }
+
+            /* Mobile: empiler l'input pour ne pas cacher les boutons */
+            @media (max-width: 768px) {
+                .textpro-input-wrapper {
+                    flex-direction: column;
+                    align-items: stretch;
+                    gap: 10px;
+                    position: relative;
+                }
+
+                .textpro-chat-textarea {
+                    width: 100%;
+                    resize: vertical;
+                }
+
+                .textpro-counter {
+                    position: static;
+                    align-self: flex-end;
+                    margin-top: -2px;
+                    margin-right: 2px;
+                }
+
+                .textpro-input-buttons {
+                    justify-content: flex-end;
                 }
             }
             
