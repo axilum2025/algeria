@@ -1425,6 +1425,22 @@
                 left: 0;
             }
 
+            /* Sidebar scroll: éviter que Sessions/Office/Outils soient cachés */
+            .sidebar {
+                overflow-y: auto;
+                -webkit-overflow-scrolling: touch;
+            }
+
+            /* Un seul scroll container en mobile (évite le scroll piégé dans Sessions) */
+            .conversations {
+                flex: 0 0 auto;
+                overflow: visible;
+            }
+
+            .conversations.visible {
+                max-height: none;
+            }
+
             .chat-container.sidebar-open {
                 margin-left: 0;
             }
@@ -1755,6 +1771,22 @@
 
             .sidebar.open {
                 left: 0;
+            }
+
+            .sidebar {
+                top: 50px;
+                height: calc(100vh - 50px);
+                overflow-y: auto;
+                -webkit-overflow-scrolling: touch;
+            }
+
+            .conversations {
+                flex: 0 0 auto;
+                overflow: visible;
+            }
+
+            .conversations.visible {
+                max-height: none;
             }
 
             .chat-container {
