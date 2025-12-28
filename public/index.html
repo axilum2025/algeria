@@ -6359,6 +6359,18 @@ RÈGLES IMPORTANTES:
             }, { passive: true });
         }
 
+        // Re-clamp position on viewport changes (mobile portrait/landscape)
+        let aiAssistantResizeTimeout;
+        function ensureAiAssistantPositionInViewport() {
+            if (!aiAssistantMinimized) return;
+            clearTimeout(aiAssistantResizeTimeout);
+            aiAssistantResizeTimeout = setTimeout(() => {
+                applySavedAiAssistantMinimizedPosition();
+            }, 80);
+        }
+        window.addEventListener('resize', ensureAiAssistantPositionInViewport);
+        window.addEventListener('orientationchange', ensureAiAssistantPositionInViewport);
+
         function showAiAssistantPanel() {
             // Supprimer panneau existant
             const existingPanel = document.getElementById('aiAssistantPanel');
