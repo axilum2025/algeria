@@ -2169,6 +2169,14 @@ Pour commencer, sélectionnez vos langues dans le panneau latéral et saisissez 
         addTextProMessage(`${modeIcon} Mode de traduction changé: ${modeName}`, 'assistant');
         
         console.log('Mode de traduction:', mode);
+
+        // Mobile: refermer le panneau latéral après sélection
+        try {
+            const isNarrow = window.matchMedia && window.matchMedia('(max-width: 1024px)').matches;
+            if (isNarrow && typeof window.toggleTextProSidebar === 'function') {
+                window.toggleTextProSidebar(false);
+            }
+        } catch (e) {}
     };
     
     /**
@@ -2247,6 +2255,14 @@ Pour commencer, sélectionnez vos langues dans le panneau latéral et saisissez 
                 targetLangLabel.textContent = targetLang.toUpperCase();
             }
         }
+
+        // Mobile: refermer le panneau latéral après sélection
+        try {
+            const isNarrow = window.matchMedia && window.matchMedia('(max-width: 1024px)').matches;
+            if (isNarrow && typeof window.toggleTextProSidebar === 'function') {
+                window.toggleTextProSidebar(false);
+            }
+        } catch (e) {}
     };
     
     /**
