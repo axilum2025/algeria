@@ -395,7 +395,15 @@
             font-size: 14px;
             resize: none;
             max-height: 120px;
+            overflow-y: auto;
+            scrollbar-width: none; /* Firefox */
+            -ms-overflow-style: none; /* IE/Edge legacy */
             transition: all 0.3s ease;
+        }
+
+        .input-field::-webkit-scrollbar {
+            width: 0;
+            height: 0;
         }
 
         .input-field:focus {
