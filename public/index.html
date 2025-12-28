@@ -555,10 +555,7 @@
             50% { opacity: 0.5; }
         }
 
-        /* Hide welcome screen when messages exist */
-        .chat-messages:has(.message) .welcome-screen {
-            display: none;
-        }
+        /* Hide welcome screen when messages exist - handled by JS */
 
         /* Plus d'espace en mode bureau */
         @media (min-width: 800px) {
@@ -3431,9 +3428,14 @@ RÈGLES IMPORTANTES:
                 });
                 
                 if (userConversations.length > 0) {
-                    // Charger la conversation la plus récente
+                    // Charger la conversation la plus récente seulement si elle a des messages
                     const lastConv = userConversations[0];
-                    loadConversation(lastConv.id);
+                    if (lastConv.messages && lastConv.messages.length > 0) {
+                        loadConversation(lastConv.id);
+                    } else {
+                        // Conversation vide, définir l'ID mais garder l'écran de bienvenue
+                        currentConversationId = lastConv.id;
+                    }
                 } else {
                     // Si l'utilisateur n'a pas de conversations, en créer une
                     newConversation();
