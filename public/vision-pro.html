@@ -309,6 +309,21 @@
             text-align: center;
         }
 
+        /* Image seule (sans bulle/cadre) */
+        .message.image-only {
+            background: transparent !important;
+            border: none !important;
+            padding: 0 !important;
+            color: inherit;
+        }
+
+        .message.image-only .image-preview {
+            margin-top: 0 !important;
+            border: none !important;
+            box-shadow: none !important;
+            display: block;
+        }
+
         .image-preview {
             max-width: 100%;
             border-radius: 12px;
@@ -955,7 +970,7 @@
                 currentImageBase64 = event.target.result.split(',')[1];
                 currentImage = event.target.result;
                 
-                addMessage('Image uploadée', 'user', currentImage);
+                addMessage('', 'user', currentImage);
                 
                 // Auto-analyze
                 await performAnalysis();
@@ -1186,7 +1201,12 @@ Sois concise, précise et pédagogue. Utilise des exemples concrets quand c'est 
             const messageDiv = document.createElement('div');
             messageDiv.className = `message ${type}`;
             
-            let content = text;
+            const isImageOnly = !!imageUrl && (!text || !text.trim());
+            if (isImageOnly) {
+                messageDiv.classList.add('image-only');
+            }
+
+            let content = isImageOnly ? '' : text;
             if (imageUrl) {
                 content += `<img src="${imageUrl}" class="image-preview" alt="Uploaded image">`;
             }
