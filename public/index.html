@@ -5767,6 +5767,13 @@ RÈGLES IMPORTANTES:
             style.id = 'todoResponsiveStyles';
             style.textContent = `
                 /* Responsive mobile pour To-Do AI */
+
+                /* Agent ToDo: mode réduit (bulle) */
+                #aiAssistantPanel.minimized #aiAssistantPanelContent {
+                    width: 56px !important;
+                    max-height: none !important;
+                }
+
                 @media (max-width: 768px) {
                     #todoHeader {
                         padding: 12px 12px !important;
@@ -5860,12 +5867,20 @@ RÈGLES IMPORTANTES:
                     }
 
                     /* Assistant IA sur mobile: pleine largeur */
-                    #aiAssistantPanel > div {
+                    #aiAssistantPanelContent {
                         left: 12px !important;
                         right: 12px !important;
                         width: auto !important;
                         bottom: 72px !important;
                         max-height: 70vh !important;
+                    }
+
+                    /* Agent ToDo réduit sur mobile: petite bulle en bas à droite */
+                    #aiAssistantPanel.minimized #aiAssistantPanelContent {
+                        left: auto !important;
+                        right: 12px !important;
+                        width: 56px !important;
+                        bottom: 92px !important;
                     }
                     
                     /* Conteneur principal sans overflow-y sur mobile */
@@ -5996,6 +6011,11 @@ RÈGLES IMPORTANTES:
             selectedTask = null;
             detailsPanelOpen = false;
             stopNotificationCheck();
+
+            // Fermer le panneau Agent ToDo (sinon il reste sur le chat principal)
+            aiAssistantOpen = false;
+            aiAssistantMinimized = false;
+            hideAiAssistantPanel();
         }
 
         // Assistant IA Conversationnel
@@ -6097,6 +6117,8 @@ RÈGLES IMPORTANTES:
             aiAssistantMinimized = !aiAssistantMinimized;
             const panel = document.getElementById('aiAssistantPanel');
             if (!panel) return;
+
+            panel.classList.toggle('minimized', aiAssistantMinimized);
             
             const content = panel.querySelector('div');
             if (!content) return;
@@ -6108,7 +6130,7 @@ RÈGLES IMPORTANTES:
             
             if (aiAssistantMinimized) {
                 // Réduire à juste les boutons
-                content.style.width = 'auto';
+                content.style.width = '56px';
                 content.style.bottom = '100px';
                 if (header) {
                     header.style.padding = '8px';
@@ -6153,7 +6175,7 @@ RÈGLES IMPORTANTES:
             const panel = document.createElement('div');
             panel.id = 'aiAssistantPanel';
             panel.innerHTML = `
-                <div style="position: fixed; bottom: 80px; right: 20px; width: 380px; max-height: 500px; background: var(--bg-primary); border: 1px solid var(--border-color); border-radius: 12px; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1), 0 10px 10px -5px rgba(0,0,0,0.04); z-index: 20000; display: flex; flex-direction: column; overflow: hidden;">
+                <div id="aiAssistantPanelContent" style="position: fixed; bottom: 80px; right: 20px; width: 380px; max-height: 500px; background: var(--bg-primary); border: 1px solid var(--border-color); border-radius: 12px; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1), 0 10px 10px -5px rgba(0,0,0,0.04); z-index: 20000; display: flex; flex-direction: column; overflow: hidden;">
                     <!-- Header -->
                     <div style="padding: 16px 20px; background: var(--bg-primary); color: var(--text-primary); display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border-color);">
                         <div style="display: flex; align-items: center; gap: 10px;">
