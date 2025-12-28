@@ -10013,6 +10013,8 @@ RÈGLES IMPORTANTES:
                                         <option value="medium">Risque moyen</option>
                                         <option value="low">Risque faible</option>
                                     </select>
+
+                                    <input id="turnoverEmployeeSearch" type="text" placeholder="Rechercher un employé (nom, poste, département...)" oninput="filterTurnoverList()" style="min-width: 260px; padding: 12px 16px; background: rgba(255,255,255,0.08); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 12px; font-size: 14px; font-weight: 600; color: white; transition: all 0.3s; outline: none;" onfocus="this.style.borderColor='#10b981'; this.style.background='rgba(255,255,255,0.12)'" onblur="this.style.borderColor='rgba(16, 185, 129, 0.3)'; this.style.background='rgba(255,255,255,0.08)'" />
                                 </div>
                                 
                                 <div id="turnoverActionsRight" style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
@@ -10966,9 +10968,15 @@ RÈGLES IMPORTANTES:
                                 flex-direction: column !important;
                             }
                             #turnoverActionsBar button,
-                            #turnoverActionsBar select {
+                            #turnoverActionsBar select,
+                            #turnoverActionsBar input {
                                 width: 100% !important;
                                 justify-content: center !important;
+                            }
+                            #turnoverEmployeeSearch {
+                                min-width: 0 !important;
+                                font-size: 13px !important;
+                                padding: 10px 12px !important;
                             }
                             #turnoverRiskFilter {
                                 font-size: 13px !important;
@@ -11056,6 +11064,9 @@ RÈGLES IMPORTANTES:
                             }
                             .turnover-card {
                                 padding: 14px !important;
+                            }
+                            #turnoverEmployeeSearch {
+                                font-size: 12px !important;
                             }
                             .turnover-modal-content {
                                 padding: 16px !important;
@@ -18086,10 +18097,56 @@ RÈGLES DE CONVERSATION :
         
         function filterTurnoverList() {
             const filter = document.getElementById('turnoverRiskFilter')?.value || '';
+            const search = (document.getElementById('turnoverEmployeeSearch')?.value || '').trim().toLowerCase();
             let analyses = JSON.parse(localStorage.getItem('turnoverAnalyses') || '[]');
+
+            // Assure que les analyses anciennes sont migrées (confiance/fenêtre)
+            analyses = ensureTurnoverAnalysesUpToDate(analyses);
             
             if (filter) {
                 analyses = analyses.filter(a => a.riskLevel === filter);
+            }
+
+            if (search) {
+                const employees = getHRData('hrEmployees');
+                const employeesById = new Map(employees.map(e => [e.id, e]));
+
+                analyses = analyses.filter(a => {
+                    const emp = employeesById.get(a.employeeId);
+                    if (!emp) return false;
+
+                    const haystack = [
+                        emp.firstName,
+                        emp.lastName,
+                        emp.position,
+                        emp.department,
+                        emp.email,
+                        emp.phone
+                    ]
+                        .filter(Boolean)
+                        .join(' ')
+                        .toLowerCase();
+
+                    return haystack.includes(search);
+                });
+            }
+
+            const emptyState = document.getElementById('turnoverEmptyState');
+            if (emptyState) {
+                const titleEl = emptyState.querySelector('h3');
+                const pEls = emptyState.querySelectorAll('p');
+
+                if ((filter || search) && titleEl) {
+                    titleEl.textContent = analyses.length === 0 ? 'Aucun résultat' : 'Aucune analyse disponible';
+                    if (pEls && pEls[0]) {
+                        pEls[0].textContent = analyses.length === 0 ? 'Aucun employé ne correspond à vos filtres. Modifiez la recherche ou le niveau de risque.' : 'Cliquez sur "Analyser les risques" pour générer les prédictions';
+                    }
+                } else if (titleEl) {
+                    titleEl.textContent = 'Aucune analyse disponible';
+                    if (pEls && pEls[0]) {
+                        pEls[0].textContent = 'Cliquez sur "Analyser les risques" pour générer les prédictions';
+                    }
+                }
             }
             
             renderTurnoverList(analyses);
