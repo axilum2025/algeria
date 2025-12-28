@@ -17536,9 +17536,40 @@ RÈGLES DE CONVERSATION :
         }
 
         function initializeTurnoverData() {
-            const analyses = JSON.parse(localStorage.getItem('turnoverAnalyses') || '[]');
+            let analyses = JSON.parse(localStorage.getItem('turnoverAnalyses') || '[]');
+            analyses = ensureTurnoverAnalysesUpToDate(analyses);
             renderTurnoverList(analyses);
             updateTurnoverStats(analyses);
+        }
+
+        function ensureTurnoverAnalysesUpToDate(analyses) {
+            try {
+                if (!Array.isArray(analyses) || analyses.length === 0) return analyses;
+
+                // Ne pas recalculer sans consentement (RGPD)
+                if (!getTurnoverConsent()) return analyses;
+
+                const needsUpgrade = analyses.some(a => typeof a?.confidence !== 'number' || !a?.dataCoverage);
+                if (!needsUpgrade) return analyses;
+
+                const employees = getHRData('hrEmployees');
+                const employeesById = new Map(employees.map(e => [e.id, e]));
+                const leaves = getHRData('hrLeaves');
+                const reviews = getHRData('hrReviews');
+                const payrolls = getHRData('hrPayrolls');
+
+                const upgraded = analyses.map(a => {
+                    if (a && typeof a.confidence === 'number' && a.dataCoverage) return a;
+                    const employee = employeesById.get(a?.employeeId);
+                    if (!employee) return a;
+                    return calculateTurnoverRisk(employee, leaves, reviews, payrolls, { windowMonths: 12 });
+                });
+
+                localStorage.setItem('turnoverAnalyses', JSON.stringify(upgraded));
+                return upgraded;
+            } catch (e) {
+                return analyses;
+            }
         }
 
         function getTurnoverWindowStart(windowMonths = 12) {
@@ -17918,6 +17949,8 @@ RÈGLES DE CONVERSATION :
             if (!analyses) {
                 analyses = JSON.parse(localStorage.getItem('turnoverAnalyses') || '[]');
             }
+
+            analyses = ensureTurnoverAnalysesUpToDate(analyses);
             
             const container = document.getElementById('turnoverListContainer');
             const emptyState = document.getElementById('turnoverEmptyState');
@@ -18035,7 +18068,8 @@ RÈGLES DE CONVERSATION :
         }
         
         function viewTurnoverDetails(employeeId) {
-            const analyses = JSON.parse(localStorage.getItem('turnoverAnalyses') || '[]');
+            let analyses = JSON.parse(localStorage.getItem('turnoverAnalyses') || '[]');
+            analyses = ensureTurnoverAnalysesUpToDate(analyses);
             const analysis = analyses.find(a => a.employeeId === employeeId);
             const employees = getHRData('hrEmployees');
             const employeesById = new Map(employees.map(e => [e.id, e]));
