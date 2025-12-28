@@ -87,6 +87,29 @@
         .sidebar-header {
             padding: 24px;
             border-bottom: 1px solid var(--glass-border);
+            position: relative;
+        }
+
+        .close-sidebar-btn {
+            display: none;
+            position: absolute;
+            top: 16px;
+            right: 16px;
+            width: 40px;
+            height: 40px;
+            border: 1px solid var(--glass-border);
+            border-radius: 10px;
+            background: var(--glass);
+            color: var(--text);
+            cursor: pointer;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+        }
+
+        .close-sidebar-btn:hover {
+            border-color: var(--primary);
+            background: rgba(0, 212, 255, 0.1);
         }
 
         .logo {
@@ -701,6 +724,11 @@
             .sidebar-toggle {
                 display: flex;
             }
+
+            /* Bouton fermer dans le sidebar (mobile/tablette) */
+            .close-sidebar-btn {
+                display: inline-flex;
+            }
         }
     </style>
 </head>
@@ -713,6 +741,12 @@
             <div class="sidebar-header">
                 <div class="logo">AI Vision PRO</div>
                 <div class="subtitle">Azure Intelligence</div>
+
+                <button class="close-sidebar-btn" id="closeSidebar" type="button" title="Fermer">
+                    <svg class="svg-icon" viewBox="0 0 24 24">
+                        <path d="M18.3 5.71a1 1 0 0 0-1.41 0L12 10.59 7.11 5.7a1 1 0 0 0-1.41 1.41L10.59 12l-4.9 4.89a1 1 0 1 0 1.41 1.41L12 13.41l4.89 4.9a1 1 0 0 0 1.41-1.41L13.41 12l4.9-4.89a1 1 0 0 0-.01-1.4z"/>
+                    </svg>
+                </button>
             </div>
             
             <div class="functions-list">
@@ -840,6 +874,7 @@
         // DOM Elements
         const sidebar = document.getElementById('sidebar');
         const toggleSidebarBtn = document.getElementById('toggleSidebar');
+        const closeSidebarBtn = document.getElementById('closeSidebar');
         const chatMessages = document.getElementById('chatMessages');
         const typingIndicator = document.getElementById('typingIndicator');
         const messageInput = document.getElementById('messageInput');
@@ -852,6 +887,12 @@
         toggleSidebarBtn.addEventListener('click', () => {
             sidebar.dataset.userToggled = '1';
             sidebar.classList.toggle('collapsed');
+        });
+
+        // Close Sidebar (mobile/tablette)
+        closeSidebarBtn.addEventListener('click', () => {
+            sidebar.dataset.userToggled = '1';
+            sidebar.classList.add('collapsed');
         });
 
         // Sur mobile/tablette, le sidebar doit être fermé par défaut sinon il recouvre la page.
