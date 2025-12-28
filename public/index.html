@@ -6280,9 +6280,10 @@ RÈGLES IMPORTANTES:
                 return;
             }
 
-            // Default: bottom-right
-            setAiAssistantMinimizedPosition(maxLeft, maxTop);
-            saveAiAssistantMinimizedPosition({ left: maxLeft, top: maxTop });
+            // Default: bottom-left (avoids coller au bord droit sur mobile portrait)
+            const margin = 12;
+            setAiAssistantMinimizedPosition(margin, maxTop);
+            saveAiAssistantMinimizedPosition({ left: margin, top: maxTop });
         }
 
         function enableAiAssistantMinimizedDrag() {
