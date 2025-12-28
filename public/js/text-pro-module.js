@@ -445,7 +445,7 @@ Pour commencer, sélectionnez vos langues dans le panneau latéral et saisissez 
                                 <p class="textpro-chat-subtitle">Assistant de traitement de texte</p>
                             </div>
                         </div>
-                        <div style="display: flex; gap: 12px; align-items: center;">
+                        <div class="textpro-chat-actions" style="display: flex; gap: 12px; align-items: center;">
                             <button class="textpro-clear-history-btn" onclick="window.clearTextProHistory()" title="Effacer l'historique">
                                 ${SVGIcons.trash}
                             </button>
@@ -555,6 +555,11 @@ Pour commencer, sélectionnez vos langues dans le panneau latéral et saisissez 
                 align-items: center;
                 gap: 12px;
                 min-width: 0;
+                flex: 1;
+            }
+
+            .textpro-chat-actions {
+                flex-shrink: 0;
             }
 
             .textpro-sidebar-toggle-btn {
@@ -1064,11 +1069,13 @@ Pour commencer, sélectionnez vos langues dans le panneau latéral et saisissez 
                 border-radius: 8px;
                 color: white;
                 font-size: 24px;
+                line-height: 1;
                 cursor: pointer;
                 display: flex;
                 align-items: center;
                 justify-content: center;
                 transition: all 0.3s ease;
+                flex-shrink: 0;
             }
             
             .textpro-close-btn:hover {
@@ -1115,10 +1122,13 @@ Pour commencer, sélectionnez vos langues dans le panneau latéral et saisissez 
                     left: 0;
                     height: 100vh;
                     width: min(350px, 88vw);
+                    background: rgba(0, 0, 0, 0.78);
+                    backdrop-filter: blur(18px);
                     transform: translateX(-105%);
                     transition: transform 0.25s ease;
                     z-index: 10002;
                     border-right: 1px solid rgba(59, 130, 246, 0.3);
+                    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.55);
                 }
 
                 .textpro-info-panel.open {
@@ -1152,6 +1162,19 @@ Pour commencer, sélectionnez vos langues dans le panneau latéral et saisissez 
 
                 .textpro-chat-header {
                     padding: 16px 16px;
+                    gap: 10px;
+                }
+
+                .textpro-chat-actions {
+                    gap: 8px !important;
+                }
+
+                .textpro-chat-title {
+                    font-size: 18px;
+                }
+
+                .textpro-chat-subtitle {
+                    font-size: 12px;
                 }
 
                 .textpro-chat-input-area {
@@ -1164,6 +1187,19 @@ Pour commencer, sélectionnez vos langues dans le panneau latéral et saisissez 
 
                 .textpro-message-content {
                     max-width: 85%;
+                }
+
+                .textpro-chat-textarea {
+                    min-height: 44px;
+                    max-height: 120px;
+                }
+
+                .textpro-mic-btn,
+                .textpro-translate-btn,
+                .textpro-send-btn {
+                    width: 42px;
+                    height: 42px;
+                    border-radius: 10px;
                 }
             }
             
