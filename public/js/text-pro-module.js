@@ -453,25 +453,27 @@ Pour commencer, sélectionnez vos langues dans le panneau latéral et saisissez 
                     
                     <div class="textpro-chat-input-area">
                         <div class="textpro-input-wrapper">
-                            <textarea 
-                                id="textProChatInput" 
-                                class="textpro-chat-textarea" 
-                                placeholder="Collez votre texte ou posez votre question..."
-                                onkeydown="if(event.key === 'Enter' && !event.shiftKey) { event.preventDefault(); window.sendTextProMessage(); }"
-                                oninput="window.updateTextProCounter()"
-                            ></textarea>
-                            <div id="textProCounter" class="textpro-counter">0 caractère | 0 mot</div>
-                            <div class="textpro-input-buttons">
-                                <button class="textpro-mic-btn" id="textProMicBtn" onclick="window.toggleTextProRecording()" title="Enregistrer un message vocal">
-                                    ${SVGIcons.microphone}
-                                </button>
-                                <button class="textpro-translate-btn" id="textProTranslateBtn" onclick="window.toggleInstantTranslation()" title="Traduction vocale instantanée">
-                                    ${SVGIcons.globe}
-                                </button>
-                                <button class="textpro-send-btn" onclick="window.sendTextProMessage()" title="Envoyer le message">
-                                    ${SVGIcons.send}
-                                </button>
+                            <div class="textpro-input-top">
+                                <textarea 
+                                    id="textProChatInput" 
+                                    class="textpro-chat-textarea" 
+                                    placeholder="Collez votre texte ou posez votre question..."
+                                    onkeydown="if(event.key === 'Enter' && !event.shiftKey) { event.preventDefault(); window.sendTextProMessage(); }"
+                                    oninput="window.updateTextProCounter()"
+                                ></textarea>
+                                <div class="textpro-input-buttons">
+                                    <button class="textpro-mic-btn" id="textProMicBtn" onclick="window.toggleTextProRecording()" title="Enregistrer un message vocal">
+                                        ${SVGIcons.microphone}
+                                    </button>
+                                    <button class="textpro-translate-btn" id="textProTranslateBtn" onclick="window.toggleInstantTranslation()" title="Traduction vocale instantanée">
+                                        ${SVGIcons.globe}
+                                    </button>
+                                    <button class="textpro-send-btn" onclick="window.sendTextProMessage()" title="Envoyer le message">
+                                        ${SVGIcons.send}
+                                    </button>
+                                </div>
                             </div>
+                            <div id="textProCounter" class="textpro-counter">0 caractère | 0 mot</div>
                         </div>
                     </div>
                 </div>
@@ -1218,11 +1220,10 @@ Pour commencer, sélectionnez vos langues dans le panneau latéral et saisissez 
 
             /* Mobile: empiler l'input pour ne pas cacher les boutons */
             @media (max-width: 768px) {
-                .textpro-input-wrapper {
+                .textpro-input-top {
                     flex-direction: column;
                     align-items: stretch;
                     gap: 10px;
-                    position: relative;
                 }
 
                 .textpro-chat-textarea {
@@ -1233,7 +1234,7 @@ Pour commencer, sélectionnez vos langues dans le panneau latéral et saisissez 
                 .textpro-counter {
                     position: static;
                     align-self: flex-end;
-                    margin-top: -2px;
+                    margin-top: 0;
                     margin-right: 2px;
                 }
 
@@ -1280,6 +1281,12 @@ Pour commencer, sélectionnez vos langues dans le panneau latéral et saisissez 
             }
             
             .textpro-input-wrapper {
+                display: flex;
+                flex-direction: column;
+                gap: 10px;
+            }
+
+            .textpro-input-top {
                 display: flex;
                 gap: 12px;
                 align-items: flex-end;
