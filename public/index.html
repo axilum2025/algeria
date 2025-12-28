@@ -12097,6 +12097,9 @@ STYLE DE RÉPONSE :
             modal.innerHTML = `
                 <style>
                     /* Responsive styles pour le modal de détails du projet */
+                    #projectDetailsModal .project-details-header {
+                        position: relative;
+                    }
                     #projectDetailsModal .close-button {
                         background: rgba(99, 102, 241, 0.2);
                         border: 1px solid rgba(99, 102, 241, 0.3);
@@ -12119,6 +12122,22 @@ STYLE DE RÉPONSE :
                     }
                     
                     @media (max-width: 768px) {
+                        #projectDetailsModal .project-details-header {
+                            position: sticky;
+                            top: 0;
+                            z-index: 20;
+                            padding-right: 64px !important;
+                        }
+                        #projectDetailsModal .close-button {
+                            position: absolute;
+                            top: 12px;
+                            right: 12px;
+                            width: 32px;
+                            height: 32px;
+                            min-width: 32px;
+                            font-size: 22px;
+                            border-radius: 8px;
+                        }
                         #projectDetailsModal .phase-circle {
                             width: 35px !important;
                             height: 35px !important;
@@ -12146,6 +12165,17 @@ STYLE DE RÉPONSE :
                     }
                     
                     @media (max-width: 480px) {
+                        #projectDetailsModal .project-details-header {
+                            padding-right: 56px !important;
+                        }
+                        #projectDetailsModal .close-button {
+                            top: 10px;
+                            right: 10px;
+                            width: 30px;
+                            height: 30px;
+                            min-width: 30px;
+                            font-size: 20px;
+                        }
                         #projectDetailsModal .phase-circle {
                             width: 30px !important;
                             height: 30px !important;
@@ -12164,7 +12194,7 @@ STYLE DE RÉPONSE :
                 <div style="background: linear-gradient(135deg, #0f172a, #1e293b); border: 1px solid rgba(99, 102, 241, 0.4); border-radius: 20px; width: 95%; max-width: 1200px; max-height: 95vh; overflow-y: auto; box-shadow: 0 25px 80px rgba(99, 102, 241, 0.3);">
                     
                     <!-- Header -->
-                    <div style="background: linear-gradient(135deg, rgba(99, 102, 241, 0.15), rgba(139, 92, 246, 0.1)); border-bottom: 1px solid rgba(99, 102, 241, 0.3); padding: 24px 32px; border-radius: 20px 20px 0 0; display: flex; justify-content: space-between; align-items: flex-start; gap: 20px;">
+                    <div class="project-details-header" style="background: linear-gradient(135deg, rgba(99, 102, 241, 0.15), rgba(139, 92, 246, 0.1)); border-bottom: 1px solid rgba(99, 102, 241, 0.3); padding: 24px 32px; border-radius: 20px 20px 0 0; display: flex; justify-content: space-between; align-items: flex-start; gap: 20px;">
                         <div style="flex: 1;">
                             <h2 style="margin: 0 0 8px; font-size: 28px; background: linear-gradient(135deg, #a78bfa, #6366f1); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; font-weight: 700;">${project.titre}</h2>
                             <div style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap;">
