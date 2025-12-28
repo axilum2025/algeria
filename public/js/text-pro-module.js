@@ -1396,15 +1396,15 @@ Pour commencer, sélectionnez vos langues dans le panneau latéral et saisissez 
             }
             
             .textpro-counter {
-                position: absolute;
-                bottom: 110px;
-                right: 16px;
+                position: static;
                 font-size: 11px;
                 color: rgba(255, 255, 255, 0.5);
                 background: rgba(0, 0, 0, 0.3);
                 padding: 4px 10px;
                 border-radius: 12px;
                 pointer-events: none;
+                align-self: flex-end;
+                margin-top: 6px;
             }
             
             .textpro-download-btn {
