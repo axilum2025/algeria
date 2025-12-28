@@ -71,17 +71,22 @@
 
         /* Sidebar */
         .sidebar {
-            width: 280px;
+            --sidebar-w: 280px;
+            width: var(--sidebar-w);
             background: var(--glass);
             backdrop-filter: blur(20px);
             border-right: 1px solid var(--glass-border);
             display: flex;
             flex-direction: column;
-            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), width 0.25s ease;
+            min-width: 0;
         }
 
         .sidebar.collapsed {
-            transform: translateX(-240px);
+            /* Desktop: repli sans espace vide */
+            width: 0;
+            border-right: none;
+            transform: none;
         }
 
         .sidebar-header {
@@ -518,21 +523,26 @@
             /* Tablette */
             .sidebar {
                 position: fixed;
-                left: -280px;
+                left: calc(-1 * var(--sidebar-w));
                 top: 0;
                 height: 100vh;
                 max-height: none;
                 z-index: 1000;
                 border-bottom: none;
                 border-right: 1px solid var(--glass-border);
+                width: var(--sidebar-w);
             }
 
             .sidebar.collapsed {
+                /* Mobile/tablette: caché (hors écran) */
+                width: var(--sidebar-w);
+                border-right: 1px solid var(--glass-border);
                 transform: translateX(0);
             }
 
             .sidebar:not(.collapsed) {
-                transform: translateX(280px);
+                /* Mobile/tablette: visible */
+                transform: translateX(var(--sidebar-w));
             }
 
             .main-content {
@@ -557,12 +567,13 @@
         @media (max-width: 768px) {
             /* Mobile */
             .sidebar {
-                width: 260px;
-                left: -260px;
+                --sidebar-w: 260px;
+                width: var(--sidebar-w);
+                left: calc(-1 * var(--sidebar-w));
             }
 
             .sidebar:not(.collapsed) {
-                transform: translateX(260px);
+                transform: translateX(var(--sidebar-w));
             }
 
             .main-content {
@@ -639,12 +650,13 @@
         @media (max-width: 480px) {
             /* Petit mobile */
             .sidebar {
-                width: 90%;
-                left: -90%;
+                --sidebar-w: 90vw;
+                width: var(--sidebar-w);
+                left: calc(-1 * var(--sidebar-w));
             }
 
             .sidebar:not(.collapsed) {
-                transform: translateX(90%);
+                transform: translateX(var(--sidebar-w));
             }
 
             .main-content {
