@@ -5803,6 +5803,12 @@ RÈGLES IMPORTANTES:
                     height: 32px !important;
                     padding: 0 !important;
                     border-radius: 999px !important;
+                    touch-action: none;
+                    cursor: grab;
+                }
+
+                #aiAssistantPanel.minimized #aiAssistantMinimizeBtn:active {
+                    cursor: grabbing;
                 }
 
                 @media (max-width: 768px) {
@@ -6174,7 +6180,11 @@ RÈGLES IMPORTANTES:
             if (aiAssistantMinimized) {
                 // Réduire au bouton uniquement
                 content.style.width = 'auto';
-                content.style.bottom = '92px';
+                // Position gérée par JS (drag) via left/top
+                content.style.bottom = '';
+                content.style.right = '';
+                content.style.left = '';
+                content.style.top = '';
                 if (header) header.style.minHeight = 'auto';
                 if (headerTitle) headerTitle.style.display = 'none';
                 if (closeBtn) closeBtn.style.display = 'none';
@@ -6185,10 +6195,17 @@ RÈGLES IMPORTANTES:
                     if (e.target.closest('button')) return;
                     minimizeAiAssistant();
                 };
+
+                requestAnimationFrame(() => {
+                    applySavedAiAssistantMinimizedPosition();
+                    enableAiAssistantMinimizedDrag();
+                });
             } else {
                 // Restaurer
                 content.style.width = '380px';
                 content.style.bottom = '80px';
+                content.style.left = '';
+                content.style.top = '';
                 if (header) {
                     header.style.padding = '16px 20px';
                     header.style.minHeight = '';
@@ -6200,6 +6217,139 @@ RÈGLES IMPORTANTES:
                 content.style.cursor = 'default';
                 content.onclick = null;
             }
+        }
+
+        function aiAssistantClamp(value, min, max) {
+            return Math.min(Math.max(value, min), max);
+        }
+
+        function getAiAssistantMinimizedPositionKey() {
+            return 'aiAssistantMinimizedPos';
+        }
+
+        function saveAiAssistantMinimizedPosition(pos) {
+            try {
+                localStorage.setItem(getAiAssistantMinimizedPositionKey(), JSON.stringify(pos));
+            } catch (_) {
+                // ignore
+            }
+        }
+
+        function loadAiAssistantMinimizedPosition() {
+            try {
+                const raw = localStorage.getItem(getAiAssistantMinimizedPositionKey());
+                return raw ? JSON.parse(raw) : null;
+            } catch (_) {
+                return null;
+            }
+        }
+
+        function setAiAssistantMinimizedPosition(leftPx, topPx) {
+            const content = document.getElementById('aiAssistantPanelContent');
+            if (!content) return;
+            content.style.left = `${Math.round(leftPx)}px`;
+            content.style.top = `${Math.round(topPx)}px`;
+            content.style.right = '';
+            content.style.bottom = '';
+        }
+
+        function applySavedAiAssistantMinimizedPosition() {
+            const panel = document.getElementById('aiAssistantPanel');
+            const content = document.getElementById('aiAssistantPanelContent');
+            if (!panel || !content || !panel.classList.contains('minimized')) return;
+
+            const btn = document.getElementById('aiAssistantMinimizeBtn');
+            const btnSize = btn ? Math.max(btn.offsetWidth, btn.offsetHeight, 32) : 32;
+            const margin = 12;
+            const maxLeft = window.innerWidth - btnSize - margin;
+            const maxTop = window.innerHeight - btnSize - margin;
+
+            const saved = loadAiAssistantMinimizedPosition();
+            if (saved && typeof saved.left === 'number' && typeof saved.top === 'number') {
+                setAiAssistantMinimizedPosition(
+                    aiAssistantClamp(saved.left, margin, maxLeft),
+                    aiAssistantClamp(saved.top, margin, maxTop)
+                );
+                return;
+            }
+
+            // Default: bottom-right
+            setAiAssistantMinimizedPosition(maxLeft, maxTop);
+            saveAiAssistantMinimizedPosition({ left: maxLeft, top: maxTop });
+        }
+
+        function enableAiAssistantMinimizedDrag() {
+            const panel = document.getElementById('aiAssistantPanel');
+            const content = document.getElementById('aiAssistantPanelContent');
+            const btn = document.getElementById('aiAssistantMinimizeBtn');
+            if (!panel || !content || !btn) return;
+
+            if (btn.dataset.dragBound === '1') return;
+            btn.dataset.dragBound = '1';
+
+            let dragging = false;
+            let moved = false;
+            let startX = 0;
+            let startY = 0;
+            let startLeft = 0;
+            let startTop = 0;
+
+            const onPointerMove = (e) => {
+                if (!dragging) return;
+                if (!panel.classList.contains('minimized')) return;
+                e.preventDefault();
+
+                const dx = e.clientX - startX;
+                const dy = e.clientY - startY;
+                if (!moved && (Math.abs(dx) > 3 || Math.abs(dy) > 3)) moved = true;
+
+                const btnSize = Math.max(btn.offsetWidth, btn.offsetHeight, 32);
+                const margin = 8;
+                const maxLeft = window.innerWidth - btnSize - margin;
+                const maxTop = window.innerHeight - btnSize - margin;
+
+                const nextLeft = aiAssistantClamp(startLeft + dx, margin, maxLeft);
+                const nextTop = aiAssistantClamp(startTop + dy, margin, maxTop);
+                setAiAssistantMinimizedPosition(nextLeft, nextTop);
+                saveAiAssistantMinimizedPosition({ left: nextLeft, top: nextTop });
+            };
+
+            const onPointerUp = () => {
+                dragging = false;
+                window.removeEventListener('pointermove', onPointerMove, { capture: true });
+                window.removeEventListener('pointerup', onPointerUp, { capture: true });
+
+                if (moved) {
+                    btn.dataset.suppressClick = '1';
+                    setTimeout(() => {
+                        if (btn.dataset.suppressClick === '1') delete btn.dataset.suppressClick;
+                    }, 120);
+                }
+            };
+
+            // Capture click to avoid toggling minimize when drag happened
+            btn.addEventListener('click', (e) => {
+                if (btn.dataset.suppressClick === '1') {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    if (typeof e.stopImmediatePropagation === 'function') e.stopImmediatePropagation();
+                }
+            }, true);
+
+            btn.addEventListener('pointerdown', (e) => {
+                if (!panel.classList.contains('minimized')) return;
+                if (e.pointerType === 'mouse' && e.button !== 0) return;
+                dragging = true;
+                moved = false;
+                startX = e.clientX;
+                startY = e.clientY;
+                const rect = content.getBoundingClientRect();
+                startLeft = rect.left;
+                startTop = rect.top;
+                btn.setPointerCapture?.(e.pointerId);
+                window.addEventListener('pointermove', onPointerMove, { capture: true, passive: false });
+                window.addEventListener('pointerup', onPointerUp, { capture: true, passive: true });
+            }, { passive: true });
         }
 
         function showAiAssistantPanel() {
@@ -6262,6 +6412,15 @@ RÈGLES IMPORTANTES:
                 </div>
             `;
             document.body.appendChild(panel);
+
+            // Si déjà en mode réduit, appliquer position & activer drag
+            if (aiAssistantMinimized) {
+                panel.classList.add('minimized');
+                requestAnimationFrame(() => {
+                    applySavedAiAssistantMinimizedPosition();
+                    enableAiAssistantMinimizedDrag();
+                });
+            }
         }
 
         function hideAiAssistantPanel() {
