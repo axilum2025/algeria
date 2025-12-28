@@ -9910,7 +9910,7 @@ RÈGLES IMPORTANTES:
                                         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
                                     </div>
                                     <div style="flex: 1;">
-                                        <h3 style="margin: 0 0 8px; font-size: 16px; font-weight: 700;">🔒 Conformité RGPD - Données Sensibles</h3>
+                                        <h3 style="margin: 0 0 8px; font-size: 16px; font-weight: 700;">Conformité RGPD - Données Sensibles</h3>
                                         <p style="margin: 0 0 12px; font-size: 13px; line-height: 1.6; opacity: 0.95;">
                                             Cette fonctionnalité analyse des données RH pour prédire les risques de départ. Toutes les données sont traitées dans le navigateur (localStorage), aucune transmission externe. 
                                             Les scores sont calculés de manière <strong>transparente</strong> et <strong>explicable</strong>.
@@ -9970,15 +9970,16 @@ RÈGLES IMPORTANTES:
                             <!-- Actions Bar -->
                             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; flex-wrap: wrap; gap: 16px;">
                                 <div style="display: flex; gap: 12px; flex-wrap: wrap;">
-                                    <button onclick="analyzeTurnoverRisks()" style="padding: 12px 24px; background: #EF4444; border: none; border-radius: 10px; color: white; font-weight: 600; cursor: pointer; transition: all 0.2s;" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 12px rgba(239,68,68,0.4)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='none'">
-                                        Analyser les Risques
+                                    <button onclick="analyzeTurnoverRisks()" class="hr-btn" style="display: flex; align-items: center; gap: 8px;">
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                                        Analyser les risques
                                     </button>
                                     
                                     <select id="turnoverRiskFilter" onchange="filterTurnoverList()" style="padding: 12px 16px; border: 2px solid #e5e7eb; border-radius: 10px; font-size: 14px; font-weight: 600; cursor: pointer; background: white;">
                                         <option value="">Tous les niveaux</option>
-                                        <option value="high">🔴 Risque élevé</option>
-                                        <option value="medium">🟡 Risque moyen</option>
-                                        <option value="low">🟢 Risque faible</option>
+                                        <option value="high">Risque élevé</option>
+                                        <option value="medium">Risque moyen</option>
+                                        <option value="low">Risque faible</option>
                                     </select>
                                 </div>
                                 
@@ -10000,8 +10001,9 @@ RÈGLES IMPORTANTES:
                                 </div>
                                 <h3 style="margin: 0 0 8px; font-size: 18px; font-weight: 600; color: #1a1a1a;">Aucune analyse disponible</h3>
                                 <p style="margin: 0 0 16px; font-size: 14px; color: #6b7280;">Cliquez sur "Analyser les Risques" pour générer les prédictions</p>
-                                <p style="margin: 0; font-size: 12px; color: #6b7280; max-width: 500px; margin: 0 auto;">
-                                    ⚠️ L'analyse nécessite des données d'employés, congés et évaluations
+                                <p style="margin: 0; font-size: 12px; color: #6b7280; max-width: 500px; margin: 0 auto; display: inline-flex; align-items: center; gap: 6px;">
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: #EF4444;"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                                    L'analyse nécessite des données d'employés, congés et évaluations
                                 </p>
                             </div>
                         </div>
@@ -14891,19 +14893,19 @@ ${reviews.slice(-5).map(r => {
 
                 // ========== TURNOVER & RISQUES ==========
                 const turnoverInfo = turnoverAnalyses.length > 0 ? `
-🚨 ANALYSE TURNOVER (Prédiction des départs) :
+ANALYSE TURNOVER (Prédiction des départs) :
 - Employés analysés : ${turnoverAnalyses.length}
-- 🔴 Risque élevé (>70%) : ${highRiskTurnover.length} employés ⚠️
-- 🟡 Risque moyen (40-70%) : ${mediumRiskTurnover.length} employés
-- 🟢 Risque faible (<40%) : ${turnoverAnalyses.filter(t => t.riskLevel === 'low').length} employés
+- Risque élevé (>70%) : ${highRiskTurnover.length} employés
+- Risque moyen (40-70%) : ${mediumRiskTurnover.length} employés
+- Risque faible (<40%) : ${turnoverAnalyses.filter(t => t.riskLevel === 'low').length} employés
 
-${highRiskTurnover.length > 0 ? `⚠️ EMPLOYÉS À RISQUE CRITIQUE (action urgente recommandée) :
+${highRiskTurnover.length > 0 ? `EMPLOYÉS À RISQUE CRITIQUE (action urgente recommandée) :
 ${highRiskTurnover.map(t => {
     const emp = employees.find(e => e.id === t.employeeId);
     return `  • ${emp ? emp.firstName + ' ' + emp.lastName : 'Employé inconnu'} (${emp ? emp.department : 'N/A'}): ${t.riskScore}% de risque de départ
     Actions suggérées: ${t.suggestedActions.slice(0, 2).join(', ')}`;
 }).join('\n')}` : ''}
-` : '🚨 TURNOVER : Aucune analyse de risque de turnover effectuée.';
+` : 'TURNOVER : Aucune analyse de risque de turnover effectuée.';
 
                 // ========== RECRUTEMENT ==========
                 const avgMatchScore = recruitmentCandidates.length > 0 
@@ -15002,7 +15004,7 @@ ${companyInfo}
 📅 Congés en attente : ${pendingLeaves.length}
 💰 Budget paie mensuel : ${totalPayroll.toLocaleString()} ${currency}
 ⭐ Score performance moyen : ${avgPerformance}/5
-🚨 Employés à risque élevé : ${highRiskTurnover.length}
+Employés à risque élevé : ${highRiskTurnover.length}
 👔 Offres actives : ${activeJobs.length}
 📄 CVs en cours : ${recruitmentCandidates.length}
 ====================================
@@ -17546,6 +17548,41 @@ RÈGLES DE CONVERSATION :
             return actions;
         }
         
+        function getTurnoverIcon(name, { size = 16, stroke = 'currentColor' } = {}) {
+            const base = `width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="${stroke}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"`;
+            switch (name) {
+                case 'alert':
+                    return `<svg ${base}><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>`;
+                case 'chart':
+                    return `<svg ${base}><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>`;
+                case 'spark':
+                    return `<svg ${base}><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>`;
+                case 'dot':
+                    return `<svg ${base} fill="${stroke}"><circle cx="12" cy="12" r="6"/></svg>`;
+                case 'briefcase':
+                    return `<svg ${base}><rect x="2" y="7" width="20" height="14" rx="2" ry="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/><line x1="2" y1="13" x2="22" y2="13"/></svg>`;
+                case 'brain':
+                    return `<svg ${base}><path d="M8 6a3 3 0 0 1 6 0v.5"/><path d="M7 8a3 3 0 0 0-3 3v1a3 3 0 0 0 3 3"/><path d="M17 8a3 3 0 0 1 3 3v1a3 3 0 0 1-3 3"/><path d="M9 18a3 3 0 0 0 6 0"/></svg>`;
+                case 'layers':
+                    return `<svg ${base}><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg>`;
+                case 'info':
+                    return `<svg ${base}><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>`;
+                case 'calendar':
+                    return `<svg ${base}><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>`;
+                case 'lock':
+                    return `<svg ${base}><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>`;
+                case 'scale':
+                    return `<svg ${base}><path d="M12 3v18"/><path d="M6 7h12"/><path d="M6 7l-2 5a3 3 0 0 0 6 0L8 7"/><path d="M18 7l-2 5a3 3 0 0 0 6 0l-2-5"/></svg>`;
+                default:
+                    return '';
+            }
+        }
+
+        function getTurnoverRiskLabelHtml(riskLevel, riskColor) {
+            const label = riskLevel === 'high' ? 'RISQUE ÉLEVÉ' : riskLevel === 'medium' ? 'RISQUE MOYEN' : 'RISQUE FAIBLE';
+            return `<span style="display:inline-flex; align-items:center; gap:6px;">${getTurnoverIcon('dot', { size: 10, stroke: riskColor })}${label}</span>`;
+        }
+
         function renderTurnoverList(analyses = null) {
             if (!analyses) {
                 analyses = JSON.parse(localStorage.getItem('turnoverAnalyses') || '[]');
@@ -17581,8 +17618,7 @@ RÈGLES DE CONVERSATION :
                 const riskBg = analysis.riskLevel === 'high' ? '#FEE2E2' :
                               analysis.riskLevel === 'medium' ? '#FEF3C7' : '#D1FAE5';
                 
-                const riskLabel = analysis.riskLevel === 'high' ? '🔴 RISQUE ÉLEVÉ' :
-                                 analysis.riskLevel === 'medium' ? '🟡 RISQUE MOYEN' : '🟢 RISQUE FAIBLE';
+                const riskLabel = getTurnoverRiskLabelHtml(analysis.riskLevel, riskColor);
                 
                 return `
                     <div style="background: white; border-radius: 16px; padding: 24px; border: 2px solid ${riskColor === '#EF4444' ? riskColor : '#e5e7eb'}; transition: all 0.2s; cursor: pointer;" onclick="viewTurnoverDetails('${analysis.employeeId}')">
@@ -17609,7 +17645,7 @@ RÈGLES DE CONVERSATION :
                         </div>
                         
                         <div style="background: #f9fafb; border-radius: 12px; padding: 16px; margin-bottom: 16px;">
-                            <h5 style="margin: 0 0 12px; font-size: 13px; font-weight: 700; color: #1a1a1a;">📊 Facteurs de risque (${analysis.factors.length})</h5>
+                            <h5 style="margin: 0 0 12px; font-size: 13px; font-weight: 700; color: #1a1a1a; display: flex; align-items: center; gap: 8px;">${getTurnoverIcon('chart', { size: 16, stroke: '#6b7280' })}Facteurs de risque (${analysis.factors.length})</h5>
                             ${analysis.factors.slice(0, 3).map(factor => `
                                 <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid #e5e7eb;">
                                     <span style="font-size: 12px; color: #6b7280;">${factor.name}</span>
@@ -17624,7 +17660,7 @@ RÈGLES DE CONVERSATION :
                         </div>
                         
                         <div>
-                            <h5 style="margin: 0 0 12px; font-size: 13px; font-weight: 700; color: #1a1a1a;">💡 Actions recommandées (${analysis.suggestedActions.length})</h5>
+                            <h5 style="margin: 0 0 12px; font-size: 13px; font-weight: 700; color: #1a1a1a; display: flex; align-items: center; gap: 8px;">${getTurnoverIcon('spark', { size: 16, stroke: '#6b7280' })}Actions recommandées (${analysis.suggestedActions.length})</h5>
                             <div style="display: flex; gap: 8px; flex-wrap: wrap;">
                                 ${analysis.suggestedActions.map(action => `
                                     <span style="background: ${action.priority === 'high' ? '#FEE2E2' : '#E0E7FF'}; color: ${action.priority === 'high' ? '#DC2626' : '#4F46E5'}; padding: 6px 12px; border-radius: 6px; font-size: 11px; font-weight: 600;">
@@ -17681,7 +17717,7 @@ RÈGLES DE CONVERSATION :
             modal.innerHTML = `
                 <div style="background: white; border-radius: 20px; padding: 40px; max-width: 900px; width: 100%; max-height: 90vh; overflow-y: auto; animation: slideIn 0.3s ease;">
                     <div style="text-align: center; margin-bottom: 32px;">
-                        <h2 style="margin: 0 0 8px; font-size: 28px; font-weight: 700; color: #1a1a1a;">🚨 Analyse de Risque de Turnover</h2>
+                        <h2 style="margin: 0 0 8px; font-size: 28px; font-weight: 700; color: #1a1a1a; display: inline-flex; align-items: center; gap: 10px;">${getTurnoverIcon('alert', { size: 22, stroke: '#EF4444' })}Analyse de risque de turnover</h2>
                         <p style="margin: 0; font-size: 14px; color: #6b7280;">Analyse conforme RGPD - Données explicables et transparentes</p>
                     </div>
                     
@@ -17706,18 +17742,18 @@ RÈGLES DE CONVERSATION :
                     
                     <!-- Facteurs de risque détaillés -->
                     <div style="background: #f9fafb; border-radius: 16px; padding: 24px; margin-bottom: 24px;">
-                        <h3 style="margin: 0 0 16px; font-size: 18px; font-weight: 700; color: #1a1a1a;">📊 Facteurs de risque identifiés (${analysis.factors.length})</h3>
+                        <h3 style="margin: 0 0 16px; font-size: 18px; font-weight: 700; color: #1a1a1a; display: flex; align-items: center; gap: 10px;">${getTurnoverIcon('chart', { size: 18, stroke: '#6b7280' })}Facteurs de risque identifiés (${analysis.factors.length})</h3>
                         
                         ${['professional', 'behavioral', 'contextual'].map(category => {
                             const categoryFactors = analysis.factors.filter(f => f.category === category);
                             if (categoryFactors.length === 0) return '';
                             
-                            const categoryName = category === 'professional' ? '💼 Professionnels' :
-                                               category === 'behavioral' ? '🧠 Comportementaux' : '🗂️ Contextuels';
+                            const categoryName = category === 'professional' ? `${getTurnoverIcon('briefcase', { size: 14, stroke: '#6b7280' })}<span>Professionnels</span>` :
+                                               category === 'behavioral' ? `${getTurnoverIcon('brain', { size: 14, stroke: '#6b7280' })}<span>Comportementaux</span>` : `${getTurnoverIcon('layers', { size: 14, stroke: '#6b7280' })}<span>Contextuels</span>`;
                             
                             return `
                                 <div style="margin-bottom: 20px;">
-                                    <h4 style="margin: 0 0 12px; font-size: 14px; font-weight: 700; color: #6b7280;">${categoryName}</h4>
+                                    <h4 style="margin: 0 0 12px; font-size: 14px; font-weight: 700; color: #6b7280; display: inline-flex; align-items: center; gap: 8px;">${categoryName}</h4>
                                     ${categoryFactors.map(factor => `
                                         <div style="background: white; border-radius: 8px; padding: 12px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; border-left: 3px solid ${riskColor};">
                                             <span style="font-size: 13px; color: #1a1a1a; font-weight: 600;">${factor.name}</span>
@@ -17730,7 +17766,7 @@ RÈGLES DE CONVERSATION :
                         
                         <div style="background: ${riskColor}15; border-radius: 8px; padding: 12px; border-left: 3px solid ${riskColor};">
                             <p style="margin: 0; font-size: 12px; color: #6b7280; line-height: 1.6;">
-                                ℹ️ <strong>Explicabilité RGPD:</strong> Le score est calculé en additionnant les impacts de chaque facteur identifié. 
+                                ${getTurnoverIcon('info', { size: 14, stroke: '#6b7280' })} <strong>Explicabilité RGPD:</strong> Le score est calculé en additionnant les impacts de chaque facteur identifié. 
                                 Les critères sont basés uniquement sur des données professionnelles objectives (ancienneté, évaluations, congés, salaire).
                                 Aucune donnée personnelle sensible n'est utilisée.
                             </p>
@@ -17739,13 +17775,13 @@ RÈGLES DE CONVERSATION :
                     
                     <!-- Actions recommandées -->
                     <div style="background: #E0E7FF; border-radius: 16px; padding: 24px; margin-bottom: 24px;">
-                        <h3 style="margin: 0 0 16px; font-size: 18px; font-weight: 700; color: #3730A3;">💡 Actions préventives recommandées</h3>
+                        <h3 style="margin: 0 0 16px; font-size: 18px; font-weight: 700; color: #3730A3; display: flex; align-items: center; gap: 10px;">${getTurnoverIcon('spark', { size: 18, stroke: '#3730A3' })}Actions préventives recommandées</h3>
                         ${analysis.suggestedActions.map(action => `
                             <div style="background: white; border-radius: 12px; padding: 16px; margin-bottom: 12px; border-left: 4px solid ${action.priority === 'high' ? '#EF4444' : '#6366F1'};">
                                 <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 8px;">
                                     <h4 style="margin: 0; font-size: 14px; font-weight: 700; color: #1a1a1a;">${action.title}</h4>
                                     <span style="background: ${action.priority === 'high' ? '#FEE2E2' : '#E0E7FF'}; color: ${action.priority === 'high' ? '#DC2626' : '#4F46E5'}; padding: 4px 8px; border-radius: 4px; font-size: 10px; font-weight: 700;">
-                                        ${action.priority === 'high' ? '⚠️ PRIORITAIRE' : 'Recommandé'}
+                                        ${action.priority === 'high' ? `${getTurnoverIcon('alert', { size: 12, stroke: '#DC2626' })} PRIORITAIRE` : 'Recommandé'}
                                     </span>
                                 </div>
                                 <p style="margin: 0; font-size: 12px; color: #6b7280; line-height: 1.5;">${action.description}</p>
@@ -17755,9 +17791,9 @@ RÈGLES DE CONVERSATION :
                     
                     <div style="background: #f9fafb; border-radius: 12px; padding: 16px; margin-bottom: 24px; border: 1px solid #e5e7eb;">
                         <p style="margin: 0; font-size: 11px; color: #6b7280; line-height: 1.6;">
-                            📅 Analyse effectuée le ${new Date(analysis.analyzedAt).toLocaleString('fr-FR')}<br>
-                            🔒 Ces données sont confidentielles et accessibles uniquement aux RH autorisés<br>
-                            ⚖️ Conformité RGPD: Base légale = Intérêt légitime de l'employeur (gestion RH)
+                            ${getTurnoverIcon('calendar', { size: 12, stroke: '#6b7280' })} Analyse effectuée le ${new Date(analysis.analyzedAt).toLocaleString('fr-FR')}<br>
+                            ${getTurnoverIcon('lock', { size: 12, stroke: '#6b7280' })} Ces données sont confidentielles et accessibles uniquement aux RH autorisés<br>
+                            ${getTurnoverIcon('scale', { size: 12, stroke: '#6b7280' })} Conformité RGPD: Base légale = Intérêt légitime de l'employeur (gestion RH)
                         </p>
                     </div>
                     
