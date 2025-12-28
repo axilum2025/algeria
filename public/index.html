@@ -5770,8 +5770,39 @@ RÈGLES IMPORTANTES:
 
                 /* Agent ToDo: mode réduit (bulle) */
                 #aiAssistantPanel.minimized #aiAssistantPanelContent {
-                    width: 56px !important;
+                    width: auto !important;
                     max-height: none !important;
+                    background: transparent !important;
+                    border: none !important;
+                    box-shadow: none !important;
+                    overflow: visible !important;
+                }
+
+                #aiAssistantPanel.minimized #aiAssistantPanelHeader {
+                    padding: 0 !important;
+                    border-bottom: none !important;
+                    background: transparent !important;
+                    justify-content: flex-end !important;
+                }
+
+                #aiAssistantPanel.minimized #aiAssistantPanelTitle {
+                    display: none !important;
+                }
+
+                #aiAssistantPanel.minimized #aiAssistantCloseBtn {
+                    display: none !important;
+                }
+
+                #aiAssistantPanel.minimized #aiChatMessages,
+                #aiAssistantPanel.minimized #aiAssistantInputArea {
+                    display: none !important;
+                }
+
+                #aiAssistantPanel.minimized #aiAssistantMinimizeBtn {
+                    width: 32px !important;
+                    height: 32px !important;
+                    padding: 0 !important;
+                    border-radius: 999px !important;
                 }
 
                 @media (max-width: 768px) {
@@ -5879,7 +5910,6 @@ RÈGLES IMPORTANTES:
                     #aiAssistantPanel.minimized #aiAssistantPanelContent {
                         left: auto !important;
                         right: 12px !important;
-                        width: 56px !important;
                         bottom: 92px !important;
                     }
                     
@@ -6119,24 +6149,23 @@ RÈGLES IMPORTANTES:
             if (!panel) return;
 
             panel.classList.toggle('minimized', aiAssistantMinimized);
-            
-            const content = panel.querySelector('div');
+
+            const content = document.getElementById('aiAssistantPanelContent');
             if (!content) return;
-            
-            const header = content.querySelector('div[style*="padding: 16px"]');
-            const headerTitle = header?.querySelector('div[style*="display: flex; align-items: center; gap: 10px"]');
+
+            const header = document.getElementById('aiAssistantPanelHeader');
+            const headerTitle = document.getElementById('aiAssistantPanelTitle');
+            const closeBtn = document.getElementById('aiAssistantCloseBtn');
             const messages = document.getElementById('aiChatMessages');
-            const inputArea = messages?.nextElementSibling;
+            const inputArea = document.getElementById('aiAssistantInputArea');
             
             if (aiAssistantMinimized) {
-                // Réduire à juste les boutons
-                content.style.width = '56px';
-                content.style.bottom = '100px';
-                if (header) {
-                    header.style.padding = '8px';
-                    header.style.minHeight = 'auto';
-                }
+                // Réduire au bouton uniquement
+                content.style.width = 'auto';
+                content.style.bottom = '92px';
+                if (header) header.style.minHeight = 'auto';
                 if (headerTitle) headerTitle.style.display = 'none';
+                if (closeBtn) closeBtn.style.display = 'none';
                 if (messages) messages.style.display = 'none';
                 if (inputArea) inputArea.style.display = 'none';
                 content.style.cursor = 'pointer';
@@ -6153,6 +6182,7 @@ RÈGLES IMPORTANTES:
                     header.style.minHeight = '';
                 }
                 if (headerTitle) headerTitle.style.display = 'flex';
+                if (closeBtn) closeBtn.style.display = 'flex';
                 if (messages) messages.style.display = 'flex';
                 if (inputArea) inputArea.style.display = 'flex';
                 content.style.cursor = 'default';
@@ -6177,20 +6207,20 @@ RÈGLES IMPORTANTES:
             panel.innerHTML = `
                 <div id="aiAssistantPanelContent" style="position: fixed; bottom: 80px; right: 20px; width: 380px; max-height: 500px; background: var(--bg-primary); border: 1px solid var(--border-color); border-radius: 12px; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1), 0 10px 10px -5px rgba(0,0,0,0.04); z-index: 20000; display: flex; flex-direction: column; overflow: hidden;">
                     <!-- Header -->
-                    <div style="padding: 16px 20px; background: var(--bg-primary); color: var(--text-primary); display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border-color);">
-                        <div style="display: flex; align-items: center; gap: 10px;">
+                    <div id="aiAssistantPanelHeader" style="padding: 16px 20px; background: var(--bg-primary); color: var(--text-primary); display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border-color);">
+                        <div id="aiAssistantPanelTitle" style="display: flex; align-items: center; gap: 10px;">
                             <div>
                                 <div style="font-weight: 600; font-size: 15px; letter-spacing: -0.01em;">Agent ToDo</div>
                                 <div style="font-size: 11px; color: var(--text-secondary);">Gestion intelligente</div>
                             </div>
                         </div>
                         <div style="display: flex; gap: 6px;">
-                            <button onclick="minimizeAiAssistant()" style="background: var(--bg-secondary); border: 1px solid var(--border-color); color: var(--text-secondary); border-radius: 6px; cursor: pointer; padding: 6px 8px; display: flex; align-items: center; justify-content: center; transition: all 0.2s;" onmouseover="this.style.background='var(--bg-hover)'; this.style.color='var(--text-primary)'" onmouseout="this.style.background='var(--bg-secondary)'; this.style.color='var(--text-secondary)'" title="Réduire">
+                            <button id="aiAssistantMinimizeBtn" onclick="minimizeAiAssistant()" style="background: var(--bg-secondary); border: 1px solid var(--border-color); color: var(--text-secondary); border-radius: 6px; cursor: pointer; padding: 6px 8px; display: flex; align-items: center; justify-content: center; transition: all 0.2s;" onmouseover="this.style.background='var(--bg-hover)'; this.style.color='var(--text-primary)'" onmouseout="this.style.background='var(--bg-secondary)'; this.style.color='var(--text-secondary)'" title="Réduire">
                                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                                     <line x1="5" y1="12" x2="19" y2="12"/>
                                 </svg>
                             </button>
-                            <button onclick="toggleAiAssistant()" style="background: var(--bg-secondary); border: 1px solid var(--border-color); color: var(--text-secondary); border-radius: 6px; cursor: pointer; padding: 6px; display: flex; align-items: center; justify-content: center; transition: all 0.2s;" onmouseover="this.style.background='var(--bg-hover)'; this.style.color='var(--text-primary)'" onmouseout="this.style.background='var(--bg-secondary)'; this.style.color='var(--text-secondary)'" title="Fermer">
+                            <button id="aiAssistantCloseBtn" onclick="toggleAiAssistant()" style="background: var(--bg-secondary); border: 1px solid var(--border-color); color: var(--text-secondary); border-radius: 6px; cursor: pointer; padding: 6px; display: flex; align-items: center; justify-content: center; transition: all 0.2s;" onmouseover="this.style.background='var(--bg-hover)'; this.style.color='var(--text-primary)'" onmouseout="this.style.background='var(--bg-secondary)'; this.style.color='var(--text-secondary)'" title="Fermer">
                                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                                     <line x1="18" y1="6" x2="6" y2="18"/>
                                     <line x1="6" y1="6" x2="18" y2="18"/>
@@ -6208,7 +6238,7 @@ RÈGLES IMPORTANTES:
                     </div>
 
                     <!-- Input -->
-                    <div style="padding: 12px; border-top: 1px solid var(--border-color); display: flex; gap: 8px;">
+                    <div id="aiAssistantInputArea" style="padding: 12px; border-top: 1px solid var(--border-color); display: flex; gap: 8px;">
                         <input id="aiCommandInput" type="text" placeholder="Demandez quelque chose..." onkeypress="if(event.key==='Enter') askAi(this.value)" style="flex: 1; padding: 10px 14px; border: 1px solid var(--border-color); border-radius: 8px; background: var(--bg-primary); font-size: 13px; outline: none; color: var(--text-primary); transition: all 0.2s;" onfocus="this.style.borderColor='var(--text-secondary)'" onblur="this.style.borderColor='var(--border-color)'">
                         <button onclick="askAi(document.getElementById('aiCommandInput').value)" style="padding: 10px 14px; background: var(--bg-secondary); color: var(--text-primary); border: 1px solid var(--border-color); border-radius: 8px; cursor: pointer; font-weight: 500; transition: all 0.2s; display: flex; align-items: center; justify-content: center;" onmouseover="this.style.background='var(--bg-hover)'" onmouseout="this.style.background='var(--bg-secondary)'">
                             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
