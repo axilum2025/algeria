@@ -10208,8 +10208,14 @@ RÈGLES IMPORTANTES:
             
             document.body.appendChild(overlay);
             
-            // Initialize HR data
-            initializeHRData();
+            // Initialize HR data (différé pour laisser le navigateur peindre l'UI)
+            setTimeout(() => {
+                try {
+                    initializeHRData();
+                } catch (e) {
+                    console.error('Erreur initializeHRData:', e);
+                }
+            }, 0);
         }
         
         function closeHRManagement() {
@@ -15316,6 +15322,10 @@ RÈGLES DE CONVERSATION :
             
             // Trier par date de création (plus récent en premier)
             leaves.sort((a, b) => b.createdAt - a.createdAt);
+
+            // Cache employés pour éviter des lectures/parses localStorage répétées
+            const employees = getHRData('hrEmployees');
+            const employeesById = new Map(employees.map(e => [e.id, e]));
             
             const statusColors = {
                 pending: { color: '#f59e0b', label: 'En attente' },
@@ -15349,7 +15359,7 @@ RÈGLES DE CONVERSATION :
             `;
             
             leaves.forEach(leave => {
-                const employee = getHRData('hrEmployees').find(e => e.id === leave.employeeId);
+                const employee = employeesById.get(leave.employeeId);
                 const employeeName = employee ? `${employee.firstName} ${employee.lastName}` : 'Employé inconnu';
                 const statusStyle = statusColors[leave.status] || statusColors.pending;
                 
