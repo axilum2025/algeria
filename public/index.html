@@ -5912,6 +5912,18 @@ RÈGLES IMPORTANTES:
                         right: 12px !important;
                         bottom: 92px !important;
                     }
+
+                    /* Mobile paysage: éviter que le panneau monte trop haut */
+                    @media (orientation: landscape) {
+                        #aiAssistantPanelContent {
+                            bottom: 12px !important;
+                            max-height: calc(100vh - 24px) !important;
+                        }
+
+                        #aiAssistantPanel.minimized #aiAssistantPanelContent {
+                            bottom: 12px !important;
+                        }
+                    }
                     
                     /* Conteneur principal sans overflow-y sur mobile */
                     #todoMainArea {
