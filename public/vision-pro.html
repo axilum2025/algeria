@@ -71,7 +71,7 @@
 
         /* Sidebar */
         .sidebar {
-            width: 320px;
+            width: 280px;
             background: var(--glass);
             backdrop-filter: blur(20px);
             border-right: 1px solid var(--glass-border);
@@ -81,7 +81,7 @@
         }
 
         .sidebar.collapsed {
-            transform: translateX(-280px);
+            transform: translateX(-240px);
         }
 
         .sidebar-header {
@@ -515,7 +515,7 @@
             /* Tablette */
             .sidebar {
                 position: fixed;
-                left: -320px;
+                left: -280px;
                 top: 0;
                 height: 100vh;
                 max-height: none;
@@ -529,7 +529,7 @@
             }
 
             .sidebar:not(.collapsed) {
-                transform: translateX(320px);
+                transform: translateX(280px);
             }
 
             .main-content {
@@ -554,12 +554,12 @@
         @media (max-width: 768px) {
             /* Mobile */
             .sidebar {
-                width: 280px;
-                left: -280px;
+                width: 260px;
+                left: -260px;
             }
 
             .sidebar:not(.collapsed) {
-                transform: translateX(280px);
+                transform: translateX(260px);
             }
 
             .main-content {
@@ -636,12 +636,12 @@
         @media (max-width: 480px) {
             /* Petit mobile */
             .sidebar {
-                width: 100%;
-                left: -100%;
+                width: 90%;
+                left: -90%;
             }
 
             .sidebar:not(.collapsed) {
-                transform: translateX(100%);
+                transform: translateX(90%);
             }
 
             .main-content {
