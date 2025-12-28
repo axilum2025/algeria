@@ -859,7 +859,7 @@
                     <span id="statusText">Azure Vision Active</span>
                 </div>
 
-                <button class="toggle-sidebar" onclick="window.close(); window.location.href='/';" title="Retour à AI Axilum" style="margin-left: auto;">
+                <button class="toggle-sidebar" onclick="returnToMainChat()" title="Retour à AI Axilum" style="margin-left: auto;">
                     <svg class="svg-icon" viewBox="0 0 24 24">
                         <path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/>
                     </svg>
@@ -909,6 +909,29 @@
     </div>
 
     <script>
+        function returnToMainChat() {
+            // Si la page a été ouverte dans un nouvel onglet (ancienne behavior), tenter de fermer.
+            try { window.close(); } catch (e) {}
+
+            // Si la fenêtre ne se ferme pas (cas courant: même onglet), revenir au chat.
+            const fallbackUrl = '/index.html';
+
+            // 1) Préférer l'historique (retour exact au chat)
+            if (window.history && window.history.length > 1) {
+                window.history.back();
+
+                // 2) Filet de sécurité: si le navigateur bloque le back, naviguer vers le chat.
+                setTimeout(() => {
+                    const stillOnVision = window.location.pathname.endsWith('/vision-pro.html') || window.location.pathname === '/vision-pro.html';
+                    if (stillOnVision) window.location.assign(fallbackUrl);
+                }, 400);
+                return;
+            }
+
+            // 3) Fallback direct
+            window.location.assign(fallbackUrl);
+        }
+
         // State Management
         let currentFunction = null;
         let currentImage = null;
