@@ -17317,15 +17317,35 @@ RÈGLES DE CONVERSATION :
         
         // ========== TURNOVER PREDICTION ==========
         
+        function getTurnoverConsent() {
+            try {
+                return localStorage.getItem('turnoverConsent') === 'true';
+            } catch {
+                return false;
+            }
+        }
+
+        function setTurnoverConsent(value) {
+            try {
+                localStorage.setItem('turnoverConsent', value ? 'true' : 'false');
+            } catch {
+                // ignore
+            }
+        }
+
         function initializeTurnoverData() {
             const analyses = JSON.parse(localStorage.getItem('turnoverAnalyses') || '[]');
-            if (analyses.length > 0) {
-                renderTurnoverList(analyses);
-                updateTurnoverStats(analyses);
-            }
+            renderTurnoverList(analyses);
+            updateTurnoverStats(analyses);
         }
         
         function analyzeTurnoverRisks() {
+            if (!getTurnoverConsent()) {
+                showToast('⚠️ Consentement requis (Paramètres RGPD)', 'warning');
+                showRGPDSettings();
+                return;
+            }
+
             const employees = getHRData('hrEmployees');
             
             if (employees.length === 0) {
@@ -17543,12 +17563,13 @@ RÈGLES DE CONVERSATION :
             if (emptyState) emptyState.style.display = 'none';
             
             const employees = getHRData('hrEmployees');
+            const employeesById = new Map(employees.map(e => [e.id, e]));
             
             // Trier par score de risque décroissant
             analyses.sort((a, b) => b.riskScore - a.riskScore);
             
             container.innerHTML = analyses.map(analysis => {
-                const employee = employees.find(e => e.id === analysis.employeeId);
+                const employee = employeesById.get(analysis.employeeId);
                 if (!employee) return '';
                 
                 const riskColor = analysis.riskLevel === 'high' ? '#EF4444' :
@@ -17643,7 +17664,8 @@ RÈGLES DE CONVERSATION :
             const analyses = JSON.parse(localStorage.getItem('turnoverAnalyses') || '[]');
             const analysis = analyses.find(a => a.employeeId === employeeId);
             const employees = getHRData('hrEmployees');
-            const employee = employees.find(e => e.id === employeeId);
+            const employeesById = new Map(employees.map(e => [e.id, e]));
+            const employee = employeesById.get(employeeId);
             
             if (!analysis || !employee) return;
             
@@ -17749,6 +17771,7 @@ RÈGLES DE CONVERSATION :
         }
         
         function showRGPDSettings() {
+            const currentConsent = getTurnoverConsent();
             const modal = document.createElement('div');
             modal.style.cssText = 'position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 10005; animation: fadeIn 0.3s ease; overflow-y: auto; padding: 20px;';
             
@@ -17812,7 +17835,7 @@ RÈGLES DE CONVERSATION :
                         </div>
                     </div>
                     
-                    <div style="background: #FEF3C7; border-radius: 12px; padding: 20px; margin-bottom: 24px; border-left: 4px solid #F59E0B;">
+                    <div style="background: #FEF3C7; border-radius: 12px; padding: 20px; margin-bottom: 16px; border-left: 4px solid #F59E0B;">
                         <h3 style="margin: 0 0 12px; font-size: 14px; font-weight: 700; color: #92400E;">⚠️ Droits des employés</h3>
                         <div style="font-size: 12px; color: #92400E; line-height: 1.7;">
                             Les employés disposent des droits suivants concernant leurs données:<br>
@@ -17823,9 +17846,19 @@ RÈGLES DE CONVERSATION :
                             • Droit de recours auprès de la CNIL
                         </div>
                     </div>
+
+                    <div style="background: #F9FAFB; border-radius: 12px; padding: 16px; margin-bottom: 24px; border: 2px solid #e5e7eb;">
+                        <div style="display: flex; gap: 12px; align-items: flex-start;">
+                            <input id="turnoverConsentCheckbox" type="checkbox" ${currentConsent ? 'checked' : ''} style="margin-top: 3px; width: 18px; height: 18px;" />
+                            <label for="turnoverConsentCheckbox" style="font-size: 13px; color: #111827; line-height: 1.5; cursor: pointer;">
+                                <strong>Consentement / information interne confirmés</strong><br>
+                                <span style="font-size: 12px; color: #6b7280;">Requis pour lancer l’analyse de turnover sur demande.</span>
+                            </label>
+                        </div>
+                    </div>
                     
-                    <button onclick="this.parentElement.parentElement.remove()" style="width: 100%; padding: 14px; background: #3B82F6; color: white; border: none; border-radius: 12px; font-size: 16px; font-weight: 600; cursor: pointer; transition: all 0.2s;" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 16px rgba(59,130,246,0.4)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='none'">
-                        J'ai compris
+                    <button onclick="(function(){ const cb = document.getElementById('turnoverConsentCheckbox'); if (cb) { setTurnoverConsent(!!cb.checked); } })(); this.parentElement.parentElement.remove();" style="width: 100%; padding: 14px; background: #3B82F6; color: white; border: none; border-radius: 12px; font-size: 16px; font-weight: 600; cursor: pointer; transition: all 0.2s;" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 16px rgba(59,130,246,0.4)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='none'">
+                        Enregistrer et fermer
                     </button>
                 </div>
             `;
@@ -17834,6 +17867,15 @@ RÈGLES DE CONVERSATION :
             modal.onclick = (e) => {
                 if (e.target === modal) modal.remove();
             };
+
+            // Sauvegarde immédiate quand l'utilisateur coche/décoche
+            setTimeout(() => {
+                const cb = document.getElementById('turnoverConsentCheckbox');
+                if (cb && !cb._turnoverConsentAttached) {
+                    cb.addEventListener('change', () => setTurnoverConsent(!!cb.checked));
+                    cb._turnoverConsentAttached = true;
+                }
+            }, 0);
         }
         
         // ========== FIN TURNOVER PREDICTION ==========
