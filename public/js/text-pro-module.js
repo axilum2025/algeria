@@ -34,43 +34,36 @@
     const translationModes = {
         general: {
             name: 'Général',
-            icon: '💬',
             description: 'Traduction standard polyvalente',
             prompt: 'Tu es un traducteur professionnel généraliste.'
         },
         academic: {
             name: 'Académique',
-            icon: '🎓',
             description: 'Style formel pour travaux universitaires',
             prompt: 'Tu es un traducteur académique spécialisé. Utilise un style formel, précis et respectueux des normes universitaires. Privilégie la clarté et la rigueur scientifique.'
         },
         scientific: {
             name: 'Scientifique',
-            icon: '🔬',
             description: 'Terminologie scientifique et technique',
             prompt: 'Tu es un traducteur scientifique expert. Utilise la terminologie scientifique précise, respecte les conventions de notation et préserve l\'exactitude des concepts techniques.'
         },
         legal: {
             name: 'Juridique',
-            icon: '⚖️',
             description: 'Vocabulaire juridique et contractuel',
             prompt: 'Tu es un traducteur juridique spécialisé. Utilise le vocabulaire juridique approprié, respecte les formulations légales et maintiens la précision contractuelle.'
         },
         medical: {
             name: 'Médical',
-            icon: '🏥',
             description: 'Termes médicaux et pharmaceutiques',
             prompt: 'Tu es un traducteur médical expert. Utilise la terminologie médicale et pharmaceutique correcte, respecte les noms de pathologies et de traitements.'
         },
         technical: {
             name: 'Technique',
-            icon: '💻',
             description: 'Jargon IT, ingénierie et technologie',
             prompt: 'Tu es un traducteur technique spécialisé en IT et ingénierie. Utilise le jargon technique approprié, respecte les termes informatiques et technologiques.'
         },
         business: {
             name: 'Business',
-            icon: '💼',
             description: 'Langage professionnel et commercial',
             prompt: 'Tu es un traducteur business spécialisé. Utilise un langage professionnel, adapté au monde des affaires, avec un ton approprié pour la communication d\'entreprise.'
         }
@@ -321,13 +314,13 @@ Pour commencer, sélectionnez vos langues dans le panneau latéral et saisissez 
                             ${SVGIcons.settings} Mode de traduction
                         </h3>
                         <select id="translationModeSelect" class="textpro-mode-select" onchange="window.changeTranslationMode(this.value)">
-                            <option value="general">💬 Général</option>
-                            <option value="academic">🎓 Académique</option>
-                            <option value="scientific">🔬 Scientifique</option>
-                            <option value="legal">⚖️ Juridique</option>
-                            <option value="medical">🏥 Médical</option>
-                            <option value="technical">💻 Technique</option>
-                            <option value="business">💼 Business</option>
+                            <option value="general">Général</option>
+                            <option value="academic">Académique</option>
+                            <option value="scientific">Scientifique</option>
+                            <option value="legal">Juridique</option>
+                            <option value="medical">Médical</option>
+                            <option value="technical">Technique</option>
+                            <option value="business">Business</option>
                         </select>
                         <div id="modeDescription" class="textpro-mode-description">
                             Traduction standard polyvalente
@@ -449,7 +442,9 @@ Pour commencer, sélectionnez vos langues dans le panneau latéral et saisissez 
                             <button class="textpro-clear-history-btn" onclick="window.clearTextProHistory()" title="Effacer l'historique">
                                 ${SVGIcons.trash}
                             </button>
-                            <button class="textpro-close-btn" onclick="window.closeTextProModule()">×</button>
+                            <button class="textpro-close-btn" onclick="window.closeTextProModule()" title="Fermer">
+                                ${SVGIcons.closeCompare}
+                            </button>
                         </div>
                     </div>
                     
@@ -1674,13 +1669,28 @@ Pour commencer, sélectionnez vos langues dans le panneau latéral et saisissez 
             if (!file) return;
             
             const statusDiv = document.getElementById('textProFileStatus');
+
+            function setFileStatus(iconSvg, text, color) {
+                if (!statusDiv) return;
+                statusDiv.style.color = color || '';
+                statusDiv.replaceChildren();
+                if (iconSvg) {
+                    const iconWrap = document.createElement('span');
+                    iconWrap.style.display = 'inline-flex';
+                    iconWrap.style.alignItems = 'center';
+                    iconWrap.style.marginRight = '6px';
+                    iconWrap.innerHTML = iconSvg;
+                    statusDiv.appendChild(iconWrap);
+                }
+                statusDiv.appendChild(document.createTextNode(text));
+            }
+
             const reader = new FileReader();
             
             if (file.type === 'text/plain' || file.name.endsWith('.txt')) {
                 reader.onload = function(e) {
                     const content = e.target.result;
-                    statusDiv.textContent = `✓ ${file.name} chargé (${Math.round(content.length/1024)} Ko)`;
-                    statusDiv.style.color = 'rgba(16, 185, 129, 0.8)';
+                    setFileStatus(SVGIcons.check, `${file.name} chargé (${Math.round(content.length/1024)} Ko)`, 'rgba(16, 185, 129, 0.8)');
                     
                     // Ajouter le fichier avec un marqueur clair
                     const fileMessage = `[FICHIER UPLOADÉ: ${file.name}]\n\n${content}\n\n[FIN DU FICHIER]`;
@@ -1690,7 +1700,7 @@ Pour commencer, sélectionnez vos langues dans le panneau latéral et saisissez 
                     const messagesDiv = document.getElementById('textProMessages');
                     const lastUserMsg = messagesDiv.querySelector('.textpro-message.user:last-child .textpro-message-content');
                     if (lastUserMsg) {
-                        lastUserMsg.textContent = `📄 Fichier uploadé: ${file.name} (${Math.round(content.length/1024)} Ko)`;
+                        lastUserMsg.textContent = `Fichier uploadé: ${file.name} (${Math.round(content.length/1024)} Ko)`;
                     }
                     
                     setTimeout(() => {
@@ -1700,8 +1710,7 @@ Pour commencer, sélectionnez vos langues dans le panneau latéral et saisissez 
                 reader.readAsText(file);
             } else if (file.type === 'application/pdf' || file.name.endsWith('.pdf')) {
                 // Gérer les PDF via extraction OCR
-                statusDiv.textContent = `⏳ Extraction du texte de ${file.name}...`;
-                statusDiv.style.color = 'rgba(59, 130, 246, 0.8)';
+                setFileStatus(SVGIcons.file, `Extraction du texte de ${file.name}...`, 'rgba(59, 130, 246, 0.8)');
                 
                 reader.onload = async function(e) {
                     try {
@@ -1726,8 +1735,7 @@ Pour commencer, sélectionnez vos langues dans le panneau latéral et saisissez 
                         const extractedText = data.text || '';
                         
                         if (extractedText) {
-                            statusDiv.textContent = `✓ ${file.name} analysé (${Math.round(extractedText.length/1024)} Ko de texte extrait)`;
-                            statusDiv.style.color = 'rgba(16, 185, 129, 0.8)';
+                            setFileStatus(SVGIcons.check, `${file.name} analysé (${Math.round(extractedText.length/1024)} Ko de texte extrait)`, 'rgba(16, 185, 129, 0.8)');
                             
                             const fileMessage = `[FICHIER PDF UPLOADÉ: ${file.name}]\n\n${extractedText}\n\n[FIN DU FICHIER]`;
                             addTextProMessage(fileMessage, 'user');
@@ -1735,7 +1743,7 @@ Pour commencer, sélectionnez vos langues dans le panneau latéral et saisissez 
                             const messagesDiv = document.getElementById('textProMessages');
                             const lastUserMsg = messagesDiv.querySelector('.textpro-message.user:last-child .textpro-message-content');
                             if (lastUserMsg) {
-                                lastUserMsg.textContent = `📄 PDF uploadé: ${file.name} (${Math.round(extractedText.length/1024)} Ko de texte extrait)`;
+                                lastUserMsg.textContent = `PDF uploadé: ${file.name} (${Math.round(extractedText.length/1024)} Ko de texte extrait)`;
                             }
                             
                             setTimeout(() => {
@@ -1746,15 +1754,13 @@ Pour commencer, sélectionnez vos langues dans le panneau latéral et saisissez 
                         }
                     } catch (error) {
                         console.error('Erreur extraction PDF:', error);
-                        statusDiv.textContent = `❌ Erreur: ${error.message}`;
-                        statusDiv.style.color = 'rgba(239, 68, 68, 0.8)';
+                        setFileStatus(SVGIcons.closeCompare, `Erreur: ${error.message}`, 'rgba(239, 68, 68, 0.8)');
                         addTextProMessage(`Désolé, je n'ai pas pu extraire le texte du PDF "${file.name}". Vous pouvez essayer de copier-coller le contenu manuellement.`, 'assistant');
                     }
                 };
                 reader.readAsDataURL(file);
             } else {
-                statusDiv.textContent = `✓ ${file.name} détecté - Collez le contenu dans le chat`;
-                statusDiv.style.color = 'rgba(59, 130, 246, 0.8)';
+                setFileStatus(SVGIcons.file, `${file.name} détecté - Collez le contenu dans le chat`, 'rgba(59, 130, 246, 0.8)');
             }
         } catch (error) {
             console.error('Erreur upload:', error);
@@ -1980,7 +1986,7 @@ Pour commencer, sélectionnez vos langues dans le panneau latéral et saisissez 
                         micBtn.classList.add('recording');
                         micBtn.innerHTML = SVGIcons.microphoneOff;
                         micBtn.title = 'Arrêter l\'enregistrement';
-                        console.log('🎤 Enregistrement vocal démarré');
+                        console.log('Enregistrement vocal démarré');
                     };
                     
                     recognition.onresult = function(event) {
@@ -2021,7 +2027,7 @@ Pour commencer, sélectionnez vos langues dans le panneau latéral et saisissez 
                     micBtn.classList.add('recording');
                     micBtn.innerHTML = SVGIcons.microphoneOff;
                     micBtn.title = 'Arrêter l\'enregistrement';
-                    console.log('🎤 Enregistrement audio démarré (fallback)');
+                    console.log('Enregistrement audio démarré (fallback)');
                 }
             } catch (error) {
                 console.error('Erreur accès microphone:', error);
@@ -2172,7 +2178,7 @@ Pour commencer, sélectionnez vos langues dans le panneau latéral et saisissez 
             sourceText.addEventListener('scroll', syncScroll);
             targetText.addEventListener('scroll', syncScroll);
             
-            addTextProMessage('✅ Synchronisation du défilement activée', 'assistant');
+            addTextProMessage('Synchronisation du défilement activée', 'assistant');
         }
     };
     
@@ -2201,7 +2207,7 @@ Pour commencer, sélectionnez vos langues dans le panneau latéral et saisissez 
         }
         
         // Message de confirmation
-        addTextProMessage('🗑️ Vue comparaison effacée. Prêt pour une nouvelle traduction.', 'assistant');
+        addTextProMessage('Vue comparaison effacée. Prêt pour une nouvelle traduction.', 'assistant');
         console.log('Vue comparaison réinitialisée');
     };
     
@@ -2245,8 +2251,7 @@ Pour commencer, sélectionnez vos langues dans le panneau latéral et saisissez 
         
         // Ajouter un message de confirmation dans le chat
         const modeName = modeInfo ? modeInfo.name : mode;
-        const modeIcon = modeInfo ? modeInfo.icon : '💬';
-        addTextProMessage(`${modeIcon} Mode de traduction changé: ${modeName}`, 'assistant');
+        addTextProMessage(`Mode de traduction changé: ${modeName}`, 'assistant');
         
         console.log('Mode de traduction:', mode);
 
@@ -2307,7 +2312,7 @@ Pour commencer, sélectionnez vos langues dans le panneau latéral et saisissez 
         };
         
         speechSynthesis.speak(currentUtterance);
-        console.log('🔊 Lecture vocale démarrée');
+        console.log('Lecture vocale démarrée');
     };
 
     /**
@@ -2320,7 +2325,7 @@ Pour commencer, sélectionnez vos langues dans le panneau latéral et saisissez 
         if (sourceSelect && targetSelect) {
             sourceLang = sourceSelect.value;
             targetLang = targetSelect.value;
-            console.log(`📝 Langues mises à jour: ${sourceLang} → ${targetLang}`);
+            console.log(`Langues mises à jour: ${sourceLang} → ${targetLang}`);
             
             // Mettre à jour les badges de langue dans la vue comparaison
             const sourceLangLabel = document.getElementById('sourceLangLabel');
@@ -2457,15 +2462,15 @@ Pour commencer, sélectionnez vos langues dans le panneau latéral et saisissez 
                     isTranslating = true;
                     translateBtn.classList.add('translating');
                     translateBtn.title = 'Arrêter la traduction instantanée';
-                    console.log('🌍 Traduction vocale instantanée démarrée');
+                    console.log('Traduction vocale instantanée démarrée');
                     
                     // Ajouter un message dans le chat
-                    addTextProMessage(`🌍 Traduction instantanée activée (${getLanguageName(sourceLang)} → ${getLanguageName(targetLang, true)}). Parlez maintenant...`, 'assistant');
+                    addTextProMessage(`Traduction instantanée activée (${getLanguageName(sourceLang)} → ${getLanguageName(targetLang, true)}). Parlez maintenant...`, 'assistant');
                 };
                 
                 translationRecognition.onresult = async function(event) {
                     const transcript = event.results[event.results.length - 1][0].transcript;
-                    console.log('🎤 Texte capturé:', transcript);
+                    console.log('Texte capturé:', transcript);
                     
                     // Afficher le texte original
                     addTextProMessage(transcript, 'user');
@@ -2475,7 +2480,7 @@ Pour commencer, sélectionnez vos langues dans le panneau latéral et saisissez 
                         const translation = await translateText(transcript, sourceLang, targetLang);
                         
                         // Afficher la traduction avec option de téléchargement
-                        addTextProMessage(`📝 Traduction: ${translation}`, 'assistant', true, translation);
+                        addTextProMessage(`Traduction: ${translation}`, 'assistant', true, translation);
                         
                         // Mettre à jour la vue comparaison
                         lastSourceText = transcript;
@@ -2488,14 +2493,14 @@ Pour commencer, sélectionnez vos langues dans le panneau latéral et saisissez 
                         speakTranslation(translation, targetLang);
                     } catch (error) {
                         console.error('Erreur traduction:', error);
-                        addTextProMessage('❌ Erreur lors de la traduction. Veuillez réessayer.', 'assistant');
+                        addTextProMessage('Erreur lors de la traduction. Veuillez réessayer.', 'assistant');
                     }
                 };
                 
                 translationRecognition.onerror = function(event) {
                     console.error('Erreur reconnaissance vocale:', event.error);
                     if (event.error !== 'no-speech') {
-                        addTextProMessage(`❌ Erreur: ${event.error}. Vérifiez les permissions du microphone.`, 'assistant');
+                        addTextProMessage(`Erreur: ${event.error}. Vérifiez les permissions du microphone.`, 'assistant');
                         stopInstantTranslation();
                     }
                 };
@@ -2540,7 +2545,7 @@ Pour commencer, sélectionnez vos langues dans le panneau latéral et saisissez 
             translationRecognition = null;
         }
         
-        addTextProMessage('🛑 Traduction instantanée arrêtée.', 'assistant');
+        addTextProMessage('Traduction instantanée arrêtée.', 'assistant');
     }
     
     /**
@@ -2618,7 +2623,7 @@ Pour commencer, sélectionnez vos langues dans le panneau latéral et saisissez 
         };
         
         speechSynthesis.speak(utterance);
-        console.log('🔊 Traduction lue à voix haute');
+        console.log('Traduction lue à voix haute');
     }
     
     /**
@@ -2705,11 +2710,11 @@ Tu peux traduire, réécrire, corriger, résumer, analyser et améliorer des tex
             ];
             
             // Debug: vérifier le contenu
-            console.log('📤 Envoi à l\'API:', messages.length, 'messages');
-            console.log('📝 Historique complet:', textProChatHistory);
+            console.log('Envoi à l\'API:', messages.length, 'messages');
+            console.log('Historique complet:', textProChatHistory);
             const fileMessages = messages.filter(m => m.content.includes('[FICHIER UPLOADÉ'));
             if (fileMessages.length > 0) {
-                console.log('📄 Fichiers trouvés:', fileMessages.length);
+                console.log('Fichiers trouvés:', fileMessages.length);
                 fileMessages.forEach(fm => {
                     console.log('  - Taille:', fm.content.length, 'caractères');
                 });
