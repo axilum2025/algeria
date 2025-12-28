@@ -417,9 +417,10 @@
         .send-btn {
             width: 48px;
             height: 48px;
-            border: none;
+            border: 1px solid var(--glass-border);
             border-radius: 12px;
-            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            background: var(--glass);
+            color: var(--text);
             cursor: pointer;
             display: flex;
             align-items: center;
@@ -429,8 +430,9 @@
         }
 
         .send-btn:hover {
-            transform: scale(1.05);
-            box-shadow: 0 8px 16px rgba(0, 212, 255, 0.3);
+            border-color: rgba(255, 255, 255, 0.18);
+            background: rgba(255, 255, 255, 0.08);
+            transform: scale(1.03);
         }
 
         .send-btn:disabled {
@@ -896,7 +898,7 @@
                         ></textarea>
                         
                         <button class="send-btn" id="sendBtn">
-                            <svg class="svg-icon" viewBox="0 0 24 24" style="fill: white;">
+                            <svg class="svg-icon" viewBox="0 0 24 24">
                                 <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/>
                             </svg>
                         </button>
