@@ -277,9 +277,7 @@ Pour commencer, sélectionnez vos langues dans le panneau latéral et saisissez 
             left: 0;
             width: 100%;
             height: 100%;
-            background: radial-gradient(circle at 20% 10%, rgba(59, 130, 246, 0.10), transparent 55%),
-                        radial-gradient(circle at 80% 30%, rgba(6, 182, 212, 0.08), transparent 55%),
-                        linear-gradient(180deg, rgba(0, 0, 0, 0.97), rgba(0, 0, 0, 0.95));
+            background: linear-gradient(180deg, #05060a, #000000);
             z-index: 10001;
             animation: fadeIn 0.3s ease;
             display: flex;
