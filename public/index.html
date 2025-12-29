@@ -18441,6 +18441,28 @@ RÈGLES DE CONVERSATION :
             
             renderTurnoverList(analyses);
         }
+
+        function deleteTurnoverAnalysis(employeeId) {
+            if (!employeeId) return false;
+
+            const ok = confirm('Supprimer cette analyse Turnovol ?');
+            if (!ok) return false;
+
+            let analyses = JSON.parse(localStorage.getItem('turnoverAnalyses') || '[]');
+            const initialLen = analyses.length;
+            analyses = analyses.filter(a => a.employeeId !== employeeId);
+            if (analyses.length === initialLen) return false;
+
+            // Persister puis rafraîchir l'UI
+            localStorage.setItem('turnoverAnalyses', JSON.stringify(analyses));
+
+            const upgraded = ensureTurnoverAnalysesUpToDate(analyses);
+            updateTurnoverStats(upgraded);
+
+            // Respecte les filtres/recherche actuellement actifs
+            filterTurnoverList();
+            return true;
+        }
         
         function viewTurnoverDetails(employeeId) {
             let analyses = JSON.parse(localStorage.getItem('turnoverAnalyses') || '[]');
@@ -18556,6 +18578,10 @@ RÈGLES DE CONVERSATION :
                             ${getTurnoverIcon('scale', { size: 12, stroke: '#6b7280' })} Conformité RGPD: Base légale = Intérêt légitime de l'employeur (gestion RH)
                         </p>
                     </div>
+
+                    <button onclick="if (deleteTurnoverAnalysis('${analysis.employeeId}')) { const m=this.closest('.turnover-modal'); if (m) m.remove(); }" style="width: 100%; padding: 14px; background: rgba(239,68,68,0.08); color: #DC2626; border: 1px solid rgba(239,68,68,0.25); border-radius: 12px; font-size: 15px; font-weight: 700; cursor: pointer; transition: all 0.2s; margin-bottom: 12px;" onmouseover="this.style.background='rgba(239,68,68,0.14)'; this.style.borderColor='rgba(239,68,68,0.4)'" onmouseout="this.style.background='rgba(239,68,68,0.08)'; this.style.borderColor='rgba(239,68,68,0.25)'">
+                        Supprimer cette analyse
+                    </button>
                     
                     <button onclick="this.parentElement.parentElement.remove()" style="width: 100%; padding: 14px; background: linear-gradient(135deg, #10b981, #06b6d4); color: white; border: none; border-radius: 12px; font-size: 16px; font-weight: 600; cursor: pointer; transition: all 0.2s;" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 16px rgba(16,185,129,0.35)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='none'">
                         Fermer
