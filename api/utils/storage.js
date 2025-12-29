@@ -30,11 +30,17 @@ function getBlobServiceClient() {
 
 function buildBlobUrlWithSAS(container, blobName, expiryMinutes = 60) {
   const { account, key, sas } = getConfig();
+
+  // Encodage sûr du nom de blob: préserver les '/'
+  const encodedBlobPath = String(blobName)
+    .split('/')
+    .map(seg => encodeURIComponent(seg))
+    .join('/');
   
   // Si SAS token global fourni, l'utiliser
   if (sas) {
     if (!account) return null;
-    const base = `https://${account}.blob.core.windows.net/${container}/${encodeURIComponent(blobName)}`;
+    const base = `https://${account}.blob.core.windows.net/${container}/${encodedBlobPath}`;
     const q = sas.startsWith('?') ? sas : `?${sas}`;
     return `${base}${q}`;
   }
@@ -59,7 +65,7 @@ function buildBlobUrlWithSAS(container, blobName, expiryMinutes = 60) {
         credential
       ).toString();
       
-      return `https://${account}.blob.core.windows.net/${container}/${encodeURIComponent(blobName)}?${sasToken}`;
+      return `https://${account}.blob.core.windows.net/${container}/${encodedBlobPath}?${sasToken}`;
     } catch (error) {
       console.error('Error generating SAS token:', error);
       return null;

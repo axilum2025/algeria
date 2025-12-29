@@ -35,6 +35,10 @@ async function createUser(username, data) {
         rowKey: username,
         createdAt: new Date()
     });
+    // Azure Tables n'accepte pas les arrays directement
+    if (entity.roles && Array.isArray(entity.roles)) {
+        entity.roles = JSON.stringify(entity.roles);
+    }
     if (client) {
         await client.upsertEntity(entity);
     } else {
@@ -43,6 +47,39 @@ async function createUser(username, data) {
         if (!entity.roles) entity.roles = [];
         global.__users[username] = entity;
     }
+}
+
+async function updateUser(username, partial) {
+    const client = getTableClient();
+    const rowKey = username;
+    if (client) {
+        // Merge simple
+        let base = null;
+        try {
+            base = await client.getEntity('user', rowKey);
+        } catch (_) {
+            base = { partitionKey: 'user', rowKey };
+        }
+        const entity = Object.assign({}, base, partial, {
+            partitionKey: 'user',
+            rowKey: rowKey,
+            updatedAt: new Date()
+        });
+        if (entity.roles && Array.isArray(entity.roles)) {
+            entity.roles = JSON.stringify(entity.roles);
+        }
+        await client.upsertEntity(entity);
+        return entity;
+    }
+
+    if (!global.__users) global.__users = {};
+    const u = global.__users[rowKey] || { partitionKey: 'user', rowKey };
+    global.__users[rowKey] = Object.assign({}, u, partial, { updatedAt: new Date() });
+    return global.__users[rowKey];
+}
+
+async function getUserByEmail(email) {
+    return getUser(String(email).toLowerCase());
 }
 
 async function getUser(username) {
@@ -140,4 +177,4 @@ async function listAllRoles() {
     return Array.from(set);
 }
 
-module.exports = { userExists, createUser, getUser, addRole, removeRole, getRoles, listAllRoles };
+module.exports = { userExists, createUser, updateUser, getUser, getUserByEmail, addRole, removeRole, getRoles, listAllRoles };

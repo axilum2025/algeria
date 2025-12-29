@@ -3339,6 +3339,12 @@
             return `${userKey}:img:${rnd}`;
         }
 
+        function makeRemoteImageId() {
+            return (typeof crypto !== 'undefined' && crypto.randomUUID)
+                ? crypto.randomUUID()
+                : (Date.now() + '_' + Math.random().toString(36).slice(2));
+        }
+
         function openAxilumDb() {
             return new Promise((resolve, reject) => {
                 const req = indexedDB.open(AXILUM_IDB_DB_NAME, AXILUM_IDB_DB_VERSION);
@@ -3591,6 +3597,154 @@ RÈGLES IMPORTANTES:
         // Email Verification
         let pendingUser = null;
 
+        // ===================================
+        // 🔐 Auth serveur + Sync multi-appareils
+        // ===================================
+        function getApiBase() {
+            return (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
+                ? 'http://localhost:7071'
+                : '';
+        }
+
+        function apiUrl(path) {
+            return getApiBase() + path;
+        }
+
+        function getAuthToken() {
+            return localStorage.getItem('axilum_auth_token') || null;
+        }
+
+        function setAuthToken(token) {
+            if (token) localStorage.setItem('axilum_auth_token', token);
+            else localStorage.removeItem('axilum_auth_token');
+        }
+
+        async function apiFetch(path, options = {}) {
+            const headers = Object.assign({}, options.headers || {});
+            const token = getAuthToken();
+            if (token) headers['Authorization'] = `Bearer ${token}`;
+            return fetch(apiUrl(path), Object.assign({}, options, { headers }));
+        }
+
+        function getConversationLastTs(conv) {
+            let t = Number(conv && conv.timestamp) || 0;
+            if (conv && Array.isArray(conv.messages)) {
+                for (const m of conv.messages) {
+                    const mt = Number(m && m.timestamp) || 0;
+                    if (mt > t) t = mt;
+                }
+            }
+            return t;
+        }
+
+        function mergeConversations(localList, remoteList) {
+            const byId = new Map();
+            for (const c of (Array.isArray(localList) ? localList : [])) {
+                if (c && c.id) byId.set(c.id, c);
+            }
+            for (const rc of (Array.isArray(remoteList) ? remoteList : [])) {
+                if (!rc || !rc.id) continue;
+                const lc = byId.get(rc.id);
+                if (!lc) {
+                    byId.set(rc.id, rc);
+                    continue;
+                }
+                const lt = getConversationLastTs(lc);
+                const rt = getConversationLastTs(rc);
+                byId.set(rc.id, rt >= lt ? rc : lc);
+            }
+            const merged = Array.from(byId.values());
+            merged.sort((a, b) => getConversationLastTs(b) - getConversationLastTs(a));
+            return merged;
+        }
+
+        async function syncWithServer() {
+            if (!currentUser || !currentUser.email || !getAuthToken()) return;
+            try {
+                const pull = await apiFetch('/api/chat-sync-pull', { method: 'GET' });
+                const pullData = await pull.json().catch(() => ({}));
+                const remoteConversations = Array.isArray(pullData) ? pullData : (pullData.conversations || []);
+
+                const userConversations = conversations.filter(conv => conv && conv.userId === currentUser.id);
+                const merged = mergeConversations(userConversations, remoteConversations);
+
+                // Remplacer uniquement les conversations de l'utilisateur courant
+                const others = conversations.filter(conv => !conv || conv.userId !== currentUser.id);
+                conversations = merged.concat(others);
+                saveConversations();
+                loadConversations();
+
+                // Push vers serveur (état fusionné)
+                await apiFetch('/api/chat-sync-push', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ conversations: merged })
+                });
+            } catch (e) {
+                console.warn('⚠️ Sync serveur échouée:', e);
+            }
+        }
+
+        async function uploadChatImageToServer(remoteImageId, imageDataUrl) {
+            const token = getAuthToken();
+            if (!token || !currentUser || !currentUser.email) return false;
+            try {
+                const res = await apiFetch('/api/chat-image-upload', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ remoteImageId, imageBase64: imageDataUrl })
+                });
+                return res.ok;
+            } catch {
+                return false;
+            }
+        }
+
+        async function fetchRemoteImageAsBlob(remoteImageId) {
+            const res = await apiFetch('/api/chat-image-url', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ remoteImageId })
+            });
+            if (!res.ok) return null;
+            const data = await res.json().catch(() => null);
+            if (!data || !data.url) return null;
+            const imgRes = await fetch(data.url);
+            if (!imgRes.ok) return null;
+            return await imgRes.blob();
+        }
+
+        async function ensureLocalImageUrlForMessage(msg) {
+            if (!msg) return null;
+
+            if (msg.imageUrl && typeof msg.imageUrl === 'string' && msg.imageUrl.startsWith('data:image/')) {
+                return msg.imageUrl;
+            }
+
+            if (msg.imageId) {
+                try {
+                    const blob = await idbGetImageBlob(msg.imageId);
+                    if (blob) return trackObjectUrl(URL.createObjectURL(blob));
+                } catch (_) {}
+            }
+
+            if (msg.remoteImageId && getAuthToken() && currentUser && currentUser.email) {
+                try {
+                    const blob = await fetchRemoteImageAsBlob(msg.remoteImageId);
+                    if (!blob) return null;
+                    const userKey = getActiveUserKey();
+                    const newId = await idbPutImageBlob(userKey, blob, blob.type, msg.user || 'image');
+                    msg.imageId = newId;
+                    saveConversations();
+                    return trackObjectUrl(URL.createObjectURL(blob));
+                } catch (_) {
+                    return null;
+                }
+            }
+
+            return null;
+        }
+
         // Initialize
         document.addEventListener('DOMContentLoaded', async () => {
                         // Recherche dynamique employés
@@ -3644,6 +3798,7 @@ RÈGLES IMPORTANTES:
             setInterval(animateLogo, 30000);
             
             await initConversationStorage();
+            await syncWithServer();
             loadConversations();
             
             // Si aucune conversation n'existe, en créer une nouvelle
@@ -4263,6 +4418,7 @@ RÈGLES IMPORTANTES:
                             if (conv) {
                                 let storedImageId = null;
                                 let storedImageUrl = imgData.imageUrl;
+                                let remoteImageId = null;
 
                                 if (typeof imgData.imageUrl === 'string' && imgData.imageUrl.startsWith('data:image/')) {
                                     try {
@@ -4270,6 +4426,13 @@ RÈGLES IMPORTANTES:
                                         const blob = await dataUrlToBlob(imgData.imageUrl);
                                         storedImageId = await idbPutImageBlob(userKey, blob, blob.type, imgData.prompt || 'image');
                                         storedImageUrl = undefined;
+
+                                        // Upload serveur (si connecté)
+                                        if (getAuthToken() && currentUser && currentUser.email) {
+                                            const rid = makeRemoteImageId();
+                                            const ok = await uploadChatImageToServer(rid, imgData.imageUrl);
+                                            if (ok) remoteImageId = rid;
+                                        }
                                     } catch (e) {
                                         // Fallback: conserver imageUrl
                                         storedImageId = null;
@@ -4283,6 +4446,7 @@ RÈGLES IMPORTANTES:
                                     timestamp: Date.now(),
                                     imageId: storedImageId || undefined,
                                     imageUrl: storedImageUrl,
+                                    remoteImageId: remoteImageId || undefined,
                                     imageGenerated: true,
                                     prompt: imgData.prompt,
                                     hiScore: 0,
@@ -4884,6 +5048,14 @@ RÈGLES IMPORTANTES:
                         // Réinitialiser le cache OCR pour cette nouvelle image
                         delete lastUploadedOcrTextByConversation[currentConversationId];
                         delete lastUploadedOcrImageSigByConversation[currentConversationId];
+
+                        // Upload serveur (si connecté) pour cross-device
+                        let remoteImageId = null;
+                        if (getAuthToken() && currentUser && currentUser.email) {
+                            remoteImageId = makeRemoteImageId();
+                            const ok = await uploadChatImageToServer(remoteImageId, base64);
+                            if (!ok) remoteImageId = null;
+                        }
                         
                         // Afficher l'image directement dans le message utilisateur (style ChatGPT/Gemini)
                         const chatMessages = document.getElementById('chatMessages');
@@ -4947,6 +5119,7 @@ RÈGLES IMPORTANTES:
                                             timestamp: Date.now(),
                                             imageId: persistedImageId || undefined,
                                             imageUrl: persistedImageId ? undefined : base64,
+                                            remoteImageId: remoteImageId || undefined,
                                             hiScore: 0,
                                             chrScore: 0
                                         });
@@ -4973,6 +5146,7 @@ RÈGLES IMPORTANTES:
                                     timestamp: Date.now(),
                                     imageId: persistedImageId || undefined,
                                     imageUrl: persistedImageId ? undefined : base64,
+                                    remoteImageId: remoteImageId || undefined,
                                     hiScore: 0,
                                     chrScore: 0
                                 });
@@ -5875,7 +6049,17 @@ RÈGLES IMPORTANTES:
             }
             
             for (const msg of (conv.messages || [])) {
-                addMessage(msg.user, 'user');
+                // Restaurer l'image envoyée par l'utilisateur si associée à ce message
+                if (msg && !msg.imageGenerated && (msg.imageUrl || msg.imageId || msg.remoteImageId)) {
+                    const userImgUrl = await ensureLocalImageUrlForMessage(msg);
+                    if (userImgUrl) {
+                        addMessage(msg.user, 'user', { imageUrl: userImgUrl, imageName: msg.user });
+                    } else {
+                        addMessage(msg.user, 'user');
+                    }
+                } else {
+                    addMessage(msg.user, 'user');
+                }
                 
                 // Restaurer toutes les données (image et métriques)
                 const botData = {
@@ -5901,6 +6085,14 @@ RÈGLES IMPORTANTES:
                             const objUrl = trackObjectUrl(URL.createObjectURL(blob));
                             botData.imageUrl = objUrl;
                         }
+                    } catch (_) {}
+                }
+
+                // Si image (générée) dispo côté serveur, restaurer via remoteImageId
+                if (msg.imageGenerated && !botData.imageUrl && msg.remoteImageId) {
+                    try {
+                        const tmp = await ensureLocalImageUrlForMessage(msg);
+                        if (tmp) botData.imageUrl = tmp;
                     } catch (_) {}
                 }
                 
@@ -25925,6 +26117,7 @@ Réponds UNIQUEMENT dans ce format JSON:
             currentUser = null;
             localStorage.removeItem('currentUser');
             localStorage.removeItem('rememberMe');
+            setAuthToken(null);
             
             showToast('👋 À bientôt !', '');
             updateUIForAuth();
@@ -26133,11 +26326,7 @@ Réponds UNIQUEMENT dans ce format JSON:
                 return;
             }
             
-            // Vérifier si l'email existe déjà
-            if (users.find(u => u.email === email)) {
-                showToast('❌ Cet email est déjà utilisé', 'error');
-                return;
-            }
+            // (Auth serveur) - ne pas se baser sur la liste locale `users`
             
             // Validation format email
             const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -26146,69 +26335,83 @@ Réponds UNIQUEMENT dans ce format JSON:
                 return;
             }
             
-            // Créer l'utilisateur
-            const verificationCode = Math.floor(100000 + Math.random() * 900000).toString(); // Code 6 chiffres
-            const newUser = {
-                id: Date.now().toString(),
-                name,
-                email,
-                password,
-                createdAt: Date.now(),
-                emailVerified: false,
-                verificationCode: verificationCode,
-                codeExpiresAt: Date.now() + (24 * 60 * 60 * 1000), // 24 heures
-                role: 'free'
-            };
-            
-            users.push(newUser);
-            localStorage.setItem('users', JSON.stringify(users));
-            
-            // Connecter l'utilisateur (même sans vérification, il peut utiliser l'app)
-            currentUser = { id: newUser.id, name: newUser.name, email: newUser.email, role: newUser.role };
-            localStorage.setItem('currentUser', JSON.stringify(currentUser));
-            
-            closeSignupModal();
-            showToast(`🎉 Bienvenue ${name} ! Un email avec votre code de vérification a été envoyé.`, 'success');
-            updateUIForAuth();
-            
-            // Envoyer l'email de vérification en arrière-plan
-            sendVerificationEmail(name, email, verificationCode);
-            
-            // Afficher le modal de vérification
-            setTimeout(() => showVerificationModal(email), 1000);
-            
-            newConversation();
+            try {
+                const res = await fetch(apiUrl('/api/auth-signup'), {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name, email, password })
+                });
+                const data = await res.json().catch(() => ({}));
+                if (!res.ok) {
+                    showToast(`❌ ${data.error || 'Inscription impossible'}`, 'error');
+                    return;
+                }
+
+                pendingUser = { name, email };
+                closeSignupModal();
+                showToast(`📧 Code envoyé à ${email}`, 'success');
+                showVerificationModal(email);
+            } catch (e) {
+                showToast('❌ Erreur réseau (inscription)', 'error');
+            }
         }
 
-        function handleSignin(event) {
+        async function handleSignin(event) {
             event.preventDefault();
             
             const email = document.getElementById('signinEmail').value.trim().toLowerCase();
             const password = document.getElementById('signinPassword').value;
             const rememberMe = document.getElementById('rememberMe').checked;
-            
-            // Chercher l'utilisateur
-            const user = users.find(u => u.email === email && u.password === password);
-            
-            if (!user) {
-                showToast('❌ Email ou mot de passe incorrect', 'error');
-                return;
+            const previousUserId = currentUser && currentUser.id ? currentUser.id : null;
+
+            try {
+                const res = await fetch(apiUrl('/api/auth-login'), {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password })
+                });
+                const data = await res.json().catch(() => ({}));
+
+                if (res.status === 403) {
+                    pendingUser = { email };
+                    closeSigninModal();
+                    showToast('📧 Email non vérifié. Entrez le code reçu.', 'info');
+                    showVerificationModal(email);
+                    return;
+                }
+
+                if (!res.ok) {
+                    showToast(`❌ ${data.error || 'Connexion impossible'}`, 'error');
+                    return;
+                }
+
+                setAuthToken(data.token);
+                currentUser = data.user || { id: email, email, name: email };
+                // Garantir un id stable (email) pour la partition local/serveur
+                currentUser.id = currentUser.email || email;
+                localStorage.setItem('currentUser', JSON.stringify(currentUser));
+                if (rememberMe) localStorage.setItem('rememberMe', 'true');
+
+                // Migration: rattacher les conversations locales existantes à l'email
+                try {
+                    if (previousUserId && previousUserId !== currentUser.id) {
+                        for (const conv of conversations) {
+                            if (conv && conv.userId === previousUserId) conv.userId = currentUser.id;
+                        }
+                        saveConversations();
+                    }
+                } catch (_) {}
+
+                closeSigninModal();
+                showToast(`✅ Bienvenue ${currentUser.name || currentUser.email} !`, 'success');
+                updateUIForAuth();
+
+                await initConversationStorage();
+                await syncWithServer();
+                loadConversations();
+            } catch (e) {
+                showToast('❌ Erreur réseau (connexion)', 'error');
             }
-            
-            // Connecter
-            currentUser = { id: user.id, name: user.name, email: user.email };
-            localStorage.setItem('currentUser', JSON.stringify(currentUser));
-            
-            if (rememberMe) {
-                localStorage.setItem('rememberMe', 'true');
-            }
-            
-            closeSigninModal();
-            showToast(`✅ Bienvenue ${user.name} !`, 'success');
-            updateUIForAuth();
-            
-            // Charger les conversations de cet utilisateur
-            loadConversations();
         }
 
         function logout() {
@@ -26219,6 +26422,7 @@ Réponds UNIQUEMENT dans ce format JSON:
             currentUser = null;
             localStorage.removeItem('currentUser');
             localStorage.removeItem('rememberMe');
+            setAuthToken(null);
             
             showToast('👋 À bientôt !', '');
             updateUIForAuth();
@@ -26335,6 +26539,7 @@ Réponds UNIQUEMENT dans ce format JSON:
             event.preventDefault();
             
             const enteredCode = document.getElementById('verificationCode').value.trim();
+            const previousUserId = currentUser && currentUser.id ? currentUser.id : null;
             
             // Vérifier qu'on a un pendingUser
             if (!pendingUser) {
@@ -26342,124 +26547,83 @@ Réponds UNIQUEMENT dans ce format JSON:
                 closeVerificationModal();
                 return;
             }
-            
-            // Vérifier l'expiration
-            if (Date.now() > pendingUser.codeExpiresAt) {
-                showToast('❌ Code expiré (24h). Veuillez vous réinscrire.', 'error');
-                pendingUser = null;
-                closeVerificationModal();
-                return;
-            }
-            
-            // Vérifier le code
-            if (enteredCode === pendingUser.verificationCode) {
-                // Code correct !
-                pendingUser.emailVerified = true;
-                delete pendingUser.verificationCode;
-                delete pendingUser.codeExpiresAt;
-                
-                // Ajouter l'utilisateur à la liste
-                users.push(pendingUser);
-                localStorage.setItem('users', JSON.stringify(users));
-                
-                // Connecter automatiquement
-                currentUser = { 
-                    id: pendingUser.id, 
-                    name: pendingUser.name, 
-                    email: pendingUser.email 
-                };
-                localStorage.setItem('currentUser', JSON.stringify(currentUser));
-                
-                // Nettoyer
-                pendingUser = null;
-                
-                closeVerificationModal();
-                showToast(`✅ Email vérifié ! Bienvenue ${currentUser.name} !`, 'success');
-                updateUIForAuth();
-                
-                // Créer une nouvelle conversation pour ce user
-                newConversation();
-            } else {
-                // Code incorrect
-                showToast('❌ Code de vérification incorrect', 'error');
-                document.getElementById('verificationCode').value = '';
-                document.getElementById('verificationCode').focus();
-            }
-        }
 
-        async function verifyCodeOnServer(email, code) {
             try {
-                // Déterminer l'endpoint de l'API
-                const verifyApiEndpoint = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
-                    ? 'http://localhost:7071/api/verifyCode'
-                    : '/api/verifyCode';
-
-                const response = await fetch(verifyApiEndpoint, {
+                const email = (pendingUser.email || document.getElementById('verificationEmail').textContent || '').toLowerCase();
+                const res = await fetch(apiUrl('/api/auth-verify'), {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ email, code })
+                    body: JSON.stringify({ email, code: enteredCode })
                 });
-
-                const data = await response.json();
-
-                if (response.ok && data.verified) {
-                    // Code correct - finaliser l'inscription
-                    pendingUser.emailVerified = true;
-                    users.push(pendingUser);
-                    localStorage.setItem('users', JSON.stringify(users));
-                    
-                    // Connecter automatiquement
-                    currentUser = { 
-                        id: pendingUser.id, 
-                        name: pendingUser.name, 
-                        email: pendingUser.email 
-                    };
-                    localStorage.setItem('currentUser', JSON.stringify(currentUser));
-                    
-                    // Nettoyer
-                    pendingUser = null;
-                    
-                    closeVerificationModal();
-                    showToast(`✅ Compte vérifié ! Bienvenue ${currentUser.name} !`, 'success');
-                    updateUIForAuth();
-                    
-                    // Créer une nouvelle conversation pour ce user
-                    newConversation();
-                } else {
-                    // Afficher l'erreur retournée par le serveur
-                    showToast(`❌ ${data.error || 'Code de vérification incorrect'}`, 'error');
+                const data = await res.json().catch(() => ({}));
+                if (!res.ok) {
+                    showToast(`❌ ${data.error || 'Code incorrect'}`, 'error');
                     document.getElementById('verificationCode').value = '';
                     document.getElementById('verificationCode').focus();
+                    return;
                 }
-            } catch (error) {
-                console.error('Erreur lors de la vérification du code:', error);
-                showToast('❌ Erreur réseau lors de la vérification du code.', 'error');
+
+                setAuthToken(data.token);
+                currentUser = data.user || { id: email, email, name: email };
+                currentUser.id = currentUser.email || email;
+                localStorage.setItem('currentUser', JSON.stringify(currentUser));
+                pendingUser = null;
+
+                // Migration: rattacher les conversations locales existantes à l'email
+                try {
+                    if (previousUserId && previousUserId !== currentUser.id) {
+                        for (const conv of conversations) {
+                            if (conv && conv.userId === previousUserId) conv.userId = currentUser.id;
+                        }
+                        saveConversations();
+                    }
+                } catch (_) {}
+
+                closeVerificationModal();
+                showToast(`✅ Email vérifié ! Bienvenue ${currentUser.name || currentUser.email} !`, 'success');
+                updateUIForAuth();
+
+                await initConversationStorage();
+                await syncWithServer();
+                loadConversations();
+
+                // Ouvrir la conversation la plus récente ou en créer une
+                const userConvs = conversations.filter(c => c && c.userId === currentUser.id);
+                if (userConvs.length === 0) newConversation();
+                else {
+                    const last = userConvs[0];
+                    if (last && last.messages && last.messages.length > 0) await loadConversation(last.id);
+                    else currentConversationId = last.id;
+                }
+            } catch (e) {
+                showToast('❌ Erreur réseau (vérification)', 'error');
             }
         }
-        
+
         async function resendVerificationCode() {
-            if (!currentUser) return;
-            
-            const user = users.find(u => u.email === currentUser.email);
-            if (!user) return;
-            
-            showToast('📧 Renvoi du code...', '');
-            
             try {
-                // Générer nouveau code
-                const newCode = Math.floor(100000 + Math.random() * 900000).toString();
-                user.verificationCode = newCode;
-                user.codeExpiresAt = Date.now() + (24 * 60 * 60 * 1000);
-                localStorage.setItem('users', JSON.stringify(users));
-                
-                // Envoyer par email
-                await sendVerificationEmail(user.name, user.email, newCode);
-                document.getElementById('verificationCode').value = '';
-                showToast('✅ Nouveau code envoyé !', 'success');
-            } catch (error) {
-                showToast('❌ Erreur lors du renvoi', 'error');
+                const email = (pendingUser && pendingUser.email) || document.getElementById('verificationEmail').textContent;
+                if (!email) {
+                    showToast('❌ Email manquant', 'error');
+                    return;
+                }
+                const res = await fetch(apiUrl('/api/auth-resend-code'), {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email: String(email).toLowerCase() })
+                });
+                const data = await res.json().catch(() => ({}));
+                if (!res.ok) {
+                    showToast(`⚠️ ${data.error || 'Impossible de renvoyer le code'}`, 'error');
+                    return;
+                }
+                showToast('📧 Code renvoyé', 'success');
+            } catch (e) {
+                showToast('⚠️ Erreur réseau (renvoi code)', 'error');
             }
         }
+
+        // Ancien flux de vérification (localStorage) supprimé au profit de /api/auth-verify
         
         function cancelVerification() {
             closeVerificationModal();

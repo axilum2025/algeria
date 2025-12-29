@@ -4,6 +4,7 @@
  */
 
 const sgMail = require('@sendgrid/mail');
+const { storeCode } = require('../utils/codeStorage');
 
 module.exports = async function (context, req) {
     context.log('📧 Send Verification Email function triggered');
@@ -30,6 +31,14 @@ module.exports = async function (context, req) {
         }
         
         context.log(`✅ Envoi du code ${verificationCode} à ${email}`);
+
+        // Stocker le code côté serveur (24h) pour vérification
+        try {
+            const expiresAt = Date.now() + (24 * 60 * 60 * 1000);
+            await storeCode(String(email).toLowerCase(), String(verificationCode), expiresAt);
+        } catch (e) {
+            context.log.warn('⚠️ Impossible de stocker le code de vérification:', e?.message || String(e));
+        }
         
         // ========== Envoi d'email ==========
         const apiKey = process.env.SENDGRID_API_KEY;
