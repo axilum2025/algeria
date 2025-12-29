@@ -3686,6 +3686,10 @@ RÈGLES IMPORTANTES:
         // 🆓💎 Plan Management
         let currentPlan = localStorage.getItem('axilum_plan') || 'pro'; // Default to pro
 
+        // 🖼️ Dernière image uploadée (par conversation) pour questions Vision
+        const lastUploadedImageByConversation = {};
+        const lastUploadedImageNameByConversation = {};
+
         function switchToPlan(plan) {
             currentPlan = plan;
             localStorage.setItem('axilum_plan', plan);
@@ -3791,6 +3795,77 @@ RÈGLES IMPORTANTES:
             try {
                 const requestStart = Date.now();
                 const endpoint = getEndpoint();
+
+                // 🖼️ Si une image a été uploadée dans cette conversation, et que l'utilisateur pose une question,
+                // on route la requête vers l'analyse d'image (Vision) pour que l'IA "voie" réellement la photo.
+                const convForVision = conversations.find(c => c.id === currentConversationId);
+                const getLastUploadedImageFromConversation = () => {
+                    if (!convForVision || !Array.isArray(convForVision.messages)) return null;
+                    for (let i = convForVision.messages.length - 1; i >= 0; i--) {
+                        const msg = convForVision.messages[i];
+                        if (msg && msg.imageUrl && !msg.imageGenerated) {
+                            return { base64: msg.imageUrl, name: msg.user || 'image' };
+                        }
+                    }
+                    return null;
+                };
+
+                const lastImageBase64 = lastUploadedImageByConversation[currentConversationId]
+                    || (getLastUploadedImageFromConversation() && getLastUploadedImageFromConversation().base64);
+                const lastImageName = lastUploadedImageNameByConversation[currentConversationId]
+                    || (getLastUploadedImageFromConversation() && getLastUploadedImageFromConversation().name);
+
+                if (lastImageBase64) {
+                    const selectedPlan = (localStorage.getItem('selectedPlan') || '').toUpperCase();
+                    const isPro = currentPlan === 'pro' || selectedPlan === 'PRO';
+
+                    if (!isPro) {
+                        hideTyping();
+                        const msg = "📌 Pour que je puisse analyser une photo et répondre à vos questions, passez en mode PRO, puis reposez la question.";
+                        addMessage(msg, 'bot');
+                        saveMessage(message, { response: msg });
+                        sendBtn.disabled = false;
+                        input.disabled = false;
+                        input.focus();
+                        return;
+                    }
+
+                    showToast(`🔍 Analyse de l'image (${(lastImageName || 'photo').replace(/^📸\s*/, '')})...`, 'info');
+                    const analyzeEndpoint = '/api/analyze-image-pro';
+                    const visionResponse = await fetch(analyzeEndpoint, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            imageBase64: lastImageBase64,
+                            question: message
+                        })
+                    });
+
+                    const analysisData = await visionResponse.json().catch(() => ({ analysis: 'Réponse non formatée.' }));
+                    hideTyping();
+
+                    if (!visionResponse.ok) {
+                        const errMsg = `❌ Échec analyse image (PRO): ${analysisData.error || 'Erreur inconnue'}`;
+                        addMessage(errMsg, 'bot');
+                        saveMessage(message, { response: errMsg });
+                    } else {
+                        const provider = analysisData.provider || 'Azure Computer Vision';
+                        const analysisMessage = `${analysisData.analysis}\n\n_Analysé par ${provider}_`;
+                        addMessage(analysisMessage, 'bot');
+                        saveMessage(message, { response: analysisMessage, provider });
+                        showToast('✅ Analyse image terminée', 'success');
+
+                        // L'image a été consommée pour cette question: on la garde dans l'historique, mais
+                        // on évite de la réutiliser systématiquement sur les prochains messages.
+                        delete lastUploadedImageByConversation[currentConversationId];
+                        delete lastUploadedImageNameByConversation[currentConversationId];
+                    }
+
+                    sendBtn.disabled = false;
+                    input.disabled = false;
+                    input.focus();
+                    return;
+                }
                 
                 // 🧪 Déterminer si on utilise V2 via le paramètre
                 const V2_ROLLOUT_PERCENTAGE = 0; // Modifier cette valeur pour activer le rollout
@@ -4463,6 +4538,10 @@ RÈGLES IMPORTANTES:
                     const reader = new FileReader();
                     reader.onload = async (e) => {
                         const base64 = e.target.result;
+
+                        // Mémoriser la dernière image pour permettre les questions Vision
+                        lastUploadedImageByConversation[currentConversationId] = base64;
+                        lastUploadedImageNameByConversation[currentConversationId] = file.name;
                         
                         // Afficher l'image directement dans le message utilisateur (style ChatGPT/Gemini)
                         const chatMessages = document.getElementById('chatMessages');
