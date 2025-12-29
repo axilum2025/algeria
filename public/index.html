@@ -11070,6 +11070,17 @@ RÈGLES IMPORTANTES:
                             }
                         }
 
+                        /* Turnovol: chips sur une ligne (évite Confiance sur 3 lignes) */
+                        .turnover-modal-chip {
+                            max-width: 100% !important;
+                            min-width: 0 !important;
+                            white-space: nowrap !important;
+                            overflow: hidden !important;
+                            text-overflow: ellipsis !important;
+                            overflow-wrap: normal !important;
+                            word-break: normal !important;
+                        }
+
                         /* Portrait mobile: éviter le chevauchement des chips */
                         @media (max-width: 768px) and (orientation: portrait) {
                             .turnover-modal-meta {
