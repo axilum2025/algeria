@@ -4,7 +4,8 @@ module.exports = async function (context, req) {
         headers: {
             'Access-Control-Allow-Origin': '*',
             'Access-Control-Allow-Methods': 'POST, OPTIONS',
-            'Access-Control-Allow-Headers': 'Content-Type'
+            'Access-Control-Allow-Headers': 'Content-Type',
+            'Content-Type': 'application/json'
         }
     };
 
@@ -51,20 +52,39 @@ module.exports = async function (context, req) {
 
         context.log(`📸 Image size: ${imageBuffer.length} bytes`);
 
+        // Garde-fou taille (évite timeouts / limites Azure)
+        const maxBytes = Number(process.env.AXILUM_VISION_MAX_BYTES) || (4 * 1024 * 1024);
+        if (imageBuffer.length > maxBytes) {
+            context.res.status = 413;
+            context.res.body = JSON.stringify({
+                error: 'Image too large',
+                details: `Max ${maxBytes} bytes. Please upload a smaller/compressed image.`
+            });
+            return;
+        }
+
         // Call Azure Computer Vision Analyze Image 4.0 API
         const analyzeUrl = `${visionEndpoint}/computervision/imageanalysis:analyze?api-version=2024-02-01&features=caption,denseCaptions,objects,tags,read,people`;
 
-        const response = await fetch(
-            analyzeUrl,
-            {
+        // Timeout réseau (évite requête pendante si Azure ne répond pas)
+        const controller = new AbortController();
+        const timeoutMs = Number(process.env.AZURE_VISION_TIMEOUT_MS) || 25000;
+        const timeoutHandle = setTimeout(() => controller.abort(), timeoutMs);
+
+        let response;
+        try {
+            response = await fetch(analyzeUrl, {
                 method: 'POST',
                 headers: {
                     'Ocp-Apim-Subscription-Key': visionKey,
                     'Content-Type': 'application/octet-stream'
                 },
-                body: imageBuffer
-            }
-        );
+                body: imageBuffer,
+                signal: controller.signal
+            });
+        } finally {
+            clearTimeout(timeoutHandle);
+        }
 
         if (!response.ok) {
             const errorText = await response.text();
@@ -164,11 +184,18 @@ module.exports = async function (context, req) {
             analysis: analysisText.trim() || 'Analyse complétée avec succès.',
             provider: 'Azure Computer Vision',
             model: 'Florence-2',
-            confidence: data.captionResult?.confidence || 0,
-            rawData: data
+            confidence: data.captionResult?.confidence || 0
         });
 
     } catch (error) {
+        if (error && (error.name === 'AbortError' || String(error.message || '').includes('aborted'))) {
+            context.res.status = 504;
+            context.res.body = JSON.stringify({
+                error: 'Azure Vision request timed out',
+                details: 'Please try again with a smaller image or retry later.'
+            });
+            return;
+        }
         context.log.error('❌ Azure Vision Error:', error.message);
         context.res.status = 500;
         context.res.body = JSON.stringify({
