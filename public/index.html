@@ -9872,66 +9872,60 @@ RÈGLES IMPORTANTES:
                                     </button>
                                 </div>
 
-                            <!-- Stats Cards -->
-                            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; margin-bottom: 32px;">
-                                <div style="background: rgba(255,255,255,0.05); border: 1px solid rgba(99, 102, 241, 0.4); border-radius: 16px; padding: 24px; backdrop-filter: blur(10px); transition: all 0.3s; color: white;" onmouseover="this.style.background='rgba(255,255,255,0.08)'; this.style.transform='translateY(-2px)'" onmouseout="this.style.background='rgba(255,255,255,0.05)'; this.style.transform='translateY(0)'">
-                                    <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 16px;">
-                                        <div>
-                                            <p style="margin: 0 0 8px; color: rgba(255,255,255,0.7); font-size: 13px; font-weight: 600;">Total Évaluations</p>
-                                            <h3 id="totalReviewsCount" style="margin: 0; font-size: 32px; font-weight: 700; color: white;">0</h3>
+                            <!-- Stats Cards (cohérence RH) -->
+                            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px; margin-bottom: 32px;">
+                                <div style="background: rgba(255,255,255,0.05); border: 1px solid rgba(99, 102, 241, 0.4); border-radius: 16px; padding: 20px; backdrop-filter: blur(10px); transition: all 0.3s;" onmouseover="this.style.background='rgba(255,255,255,0.08)'; this.style.borderColor='#6366F1'; this.style.transform='translateY(-2px)'" onmouseout="this.style.background='rgba(255,255,255,0.05)'; this.style.borderColor='rgba(99, 102, 241, 0.4)'; this.style.transform='translateY(0)'">
+                                    <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 8px;">
+                                        <div style="width: 40px; height: 40px; background: rgba(99,102,241,0.2); border-radius: 10px; display: flex; align-items: center; justify-content: center; border: 1px solid rgba(99,102,241,0.3);">
+                                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#6366F1" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
                                         </div>
-                                        <div style="width: 48px; height: 48px; background: rgba(99,102,241,0.2); border: 1px solid rgba(99,102,241,0.3); border-radius: 12px; display: flex; align-items: center; justify-content: center;">
-                                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#6366F1" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
-                                        </div>
+                                        <span style="font-size: 13px; color: rgba(255,255,255,0.7); font-weight: 600;">Total évaluations</span>
                                     </div>
-                                    <p style="margin: 0; font-size: 12px; color: rgba(255,255,255,0.6);">Évaluations réalisées</p>
+                                    <div id="totalReviewsCount" style="font-size: 28px; font-weight: 700; color: #6366F1;">0</div>
+                                    <p style="margin: 6px 0 0; font-size: 12px; color: rgba(255,255,255,0.6);">Évaluations réalisées</p>
                                 </div>
-                                
-                                <div style="background: white; border-radius: 16px; padding: 24px; border: 2px solid #e5e7eb;">
-                                    <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 16px;">
-                                        <div>
-                                            <p style="margin: 0 0 8px; color: #6b7280; font-size: 13px; font-weight: 600;">Note Moyenne</p>
-                                            <h3 id="avgReviewScore" style="margin: 0; font-size: 32px; font-weight: 700; color: #1a1a1a;">0.0</h3>
+
+                                <div style="background: rgba(255,255,255,0.05); border: 1px solid rgba(245, 158, 11, 0.4); border-radius: 16px; padding: 20px; backdrop-filter: blur(10px); transition: all 0.3s;" onmouseover="this.style.background='rgba(255,255,255,0.08)'; this.style.borderColor='#f59e0b'; this.style.transform='translateY(-2px)'" onmouseout="this.style.background='rgba(255,255,255,0.05)'; this.style.borderColor='rgba(245, 158, 11, 0.4)'; this.style.transform='translateY(0)'">
+                                    <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 8px;">
+                                        <div style="width: 40px; height: 40px; background: rgba(245,158,11,0.2); border-radius: 10px; display: flex; align-items: center; justify-content: center; border: 1px solid rgba(245,158,11,0.3);">
+                                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
                                         </div>
-                                        <div style="width: 48px; height: 48px; background: #FEF3C7; border-radius: 12px; display: flex; align-items: center; justify-content: center;">
-                                            <svg width="24" height="24" viewBox="0 0 24 24" fill="#F59E0B" stroke="#F59E0B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-                                        </div>
+                                        <span style="font-size: 13px; color: rgba(255,255,255,0.7); font-weight: 600;">Note moyenne</span>
                                     </div>
-                                    <p style="margin: 0; font-size: 12px; color: #6b7280;">Sur 5 étoiles</p>
+                                    <div id="avgReviewScore" style="font-size: 28px; font-weight: 700; color: #f59e0b;">0.0</div>
+                                    <p style="margin: 6px 0 0; font-size: 12px; color: rgba(255,255,255,0.6);">Sur 5 étoiles</p>
                                 </div>
-                                
-                                <div style="background: white; border-radius: 16px; padding: 24px; border: 2px solid #e5e7eb;">
-                                    <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 16px;">
-                                        <div>
-                                            <p style="margin: 0 0 8px; color: #6b7280; font-size: 13px; font-weight: 600;">Excellent</p>
-                                            <h3 id="excellentReviewsCount" style="margin: 0; font-size: 32px; font-weight: 700; color: #10b981;">0</h3>
+
+                                <div style="background: rgba(255,255,255,0.05); border: 1px solid rgba(16, 185, 129, 0.4); border-radius: 16px; padding: 20px; backdrop-filter: blur(10px); transition: all 0.3s;" onmouseover="this.style.background='rgba(255,255,255,0.08)'; this.style.borderColor='#10b981'; this.style.transform='translateY(-2px)'" onmouseout="this.style.background='rgba(255,255,255,0.05)'; this.style.borderColor='rgba(16, 185, 129, 0.4)'; this.style.transform='translateY(0)'">
+                                    <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 8px;">
+                                        <div style="width: 40px; height: 40px; background: rgba(16,185,129,0.2); border-radius: 10px; display: flex; align-items: center; justify-content: center; border: 1px solid rgba(16,185,129,0.3);">
+                                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
                                         </div>
-                                        <div style="width: 48px; height: 48px; background: #D1FAE5; border-radius: 12px; display: flex; align-items: center; justify-content: center;">
-                                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
-                                        </div>
+                                        <span style="font-size: 13px; color: rgba(255,255,255,0.7); font-weight: 600;">Excellent</span>
                                     </div>
-                                    <p style="margin: 0; font-size: 12px; color: #6b7280;">Notes ≥ 4.5</p>
+                                    <div id="excellentReviewsCount" style="font-size: 28px; font-weight: 700; color: #10b981;">0</div>
+                                    <p style="margin: 6px 0 0; font-size: 12px; color: rgba(255,255,255,0.6);">Notes ≥ 4.5</p>
                                 </div>
                             </div>
                             
                             <!-- Actions Bar -->
                             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; flex-wrap: wrap; gap: 16px;">
                                 <div style="display: flex; gap: 12px; flex-wrap: wrap;">
-                                    <button onclick="showAddReviewModal()" style="padding: 12px 24px; background: #6366F1; border: none; border-radius: 10px; color: white; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 8px; transition: all 0.2s;" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 12px rgba(99,102,241,0.4)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='none'">
+                                    <button onclick="showAddReviewModal()" class="hr-btn" style="display: flex; align-items: center; gap: 8px; padding: 12px 24px; font-size: 14px;">
                                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
                                         Nouvelle Évaluation
                                     </button>
                                     
-                                    <select id="reviewFilterEmployee" onchange="filterReviews()" style="padding: 12px 16px; border: 2px solid #e5e7eb; border-radius: 10px; font-size: 14px; font-weight: 600; cursor: pointer; background: white;">
-                                        <option value="">Tous les employés</option>
+                                    <select id="reviewFilterEmployee" onchange="filterReviews()" style="padding: 12px 16px; background: rgba(255,255,255,0.08); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 12px; font-size: 14px; font-weight: 600; cursor: pointer; color: white; transition: all 0.3s;" onfocus="this.style.borderColor='#10b981'; this.style.background='rgba(255,255,255,0.12)'" onblur="this.style.borderColor='rgba(16, 185, 129, 0.3)'; this.style.background='rgba(255,255,255,0.08)'">
+                                        <option value="" style="background: #1e3a8a; color: white;">Tous les employés</option>
                                     </select>
                                     
-                                    <select id="reviewFilterPeriod" onchange="filterReviews()" style="padding: 12px 16px; border: 2px solid #e5e7eb; border-radius: 10px; font-size: 14px; font-weight: 600; cursor: pointer; background: white;">
-                                        <option value="">Toutes les périodes</option>
+                                    <select id="reviewFilterPeriod" onchange="filterReviews()" style="padding: 12px 16px; background: rgba(255,255,255,0.08); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 12px; font-size: 14px; font-weight: 600; cursor: pointer; color: white; transition: all 0.3s;" onfocus="this.style.borderColor='#10b981'; this.style.background='rgba(255,255,255,0.12)'" onblur="this.style.borderColor='rgba(16, 185, 129, 0.3)'; this.style.background='rgba(255,255,255,0.08)'">
+                                        <option value="" style="background: #1e3a8a; color: white;">Toutes les périodes</option>
                                     </select>
                                 </div>
                                 
-                                <input type="text" id="reviewSearchInput" placeholder="🔍 Rechercher..." oninput="filterReviews()" style="padding: 12px 16px; border: 2px solid #e5e7eb; border-radius: 10px; font-size: 14px; width: 250px; max-width: 100%;">
+                                <input type="text" id="reviewSearchInput" placeholder="🔍 Rechercher..." oninput="filterReviews()" style="padding: 12px 16px; background: rgba(255,255,255,0.08); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 12px; font-size: 14px; font-weight: 600; width: 250px; max-width: 100%; color: white; transition: all 0.3s; outline: none;" onfocus="this.style.borderColor='#10b981'; this.style.background='rgba(255,255,255,0.12)'" onblur="this.style.borderColor='rgba(16, 185, 129, 0.3)'; this.style.background='rgba(255,255,255,0.08)'">
                             </div>
                             
                             <!-- Reviews List -->
@@ -9941,11 +9935,11 @@ RÈGLES IMPORTANTES:
                             
                             <!-- Empty State -->
                             <div id="reviewsEmptyState" style="display: none; text-align: center; padding: 60px 20px;">
-                                <div style="width: 80px; height: 80px; background: rgba(99,102,241,0.1); border-radius: 20px; display: flex; align-items: center; justify-content: center; margin: 0 auto 16px;">
-                                    <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#6366F1" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+                                <div style="width: 80px; height: 80px; background: rgba(16, 185, 129, 0.2); border-radius: 16px; display: flex; align-items: center; justify-content: center; margin: 0 auto 16px; border: 1px solid rgba(16, 185, 129, 0.3);">
+                                    <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
                                 </div>
-                                <h3 style="margin: 0 0 8px; font-size: 18px; font-weight: 600; color: #1a1a1a;">Aucune évaluation</h3>
-                                <p style="margin: 0; font-size: 14px; color: #6b7280;">Créez votre première évaluation pour commencer</p>
+                                <h3 style="margin: 0 0 8px; font-size: 18px; font-weight: 600; color: white;">Aucune évaluation</h3>
+                                <p style="margin: 0; font-size: 14px; color: rgba(255,255,255,0.6);">Créez votre première évaluation pour commencer</p>
                             </div>
                         </div>
                         
@@ -17224,57 +17218,57 @@ RÈGLES DE CONVERSATION :
                 const stars = '⭐'.repeat(Math.round(overallRating));
                 
                 return `
-                    <div style="background: white; border-radius: 16px; padding: 24px; border: 2px solid #e5e7eb; transition: all 0.2s; cursor: pointer;" onmouseover="this.style.borderColor='#6366F1'; this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 12px rgba(99,102,241,0.15)'" onmouseout="this.style.borderColor='#e5e7eb'; this.style.transform='translateY(0)'; this.style.boxShadow='none'" onclick="viewReviewDetails('${review.id}')">
+                    <div style="background: rgba(255,255,255,0.05); border-radius: 16px; padding: 24px; border: 1px solid rgba(16, 185, 129, 0.3); backdrop-filter: blur(10px); transition: all 0.3s; cursor: pointer;" onmouseover="this.style.background='rgba(255,255,255,0.08)'; this.style.borderColor='rgba(16, 185, 129, 0.5)'; this.style.transform='translateY(-2px)'; this.style.boxShadow='0 8px 30px rgba(16,185,129,0.18)'" onmouseout="this.style.background='rgba(255,255,255,0.05)'; this.style.borderColor='rgba(16, 185, 129, 0.3)'; this.style.transform='translateY(0)'; this.style.boxShadow='none'" onclick="viewReviewDetails('${review.id}')">
                         <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 16px;">
                             <div style="display: flex; gap: 12px; align-items: center; flex: 1;">
                                 ${employee.photo ? 
                                     `<img src="${employee.photo}" style="width: 48px; height: 48px; border-radius: 12px; object-fit: cover;">` :
-                                    `<div style="width: 48px; height: 48px; background: linear-gradient(135deg, #6366F1, #8B5CF6); border-radius: 12px; display: flex; align-items: center; justify-content: center; color: white; font-weight: 700; font-size: 18px;">
+                                    `<div style="width: 48px; height: 48px; background: linear-gradient(135deg, #10b981, #06b6d4); border-radius: 12px; display: flex; align-items: center; justify-content: center; color: white; font-weight: 700; font-size: 18px;">
                                         ${employee.firstName.charAt(0)}${employee.lastName.charAt(0)}
                                     </div>`
                                 }
                                 <div style="flex: 1;">
-                                    <h4 style="margin: 0 0 4px; font-size: 16px; font-weight: 700; color: #1a1a1a;">${employee.firstName} ${employee.lastName}</h4>
-                                    <p style="margin: 0; font-size: 13px; color: #6b7280;">${employee.position || 'Employé'}</p>
+                                    <h4 style="margin: 0 0 4px; font-size: 16px; font-weight: 700; color: white;">${employee.firstName} ${employee.lastName}</h4>
+                                    <p style="margin: 0; font-size: 13px; color: rgba(255,255,255,0.7);">${employee.position || 'Employé'}</p>
                                 </div>
                             </div>
                             
                             <div style="text-align: right;">
                                 <div style="font-size: 24px; margin-bottom: 4px;">${stars}</div>
                                 <div style="font-size: 20px; font-weight: 700; color: ${ratingColor}; margin-bottom: 4px;">${overallRating.toFixed(1)}</div>
-                                <div style="font-size: 11px; color: #6b7280; font-weight: 600;">${ratingLabel}</div>
+                                <div style="font-size: 11px; color: rgba(255,255,255,0.65); font-weight: 600;">${ratingLabel}</div>
                             </div>
                         </div>
                         
                         <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-bottom: 16px;">
-                            <div style="background: #f9fafb; border-radius: 8px; padding: 12px;">
-                                <div style="font-size: 11px; color: #6b7280; margin-bottom: 4px; font-weight: 600;">Technique</div>
-                                <div style="font-size: 16px; font-weight: 700; color: #1a1a1a;">${technicalScore}/5</div>
+                            <div style="background: rgba(0,0,0,0.25); border-radius: 12px; padding: 12px; border: 1px solid rgba(16, 185, 129, 0.16);">
+                                <div style="font-size: 11px; color: rgba(255,255,255,0.65); margin-bottom: 4px; font-weight: 600;">Technique</div>
+                                <div style="font-size: 16px; font-weight: 700; color: white;">${technicalScore}/5</div>
                             </div>
-                            <div style="background: #f9fafb; border-radius: 8px; padding: 12px;">
-                                <div style="font-size: 11px; color: #6b7280; margin-bottom: 4px; font-weight: 600;">Comportement</div>
-                                <div style="font-size: 16px; font-weight: 700; color: #1a1a1a;">${behavioralScore}/5</div>
+                            <div style="background: rgba(0,0,0,0.25); border-radius: 12px; padding: 12px; border: 1px solid rgba(16, 185, 129, 0.16);">
+                                <div style="font-size: 11px; color: rgba(255,255,255,0.65); margin-bottom: 4px; font-weight: 600;">Comportement</div>
+                                <div style="font-size: 16px; font-weight: 700; color: white;">${behavioralScore}/5</div>
                             </div>
-                            <div style="background: #f9fafb; border-radius: 8px; padding: 12px;">
-                                <div style="font-size: 11px; color: #6b7280; margin-bottom: 4px; font-weight: 600;">Performance</div>
-                                <div style="font-size: 16px; font-weight: 700; color: #1a1a1a;">${performanceScore}/5</div>
+                            <div style="background: rgba(0,0,0,0.25); border-radius: 12px; padding: 12px; border: 1px solid rgba(16, 185, 129, 0.16);">
+                                <div style="font-size: 11px; color: rgba(255,255,255,0.65); margin-bottom: 4px; font-weight: 600;">Performance</div>
+                                <div style="font-size: 16px; font-weight: 700; color: white;">${performanceScore}/5</div>
                             </div>
-                            <div style="background: #f9fafb; border-radius: 8px; padding: 12px;">
-                                <div style="font-size: 11px; color: #6b7280; margin-bottom: 4px; font-weight: 600;">Développement</div>
-                                <div style="font-size: 16px; font-weight: 700; color: #1a1a1a;">${developmentScore}/5</div>
+                            <div style="background: rgba(0,0,0,0.25); border-radius: 12px; padding: 12px; border: 1px solid rgba(16, 185, 129, 0.16);">
+                                <div style="font-size: 11px; color: rgba(255,255,255,0.65); margin-bottom: 4px; font-weight: 600;">Développement</div>
+                                <div style="font-size: 16px; font-weight: 700; color: white;">${developmentScore}/5</div>
                             </div>
                         </div>
                         
-                        <div style="display: flex; justify-content: space-between; align-items: center; padding-top: 16px; border-top: 1px solid #e5e7eb;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; padding-top: 16px; border-top: 1px solid rgba(255,255,255,0.14);">
                             <div>
-                                <div style="font-size: 12px; color: #6b7280; margin-bottom: 2px;">Période</div>
-                                <div style="font-size: 14px; font-weight: 700; color: #1a1a1a;">${review.period}</div>
+                                <div style="font-size: 12px; color: rgba(255,255,255,0.65); margin-bottom: 2px;">Période</div>
+                                <div style="font-size: 14px; font-weight: 700; color: white;">${review.period}</div>
                             </div>
                             <div style="text-align: right;">
-                                <div style="font-size: 12px; color: #6b7280; margin-bottom: 2px;">Type</div>
-                                <div style="font-size: 13px; font-weight: 600; color: #1a1a1a;">${review.type}</div>
+                                <div style="font-size: 12px; color: rgba(255,255,255,0.65); margin-bottom: 2px;">Type</div>
+                                <div style="font-size: 13px; font-weight: 600; color: white;">${review.type}</div>
                             </div>
-                            <button onclick="event.stopPropagation(); deleteReview('${review.id}')" style="padding: 8px; background: #fee2e2; color: #dc2626; border: none; border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center;" onmouseover="this.style.background='#fecaca'" onmouseout="this.style.background='#fee2e2'">
+                            <button onclick="event.stopPropagation(); deleteReview('${review.id}')" style="padding: 8px; background: rgba(239, 68, 68, 0.15); color: #fecaca; border: 1px solid rgba(239, 68, 68, 0.25); border-radius: 10px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.2s;" onmouseover="this.style.background='rgba(239, 68, 68, 0.25)'; this.style.borderColor='rgba(239, 68, 68, 0.45)'" onmouseout="this.style.background='rgba(239, 68, 68, 0.15)'; this.style.borderColor='rgba(239, 68, 68, 0.25)'">
                                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>
                             </button>
                         </div>
@@ -17349,15 +17343,18 @@ RÈGLES DE CONVERSATION :
             
             const modal = document.createElement('div');
             modal.id = 'addReviewModal';
-            modal.style.cssText = 'position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 10003; animation: fadeIn 0.3s ease; overflow-y: auto; padding: 20px;';
+            modal.style.cssText = 'position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(135deg, #0a4d3c 0%, #064e3b 50%, #1e3a8a 100%); display: flex; align-items: center; justify-content: center; z-index: 10003; animation: fadeIn 0.3s ease; overflow-y: auto; padding: 20px;';
             
             const currentDate = new Date().toISOString().split('T')[0];
             
             modal.innerHTML = `
-                <div style="background: white; border-radius: 20px; padding: 32px; max-width: 800px; width: 100%; max-height: 90vh; overflow-y: auto; animation: slideIn 0.3s ease;">
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
-                        <h2 style="margin: 0; font-size: 24px; font-weight: 700; color: #1a1a1a;">📊 Nouvelle Évaluation</h2>
-                        <button onclick="closeAddReviewModal()" style="width: 36px; height: 36px; background: #f3f4f6; border: none; border-radius: 10px; cursor: pointer; display: flex; align-items: center; justify-content: center;" onmouseover="this.style.background='#e5e7eb'" onmouseout="this.style.background='#f3f4f6'">
+                <div style="background: rgba(255,255,255,0.05); border-radius: 20px; padding: 32px; max-width: 900px; width: 100%; max-height: 90vh; overflow-y: auto; animation: slideIn 0.3s ease; border: 1px solid rgba(16, 185, 129, 0.3); backdrop-filter: blur(10px);">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; padding-bottom: 16px; border-bottom: 1px solid rgba(16, 185, 129, 0.2);">
+                        <div>
+                            <h2 style="margin: 0 0 6px; font-size: 24px; font-weight: 700; background: linear-gradient(135deg, #10b981 0%, #06b6d4 50%, #3b82f6 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">📊 Nouvelle Évaluation</h2>
+                            <p style="margin: 0; font-size: 13px; color: rgba(255,255,255,0.6); font-weight: 600;">Renseignez la période, l'évaluateur et les critères</p>
+                        </div>
+                        <button onclick="closeAddReviewModal()" style="width: 40px; height: 40px; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); border-radius: 12px; cursor: pointer; display: flex; align-items: center; justify-content: center; color: white; transition: all 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.18)'" onmouseout="this.style.background='rgba(255,255,255,0.1)'">
                             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
                         </button>
                     </div>
@@ -17365,82 +17362,82 @@ RÈGLES DE CONVERSATION :
                     <form onsubmit="handleAddReview(event)">
                         <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; margin-bottom: 20px;">
                             <div>
-                                <label style="display: block; margin-bottom: 6px; font-size: 13px; font-weight: 600; color: #1a1a1a;">Employé *</label>
-                                <select name="employeeId" required style="width: 100%; padding: 12px; border: 2px solid #e5e7eb; border-radius: 10px; font-size: 14px;">
+                                <label style="display: block; margin-bottom: 6px; font-size: 13px; font-weight: 700; color: rgba(255,255,255,0.85);">Employé *</label>
+                                <select name="employeeId" required style="width: 100%; padding: 12px 14px; background: rgba(255,255,255,0.08); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 12px; font-size: 14px; color: white; cursor: pointer;" onfocus="this.style.borderColor='#10b981'; this.style.background='rgba(255,255,255,0.12)'" onblur="this.style.borderColor='rgba(16, 185, 129, 0.3)'; this.style.background='rgba(255,255,255,0.08)'">
                                     <option value="">Sélectionner...</option>
                                     ${employees.map(emp => 
-                                        `<option value="${emp.id}">${emp.firstName} ${emp.lastName} - ${emp.position || 'Employé'}</option>`
+                                        `<option value="${emp.id}" style="background: #1e3a8a; color: white;">${emp.firstName} ${emp.lastName} - ${emp.position || 'Employé'}</option>`
                                     ).join('')}
                                 </select>
                             </div>
                             
                             <div>
-                                <label style="display: block; margin-bottom: 6px; font-size: 13px; font-weight: 600; color: #1a1a1a;">Période *</label>
-                                <input type="text" name="period" placeholder="Ex: Q4 2025, Annuelle 2025" required style="width: 100%; padding: 12px; border: 2px solid #e5e7eb; border-radius: 10px; font-size: 14px;">
+                                <label style="display: block; margin-bottom: 6px; font-size: 13px; font-weight: 700; color: rgba(255,255,255,0.85);">Période *</label>
+                                <input type="text" name="period" placeholder="Ex: Q4 2025, Annuelle 2025" required style="width: 100%; padding: 12px 14px; background: rgba(255,255,255,0.08); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 12px; font-size: 14px; color: white;" onfocus="this.style.borderColor='#10b981'; this.style.background='rgba(255,255,255,0.12)'" onblur="this.style.borderColor='rgba(16, 185, 129, 0.3)'; this.style.background='rgba(255,255,255,0.08)'">
                             </div>
                             
                             <div>
-                                <label style="display: block; margin-bottom: 6px; font-size: 13px; font-weight: 600; color: #1a1a1a;">Type d'évaluation *</label>
-                                <select name="type" required style="width: 100%; padding: 12px; border: 2px solid #e5e7eb; border-radius: 10px; font-size: 14px;">
-                                    <option value="Annuelle">Annuelle</option>
-                                    <option value="Semestrielle">Semestrielle</option>
-                                    <option value="Trimestrielle">Trimestrielle</option>
-                                    <option value="Probation">Période d'essai</option>
+                                <label style="display: block; margin-bottom: 6px; font-size: 13px; font-weight: 700; color: rgba(255,255,255,0.85);">Type d'évaluation *</label>
+                                <select name="type" required style="width: 100%; padding: 12px 14px; background: rgba(255,255,255,0.08); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 12px; font-size: 14px; color: white; cursor: pointer;" onfocus="this.style.borderColor='#10b981'; this.style.background='rgba(255,255,255,0.12)'" onblur="this.style.borderColor='rgba(16, 185, 129, 0.3)'; this.style.background='rgba(255,255,255,0.08)'">
+                                    <option value="Annuelle" style="background: #1e3a8a; color: white;">Annuelle</option>
+                                    <option value="Semestrielle" style="background: #1e3a8a; color: white;">Semestrielle</option>
+                                    <option value="Trimestrielle" style="background: #1e3a8a; color: white;">Trimestrielle</option>
+                                    <option value="Probation" style="background: #1e3a8a; color: white;">Période d'essai</option>
                                 </select>
                             </div>
                             
                             <div>
-                                <label style="display: block; margin-bottom: 6px; font-size: 13px; font-weight: 600; color: #1a1a1a;">Évaluateur *</label>
-                                <input type="text" name="evaluator" placeholder="Ex: Jean Dupont" required style="width: 100%; padding: 12px; border: 2px solid #e5e7eb; border-radius: 10px; font-size: 14px;">
+                                <label style="display: block; margin-bottom: 6px; font-size: 13px; font-weight: 700; color: rgba(255,255,255,0.85);">Évaluateur *</label>
+                                <input type="text" name="evaluator" placeholder="Ex: Jean Dupont" required style="width: 100%; padding: 12px 14px; background: rgba(255,255,255,0.08); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 12px; font-size: 14px; color: white;" onfocus="this.style.borderColor='#10b981'; this.style.background='rgba(255,255,255,0.12)'" onblur="this.style.borderColor='rgba(16, 185, 129, 0.3)'; this.style.background='rgba(255,255,255,0.08)'">
                             </div>
                         </div>
                         
-                        <div style="background: #f9fafb; border-radius: 16px; padding: 20px; margin-bottom: 20px;">
-                            <h3 style="margin: 0 0 16px; font-size: 16px; font-weight: 700; color: #1a1a1a;">🎯 Critères d'évaluation</h3>
+                        <div style="background: rgba(255,255,255,0.05); border: 1px solid rgba(16, 185, 129, 0.2); border-radius: 16px; padding: 20px; margin-bottom: 20px;">
+                            <h3 style="margin: 0 0 16px; font-size: 16px; font-weight: 700; color: rgba(255,255,255,0.9);">🎯 Critères d'évaluation</h3>
                             
                             <div style="margin-bottom: 16px;">
-                                <label style="display: block; margin-bottom: 8px; font-size: 13px; font-weight: 600; color: #1a1a1a;">Compétences Techniques</label>
+                                <label style="display: block; margin-bottom: 8px; font-size: 13px; font-weight: 700; color: rgba(255,255,255,0.85);">Compétences Techniques</label>
                                 <div style="display: flex; gap: 8px; align-items: center;">
                                     ${[1,2,3,4,5].map(n => `
                                         <label style="flex: 1; cursor: pointer;">
                                             <input type="radio" name="technical" value="${n}" required style="display: none;" onchange="updateStarRating(this)">
-                                            <div class="star-rating" style="padding: 12px; background: white; border: 2px solid #e5e7eb; border-radius: 10px; text-align: center; font-size: 20px; transition: all 0.2s;">⭐</div>
+                                            <div class="star-rating" style="padding: 12px; background: rgba(255,255,255,0.08); border: 1px solid rgba(16, 185, 129, 0.25); border-radius: 12px; text-align: center; font-size: 20px; transition: all 0.2s; color: rgba(255,255,255,0.85);">⭐</div>
                                         </label>
                                     `).join('')}
                                 </div>
                             </div>
                             
                             <div style="margin-bottom: 16px;">
-                                <label style="display: block; margin-bottom: 8px; font-size: 13px; font-weight: 600; color: #1a1a1a;">Compétences Comportementales</label>
+                                <label style="display: block; margin-bottom: 8px; font-size: 13px; font-weight: 700; color: rgba(255,255,255,0.85);">Compétences Comportementales</label>
                                 <div style="display: flex; gap: 8px; align-items: center;">
                                     ${[1,2,3,4,5].map(n => `
                                         <label style="flex: 1; cursor: pointer;">
                                             <input type="radio" name="behavioral" value="${n}" required style="display: none;" onchange="updateStarRating(this)">
-                                            <div class="star-rating" style="padding: 12px; background: white; border: 2px solid #e5e7eb; border-radius: 10px; text-align: center; font-size: 20px; transition: all 0.2s;">⭐</div>
+                                            <div class="star-rating" style="padding: 12px; background: rgba(255,255,255,0.08); border: 1px solid rgba(16, 185, 129, 0.25); border-radius: 12px; text-align: center; font-size: 20px; transition: all 0.2s; color: rgba(255,255,255,0.85);">⭐</div>
                                         </label>
                                     `).join('')}
                                 </div>
                             </div>
                             
                             <div style="margin-bottom: 16px;">
-                                <label style="display: block; margin-bottom: 8px; font-size: 13px; font-weight: 600; color: #1a1a1a;">Performance & Productivité</label>
+                                <label style="display: block; margin-bottom: 8px; font-size: 13px; font-weight: 700; color: rgba(255,255,255,0.85);">Performance & Productivité</label>
                                 <div style="display: flex; gap: 8px; align-items: center;">
                                     ${[1,2,3,4,5].map(n => `
                                         <label style="flex: 1; cursor: pointer;">
                                             <input type="radio" name="performance" value="${n}" required style="display: none;" onchange="updateStarRating(this)">
-                                            <div class="star-rating" style="padding: 12px; background: white; border: 2px solid #e5e7eb; border-radius: 10px; text-align: center; font-size: 20px; transition: all 0.2s;">⭐</div>
+                                            <div class="star-rating" style="padding: 12px; background: rgba(255,255,255,0.08); border: 1px solid rgba(16, 185, 129, 0.25); border-radius: 12px; text-align: center; font-size: 20px; transition: all 0.2s; color: rgba(255,255,255,0.85);">⭐</div>
                                         </label>
                                     `).join('')}
                                 </div>
                             </div>
                             
                             <div>
-                                <label style="display: block; margin-bottom: 8px; font-size: 13px; font-weight: 600; color: #1a1a1a;">Développement & Apprentissage</label>
+                                <label style="display: block; margin-bottom: 8px; font-size: 13px; font-weight: 700; color: rgba(255,255,255,0.85);">Développement & Apprentissage</label>
                                 <div style="display: flex; gap: 8px; align-items: center;">
                                     ${[1,2,3,4,5].map(n => `
                                         <label style="flex: 1; cursor: pointer;">
                                             <input type="radio" name="development" value="${n}" required style="display: none;" onchange="updateStarRating(this)">
-                                            <div class="star-rating" style="padding: 12px; background: white; border: 2px solid #e5e7eb; border-radius: 10px; text-align: center; font-size: 20px; transition: all 0.2s;">⭐</div>
+                                            <div class="star-rating" style="padding: 12px; background: rgba(255,255,255,0.08); border: 1px solid rgba(16, 185, 129, 0.25); border-radius: 12px; text-align: center; font-size: 20px; transition: all 0.2s; color: rgba(255,255,255,0.85);">⭐</div>
                                         </label>
                                     `).join('')}
                                 </div>
@@ -17448,30 +17445,30 @@ RÈGLES DE CONVERSATION :
                         </div>
                         
                         <div style="margin-bottom: 20px;">
-                            <label style="display: block; margin-bottom: 6px; font-size: 13px; font-weight: 600; color: #1a1a1a;">💪 Points forts</label>
-                            <textarea name="strengths" rows="3" placeholder="Ex: Excellente communication, leadership naturel..." style="width: 100%; padding: 12px; border: 2px solid #e5e7eb; border-radius: 10px; font-size: 14px; font-family: inherit; resize: vertical;"></textarea>
+                            <label style="display: block; margin-bottom: 6px; font-size: 13px; font-weight: 700; color: rgba(255,255,255,0.85);">💪 Points forts</label>
+                            <textarea name="strengths" rows="3" placeholder="Ex: Excellente communication, leadership naturel..." style="width: 100%; padding: 12px 14px; background: rgba(255,255,255,0.08); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 12px; font-size: 14px; font-family: inherit; resize: vertical; color: white;" onfocus="this.style.borderColor='#10b981'; this.style.background='rgba(255,255,255,0.12)'" onblur="this.style.borderColor='rgba(16, 185, 129, 0.3)'; this.style.background='rgba(255,255,255,0.08)'"></textarea>
                         </div>
                         
                         <div style="margin-bottom: 20px;">
-                            <label style="display: block; margin-bottom: 6px; font-size: 13px; font-weight: 600; color: #1a1a1a;">📈 Axes d'amélioration</label>
-                            <textarea name="areasForImprovement" rows="3" placeholder="Ex: Gestion du temps, compétences techniques spécifiques..." style="width: 100%; padding: 12px; border: 2px solid #e5e7eb; border-radius: 10px; font-size: 14px; font-family: inherit; resize: vertical;"></textarea>
+                            <label style="display: block; margin-bottom: 6px; font-size: 13px; font-weight: 700; color: rgba(255,255,255,0.85);">📈 Axes d'amélioration</label>
+                            <textarea name="areasForImprovement" rows="3" placeholder="Ex: Gestion du temps, compétences techniques spécifiques..." style="width: 100%; padding: 12px 14px; background: rgba(255,255,255,0.08); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 12px; font-size: 14px; font-family: inherit; resize: vertical; color: white;" onfocus="this.style.borderColor='#10b981'; this.style.background='rgba(255,255,255,0.12)'" onblur="this.style.borderColor='rgba(16, 185, 129, 0.3)'; this.style.background='rgba(255,255,255,0.08)'"></textarea>
                         </div>
                         
                         <div style="margin-bottom: 20px;">
-                            <label style="display: block; margin-bottom: 6px; font-size: 13px; font-weight: 600; color: #1a1a1a;">🎯 Objectifs pour la prochaine période</label>
-                            <textarea name="objectives" rows="3" placeholder="Ex: Suivre une formation en management, augmenter la productivité de 15%..." style="width: 100%; padding: 12px; border: 2px solid #e5e7eb; border-radius: 10px; font-size: 14px; font-family: inherit; resize: vertical;"></textarea>
+                            <label style="display: block; margin-bottom: 6px; font-size: 13px; font-weight: 700; color: rgba(255,255,255,0.85);">🎯 Objectifs pour la prochaine période</label>
+                            <textarea name="objectives" rows="3" placeholder="Ex: Suivre une formation en management, augmenter la productivité de 15%..." style="width: 100%; padding: 12px 14px; background: rgba(255,255,255,0.08); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 12px; font-size: 14px; font-family: inherit; resize: vertical; color: white;" onfocus="this.style.borderColor='#10b981'; this.style.background='rgba(255,255,255,0.12)'" onblur="this.style.borderColor='rgba(16, 185, 129, 0.3)'; this.style.background='rgba(255,255,255,0.08)'"></textarea>
                         </div>
                         
                         <div style="margin-bottom: 20px;">
-                            <label style="display: block; margin-bottom: 6px; font-size: 13px; font-weight: 600; color: #1a1a1a;">💬 Commentaires généraux</label>
-                            <textarea name="comments" rows="4" placeholder="Commentaires additionnels..." style="width: 100%; padding: 12px; border: 2px solid #e5e7eb; border-radius: 10px; font-size: 14px; font-family: inherit; resize: vertical;"></textarea>
+                            <label style="display: block; margin-bottom: 6px; font-size: 13px; font-weight: 700; color: rgba(255,255,255,0.85);">💬 Commentaires généraux</label>
+                            <textarea name="comments" rows="4" placeholder="Commentaires additionnels..." style="width: 100%; padding: 12px 14px; background: rgba(255,255,255,0.08); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 12px; font-size: 14px; font-family: inherit; resize: vertical; color: white;" onfocus="this.style.borderColor='#10b981'; this.style.background='rgba(255,255,255,0.12)'" onblur="this.style.borderColor='rgba(16, 185, 129, 0.3)'; this.style.background='rgba(255,255,255,0.08)'"></textarea>
                         </div>
                         
                         <div style="display: flex; gap: 12px;">
-                            <button type="button" onclick="closeAddReviewModal()" style="flex: 1; padding: 12px; background: #f3f4f6; border: none; border-radius: 10px; font-weight: 600; cursor: pointer;" onmouseover="this.style.background='#e5e7eb'" onmouseout="this.style.background='#f3f4f6'">
+                            <button type="button" onclick="closeAddReviewModal()" style="flex: 1; padding: 12px; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); border-radius: 12px; font-weight: 700; cursor: pointer; color: white; transition: all 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.18)'" onmouseout="this.style.background='rgba(255,255,255,0.1)'">
                                 Annuler
                             </button>
-                            <button type="submit" style="flex: 1; padding: 12px; background: #10b981; border: none; border-radius: 10px; color: white; font-weight: 600; cursor: pointer;" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 12px rgba(16,185,129,0.4)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='none'">
+                            <button type="submit" class="hr-btn" style="flex: 1; padding: 12px; font-weight: 700; border-radius: 12px;">
                                 Créer l'Évaluation
                             </button>
                         </div>
@@ -17497,13 +17494,13 @@ RÈGLES DE CONVERSATION :
             allLabels.forEach((label, index) => {
                 const div = label.querySelector('.star-rating');
                 if (index < value) {
-                    div.style.background = '#6366F1';
-                    div.style.borderColor = '#6366F1';
+                    div.style.background = '#10b981';
+                    div.style.borderColor = '#10b981';
                     div.style.color = 'white';
                 } else {
-                    div.style.background = 'white';
-                    div.style.borderColor = '#e5e7eb';
-                    div.style.color = '#1a1a1a';
+                    div.style.background = 'rgba(255,255,255,0.08)';
+                    div.style.borderColor = 'rgba(16, 185, 129, 0.25)';
+                    div.style.color = 'rgba(255,255,255,0.85)';
                 }
             });
         }
@@ -17587,16 +17584,22 @@ RÈGLES DE CONVERSATION :
                                overallRating >= 2.5 ? '#f59e0b' : '#ef4444';
             
             const modal = document.createElement('div');
-            modal.style.cssText = 'position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 10004; animation: fadeIn 0.3s ease; overflow-y: auto; padding: 20px;';
+            modal.style.cssText = 'position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(135deg, #0a4d3c 0%, #064e3b 50%, #1e3a8a 100%); display: flex; align-items: center; justify-content: center; z-index: 10004; animation: fadeIn 0.3s ease; overflow-y: auto; padding: 20px;';
             
             modal.innerHTML = `
-                <div style="background: white; border-radius: 20px; padding: 40px; max-width: 900px; width: 100%; max-height: 90vh; overflow-y: auto; animation: slideIn 0.3s ease;">
-                    <div style="text-align: center; margin-bottom: 32px;">
-                        <h2 style="margin: 0 0 8px; font-size: 28px; font-weight: 700; color: #1a1a1a;">📊 Évaluation de Performance</h2>
-                        <p style="margin: 0; font-size: 16px; color: #6b7280; font-weight: 600;">${review.period} • ${review.type}</p>
+                <div style="background: rgba(255,255,255,0.05); border-radius: 20px; padding: 40px; max-width: 980px; width: 100%; max-height: 90vh; overflow-y: auto; animation: slideIn 0.3s ease; border: 1px solid rgba(16, 185, 129, 0.3); backdrop-filter: blur(10px);">
+                    <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 24px; padding-bottom: 16px; border-bottom: 1px solid rgba(16, 185, 129, 0.2);">
+                        <div>
+                            <h2 style="margin: 0 0 8px; font-size: 28px; font-weight: 700; background: linear-gradient(135deg, #10b981 0%, #06b6d4 50%, #3b82f6 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">📊 Évaluation de Performance</h2>
+                            <p style="margin: 0; font-size: 14px; color: rgba(255,255,255,0.65); font-weight: 700;">${review.period} • ${review.type}</p>
+                        </div>
+                        <button onclick="this.parentElement.parentElement.remove()" style="padding: 12px 16px; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); border-radius: 12px; color: white; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 8px; transition: all 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.18)'" onmouseout="this.style.background='rgba(255,255,255,0.1)'">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                            Fermer
+                        </button>
                     </div>
                     
-                    <div style="background: linear-gradient(135deg, #6366F1, #8B5CF6); border-radius: 16px; padding: 24px; margin-bottom: 24px; color: white;">
+                    <div style="background: linear-gradient(135deg, rgba(16,185,129,0.22), rgba(6,182,212,0.22)); border-radius: 16px; padding: 24px; margin-bottom: 24px; color: white; border: 1px solid rgba(16, 185, 129, 0.28);">
                         <div style="display: flex; align-items: center; gap: 16px;">
                             ${employee.photo ? 
                                 `<img src="${employee.photo}" style="width: 72px; height: 72px; border-radius: 12px; object-fit: cover; border: 3px solid rgba(255,255,255,0.3);">` :
@@ -17606,7 +17609,7 @@ RÈGLES DE CONVERSATION :
                             }
                             <div style="flex: 1;">
                                 <h3 style="margin: 0 0 4px; font-size: 20px; font-weight: 700;">${employee.firstName} ${employee.lastName}</h3>
-                                <p style="margin: 0; font-size: 14px; opacity: 0.9;">${employee.position || 'Employé'}</p>
+                                <p style="margin: 0; font-size: 14px; opacity: 0.85;">${employee.position || 'Employé'}</p>
                             </div>
                             <div style="text-align: center;">
                                 <div style="font-size: 48px; font-weight: 700; margin-bottom: 4px;">${overallRating}</div>
@@ -17616,80 +17619,76 @@ RÈGLES DE CONVERSATION :
                         </div>
                     </div>
                     
-                    <div style="background: #f9fafb; border-radius: 16px; padding: 24px; margin-bottom: 24px;">
-                        <h3 style="margin: 0 0 16px; font-size: 18px; font-weight: 700; color: #1a1a1a;">Scores détaillés</h3>
+                    <div style="background: rgba(0,0,0,0.25); border-radius: 16px; padding: 24px; margin-bottom: 24px; border: 1px solid rgba(16, 185, 129, 0.18);">
+                        <h3 style="margin: 0 0 16px; font-size: 18px; font-weight: 700; color: rgba(255,255,255,0.92);">Scores détaillés</h3>
                         <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px;">
-                            <div style="background: white; border-radius: 12px; padding: 16px; border: 2px solid #e5e7eb;">
-                                <div style="font-size: 13px; color: #6b7280; margin-bottom: 8px; font-weight: 600;">Compétences Techniques</div>
-                                <div style="font-size: 32px; font-weight: 700; color: #6366F1; margin-bottom: 4px;">${technicalScore}/5</div>
-                                <div style="font-size: 20px;">${'⭐'.repeat(technicalScore)}</div>
+                            <div style="background: rgba(255,255,255,0.06); border-radius: 12px; padding: 16px; border: 1px solid rgba(16, 185, 129, 0.18);">
+                                <div style="font-size: 13px; color: rgba(255,255,255,0.65); margin-bottom: 8px; font-weight: 700;">Compétences Techniques</div>
+                                <div style="font-size: 32px; font-weight: 800; color: #06b6d4; margin-bottom: 4px;">${technicalScore}/5</div>
+                                <div style="font-size: 20px; color: white;">${'⭐'.repeat(technicalScore)}</div>
                             </div>
-                            <div style="background: white; border-radius: 12px; padding: 16px; border: 2px solid #e5e7eb;">
-                                <div style="font-size: 13px; color: #6b7280; margin-bottom: 8px; font-weight: 600;">Compétences Comportementales</div>
-                                <div style="font-size: 32px; font-weight: 700; color: #6366F1; margin-bottom: 4px;">${behavioralScore}/5</div>
-                                <div style="font-size: 20px;">${'⭐'.repeat(behavioralScore)}</div>
+                            <div style="background: rgba(255,255,255,0.06); border-radius: 12px; padding: 16px; border: 1px solid rgba(16, 185, 129, 0.18);">
+                                <div style="font-size: 13px; color: rgba(255,255,255,0.65); margin-bottom: 8px; font-weight: 700;">Compétences Comportementales</div>
+                                <div style="font-size: 32px; font-weight: 800; color: #06b6d4; margin-bottom: 4px;">${behavioralScore}/5</div>
+                                <div style="font-size: 20px; color: white;">${'⭐'.repeat(behavioralScore)}</div>
                             </div>
-                            <div style="background: white; border-radius: 12px; padding: 16px; border: 2px solid #e5e7eb;">
-                                <div style="font-size: 13px; color: #6b7280; margin-bottom: 8px; font-weight: 600;">Performance & Productivité</div>
-                                <div style="font-size: 32px; font-weight: 700; color: #6366F1; margin-bottom: 4px;">${performanceScore}/5</div>
-                                <div style="font-size: 20px;">${'⭐'.repeat(performanceScore)}</div>
+                            <div style="background: rgba(255,255,255,0.06); border-radius: 12px; padding: 16px; border: 1px solid rgba(16, 185, 129, 0.18);">
+                                <div style="font-size: 13px; color: rgba(255,255,255,0.65); margin-bottom: 8px; font-weight: 700;">Performance & Productivité</div>
+                                <div style="font-size: 32px; font-weight: 800; color: #06b6d4; margin-bottom: 4px;">${performanceScore}/5</div>
+                                <div style="font-size: 20px; color: white;">${'⭐'.repeat(performanceScore)}</div>
                             </div>
-                            <div style="background: white; border-radius: 12px; padding: 16px; border: 2px solid #e5e7eb;">
-                                <div style="font-size: 13px; color: #6b7280; margin-bottom: 8px; font-weight: 600;">Développement & Apprentissage</div>
-                                <div style="font-size: 32px; font-weight: 700; color: #6366F1; margin-bottom: 4px;">${developmentScore}/5</div>
-                                <div style="font-size: 20px;">${'⭐'.repeat(developmentScore)}</div>
+                            <div style="background: rgba(255,255,255,0.06); border-radius: 12px; padding: 16px; border: 1px solid rgba(16, 185, 129, 0.18);">
+                                <div style="font-size: 13px; color: rgba(255,255,255,0.65); margin-bottom: 8px; font-weight: 700;">Développement & Apprentissage</div>
+                                <div style="font-size: 32px; font-weight: 800; color: #06b6d4; margin-bottom: 4px;">${developmentScore}/5</div>
+                                <div style="font-size: 20px; color: white;">${'⭐'.repeat(developmentScore)}</div>
                             </div>
                         </div>
                     </div>
                     
                     ${review.strengths ? `
-                    <div style="background: #DCFCE7; border-radius: 12px; padding: 20px; margin-bottom: 16px;">
-                        <h4 style="margin: 0 0 12px; font-size: 14px; font-weight: 700; color: #166534; display: flex; align-items: center; gap: 6px;">
+                    <div style="background: rgba(16,185,129,0.12); border-radius: 12px; padding: 20px; margin-bottom: 16px; border: 1px solid rgba(16,185,129,0.22);">
+                        <h4 style="margin: 0 0 12px; font-size: 14px; font-weight: 800; color: #6ee7b7; display: flex; align-items: center; gap: 6px;">
                             💪 Points forts
                         </h4>
-                        <p style="margin: 0; color: #166534; font-size: 14px; line-height: 1.6;">${review.strengths}</p>
+                        <p style="margin: 0; color: rgba(255,255,255,0.85); font-size: 14px; line-height: 1.6;">${review.strengths}</p>
                     </div>
                     ` : ''}
                     
                     ${review.areasForImprovement ? `
-                    <div style="background: #FEF3C7; border-radius: 12px; padding: 20px; margin-bottom: 16px;">
-                        <h4 style="margin: 0 0 12px; font-size: 14px; font-weight: 700; color: #92400E; display: flex; align-items: center; gap: 6px;">
+                    <div style="background: rgba(245,158,11,0.14); border-radius: 12px; padding: 20px; margin-bottom: 16px; border: 1px solid rgba(245,158,11,0.22);">
+                        <h4 style="margin: 0 0 12px; font-size: 14px; font-weight: 800; color: #fcd34d; display: flex; align-items: center; gap: 6px;">
                             📈 Axes d'amélioration
                         </h4>
-                        <p style="margin: 0; color: #92400E; font-size: 14px; line-height: 1.6;">${review.areasForImprovement}</p>
+                        <p style="margin: 0; color: rgba(255,255,255,0.85); font-size: 14px; line-height: 1.6;">${review.areasForImprovement}</p>
                     </div>
                     ` : ''}
                     
                     ${review.objectives ? `
-                    <div style="background: #E0E7FF; border-radius: 12px; padding: 20px; margin-bottom: 16px;">
-                        <h4 style="margin: 0 0 12px; font-size: 14px; font-weight: 700; color: #3730A3; display: flex; align-items: center; gap: 6px;">
+                    <div style="background: rgba(99,102,241,0.14); border-radius: 12px; padding: 20px; margin-bottom: 16px; border: 1px solid rgba(99,102,241,0.22);">
+                        <h4 style="margin: 0 0 12px; font-size: 14px; font-weight: 800; color: #c7d2fe; display: flex; align-items: center; gap: 6px;">
                             🎯 Objectifs pour la prochaine période
                         </h4>
-                        <p style="margin: 0; color: #3730A3; font-size: 14px; line-height: 1.6;">${review.objectives}</p>
+                        <p style="margin: 0; color: rgba(255,255,255,0.85); font-size: 14px; line-height: 1.6;">${review.objectives}</p>
                     </div>
                     ` : ''}
                     
                     ${review.comments ? `
-                    <div style="background: #f9fafb; border-radius: 12px; padding: 20px; margin-bottom: 24px; border: 2px solid #e5e7eb;">
-                        <h4 style="margin: 0 0 12px; font-size: 14px; font-weight: 700; color: #1a1a1a;">💬 Commentaires généraux</h4>
-                        <p style="margin: 0; color: #6b7280; font-size: 14px; line-height: 1.6;">${review.comments}</p>
+                    <div style="background: rgba(0,0,0,0.25); border-radius: 12px; padding: 20px; margin-bottom: 24px; border: 1px solid rgba(16, 185, 129, 0.18);">
+                        <h4 style="margin: 0 0 12px; font-size: 14px; font-weight: 800; color: rgba(255,255,255,0.92);">💬 Commentaires généraux</h4>
+                        <p style="margin: 0; color: rgba(255,255,255,0.75); font-size: 14px; line-height: 1.6;">${review.comments}</p>
                     </div>
                     ` : ''}
                     
-                    <div style="border-top: 2px solid #e5e7eb; padding-top: 16px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+                    <div style="border-top: 1px solid rgba(255,255,255,0.16); padding-top: 16px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
                         <div>
-                            <div style="font-size: 12px; color: #6b7280; margin-bottom: 2px;">Évaluateur</div>
-                            <div style="font-size: 14px; font-weight: 700; color: #1a1a1a;">${review.evaluator}</div>
+                            <div style="font-size: 12px; color: rgba(255,255,255,0.65); margin-bottom: 2px;">Évaluateur</div>
+                            <div style="font-size: 14px; font-weight: 800; color: white;">${review.evaluator}</div>
                         </div>
                         <div style="text-align: right;">
-                            <div style="font-size: 12px; color: #6b7280; margin-bottom: 2px;">Date</div>
-                            <div style="font-size: 14px; font-weight: 700; color: #1a1a1a;">${new Date(review.date).toLocaleDateString('fr-FR')}</div>
+                            <div style="font-size: 12px; color: rgba(255,255,255,0.65); margin-bottom: 2px;">Date</div>
+                            <div style="font-size: 14px; font-weight: 800; color: white;">${new Date(review.date).toLocaleDateString('fr-FR')}</div>
                         </div>
                     </div>
-                    
-                    <button onclick="this.parentElement.parentElement.remove()" style="width: 100%; padding: 14px; background: #6366F1; color: white; border: none; border-radius: 12px; font-size: 16px; font-weight: 600; cursor: pointer; transition: all 0.2s;" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 16px rgba(99,102,241,0.4)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='none'">
-                        Fermer
-                    </button>
                 </div>
             `;
             
