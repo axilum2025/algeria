@@ -655,6 +655,32 @@
             border-radius: 18px 18px 4px 18px;
         }
 
+        /* Images uploadées dans le chat : pas de "cadre" (bulle bleue) autour de la photo */
+        .message-wrapper.user.image-message .message-content {
+            background: transparent;
+            color: var(--text-primary);
+            padding: 0;
+            border-radius: 12px;
+        }
+
+        .message-wrapper.user.image-message .chat-image-caption {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 13px;
+            color: var(--text-secondary);
+            opacity: 0.9;
+            margin-top: 6px;
+            padding: 8px 10px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+        }
+
+        .message-wrapper.user.image-message img {
+            outline: none;
+        }
+
         .message-wrapper.bot .message-content {
             background: var(--bot-msg);
             color: var(--text-primary);
@@ -4435,7 +4461,7 @@ RÈGLES IMPORTANTES:
                         // Afficher l'image directement dans le message utilisateur (style ChatGPT/Gemini)
                         const chatMessages = document.getElementById('chatMessages');
                         const messageWrapper = document.createElement('div');
-                        messageWrapper.className = 'message-wrapper user';
+                        messageWrapper.className = 'message-wrapper user image-message';
                         
                         const now = new Date();
                         const time = now.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
@@ -4452,7 +4478,7 @@ RÈGLES IMPORTANTES:
                                      style="width: 100%; height: auto; border-radius: 12px; cursor: pointer; display: block; margin-bottom: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);"
                                      onclick="window.open('${base64}', '_blank')"
                                      loading="eager">
-                                <div style="display: flex; align-items: center; gap: 6px; font-size: 13px; opacity: 0.8; margin-top: 4px;">
+                                <div class="chat-image-caption">
                                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                         <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
                                         <circle cx="12" cy="13" r="4"/>
