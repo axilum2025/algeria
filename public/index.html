@@ -3304,11 +3304,152 @@
         }
 
         // State
-        let conversations = getHRData('conversations');
+        // ⚠️ Conversations ne doivent plus être persistées en base64 dans localStorage (quota).
+        // Elles sont désormais chargées depuis IndexedDB (avec migration automatique).
+        let conversations = [];
         let currentConversationId = null;
         let messageStats = JSON.parse(localStorage.getItem('messageStats') || '{"hiHistory":[],"chrHistory":[]}');
         let isRecording = false;
         let recognition = null;
+
+        // ===================================
+        // 🗄️ IndexedDB Storage (Conversations + Images)
+        // ===================================
+        const AXILUM_IDB_DB_NAME = 'axilum_db';
+        const AXILUM_IDB_DB_VERSION = 1;
+        const AXILUM_IDB_STORE_KV = 'kv';
+        const AXILUM_IDB_STORE_IMAGES = 'images';
+
+        // Object URLs temporaires (pour images générées restaurées depuis IDB)
+        const __axilumObjectUrls = new Set();
+
+        function getActiveUserKey() {
+            const u = JSON.parse(localStorage.getItem('currentUser') || 'null');
+            return (u && u.email) ? u.email : 'guest';
+        }
+
+        function makeKvId(userKey, key) {
+            return `${userKey}:${key}`;
+        }
+
+        function makeImageId(userKey) {
+            const rnd = (typeof crypto !== 'undefined' && crypto.randomUUID)
+                ? crypto.randomUUID()
+                : (Date.now() + '_' + Math.random().toString(36).slice(2));
+            return `${userKey}:img:${rnd}`;
+        }
+
+        function openAxilumDb() {
+            return new Promise((resolve, reject) => {
+                const req = indexedDB.open(AXILUM_IDB_DB_NAME, AXILUM_IDB_DB_VERSION);
+
+                req.onupgradeneeded = () => {
+                    const db = req.result;
+                    if (!db.objectStoreNames.contains(AXILUM_IDB_STORE_KV)) {
+                        db.createObjectStore(AXILUM_IDB_STORE_KV, { keyPath: 'id' });
+                    }
+                    if (!db.objectStoreNames.contains(AXILUM_IDB_STORE_IMAGES)) {
+                        const store = db.createObjectStore(AXILUM_IDB_STORE_IMAGES, { keyPath: 'id' });
+                        store.createIndex('byUserKey', 'userKey', { unique: false });
+                    }
+                };
+
+                req.onsuccess = () => resolve(req.result);
+                req.onerror = () => reject(req.error || new Error('Impossible d\'ouvrir IndexedDB'));
+            });
+        }
+
+        async function idbGetKv(userKey, key) {
+            const db = await openAxilumDb();
+            return new Promise((resolve, reject) => {
+                const tx = db.transaction(AXILUM_IDB_STORE_KV, 'readonly');
+                const store = tx.objectStore(AXILUM_IDB_STORE_KV);
+                const req = store.get(makeKvId(userKey, key));
+                req.onsuccess = () => resolve(req.result ? req.result.value : null);
+                req.onerror = () => reject(req.error);
+            });
+        }
+
+        async function idbSetKv(userKey, key, value) {
+            const db = await openAxilumDb();
+            return new Promise((resolve, reject) => {
+                const tx = db.transaction(AXILUM_IDB_STORE_KV, 'readwrite');
+                tx.oncomplete = () => resolve();
+                tx.onerror = () => reject(tx.error);
+                const store = tx.objectStore(AXILUM_IDB_STORE_KV);
+                store.put({ id: makeKvId(userKey, key), userKey, key, value, updatedAt: Date.now() });
+            });
+        }
+
+        async function idbDeleteKv(userKey, key) {
+            const db = await openAxilumDb();
+            return new Promise((resolve, reject) => {
+                const tx = db.transaction(AXILUM_IDB_STORE_KV, 'readwrite');
+                tx.oncomplete = () => resolve();
+                tx.onerror = () => reject(tx.error);
+                tx.objectStore(AXILUM_IDB_STORE_KV).delete(makeKvId(userKey, key));
+            });
+        }
+
+        async function idbPutImageBlob(userKey, blob, mimeType, name = '') {
+            const db = await openAxilumDb();
+            const imageId = makeImageId(userKey);
+            return new Promise((resolve, reject) => {
+                const tx = db.transaction(AXILUM_IDB_STORE_IMAGES, 'readwrite');
+                tx.oncomplete = () => resolve(imageId);
+                tx.onerror = () => reject(tx.error);
+                tx.objectStore(AXILUM_IDB_STORE_IMAGES).put({
+                    id: imageId,
+                    userKey,
+                    blob,
+                    mimeType: mimeType || blob.type || 'application/octet-stream',
+                    name,
+                    createdAt: Date.now()
+                });
+            });
+        }
+
+        async function idbGetImageBlob(imageId) {
+            const db = await openAxilumDb();
+            return new Promise((resolve, reject) => {
+                const tx = db.transaction(AXILUM_IDB_STORE_IMAGES, 'readonly');
+                const req = tx.objectStore(AXILUM_IDB_STORE_IMAGES).get(imageId);
+                req.onsuccess = () => resolve(req.result ? req.result.blob : null);
+                req.onerror = () => reject(req.error);
+            });
+        }
+
+        function blobToDataUrl(blob) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = () => resolve(reader.result);
+                reader.onerror = () => reject(reader.error || new Error('Conversion Blob -> base64 échouée'));
+                reader.readAsDataURL(blob);
+            });
+        }
+
+        async function dataUrlToBlob(dataUrl) {
+            const res = await fetch(dataUrl);
+            return await res.blob();
+        }
+
+        async function getImageDataUrlById(imageId) {
+            const blob = await idbGetImageBlob(imageId);
+            if (!blob) return null;
+            return await blobToDataUrl(blob);
+        }
+
+        function trackObjectUrl(url) {
+            if (url) __axilumObjectUrls.add(url);
+            return url;
+        }
+
+        function revokeAllObjectUrls() {
+            __axilumObjectUrls.forEach(u => {
+                try { URL.revokeObjectURL(u); } catch (_) {}
+            });
+            __axilumObjectUrls.clear();
+        }
         
         // ===================================
         // 🎯 SYSTÈME DE TRACKING CONTEXTUEL
@@ -3451,7 +3592,7 @@ RÈGLES IMPORTANTES:
         let pendingUser = null;
 
         // Initialize
-        document.addEventListener('DOMContentLoaded', () => {
+        document.addEventListener('DOMContentLoaded', async () => {
                         // Recherche dynamique employés
                         const employeeSearchInput = document.getElementById('employeeSearch');
                         if (employeeSearchInput) {
@@ -3502,6 +3643,7 @@ RÈGLES IMPORTANTES:
             // Lancer l'animation toutes les 30 secondes
             setInterval(animateLogo, 30000);
             
+            await initConversationStorage();
             loadConversations();
             
             // Si aucune conversation n'existe, en créer une nouvelle
@@ -3666,11 +3808,90 @@ RÈGLES IMPORTANTES:
         function clearChat() {
             const chatMessages = document.getElementById('chatMessages');
             chatMessages.innerHTML = '';
+            revokeAllObjectUrls();
             // Restore welcome screen
             const welcomeScreen = document.getElementById('welcomeScreen');
             if (welcomeScreen) {
                 welcomeScreen.style.display = 'flex';
             }
+        }
+
+        async function initConversationStorage() {
+            // Charger depuis IDB si dispo, sinon migrer depuis localStorage.
+            const userKey = getActiveUserKey();
+
+            try {
+                const existing = await idbGetKv(userKey, 'conversations');
+                if (Array.isArray(existing)) {
+                    conversations = existing;
+                    return;
+                }
+            } catch (e) {
+                console.warn('⚠️ IndexedDB indisponible, fallback localStorage:', e);
+            }
+
+            // Fallback: lire localStorage (ancien système)
+            let legacy = [];
+            try {
+                legacy = getHRData('conversations', []);
+            } catch (e) {
+                legacy = [];
+            }
+
+            // Si rien à migrer, initialiser vide
+            if (!Array.isArray(legacy) || legacy.length === 0) {
+                conversations = [];
+                try {
+                    await idbSetKv(userKey, 'conversations', conversations);
+                    // Nettoyage au cas où
+                    localStorage.removeItem(getHRStorageKey('conversations'));
+                } catch (_) {}
+                return;
+            }
+
+            // Migration: déplacer les base64 vers IDB images, remplacer par imageId
+            try {
+                showToast('🔄 Migration stockage (IndexedDB)...', 'info');
+                const migrated = await migrateLegacyConversationsToIdb(userKey, legacy);
+                conversations = migrated;
+                await idbSetKv(userKey, 'conversations', conversations);
+                // Supprimer l'ancienne clé localStorage pour éviter quota
+                try {
+                    localStorage.removeItem(getHRStorageKey('conversations'));
+                } catch (_) {}
+                showToast('✅ Migration terminée', 'success');
+            } catch (e) {
+                console.error('❌ Migration IndexedDB échouée:', e);
+                // Dernier recours: garder legacy en mémoire (sans garantie de persistance)
+                conversations = legacy;
+            }
+        }
+
+        async function migrateLegacyConversationsToIdb(userKey, legacyConversations) {
+            // Ne pas muter l'input, et garder un résultat JSON-safe.
+            const out = JSON.parse(JSON.stringify(legacyConversations));
+
+            for (const conv of out) {
+                if (!conv || !Array.isArray(conv.messages)) continue;
+
+                for (const msg of conv.messages) {
+                    if (!msg) continue;
+
+                    if (msg.imageUrl && typeof msg.imageUrl === 'string' && msg.imageUrl.startsWith('data:image/')) {
+                        // Stocker dans IDB et remplacer
+                        try {
+                            const blob = await dataUrlToBlob(msg.imageUrl);
+                            const imageId = await idbPutImageBlob(userKey, blob, blob.type, msg.user || 'image');
+                            msg.imageId = imageId;
+                            delete msg.imageUrl;
+                        } catch (e) {
+                            // Si conversion échoue, laisser imageUrl tel quel (rare)
+                            console.warn('⚠️ Migration image échouée, imageUrl conservée:', e);
+                        }
+                    }
+                }
+            }
+            return out;
         }
 
         // Function to use a suggestion
@@ -3855,8 +4076,8 @@ RÈGLES IMPORTANTES:
                     if (!convForVision || !Array.isArray(convForVision.messages)) return null;
                     for (let i = convForVision.messages.length - 1; i >= 0; i--) {
                         const msg = convForVision.messages[i];
-                        if (msg && msg.imageUrl && !msg.imageGenerated) {
-                            return { base64: msg.imageUrl, name: msg.user || 'image' };
+                        if (msg && !msg.imageGenerated && (msg.imageUrl || msg.imageId)) {
+                            return { base64: msg.imageUrl || null, imageId: msg.imageId || null, name: msg.user || 'image' };
                         }
                     }
                     return null;
@@ -3864,10 +4085,19 @@ RÈGLES IMPORTANTES:
 
                 const lastImageFromConversation = getLastUploadedImageFromConversation();
 
-                const lastImageBase64 = lastUploadedImageByConversation[currentConversationId]
+                let lastImageBase64 = lastUploadedImageByConversation[currentConversationId]
                     || (lastImageFromConversation && lastImageFromConversation.base64);
+                const lastImageId = (lastImageFromConversation && lastImageFromConversation.imageId) || null;
                 const lastImageName = lastUploadedImageNameByConversation[currentConversationId]
                     || (lastImageFromConversation && lastImageFromConversation.name);
+
+                if (!lastImageBase64 && lastImageId) {
+                    try {
+                        lastImageBase64 = await getImageDataUrlById(lastImageId);
+                    } catch (_) {
+                        lastImageBase64 = null;
+                    }
+                }
 
                 if (lastImageBase64) {
                     const selectedPlan = (localStorage.getItem('selectedPlan') || '').toUpperCase();
@@ -3919,12 +4149,12 @@ RÈGLES IMPORTANTES:
                         if (!visionResponse.ok) {
                             const errMsg = `❌ Échec analyse image (PRO): ${analysisData.error || 'Erreur inconnue'}`;
                             addMessage(errMsg, 'bot');
-                            saveMessage(message, { response: errMsg });
+                            await saveMessage(message, { response: errMsg });
                         } else {
                             const provider = analysisData.provider || 'Azure Computer Vision';
                             const analysisMessage = `${analysisData.analysis}\n\n_Analysé par ${provider}_`;
                             addMessage(analysisMessage, 'bot');
-                            saveMessage(message, { response: analysisMessage, provider });
+                            await saveMessage(message, { response: analysisMessage, provider });
                             showToast('✅ Analyse image terminée', 'success');
 
                             delete lastUploadedImageByConversation[currentConversationId];
@@ -4031,11 +4261,28 @@ RÈGLES IMPORTANTES:
                             // Sauvegarder l'image dans la conversation
                             const conv = conversations.find(c => c.id === currentConversationId);
                             if (conv) {
+                                let storedImageId = null;
+                                let storedImageUrl = imgData.imageUrl;
+
+                                if (typeof imgData.imageUrl === 'string' && imgData.imageUrl.startsWith('data:image/')) {
+                                    try {
+                                        const userKey = getActiveUserKey();
+                                        const blob = await dataUrlToBlob(imgData.imageUrl);
+                                        storedImageId = await idbPutImageBlob(userKey, blob, blob.type, imgData.prompt || 'image');
+                                        storedImageUrl = undefined;
+                                    } catch (e) {
+                                        // Fallback: conserver imageUrl
+                                        storedImageId = null;
+                                        storedImageUrl = imgData.imageUrl;
+                                    }
+                                }
+
                                 conv.messages.push({
                                     user: '',
                                     bot: `Voici l'image générée :`,
                                     timestamp: Date.now(),
-                                    imageUrl: imgData.imageUrl,
+                                    imageId: storedImageId || undefined,
+                                    imageUrl: storedImageUrl,
                                     imageGenerated: true,
                                     prompt: imgData.prompt,
                                     hiScore: 0,
@@ -4063,7 +4310,7 @@ RÈGLES IMPORTANTES:
                 updateStats(data);
                 
                 // Save conversation
-                saveMessage(message, data);
+                await saveMessage(message, data);
 
                 if (usedFreeOcr) {
                     delete lastUploadedImageByConversation[currentConversationId];
@@ -4621,6 +4868,15 @@ RÈGLES IMPORTANTES:
                     reader.onload = async (e) => {
                         const base64 = e.target.result;
 
+                        // Persister l'image en Blob dans IndexedDB (évite base64 dans conversations)
+                        let persistedImageId = null;
+                        try {
+                            const userKey = getActiveUserKey();
+                            persistedImageId = await idbPutImageBlob(userKey, file, file.type, file.name);
+                        } catch (idbErr) {
+                            console.warn('⚠️ Sauvegarde image IndexedDB échouée:', idbErr);
+                        }
+
                         // Mémoriser la dernière image pour permettre les questions Vision
                         lastUploadedImageByConversation[currentConversationId] = base64;
                         lastUploadedImageNameByConversation[currentConversationId] = file.name;
@@ -4689,7 +4945,8 @@ RÈGLES IMPORTANTES:
                                             user: `📸 ${file.name}`,
                                             bot: analysisMessage,
                                             timestamp: Date.now(),
-                                            imageUrl: base64,
+                                            imageId: persistedImageId || undefined,
+                                            imageUrl: persistedImageId ? undefined : base64,
                                             hiScore: 0,
                                             chrScore: 0
                                         });
@@ -4714,7 +4971,8 @@ RÈGLES IMPORTANTES:
                                     user: `📸 ${file.name}`,
                                     bot: "Image reçue (mode FREE)",
                                     timestamp: Date.now(),
-                                    imageUrl: base64,
+                                    imageId: persistedImageId || undefined,
+                                    imageUrl: persistedImageId ? undefined : base64,
                                     hiScore: 0,
                                     chrScore: 0
                                 });
@@ -4801,7 +5059,17 @@ RÈGLES IMPORTANTES:
         }
 
         function saveConversations() {
-            setHRData('conversations', conversations);
+            const userKey = getActiveUserKey();
+            // Persister en IndexedDB (ne bloque pas l'UI)
+            idbSetKv(userKey, 'conversations', conversations)
+                .catch(e => {
+                    console.warn('⚠️ Sauvegarde IndexedDB échouée, fallback localStorage:', e);
+                    try {
+                        setHRData('conversations', conversations);
+                    } catch (_) {
+                        // Ignorer
+                    }
+                });
         }
 
         // 📅 SYSTÈME TO DO - Gestion des tâches et événements
@@ -5404,7 +5672,7 @@ RÈGLES IMPORTANTES:
             return { handled: false };
         }
 
-    function saveMessage(userMsg, botData) {
+    async function saveMessage(userMsg, botData) {
         // S'assurer qu'une conversation existe
         if (!currentConversationId) {
             console.error('Aucune conversation active');
@@ -5436,19 +5704,36 @@ RÈGLES IMPORTANTES:
             
             // Sauvegarder les données d'image si présentes
             if (botData.imageUrl && botData.imageGenerated) {
-                messageData.imageUrl = botData.imageUrl;
                 messageData.imageGenerated = true;
                 messageData.prompt = botData.prompt;
+
+                // Éviter de persister de gros base64 dans la conversation.
+                // Si l'image générée est un dataURL, on la stocke en Blob dans IDB.
+                if (typeof botData.imageUrl === 'string' && botData.imageUrl.startsWith('data:image/')) {
+                    try {
+                        const userKey = getActiveUserKey();
+                        const blob = await dataUrlToBlob(botData.imageUrl);
+                        const imageId = await idbPutImageBlob(userKey, blob, blob.type, botData.prompt || 'image');
+                        messageData.imageId = imageId;
+                    } catch (e) {
+                        // Fallback: conserver l'URL (si IDB échoue)
+                        messageData.imageUrl = botData.imageUrl;
+                    }
+                } else {
+                    messageData.imageUrl = botData.imageUrl;
+                }
             }
             
-            conv.messages.push(messageData);                // Update title with first message
-                if (conv.messages.length === 1) {
-                    conv.title = userMsg.substring(0, 30) + (userMsg.length > 30 ? '...' : '');
-                }
+            conv.messages.push(messageData);
 
-                saveConversations();
-                loadConversations();
+            // Update title with first message
+            if (conv.messages.length === 1) {
+                conv.title = userMsg.substring(0, 30) + (userMsg.length > 30 ? '...' : '');
             }
+
+            saveConversations();
+            loadConversations();
+        }
         }
 
         function getHIStatusDot(conversation) {
@@ -5574,7 +5859,7 @@ RÈGLES IMPORTANTES:
             }
         }
 
-        function loadConversation(id) {
+        async function loadConversation(id) {
             currentConversationId = id;
             const conv = conversations.find(c => c.id === id);
             if (!conv) return;
@@ -5589,7 +5874,7 @@ RÈGLES IMPORTANTES:
                 }
             }
             
-            conv.messages.forEach(msg => {
+            for (const msg of (conv.messages || [])) {
                 addMessage(msg.user, 'user');
                 
                 // Restaurer toutes les données (image et métriques)
@@ -5607,9 +5892,20 @@ RÈGLES IMPORTANTES:
                     imageGenerated: msg.imageGenerated,
                     prompt: msg.prompt
                 };
+
+                // Restaurer une image générée stockée via imageId
+                if (msg.imageGenerated && !botData.imageUrl && msg.imageId) {
+                    try {
+                        const blob = await idbGetImageBlob(msg.imageId);
+                        if (blob) {
+                            const objUrl = trackObjectUrl(URL.createObjectURL(blob));
+                            botData.imageUrl = objUrl;
+                        }
+                    } catch (_) {}
+                }
                 
                 addMessage(msg.bot, 'bot', botData);
-            });
+            }
 
             loadConversations();
             toggleSidebar();
