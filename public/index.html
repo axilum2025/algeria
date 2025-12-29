@@ -14248,6 +14248,16 @@ Réponds de manière professionnelle, data-driven et orientée résultats.
                 selectedContent.style.display = 'block';
                 selectedContent.style.animation = 'slideIn 0.3s ease';
             }
+
+            // Revenir en haut à l'ouverture de chaque onglet (desktop/mobile)
+            const contentArea = document.querySelector('#hrManagementOverlay .hr-content-area');
+            if (contentArea) {
+                contentArea.scrollTop = 0;
+            }
+            const overlay = document.getElementById('hrManagementOverlay');
+            if (overlay) {
+                overlay.scrollTop = 0;
+            }
             
             // Activate selected tab
             const selectedTab = document.getElementById(`hrTab${tabName.charAt(0).toUpperCase() + tabName.slice(1)}`);
