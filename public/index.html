@@ -3690,6 +3690,55 @@ RÈGLES IMPORTANTES:
         const lastUploadedImageByConversation = {};
         const lastUploadedImageNameByConversation = {};
 
+        // 📄 OCR local (mode FREE): cache par conversation
+        const lastUploadedOcrTextByConversation = {};
+        const lastUploadedOcrImageSigByConversation = {};
+
+        let __tesseractLoadPromise = null;
+        function loadTesseract() {
+            if (window.Tesseract) return Promise.resolve(window.Tesseract);
+            if (__tesseractLoadPromise) return __tesseractLoadPromise;
+
+            __tesseractLoadPromise = new Promise((resolve, reject) => {
+                const script = document.createElement('script');
+                script.src = 'https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js';
+                script.async = true;
+                script.onload = () => resolve(window.Tesseract);
+                script.onerror = () => reject(new Error('Impossible de charger le module OCR (tesseract.js)'));
+                document.head.appendChild(script);
+            });
+
+            return __tesseractLoadPromise;
+        }
+
+        async function extractTextFromImageBase64(base64) {
+            const Tesseract = await loadTesseract();
+            try {
+                const result = await Tesseract.recognize(base64, 'fra', {
+                    langPath: 'https://tessdata.projectnaptha.com/4.0.0',
+                    logger: () => {}
+                });
+                return (result && result.data && result.data.text ? result.data.text : '').trim();
+            } catch (e) {
+                const result = await Tesseract.recognize(base64, 'eng', {
+                    langPath: 'https://tessdata.projectnaptha.com/4.0.0',
+                    logger: () => {}
+                });
+                return (result && result.data && result.data.text ? result.data.text : '').trim();
+            }
+        }
+
+        function appendVisionProPromo(rawText) {
+            const promo = "\n\n💡 Pour une analyse Pro de l'image (objets, scène, détails), je vous propose d'utiliser l'outil Vision Pro.";
+            if (!rawText) return promo.trim();
+
+            const sepIndex = rawText.indexOf('\n---');
+            if (sepIndex !== -1) {
+                return rawText.slice(0, sepIndex) + promo + rawText.slice(sepIndex);
+            }
+            return rawText + promo;
+        }
+
         function switchToPlan(plan) {
             currentPlan = plan;
             localStorage.setItem('axilum_plan', plan);
@@ -3796,6 +3845,9 @@ RÈGLES IMPORTANTES:
                 const requestStart = Date.now();
                 const endpoint = getEndpoint();
 
+                let usedFreeOcr = false;
+                let messageForBackend = getApplicationKnowledge() + AxilumContext.getEnrichedContext() + '\n\nUtilisateur: ' + message;
+
                 // 🖼️ Si une image a été uploadée dans cette conversation, et que l'utilisateur pose une question,
                 // on route la requête vers l'analyse d'image (Vision) pour que l'IA "voie" réellement la photo.
                 const convForVision = conversations.find(c => c.id === currentConversationId);
@@ -3810,61 +3862,80 @@ RÈGLES IMPORTANTES:
                     return null;
                 };
 
+                const lastImageFromConversation = getLastUploadedImageFromConversation();
+
                 const lastImageBase64 = lastUploadedImageByConversation[currentConversationId]
-                    || (getLastUploadedImageFromConversation() && getLastUploadedImageFromConversation().base64);
+                    || (lastImageFromConversation && lastImageFromConversation.base64);
                 const lastImageName = lastUploadedImageNameByConversation[currentConversationId]
-                    || (getLastUploadedImageFromConversation() && getLastUploadedImageFromConversation().name);
+                    || (lastImageFromConversation && lastImageFromConversation.name);
 
                 if (lastImageBase64) {
                     const selectedPlan = (localStorage.getItem('selectedPlan') || '').toUpperCase();
                     const isPro = currentPlan === 'pro' || selectedPlan === 'PRO';
 
                     if (!isPro) {
+                        usedFreeOcr = true;
+                        try {
+                            const sig = String(lastImageBase64.length);
+                            let ocrText = '';
+
+                            if (lastUploadedOcrTextByConversation[currentConversationId] && lastUploadedOcrImageSigByConversation[currentConversationId] === sig) {
+                                ocrText = lastUploadedOcrTextByConversation[currentConversationId];
+                            } else {
+                                showToast('📄 OCR local en cours (mode FREE)...', 'info');
+                                ocrText = await extractTextFromImageBase64(lastImageBase64);
+                                lastUploadedOcrTextByConversation[currentConversationId] = ocrText;
+                                lastUploadedOcrImageSigByConversation[currentConversationId] = sig;
+                            }
+
+                            const cleanName = (lastImageName || 'photo').replace(/^📸\s*/, '');
+                            const ocrPreview = ocrText && ocrText.length > 0 ? ocrText : "(Aucun texte lisible détecté dans l'image)";
+                            messageForBackend = getApplicationKnowledge() + AxilumContext.getEnrichedContext()
+                                + '\n\nContexte image (OCR local - ' + cleanName + '):\n'
+                                + ocrPreview
+                                + '\n\nQuestion utilisateur: ' + message;
+                        } catch (ocrErr) {
+                            messageForBackend = getApplicationKnowledge() + AxilumContext.getEnrichedContext()
+                                + "\n\n(Utilisateur a uploadé une image, mais l'OCR local a échoué: " + ocrErr.message + ')\n\nUtilisateur: ' + message;
+                        }
+                    }
+
+                    // Mode PRO: Vision (inchangé)
+                    if (isPro) {
+                        showToast(`🔍 Analyse de l'image (${(lastImageName || 'photo').replace(/^📸\s*/, '')})...`, 'info');
+                        const analyzeEndpoint = '/api/analyze-image-pro';
+                        const visionResponse = await fetch(analyzeEndpoint, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                imageBase64: lastImageBase64,
+                                question: message
+                            })
+                        });
+
+                        const analysisData = await visionResponse.json().catch(() => ({ analysis: 'Réponse non formatée.' }));
                         hideTyping();
-                        const msg = "📌 Pour que je puisse analyser une photo et répondre à vos questions, passez en mode PRO, puis reposez la question.";
-                        addMessage(msg, 'bot');
-                        saveMessage(message, { response: msg });
+
+                        if (!visionResponse.ok) {
+                            const errMsg = `❌ Échec analyse image (PRO): ${analysisData.error || 'Erreur inconnue'}`;
+                            addMessage(errMsg, 'bot');
+                            saveMessage(message, { response: errMsg });
+                        } else {
+                            const provider = analysisData.provider || 'Azure Computer Vision';
+                            const analysisMessage = `${analysisData.analysis}\n\n_Analysé par ${provider}_`;
+                            addMessage(analysisMessage, 'bot');
+                            saveMessage(message, { response: analysisMessage, provider });
+                            showToast('✅ Analyse image terminée', 'success');
+
+                            delete lastUploadedImageByConversation[currentConversationId];
+                            delete lastUploadedImageNameByConversation[currentConversationId];
+                        }
+
                         sendBtn.disabled = false;
                         input.disabled = false;
                         input.focus();
                         return;
                     }
-
-                    showToast(`🔍 Analyse de l'image (${(lastImageName || 'photo').replace(/^📸\s*/, '')})...`, 'info');
-                    const analyzeEndpoint = '/api/analyze-image-pro';
-                    const visionResponse = await fetch(analyzeEndpoint, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            imageBase64: lastImageBase64,
-                            question: message
-                        })
-                    });
-
-                    const analysisData = await visionResponse.json().catch(() => ({ analysis: 'Réponse non formatée.' }));
-                    hideTyping();
-
-                    if (!visionResponse.ok) {
-                        const errMsg = `❌ Échec analyse image (PRO): ${analysisData.error || 'Erreur inconnue'}`;
-                        addMessage(errMsg, 'bot');
-                        saveMessage(message, { response: errMsg });
-                    } else {
-                        const provider = analysisData.provider || 'Azure Computer Vision';
-                        const analysisMessage = `${analysisData.analysis}\n\n_Analysé par ${provider}_`;
-                        addMessage(analysisMessage, 'bot');
-                        saveMessage(message, { response: analysisMessage, provider });
-                        showToast('✅ Analyse image terminée', 'success');
-
-                        // L'image a été consommée pour cette question: on la garde dans l'historique, mais
-                        // on évite de la réutiliser systématiquement sur les prochains messages.
-                        delete lastUploadedImageByConversation[currentConversationId];
-                        delete lastUploadedImageNameByConversation[currentConversationId];
-                    }
-
-                    sendBtn.disabled = false;
-                    input.disabled = false;
-                    input.focus();
-                    return;
                 }
                 
                 // 🧪 Déterminer si on utilise V2 via le paramètre
@@ -3882,7 +3953,7 @@ RÈGLES IMPORTANTES:
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ 
-                        message: getApplicationKnowledge() + AxilumContext.getEnrichedContext() + '\n\nUtilisateur: ' + message,  // 🎯 Connaissance app + contexte + message
+                        message: messageForBackend,  // 🎯 Connaissance app + contexte + message (ou OCR)
                         conversationId: currentConversationId,
                         history: history,
                         useV2: useV2  // ✨ Paramètre pour activer V2
@@ -3896,6 +3967,10 @@ RÈGLES IMPORTANTES:
                 const data = await response.json();
                 const requestTime = Date.now() - requestStart;
                 hideTyping();
+
+                if (usedFreeOcr) {
+                    data.response = appendVisionProPromo(data.response);
+                }
                 
                 // 🚀 PERFORMANCE : Afficher le temps de réponse
                 const isCached = response.headers.get('X-Cache') === 'HIT';
@@ -3989,6 +4064,13 @@ RÈGLES IMPORTANTES:
                 
                 // Save conversation
                 saveMessage(message, data);
+
+                if (usedFreeOcr) {
+                    delete lastUploadedImageByConversation[currentConversationId];
+                    delete lastUploadedImageNameByConversation[currentConversationId];
+                    delete lastUploadedOcrTextByConversation[currentConversationId];
+                    delete lastUploadedOcrImageSigByConversation[currentConversationId];
+                }
 
             } catch (error) {
                 hideTyping();
@@ -4542,6 +4624,10 @@ RÈGLES IMPORTANTES:
                         // Mémoriser la dernière image pour permettre les questions Vision
                         lastUploadedImageByConversation[currentConversationId] = base64;
                         lastUploadedImageNameByConversation[currentConversationId] = file.name;
+
+                        // Réinitialiser le cache OCR pour cette nouvelle image
+                        delete lastUploadedOcrTextByConversation[currentConversationId];
+                        delete lastUploadedOcrImageSigByConversation[currentConversationId];
                         
                         // Afficher l'image directement dans le message utilisateur (style ChatGPT/Gemini)
                         const chatMessages = document.getElementById('chatMessages');
