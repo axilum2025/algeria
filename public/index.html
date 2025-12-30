@@ -949,36 +949,42 @@
         /* User Profile Menu */
         .user-menu {
             position: fixed;
-            top: 70px;
-            right: 20px;
-            width: 280px;
+            top: 50%;
+            left: 50%;
+            right: auto;
+            width: 320px;
             background: var(--bg-primary);
             border: 1px solid var(--border-color);
             border-radius: 12px;
             box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
             opacity: 0;
-            transform: translateY(-10px);
+            transform: translate(-50%, calc(-50% - 10px));
             pointer-events: none;
             transition: all 0.2s ease;
             z-index: 12000;
             display: none;
         }
 
-        /* Mobile: éviter un menu “hors écran” (panneau plein large) */
+        .user-menu.show {
+            opacity: 1;
+            transform: translate(-50%, -50%);
+            pointer-events: all;
+            display: block;
+        }
+
+        /* Mobile: panneau plein large en haut */
         @media (max-width: 768px) {
             .user-menu {
+                top: 72px;
                 left: 12px;
                 right: 12px;
                 width: auto;
-                top: 72px;
+                transform: translateY(-10px);
             }
-        }
 
-        .user-menu.show {
-            opacity: 1;
-            transform: translateY(0);
-            pointer-events: all;
-            display: block;
+            .user-menu.show {
+                transform: translateY(0);
+            }
         }
 
         .user-menu-header {
