@@ -3448,9 +3448,6 @@
             // Dev
             if (t === 'dev' || t === 'agent-dev' || t === 'developer') return 'agent-dev';
 
-            // Management (suite)
-            if (t === 'management' || t === 'ai-management' || t === 'suite') return 'ai-management';
-
             // Excel
             if (t === 'xcel' || t === 'excel' || t === 'excel-expert' || t === 'excel-ai' || t === 'excel-ai-expert') return 'excel-expert';
 
@@ -3484,12 +3481,11 @@
         // ===================================
         const AXILUM_AGENT_CHOICES = [
             { label: 'Axilum Ai', arg: 'axilum', hint: '/agent axilum' },
-            { label: 'Agent dev', arg: 'dev', hint: '/agent dev' },
-            { label: 'Agent management', arg: 'management', hint: '/agent management' },
-            { label: 'Agent xcel', arg: 'xcel', hint: '/agent xcel' },
+            { label: 'Agent Dev', arg: 'dev', hint: '/agent dev' },
+            { label: 'Agent Xcel', arg: 'xcel', hint: '/agent xcel' },
             { label: 'Agent ToDo', arg: 'todo', hint: '/agent todo' },
             { label: 'Agent RH', arg: 'rh', hint: '/agent rh' },
-            { label: 'Agent mark', arg: 'mark', hint: '/agent mark' },
+            { label: 'Agent Mark', arg: 'mark', hint: '/agent mark' },
             { label: 'Agent Web Search', arg: 'web', hint: '/agent web' },
             { label: 'Agent Alex', arg: 'alex', hint: '/agent alex' },
             { label: 'Agent Tony', arg: 'tony', hint: '/agent tony' }
@@ -4582,7 +4578,7 @@ RÈGLES IMPORTANTES:
             if (!message) return;
 
             // 🔁 Commandes d'agent (chat principal)
-            // Exemples: /agent dev | /agent axilum | /agent management | /agent help
+            // Exemples: /agent dev | /agent axilum | /agent help
             if (/^\/agent\b/i.test(message)) {
                 const arg = message.replace(/^\/agent\b/i, '').trim();
 
@@ -4595,12 +4591,11 @@ RÈGLES IMPORTANTES:
                     const help = [
                         '🔁 Changement d\'agent disponible :',
                         '- `/agent axilum` : Axilum Ai',
-                        '- `/agent dev` : Agent dev',
-                        '- `/agent management` : Agent management',
-                        '- `/agent xcel` : Agent xcel',
+                        '- `/agent dev` : Agent Dev',
+                        '- `/agent xcel` : Agent Xcel',
                         '- `/agent todo` : Agent ToDo',
                         '- `/agent rh` : Agent RH',
-                        '- `/agent mark` : Agent mark',
+                        '- `/agent mark` : Agent Mark',
                         '- `/agent web` : Agent Web Search',
                         '- `/agent alex` : Agent Alex',
                         '- `/agent tony` : Agent Tony',
@@ -4614,17 +4609,15 @@ RÈGLES IMPORTANTES:
 
                 const chosen = setChatType(arg);
                 const ack = chosen === 'agent-dev'
-                    ? '✅ Mode **Agent dev** activé. Posez votre question de développement.'
-                    : chosen === 'ai-management'
-                        ? '✅ Mode **Agent management** activé.'
-                        : chosen === 'excel-expert'
-                            ? '✅ Mode **Agent xcel** activé. Posez votre question Excel.'
+                    ? '✅ Mode **Agent Dev** activé. Posez votre question de développement.'
+                    : chosen === 'excel-expert'
+                        ? '✅ Mode **Agent Xcel** activé. Posez votre question Excel.'
                             : chosen === 'agent-todo'
                                 ? '✅ Mode **Agent ToDo** activé. Décrivez vos tâches/objectif.'
                                 : chosen === 'hr-management'
                                     ? '✅ Mode **Agent RH** activé.'
                                     : chosen === 'marketing-agent'
-                                        ? '✅ Mode **Agent mark** activé.'
+                                        ? '✅ Mode **Agent Mark** activé.'
                                         : chosen === 'web-search'
                                             ? '✅ Mode **Agent Web Search** activé.'
                                             : chosen === 'agent-alex'
@@ -25738,7 +25731,7 @@ Réponds UNIQUEMENT dans ce format JSON:
             const buttonsHTML = parts.length > 1 ? '<div style="margin-top: 12px;' + parts[1] : '';
             
             msgDiv.innerHTML = `
-                <div style="color: var(--text-secondary); font-size: 9px !important; font-weight: 600; margin-bottom: 3px;">${isBot ? 'Agent management' : 'Vous'}</div>
+                <div style="color: var(--text-secondary); font-size: 9px !important; font-weight: 600; margin-bottom: 3px;">${isBot ? 'Agent Xcel' : 'Vous'}</div>
                 <div style="color: var(--text-primary); font-size: 10px !important; line-height: 1.5; white-space: pre-line;">${mainText}</div>
                 ${buttonsHTML}
             `;
