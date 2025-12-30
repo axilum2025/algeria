@@ -1018,6 +1018,10 @@
         .sidebar-section h3 { color: var(--text-primary); }
 
         /* User Profile Menu */
+        .user-menu-backdrop {
+            display: none;
+        }
+
         .user-menu {
             position: fixed;
             top: 50%;
@@ -1048,6 +1052,21 @@
 
         /* Mobile: panneau plein large en haut */
         @media (max-width: 768px) {
+            .user-menu-backdrop {
+                position: fixed;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                background: rgba(0, 0, 0, 0.45);
+                z-index: 2147483646;
+                display: none;
+            }
+
+            .user-menu-backdrop.show {
+                display: block;
+            }
+
             .user-menu {
                 position: fixed !important;
                 top: 72px !important;
@@ -3083,6 +3102,7 @@
     <input type="file" id="profilePhotoInput" accept="image/*" style="display: none;" onchange="handleProfilePhotoUpload(event)">
     
     <!-- User Menu (Profil utilisateur) -->
+    <div class="user-menu-backdrop" id="userMenuBackdrop" onclick="closeUserMenu(event); return false;"></div>
     <div class="user-menu" id="userMenu">
         <div class="user-menu-header">
             <button class="user-menu-close" type="button" onclick="closeUserMenu(event); return false;" aria-label="Fermer">×</button>
@@ -4235,6 +4255,13 @@ RÈGLES IMPORTANTES:
             document.addEventListener('click', (e) => {
                 const menu = document.getElementById('userMenu');
                 const accountBtn = document.getElementById('accountBtn');
+                const backdrop = document.getElementById('userMenuBackdrop');
+
+                // Mobile: le backdrop gère la fermeture (évite fermeture immédiate / comportements bizarres)
+                try {
+                    const isMobile = window.matchMedia && window.matchMedia('(max-width: 768px)').matches;
+                    if (isMobile && backdrop && backdrop.classList.contains('show')) return;
+                } catch (_) {}
                 
                 if (menu && accountBtn && !menu.contains(e.target) && !accountBtn.contains(e.target)) {
                     menu.classList.remove('show');
@@ -27594,6 +27621,13 @@ Réponds UNIQUEMENT dans ce format JSON:
     </script>
     
     <!-- Forgot Password Functions -->
+    <script src="forgot-password-functions.js"></script>
+    
+    <!-- jsPDF Library for PDF generation -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+</body>
+</html>
     <script src="forgot-password-functions.js"></script>
     
     <!-- jsPDF Library for PDF generation -->
