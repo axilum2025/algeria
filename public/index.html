@@ -4070,6 +4070,9 @@ RÈGLES IMPORTANTES:
         const lastUploadedOcrTextByConversation = {};
         const lastUploadedOcrImageSigByConversation = {};
 
+        // 💡 Promo Vision Pro (mode FREE): ne l'afficher qu'une seule fois par conversation
+        const visionProPromoShownByConversation = {};
+
         // 🖼️ Vision PRO: cache d'analyse par conversation (évite de re-lancer Azure à chaque message)
         const lastUploadedVisionTextByConversation = {};
         const lastUploadedVisionImageSigByConversation = {};
@@ -4382,7 +4385,10 @@ RÈGLES IMPORTANTES:
                 hideTyping();
 
                 if (usedFreeOcr) {
-                    data.response = appendVisionProPromo(data.response);
+                    if (!visionProPromoShownByConversation[currentConversationId]) {
+                        data.response = appendVisionProPromo(data.response);
+                        visionProPromoShownByConversation[currentConversationId] = true;
+                    }
                 }
                 
                 // 🚀 PERFORMANCE : Afficher le temps de réponse
@@ -5076,6 +5082,7 @@ RÈGLES IMPORTANTES:
                         // Réinitialiser le cache OCR pour cette nouvelle image
                         delete lastUploadedOcrTextByConversation[currentConversationId];
                         delete lastUploadedOcrImageSigByConversation[currentConversationId];
+                        delete visionProPromoShownByConversation[currentConversationId];
 
                         // Upload serveur (si connecté) pour cross-device
                         let remoteImageId = null;
