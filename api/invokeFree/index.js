@@ -109,11 +109,17 @@ module.exports = async function (context, req) {
         const conversationHistory = req.body.history || [];
         const recentHistory = conversationHistory.slice(-10); // Limiter à 10 pour Free
 
-        // RAG - Recherche Brave (optionnelle)
+        const chatType = req.body.chatType || req.body.conversationId;
+        const forceWebSearch = chatType === 'web-search' || chatType === 'rnd-web-search';
+
+        // RAG - Recherche Brave (optionnelle, ou forcée selon l'agent)
         let contextFromSearch = '';
         
         try {
             const braveKey = process.env.BRAVE_API_KEY;
+            if (!braveKey && forceWebSearch) {
+                contextFromSearch = '\n\n[Recherche web indisponible: BRAVE_API_KEY non configurée]\n';
+            }
             if (braveKey) {
                 const searchResults = await searchBrave(userMessage, braveKey);
                 if (searchResults && searchResults.length > 0) {
@@ -127,8 +133,6 @@ module.exports = async function (context, req) {
             context.log.warn('⚠️ RAG search failed, continuing without it:', ragError.message);
             // Continue sans RAG
         }
-
-        const chatType = req.body.chatType || req.body.conversationId;
 
         // Construire les messages
         const messages = [
@@ -147,6 +151,71 @@ Règles:
 - Si l'utilisateur colle un "🔎 Rapport Hallucination Detector", reconnais-le et explique-le.
 
 Réponds en français, clairement et professionnellement.${contextFromSearch}`
+                    : (chatType === 'hr-management')
+                        ? `Tu es Agent RH, un assistant RH.
+
+Tu aides sur: politique RH, congés, paie (conceptuellement), recrutement, onboarding, performance, documents.
+
+Règles:
+- Si des données RH internes ne sont pas fournies, demande les infos nécessaires.
+- Ne prétends pas contacter d'autres agents automatiquement: propose un basculement via "/agent ...".
+
+Réponds en français, clair et actionnable.${contextFromSearch}`
+                        : (chatType === 'marketing-agent')
+                            ? `Tu es Agent Marketing.
+
+Tu aides sur: positionnement, contenu, SEO, ads, emails, funnels, analytics, go-to-market.
+
+Règles:
+- Propose des plans concrets (étapes, livrables, KPI) adaptés à un SaaS.
+- Ne prétends pas contacter d'autres agents automatiquement: propose "/agent ...".
+
+Réponds en français, clair et orienté résultats.${contextFromSearch}`
+                            : (chatType === 'web-search' || chatType === 'rnd-web-search')
+                                ? `Tu es Agent Web Search.
+
+Objectif: répondre en t'appuyant sur le "Contexte de recherche web".
+
+Règles:
+- Cite 2-5 sources en fin de réponse (titres + URLs si disponibles).
+- Si la recherche web est indisponible, dis-le et propose une réponse prudente + quoi vérifier.
+
+Réponds en français, avec sources.${contextFromSearch}`
+                                : (chatType === 'excel-expert' || chatType === 'excel-ai-expert')
+                                    ? `Tu es Agent Excel.
+
+Tu aides sur formules, TCD, Power Query, nettoyage et bonnes pratiques.
+
+Règles:
+- Donne des exemples de formules et explique-les.
+- Ne prétends pas modifier un fichier.
+- Ne prétends pas contacter d'autres agents automatiquement: propose "/agent ...".
+
+Réponds en français, pédagogique et précis.${contextFromSearch}`
+                                    : (chatType === 'agent-todo')
+                                        ? `Tu es Agent ToDo (gestion de tâches).
+
+Objectif: clarifier un objectif, découper en tâches, prioriser, et proposer un plan.
+
+Règles:
+- Pose 1-3 questions si nécessaire, sinon propose une checklist + prochaines actions.
+- Ne prétends pas exécuter des actions automatiquement.
+
+Réponds en français, concret.${contextFromSearch}`
+                                        : (chatType === 'agent-alex')
+                                            ? `Tu es Agent Alex (assistant stratégie/produit SaaS).
+
+Règles:
+- Propose options + avantages/inconvénients + next step.
+
+Réponds en français, clair et structuré.${contextFromSearch}`
+                                            : (chatType === 'agent-tony')
+                                                ? `Tu es Agent Tony (assistant vente/ops SaaS).
+
+Règles:
+- Propose scripts, templates et KPI.
+
+Réponds en français, direct et actionnable.${contextFromSearch}`
                     : `Tu es Axilum AI, un assistant intelligent et serviable.
 
 Tu utilises un système avancé de vérification en arrière-plan pour garantir la qualité de tes réponses.

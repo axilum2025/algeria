@@ -6,6 +6,34 @@ const { buildContextForFunctions, buildCompactSystemPrompt } = require('../utils
 const { detectFunctions, orchestrateFunctions, summarizeResults } = require('../utils/functionRouter');
 const { callGroqWithRateLimit, globalRateLimiter } = require('../utils/rateLimiter');
 
+// Fonction RAG - Recherche Brave (simple)
+async function searchBrave(query, apiKey) {
+    if (!apiKey) return null;
+
+    try {
+        const response = await fetch(`https://api.search.brave.com/res/v1/web/search?q=${encodeURIComponent(query)}&count=3`, {
+            method: 'GET',
+            headers: {
+                'Accept': 'application/json',
+                'X-Subscription-Token': apiKey
+            }
+        });
+
+        if (!response.ok) return null;
+
+        const data = await response.json();
+        if (!data.web?.results) return null;
+
+        return data.web.results.slice(0, 3).map(r => ({
+            title: r.title,
+            description: r.description,
+            url: r.url
+        }));
+    } catch (_) {
+        return null;
+    }
+}
+
 module.exports = async function (context, req) {
     context.log('💎 PRO PLAN - Architecture évolutive');
 
@@ -46,6 +74,25 @@ module.exports = async function (context, req) {
 
         const conversationHistory = req.body.history || [];
         const chatType = req.body.chatType || req.body.conversationId;
+
+        // RAG - Recherche Brave (optionnelle, ou forcée selon l'agent)
+        let contextFromSearch = '';
+        const forceWebSearch = chatType === 'web-search' || chatType === 'rnd-web-search';
+        try {
+            const braveKey = process.env.APPSETTING_BRAVE_API_KEY || process.env.BRAVE_API_KEY;
+            if (!braveKey && forceWebSearch) {
+                contextFromSearch = '\n\n[Recherche web indisponible: BRAVE_API_KEY non configurée]\n';
+            }
+            if (braveKey) {
+                const searchResults = await searchBrave(userMessage, braveKey);
+                if (searchResults && searchResults.length > 0) {
+                    contextFromSearch = '\n\nContexte de recherche web (utilise ces informations si pertinentes) :\n';
+                    searchResults.forEach((r, i) => {
+                        contextFromSearch += `${i+1}. ${r.title}: ${r.description} [${r.url}]\n`;
+                    });
+                }
+            }
+        } catch (_) {}
 
         // 1. 🎯 DÉTECTION DES FONCTIONS NÉCESSAIRES
         const neededFunctions = detectFunctions(userMessage);
@@ -174,8 +221,62 @@ Règles:
 - Si l'utilisateur colle un "🔎 Rapport Hallucination Detector", reconnais-le et explique-le.
 
 Réponds en français, clairement et professionnellement.`;
+            } else if (chatType === 'hr-management') {
+                systemPrompt = `Tu es Agent RH, un assistant RH.
+
+Tu aides sur: politique RH, congés, paie (conceptuellement), recrutement, onboarding, performance, documents.
+
+Règles:
+- Si des données RH internes ne sont pas fournies, demande les infos nécessaires.
+- Ne prétends pas contacter d'autres agents automatiquement: propose "/agent ...".
+
+Réponds en français, clair et actionnable.`;
+            } else if (chatType === 'marketing-agent') {
+                systemPrompt = `Tu es Agent Marketing.
+
+Tu aides sur: positionnement, contenu, SEO, ads, emails, funnels, analytics, go-to-market.
+
+Règles:
+- Propose des plans concrets (étapes, livrables, KPI) adaptés à un SaaS.
+- Ne prétends pas contacter d'autres agents automatiquement: propose "/agent ...".
+
+Réponds en français, clair et orienté résultats.`;
+            } else if (chatType === 'web-search' || chatType === 'rnd-web-search') {
+                systemPrompt = `Tu es Agent Web Search.
+
+Objectif: répondre en te basant sur la recherche web fournie.
+
+Règles:
+- Cite 2-5 sources en fin de réponse.
+- Si la recherche web est indisponible, dis-le et propose une réponse prudente + quoi vérifier.
+
+Réponds en français, avec sources.${contextFromSearch}`;
+            } else if (chatType === 'agent-todo') {
+                systemPrompt = `Tu es Agent ToDo (gestion de tâches).
+
+Objectif: clarifier un objectif, découper en tâches, prioriser, et proposer un plan.
+
+Règles:
+- Pose 1-3 questions si nécessaire, sinon propose une checklist + prochaines actions.
+- Ne prétends pas exécuter des actions automatiquement.
+
+Réponds en français, concret.`;
+            } else if (chatType === 'agent-alex') {
+                systemPrompt = `Tu es Agent Alex (assistant stratégie/produit SaaS).
+
+Règles:
+- Propose options + avantages/inconvénients + next step.
+
+Réponds en français, clair et structuré.`;
+            } else if (chatType === 'agent-tony') {
+                systemPrompt = `Tu es Agent Tony (assistant vente/ops SaaS).
+
+Règles:
+- Propose scripts, templates et KPI.
+
+Réponds en français, direct et actionnable.`;
             } else {
-                systemPrompt = buildCompactSystemPrompt(neededFunctions);
+                systemPrompt = buildCompactSystemPrompt(neededFunctions) + contextFromSearch;
             }
 
             const messages = [

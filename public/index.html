@@ -3371,8 +3371,34 @@
 
         function normalizeChatType(type) {
             const t = String(type || '').trim().toLowerCase();
+            // Général
+            if (t === 'axilum' || t === 'default' || t === 'general') return 'axilum';
+
+            // Dev
             if (t === 'dev' || t === 'agent-dev' || t === 'developer') return 'agent-dev';
-            if (t === 'management' || t === 'ai-management' || t === 'excel' || t === 'excel-ai') return 'ai-management';
+
+            // Management (suite)
+            if (t === 'management' || t === 'ai-management' || t === 'suite') return 'ai-management';
+
+            // Excel
+            if (t === 'xcel' || t === 'excel' || t === 'excel-expert' || t === 'excel-ai' || t === 'excel-ai-expert') return 'excel-expert';
+
+            // ToDo
+            if (t === 'todo' || t === 'task' || t === 'tasks' || t === 'agent-todo') return 'agent-todo';
+
+            // RH
+            if (t === 'rh' || t === 'hr' || t === 'hr-management') return 'hr-management';
+
+            // Marketing
+            if (t === 'mark' || t === 'marketing' || t === 'marketing-agent') return 'marketing-agent';
+
+            // Web search
+            if (t === 'web' || t === 'search' || t === 'web-search' || t === 'websearch') return 'web-search';
+
+            // Personas légères
+            if (t === 'alex' || t === 'agent-alex') return 'agent-alex';
+            if (t === 'tony' || t === 'agent-tony') return 'agent-tony';
+
             return 'axilum';
         }
 
@@ -4328,6 +4354,13 @@ RÈGLES IMPORTANTES:
                         '- `/agent axilum` : assistant général',
                         '- `/agent dev` : Agent Dev (aide développement)',
                         '- `/agent management` : AI Management (Excel/Planning/Finance/RH)',
+                        '- `/agent xcel` : Agent Excel (formules, conseils, analyse)',
+                        '- `/agent todo` : Agent ToDo (planification de tâches)',
+                        '- `/agent rh` : Agent RH',
+                        '- `/agent mark` : Agent Marketing',
+                        '- `/agent web` : Agent Web Search (recherche + sources)',
+                        '- `/agent alex` : Agent Alex',
+                        '- `/agent tony` : Agent Tony',
                         '',
                         'Note: les agents partagent le même historique de conversation.'
                     ].join('\n');
@@ -4341,7 +4374,21 @@ RÈGLES IMPORTANTES:
                     ? '✅ Mode **Agent Dev** activé. Posez votre question de développement.'
                     : chosen === 'ai-management'
                         ? '✅ Mode **AI Management** activé (Excel/Planning/Finance/RH).'
-                        : '✅ Mode **Axilum AI** activé (assistant général).';
+                        : chosen === 'excel-expert'
+                            ? '✅ Mode **Agent Excel** activé. Posez votre question Excel.'
+                            : chosen === 'agent-todo'
+                                ? '✅ Mode **Agent ToDo** activé. Décrivez vos tâches/objectif.'
+                                : chosen === 'hr-management'
+                                    ? '✅ Mode **Agent RH** activé.'
+                                    : chosen === 'marketing-agent'
+                                        ? '✅ Mode **Agent Marketing** activé.'
+                                        : chosen === 'web-search'
+                                            ? '✅ Mode **Agent Web Search** activé. Posez votre question (je chercherai des sources).'
+                                            : chosen === 'agent-alex'
+                                                ? '✅ Mode **Agent Alex** activé.'
+                                                : chosen === 'agent-tony'
+                                                    ? '✅ Mode **Agent Tony** activé.'
+                                                    : '✅ Mode **Axilum AI** activé (assistant général).';
 
                 addMessage(ack, 'bot');
                 await saveMessage(message, { response: ack });

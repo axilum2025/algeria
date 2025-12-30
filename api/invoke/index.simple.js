@@ -62,6 +62,36 @@ module.exports = async function (context, req) {
 
         const chatType = req.body.chatType || req.body.conversationId;
 
+        // (Optionnel) RAG - Recherche Brave pour le mode web-search
+        let contextFromSearch = '';
+        if (chatType === 'web-search' || chatType === 'rnd-web-search') {
+            try {
+                const braveKey = process.env.APPSETTING_BRAVE_API_KEY || process.env.BRAVE_API_KEY;
+                if (!braveKey) {
+                    contextFromSearch = '\n\n[Recherche web indisponible: BRAVE_API_KEY non configurée]\n';
+                } else {
+                    const q = encodeURIComponent(userMessage);
+                    const r = await fetch(`https://api.search.brave.com/res/v1/web/search?q=${q}&count=3`, {
+                        method: 'GET',
+                        headers: {
+                            'Accept': 'application/json',
+                            'X-Subscription-Token': braveKey
+                        }
+                    });
+                    if (r.ok) {
+                        const data = await r.json();
+                        const results = data.web?.results?.slice(0, 3) || [];
+                        if (results.length > 0) {
+                            contextFromSearch = '\n\nContexte de recherche web (utilise ces informations si pertinentes) :\n';
+                            results.forEach((it, i) => {
+                                contextFromSearch += `${i+1}. ${it.title}: ${it.description} [${it.url}]\n`;
+                            });
+                        }
+                    }
+                }
+            } catch (_) {}
+        }
+
         // Construire les messages
         const messages = [
             {
@@ -77,6 +107,47 @@ Règles:
 - Si l'utilisateur colle un "🔎 Rapport Hallucination Detector", reconnais-le et explique-le.
 
 Réponds en français, clairement et professionnellement.`
+                    : (chatType === 'hr-management')
+                        ? `Tu es Agent RH, un assistant RH.
+
+Tu aides sur: politique RH, congés, paie (conceptuellement), recrutement, onboarding, performance, documents.
+
+Règles:
+- Si des données RH internes ne sont pas fournies, demande les infos nécessaires.
+
+Réponds en français, clair et actionnable.`
+                        : (chatType === 'marketing-agent')
+                            ? `Tu es Agent Marketing.
+
+Tu aides sur: positionnement, contenu, SEO, ads, emails, funnels, analytics, go-to-market.
+
+Réponds en français, clair et orienté résultats.`
+                            : (chatType === 'web-search' || chatType === 'rnd-web-search')
+                                ? `Tu es Agent Web Search.
+
+Objectif: répondre en te basant sur la recherche web fournie.
+
+Règles:
+- Cite 2-5 sources en fin de réponse.
+- Si la recherche web est indisponible, dis-le et propose une réponse prudente + quoi vérifier.
+
+Réponds en français, avec sources.${contextFromSearch}`
+                                : (chatType === 'excel-expert' || chatType === 'excel-ai-expert')
+                                    ? `Tu es Agent Excel.
+
+Tu aides sur formules, TCD, Power Query, nettoyage et bonnes pratiques.
+
+Réponds en français, pédagogique et précis.`
+                                    : (chatType === 'agent-todo')
+                                        ? `Tu es Agent ToDo (gestion de tâches).
+
+Objectif: clarifier un objectif, découper en tâches, prioriser, et proposer un plan.
+
+Réponds en français, concret.`
+                                        : (chatType === 'agent-alex')
+                                            ? `Tu es Agent Alex (assistant stratégie/produit SaaS). Réponds en français, clair et structuré.`
+                                            : (chatType === 'agent-tony')
+                                                ? `Tu es Agent Tony (assistant vente/ops SaaS). Réponds en français, direct et actionnable.`
                     : `Tu es Axilum AI, un assistant intelligent et serviable propulsé par Azure OpenAI GPT-5 mini. 
 Réponds de manière claire, précise et professionnelle en français.
 

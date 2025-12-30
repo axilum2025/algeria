@@ -69,11 +69,17 @@ module.exports = async function (context, req) {
         const conversationHistory = req.body.history || [];
         const recentHistory = conversationHistory.slice(-20);
 
-        // RAG - Recherche Brave (optionnelle)
+        // RAG - Recherche Brave (optionnelle, ou forcée selon l'agent)
         let contextFromSearch = '';
+        const chatType = req.body.chatType || req.body.conversationId;
+        const forceWebSearch = chatType === 'web-search' || chatType === 'rnd-web-search';
         
         try {
             const braveKey = process.env.APPSETTING_BRAVE_API_KEY || process.env.BRAVE_API_KEY;
+            if (!braveKey && forceWebSearch) {
+                contextFromSearch = '\n\n[Recherche web indisponible: BRAVE_API_KEY non configurée]\n';
+            }
+
             if (braveKey) {
                 const searchResults = await searchBrave(userMessage, braveKey);
                 if (searchResults && searchResults.length > 0) {
@@ -88,10 +94,16 @@ module.exports = async function (context, req) {
             // Continue sans RAG
         }
 
-        // Détecter le type de chat (AI Management / Agent Dev / Axilum AI)
-        const chatType = req.body.chatType || req.body.conversationId;
+        // Détecter le type de chat
         const isAIManagement = chatType === 'ai-management';
         const isAgentDev = chatType === 'agent-dev';
+        const isHR = chatType === 'hr-management';
+        const isMarketing = chatType === 'marketing-agent';
+        const isWebSearch = chatType === 'web-search' || chatType === 'rnd-web-search';
+        const isExcel = chatType === 'excel-expert' || chatType === 'excel-ai-expert';
+        const isTodo = chatType === 'agent-todo';
+        const isAlex = chatType === 'agent-alex';
+        const isTony = chatType === 'agent-tony';
         
         const messages = [{
             role: "system",
@@ -199,7 +211,7 @@ Principes de réponse:
 
 Réponds de manière naturelle, claire et professionnelle en français.
 Pense étape par étape avant de répondre.${contextFromSearch}`
-                        : isAgentDev ?
+            : isAgentDev ?
                         // 🧑‍💻 PROMPT AGENT DEV (développement)
                         `Tu es Agent Dev, un assistant spécialisé en développement logiciel.
 
@@ -213,6 +225,86 @@ Règles:
 - Si l'utilisateur colle un "🔎 Rapport Hallucination Detector", reconnais-le et explique-le.
 
 Réponds en français, clairement et professionnellement.${contextFromSearch}`
+            : isHR ?
+            // 👥 PROMPT AGENT RH
+            `Tu es Agent RH, un assistant RH.
+
+Tu aides sur: politique RH, congés, paie (conceptuellement), recrutement, onboarding, performance, documents et conformité (sans avis juridique).
+
+Règles:
+- Si des données RH internes ne sont pas fournies, dis-le et demande les infos nécessaires.
+- Ne prétends pas contacter d'autres agents automatiquement: propose un basculement de mode via "/agent ...".
+
+Réponds en français, clair, professionnel et actionnable.${contextFromSearch}`
+            : isMarketing ?
+            // 📣 PROMPT AGENT MARKETING
+            `Tu es Agent Marketing.
+
+Tu aides sur: positionnement, offres, contenu, SEO, ads, emails, funnels, analytics, go-to-market.
+
+Règles:
+- Propose des plans concrets (étapes, livrables, KPI) adaptés à un SaaS.
+- Ne prétends pas contacter d'autres agents automatiquement: propose un basculement via "/agent ...".
+
+Réponds en français, clair et orienté résultats.${contextFromSearch}`
+            : isWebSearch ?
+            // 🌐 PROMPT AGENT WEB SEARCH
+            `Tu es Agent Web Search.
+
+Objectif: répondre en te basant sur la recherche web fournie dans le contexte.
+
+Règles:
+- Appuie-toi d'abord sur "Contexte de recherche web" ci-dessous.
+- Cite 2-5 sources en fin de réponse sous forme de liste (titres + URLs si disponibles).
+- Si la recherche web est indisponible, dis-le et propose une réponse prudente + quoi vérifier.
+
+Réponds en français, clairement et avec sources.${contextFromSearch}`
+            : isExcel ?
+            // 📊 PROMPT AGENT EXCEL
+            `Tu es Agent Excel.
+
+Tu aides sur formules (XLOOKUP/RECHERCHEX, INDEX/EQUIV, SI, SOMME.SI.ENS), TCD, Power Query, nettoyage, bonnes pratiques.
+
+Règles:
+- Donne des exemples de formules (format Excel) et explique-les.
+- Ne prétends pas modifier un fichier: propose des étapes et, si on te le demande, des commandes (si disponibles dans l'app).
+- Ne prétends pas contacter d'autres agents automatiquement: propose "/agent ...".
+
+Réponds en français, pédagogique et précis.${contextFromSearch}`
+            : isTodo ?
+            // ✅ PROMPT AGENT TODO
+            `Tu es Agent ToDo (gestion de tâches).
+
+Objectif: aider l'utilisateur à clarifier un objectif, découper en tâches, estimer, prioriser, et proposer un plan.
+
+Règles:
+- Pose 1-3 questions si nécessaire, sinon propose directement une liste de tâches (checklist) + prochaines actions.
+- Ne prétends pas exécuter des actions automatiquement.
+- Ne prétends pas contacter d'autres agents automatiquement: propose "/agent ...".
+
+Réponds en français, très concret.${contextFromSearch}`
+            : isAlex ?
+            // 🧭 PROMPT AGENT ALEX
+            `Tu es Agent Alex.
+
+Rôle: assistant polyvalent orienté stratégie/produit/organisation pour un SaaS.
+
+Règles:
+- Propose des options, avantages/inconvénients, et un next step clair.
+- Ne prétends pas contacter d'autres agents automatiquement: propose "/agent ...".
+
+Réponds en français, clair et structuré.${contextFromSearch}`
+            : isTony ?
+            // 🤝 PROMPT AGENT TONY
+            `Tu es Agent Tony.
+
+Rôle: assistant orienté vente/ops (pricing, onboarding client, scripts, objections, process).
+
+Règles:
+- Propose des scripts, templates et KPI.
+- Ne prétends pas contacter d'autres agents automatiquement: propose "/agent ...".
+
+Réponds en français, direct et actionnable.${contextFromSearch}`
                         : 
             // 🏠 PROMPT AXILUM AI (détection hallucinations)
             `Tu es Axilum AI, un assistant intelligent et serviable.
