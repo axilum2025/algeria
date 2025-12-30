@@ -993,6 +993,29 @@
             align-items: center;
             gap: 12px;
             border-bottom: 1px solid var(--border-color);
+            position: relative;
+        }
+
+        .user-menu-close {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            line-height: 1;
+        }
+
+        .user-menu-close:hover {
+            opacity: 0.92;
         }
 
         .user-avatar {
@@ -2960,6 +2983,7 @@
     <!-- User Menu (Profil utilisateur) -->
     <div class="user-menu" id="userMenu">
         <div class="user-menu-header">
+            <button class="user-menu-close" type="button" onclick="closeUserMenu(); event.stopPropagation();" aria-label="Fermer">×</button>
             <div class="user-avatar" id="userMenuAvatar" style="cursor: pointer; position: relative; overflow: hidden; border-radius: 50%; background: var(--bg-secondary);" onclick="showProfilePhoto()" title="Cliquez pour changer la photo">
                 <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" style="width: 40px; height: 40px;">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
@@ -26361,6 +26385,14 @@ Réponds UNIQUEMENT dans ce format JSON:
                     });
                 }, 10);
             }
+        }
+
+        function closeUserMenu() {
+            try {
+                const menu = document.getElementById('userMenu');
+                if (!menu) return;
+                menu.classList.remove('show');
+            } catch (_) {}
         }
 
         function showProfilePhoto() {
