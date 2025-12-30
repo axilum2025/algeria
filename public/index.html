@@ -1032,7 +1032,8 @@
             transform: translate(-50%, calc(-50% - 10px));
             pointer-events: none;
             transition: all 0.2s ease;
-            z-index: 12000;
+            /* Au-dessus des overlays/pickers (ex: agent-picker à 25000) */
+            z-index: 26050;
             display: none;
         }
 
@@ -1051,6 +1052,10 @@
                 right: 12px;
                 width: auto;
                 transform: translateY(-10px);
+                max-height: calc(100vh - 96px);
+                max-height: calc(100dvh - 96px);
+                overflow-y: auto;
+                -webkit-overflow-scrolling: touch;
             }
 
             .user-menu.show {
@@ -26901,9 +26906,10 @@ Réponds UNIQUEMENT dans ce format JSON:
             } catch (_) {}
             
             const isOpen = menu.classList.contains('show');
-            
+
             if (isOpen) {
-                menu.classList.remove('show');
+                // Fermer proprement (évite un état "caché mais encore ouvert")
+                try { closeUserMenu(); } catch (_) { menu.classList.remove('show'); }
             } else {
                 // Remplir les infos utilisateur (ne jamais bloquer l'ouverture)
                 try {
@@ -26921,7 +26927,7 @@ Réponds UNIQUEMENT dans ce format JSON:
                 menu.classList.add('show');
                 // Filet de sécurité: forcer l'affichage même si un style externe interfère
                 try {
-                    menu.style.zIndex = '12000';
+                    menu.style.zIndex = '26050';
                     menu.style.display = 'block';
                     menu.style.pointerEvents = 'all';
                     menu.style.opacity = '1';
