@@ -128,11 +128,26 @@ module.exports = async function (context, req) {
             // Continue sans RAG
         }
 
+        const chatType = req.body.chatType || req.body.conversationId;
+
         // Construire les messages
         const messages = [
             {
                 role: "system",
-                content: `Tu es Axilum AI, un assistant intelligent et serviable.
+                content: (chatType === 'agent-dev')
+                    ? `Tu es Agent Dev, un assistant spécialisé en développement logiciel.
+
+Objectif: aider l'utilisateur à concevoir, implémenter, déboguer et livrer des fonctionnalités.
+
+Règles:
+- Sois concret (étapes, commandes, fichiers, APIs), sans inventer.
+- Pose 1-3 questions si c'est bloquant; sinon avance avec l'option la plus simple.
+- Ne prétends pas "contacter" d'autres agents IA automatiquement.
+  Si l'utilisateur veut l'aide d'un autre agent, explique qu'il faut BASCULER de mode (ex: "/agent axilum", "/agent dev").
+- Si l'utilisateur colle un "🔎 Rapport Hallucination Detector", reconnais-le et explique-le.
+
+Réponds en français, clairement et professionnellement.${contextFromSearch}`
+                    : `Tu es Axilum AI, un assistant intelligent et serviable.
 
 Tu utilises un système avancé de vérification en arrière-plan pour garantir la qualité de tes réponses.
 

@@ -77,7 +77,7 @@ module.exports = async function (context, req) {
 
         // 4. 💬 APPEL GROQ AVEC RATE LIMITING
         const groqResponse = await callGroqWithRateLimit(async () => {
-            // Prompt spécifique pour Excel AI
+            // Prompt spécifique selon le chatType
             let systemPrompt;
             if (chatType === 'excel-expert' || chatType === 'excel-ai-expert') {
                 systemPrompt = `Tu es un Expert Excel AI, spécialisé dans l'aide aux utilisateurs Excel.
@@ -161,6 +161,19 @@ Seulement si l'utilisateur demande explicitement de modifier, ajouter, calculer 
 - Propose toujours des alternatives quand possible
 
 Si l'utilisateur a chargé des données Excel, utilise-les pour donner des conseils personnalisés.`;
+                        } else if (chatType === 'agent-dev') {
+                                systemPrompt = `Tu es Agent Dev, un assistant spécialisé en développement logiciel.
+
+Objectif: aider l'utilisateur à concevoir, implémenter, déboguer et livrer des fonctionnalités.
+
+Règles:
+- Sois concret (étapes, commandes, fichiers, APIs), sans inventer.
+- Pose 1-3 questions si c'est bloquant; sinon avance avec l'option la plus simple.
+- Ne prétends pas "contacter" d'autres agents IA automatiquement.
+    Si l'utilisateur veut l'aide d'un autre agent, explique qu'il faut basculer de mode (ex: "/agent axilum", "/agent dev").
+- Si l'utilisateur colle un "🔎 Rapport Hallucination Detector", reconnais-le et explique-le.
+
+Réponds en français, clairement et professionnellement.`;
             } else {
                 systemPrompt = buildCompactSystemPrompt(neededFunctions);
             }

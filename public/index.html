@@ -3363,9 +3363,24 @@
         // Elles sont désormais chargées depuis IndexedDB (avec migration automatique).
         let conversations = [];
         let currentConversationId = null;
+        // Chat principal: type d'agent actif (permet de router vers différents prompts côté backend)
+        let currentChatType = localStorage.getItem('axilumChatType') || 'axilum';
         let messageStats = JSON.parse(localStorage.getItem('messageStats') || '{"hiHistory":[],"chrHistory":[]}');
         let isRecording = false;
         let recognition = null;
+
+        function normalizeChatType(type) {
+            const t = String(type || '').trim().toLowerCase();
+            if (t === 'dev' || t === 'agent-dev' || t === 'developer') return 'agent-dev';
+            if (t === 'management' || t === 'ai-management' || t === 'excel' || t === 'excel-ai') return 'ai-management';
+            return 'axilum';
+        }
+
+        function setChatType(type) {
+            currentChatType = normalizeChatType(type);
+            localStorage.setItem('axilumChatType', currentChatType);
+            return currentChatType;
+        }
 
         // ===================================
         // 🗄️ IndexedDB Storage (Conversations + Images)
@@ -4297,6 +4312,42 @@ RÈGLES IMPORTANTES:
             const message = input.value.trim();
             if (!message) return;
 
+            // 🔁 Commandes d'agent (chat principal)
+            // Exemples: /agent dev | /agent axilum | /agent management | /agent help
+            if (/^\/agent\b/i.test(message)) {
+                const arg = message.replace(/^\/agent\b/i, '').trim();
+
+                // Afficher la commande utilisateur
+                addMessage(message, 'user');
+                input.value = '';
+                adjustTextareaHeight();
+
+                if (!arg || /^help$/i.test(arg)) {
+                    const help = [
+                        '🔁 Changement d\'agent disponible :',
+                        '- `/agent axilum` : assistant général',
+                        '- `/agent dev` : Agent Dev (aide développement)',
+                        '- `/agent management` : AI Management (Excel/Planning/Finance/RH)',
+                        '',
+                        'Note: les agents partagent le même historique de conversation.'
+                    ].join('\n');
+                    addMessage(help, 'bot');
+                    await saveMessage(message, { response: help });
+                    return;
+                }
+
+                const chosen = setChatType(arg);
+                const ack = chosen === 'agent-dev'
+                    ? '✅ Mode **Agent Dev** activé. Posez votre question de développement.'
+                    : chosen === 'ai-management'
+                        ? '✅ Mode **AI Management** activé (Excel/Planning/Finance/RH).'
+                        : '✅ Mode **Axilum AI** activé (assistant général).';
+
+                addMessage(ack, 'bot');
+                await saveMessage(message, { response: ack });
+                return;
+            }
+
             // Hide welcome screen on first message
             const welcomeScreen = document.getElementById('welcomeScreen');
             if (welcomeScreen) {
@@ -4651,6 +4702,7 @@ RÈGLES IMPORTANTES:
                     body: JSON.stringify({ 
                         message: messageForBackend,  // 🎯 Connaissance app + contexte + message (ou OCR)
                         conversationId: currentConversationId,
+                        chatType: currentChatType,
                         history: history,
                         useV2: useV2  // ✨ Paramètre pour activer V2
                     })

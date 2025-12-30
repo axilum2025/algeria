@@ -60,11 +60,24 @@ module.exports = async function (context, req) {
         const conversationHistory = req.body.history || [];
         const recentHistory = conversationHistory.slice(-20); // Limiter à 20 messages
 
+        const chatType = req.body.chatType || req.body.conversationId;
+
         // Construire les messages
         const messages = [
             {
                 role: "system",
-                content: `Tu es Axilum AI, un assistant intelligent et serviable propulsé par Azure OpenAI GPT-5 mini. 
+                content: (chatType === 'agent-dev')
+                    ? `Tu es Agent Dev, un assistant spécialisé en développement logiciel.
+
+Objectif: aider l'utilisateur à concevoir, implémenter, déboguer et livrer des fonctionnalités.
+
+Règles:
+- Sois concret (étapes, commandes, fichiers, APIs), sans inventer.
+- Ne prétends pas "contacter" d'autres agents IA automatiquement: propose un basculement de mode (ex: "/agent dev").
+- Si l'utilisateur colle un "🔎 Rapport Hallucination Detector", reconnais-le et explique-le.
+
+Réponds en français, clairement et professionnellement.`
+                    : `Tu es Axilum AI, un assistant intelligent et serviable propulsé par Azure OpenAI GPT-5 mini. 
 Réponds de manière claire, précise et professionnelle en français.
 
 IMPORTANT (Rapport Hallucination Detector):
