@@ -4127,6 +4127,11 @@ RÈGLES IMPORTANTES:
             const promo = "\n\n💡 Pour une analyse Pro de l'image (objets, scène, détails), je vous propose d'utiliser l'outil Vision Pro.";
             if (!rawText) return promo.trim();
 
+            // Idempotent: ne pas répéter la promo si elle est déjà présente
+            if (String(rawText).includes(promo.trim()) || String(rawText).includes("l'outil Vision Pro")) {
+                return rawText;
+            }
+
             const sepIndex = rawText.indexOf('\n---');
             if (sepIndex !== -1) {
                 return rawText.slice(0, sepIndex) + promo + rawText.slice(sepIndex);
