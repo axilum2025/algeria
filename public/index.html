@@ -3812,6 +3812,11 @@
                 const effectiveType = (typeof normalizeChatType === 'function')
                     ? normalizeChatType(chatType || (typeof currentChatType !== 'undefined' ? currentChatType : 'axilum'))
                     : String(chatType || '').trim().toLowerCase();
+
+                // En mode agent spécialisé, ne pas injecter de contexte "modules visités" (sinon l'agent commence à parler d'autres modules).
+                if (effectiveType && effectiveType !== 'axilum') {
+                    return '';
+                }
                 
                 const agent = this.agents[activity.current.agent];
                 // En mode agent, on reste factuel (pas de "ne change pas ton comportement").
@@ -3857,6 +3862,12 @@
             const effectiveType = (typeof normalizeChatType === 'function')
                 ? normalizeChatType(chatType || (typeof currentChatType !== 'undefined' ? currentChatType : 'axilum'))
                 : String(chatType || '').trim().toLowerCase();
+
+            // En mode agent spécialisé: ne pas injecter la liste des modules (ça pousse l'agent à les citer).
+            // On garde uniquement des garde-fous anti-hallucination très généraux.
+            if (effectiveType && effectiveType !== 'axilum') {
+                return `\n[Contraintes produit]\n- N'invente jamais de fonctionnalités qui n'existent pas\n- Ne mentionne pas d'autres modules/agents/outils sauf si l'utilisateur le demande explicitement\n`;
+            }
 
             const base = `
 [📚 Base de connaissance - Architecture de l'application]

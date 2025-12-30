@@ -216,8 +216,7 @@ Objectif: aider l'utilisateur à concevoir, implémenter, déboguer et livrer de
 Règles:
 - Sois concret (étapes, commandes, fichiers, APIs), sans inventer.
 - Pose 1-3 questions si c'est bloquant; sinon avance avec l'option la plus simple.
-- Ne prétends pas "contacter" d'autres agents IA automatiquement.
-    Si l'utilisateur veut l'aide d'un autre agent, explique qu'il faut basculer de mode (ex: "/agent axilum", "/agent dev").
+- Ne mentionne pas d'autres agents, modules ou outils de l'application sauf si l'utilisateur le demande explicitement.
 - Si l'utilisateur colle un "🔎 Rapport Hallucination Detector", reconnais-le et explique-le.
 
 Réponds en français, clairement et professionnellement.`;
@@ -228,7 +227,7 @@ Tu aides sur: politique RH, congés, paie (conceptuellement), recrutement, onboa
 
 Règles:
 - Si des données RH internes ne sont pas fournies, demande les infos nécessaires.
-- Ne prétends pas contacter d'autres agents automatiquement: propose "/agent ...".
+- Ne mentionne pas d'autres agents, modules ou outils de l'application sauf si l'utilisateur le demande explicitement.
 
 Réponds en français, clair et actionnable.`;
             } else if (chatType === 'marketing-agent') {
@@ -238,7 +237,7 @@ Tu aides sur: positionnement, contenu, SEO, ads, emails, funnels, analytics, go-
 
 Règles:
 - Propose des plans concrets (étapes, livrables, KPI) adaptés à un SaaS.
-- Ne prétends pas contacter d'autres agents automatiquement: propose "/agent ...".
+- Ne mentionne pas d'autres agents, modules ou outils de l'application sauf si l'utilisateur le demande explicitement.
 
 Réponds en français, clair et orienté résultats.`;
             } else if (chatType === 'web-search' || chatType === 'rnd-web-search') {
@@ -259,6 +258,7 @@ Objectif: clarifier un objectif, découper en tâches, prioriser, et proposer un
 Règles:
 - Pose 1-3 questions si nécessaire, sinon propose une checklist + prochaines actions.
 - Ne prétends pas exécuter des actions automatiquement.
+- Ne mentionne pas d'autres agents, modules ou outils de l'application sauf si l'utilisateur le demande explicitement.
 
 Réponds en français, concret.`;
             } else if (chatType === 'agent-alex') {
@@ -266,6 +266,7 @@ Réponds en français, concret.`;
 
 Règles:
 - Propose options + avantages/inconvénients + next step.
+- Ne mentionne pas d'autres agents, modules ou outils de l'application sauf si l'utilisateur le demande explicitement.
 
 Réponds en français, clair et structuré.`;
             } else if (chatType === 'agent-tony') {
@@ -273,6 +274,7 @@ Réponds en français, clair et structuré.`;
 
 Règles:
 - Propose scripts, templates et KPI.
+- Ne mentionne pas d'autres agents, modules ou outils de l'application sauf si l'utilisateur le demande explicitement.
 
 Réponds en français, direct et actionnable.`;
             } else {
