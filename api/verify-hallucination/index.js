@@ -90,10 +90,16 @@ module.exports = async function (context, req) {
         const contradictions = detectContradictions(text);
 
         // 5. Calculer score de fiabilité
+        // Priorité: utiliser l'analyse du détecteur (claims SUPPORTED/NOT_SUPPORTED/CONTRADICTORY)
+        // Fallback: si aucune claim exploitable, utiliser le score basé sur les vérifications Brave.
+        const analysisCounts = (hallucinationAnalysis && hallucinationAnalysis.counts) ? hallucinationAnalysis.counts : null;
+        const analysisTotal = analysisCounts && typeof analysisCounts.total === 'number' ? analysisCounts.total : 0;
+        const analysisSupported = analysisCounts && typeof analysisCounts.supported === 'number' ? analysisCounts.supported : 0;
+
         const totalFacts = verifiedFacts.length + suspiciousFacts.length + hallucinations.length;
-        const reliabilityScore = totalFacts > 0 
-            ? Math.round((verifiedFacts.length / totalFacts) * 100) 
-            : 50;
+        const reliabilityScore = analysisTotal > 0
+            ? Math.round((analysisSupported / analysisTotal) * 100)
+            : (totalFacts > 0 ? Math.round((verifiedFacts.length / totalFacts) * 100) : 50);
 
         // 6. Générer warnings de sécurité
         const securityWarnings = detectSecurityIssues(text);
@@ -103,6 +109,14 @@ module.exports = async function (context, req) {
         const chr = typeof hallucinationAnalysis?.chr === 'number' ? hallucinationAnalysis.chr : 0;
         const hiPercent = Math.round(hi * 1000) / 10;
         const chrPercent = Math.round(chr * 1000) / 10;
+
+        const analysisClaims = Array.isArray(hallucinationAnalysis?.claims) ? hallucinationAnalysis.claims : [];
+        const notSupportedClaims = analysisClaims
+            .filter(c => c && c.classification === 'NOT_SUPPORTED')
+            .map(c => ({ text: c.text, score: c.score }));
+        const contradictoryClaims = analysisClaims
+            .filter(c => c && c.classification === 'CONTRADICTORY')
+            .map(c => ({ text: c.text, score: c.score }));
 
         const report = {
             source: source || 'IA non spécifiée',
@@ -119,6 +133,10 @@ module.exports = async function (context, req) {
             chrPercent,
             warning: hallucinationAnalysis?.warning || null,
             recommendedSources: Array.isArray(hallucinationAnalysis?.sources) ? hallucinationAnalysis.sources : [],
+            counts: analysisCounts || null,
+            claims: analysisClaims,
+            notSupportedClaims,
+            contradictoryClaims,
             securityWarnings,
             recommendation: generateRecommendation(reliabilityScore, hallucinations.length, securityWarnings.length)
         };
@@ -164,8 +182,30 @@ async function extractFacts(text) {
     facts.push(...dates.map(d => `Date: ${d}`));
     facts.push(...citations.map(c => c.trim()));
     facts.push(...laws.map(l => l.trim()));
+
+    // Heuristique: extraire des propositions simples (utile pour des phrases courtes type "X est Y")
+    const sentenceCandidates = text
+        .split(/[.!?\n\r]+/)
+        .map(s => s.trim())
+        .filter(Boolean)
+        .filter(s => s.length >= 8 && s.length <= 180);
+
+    const simpleCopulaRegex = /\b(est|sont|était|étaient|sera|seront|serait|seraient)\b/i;
+    for (const s of sentenceCandidates) {
+        if (simpleCopulaRegex.test(s)) {
+            facts.push(s);
+        }
+    }
+
+    // Heuristique: si une phrase contient un nombre, prendre la phrase complète comme fait (plus utile que le nombre seul)
+    for (const s of sentenceCandidates) {
+        if (numberRegex.test(s)) {
+            facts.push(s);
+        }
+    }
     
-    return [...new Set(facts)]; // Dédupliquer
+    // Dédupliquer + limiter pour éviter les requêtes Brave trop longues
+    return [...new Set(facts)].slice(0, 12);
 }
 
 // Vérifier un fait avec Brave Search
@@ -194,7 +234,10 @@ async function verifyFactWithBrave(fact, apiKey, context) {
                     if (hasResults) {
                         const topResult = result.web.results[0];
                         resolve({
-                            verified: true,
+                            // Présence de résultats ≠ preuve que l'affirmation est vraie.
+                            // On marque donc comme "partialMatch" (source potentielle à lire), pas comme vérifié.
+                            verified: false,
+                            partialMatch: true,
                             source: topResult.url,
                             title: topResult.title
                         });

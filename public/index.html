@@ -4351,6 +4351,9 @@ RÈGLES IMPORTANTES:
                         const verifiedCount = Array.isArray(report.verifiedFacts) ? report.verifiedFacts.length : 0;
                         const suspiciousCount = Array.isArray(report.suspiciousFacts) ? report.suspiciousFacts.length : 0;
                         const securityCount = Array.isArray(report.securityWarnings) ? report.securityWarnings.length : 0;
+                        const detectorCounts = (report && report.counts && typeof report.counts === 'object') ? report.counts : null;
+                        const notSupportedClaims = Array.isArray(report.notSupportedClaims) ? report.notSupportedClaims : [];
+                        const contradictoryClaims = Array.isArray(report.contradictoryClaims) ? report.contradictoryClaims : [];
 
                         let out = `🔎 Rapport Hallucination Detector\n`;
                         if (report.source) out += `Source: ${report.source}\n`;
@@ -4358,6 +4361,15 @@ RÈGLES IMPORTANTES:
                         if (hiPercent !== null || chrPercent !== null) {
                             out += `HI: ${hiPercent !== null ? hiPercent + '%' : 'N/A'} | CHR: ${chrPercent !== null ? chrPercent + '%' : 'N/A'}\n`;
                         }
+
+                        if (detectorCounts && typeof detectorCounts.total === 'number') {
+                            const total = detectorCounts.total;
+                            const supported = typeof detectorCounts.supported === 'number' ? detectorCounts.supported : 0;
+                            const notSupported = typeof detectorCounts.not_supported === 'number' ? detectorCounts.not_supported : 0;
+                            const contradictory = typeof detectorCounts.contradictory === 'number' ? detectorCounts.contradictory : 0;
+                            out += `Claims (détecteur): total ${total} | ✅ ${supported} | ❌ ${notSupported} | ⚡ ${contradictory}\n`;
+                        }
+
                         out += `Faits: ✅ ${verifiedCount} | suspects: ${suspiciousCount} | ❌ hallucinations: ${hallucinationsCount}\n`;
                         if (contradictionsCount > 0) out += `Contradictions internes détectées: ${contradictionsCount}\n`;
                         if (securityCount > 0) out += `⚠️ Avertissements sécurité: ${securityCount}\n`;
@@ -4372,6 +4384,22 @@ RÈGLES IMPORTANTES:
                                 const fact = (h && h.fact) ? String(h.fact) : '';
                                 const reason = (h && h.reason) ? ` — ${h.reason}` : '';
                                 if (fact) out += `${idx + 1}. ${fact}${reason}\n`;
+                            });
+                        }
+
+                        if (notSupportedClaims.length > 0) {
+                            out += `\n❌ Claims non supportées (extraits):\n`;
+                            notSupportedClaims.slice(0, 5).forEach((c, idx) => {
+                                const txt = (c && c.text) ? String(c.text) : '';
+                                if (txt) out += `${idx + 1}. ${txt}\n`;
+                            });
+                        }
+
+                        if (contradictoryClaims.length > 0) {
+                            out += `\n⚡ Claims contradictoires (extraits):\n`;
+                            contradictoryClaims.slice(0, 5).forEach((c, idx) => {
+                                const txt = (c && c.text) ? String(c.text) : '';
+                                if (txt) out += `${idx + 1}. ${txt}\n`;
                             });
                         }
 
@@ -4776,11 +4804,23 @@ RÈGLES IMPORTANTES:
             const messageWrapper = document.createElement('div');
             messageWrapper.className = `message-wrapper ${type}`;
 
+            const isDetectorReport = type === 'bot' && data && data.detectorReport === true;
+
+            // Helper minimal pour éviter l'injection HTML (ex: rapport detector)
+            function escapeHtml(str) {
+                return String(str)
+                    .replace(/&/g, '&amp;')
+                    .replace(/</g, '&lt;')
+                    .replace(/>/g, '&gt;')
+                    .replace(/"/g, '&quot;')
+                    .replace(/'/g, '&#039;');
+            }
+
             // Nettoyer le texte des métriques pour l'affichage
             let displayText = text;
             let ragSources = []; // Extraire sources RAG
             
-            if (type === 'bot') {
+            if (type === 'bot' && !isDetectorReport) {
                 // Extraire sources RAG avant nettoyage
                 const sourcesMatch = text.match(/📚\s*Sources:\s*([^\n]+)/i);
                 if (sourcesMatch) {
@@ -4837,6 +4877,11 @@ RÈGLES IMPORTANTES:
                 `;
             }
 
+            // Rapport Hallucination Detector: préserver les sauts de ligne et éviter le nettoyage UI
+            if (isDetectorReport) {
+                contentHTML = `<div style="white-space: pre-wrap; word-break: break-word; overflow-wrap: break-word;">${escapeHtml(displayText)}</div>`;
+            }
+
             messageWrapper.innerHTML = `
                 <div class="message-header">
                     <div class="avatar ${avatarClass}">${avatarEmoji}</div>
@@ -4877,7 +4922,7 @@ RÈGLES IMPORTANTES:
             `;
 
             // 🎨 Add elegant metrics icon for bot messages
-            if (type === 'bot' && data) {
+            if (type === 'bot' && data && !isDetectorReport) {
                 console.log('🔍 Debug - data:', {cached: data.cached, responseTime: data.responseTime, processingTime: data.processingTime, usage: data.usage});
                 
                 // Collecter toutes les métriques
