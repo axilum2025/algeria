@@ -3806,14 +3806,22 @@
                 console.log('🎯 Contexte mis à jour:', activity.current);
             },
             
-            // Obtenir le contexte enrichi pour AI Axilum
-            getEnrichedContext() {
+            // Obtenir le contexte enrichi
+            // ⚠️ Ne pas injecter d'instructions qui contredisent le chatType courant.
+            getEnrichedContext(chatType) {
                 const activity = JSON.parse(localStorage.getItem('axilumActivity') || '{}');
                 
                 if (!activity.current) return '';
+
+                const effectiveType = (typeof normalizeChatType === 'function')
+                    ? normalizeChatType(chatType || (typeof currentChatType !== 'undefined' ? currentChatType : 'axilum'))
+                    : String(chatType || '').trim().toLowerCase();
                 
                 const agent = this.agents[activity.current.agent];
-                let context = `\n\n[📍 INFORMATION CONTEXTUELLE - Ne change PAS ton comportement]:\n`;
+                // En mode agent, on reste factuel (pas de "ne change pas ton comportement").
+                let context = effectiveType && effectiveType !== 'axilum'
+                    ? `\n\n[📍 CONTEXTE UTILISATEUR]:\n`
+                    : `\n\n[📍 INFORMATION CONTEXTUELLE - Ne change PAS ton comportement]:\n`;
                 context += `L'utilisateur a récemment visité: ${activity.current.module}\n`;
                 
                 if (agent) {
@@ -3827,10 +3835,13 @@
                     context += recent + '\n';
                 }
                 
-                context += `\n⚠️ IMPORTANT: Tu restes AI Axilum, assistant général et polyvalent.\n`;
-                context += `Tu ne dois PAS te comporter comme ${activity.current.agent} ou simuler le module ${activity.current.module}.\n`;
-                context += `Utilise ce contexte uniquement pour comprendre les intérêts de l'utilisateur et donner des conseils pertinents.\n`;
-                context += `Si l'utilisateur veut utiliser un module spécialisé, suggère-lui d'y aller directement.\n`;
+                // Garde-fous uniquement pour le mode Axilum (général)
+                if (!effectiveType || effectiveType === 'axilum') {
+                    context += `\n⚠️ IMPORTANT: Tu restes AI Axilum, assistant général et polyvalent.\n`;
+                    context += `Tu ne dois PAS te comporter comme ${activity.current.agent} ou simuler le module ${activity.current.module}.\n`;
+                    context += `Utilise ce contexte uniquement pour comprendre les intérêts de l'utilisateur et donner des conseils pertinents.\n`;
+                    context += `Si l'utilisateur veut utiliser un module spécialisé, suggère-lui d'y aller directement.\n`;
+                }
                 
                 return context;
             },
@@ -3846,8 +3857,12 @@
         // ===================================
         // 📚 DOCUMENTATION COMPLÈTE DE L'APPLICATION
         // ===================================
-        function getApplicationKnowledge() {
-            return `
+        function getApplicationKnowledge(chatType) {
+            const effectiveType = (typeof normalizeChatType === 'function')
+                ? normalizeChatType(chatType || (typeof currentChatType !== 'undefined' ? currentChatType : 'axilum'))
+                : String(chatType || '').trim().toLowerCase();
+
+            const base = `
 [📚 Base de connaissance - Architecture de l'application]
 
 MODULES DISPONIBLES:
@@ -3857,14 +3872,23 @@ Outils: AI Text Pro (Agent Tony), AI Vision (Agent Eve), AI Task (Agent ToDo)
 CE QUI N'EXISTE PAS: Modules "Documents", "Email", "Calendar séparé", "Settings dédié", "Dashboard", "Chat Teams", "Notes/Wiki"
 
 RÈGLES IMPORTANTES:
+- N'invente JAMAIS de fonctionnalités qui n'existent pas
+- Pour questions sur l'app: donne info précise basée sur la liste ci-dessus
+`;
+
+            // En mode Axilum (général), on conserve les règles de ton historiques.
+            if (!effectiveType || effectiveType === 'axilum') {
+                return base + `
 - Tu es AI Axilum, assistant conversationnel général et naturel
 - Reste SIMPLE et CONVERSATIONNEL pour les échanges basiques (bonjour, merci, etc.)
-- N'invente JAMAIS de fonctionnalités qui n'existent pas
 - Ne te transforme JAMAIS en un agent spécialisé
 - Suggère les bons modules seulement SI l'utilisateur a un besoin spécifique
-- Pour questions sur l'app: donne info précise basée sur la liste ci-dessus
 - Pour conversations normales: réponds naturellement sans toujours parler de modules
 `;
+            }
+
+            // En mode agent spécialisé, rester factuel uniquement.
+            return base;
         }
         
         // Auth State
@@ -4838,7 +4862,7 @@ RÈGLES IMPORTANTES:
                 const endpoint = getEndpoint();
 
                 let usedFreeOcr = false;
-                let messageForBackend = getApplicationKnowledge() + AxilumContext.getEnrichedContext() + '\n\nUtilisateur: ' + message;
+                let messageForBackend = getApplicationKnowledge(currentChatType) + AxilumContext.getEnrichedContext(currentChatType) + '\n\nUtilisateur: ' + message;
 
                 // 🖼️ Si une image a été uploadée dans cette conversation, et que l'utilisateur pose une question,
                 // on route la requête vers l'analyse d'image (Vision) pour que l'IA "voie" réellement la photo.
@@ -4895,12 +4919,12 @@ RÈGLES IMPORTANTES:
 
                             const cleanName = (lastImageName || 'photo').replace(/^📸\s*/, '');
                             const ocrPreview = ocrText && ocrText.length > 0 ? ocrText : "(Aucun texte lisible détecté dans l'image)";
-                            messageForBackend = getApplicationKnowledge() + AxilumContext.getEnrichedContext()
+                            messageForBackend = getApplicationKnowledge(currentChatType) + AxilumContext.getEnrichedContext(currentChatType)
                                 + '\n\nContexte image (OCR local - ' + cleanName + '):\n'
                                 + ocrPreview
                                 + '\n\nQuestion utilisateur: ' + message;
                         } catch (ocrErr) {
-                            messageForBackend = getApplicationKnowledge() + AxilumContext.getEnrichedContext()
+                            messageForBackend = getApplicationKnowledge(currentChatType) + AxilumContext.getEnrichedContext(currentChatType)
                                 + "\n\n(Utilisateur a uploadé une image, mais l'OCR local a échoué: " + ocrErr.message + ')\n\nUtilisateur: ' + message;
                         }
                     }
@@ -4943,7 +4967,7 @@ RÈGLES IMPORTANTES:
 
                         if (visionText) {
                             const cleanName = (lastImageName || 'photo').replace(/^📸\s*/, '');
-                            messageForBackend = getApplicationKnowledge() + AxilumContext.getEnrichedContext()
+                            messageForBackend = getApplicationKnowledge(currentChatType) + AxilumContext.getEnrichedContext(currentChatType)
                                 + '\n\nContexte image (Vision PRO - ' + cleanName + '):\n'
                                 + visionText
                                 + '\n\nQuestion utilisateur: ' + message;
