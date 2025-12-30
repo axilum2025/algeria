@@ -530,8 +530,9 @@
             }
 
             .sidebar {
-                width: 100%;
-                left: -100%;
+                --sidebar-w: min(320px, 88vw);
+                width: var(--sidebar-w);
+                left: calc(-1 * var(--sidebar-w));
             }
 
             .main-content {
