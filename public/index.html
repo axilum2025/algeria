@@ -833,6 +833,70 @@
             height: 20px;
         }
 
+        .agent-btn {
+            border: 1px solid var(--border-color);
+            background: var(--bg-secondary);
+            color: var(--text-secondary);
+            cursor: pointer;
+            padding: 8px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 700;
+            transition: all 0.2s;
+            line-height: 1;
+            white-space: nowrap;
+        }
+
+        .agent-btn:hover {
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            border-color: var(--accent);
+        }
+
+        .agent-picker {
+            position: absolute;
+            right: 16px;
+            bottom: 74px;
+            width: min(320px, calc(100% - 32px));
+            background: var(--bg-sidebar);
+            border: 1px solid var(--border-color);
+            border-radius: 14px;
+            box-shadow: 0 12px 40px var(--shadow);
+            padding: 8px;
+            z-index: 120;
+            display: none;
+        }
+
+        .agent-picker-item {
+            width: 100%;
+            text-align: left;
+            border: 1px solid transparent;
+            background: transparent;
+            color: var(--text-primary);
+            cursor: pointer;
+            padding: 10px 12px;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: 600;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 10px;
+            transition: all 0.15s;
+        }
+
+        .agent-picker-item:hover {
+            background: var(--bg-secondary);
+            border-color: var(--border-color);
+        }
+
+        .agent-picker-item small {
+            color: var(--text-secondary);
+            font-weight: 600;
+            font-size: 12px;
+            white-space: nowrap;
+        }
+
         #userInput {
             flex: 1;
             border: none;
@@ -2777,12 +2841,15 @@
                     </svg>
                 </button>
                 <textarea id="userInput" placeholder="Écrivez votre message..." rows="1"></textarea>
+                <button class="agent-btn" id="agentBtn" onclick="toggleAgentPicker()" title="Choisir un agent">Agent</button>
                 <button class="send-btn" id="sendBtn" onclick="sendMessage()">
                     <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/>
                     </svg>
                 </button>
             </div>
+
+            <div class="agent-picker" id="agentPicker" aria-label="Liste des agents"></div>
         </div>
 
         <!-- Voice Mode Container -->
@@ -3407,6 +3474,124 @@
             localStorage.setItem('axilumChatType', currentChatType);
             return currentChatType;
         }
+
+        // ===================================
+        // 🔁 Agent Picker (UI)
+        // ===================================
+        const AXILUM_AGENT_CHOICES = [
+            { label: 'Axilum (Général)', arg: 'axilum', hint: '/agent axilum' },
+            { label: 'Agent Dev', arg: 'dev', hint: '/agent dev' },
+            { label: 'AI Management', arg: 'management', hint: '/agent management' },
+            { label: 'Agent Excel', arg: 'xcel', hint: '/agent xcel' },
+            { label: 'Agent ToDo', arg: 'todo', hint: '/agent todo' },
+            { label: 'Agent RH', arg: 'rh', hint: '/agent rh' },
+            { label: 'Agent Marketing', arg: 'mark', hint: '/agent mark' },
+            { label: 'Agent Web Search', arg: 'web', hint: '/agent web' },
+            { label: 'Agent Alex', arg: 'alex', hint: '/agent alex' },
+            { label: 'Agent Tony', arg: 'tony', hint: '/agent tony' }
+        ];
+
+        function isAgentPickerOpen() {
+            const picker = document.getElementById('agentPicker');
+            return !!(picker && picker.style && picker.style.display !== 'none');
+        }
+
+        function closeAgentPicker() {
+            const picker = document.getElementById('agentPicker');
+            if (picker) picker.style.display = 'none';
+        }
+
+        function renderAgentPicker(filterText) {
+            const picker = document.getElementById('agentPicker');
+            if (!picker) return;
+
+            const q = String(filterText || '').trim().toLowerCase();
+            const items = AXILUM_AGENT_CHOICES.filter(a => {
+                if (!q) return true;
+                return String(a.label).toLowerCase().includes(q)
+                    || String(a.arg).toLowerCase().includes(q)
+                    || String(a.hint).toLowerCase().includes(q);
+            });
+
+            if (items.length === 0) {
+                picker.innerHTML = '<div class="agent-picker-item" style="cursor: default; opacity: 0.8;">Aucun agent trouvé<small>Essayez: dev, rh, web…</small></div>';
+                return;
+            }
+
+            picker.innerHTML = items.map(a => {
+                const safeLabel = String(a.label || '');
+                const safeHint = String(a.hint || '');
+                const safeArg = String(a.arg || '').replace(/"/g, '&quot;');
+                return `
+                    <button class="agent-picker-item" type="button" onclick="selectAgentFromPicker(\"${safeArg}\")">
+                        <span>${safeLabel}</span>
+                        <small>${safeHint}</small>
+                    </button>
+                `;
+            }).join('');
+        }
+
+        function openAgentPicker(filterText) {
+            const picker = document.getElementById('agentPicker');
+            if (!picker) return;
+            renderAgentPicker(filterText);
+            picker.style.display = 'block';
+        }
+
+        function toggleAgentPicker() {
+            if (isAgentPickerOpen()) {
+                closeAgentPicker();
+                return;
+            }
+            openAgentPicker('');
+        }
+
+        function selectAgentFromPicker(arg) {
+            const input = document.getElementById('userInput');
+            if (!input) return;
+            closeAgentPicker();
+            input.value = `/agent ${String(arg || '').trim()}`;
+            try { adjustTextareaHeight(); } catch (_) {}
+            try { sendMessage(); } catch (_) {}
+        }
+
+        // Ouvrir automatiquement la liste quand l'utilisateur tape "agent" ou "/agent"
+        document.addEventListener('DOMContentLoaded', () => {
+            const input = document.getElementById('userInput');
+            if (!input || input.dataset.agentPickerBound === '1') return;
+            input.dataset.agentPickerBound = '1';
+
+            const onInput = () => {
+                const text = String(input.value || '');
+                const m = text.match(/^\s*(?:\/agent\b|agent\b)\s*(.*)$/i);
+                if (!m) {
+                    closeAgentPicker();
+                    return;
+                }
+                const q = (m[1] || '').trim();
+                openAgentPicker(q);
+            };
+
+            input.addEventListener('input', onInput);
+            input.addEventListener('focus', onInput);
+            input.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape') {
+                    closeAgentPicker();
+                }
+            });
+
+            // Fermer la liste si clic en dehors
+            document.addEventListener('click', (e) => {
+                const picker = document.getElementById('agentPicker');
+                const btn = document.getElementById('agentBtn');
+                if (!picker || picker.style.display === 'none') return;
+
+                const target = e && e.target ? e.target : null;
+                if (!target) return;
+                if (picker.contains(target) || (btn && btn.contains(target))) return;
+                closeAgentPicker();
+            }, true);
+        });
 
         // ===================================
         // 🗄️ IndexedDB Storage (Conversations + Images)
