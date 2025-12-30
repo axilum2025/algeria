@@ -866,6 +866,9 @@
             /* Doit passer au-dessus des panneaux flottants (ex: assistant panel) */
             z-index: 25000;
             display: none;
+
+            /* Mobile: autoriser le scroll sans déclencher de sélection */
+            touch-action: pan-y;
         }
 
         .agent-picker-item {
@@ -884,6 +887,9 @@
             align-items: center;
             gap: 10px;
             transition: all 0.15s;
+
+            /* Mobile: éviter les taps involontaires pendant un scroll */
+            touch-action: manipulation;
         }
 
         .agent-picker-item:hover {
@@ -3577,7 +3583,9 @@
                 const picker = document.getElementById('agentPicker');
                 if (picker && picker.dataset && picker.dataset.agentClickBound !== '1') {
                     picker.dataset.agentClickBound = '1';
-                    picker.addEventListener('pointerdown', (e) => {
+                    // IMPORTANT: ne pas sélectionner sur pointerdown (trop sensible pendant le scroll).
+                    // Le click est automatiquement annulé lors d'un geste de scroll.
+                    picker.addEventListener('click', (e) => {
                         const target = e && e.target ? e.target : null;
                         if (!target) return;
                         const btn = target.closest ? target.closest('.agent-picker-item[data-agent-arg]') : null;
