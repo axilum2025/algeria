@@ -960,7 +960,7 @@
             transform: translateY(-10px);
             pointer-events: none;
             transition: all 0.2s ease;
-            z-index: 1000;
+            z-index: 12000;
             display: none;
         }
 
@@ -26323,14 +26323,27 @@ Réponds UNIQUEMENT dans ce format JSON:
             if (isOpen) {
                 menu.classList.remove('show');
             } else {
-                // Remplir les infos utilisateur
-                document.getElementById('userMenuName').textContent = currentUser.name;
-                document.getElementById('userMenuEmail').textContent = currentUser.email;
-                
-                // Mettre à jour la photo de profil
-                updateProfilePhotoDisplay();
-                
+                // Remplir les infos utilisateur (ne jamais bloquer l'ouverture)
+                try {
+                    const nameEl = document.getElementById('userMenuName');
+                    const emailEl = document.getElementById('userMenuEmail');
+                    if (nameEl) nameEl.textContent = currentUser.name || '';
+                    if (emailEl) emailEl.textContent = currentUser.email || '';
+                } catch (_) {}
+
+                // Mettre à jour la photo de profil (ne jamais bloquer l'ouverture)
+                try {
+                    updateProfilePhotoDisplay();
+                } catch (_) {}
+
                 menu.classList.add('show');
+                // Filet de sécurité: forcer l'affichage même si un style externe interfère
+                try {
+                    menu.style.zIndex = '12000';
+                    menu.style.display = 'block';
+                    menu.style.pointerEvents = 'all';
+                    menu.style.opacity = '1';
+                } catch (_) {}
                 
                 // Fermer le menu quand on clique en dehors
                 setTimeout(() => {
