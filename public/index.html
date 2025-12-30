@@ -4070,6 +4070,10 @@ RÈGLES IMPORTANTES:
         const lastUploadedOcrTextByConversation = {};
         const lastUploadedOcrImageSigByConversation = {};
 
+        // 🖼️ Vision PRO: cache d'analyse par conversation (évite de re-lancer Azure à chaque message)
+        const lastUploadedVisionTextByConversation = {};
+        const lastUploadedVisionImageSigByConversation = {};
+
         let __tesseractLoadPromise = null;
         function loadTesseract() {
             if (window.Tesseract) return Promise.resolve(window.Tesseract);
@@ -4102,6 +4106,18 @@ RÈGLES IMPORTANTES:
                 });
                 return (result && result.data && result.data.text ? result.data.text : '').trim();
             }
+        }
+
+        function withTimeout(promise, timeoutMs, timeoutMessage = 'Délai dépassé') {
+            let timeoutHandle;
+            const timeoutPromise = new Promise((_, reject) => {
+                timeoutHandle = setTimeout(() => {
+                    const err = new Error(timeoutMessage);
+                    err.name = 'TimeoutError';
+                    reject(err);
+                }, timeoutMs);
+            });
+            return Promise.race([promise, timeoutPromise]).finally(() => clearTimeout(timeoutHandle));
         }
 
         function appendVisionProPromo(rawText) {
@@ -4268,7 +4284,11 @@ RÈGLES IMPORTANTES:
                                 ocrText = lastUploadedOcrTextByConversation[currentConversationId];
                             } else {
                                 showToast('📄 OCR local en cours (mode FREE)...', 'info');
-                                ocrText = await extractTextFromImageBase64(lastImageBase64);
+                                ocrText = await withTimeout(
+                                    extractTextFromImageBase64(lastImageBase64),
+                                    30000,
+                                    'OCR trop long (mode FREE)'
+                                );
                                 lastUploadedOcrTextByConversation[currentConversationId] = ocrText;
                                 lastUploadedOcrImageSigByConversation[currentConversationId] = sig;
                             }
@@ -4285,41 +4305,49 @@ RÈGLES IMPORTANTES:
                         }
                     }
 
-                    // Mode PRO: Vision (inchangé)
+                    // Mode PRO: utiliser Vision comme contexte, puis continuer la discussion normale.
                     if (isPro) {
-                        showToast(`🔍 Analyse de l'image (${(lastImageName || 'photo').replace(/^📸\s*/, '')})...`, 'info');
-                        const analyzeEndpoint = '/api/analyze-image-pro';
-                        const visionResponse = await fetch(analyzeEndpoint, {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({
-                                imageBase64: lastImageBase64,
-                                question: message
-                            })
-                        });
+                        const imageSig = String(lastImageBase64.length);
+                        let visionText = '';
 
-                        const analysisData = await visionResponse.json().catch(() => ({ analysis: 'Réponse non formatée.' }));
-                        hideTyping();
-
-                        if (!visionResponse.ok) {
-                            const errMsg = `❌ Échec analyse image (PRO): ${analysisData.error || 'Erreur inconnue'}`;
-                            addMessage(errMsg, 'bot');
-                            await saveMessage(message, { response: errMsg });
+                        if (
+                            lastUploadedVisionTextByConversation[currentConversationId]
+                            && lastUploadedVisionImageSigByConversation[currentConversationId] === imageSig
+                        ) {
+                            visionText = lastUploadedVisionTextByConversation[currentConversationId];
                         } else {
-                            const provider = analysisData.provider || 'Azure Computer Vision';
-                            const analysisMessage = `${analysisData.analysis}\n\n_Analysé par ${provider}_`;
-                            addMessage(analysisMessage, 'bot');
-                            await saveMessage(message, { response: analysisMessage, provider });
-                            showToast('✅ Analyse image terminée', 'success');
+                            showToast(`🔍 Analyse de l'image (${(lastImageName || 'photo').replace(/^📸\s*/, '')})...`, 'info');
+                            const analyzeEndpoint = '/api/analyze-image-pro';
+                            try {
+                                const visionResponse = await withTimeout(fetch(analyzeEndpoint, {
+                                    method: 'POST',
+                                    headers: { 'Content-Type': 'application/json' },
+                                    body: JSON.stringify({
+                                        imageBase64: lastImageBase64,
+                                        question: 'Décris cette image en détail. Que vois-tu ?'
+                                    })
+                                }), 45000, 'Analyse image trop longue (PRO)');
 
-                            delete lastUploadedImageByConversation[currentConversationId];
-                            delete lastUploadedImageNameByConversation[currentConversationId];
+                                const analysisData = await visionResponse.json().catch(() => ({ analysis: '' }));
+                                if (visionResponse.ok) {
+                                    visionText = analysisData.analysis || '';
+                                    lastUploadedVisionTextByConversation[currentConversationId] = visionText;
+                                    lastUploadedVisionImageSigByConversation[currentConversationId] = imageSig;
+                                } else {
+                                    visionText = '';
+                                }
+                            } catch (err) {
+                                visionText = '';
+                            }
                         }
 
-                        sendBtn.disabled = false;
-                        input.disabled = false;
-                        input.focus();
-                        return;
+                        if (visionText) {
+                            const cleanName = (lastImageName || 'photo').replace(/^📸\s*/, '');
+                            messageForBackend = getApplicationKnowledge() + AxilumContext.getEnrichedContext()
+                                + '\n\nContexte image (Vision PRO - ' + cleanName + '):\n'
+                                + visionText
+                                + '\n\nQuestion utilisateur: ' + message;
+                        }
                     }
                 }
                 
@@ -4477,10 +4505,10 @@ RÈGLES IMPORTANTES:
                 await saveMessage(message, data);
 
                 if (usedFreeOcr) {
+                    // IMPORTANT: on ne supprime pas le cache OCR ici.
+                    // Sinon l'OCR se re-déclenche à chaque message et peut bloquer l'UI.
                     delete lastUploadedImageByConversation[currentConversationId];
                     delete lastUploadedImageNameByConversation[currentConversationId];
-                    delete lastUploadedOcrTextByConversation[currentConversationId];
-                    delete lastUploadedOcrImageSigByConversation[currentConversationId];
                 }
 
             } catch (error) {
@@ -5097,14 +5125,15 @@ RÈGLES IMPORTANTES:
                             showToast('🔍 Analyse avec Azure Vision (PRO)...', 'info');
                             showTyping();
                             try {
-                                const response = await fetch(analyzeEndpoint, {
+                                const imageSig = String(base64.length);
+                                const response = await withTimeout(fetch(analyzeEndpoint, {
                                     method: 'POST',
                                     headers: { 'Content-Type': 'application/json' },
                                     body: JSON.stringify({
                                         imageBase64: base64,
                                         question: 'Décris cette image en détail. Que vois-tu ?'
                                     })
-                                });
+                                }), 45000, 'Analyse image trop longue (PRO)');
                                 const analysisData = await response.json().catch(() => ({ analysis: 'Réponse non formatée.' }));
                                 hideTyping();
                                 if (response.ok) {
@@ -5125,6 +5154,11 @@ RÈGLES IMPORTANTES:
                                         });
                                         saveConversations();
                                     }
+
+                                    // Cache Vision PRO pour les messages suivants
+                                    lastUploadedVisionTextByConversation[currentConversationId] = analysisData.analysis || '';
+                                    lastUploadedVisionImageSigByConversation[currentConversationId] = imageSig;
+
                                     showToast('✅ Image analysée (PRO)', 'success');
                                 } else {
                                     addMessage(`❌ Échec analyse (PRO): ${analysisData.error || 'Erreur inconnue'}`, 'bot');
@@ -5132,8 +5166,9 @@ RÈGLES IMPORTANTES:
                                 }
                             } catch (err) {
                                 hideTyping();
-                                addMessage(`❌ Erreur réseau (PRO): ${err.message}`, 'bot');
-                                showToast('❌ Erreur réseau (PRO)', 'error');
+                                const isTimeout = err && err.name === 'TimeoutError';
+                                addMessage(isTimeout ? '❌ Analyse image (PRO) : délai dépassé. Réessayez avec une image plus légère.' : `❌ Erreur réseau (PRO): ${err.message}`, 'bot');
+                                showToast(isTimeout ? '⏱️ Analyse trop longue (PRO)' : '❌ Erreur réseau (PRO)', 'error');
                             }
                         } else {
                             // FREE: afficher message informatif
