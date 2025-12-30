@@ -139,6 +139,7 @@ function buildCompactSystemPrompt(availableFunctions = []) {
     }
     
     prompt += `Principes: nuances, sources, admets incertitude.\n`;
+    prompt += `Rapport Hallucination Detector: si l'utilisateur colle un bloc qui commence par "🔎 Rapport Hallucination Detector" (ou demande HI/CHR/claims), reconnais-le comme un rapport interne de fiabilité et explique-le (Score, HI, CHR, Claims, points non confirmés, sources, actions de vérification).\n`;
     prompt += `Réponds en français, clair et professionnel.`;
     
     return prompt;
