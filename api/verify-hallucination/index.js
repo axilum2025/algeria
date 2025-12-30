@@ -36,7 +36,11 @@ module.exports = async function (context, req) {
         context.log(`📊 ${facts.length} faits extraits`);
 
         // 2. Analyser avec le détecteur d'hallucinations existant
-        const hallucinationAnalysis = await analyzeHallucination(text, context);
+        // IMPORTANT: analyzeHallucination attend un texte (question) en 2e paramètre, pas l'objet Azure `context`.
+        const hallucinationAnalysis = await analyzeHallucination(
+            text,
+            `Texte à vérifier (source: ${source || 'IA non spécifiée'})`
+        );
         context.log('🔍 Analyse hallucination:', hallucinationAnalysis);
 
         // 3. Vérifier les faits avec Brave Search
@@ -95,6 +99,11 @@ module.exports = async function (context, req) {
         const securityWarnings = detectSecurityIssues(text);
 
         // 7. Construire le rapport
+        const hi = typeof hallucinationAnalysis?.hi === 'number' ? hallucinationAnalysis.hi : 0;
+        const chr = typeof hallucinationAnalysis?.chr === 'number' ? hallucinationAnalysis.chr : 0;
+        const hiPercent = Math.round(hi * 1000) / 10;
+        const chrPercent = Math.round(chr * 1000) / 10;
+
         const report = {
             source: source || 'IA non spécifiée',
             textLength: text.length,
@@ -104,8 +113,12 @@ module.exports = async function (context, req) {
             hallucinations,
             contradictions,
             reliabilityScore,
-            hallucinationIndex: hallucinationAnalysis.hallucinationIndex,
-            hallucinationSources: hallucinationAnalysis.sources,
+            hi,
+            chr,
+            hiPercent,
+            chrPercent,
+            warning: hallucinationAnalysis?.warning || null,
+            recommendedSources: Array.isArray(hallucinationAnalysis?.sources) ? hallucinationAnalysis.sources : [],
             securityWarnings,
             recommendation: generateRecommendation(reliabilityScore, hallucinations.length, securityWarnings.length)
         };
