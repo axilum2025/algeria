@@ -863,7 +863,8 @@
             border-radius: 14px;
             box-shadow: 0 12px 40px var(--shadow);
             padding: 8px;
-            z-index: 120;
+            /* Doit passer au-dessus des panneaux flottants (ex: assistant panel) */
+            z-index: 25000;
             display: none;
         }
 
@@ -3525,7 +3526,7 @@
                 const safeLabel = String(a.label || '');
                 const safeArg = String(a.arg || '').replace(/"/g, '&quot;');
                 return `
-                    <button class="agent-picker-item" type="button" onclick="selectAgentFromPicker(\"${safeArg}\")">
+                    <button class="agent-picker-item" type="button" data-agent-arg="${safeArg}">
                         <span>${safeLabel}</span>
                     </button>
                 `;
@@ -3561,6 +3562,27 @@
             const input = document.getElementById('userInput');
             if (!input || input.dataset.agentPickerBound === '1') return;
             input.dataset.agentPickerBound = '1';
+
+            // Clic agent: utiliser la délégation d'événements (plus fiable que onclick inline)
+            try {
+                const picker = document.getElementById('agentPicker');
+                if (picker && picker.dataset && picker.dataset.agentClickBound !== '1') {
+                    picker.dataset.agentClickBound = '1';
+                    picker.addEventListener('pointerdown', (e) => {
+                        const target = e && e.target ? e.target : null;
+                        if (!target) return;
+                        const btn = target.closest ? target.closest('.agent-picker-item[data-agent-arg]') : null;
+                        if (!btn) return;
+                        const arg = btn.getAttribute('data-agent-arg');
+                        if (!arg) return;
+                        try {
+                            e.preventDefault();
+                            e.stopPropagation();
+                        } catch (_) {}
+                        try { selectAgentFromPicker(arg); } catch (_) {}
+                    }, true);
+                }
+            } catch (_) {}
 
             const onInput = () => {
                 const text = String(input.value || '');
