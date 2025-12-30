@@ -4303,6 +4303,108 @@ RÈGLES IMPORTANTES:
                 welcomeScreen.style.display = 'none';
             }
 
+            // 🔍 Mode Hallucination Detector: vérifier un texte externe via /api/verify-hallucination
+            if (typeof hallucinationVerifyMode !== 'undefined' && hallucinationVerifyMode && hallucinationVerifyMode.active) {
+                // Fermer la sidebar automatiquement
+                closeSidebar();
+
+                // Disable input
+                const sendBtn = document.getElementById('sendBtn');
+                sendBtn.disabled = true;
+                input.disabled = true;
+
+                // Add user message
+                addMessage(message, 'user');
+                input.value = '';
+                adjustTextareaHeight();
+
+                // Show typing indicator
+                showTyping();
+
+                try {
+                    // Limite simple pour éviter timeouts/coups de mémoire
+                    if (message.length > 50000) {
+                        throw new Error('Texte trop long. Merci de réduire (≈ 50k caractères max).');
+                    }
+
+                    const res = await fetch('/api/verify-hallucination', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            text: message,
+                            source: hallucinationVerifyMode.source || 'Autre IA'
+                        })
+                    });
+
+                    const report = await res.json().catch(() => null);
+                    hideTyping();
+
+                    if (!res.ok || !report) {
+                        const details = report && (report.details || report.error) ? ` (${report.details || report.error})` : '';
+                        addMessage(`❌ Analyse impossible${details}`, 'bot', { detectorReport: true });
+                    } else {
+                        const reliabilityScore = typeof report.reliabilityScore === 'number' ? report.reliabilityScore : null;
+                        const contradictionsCount = Array.isArray(report.contradictions) ? report.contradictions.length : 0;
+                        const hallucinationsCount = Array.isArray(report.hallucinations) ? report.hallucinations.length : 0;
+                        const verifiedCount = Array.isArray(report.verifiedFacts) ? report.verifiedFacts.length : 0;
+                        const suspiciousCount = Array.isArray(report.suspiciousFacts) ? report.suspiciousFacts.length : 0;
+                        const securityCount = Array.isArray(report.securityWarnings) ? report.securityWarnings.length : 0;
+
+                        let out = `🔎 Rapport Hallucination Detector\n`;
+                        if (report.source) out += `Source: ${report.source}\n`;
+                        if (reliabilityScore !== null) out += `Score de fiabilité: ${reliabilityScore}%\n`;
+                        out += `Faits: ✅ ${verifiedCount} | suspects: ${suspiciousCount} | ❌ hallucinations: ${hallucinationsCount}\n`;
+                        if (contradictionsCount > 0) out += `Contradictions internes détectées: ${contradictionsCount}\n`;
+                        if (securityCount > 0) out += `⚠️ Avertissements sécurité: ${securityCount}\n`;
+
+                        if (Array.isArray(report.hallucinations) && report.hallucinations.length > 0) {
+                            out += `\n❌ Points non vérifiés / non sourcés (extraits):\n`;
+                            report.hallucinations.slice(0, 5).forEach((h, idx) => {
+                                const fact = (h && h.fact) ? String(h.fact) : '';
+                                const reason = (h && h.reason) ? ` — ${h.reason}` : '';
+                                if (fact) out += `${idx + 1}. ${fact}${reason}\n`;
+                            });
+                        }
+
+                        if (Array.isArray(report.verifiedFacts) && report.verifiedFacts.length > 0) {
+                            out += `\n✅ Faits trouvant une source (extraits):\n`;
+                            report.verifiedFacts.slice(0, 5).forEach((v, idx) => {
+                                const fact = (v && v.fact) ? String(v.fact) : '';
+                                const src = (v && v.source) ? ` (${v.source})` : '';
+                                if (fact) out += `${idx + 1}. ${fact}${src}\n`;
+                            });
+                        }
+
+                        if (typeof report.recommendation === 'string' && report.recommendation.trim()) {
+                            out += `\nRecommandation: ${report.recommendation.trim()}\n`;
+                        }
+
+                        addMessage(out.trim(), 'bot', { detectorReport: true });
+                        await saveMessage(message, { response: out.trim(), detectorReport: true });
+                    }
+                } catch (err) {
+                    hideTyping();
+                    addMessage(`❌ Erreur analyse: ${err.message}`, 'bot', { detectorReport: true });
+                } finally {
+                    hallucinationVerifyMode.active = false;
+                    if (input) {
+                        try {
+                            if (hallucinationVerifyMode.prevPlaceholder !== null) {
+                                input.setAttribute('placeholder', hallucinationVerifyMode.prevPlaceholder);
+                            }
+                        } catch (_) {}
+                        hallucinationVerifyMode.prevPlaceholder = null;
+                    }
+
+                    const sendBtn = document.getElementById('sendBtn');
+                    sendBtn.disabled = false;
+                    input.disabled = false;
+                    try { input.focus(); } catch (_) {}
+                }
+
+                return;
+            }
+
             // MODE DÉTECTION D'HALLUCINATIONS
 
             // 📅 DÉTECTION AUTOMATIQUE DES COMMANDES TO DO - DÉSACTIVÉE
@@ -14324,6 +14426,13 @@ STYLE DE RÉPONSE :
         // Variables pour tracker le chargement des modules Vision et Hallucination
         let visionModuleLoaded = false;
         let hallucinationModuleLoaded = false;
+
+        // Mode vérification d'hallucinations (analyse d'un texte externe)
+        const hallucinationVerifyMode = {
+            active: false,
+            source: 'Autre IA',
+            prevPlaceholder: null
+        };
         
         function openVisionPro() {
             // Vérifier si l'utilisateur est en mode PRO
@@ -14342,18 +14451,23 @@ STYLE DE RÉPONSE :
         }
         
         function loadHallucinationModule() {
-            // Envoyer un message simple à AI Axilum pour activer le mode
-            const activationMessage = "Je veux analyser un texte d'une autre IA pour détecter les hallucinations et erreurs factuelles. Prépare-toi à recevoir le texte.";
-            
-            // Simuler l'envoi du message
+            hallucinationVerifyMode.active = true;
+
             const userInput = document.getElementById('userInput');
-            userInput.value = activationMessage;
-            
-            // Déclencher l'envoi
-            sendMessage();
-            
-            // Toast pour l'utilisateur
-            showToast('🔍 Demande d\'activation envoyée à AI Axilum', 'success');
+            if (userInput) {
+                // Mémoriser le placeholder pour restauration
+                if (hallucinationVerifyMode.prevPlaceholder === null) {
+                    hallucinationVerifyMode.prevPlaceholder = userInput.getAttribute('placeholder');
+                }
+
+                // Nettoyer l'input et guider l'utilisateur
+                userInput.value = '';
+                userInput.setAttribute('placeholder', "Collez ici le texte à vérifier (réponse d'une autre IA), puis cliquez sur Envoyer…");
+                try { userInput.focus(); } catch (_) {}
+                try { adjustTextareaHeight(); } catch (_) {}
+            }
+
+            showToast('🔍 Collez le texte à vérifier puis Envoyer', 'success');
         }
         
         function openMarketing() {
