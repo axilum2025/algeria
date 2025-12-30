@@ -3626,17 +3626,6 @@ RÈGLES IMPORTANTES:
             return fetch(apiUrl(path), Object.assign({}, options, { headers }));
         }
 
-        async function fetchWithTimeout(url, options = {}, timeoutMs = 45000) {
-            const controller = new AbortController();
-            const timeoutHandle = setTimeout(() => controller.abort(), timeoutMs);
-            try {
-                const merged = Object.assign({}, options, { signal: controller.signal });
-                return await fetch(url, merged);
-            } finally {
-                clearTimeout(timeoutHandle);
-            }
-        }
-
         function getConversationLastTs(conv) {
             let t = Number(conv && conv.timestamp) || 0;
             if (conv && Array.isArray(conv.messages)) {
@@ -5108,14 +5097,14 @@ RÈGLES IMPORTANTES:
                             showToast('🔍 Analyse avec Azure Vision (PRO)...', 'info');
                             showTyping();
                             try {
-                                const response = await fetchWithTimeout(analyzeEndpoint, {
+                                const response = await fetch(analyzeEndpoint, {
                                     method: 'POST',
                                     headers: { 'Content-Type': 'application/json' },
                                     body: JSON.stringify({
                                         imageBase64: base64,
                                         question: 'Décris cette image en détail. Que vois-tu ?'
                                     })
-                                }, 45000);
+                                });
                                 const analysisData = await response.json().catch(() => ({ analysis: 'Réponse non formatée.' }));
                                 hideTyping();
                                 if (response.ok) {
@@ -5143,10 +5132,8 @@ RÈGLES IMPORTANTES:
                                 }
                             } catch (err) {
                                 hideTyping();
-                                const isTimeout = err && (err.name === 'AbortError' || String(err.message || '').toLowerCase().includes('aborted'));
-                                addMessage(isTimeout ? '❌ Analyse image (PRO) : délai dépassé. Réessayez avec une image plus légère.' : `❌ Erreur réseau (PRO): ${err.message}`,
-                                    'bot');
-                                showToast(isTimeout ? '⏱️ Analyse trop longue (PRO)' : '❌ Erreur réseau (PRO)', 'error');
+                                addMessage(`❌ Erreur réseau (PRO): ${err.message}`, 'bot');
+                                showToast('❌ Erreur réseau (PRO)', 'error');
                             }
                         } else {
                             // FREE: afficher message informatif
@@ -5163,44 +5150,32 @@ RÈGLES IMPORTANTES:
                                     hiScore: 0,
                                     chrScore: 0
                                 });
-
-                                        try {
-                                            const visionResponse = await fetchWithTimeout(analyzeEndpoint, {
-                                                method: 'POST',
-                                                headers: { 'Content-Type': 'application/json' },
-                                                body: JSON.stringify({
-                                                    imageBase64: lastImageBase64,
-                                                    question: message
-                                                })
-                                            }, 45000);
-
-                                            const analysisData = await visionResponse.json().catch(() => ({ analysis: 'Réponse non formatée.' }));
-                                            hideTyping();
-
-                                            if (!visionResponse.ok) {
-                                                const errMsg = `❌ Échec analyse image (PRO): ${analysisData.error || 'Erreur inconnue'}`;
-                                                addMessage(errMsg, 'bot');
-                                                await saveMessage(message, { response: errMsg });
-                                            } else {
-                                                const provider = analysisData.provider || 'Azure Computer Vision';
-                                                const analysisMessage = `${analysisData.analysis}\n\n_Analysé par ${provider}_`;
-                                                addMessage(analysisMessage, 'bot');
-                                                await saveMessage(message, { response: analysisMessage, provider });
-                                                showToast('✅ Analyse image terminée', 'success');
-
-                                                delete lastUploadedImageByConversation[currentConversationId];
-                                                delete lastUploadedImageNameByConversation[currentConversationId];
-                                            }
-                                        } catch (err) {
-                                            hideTyping();
-                                            const isTimeout = err && (err.name === 'AbortError' || String(err.message || '').toLowerCase().includes('aborted'));
-                                            const errMsg = isTimeout
-                                                ? '❌ Analyse image (PRO) : délai dépassé. Réessayez avec une image plus légère.'
-                                                : `❌ Erreur réseau (PRO): ${err.message}`;
-                                            addMessage(errMsg, 'bot');
-                                            await saveMessage(message, { response: errMsg });
-                                            showToast(isTimeout ? '⏱️ Analyse trop longue (PRO)' : '❌ Erreur réseau (PRO)', 'error');
-                                        }
+                                saveConversations();
+                            }
+                        }
+                    };
+                    reader.readAsDataURL(file);
+                    
+                } else if (isText) {
+                    // Lire le fichier texte
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        const text = e.target.result;
+                        const input = document.getElementById('userInput');
+                        input.value = `Contenu du fichier ${file.name}:\n\n${text.substring(0, 3000)}${text.length > 3000 ? '...' : ''}`;
+                        showToast('✅ Fichier texte chargé', 'success');
+                    };
+                    reader.readAsText(file);
+                    
+                } else if (isPDF) {
+                    showToast('📄 PDF détecté - extraction du texte...', 'info');
+                    try {
+                        // Charger pdf.js via CDN si nécessaire
+                        if (!window.pdfjsLib) {
+                            const script = document.createElement('script');
+                            script.src = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js';
+                            script.crossOrigin = 'anonymous';
+                            document.body.appendChild(script);
                             await new Promise(resolve => { script.onload = resolve; });
                         }
                         
