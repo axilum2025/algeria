@@ -1769,6 +1769,11 @@
                 font-size: 11px;
                 padding: 8px 10px;
             }
+
+            /* Mobile: éviter que tout le sidebar scrolle; seule la liste Sessions scrolle */
+            .sidebar {
+                overflow-y: hidden;
+            }
         }
 
         @media (max-width: 480px) {
@@ -1929,17 +1934,17 @@
             .sidebar {
                 top: 50px;
                 height: calc(100vh - 50px);
+                overflow-y: hidden;
+            }
+
+            .conversations {
+                flex: 1;
                 overflow-y: auto;
                 -webkit-overflow-scrolling: touch;
             }
 
-            .conversations {
-                flex: 0 0 auto;
-                overflow: visible;
-            }
-
             .conversations.visible {
-                max-height: none;
+                max-height: var(--sessions-max-height, 100%);
             }
 
             .chat-container {
@@ -6679,14 +6684,14 @@ RÈGLES IMPORTANTES:
             if (!conversationsList.classList.contains('visible')) return;
 
             const convItems = Array.from(conversationsList.querySelectorAll('.conv-item'));
-
-            // <= 5 sessions: pas de limitation
-            if (convItems.length <= 5) {
+            if (convItems.length === 0) {
                 try { conversationsList.style.removeProperty('--sessions-max-height'); } catch (_) {}
                 return;
             }
 
-            // Hauteur cumulée jusqu'à 5 conv-item (en incluant titres/espaces)
+            const targetCount = Math.min(5, convItems.length);
+
+            // Hauteur cumulée jusqu'à targetCount conv-item (en incluant titres/espaces)
             let itemsCounted = 0;
             let targetHeight = 0;
             const children = Array.from(conversationsList.children);
@@ -6696,7 +6701,7 @@ RÈGLES IMPORTANTES:
                 targetHeight += h;
                 if (child.classList && child.classList.contains('conv-item')) {
                     itemsCounted += 1;
-                    if (itemsCounted >= 5) break;
+                    if (itemsCounted >= targetCount) break;
                 }
             }
 
@@ -6708,7 +6713,30 @@ RÈGLES IMPORTANTES:
 
             // Laisser un peu de marge pour le padding/scrollbar
             const padded = Math.ceil(targetHeight + 8);
-            try { conversationsList.style.setProperty('--sessions-max-height', padded + 'px'); } catch (_) {}
+
+            // Borne haute: ne pas manger l'espace du menu (surtout sur mobile)
+            let available = 0;
+            try {
+                const sidebar = document.getElementById('sidebar');
+                const header = sidebar ? sidebar.querySelector('.sidebar-header') : null;
+                const menu = sidebar ? sidebar.querySelector('.sidebar-menu') : null;
+                if (sidebar) {
+                    const s = sidebar.getBoundingClientRect();
+                    const h = header ? header.getBoundingClientRect() : null;
+                    const m = menu ? menu.getBoundingClientRect() : null;
+                    const headerH = h && h.height ? h.height : 0;
+                    const menuH = m && m.height ? m.height : 0;
+                    available = Math.floor((s && s.height ? s.height : 0) - headerH - menuH - 24);
+                }
+            } catch (_) {}
+
+            let finalMax = padded;
+            if (available && available > 0) {
+                finalMax = Math.min(finalMax, available);
+            }
+            if (!finalMax || finalMax < 140) finalMax = 140;
+
+            try { conversationsList.style.setProperty('--sessions-max-height', finalMax + 'px'); } catch (_) {}
         }
 
         // Fermer sessions si clic en dehors
