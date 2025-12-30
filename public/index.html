@@ -2983,7 +2983,7 @@
     <!-- User Menu (Profil utilisateur) -->
     <div class="user-menu" id="userMenu">
         <div class="user-menu-header">
-            <button class="user-menu-close" type="button" onclick="closeUserMenu(); event.stopPropagation();" aria-label="Fermer">×</button>
+            <button class="user-menu-close" type="button" onclick="closeUserMenu(event); return false;" aria-label="Fermer">×</button>
             <div class="user-avatar" id="userMenuAvatar" style="cursor: pointer; position: relative; overflow: hidden; border-radius: 50%; background: var(--bg-secondary);" onclick="showProfilePhoto()" title="Cliquez pour changer la photo">
                 <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" style="width: 40px; height: 40px;">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
@@ -26387,11 +26387,30 @@ Réponds UNIQUEMENT dans ce format JSON:
             }
         }
 
-        function closeUserMenu() {
+        function closeUserMenu(e) {
+            try {
+                if (e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                }
+            } catch (_) {}
+
             try {
                 const menu = document.getElementById('userMenu');
                 if (!menu) return;
                 menu.classList.remove('show');
+
+                // Annuler les styles inline "filet de sécurité" appliqués à l'ouverture
+                menu.style.display = '';
+                menu.style.opacity = '';
+                menu.style.pointerEvents = '';
+                menu.style.zIndex = '';
+                menu.style.transform = '';
+
+                // Sécurité: forcer caché si un style externe persiste
+                menu.style.display = 'none';
+                menu.style.pointerEvents = 'none';
+                menu.style.opacity = '0';
             } catch (_) {}
         }
 
