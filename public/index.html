@@ -2211,6 +2211,7 @@
             border: none;
             border-radius: 10px;
             cursor: pointer;
+            touch-action: manipulation;
             transition: all 0.2s;
             font-size: 14px;
             font-weight: 500;
@@ -2502,7 +2503,7 @@
         
         <!-- Menu Section -->
         <div class="sidebar-menu">
-            <button class="menu-item" id="accountBtn" onclick="showAccountMenu()">
+            <button class="menu-item" id="accountBtn">
                 <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
                 </svg>
@@ -4224,6 +4225,31 @@ RÈGLES IMPORTANTES:
 
         // Initialize plan on load
         document.addEventListener('DOMContentLoaded', () => {
+            // Fix mobile: tap "Mon Compte" parfois ignoré (click/touch)
+            try {
+                const accountBtn = document.getElementById('accountBtn');
+                if (accountBtn && accountBtn.dataset && accountBtn.dataset.tapFixInstalled !== '1') {
+                    accountBtn.dataset.tapFixInstalled = '1';
+                    let lastTapTs = 0;
+                    const handler = (e) => {
+                        const now = Date.now();
+                        if (now - lastTapTs < 450) return;
+                        lastTapTs = now;
+                        try {
+                            if (e) {
+                                e.preventDefault();
+                                e.stopPropagation();
+                            }
+                        } catch (_) {}
+                        try {
+                            showAccountMenu();
+                        } catch (_) {}
+                    };
+                    accountBtn.addEventListener('touchend', handler, { passive: false });
+                    accountBtn.addEventListener('click', handler);
+                }
+            } catch (_) {}
+
             // Attacher les event listeners aux boutons
             const menuBtn = document.getElementById('menuToggleBtn');
             const freeBadge = document.getElementById('planBadgeFree');
@@ -26268,7 +26294,6 @@ Réponds UNIQUEMENT dans ce format JSON:
                     </svg>
                     <span class="menu-item-text">${currentUser.name}</span>
                 `;
-                accountBtn.onclick = showUserMenu;
             } else {
                 // Pas connecté
                 accountBtn.innerHTML = `
@@ -26277,7 +26302,6 @@ Réponds UNIQUEMENT dans ce format JSON:
                     </svg>
                     <span class="menu-item-text">Mon Compte</span>
                 `;
-                accountBtn.onclick = showAccountMenu;
             }
         }
 
@@ -26590,7 +26614,6 @@ Réponds UNIQUEMENT dans ce format JSON:
                     </svg>
                     <span class="menu-item-text">${currentUser.name}</span>
                 `;
-                accountBtn.onclick = showUserMenu;
             } else {
                 // Pas connecté
                 accountBtn.innerHTML = `
@@ -26599,7 +26622,6 @@ Réponds UNIQUEMENT dans ce format JSON:
                     </svg>
                     <span class="menu-item-text">Mon Compte</span>
                 `;
-                accountBtn.onclick = showAccountMenu;
             }
         }
 
