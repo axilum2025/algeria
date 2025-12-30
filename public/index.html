@@ -964,6 +964,16 @@
             display: none;
         }
 
+        /* Mobile: éviter un menu “hors écran” (panneau plein large) */
+        @media (max-width: 768px) {
+            .user-menu {
+                left: 12px;
+                right: 12px;
+                width: auto;
+                top: 72px;
+            }
+        }
+
         .user-menu.show {
             opacity: 1;
             transform: translateY(0);
