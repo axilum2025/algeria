@@ -1950,6 +1950,8 @@
                 bottom: 10px;
                 width: 96%;
                 max-width: none;
+                /* Assurer que le menu des agents reste au-dessus (le picker est enfant) */
+                z-index: 25000;
             }
 
             .input-container.sidebar-open {
@@ -1960,6 +1962,17 @@
 
             .input-wrapper {
                 padding: 8px 12px;
+            }
+
+            /* Agent picker: mieux visible en paysage (hauteur réduite + scroll) */
+            .agent-picker {
+                bottom: 62px;
+                right: 12px;
+                width: min(340px, calc(100vw - 24px));
+                max-height: calc(100vh - 120px);
+                max-height: calc(100dvh - 120px);
+                overflow-y: auto;
+                -webkit-overflow-scrolling: touch;
             }
 
             #userMessage,
