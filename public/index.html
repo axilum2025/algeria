@@ -2651,13 +2651,13 @@
         
         <!-- Menu Section -->
         <div class="sidebar-menu">
-            <button class="menu-item" id="accountBtn" onclick="try { if (typeof showAccountMenu === 'function') { showAccountMenu(); } else { const m = document.getElementById('signinModal'); if (m) m.classList.add('show'); } } catch (_) { const m = document.getElementById('signinModal'); if (m) m.classList.add('show'); } return false;">
+            <button class="menu-item" id="accountBtn" onclick="try { if (event) { event.preventDefault(); event.stopPropagation(); } } catch (_) {} try { if (typeof showAccountMenu === 'function') { showAccountMenu(); } else { const m = document.getElementById('signinModal'); if (m) m.classList.add('show'); } } catch (_) { const m = document.getElementById('signinModal'); if (m) m.classList.add('show'); } return false;">
                 <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
                 </svg>
                 <span class="menu-item-text">Mon Compte</span>
             </button>
-            <button class="menu-item" onclick="showStats()">
+            <button class="menu-item" onclick="try { if (event) { event.preventDefault(); event.stopPropagation(); } } catch (_) {} showStats(); return false;">
                 <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
                 </svg>
@@ -26751,14 +26751,6 @@ Réponds UNIQUEMENT dans ce format JSON:
         // ========== AUTHENTICATION FUNCTIONS ==========
         
         function showAccountMenu() {
-            // Mobile: fermer la sidebar pour éviter que le menu/modal soit masqué
-            try {
-                const isMobile = window.matchMedia && window.matchMedia('(max-width: 768px)').matches;
-                const sidebar = document.getElementById('sidebar');
-                if (isMobile && sidebar && sidebar.classList.contains('open')) {
-                    closeSidebar();
-                }
-            } catch (_) {}
             if (currentUser) {
                 // User connecté - afficher le menu de profil
                 showUserMenu();
@@ -26949,14 +26941,8 @@ Réponds UNIQUEMENT dans ce format JSON:
             const menu = document.getElementById('userMenu');
             if (!menu || !currentUser) return;
 
-            // Mobile: fermer la sidebar pour laisser le menu accessible
-            try {
-                const isMobile = window.matchMedia && window.matchMedia('(max-width: 768px)').matches;
-                const sidebar = document.getElementById('sidebar');
-                if (isMobile && sidebar && sidebar.classList.contains('open')) {
-                    closeSidebar();
-                }
-            } catch (_) {}
+            let isMobile = false;
+            try { isMobile = window.matchMedia && window.matchMedia('(max-width: 768px)').matches; } catch (_) {}
             
             const isOpen = menu.classList.contains('show');
 
@@ -26980,6 +26966,15 @@ Réponds UNIQUEMENT dans ce format JSON:
                 menu.classList.add('show');
                 // Filet de sécurité: ne toucher qu'au z-index (évite les états display:none "bloquants" sur mobile)
                 try { menu.style.zIndex = '2147483647'; } catch (_) {}
+
+                // Mobile: afficher le backdrop plein écran (source de vérité pour fermeture)
+                if (isMobile) {
+                    try {
+                        const backdrop = document.getElementById('userMenuBackdrop');
+                        if (backdrop) backdrop.classList.add('show');
+                    } catch (_) {}
+                    return;
+                }
                 
                 // Fermer le menu quand on clique en dehors
                 setTimeout(() => {
@@ -27005,6 +27000,10 @@ Réponds UNIQUEMENT dans ce format JSON:
                 const menu = document.getElementById('userMenu');
                 if (!menu) return;
                 menu.classList.remove('show');
+
+                // Mobile: masquer le backdrop
+                const backdrop = document.getElementById('userMenuBackdrop');
+                if (backdrop) backdrop.classList.remove('show');
 
                 // Annuler les styles inline appliqués à l'ouverture (laisser le CSS gérer l'état)
                 menu.style.zIndex = '';
@@ -27093,14 +27092,6 @@ Réponds UNIQUEMENT dans ce format JSON:
         // ========== AUTHENTICATION & USER MGMT ==========
         
         function showAccountMenu() {
-            // Mobile: fermer la sidebar pour éviter que le menu/modal soit masqué
-            try {
-                const isMobile = window.matchMedia && window.matchMedia('(max-width: 768px)').matches;
-                const sidebar = document.getElementById('sidebar');
-                if (isMobile && sidebar && sidebar.classList.contains('open')) {
-                    closeSidebar();
-                }
-            } catch (_) {}
             if (currentUser) {
                 // User connecté - afficher le menu de profil
                 showUserMenu();
