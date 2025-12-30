@@ -3181,6 +3181,10 @@
                             <h4>Effacer Données</h4>
                             <p>Supprimer toutes les conversations</p>
                         </div>
+                        <div class="feature-card" style="cursor: pointer;" onclick="cycleStorageMode()">
+                            <h4>Mode de stockage</h4>
+                            <p>Choix actuel : <strong id="storageModeValue">Demander à chaque upload</strong></p>
+                        </div>
                     </div>
                 </div>
 
@@ -3659,6 +3663,7 @@ RÈGLES IMPORTANTES:
         }
 
         async function syncWithServer() {
+            if (getStorageMode && typeof getStorageMode === 'function' && getStorageMode() !== 'cloud') return;
             if (!currentUser || !currentUser.email || !getAuthToken()) return;
             try {
                 const pull = await apiFetch('/api/chat-sync-pull', { method: 'GET' });
@@ -3728,7 +3733,7 @@ RÈGLES IMPORTANTES:
                 } catch (_) {}
             }
 
-            if (msg.remoteImageId && getAuthToken() && currentUser && currentUser.email) {
+            if (getStorageMode && typeof getStorageMode === 'function' && getStorageMode() === 'cloud' && msg.remoteImageId && getAuthToken() && currentUser && currentUser.email) {
                 try {
                     const blob = await fetchRemoteImageAsBlob(msg.remoteImageId);
                     if (!blob) return null;
@@ -4061,6 +4066,44 @@ RÈGLES IMPORTANTES:
 
         // 🆓💎 Plan Management
         let currentPlan = localStorage.getItem('axilum_plan') || 'pro'; // Default to pro
+
+        // ☁️🗄️ Mode de stockage (choix utilisateur)
+        // - 'ask'   : demander à chaque upload
+        // - 'local' : stockage uniquement sur l'appareil
+        // - 'cloud' : stockage cloud (si connecté)
+        function getStorageMode() {
+            const v = (localStorage.getItem('axilum_storage_mode') || 'ask').toLowerCase();
+            if (v === 'cloud' || v === 'local' || v === 'ask') return v;
+            return 'ask';
+        }
+
+        function storageModeLabel(mode) {
+            switch ((mode || '').toLowerCase()) {
+                case 'cloud': return 'Cloud sécurisé';
+                case 'local': return 'Local (cet appareil)';
+                default: return 'Demander à chaque upload';
+            }
+        }
+
+        function refreshStorageModeUI() {
+            const el = document.getElementById('storageModeValue');
+            if (!el) return;
+            el.textContent = storageModeLabel(getStorageMode());
+        }
+
+        function setStorageMode(mode) {
+            const m = (mode || '').toLowerCase();
+            const finalMode = (m === 'cloud' || m === 'local' || m === 'ask') ? m : 'ask';
+            localStorage.setItem('axilum_storage_mode', finalMode);
+            refreshStorageModeUI();
+            showToast(`🗄️ Stockage: ${storageModeLabel(finalMode)}`, 'info');
+        }
+
+        function cycleStorageMode() {
+            const current = getStorageMode();
+            const next = current === 'ask' ? 'local' : (current === 'local' ? 'cloud' : 'ask');
+            setStorageMode(next);
+        }
 
         // 🖼️ Dernière image uploadée (par conversation) pour questions Vision
         const lastUploadedImageByConversation = {};
@@ -4466,8 +4509,8 @@ RÈGLES IMPORTANTES:
                                         storedImageId = await idbPutImageBlob(userKey, blob, blob.type, imgData.prompt || 'image');
                                         storedImageUrl = undefined;
 
-                                        // Upload serveur (si connecté)
-                                        if (getAuthToken() && currentUser && currentUser.email) {
+                                        // Upload serveur (si mode Cloud + connecté)
+                                        if (getStorageMode() === 'cloud' && getAuthToken() && currentUser && currentUser.email) {
                                             const rid = makeRemoteImageId();
                                             const ok = await uploadChatImageToServer(rid, imgData.imageUrl);
                                             if (ok) remoteImageId = rid;
@@ -5089,12 +5132,22 @@ RÈGLES IMPORTANTES:
                         delete lastUploadedOcrImageSigByConversation[currentConversationId];
                         delete visionProPromoShownByConversation[currentConversationId];
 
-                        // Upload serveur (si connecté) pour cross-device
+                        // Upload serveur (optionnel) selon le mode de stockage
                         let remoteImageId = null;
-                        if (getAuthToken() && currentUser && currentUser.email) {
-                            remoteImageId = makeRemoteImageId();
-                            const ok = await uploadChatImageToServer(remoteImageId, base64);
-                            if (!ok) remoteImageId = null;
+                        const storageMode = getStorageMode();
+                        let wantsCloud = storageMode === 'cloud';
+                        if (storageMode === 'ask') {
+                            wantsCloud = confirm("Stocker cette image dans le cloud sécurisé (compte requis) ?\n\nOK = Cloud\nAnnuler = Local (cet appareil)");
+                        }
+
+                        if (wantsCloud) {
+                            if (getAuthToken() && currentUser && currentUser.email) {
+                                remoteImageId = makeRemoteImageId();
+                                const ok = await uploadChatImageToServer(remoteImageId, base64);
+                                if (!ok) remoteImageId = null;
+                            } else {
+                                showToast('🔒 Connectez-vous pour activer le stockage Cloud. Stockage local utilisé.', 'info');
+                            }
                         }
                         
                         // Afficher l'image directement dans le message utilisateur (style ChatGPT/Gemini)
@@ -6180,6 +6233,7 @@ RÈGLES IMPORTANTES:
 
         function showSettings() {
             document.getElementById('settingsModal').style.display = 'flex';
+            refreshStorageModeUI();
         }
 
         function closeSettingsModal() {
