@@ -866,6 +866,31 @@
             /* Doit passer au-dessus des panneaux flottants (ex: assistant panel) */
             z-index: 25000;
             display: none;
+
+            /* Mobile UX: permettre de scroller la liste sur petits écrans (notamment paysage) */
+            overflow: auto;
+            -webkit-overflow-scrolling: touch;
+            overscroll-behavior: contain;
+            max-height: calc(100vh - 140px);
+            max-height: calc(100dvh - 140px);
+        }
+
+        /* Overlay transparent: fermeture au tap extérieur uniquement */
+        .agent-picker-overlay {
+            position: fixed;
+            inset: 0;
+            background: transparent;
+            z-index: 24999;
+            display: none;
+        }
+
+        .agent-picker-overlay.active {
+            display: block;
+        }
+
+        /* Quand la liste est ouverte, on s'assure que la zone input reste au-dessus de l'overlay */
+        body.agent-picker-open .input-container {
+            z-index: 25001;
         }
 
         .agent-picker-item {
@@ -2850,6 +2875,7 @@
                 </button>
             </div>
 
+            <div class="agent-picker-overlay" id="agentPickerOverlay" aria-hidden="true"></div>
             <div class="agent-picker" id="agentPicker" aria-label="Liste des agents"></div>
         </div>
 
@@ -3498,7 +3524,13 @@
 
         function closeAgentPicker() {
             const picker = document.getElementById('agentPicker');
-            if (picker) picker.style.display = 'none';
+            if (picker) {
+                picker.style.display = 'none';
+                try { delete picker.dataset.agentOpenMode; } catch (_) { picker.dataset.agentOpenMode = ''; }
+            }
+            const overlay = document.getElementById('agentPickerOverlay');
+            if (overlay) overlay.classList.remove('active');
+            document.body.classList.remove('agent-picker-open');
         }
 
         function renderAgentPicker(filterText) {
@@ -3529,11 +3561,16 @@
             }).join('');
         }
 
-        function openAgentPicker(filterText) {
+        function openAgentPicker(filterText, openMode) {
             const picker = document.getElementById('agentPicker');
             if (!picker) return;
+            if (picker && picker.dataset) picker.dataset.agentOpenMode = String(openMode || 'auto');
             renderAgentPicker(filterText);
             picker.style.display = 'block';
+
+            const overlay = document.getElementById('agentPickerOverlay');
+            if (overlay) overlay.classList.add('active');
+            document.body.classList.add('agent-picker-open');
         }
 
         function toggleAgentPicker() {
@@ -3541,7 +3578,8 @@
                 closeAgentPicker();
                 return;
             }
-            openAgentPicker('');
+            // Ouverture manuelle via le bouton "Agent" (ne doit pas se fermer si l'input ne commence pas par /agent)
+            openAgentPicker('', 'manual');
         }
 
         function selectAgentFromPicker(arg) {
@@ -3558,6 +3596,22 @@
             const input = document.getElementById('userInput');
             if (!input || input.dataset.agentPickerBound === '1') return;
             input.dataset.agentPickerBound = '1';
+
+            // Overlay: fermer uniquement au tap/clic extérieur
+            try {
+                const overlay = document.getElementById('agentPickerOverlay');
+                if (overlay && overlay.dataset && overlay.dataset.agentOverlayBound !== '1') {
+                    overlay.dataset.agentOverlayBound = '1';
+                    overlay.addEventListener('pointerdown', (e) => {
+                        if (!isAgentPickerOpen()) return;
+                        try {
+                            e.preventDefault();
+                            e.stopPropagation();
+                        } catch (_) {}
+                        closeAgentPicker();
+                    }, true);
+                }
+            } catch (_) {}
 
             // Clic agent: utiliser la délégation d'événements (plus fiable que onclick inline)
             try {
@@ -3584,11 +3638,14 @@
                 const text = String(input.value || '');
                 const m = text.match(/^\s*(?:\/agent\b|agent\b)\s*(.*)$/i);
                 if (!m) {
-                    closeAgentPicker();
+                    const picker = document.getElementById('agentPicker');
+                    const isManualOpen = !!(picker && picker.dataset && picker.dataset.agentOpenMode === 'manual' && isAgentPickerOpen());
+                    // Si ouvert manuellement (bouton Agent), ne pas fermer automatiquement.
+                    if (!isManualOpen) closeAgentPicker();
                     return;
                 }
                 const q = (m[1] || '').trim();
-                openAgentPicker(q);
+                openAgentPicker(q, 'auto');
             };
 
             input.addEventListener('input', onInput);
@@ -3598,18 +3655,6 @@
                     closeAgentPicker();
                 }
             });
-
-            // Fermer la liste si clic en dehors
-            document.addEventListener('click', (e) => {
-                const picker = document.getElementById('agentPicker');
-                const btn = document.getElementById('agentBtn');
-                if (!picker || picker.style.display === 'none') return;
-
-                const target = e && e.target ? e.target : null;
-                if (!target) return;
-                if (picker.contains(target) || (btn && btn.contains(target))) return;
-                closeAgentPicker();
-            }, true);
         });
 
         // ===================================
