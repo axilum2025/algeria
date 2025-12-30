@@ -49,7 +49,9 @@ module.exports = async function (context, req) {
         const suspiciousFacts = [];
         const hallucinations = [];
 
-        if (braveApiKey && facts.length > 0) {
+        const braveVerificationEnabled = Boolean(braveApiKey) && facts.length > 0;
+
+        if (braveVerificationEnabled) {
             context.log('🌐 Vérification avec Brave Search...');
             
             for (const fact of facts.slice(0, 5)) { // Limiter à 5 faits pour performance
@@ -69,10 +71,12 @@ module.exports = async function (context, req) {
                             confidence: 'low'
                         });
                     } else {
-                        hallucinations.push({
+                        // IMPORTANT: "aucune source trouvée" ne prouve pas que c'est faux.
+                        // On classe donc comme "suspect / non confirmé automatiquement".
+                        suspiciousFacts.push({
                             fact: fact,
-                            reason: 'Aucune source fiable trouvée',
-                            severity: 'medium'
+                            reason: 'Aucune source trouvée via Brave (non concluant)',
+                            confidence: 'unknown'
                         });
                     }
                 } catch (err) {
@@ -99,7 +103,7 @@ module.exports = async function (context, req) {
         const totalFacts = verifiedFacts.length + suspiciousFacts.length + hallucinations.length;
         const reliabilityScore = analysisTotal > 0
             ? Math.round((analysisSupported / analysisTotal) * 100)
-            : (totalFacts > 0 ? Math.round((verifiedFacts.length / totalFacts) * 100) : 50);
+            : (totalFacts > 0 ? Math.round((verifiedFacts.length / totalFacts) * 100) : null);
 
         // 6. Générer warnings de sécurité
         const securityWarnings = detectSecurityIssues(text);
@@ -122,6 +126,7 @@ module.exports = async function (context, req) {
             source: source || 'IA non spécifiée',
             textLength: text.length,
             analysisTime: Date.now(),
+            braveVerificationEnabled,
             verifiedFacts,
             suspiciousFacts,
             hallucinations,
@@ -138,7 +143,7 @@ module.exports = async function (context, req) {
             notSupportedClaims,
             contradictoryClaims,
             securityWarnings,
-            recommendation: generateRecommendation(reliabilityScore, hallucinations.length, securityWarnings.length)
+            recommendation: generateRecommendation(reliabilityScore, braveVerificationEnabled, hallucinations.length, suspiciousFacts.length, securityWarnings.length)
         };
 
         context.res.status = 200;
@@ -211,7 +216,7 @@ async function extractFacts(text) {
 // Vérifier un fait avec Brave Search
 async function verifyFactWithBrave(fact, apiKey, context) {
     return new Promise((resolve) => {
-        const query = encodeURIComponent(fact);
+        const query = encodeURIComponent(sanitizeBraveQuery(fact));
         const options = {
             hostname: 'api.search.brave.com',
             path: `/res/v1/web/search?q=${query}&count=3`,
@@ -263,6 +268,23 @@ async function verifyFactWithBrave(fact, apiKey, context) {
 
         req.end();
     });
+}
+
+function sanitizeBraveQuery(input) {
+    const text = (input ?? '').toString();
+    // Retirer les emojis et symboles (souvent nuisibles aux moteurs de recherche).
+    // Range approximative, suffisante pour nos cas UI.
+    const withoutEmoji = text.replace(/[\u{1F000}-\u{1FAFF}\u{2600}-\u{27BF}]/gu, ' ');
+
+    // Normaliser ponctuation/espaces
+    const simplified = withoutEmoji
+        .replace(/\s+/g, ' ')
+        .replace(/[“”"'’]/g, ' ')
+        .replace(/[\u2013\u2014]/g, ' ')
+        .trim();
+
+    // Éviter les requêtes trop longues
+    return simplified.length > 180 ? simplified.slice(0, 180) : simplified;
 }
 
 // Détecter contradictions internes
@@ -330,17 +352,23 @@ function detectSecurityIssues(text) {
 }
 
 // Générer recommandation
-function generateRecommendation(score, hallucinationCount, warningCount) {
+function generateRecommendation(score, braveEnabled, hallucinationCount, suspiciousCount, warningCount) {
     if (warningCount > 0) {
         return '🚨 ALERTE : Cette réponse contient des informations sensibles sans sources. Vérification obligatoire avant utilisation.';
     }
+
+    if (score === null) {
+        return braveEnabled
+            ? 'ℹ️ Score indisponible (aucun fait exploitable détecté). Ajoutez des détails vérifiables ou des sources.'
+            : 'ℹ️ Vérification automatique indisponible (Brave API non configurée). Ajoutez des sources (ex: NASA, ESA, Wikipedia) ou activez la vérification.';
+    }
     
-    if (score >= 80 && hallucinationCount === 0) {
+    if (score >= 80 && hallucinationCount === 0 && suspiciousCount === 0) {
         return '✅ Fiabilité élevée. Cette réponse semble factuelle et bien sourcée.';
     }
     
     if (score >= 60 && hallucinationCount <= 2) {
-        return '⚠️ Fiabilité moyenne. Vérifiez les faits suspects avant utilisation.';
+        return '⚠️ Fiabilité moyenne. Vérifiez les points non confirmés avant utilisation.';
     }
     
     return '❌ Fiabilité faible. Cette réponse contient des erreurs factuelles. Vérification recommandée.';

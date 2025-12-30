@@ -4370,7 +4370,7 @@ RÈGLES IMPORTANTES:
                             out += `Claims (détecteur): total ${total} | ✅ ${supported} | ❌ ${notSupported} | ⚡ ${contradictory}\n`;
                         }
 
-                        out += `Faits: ✅ ${verifiedCount} | suspects: ${suspiciousCount} | ❌ hallucinations: ${hallucinationsCount}\n`;
+                        out += `Faits: ✅ ${verifiedCount} | ⚠️ non confirmés: ${suspiciousCount} | ❌ hallucinations: ${hallucinationsCount}\n`;
                         if (contradictionsCount > 0) out += `Contradictions internes détectées: ${contradictionsCount}\n`;
                         if (securityCount > 0) out += `⚠️ Avertissements sécurité: ${securityCount}\n`;
 
@@ -4378,8 +4378,17 @@ RÈGLES IMPORTANTES:
                             out += `\n${report.warning.trim()}\n`;
                         }
 
+                        if (Array.isArray(report.suspiciousFacts) && report.suspiciousFacts.length > 0) {
+                            out += `\n⚠️ Points non confirmés automatiquement (extraits):\n`;
+                            report.suspiciousFacts.slice(0, 5).forEach((s, idx) => {
+                                const fact = (s && s.fact) ? String(s.fact) : '';
+                                const reason = (s && s.reason) ? ` — ${s.reason}` : '';
+                                if (fact) out += `${idx + 1}. ${fact}${reason}\n`;
+                            });
+                        }
+
                         if (Array.isArray(report.hallucinations) && report.hallucinations.length > 0) {
-                            out += `\n❌ Points non vérifiés / non sourcés (extraits):\n`;
+                            out += `\n❌ Points probablement faux / non supportés (extraits):\n`;
                             report.hallucinations.slice(0, 5).forEach((h, idx) => {
                                 const fact = (h && h.fact) ? String(h.fact) : '';
                                 const reason = (h && h.reason) ? ` — ${h.reason}` : '';
