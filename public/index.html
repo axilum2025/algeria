@@ -2774,7 +2774,7 @@
                             </div>
                         </div>
                         
-                        <div class="prompt-card" onclick="useSuggestion('Crée un rapport financier pour ce mois avec analyse des dépenses et revenus')">
+                        <div class="prompt-card" onclick="useSuggestion('Crée un rapport financier pour ce mois avec analyse des dépenses et revenus', 'alex', true)">
                             <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
                             </svg>
@@ -3441,6 +3441,9 @@
             // Général
             if (t === 'axilum' || t === 'default' || t === 'general') return 'axilum';
 
+            // Finance (alias "argent")
+            if (t === 'argent' || t === 'money' || t === 'finance') return 'agent-alex';
+
             // Dev
             if (t === 'dev' || t === 'agent-dev' || t === 'developer') return 'agent-dev';
 
@@ -3479,13 +3482,13 @@
         // 🔁 Agent Picker (UI)
         // ===================================
         const AXILUM_AGENT_CHOICES = [
-            { label: 'Axilum (Général)', arg: 'axilum', hint: '/agent axilum' },
-            { label: 'Agent Dev', arg: 'dev', hint: '/agent dev' },
-            { label: 'AI Management', arg: 'management', hint: '/agent management' },
-            { label: 'Agent Excel', arg: 'xcel', hint: '/agent xcel' },
+            { label: 'Axilum Ai', arg: 'axilum', hint: '/agent axilum' },
+            { label: 'Agent dev', arg: 'dev', hint: '/agent dev' },
+            { label: 'Agent management', arg: 'management', hint: '/agent management' },
+            { label: 'Agent xcel', arg: 'xcel', hint: '/agent xcel' },
             { label: 'Agent ToDo', arg: 'todo', hint: '/agent todo' },
             { label: 'Agent RH', arg: 'rh', hint: '/agent rh' },
-            { label: 'Agent Marketing', arg: 'mark', hint: '/agent mark' },
+            { label: 'Agent mark', arg: 'mark', hint: '/agent mark' },
             { label: 'Agent Web Search', arg: 'web', hint: '/agent web' },
             { label: 'Agent Alex', arg: 'alex', hint: '/agent alex' },
             { label: 'Agent Tony', arg: 'tony', hint: '/agent tony' }
@@ -3520,12 +3523,10 @@
 
             picker.innerHTML = items.map(a => {
                 const safeLabel = String(a.label || '');
-                const safeHint = String(a.hint || '');
                 const safeArg = String(a.arg || '').replace(/"/g, '&quot;');
                 return `
                     <button class="agent-picker-item" type="button" onclick="selectAgentFromPicker(\"${safeArg}\")">
                         <span>${safeLabel}</span>
-                        <small>${safeHint}</small>
                     </button>
                 `;
             }).join('');
@@ -3745,12 +3746,12 @@
             // Base de connaissance des agents et pages
             agents: {
                 'Agent Alex': { module: 'Finance & Accounting Hub', specialite: 'finance, comptabilité, budgets, rapports financiers' },
-                'Agent Xcel': { module: 'Excel AI Expert', specialite: 'Excel, tableaux, formules, graphiques, analyse de données' },
+                'Agent xcel': { module: 'Excel AI Expert', specialite: 'Excel, tableaux, formules, graphiques, analyse de données' },
                 'Agent Tony': { module: 'AI Text Pro', specialite: 'traduction, rédaction, correction, génération de texte' },
                 'Agent Eve': { module: 'AI Vision', specialite: 'analyse d\'images, OCR, détection d\'objets, vision par ordinateur' },
                 'Agent RH': { module: 'HR Management Hub', specialite: 'ressources humaines, recrutement, gestion des employés, congés, paie' },
-                'Agent Dev': { module: 'Research & Development Hub', specialite: 'recherche, développement, innovation, projets R&D' },
-                'Agent Mark': { module: 'Marketing & Business Hub', specialite: 'marketing, stratégie commerciale, analyse de marché' },
+                'Agent dev': { module: 'Research & Development Hub', specialite: 'recherche, développement, innovation, projets R&D' },
+                'Agent mark': { module: 'Marketing & Business Hub', specialite: 'marketing, stratégie commerciale, analyse de marché' },
                 'Agent ToDo': { module: 'AI Task', specialite: 'gestion de tâches, to-do lists, organisation, productivité' }
             },
             
@@ -3828,7 +3829,7 @@
 [📚 Base de connaissance - Architecture de l'application]
 
 MODULES DISPONIBLES:
-Office™: Finance & Accounting (Agent Alex), Excel AI Expert (Agent Xcel), HR Management (Agent RH), Research & Development (Agent Dev), Marketing & Business (Agent Mark)
+Office™: Finance & Accounting (Agent Alex), Excel AI Expert (Agent xcel), HR Management (Agent RH), Research & Development (Agent dev), Marketing & Business (Agent mark)
 Outils: AI Text Pro (Agent Tony), AI Vision (Agent Eve), AI Task (Agent ToDo)
 
 CE QUI N'EXISTE PAS: Modules "Documents", "Email", "Calendar séparé", "Settings dédié", "Dashboard", "Chat Teams", "Notes/Wiki"
@@ -4332,13 +4333,24 @@ RÈGLES IMPORTANTES:
         }
 
         // Function to use a suggestion
-        function useSuggestion(text) {
+        function useSuggestion(text, agentArg, autoSend) {
             const input = document.getElementById('userInput');
+            if (!input) return;
+
+            // Optionnel: basculer d'agent avant d'envoyer
+            const arg = (agentArg === undefined || agentArg === null) ? '' : String(agentArg).trim();
+            if (arg) {
+                try { setChatType(arg); } catch (_) {}
+            }
+
             input.value = text;
             input.focus();
             adjustTextareaHeight();
-            // Optional: auto-send the message
-            // sendMessage();
+
+            // Optionnel: auto-envoi
+            if (autoSend === true) {
+                try { sendMessage(); } catch (_) {}
+            }
         }
 
         // 🆓💎 Plan Management
@@ -4536,14 +4548,14 @@ RÈGLES IMPORTANTES:
                 if (!arg || /^help$/i.test(arg)) {
                     const help = [
                         '🔁 Changement d\'agent disponible :',
-                        '- `/agent axilum` : assistant général',
-                        '- `/agent dev` : Agent Dev (aide développement)',
-                        '- `/agent management` : AI Management (Excel/Planning/Finance/RH)',
-                        '- `/agent xcel` : Agent Excel (formules, conseils, analyse)',
-                        '- `/agent todo` : Agent ToDo (planification de tâches)',
+                        '- `/agent axilum` : Axilum Ai',
+                        '- `/agent dev` : Agent dev',
+                        '- `/agent management` : Agent management',
+                        '- `/agent xcel` : Agent xcel',
+                        '- `/agent todo` : Agent ToDo',
                         '- `/agent rh` : Agent RH',
-                        '- `/agent mark` : Agent Marketing',
-                        '- `/agent web` : Agent Web Search (recherche + sources)',
+                        '- `/agent mark` : Agent mark',
+                        '- `/agent web` : Agent Web Search',
                         '- `/agent alex` : Agent Alex',
                         '- `/agent tony` : Agent Tony',
                         '',
@@ -4556,24 +4568,24 @@ RÈGLES IMPORTANTES:
 
                 const chosen = setChatType(arg);
                 const ack = chosen === 'agent-dev'
-                    ? '✅ Mode **Agent Dev** activé. Posez votre question de développement.'
+                    ? '✅ Mode **Agent dev** activé. Posez votre question de développement.'
                     : chosen === 'ai-management'
-                        ? '✅ Mode **AI Management** activé (Excel/Planning/Finance/RH).'
+                        ? '✅ Mode **Agent management** activé.'
                         : chosen === 'excel-expert'
-                            ? '✅ Mode **Agent Excel** activé. Posez votre question Excel.'
+                            ? '✅ Mode **Agent xcel** activé. Posez votre question Excel.'
                             : chosen === 'agent-todo'
                                 ? '✅ Mode **Agent ToDo** activé. Décrivez vos tâches/objectif.'
                                 : chosen === 'hr-management'
                                     ? '✅ Mode **Agent RH** activé.'
                                     : chosen === 'marketing-agent'
-                                        ? '✅ Mode **Agent Marketing** activé.'
+                                        ? '✅ Mode **Agent mark** activé.'
                                         : chosen === 'web-search'
-                                            ? '✅ Mode **Agent Web Search** activé. Posez votre question (je chercherai des sources).'
+                                            ? '✅ Mode **Agent Web Search** activé.'
                                             : chosen === 'agent-alex'
                                                 ? '✅ Mode **Agent Alex** activé.'
                                                 : chosen === 'agent-tony'
                                                     ? '✅ Mode **Agent Tony** activé.'
-                                                    : '✅ Mode **Axilum AI** activé (assistant général).';
+                                                    : '✅ Mode **Axilum Ai** activé (assistant général).';
 
                 addMessage(ack, 'bot');
                 await saveMessage(message, { response: ack });
@@ -11612,7 +11624,7 @@ RÈGLES IMPORTANTES:
         
         function loadRnDModule() {
             // 🎯 Tracking: Utilisateur ouvre Research & Development
-            AxilumContext.updateActivity('Research & Development Hub', 'Agent Dev', 'Ouverture du module');
+            AxilumContext.updateActivity('Research & Development Hub', 'Agent dev', 'Ouverture du module');
             
             // Si le module est déjà chargé et les fonctions disponibles
             if (rndModuleLoaded && typeof openRnD === 'function') {
@@ -12821,7 +12833,7 @@ RÈGLES IMPORTANTES:
                         <button class="rnd-tab" onclick="showRnDTab('projets')">Projets R&D</button>
                         <button class="rnd-tab" onclick="showRnDTab('jalons')">Jalons & KPIs</button>
                         <button class="rnd-tab" onclick="showRnDTab('docs')">Documentation & Risques</button>
-                        <button class="rnd-tab" onclick="showRnDTab('agent')">Agent Dev</button>
+                        <button class="rnd-tab" onclick="showRnDTab('agent')">Agent dev</button>
                     </div>
                     
                     <div class="rnd-content">
@@ -12888,12 +12900,12 @@ RÈGLES IMPORTANTES:
                             <div id="rndProjectsList"></div>
                         </div>
                         
-                        <!-- Agent Dev -->
+                        <!-- Agent dev -->
                         <div id="rndAgent" class="rnd-tab-content" style="display: none;">
                             <div style="margin-bottom: 24px;">
                                 <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 12px;">
                                     <div style="flex: 1;">
-                                        <h2 style="margin: 0 0 8px; font-size: 24px; color: white;">Agent Dev</h2>
+                                        <h2 style="margin: 0 0 8px; font-size: 24px; color: white;">Agent dev</h2>
                                         <p style="margin: 0 0 12px; color: rgba(255, 255, 255, 0.6); font-size: 14px;">Assistant IA spécialisé en R&D et innovation multi-domaines</p>
                                     </div>
                                     <button onclick="clearRnDChatHistory()" title="Effacer l'historique du chat" style="padding: 10px 16px; background: rgba(239, 68, 68, 0.2); border: 1px solid rgba(239, 68, 68, 0.4); border-radius: 8px; color: #fca5a5; cursor: pointer; font-size: 13px; font-weight: 600; display: flex; align-items: center; gap: 6px; transition: all 0.2s;" onmouseover="this.style.background='rgba(239, 68, 68, 0.3)'" onmouseout="this.style.background='rgba(239, 68, 68, 0.2)'">
@@ -12915,7 +12927,7 @@ RÈGLES IMPORTANTES:
                             <div class="rnd-chat-container">
                                 <div class="rnd-chat-messages" id="rndChatMessages"></div>
                                 <div class="rnd-chat-input">
-                                    <input type="text" class="rnd-input" id="rndChatInput" placeholder="Posez votre question à Agent Dev..." onkeypress="if(event.key==='Enter') sendRnDMessage()">
+                                    <input type="text" class="rnd-input" id="rndChatInput" placeholder="Posez votre question à Agent dev..." onkeypress="if(event.key==='Enter') sendRnDMessage()">
                                     <button class="rnd-btn" onclick="sendRnDMessage()">Envoyer</button>
                                 </div>
                             </div>
@@ -12929,7 +12941,7 @@ RÈGLES IMPORTANTES:
             // Initialize R&D data
             initializeRnDData();
             
-            // Charger l'historique du chat Agent Dev si l'onglet est activé
+            // Charger l'historique du chat Agent dev si l'onglet est activé
             loadRnDChatHistory();
         }
         
@@ -13376,7 +13388,7 @@ RÈGLES IMPORTANTES:
             `).join('');
         }
         
-        // ========== GESTION DE L'HISTORIQUE DU CHAT AGENT DEV ==========
+        // ========== GESTION DE L'HISTORIQUE DU CHAT AGENT dev ==========
         let rndChatHistory = JSON.parse(localStorage.getItem('rndChatHistory') || '[]');
         
         function loadRnDChatHistory() {
@@ -13392,7 +13404,7 @@ RÈGLES IMPORTANTES:
                 messagesContainer.innerHTML = `
                     <div style="margin-bottom: 16px;">
                         <div style="display: inline-block; background: rgba(255, 255, 255, 0.1); padding: 12px 16px; border-radius: 12px; max-width: 70%; border: 1px solid rgba(99, 102, 241, 0.3);">
-                            <p style="margin: 0; color: white; font-size: 14px; line-height: 1.6;">👋 Bonjour! Je suis Agent Dev, votre assistant IA spécialisé en R&D et innovation multi-domaines.<br><br>Je peux vous aider avec :<br>• Conseils sur vos projets de recherche<br>• Analyse de tendances et innovations<br>• Méthodologies d'innovation<br>• Gestion des risques R&D<br>• Optimisation de processus<br><br>Comment puis-je vous accompagner aujourd'hui?</p>
+                            <p style="margin: 0; color: white; font-size: 14px; line-height: 1.6;">👋 Bonjour! Je suis Agent dev, votre assistant IA spécialisé en R&D et innovation multi-domaines.<br><br>Je peux vous aider avec :<br>• Conseils sur vos projets de recherche<br>• Analyse de tendances et innovations<br>• Méthodologies d'innovation<br>• Gestion des risques R&D<br>• Optimisation de processus<br><br>Comment puis-je vous accompagner aujourd'hui?</p>
                         </div>
                     </div>
                 `;
@@ -13423,7 +13435,7 @@ RÈGLES IMPORTANTES:
         }
         
         function clearRnDChatHistory() {
-            if (!confirm('⚠️ Êtes-vous sûr de vouloir effacer tout l\'historique des conversations avec Agent Dev?\n\nCette action est irréversible.')) return;
+            if (!confirm('⚠️ Êtes-vous sûr de vouloir effacer tout l\'historique des conversations avec Agent dev?\n\nCette action est irréversible.')) return;
             
             // Effacer l'historique
             rndChatHistory = [];
@@ -13490,8 +13502,8 @@ RÈGLES IMPORTANTES:
             
             // Add typing indicator
             const typingIndicator = webSearchEnabled 
-                ? 'Agent Dev recherche sur le web...' 
-                : 'Agent Dev analyse...';
+                ? 'Agent dev recherche sur le web...' 
+                : 'Agent dev analyse...';
             messagesContainer.innerHTML += `
                 <div id="rndTyping" style="margin-bottom: 16px;">
                     <div style="display: inline-block; background: rgba(255, 255, 255, 0.1); padding: 12px 16px; border-radius: 12px;">
@@ -14666,7 +14678,7 @@ STYLE DE RÉPONSE :
         
         function loadMarketingModule() {
             // 🎯 Tracking: Utilisateur ouvre Marketing & Business
-            AxilumContext.updateActivity('Marketing & Business Hub', 'Agent Mark', 'Ouverture du module');
+            AxilumContext.updateActivity('Marketing & Business Hub', 'Agent mark', 'Ouverture du module');
             
             // Si le module est déjà chargé et les fonctions disponibles
             if (marketingModuleLoaded && typeof openMarketing === 'function') {
@@ -15171,7 +15183,7 @@ STYLE DE RÉPONSE :
                         <button class="mkt-tab" onclick="showMarketingTab('contenu')">Contenu</button>
                         <button class="mkt-tab" onclick="showMarketingTab('business')">Business</button>
                         <button class="mkt-tab" onclick="showMarketingTab('analytics')">Analytics</button>
-                        <button class="mkt-tab" onclick="showMarketingTab('agent')">Agent Mark</button>
+                        <button class="mkt-tab" onclick="showMarketingTab('agent')">Agent mark</button>
                     </div>
                     
                     <div class="mkt-content">
@@ -15254,17 +15266,17 @@ STYLE DE RÉPONSE :
                             <div id="mktAnalyticsContent"></div>
                         </div>
                         
-                        <!-- Agent Mark -->
+                        <!-- Agent mark -->
                         <div id="mktAgent" class="mkt-tab-content" style="display: none;">
                             <div style="margin-bottom: 24px;">
-                                <h2 style="margin: 0 0 8px; font-size: 24px; color: white;">Agent Mark</h2>
+                                <h2 style="margin: 0 0 8px; font-size: 24px; color: white;">Agent mark</h2>
                                 <p style="margin: 0; color: rgba(255, 255, 255, 0.6); font-size: 14px;">Assistant IA spécialisé en Marketing Digital et Growth</p>
                             </div>
                             
                             <div class="mkt-chat-container">
                                 <div class="mkt-chat-messages" id="mktChatMessages"></div>
                                 <div class="mkt-chat-input">
-                                    <input type="text" class="mkt-input" id="mktChatInput" placeholder="Posez votre question à Agent Mark..." onkeypress="if(event.key==='Enter') sendMarketingMessage()">
+                                    <input type="text" class="mkt-input" id="mktChatInput" placeholder="Posez votre question à Agent mark..." onkeypress="if(event.key==='Enter') sendMarketingMessage()">
                                     <button class="mkt-btn" onclick="sendMarketingMessage()">Envoyer</button>
                                 </div>
                             </div>
@@ -15497,7 +15509,7 @@ STYLE DE RÉPONSE :
             messagesContainer.innerHTML += `
                 <div id="mktTyping" style="margin-bottom: 16px;">
                     <div style="display: inline-block; background: rgba(255, 255, 255, 0.1); padding: 12px 16px; border-radius: 12px;">
-                        <p style="margin: 0; color: rgba(255, 255, 255, 0.6); font-size: 14px;">Agent Mark analyse...</p>
+                        <p style="margin: 0; color: rgba(255, 255, 255, 0.6); font-size: 14px;">Agent mark analyse...</p>
                     </div>
                 </div>
             `;
@@ -25680,7 +25692,7 @@ Réponds UNIQUEMENT dans ce format JSON:
             const buttonsHTML = parts.length > 1 ? '<div style="margin-top: 12px;' + parts[1] : '';
             
             msgDiv.innerHTML = `
-                <div style="color: var(--text-secondary); font-size: 9px !important; font-weight: 600; margin-bottom: 3px;">${isBot ? 'AI Management' : 'Vous'}</div>
+                <div style="color: var(--text-secondary); font-size: 9px !important; font-weight: 600; margin-bottom: 3px;">${isBot ? 'Agent management' : 'Vous'}</div>
                 <div style="color: var(--text-primary); font-size: 10px !important; line-height: 1.5; white-space: pre-line;">${mainText}</div>
                 ${buttonsHTML}
             `;
@@ -25729,7 +25741,7 @@ Réponds UNIQUEMENT dans ce format JSON:
         // Fonction pour charger Excel AI en module (préparée pour migration future)
         function loadExcelAiModule() {
             // 🎯 Tracking: Utilisateur ouvre Excel AI Expert
-            AxilumContext.updateActivity('Excel AI Expert', 'Agent Xcel', 'Ouverture du module');
+            AxilumContext.updateActivity('Excel AI Expert', 'Agent xcel', 'Ouverture du module');
             
             if (excelAiModuleLoaded && typeof window.openExcelAiModule === 'function') {
                 window.openExcelAiModule();
