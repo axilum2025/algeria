@@ -1047,19 +1047,29 @@
         /* Mobile: panneau plein large en haut */
         @media (max-width: 768px) {
             .user-menu {
-                top: 72px;
-                left: 12px;
-                right: 12px;
-                width: auto;
-                transform: translateY(-10px);
+                position: fixed !important;
+                top: 72px !important;
+                left: 12px !important;
+                right: 12px !important;
+                width: auto !important;
+                transform: translateY(-10px) !important;
                 max-height: calc(100vh - 96px);
                 max-height: calc(100dvh - 96px);
                 overflow-y: auto;
                 -webkit-overflow-scrolling: touch;
+                display: none;
+                background: var(--bg-primary) !important;
+                border: 1px solid var(--border-color) !important;
+                box-shadow: 0 10px 25px rgba(0,0,0,0.5) !important;
             }
 
             .user-menu.show {
-                transform: translateY(0);
+                transform: translateY(0) !important;
+                display: block !important;
+                opacity: 1 !important;
+                pointer-events: all !important;
+                z-index: 2147483647 !important;
+                visibility: visible !important;
             }
         }
 
@@ -2621,7 +2631,7 @@
         
         <!-- Menu Section -->
         <div class="sidebar-menu">
-            <button class="menu-item" id="accountBtn">
+            <button class="menu-item" id="accountBtn" onclick="showAccountMenu()">
                 <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
                 </svg>
@@ -4572,31 +4582,6 @@ RÈGLES IMPORTANTES:
 
         // Initialize plan on load
         document.addEventListener('DOMContentLoaded', () => {
-            // Fix mobile: tap "Mon Compte" parfois ignoré (click/touch)
-            try {
-                const accountBtn = document.getElementById('accountBtn');
-                if (accountBtn && accountBtn.dataset && accountBtn.dataset.tapFixInstalled !== '1') {
-                    accountBtn.dataset.tapFixInstalled = '1';
-                    let lastTapTs = 0;
-                    const handler = (e) => {
-                        const now = Date.now();
-                        if (now - lastTapTs < 450) return;
-                        lastTapTs = now;
-                        try {
-                            if (e) {
-                                e.preventDefault();
-                                e.stopPropagation();
-                            }
-                        } catch (_) {}
-                        try {
-                            showAccountMenu();
-                        } catch (_) {}
-                    };
-                    accountBtn.addEventListener('touchend', handler, { passive: false });
-                    accountBtn.addEventListener('click', handler);
-                }
-            } catch (_) {}
-
             // Attacher les event listeners aux boutons
             const menuBtn = document.getElementById('menuToggleBtn');
             const freeBadge = document.getElementById('planBadgeFree');
