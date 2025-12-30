@@ -1029,16 +1029,18 @@
             border-radius: 12px;
             box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
             opacity: 0;
+            visibility: hidden;
             transform: translate(-50%, calc(-50% - 10px));
             pointer-events: none;
             transition: all 0.2s ease;
             /* Au-dessus des overlays/pickers (ex: agent-picker à 25000) */
             z-index: 26050;
-            display: none;
+            display: block;
         }
 
         .user-menu.show {
             opacity: 1;
+            visibility: visible;
             transform: translate(-50%, -50%);
             pointer-events: all;
             display: block;
@@ -1057,7 +1059,6 @@
                 max-height: calc(100dvh - 96px);
                 overflow-y: auto;
                 -webkit-overflow-scrolling: touch;
-                display: none;
                 background: var(--bg-primary) !important;
                 border: 1px solid var(--border-color) !important;
                 box-shadow: 0 10px 25px rgba(0,0,0,0.5) !important;
@@ -1065,7 +1066,6 @@
 
             .user-menu.show {
                 transform: translateY(0) !important;
-                display: block !important;
                 opacity: 1 !important;
                 pointer-events: all !important;
                 z-index: 2147483647 !important;
@@ -4266,15 +4266,6 @@ RÈGLES IMPORTANTES:
                 };
             }
 
-            // Fermer le menu utilisateur si on clique ailleurs
-            document.addEventListener('click', (e) => {
-                const menu = document.getElementById('userMenu');
-                const accountBtn = document.getElementById('accountBtn');
-                
-                if (menu && accountBtn && !menu.contains(e.target) && !accountBtn.contains(e.target)) {
-                    menu.classList.remove('show');
-                }
-            });
         });
 
         function adjustTextareaHeight() {
@@ -26910,13 +26901,8 @@ Réponds UNIQUEMENT dans ce format JSON:
                 } catch (_) {}
 
                 menu.classList.add('show');
-                // Filet de sécurité: forcer l'affichage même si un style externe interfère
-                try {
-                    menu.style.zIndex = '26050';
-                    menu.style.display = 'block';
-                    menu.style.pointerEvents = 'all';
-                    menu.style.opacity = '1';
-                } catch (_) {}
+                // Filet de sécurité: ne toucher qu'au z-index (évite les états display:none "bloquants" sur mobile)
+                try { menu.style.zIndex = '2147483647'; } catch (_) {}
                 
                 // Fermer le menu quand on clique en dehors
                 setTimeout(() => {
@@ -26943,17 +26929,8 @@ Réponds UNIQUEMENT dans ce format JSON:
                 if (!menu) return;
                 menu.classList.remove('show');
 
-                // Annuler les styles inline "filet de sécurité" appliqués à l'ouverture
-                menu.style.display = '';
-                menu.style.opacity = '';
-                menu.style.pointerEvents = '';
+                // Annuler les styles inline appliqués à l'ouverture (laisser le CSS gérer l'état)
                 menu.style.zIndex = '';
-                menu.style.transform = '';
-
-                // Sécurité: forcer caché si un style externe persiste
-                menu.style.display = 'none';
-                menu.style.pointerEvents = 'none';
-                menu.style.opacity = '0';
             } catch (_) {}
         }
 
