@@ -26075,6 +26075,14 @@ Réponds UNIQUEMENT dans ce format JSON:
         // ========== AUTHENTICATION FUNCTIONS ==========
         
         function showAccountMenu() {
+            // Mobile: fermer la sidebar pour éviter que le menu/modal soit masqué
+            try {
+                const isMobile = window.matchMedia && window.matchMedia('(max-width: 768px)').matches;
+                const sidebar = document.getElementById('sidebar');
+                if (isMobile && sidebar && sidebar.classList.contains('open')) {
+                    closeSidebar();
+                }
+            } catch (_) {}
             if (currentUser) {
                 // User connecté - afficher le menu de profil
                 showUserMenu();
@@ -26266,6 +26274,15 @@ Réponds UNIQUEMENT dans ce format JSON:
         function showUserMenu() {
             const menu = document.getElementById('userMenu');
             if (!menu || !currentUser) return;
+
+            // Mobile: fermer la sidebar pour laisser le menu accessible
+            try {
+                const isMobile = window.matchMedia && window.matchMedia('(max-width: 768px)').matches;
+                const sidebar = document.getElementById('sidebar');
+                if (isMobile && sidebar && sidebar.classList.contains('open')) {
+                    closeSidebar();
+                }
+            } catch (_) {}
             
             const isOpen = menu.classList.contains('show');
             
@@ -26375,6 +26392,14 @@ Réponds UNIQUEMENT dans ce format JSON:
         // ========== AUTHENTICATION & USER MGMT ==========
         
         function showAccountMenu() {
+            // Mobile: fermer la sidebar pour éviter que le menu/modal soit masqué
+            try {
+                const isMobile = window.matchMedia && window.matchMedia('(max-width: 768px)').matches;
+                const sidebar = document.getElementById('sidebar');
+                if (isMobile && sidebar && sidebar.classList.contains('open')) {
+                    closeSidebar();
+                }
+            } catch (_) {}
             if (currentUser) {
                 // User connecté - afficher le menu de profil
                 showUserMenu();
