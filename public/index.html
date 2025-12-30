@@ -288,7 +288,7 @@
         }
 
         .conversations.visible {
-            max-height: 100%;
+            max-height: var(--sessions-max-height, 100%);
             opacity: 1;
             padding: 10px;
             pointer-events: auto;
@@ -6662,6 +6662,53 @@ RÈGLES IMPORTANTES:
             
             conversationsList.classList.toggle('visible');
             toggleBtn.classList.toggle('active');
+
+            // Si on ouvre: limiter la hauteur à ~5 sessions puis scroll
+            try {
+                if (conversationsList.classList.contains('visible')) {
+                    requestAnimationFrame(() => applySessionsListMaxHeight());
+                }
+            } catch (_) {}
+        }
+
+        function applySessionsListMaxHeight() {
+            const conversationsList = document.getElementById('conversationsList');
+            if (!conversationsList) return;
+
+            // On ne contraint que quand la liste est visible
+            if (!conversationsList.classList.contains('visible')) return;
+
+            const convItems = Array.from(conversationsList.querySelectorAll('.conv-item'));
+
+            // <= 5 sessions: pas de limitation
+            if (convItems.length <= 5) {
+                try { conversationsList.style.removeProperty('--sessions-max-height'); } catch (_) {}
+                return;
+            }
+
+            // Hauteur cumulée jusqu'à 5 conv-item (en incluant titres/espaces)
+            let itemsCounted = 0;
+            let targetHeight = 0;
+            const children = Array.from(conversationsList.children);
+            for (const child of children) {
+                const rect = child.getBoundingClientRect();
+                const h = rect && rect.height ? rect.height : 0;
+                targetHeight += h;
+                if (child.classList && child.classList.contains('conv-item')) {
+                    itemsCounted += 1;
+                    if (itemsCounted >= 5) break;
+                }
+            }
+
+            // Filet de sécurité si mesures impossibles
+            if (!targetHeight || targetHeight < 120) {
+                // Valeur raisonnable: 5 items ~ 5*52 + padding
+                targetHeight = 280;
+            }
+
+            // Laisser un peu de marge pour le padding/scrollbar
+            const padded = Math.ceil(targetHeight + 8);
+            try { conversationsList.style.setProperty('--sessions-max-height', padded + 'px'); } catch (_) {}
         }
 
         // Fermer sessions si clic en dehors
@@ -6754,6 +6801,13 @@ RÈGLES IMPORTANTES:
                     </div>`;
                 });
             }
+
+            // Si la liste Sessions est ouverte, limiter à ~5 items puis scroll
+            try {
+                if (list.classList.contains('visible')) {
+                    requestAnimationFrame(() => applySessionsListMaxHeight());
+                }
+            } catch (_) {}
         }
 
         async function loadConversation(id) {
