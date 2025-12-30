@@ -1018,10 +1018,6 @@
         .sidebar-section h3 { color: var(--text-primary); }
 
         /* User Profile Menu */
-        .user-menu-backdrop {
-            display: none;
-        }
-
         .user-menu {
             position: fixed;
             top: 50%;
@@ -1033,18 +1029,15 @@
             border-radius: 12px;
             box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
             opacity: 0;
-            visibility: hidden;
             transform: translate(-50%, calc(-50% - 10px));
             pointer-events: none;
             transition: all 0.2s ease;
-            /* Au-dessus des overlays/pickers (ex: agent-picker à 25000) */
-            z-index: 26050;
-            display: block;
+            z-index: 12000;
+            display: none;
         }
 
         .user-menu.show {
             opacity: 1;
-            visibility: visible;
             transform: translate(-50%, -50%);
             pointer-events: all;
             display: block;
@@ -1052,43 +1045,16 @@
 
         /* Mobile: panneau plein large en haut */
         @media (max-width: 768px) {
-            .user-menu-backdrop {
-                position: fixed;
-                top: 0;
-                left: 0;
-                right: 0;
-                bottom: 0;
-                background: rgba(0, 0, 0, 0.45);
-                z-index: 2147483646;
-                display: none;
-            }
-
-            .user-menu-backdrop.show {
-                display: block;
-            }
-
             .user-menu {
-                position: fixed !important;
-                top: 72px !important;
-                left: 12px !important;
-                right: 12px !important;
-                width: auto !important;
-                transform: translateY(-10px) !important;
-                max-height: calc(100vh - 96px);
-                max-height: calc(100dvh - 96px);
-                overflow-y: auto;
-                -webkit-overflow-scrolling: touch;
-                background: var(--bg-primary) !important;
-                border: 1px solid var(--border-color) !important;
-                box-shadow: 0 10px 25px rgba(0,0,0,0.5) !important;
+                top: 72px;
+                left: 12px;
+                right: 12px;
+                width: auto;
+                transform: translateY(-10px);
             }
 
             .user-menu.show {
-                transform: translateY(0) !important;
-                opacity: 1 !important;
-                pointer-events: all !important;
-                z-index: 2147483647 !important;
-                visibility: visible !important;
+                transform: translateY(0);
             }
         }
 
@@ -1453,8 +1419,7 @@
             right: 0;
             bottom: 0;
             background: rgba(0, 0, 0, 0.5);
-            /* Au-dessus des overlays (ex: agent-picker à 25000) */
-            z-index: 30000;
+            z-index: 1000;
             align-items: center;
             justify-content: center;
         }
@@ -2651,19 +2616,19 @@
         
         <!-- Menu Section -->
         <div class="sidebar-menu">
-            <button class="menu-item" id="accountBtn" onclick="try { if (event) { event.preventDefault(); event.stopPropagation(); } } catch (_) {} try { if (typeof showAccountMenu === 'function') { showAccountMenu(); } else { const m = document.getElementById('signinModal'); if (m) m.classList.add('show'); } } catch (_) { const m = document.getElementById('signinModal'); if (m) m.classList.add('show'); } return false;">
+            <button class="menu-item" id="accountBtn">
                 <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
                 </svg>
                 <span class="menu-item-text">Mon Compte</span>
             </button>
-            <button class="menu-item" onclick="try { if (event) { event.preventDefault(); event.stopPropagation(); } } catch (_) {} showStats(); return false;">
+            <button class="menu-item" onclick="showStats()">
                 <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
                 </svg>
                 <span class="menu-item-text">Statistiques</span>
             </button>
-            <button class="menu-item" onclick="try { if (event) { event.preventDefault(); event.stopPropagation(); } } catch (_) {} showSettings(); return false;">
+            <button class="menu-item" onclick="showSettings()">
                 <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
@@ -3103,7 +3068,6 @@
     <input type="file" id="profilePhotoInput" accept="image/*" style="display: none;" onchange="handleProfilePhotoUpload(event)">
     
     <!-- User Menu (Profil utilisateur) -->
-    <div class="user-menu-backdrop" id="userMenuBackdrop" onclick="closeUserMenu(event); return false;"></div>
     <div class="user-menu" id="userMenu">
         <div class="user-menu-header">
             <button class="user-menu-close" type="button" onclick="closeUserMenu(event); return false;" aria-label="Fermer">×</button>
@@ -4256,13 +4220,6 @@ RÈGLES IMPORTANTES:
             document.addEventListener('click', (e) => {
                 const menu = document.getElementById('userMenu');
                 const accountBtn = document.getElementById('accountBtn');
-                const backdrop = document.getElementById('userMenuBackdrop');
-
-                // Mobile: le backdrop gère la fermeture (évite fermeture immédiate / comportements bizarres)
-                try {
-                    const isMobile = window.matchMedia && window.matchMedia('(max-width: 768px)').matches;
-                    if (isMobile && backdrop && backdrop.classList.contains('show')) return;
-                } catch (_) {}
                 
                 if (menu && accountBtn && !menu.contains(e.target) && !accountBtn.contains(e.target)) {
                     menu.classList.remove('show');
@@ -4294,6 +4251,15 @@ RÈGLES IMPORTANTES:
                 };
             }
 
+            // Fermer le menu utilisateur si on clique ailleurs
+            document.addEventListener('click', (e) => {
+                const menu = document.getElementById('userMenu');
+                const accountBtn = document.getElementById('accountBtn');
+                
+                if (menu && accountBtn && !menu.contains(e.target) && !accountBtn.contains(e.target)) {
+                    menu.classList.remove('show');
+                }
+            });
         });
 
         function adjustTextareaHeight() {
@@ -4601,6 +4567,31 @@ RÈGLES IMPORTANTES:
 
         // Initialize plan on load
         document.addEventListener('DOMContentLoaded', () => {
+            // Fix mobile: tap "Mon Compte" parfois ignoré (click/touch)
+            try {
+                const accountBtn = document.getElementById('accountBtn');
+                if (accountBtn && accountBtn.dataset && accountBtn.dataset.tapFixInstalled !== '1') {
+                    accountBtn.dataset.tapFixInstalled = '1';
+                    let lastTapTs = 0;
+                    const handler = (e) => {
+                        const now = Date.now();
+                        if (now - lastTapTs < 450) return;
+                        lastTapTs = now;
+                        try {
+                            if (e) {
+                                e.preventDefault();
+                                e.stopPropagation();
+                            }
+                        } catch (_) {}
+                        try {
+                            showAccountMenu();
+                        } catch (_) {}
+                    };
+                    accountBtn.addEventListener('touchend', handler, { passive: false });
+                    accountBtn.addEventListener('click', handler);
+                }
+            } catch (_) {}
+
             // Attacher les event listeners aux boutons
             const menuBtn = document.getElementById('menuToggleBtn');
             const freeBadge = document.getElementById('planBadgeFree');
@@ -4609,55 +4600,6 @@ RÈGLES IMPORTANTES:
             if (menuBtn) menuBtn.addEventListener('click', toggleSidebar);
             if (freeBadge) freeBadge.addEventListener('click', () => switchToPlan('free'));
             if (proBadge) proBadge.addEventListener('click', () => switchToPlan('pro'));
-
-            // Fix Android Chrome: les clicks des boutons du bas de la sidebar peuvent être annulés
-            // (léger scroll/drag -> pas de click). On force un "tap" fiable via pointerdown/pointerup.
-            try {
-                const sidebarMenu = document.querySelector('.sidebar-menu');
-                const isMobile = window.matchMedia && window.matchMedia('(max-width: 768px)').matches;
-                if (sidebarMenu && isMobile && sidebarMenu.dataset.sidebarTapFix !== '1') {
-                    sidebarMenu.dataset.sidebarTapFix = '1';
-                    let startX = 0;
-                    let startY = 0;
-                    let activeBtn = null;
-
-                    const onDown = (e) => {
-                        try {
-                            if (!e) return;
-                            if (e.pointerType && e.pointerType !== 'touch') return;
-                            const btn = e.target && e.target.closest ? e.target.closest('.menu-item') : null;
-                            if (!btn) return;
-                            activeBtn = btn;
-                            startX = (typeof e.clientX === 'number') ? e.clientX : 0;
-                            startY = (typeof e.clientY === 'number') ? e.clientY : 0;
-                            // Supprime le click "compat" généré par le navigateur (évite double + évite click annulé)
-                            if (typeof e.preventDefault === 'function') e.preventDefault();
-                        } catch (_) {}
-                    };
-
-                    const onUp = (e) => {
-                        try {
-                            if (!e) return;
-                            if (e.pointerType && e.pointerType !== 'touch') return;
-                            const btn = activeBtn;
-                            activeBtn = null;
-                            if (!btn) return;
-                            const endX = (typeof e.clientX === 'number') ? e.clientX : startX;
-                            const endY = (typeof e.clientY === 'number') ? e.clientY : startY;
-                            const dx = Math.abs(endX - startX);
-                            const dy = Math.abs(endY - startY);
-                            // Seuil simple anti-scroll
-                            if (dx <= 10 && dy <= 10) {
-                                btn.click();
-                            }
-                        } catch (_) {}
-                    };
-
-                    sidebarMenu.addEventListener('pointerdown', onDown, { passive: false, capture: true });
-                    sidebarMenu.addEventListener('pointerup', onUp, { passive: true, capture: true });
-                    sidebarMenu.addEventListener('pointercancel', () => { activeBtn = null; }, { passive: true, capture: true });
-                }
-            } catch (_) {}
             
             switchToPlan(currentPlan);
         });
@@ -6906,14 +6848,12 @@ RÈGLES IMPORTANTES:
         }
 
         function showSettings() {
-            const modal = document.getElementById('settingsModal');
-            if (modal) modal.classList.add('show');
+            document.getElementById('settingsModal').style.display = 'flex';
             refreshStorageModeUI();
         }
 
         function closeSettingsModal() {
-            const modal = document.getElementById('settingsModal');
-            if (modal) modal.classList.remove('show');
+            document.getElementById('settingsModal').style.display = 'none';
         }
 
         function showFunctions() {
@@ -26753,6 +26693,14 @@ Réponds UNIQUEMENT dans ce format JSON:
         // ========== AUTHENTICATION FUNCTIONS ==========
         
         function showAccountMenu() {
+            // Mobile: fermer la sidebar pour éviter que le menu/modal soit masqué
+            try {
+                const isMobile = window.matchMedia && window.matchMedia('(max-width: 768px)').matches;
+                const sidebar = document.getElementById('sidebar');
+                if (isMobile && sidebar && sidebar.classList.contains('open')) {
+                    closeSidebar();
+                }
+            } catch (_) {}
             if (currentUser) {
                 // User connecté - afficher le menu de profil
                 showUserMenu();
@@ -26943,14 +26891,19 @@ Réponds UNIQUEMENT dans ce format JSON:
             const menu = document.getElementById('userMenu');
             if (!menu || !currentUser) return;
 
-            let isMobile = false;
-            try { isMobile = window.matchMedia && window.matchMedia('(max-width: 768px)').matches; } catch (_) {}
+            // Mobile: fermer la sidebar pour laisser le menu accessible
+            try {
+                const isMobile = window.matchMedia && window.matchMedia('(max-width: 768px)').matches;
+                const sidebar = document.getElementById('sidebar');
+                if (isMobile && sidebar && sidebar.classList.contains('open')) {
+                    closeSidebar();
+                }
+            } catch (_) {}
             
             const isOpen = menu.classList.contains('show');
-
+            
             if (isOpen) {
-                // Fermer proprement (évite un état "caché mais encore ouvert")
-                try { closeUserMenu(); } catch (_) { menu.classList.remove('show'); }
+                menu.classList.remove('show');
             } else {
                 // Remplir les infos utilisateur (ne jamais bloquer l'ouverture)
                 try {
@@ -26966,17 +26919,13 @@ Réponds UNIQUEMENT dans ce format JSON:
                 } catch (_) {}
 
                 menu.classList.add('show');
-                // Filet de sécurité: ne toucher qu'au z-index (évite les états display:none "bloquants" sur mobile)
-                try { menu.style.zIndex = '2147483647'; } catch (_) {}
-
-                // Mobile: afficher le backdrop plein écran (source de vérité pour fermeture)
-                if (isMobile) {
-                    try {
-                        const backdrop = document.getElementById('userMenuBackdrop');
-                        if (backdrop) backdrop.classList.add('show');
-                    } catch (_) {}
-                    return;
-                }
+                // Filet de sécurité: forcer l'affichage même si un style externe interfère
+                try {
+                    menu.style.zIndex = '12000';
+                    menu.style.display = 'block';
+                    menu.style.pointerEvents = 'all';
+                    menu.style.opacity = '1';
+                } catch (_) {}
                 
                 // Fermer le menu quand on clique en dehors
                 setTimeout(() => {
@@ -27003,12 +26952,17 @@ Réponds UNIQUEMENT dans ce format JSON:
                 if (!menu) return;
                 menu.classList.remove('show');
 
-                // Mobile: masquer le backdrop
-                const backdrop = document.getElementById('userMenuBackdrop');
-                if (backdrop) backdrop.classList.remove('show');
-
-                // Annuler les styles inline appliqués à l'ouverture (laisser le CSS gérer l'état)
+                // Annuler les styles inline "filet de sécurité" appliqués à l'ouverture
+                menu.style.display = '';
+                menu.style.opacity = '';
+                menu.style.pointerEvents = '';
                 menu.style.zIndex = '';
+                menu.style.transform = '';
+
+                // Sécurité: forcer caché si un style externe persiste
+                menu.style.display = 'none';
+                menu.style.pointerEvents = 'none';
+                menu.style.opacity = '0';
             } catch (_) {}
         }
 
@@ -27094,6 +27048,14 @@ Réponds UNIQUEMENT dans ce format JSON:
         // ========== AUTHENTICATION & USER MGMT ==========
         
         function showAccountMenu() {
+            // Mobile: fermer la sidebar pour éviter que le menu/modal soit masqué
+            try {
+                const isMobile = window.matchMedia && window.matchMedia('(max-width: 768px)').matches;
+                const sidebar = document.getElementById('sidebar');
+                if (isMobile && sidebar && sidebar.classList.contains('open')) {
+                    closeSidebar();
+                }
+            } catch (_) {}
             if (currentUser) {
                 // User connecté - afficher le menu de profil
                 showUserMenu();
@@ -27664,13 +27626,6 @@ Réponds UNIQUEMENT dans ce format JSON:
     </script>
     
     <!-- Forgot Password Functions -->
-    <script src="forgot-password-functions.js"></script>
-    
-    <!-- jsPDF Library for PDF generation -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-</body>
-</html>
     <script src="forgot-password-functions.js"></script>
     
     <!-- jsPDF Library for PDF generation -->
