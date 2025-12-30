@@ -4593,8 +4593,8 @@ RÈGLES IMPORTANTES:
             if (/^\/agent\b/i.test(message)) {
                 const arg = message.replace(/^\/agent\b/i, '').trim();
 
-                // Afficher la commande utilisateur
-                addMessage(message, 'user');
+                // UX: ne pas afficher la commande /agent dans le chat.
+                // On efface simplement l'input puis on affiche un message d'accueil.
                 input.value = '';
                 adjustTextareaHeight();
 
@@ -4614,31 +4614,31 @@ RÈGLES IMPORTANTES:
                         'Note: les agents partagent le même historique de conversation.'
                     ].join('\n');
                     addMessage(help, 'bot');
-                    await saveMessage(message, { response: help });
                     return;
                 }
 
                 const chosen = setChatType(arg);
-                const ack = chosen === 'agent-dev'
-                    ? '✅ Mode **Agent Dev** activé. Posez votre question de développement.'
-                    : chosen === 'excel-expert'
-                        ? '✅ Mode **Agent Xcel** activé. Posez votre question Excel.'
-                            : chosen === 'agent-todo'
-                                ? '✅ Mode **Agent ToDo** activé. Décrivez vos tâches/objectif.'
-                                : chosen === 'hr-management'
-                                    ? '✅ Mode **Agent RH** activé.'
-                                    : chosen === 'marketing-agent'
-                                        ? '✅ Mode **Agent Mark** activé.'
-                                        : chosen === 'web-search'
-                                            ? '✅ Mode **Agent Web Search** activé.'
-                                            : chosen === 'agent-alex'
-                                                ? '✅ Mode **Agent Alex** activé.'
-                                                : chosen === 'agent-tony'
-                                                    ? '✅ Mode **Agent Tony** activé.'
-                                                    : '✅ Mode **Axilum Ai** activé (assistant général).';
 
-                addMessage(ack, 'bot');
-                await saveMessage(message, { response: ack });
+                // Afficher uniquement un message d'accueil (sans citer d'autres modules/agents).
+                const welcome = chosen === 'agent-dev'
+                    ? '👋 Hi, je suis Agent Dev. Comment puis-je vous aider ?'
+                    : chosen === 'excel-expert'
+                        ? '👋 Hi, je suis Agent Xcel. Comment puis-je vous aider ?'
+                        : chosen === 'agent-todo'
+                            ? '👋 Hi, je suis Agent ToDo. Comment puis-je vous aider ?'
+                            : chosen === 'hr-management'
+                                ? '👋 Hi, je suis Agent RH. Comment puis-je vous aider ?'
+                                : chosen === 'marketing-agent'
+                                    ? '👋 Hi, je suis Agent Mark. Comment puis-je vous aider ?'
+                                    : chosen === 'web-search'
+                                        ? '👋 Hi, je suis Agent Web Search. Comment puis-je vous aider ?'
+                                        : chosen === 'agent-alex'
+                                            ? '👋 Hi, je suis Agent Alex. Comment puis-je vous aider ?'
+                                            : chosen === 'agent-tony'
+                                                ? '👋 Hi, je suis Agent Tony. Comment puis-je vous aider ?'
+                                                : '👋 Hi, je suis Axilum Ai. Comment puis-je vous aider ?';
+
+                addMessage(welcome, 'bot');
                 return;
             }
 
