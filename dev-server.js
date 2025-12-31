@@ -3,14 +3,27 @@ const path = require('path');
 const fs = require('fs');
 const cors = require('cors');
 
-// Charger les variables d'environnement depuis api/.env
+// Charger les variables d'environnement depuis api/.env (+ surcharge locale api/.env.local)
 const dotenv = require('dotenv');
 const envPath = path.join(__dirname, 'api', '.env');
+const envLocalPath = path.join(__dirname, 'api', '.env.local');
+
+let loadedAnyEnv = false;
 if (fs.existsSync(envPath)) {
   dotenv.config({ path: envPath });
+  loadedAnyEnv = true;
   console.log('✅ Variables d\'environnement chargées depuis api/.env');
-} else {
-  console.warn('⚠️  Fichier api/.env non trouvé - Mode développement sans Azure OCR');
+}
+
+// Permet de stocker les secrets localement sans les committer
+if (fs.existsSync(envLocalPath)) {
+  dotenv.config({ path: envLocalPath, override: true });
+  loadedAnyEnv = true;
+  console.log('✅ Variables d\'environnement chargées depuis api/.env.local (override)');
+}
+
+if (!loadedAnyEnv) {
+  console.warn('⚠️  Fichier api/.env(.local) non trouvé - Mode développement sans configuration locale');
 }
 
 const app = express();
