@@ -4581,6 +4581,160 @@ RÈGLES IMPORTANTES:
             return rawText + promo;
         }
 
+        function safeJsonParse(value, fallback) {
+            try {
+                if (typeof value !== 'string') return fallback;
+                return JSON.parse(value);
+            } catch (_) {
+                return fallback;
+            }
+        }
+
+        function getRnDDataFromStorage() {
+            const projects = safeJsonParse(localStorage.getItem('rndProjects') || '[]', []);
+            const milestones = safeJsonParse(localStorage.getItem('rndMilestones') || '[]', []);
+            const documents = safeJsonParse(localStorage.getItem('rndDocuments') || '[]', []);
+            const risks = safeJsonParse(localStorage.getItem('rndRisks') || '[]', []);
+            return {
+                projects: Array.isArray(projects) ? projects : [],
+                milestones: Array.isArray(milestones) ? milestones : [],
+                documents: Array.isArray(documents) ? documents : [],
+                risks: Array.isArray(risks) ? risks : []
+            };
+        }
+
+        function truncateText(text, maxChars) {
+            const str = String(text || '');
+            if (!maxChars || maxChars <= 0) return str;
+            if (str.length <= maxChars) return str;
+            return str.slice(0, maxChars) + `\n\n[Note: contexte tronqué à ${maxChars} caractères]`;
+        }
+
+        function buildAgentDevRnDContext({ mode = 'full', projects = [], milestones = [], documents = [], risks = [] } = {}) {
+            const activeProjects = projects.filter(p => p && p.statut === 'actif');
+            const upcomingMilestones = milestones
+                .filter(m => m && m.date && new Date(m.date) >= new Date() && m.statut !== 'complété');
+            const activeRisks = risks.filter(r => r && r.statut === 'actif');
+
+            const persona = `
+=== TU ES AGENT DEV - COACH INNOVATION MULTI-DOMAINES ===
+
+IDENTITÉ :
+Tu es Agent Dev, expert en innovation et R&D tous domaines confondus.
+Tu accompagnes les utilisateurs dans leurs projets d'innovation, quel que soit le secteur.
+
+DOMAINES D'EXPERTISE :
+- Technologie & Digital (IA, IoT, Cloud, Cybersécurité)
+- Santé & Biotechnologie (Télémédecine, biotech, dispositifs médicaux)
+- Éducation & Formation (E-learning, EdTech, pédagogie innovante)
+- Agriculture & Agroalimentaire (Smart farming, AgTech, food-tech)
+- Environnement & Développement Durable (Énergies renouvelables, économie circulaire)
+- Business & Entrepreneuriat (Nouveaux modèles, start-ups, innovation business)
+- Arts & Culture (Création artistique, industries créatives)
+- Sciences & Recherche (Recherche fondamentale et appliquée)
+- Énergie & Infrastructure (Smart grids, mobilité durable)
+- Social & Impact (Inclusion, innovation sociale)
+
+MÉTHODOLOGIE :
+Tu guides à travers 5 phases d'innovation :
+1. Découverte : Identifier le problème/opportunité
+2. Idéation : Générer des solutions créatives
+3. Expérimentation : Créer POC/MVP et tester
+4. Validation : Mesurer l'impact et la viabilité
+5. Déploiement : Lancer et scaler le projet
+
+TON APPROCHE :
+- Pragmatique et orienté résultats
+- Créatif dans les solutions proposées
+- Adapte ton langage selon le domaine du projet
+- Pose des questions pertinentes pour clarifier
+- Donne des conseils actionnables
+- Partage des best practices et exemples concrets
+
+STYLE DE RÉPONSE :
+- Professionnel mais accessible
+- Structuré et clair
+- Encourage l'action et l'itération rapide
+- Anticipe les obstacles et propose des solutions
+`;
+
+            if (mode === 'summary') {
+                const topProjects = activeProjects.slice(0, 3).map(p => {
+                    const title = p.titre || 'Sans titre';
+                    const domain = p.domaine || 'N/A';
+                    const phase = p.phase || 'N/A';
+                    const progress = (typeof p.avancement === 'number') ? `${p.avancement}%` : 'N/A';
+                    return `- ${title} | Domaine: ${domain} | Phase: ${phase} | Avancement: ${progress}`;
+                }).join('\n') || 'Aucun projet actif';
+
+                const nextMilestones = upcomingMilestones.slice(0, 3).map(m => {
+                    const project = projects.find(p => p && p.id === m.projectId);
+                    const dateStr = m.date ? new Date(m.date).toLocaleDateString('fr-FR') : 'N/A';
+                    return `- ${m.titre || 'Sans titre'} (${dateStr}) - Projet: ${project?.titre || 'N/A'}`;
+                }).join('\n') || 'Aucun jalon à venir';
+
+                const topRisks = activeRisks.slice(0, 3).map(r => {
+                    const project = projects.find(p => p && p.id === r.projectId);
+                    const criticite = r.criticite || 'N/A';
+                    const impact = (typeof r.impact === 'number') ? `${r.impact}%` : 'N/A';
+                    return `- ${r.titre || 'Sans titre'} (${criticite}) - Impact: ${impact} - Projet: ${project?.titre || 'N/A'}`;
+                }).join('\n') || 'Aucun risque actif';
+
+                const summary = `
+CONTEXTE R&D (SYNTHÈSE) :
+
+PROJETS R&D ACTIFS (${activeProjects.length}/${projects.length} total) :
+${topProjects}
+
+JALONS À VENIR (${upcomingMilestones.length}) :
+${nextMilestones}
+
+RISQUES ACTIFS (${activeRisks.length}) :
+${topRisks}
+
+${persona}
+`;
+
+                return truncateText(summary, 6000);
+            }
+
+            const full = `
+CONTEXTE R&D COMPLET :
+
+PROJETS R&D ACTIFS (${activeProjects.length}/${projects.length} total) :
+${activeProjects.length > 0 ? activeProjects.map(p => {
+    const budgetPrevu = Number(p?.budget?.prevu ?? 0);
+    const budgetDevise = p?.budget?.devise || '';
+    const equipe = Array.isArray(p?.equipe) ? p.equipe.join(', ') : '';
+    const techs = Array.isArray(p?.technologies) ? p.technologies.join(', ') : '';
+    const created = p?.created ? new Date(p.created).toLocaleDateString('fr-FR') : 'N/A';
+    return `\n- Projet "${p.titre}" (ID: ${p.id})\n  Domaine: ${p.domaine}\n  Phase: ${p.phase} (${p.avancement}%)\n  Budget: ${budgetPrevu.toLocaleString()} ${budgetDevise}\n  Équipe: ${equipe || 'Non définie'}\n  Technologies: ${techs || 'Aucune'}\n  Durée prévue: ${p.duree} mois\n  Problème: ${p.probleme}\n  Créé le: ${created}\n`;
+}).join('\n') : 'Aucun projet actif'}
+
+JALONS À VENIR (${upcomingMilestones.length}) :
+${upcomingMilestones.length > 0 ? upcomingMilestones.map(m => {
+    const project = projects.find(p => p && p.id === m.projectId);
+    return `- ${m.titre} (${new Date(m.date).toLocaleDateString('fr-FR')}) - Projet: ${project?.titre || 'N/A'}`;
+}).join('\n') : 'Aucun jalon à venir'}
+
+DOCUMENTS (${documents.length}) :
+${documents.length > 0 ? documents.slice(0, 5).map(d => {
+    const project = projects.find(p => p && p.id === d.projectId);
+    return `- ${d.titre} (${d.type}) - Projet: ${project?.titre || 'N/A'}`;
+}).join('\n') : 'Aucun document'}
+
+RISQUES ACTIFS (${activeRisks.length}) :
+${activeRisks.length > 0 ? activeRisks.map(r => {
+    const project = projects.find(p => p && p.id === r.projectId);
+    return `- ${r.titre} (${r.criticite}) - Impact: ${r.impact}% - Projet: ${project?.titre || 'N/A'}`;
+}).join('\n') : 'Aucun risque actif'}
+
+${persona}
+`;
+
+            return full;
+        }
+
         function switchToPlan(plan) {
             currentPlan = plan;
             localStorage.setItem('axilum_plan', plan);
@@ -4678,7 +4832,7 @@ RÈGLES IMPORTANTES:
 
                 // Afficher uniquement un message d'accueil (sans citer d'autres modules/agents).
                 const welcome = chosen === 'agent-dev'
-                    ? '👋 Hi, je suis Agent Dev. Comment puis-je vous aider ?'
+                    ? '👋 Bonjour, je suis Agent Dev, spécialisé en R&D et innovation multi-domaines. Comment puis-je vous aider ?'
                     : chosen === 'excel-expert'
                         ? '👋 Hi, je suis Agent Xcel. Comment puis-je vous aider ?'
                         : chosen === 'agent-todo'
@@ -4923,7 +5077,22 @@ RÈGLES IMPORTANTES:
                 const endpoint = getEndpoint();
 
                 let usedFreeOcr = false;
-                let messageForBackend = getApplicationKnowledge(currentChatType) + AxilumContext.getEnrichedContext(currentChatType) + '\n\nUtilisateur: ' + message;
+
+                const baseContext = getApplicationKnowledge(currentChatType) + AxilumContext.getEnrichedContext(currentChatType);
+                let agentDevExtraContext = '';
+                if (currentChatType === 'agent-dev') {
+                    const rndData = getRnDDataFromStorage();
+                    agentDevExtraContext = '\n\n' + buildAgentDevRnDContext({
+                        mode: 'summary',
+                        projects: rndData.projects,
+                        milestones: rndData.milestones,
+                        documents: rndData.documents,
+                        risks: rndData.risks
+                    });
+                }
+
+                const contextPrefix = baseContext + agentDevExtraContext;
+                let messageForBackend = contextPrefix + '\n\nUtilisateur: ' + message;
 
                 // 🖼️ Si une image a été uploadée dans cette conversation, et que l'utilisateur pose une question,
                 // on route la requête vers l'analyse d'image (Vision) pour que l'IA "voie" réellement la photo.
@@ -4980,12 +5149,12 @@ RÈGLES IMPORTANTES:
 
                             const cleanName = (lastImageName || 'photo').replace(/^📸\s*/, '');
                             const ocrPreview = ocrText && ocrText.length > 0 ? ocrText : "(Aucun texte lisible détecté dans l'image)";
-                            messageForBackend = getApplicationKnowledge(currentChatType) + AxilumContext.getEnrichedContext(currentChatType)
+                            messageForBackend = contextPrefix
                                 + '\n\nContexte image (OCR local - ' + cleanName + '):\n'
                                 + ocrPreview
                                 + '\n\nQuestion utilisateur: ' + message;
                         } catch (ocrErr) {
-                            messageForBackend = getApplicationKnowledge(currentChatType) + AxilumContext.getEnrichedContext(currentChatType)
+                            messageForBackend = contextPrefix
                                 + "\n\n(Utilisateur a uploadé une image, mais l'OCR local a échoué: " + ocrErr.message + ')\n\nUtilisateur: ' + message;
                         }
                     }
@@ -5028,7 +5197,7 @@ RÈGLES IMPORTANTES:
 
                         if (visionText) {
                             const cleanName = (lastImageName || 'photo').replace(/^📸\s*/, '');
-                            messageForBackend = getApplicationKnowledge(currentChatType) + AxilumContext.getEnrichedContext(currentChatType)
+                            messageForBackend = contextPrefix
                                 + '\n\nContexte image (Vision PRO - ' + cleanName + '):\n'
                                 + visionText
                                 + '\n\nQuestion utilisateur: ' + message;
@@ -13715,85 +13884,14 @@ RÈGLES IMPORTANTES:
                     : '/api/agents/axilum/invoke';
                 
                 // Get R&D context
-                const projects = JSON.parse(localStorage.getItem('rndProjects') || '[]');
-                const milestones = JSON.parse(localStorage.getItem('rndMilestones') || '[]');
-                const documents = JSON.parse(localStorage.getItem('rndDocuments') || '[]');
-                const risks = JSON.parse(localStorage.getItem('rndRisks') || '[]');
-                
-                const rndContext = `
-CONTEXTE R&D COMPLET :
-
-PROJETS R&D ACTIFS (${projects.filter(p => p.statut === 'actif').length}/${projects.length} total) :
-${projects.filter(p => p.statut === 'actif').length > 0 ? projects.filter(p => p.statut === 'actif').map(p => `
-- Projet "${p.titre}" (ID: ${p.id})
-  Domaine: ${p.domaine}
-  Phase: ${p.phase} (${p.avancement}%)
-  Budget: ${p.budget.prevu.toLocaleString()} ${p.budget.devise}
-  Équipe: ${p.equipe.join(', ') || 'Non définie'}
-  Technologies: ${p.technologies.join(', ') || 'Aucune'}
-  Durée prévue: ${p.duree} mois
-  Problème: ${p.probleme}
-  Créé le: ${new Date(p.created).toLocaleDateString('fr-FR')}
-`).join('\n') : 'Aucun projet actif'}
-
-JALONS À VENIR (${milestones.filter(m => new Date(m.date) >= new Date() && m.statut !== 'complété').length}) :
-${milestones.filter(m => new Date(m.date) >= new Date() && m.statut !== 'complété').length > 0 ? milestones.filter(m => new Date(m.date) >= new Date() && m.statut !== 'complété').map(m => {
-    const project = projects.find(p => p.id === m.projectId);
-    return `- ${m.titre} (${new Date(m.date).toLocaleDateString('fr-FR')}) - Projet: ${project?.titre || 'N/A'}`;
-}).join('\n') : 'Aucun jalon à venir'}
-
-DOCUMENTS (${documents.length}) :
-${documents.length > 0 ? documents.slice(0, 5).map(d => {
-    const project = projects.find(p => p.id === d.projectId);
-    return `- ${d.titre} (${d.type}) - Projet: ${project?.titre || 'N/A'}`;
-}).join('\n') : 'Aucun document'}
-
-RISQUES ACTIFS (${risks.filter(r => r.statut === 'actif').length}) :
-${risks.filter(r => r.statut === 'actif').length > 0 ? risks.filter(r => r.statut === 'actif').map(r => {
-    const project = projects.find(p => p.id === r.projectId);
-    return `- ${r.titre} (${r.criticite}) - Impact: ${r.impact}% - Projet: ${project?.titre || 'N/A'}`;
-}).join('\n') : 'Aucun risque actif'}
-
-=== TU ES AGENT DEV - COACH INNOVATION MULTI-DOMAINES ===
-
-IDENTITÉ :
-Tu es Agent Dev, expert en innovation et R&D tous domaines confondus.
-Tu accompagnes les utilisateurs dans leurs projets d'innovation, quel que soit le secteur.
-
-DOMAINES D'EXPERTISE :
-- Technologie & Digital (IA, IoT, Cloud, Cybersécurité)
-- Santé & Biotechnologie (Télémédecine, biotech, dispositifs médicaux)
-- Éducation & Formation (E-learning, EdTech, pédagogie innovante)
-- Agriculture & Agroalimentaire (Smart farming, AgTech, food-tech)
-- Environnement & Développement Durable (Énergies renouvelables, économie circulaire)
-- Business & Entrepreneuriat (Nouveaux modèles, start-ups, innovation business)
-- Arts & Culture (Création artistique, industries créatives)
-- Sciences & Recherche (Recherche fondamentale et appliquée)
-- Énergie & Infrastructure (Smart grids, mobilité durable)
-- Social & Impact (Inclusion, innovation sociale)
-
-MÉTHODOLOGIE :
-Tu guides à travers 5 phases d'innovation :
-1. Découverte : Identifier le problème/opportunité
-2. Idéation : Générer des solutions créatives
-3. Expérimentation : Créer POC/MVP et tester
-4. Validation : Mesurer l'impact et la viabilité
-5. Déploiement : Lancer et scaler le projet
-
-TON APPROCHE :
-- Pragmatique et orienté résultats
-- Créatif dans les solutions proposées
-- Adapte ton langage selon le domaine du projet
-- Pose des questions pertinentes pour clarifier
-- Donne des conseils actionnables
-- Partage des best practices et exemples concrets
-
-STYLE DE RÉPONSE :
-- Professionnel mais accessible
-- Structuré et clair
-- Encourage l'action et l'itération rapide
-- Anticipe les obstacles et propose des solutions
-`;
+                const rndData = getRnDDataFromStorage();
+                const rndContext = buildAgentDevRnDContext({
+                    mode: 'full',
+                    projects: rndData.projects,
+                    milestones: rndData.milestones,
+                    documents: rndData.documents,
+                    risks: rndData.risks
+                });
 
                 // Brave Web Search si activé
                 let webSearchResults = '';
