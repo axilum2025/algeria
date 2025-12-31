@@ -1,7 +1,7 @@
 // 💎 PLAN PRO - Llama 3.3 70B via Groq + Fonctions Azure + RAG
 
 const { analyzeHallucination } = require('../utils/hallucinationDetector');
-const { buildSystemPromptForAgent } = require('../utils/agentRegistry');
+const { buildSystemPromptForAgent, normalizeAgentId } = require('../utils/agentRegistry');
 const { orchestrateMultiAgents, callGroqChatCompletion } = require('../utils/orchestrator');
 
 // Fonction RAG - Recherche Brave
@@ -74,7 +74,8 @@ module.exports = async function (context, req) {
 
         // RAG - Recherche Brave (optionnelle, ou forcée selon l'agent)
         let contextFromSearch = '';
-        const chatType = req.body.chatType || req.body.conversationId;
+        const rawChatType = req.body.chatType || req.body.conversationId;
+        const chatType = normalizeAgentId(rawChatType) || rawChatType;
         const isOrchestrator = chatType === 'orchestrator';
         const forceWebSearch = chatType === 'web-search' || chatType === 'rnd-web-search';
 
@@ -269,59 +270,25 @@ Pense étape par étape avant de répondre.${contextFromSearch}`
                         buildSystemPromptForAgent('agent-dev', contextFromSearch)
             : isHR ?
             // 👥 PROMPT AGENT RH
-            `Tu es Agent RH, un assistant RH.
-
-Tu aides sur: politique RH, congés, paie (conceptuellement), recrutement, onboarding, performance, documents et conformité (sans avis juridique).
-
-Règles:
-- Si des données RH internes ne sont pas fournies, dis-le et demande les infos nécessaires.
-- Ne mentionne pas d'autres agents, modules ou outils de l'application sauf si l'utilisateur le demande explicitement.
-
-Réponds en français, clair, professionnel et actionnable.${contextFromSearch}`
+            buildSystemPromptForAgent('hr-management', contextFromSearch)
             : isMarketing ?
             // 📣 PROMPT AGENT MARKETING
             buildSystemPromptForAgent('marketing-agent', contextFromSearch)
             : isWebSearch ?
             // 🌐 PROMPT AGENT WEB SEARCH
-            `Tu es Agent Web Search.
-
-Objectif: répondre en te basant sur la recherche web fournie dans le contexte.
-
-Règles:
-- Appuie-toi d'abord sur "Contexte de recherche web" ci-dessous.
-- Cite 2-5 sources en fin de réponse sous forme de liste (titres + URLs si disponibles).
-- Si la recherche web est indisponible, dis-le et propose une réponse prudente + quoi vérifier.
-
-Réponds en français, clairement et avec sources.${contextFromSearch}`
+            buildSystemPromptForAgent('web-search', contextFromSearch)
             : isExcel ?
             // 📊 PROMPT AGENT EXCEL
             buildSystemPromptForAgent('excel-expert', contextFromSearch)
             : isTodo ?
             // ✅ PROMPT AGENT TODO
-            `Tu es Agent ToDo (gestion de tâches).
-
-Objectif: aider l'utilisateur à clarifier un objectif, découper en tâches, estimer, prioriser, et proposer un plan.
-
-Règles:
-- Pose 1-3 questions si nécessaire, sinon propose directement une liste de tâches (checklist) + prochaines actions.
-- Ne prétends pas exécuter des actions automatiquement.
-- Ne mentionne pas d'autres agents, modules ou outils de l'application sauf si l'utilisateur le demande explicitement.
-
-Réponds en français, très concret.${contextFromSearch}`
+            buildSystemPromptForAgent('agent-todo', contextFromSearch)
             : isAlex ?
             // 🧭 PROMPT AGENT ALEX
             buildSystemPromptForAgent('agent-alex', contextFromSearch)
             : isTony ?
             // 🤝 PROMPT AGENT TONY
-            `Tu es Agent Tony.
-
-Rôle: assistant orienté vente/ops (pricing, onboarding client, scripts, objections, process).
-
-Règles:
-- Propose des scripts, templates et KPI.
-- Ne mentionne pas d'autres agents, modules ou outils de l'application sauf si l'utilisateur le demande explicitement.
-
-Réponds en français, direct et actionnable.${contextFromSearch}`
+            buildSystemPromptForAgent('agent-tony', contextFromSearch)
                         : 
             // 🏠 PROMPT AXILUM AI (détection hallucinations)
             `Tu es Axilum AI, un assistant intelligent et serviable.

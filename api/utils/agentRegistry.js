@@ -23,6 +23,11 @@ const AGENT_ALIASES = {
   alex: 'agent-alex',
   tony: 'agent-tony',
   axilum: 'axilum',
+  // module conversation ids / legacy
+  'rnd-agent': 'agent-dev',
+  'rnd-web-search': 'web-search',
+  'excel-ai-expert': 'excel-expert',
+  finance: 'agent-alex',
   // special
   auto: 'auto'
 };

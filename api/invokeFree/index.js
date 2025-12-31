@@ -5,7 +5,7 @@
 // Vitesse : 500+ tokens/sec (ultra-rapide)
 
 const { analyzeHallucination } = require('../utils/hallucinationDetector');
-const { buildSystemPromptForAgent } = require('../utils/agentRegistry');
+const { buildSystemPromptForAgent, normalizeAgentId } = require('../utils/agentRegistry');
 const { orchestrateMultiAgents, callGroqChatCompletion } = require('../utils/orchestrator');
 
 // Fonction RAG - Recherche Brave
@@ -190,11 +190,7 @@ module.exports = async function (context, req) {
 
         // Construire les messages
         const normalizedChatType = String(chatType || '').trim();
-        const agentId = normalizedChatType === 'rnd-web-search'
-            ? 'web-search'
-            : normalizedChatType === 'excel-ai-expert'
-                ? 'excel-expert'
-                : normalizedChatType;
+        const agentId = normalizeAgentId(normalizedChatType) || normalizedChatType;
 
         const messages = [
             {
