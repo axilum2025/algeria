@@ -5289,6 +5289,85 @@ ${lastInvBlock}
             return truncateText(`${constraints}${moduleDoc}${snapshot}`, 12000);
         }
 
+        function getTextProModuleDataFromStorage() {
+            const lastText = String(localStorage.getItem('textPro_lastText') || '');
+            const lastUpdated = localStorage.getItem('textPro_lastUpdated') || null;
+            const lastFileName = String(localStorage.getItem('textPro_lastFileName') || '');
+
+            // Essayez de lire l'état courant de l'overlay si ouvert (fallback legacy)
+            let currentText = '';
+            let currentFileName = '';
+            try {
+                const textarea = document.getElementById('textProTextarea');
+                if (textarea && typeof textarea.value === 'string') currentText = textarea.value;
+            } catch (_) {
+                currentText = '';
+            }
+            try {
+                const fileNameDiv = document.getElementById('textProFileName');
+                if (fileNameDiv && typeof fileNameDiv.textContent === 'string') currentFileName = fileNameDiv.textContent;
+            } catch (_) {
+                currentFileName = '';
+            }
+
+            return {
+                lastText,
+                lastUpdated,
+                lastFileName,
+                currentText,
+                currentFileName
+            };
+        }
+
+        function buildAgentTonyContext({ mode = 'summary', lastText = '', lastUpdated = null, lastFileName = '', currentText = '', currentFileName = '' } = {}) {
+            const safeStr = (v) => (typeof v === 'string') ? v : String(v ?? '');
+            const text = safeStr(currentText).trim() || safeStr(lastText).trim();
+            const source = safeStr(currentText).trim() ? 'overlay Text Pro (en cours)' : (safeStr(lastText).trim() ? 'dernier texte (persisté)' : 'N/A');
+            const fileName = safeStr(currentFileName).trim() || safeStr(lastFileName).trim() || 'N/A';
+            const updatedAt = lastUpdated ? String(lastUpdated) : 'N/A';
+            const preview = text ? truncateText(text, 3500) : '';
+
+            const constraints = `
+[Contraintes produit]
+- Ne mentionne pas d'autres modules/agents/outils sauf si l'utilisateur le demande explicitement
+- N'invente jamais le contenu d'un document/texte: utilise uniquement le texte fourni ci-dessous
+- Si une info manque, pose 1-3 questions ciblées (ex: langue cible, ton, audience, format de sortie)
+`;
+
+            const moduleDoc = `
+=== TU ES AGENT TONY — AXILUM AI TEXT PRO ===
+
+Ce module AI Text Pro (dans l'app) couvre notamment:
+- Traduction professionnelle
+- Réécriture / reformulation
+- Correction orthographe/grammaire + amélioration du style
+- Résumé, extraction de points clés, transformation de format
+
+Remarque: le module Text Pro envoie le texte vers le chat principal pour traitement.
+Stockage local (navigateur / localStorage) utilisé pour l'alignement:
+- textPro_lastText, textPro_lastUpdated, textPro_lastFileName
+`;
+
+            const snapshot = `
+---
+DONNÉES TEXT PRO DISPONIBLES (snapshot):
+
+Source: ${source}
+Fichier: ${fileName}
+Dernière MAJ: ${updatedAt}
+Longueur texte: ${text ? text.length : 0} caractères
+
+Texte (aperçu):
+${preview || 'Aucun texte disponible'}
+---
+`;
+
+            if (mode === 'summary') {
+                return truncateText(`${constraints}${moduleDoc}${snapshot}`, 6000);
+            }
+            return truncateText(`${constraints}${moduleDoc}${snapshot}`, 12000);
+        }
+
         function buildAgentDevRnDContext({ mode = 'full', projects = [], milestones = [], documents = [], risks = [] } = {}) {
             const activeProjects = projects.filter(p => p && p.statut === 'actif');
             const upcomingMilestones = milestones
@@ -5950,7 +6029,20 @@ ${persona}
                     });
                 }
 
-                const contextPrefix = baseContext + agentDevExtraContext + agentHRExtraContext + agentMarketingExtraContext + agentExcelExtraContext + agentTodoExtraContext + agentFinanceExtraContext;
+                let agentTonyExtraContext = '';
+                if (currentChatType === 'agent-tony') {
+                    const textProData = getTextProModuleDataFromStorage();
+                    agentTonyExtraContext = '\n\n' + buildAgentTonyContext({
+                        mode: 'summary',
+                        lastText: textProData.lastText,
+                        lastUpdated: textProData.lastUpdated,
+                        lastFileName: textProData.lastFileName,
+                        currentText: textProData.currentText,
+                        currentFileName: textProData.currentFileName
+                    });
+                }
+
+                const contextPrefix = baseContext + agentDevExtraContext + agentHRExtraContext + agentMarketingExtraContext + agentExcelExtraContext + agentTodoExtraContext + agentFinanceExtraContext + agentTonyExtraContext;
                 let messageForBackend = contextPrefix + '\n\nUtilisateur: ' + message;
 
                 // 🖼️ Si une image a été uploadée dans cette conversation, et que l'utilisateur pose une question,
@@ -10642,6 +10734,11 @@ ${persona}
             
             const fileNameDiv = document.getElementById('textProFileName');
             fileNameDiv.textContent = `Fichier sélectionné: ${file.name}`;
+
+            try {
+                localStorage.setItem('textPro_lastFileName', String(file.name || ''));
+                localStorage.setItem('textPro_lastUpdated', new Date().toISOString());
+            } catch (_) {}
             
             const reader = new FileReader();
             reader.onload = function(e) {
@@ -10667,6 +10764,15 @@ ${persona}
                 alert('Veuillez d\'abord coller ou uploader du texte.');
                 return;
             }
+
+            // Persister un snapshot minimal pour que /agent tony puisse récupérer le contexte
+            try {
+                localStorage.setItem('textPro_lastText', text);
+                localStorage.setItem('textPro_lastUpdated', new Date().toISOString());
+                const fileInput = document.getElementById('textProFileInput');
+                const fileName = (fileInput && fileInput.files && fileInput.files[0] && fileInput.files[0].name) ? String(fileInput.files[0].name) : '';
+                if (fileName) localStorage.setItem('textPro_lastFileName', fileName);
+            } catch (_) {}
             
             // Envoyer le texte au chat
             const messageInput = document.getElementById('messageInput');
