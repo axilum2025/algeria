@@ -280,7 +280,7 @@
         }
 
         .conversations {
-            flex: 1;
+            flex: 0 0 auto;
             overflow-y: auto;
             overflow-x: hidden;
             padding: 0;
@@ -291,6 +291,7 @@
         }
 
         .conversations.visible {
+            flex: 1;
             max-height: var(--sessions-max-height, calc(var(--session-row-height, 56px) * var(--sessions-visible-limit, 5) + var(--sessions-fallback-padding, 20px)));
             opacity: 1;
             padding: 10px;
@@ -1591,6 +1592,7 @@
             }
 
             .conversations.visible {
+                flex: 1;
                 max-height: var(--sessions-max-height, calc(var(--session-row-height, 56px) * var(--sessions-visible-limit, 5) + var(--sessions-fallback-padding, 20px)));
             }
 
@@ -1947,12 +1949,13 @@
             }
 
             .conversations {
-                flex: 1;
+                flex: 0 0 auto;
                 overflow-y: auto;
                 -webkit-overflow-scrolling: touch;
             }
 
             .conversations.visible {
+                flex: 1;
                 max-height: var(--sessions-max-height, calc(var(--session-row-height, 56px) * var(--sessions-visible-limit, 5) + var(--sessions-fallback-padding, 20px)));
             }
 
