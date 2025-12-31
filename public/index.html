@@ -4726,6 +4726,118 @@ Paramètres entreprise: ${Object.keys(companySettings || {}).length ? 'présents
             return truncateText(`${constraints}${moduleDoc}${dataSnapshot}`, 12000);
         }
 
+        function getMarketingModuleDataFromStorage() {
+            const campaigns = safeJsonParse(localStorage.getItem('marketingCampaigns') || '[]', []);
+            const personas = safeJsonParse(localStorage.getItem('marketingPersonas') || '[]', []);
+            const content = safeJsonParse(localStorage.getItem('marketingContent') || '[]', []);
+            const business = safeJsonParse(localStorage.getItem('marketingBusiness') || '{}', {});
+            return {
+                campaigns: Array.isArray(campaigns) ? campaigns : [],
+                personas: Array.isArray(personas) ? personas : [],
+                content: Array.isArray(content) ? content : [],
+                business: (business && typeof business === 'object') ? business : {}
+            };
+        }
+
+        function buildAgentMarketingContext({ mode = 'summary', campaigns = [], personas = [], content = [], business = {} } = {}) {
+            const safeNum = (v) => (typeof v === 'number' && Number.isFinite(v)) ? v : (parseFloat(v) || 0);
+            const list = Array.isArray(campaigns) ? campaigns : [];
+            const totalBudget = list.reduce((sum, c) => sum + safeNum(c?.budget), 0);
+            const totalSpent = list.reduce((sum, c) => sum + safeNum(c?.spent), 0);
+            const totalLeads = list.reduce((sum, c) => sum + safeNum(c?.leads), 0);
+            const avgRoi = list.length ? Math.round(list.reduce((sum, c) => sum + safeNum(c?.roi), 0) / list.length) : 0;
+            const cac = totalLeads > 0 ? Math.round(totalSpent / totalLeads) : 0;
+
+            const topCampaigns = list
+                .slice()
+                .sort((a, b) => safeNum(b?.roi) - safeNum(a?.roi))
+                .slice(0, 5)
+                .map(c => {
+                    const name = c?.name || 'Campagne';
+                    const type = c?.type ? ` | Type: ${c.type}` : '';
+                    const status = c?.status ? ` | Statut: ${c.status}` : '';
+                    const roi = ` | ROI: ${Math.round(safeNum(c?.roi))}%`;
+                    const leads = c?.leads != null ? ` | Leads: ${safeNum(c?.leads)}` : '';
+                    const budget = c?.budget != null ? ` | Budget: ${safeNum(c?.budget)} DA` : '';
+                    return `- ${name}${type}${status}${roi}${leads}${budget}`;
+                }).join('\n') || 'Aucune campagne';
+
+            const topPersonas = (Array.isArray(personas) ? personas : []).slice(0, 5).map(p => {
+                const name = p?.name || 'Persona';
+                const age = p?.age != null ? ` | Âge: ${p.age}` : '';
+                const prof = p?.profession ? ` | Profession: ${p.profession}` : '';
+                const goals = Array.isArray(p?.goals) && p.goals.length ? ` | Objectifs: ${p.goals.slice(0, 4).join(', ')}` : '';
+                return `- ${name}${age}${prof}${goals}`;
+            }).join('\n') || 'Aucun persona';
+
+            const topContent = (Array.isArray(content) ? content : []).slice(0, 5).map(i => {
+                const title = i?.title || 'Contenu';
+                const type = i?.type ? ` | Type: ${i.type}` : '';
+                const status = i?.status ? ` | Statut: ${i.status}` : '';
+                const date = i?.publishDate ? ` | Date: ${i.publishDate}` : '';
+                return `- ${title}${type}${status}${date}`;
+            }).join('\n') || 'Aucun contenu';
+
+            const constraints = `
+[Contraintes produit]
+- Ne mentionne pas d'autres modules/agents/outils sauf si l'utilisateur le demande explicitement
+- N'invente jamais de données marketing si elles ne sont pas dans le contexte
+- Si une info manque (période, canal, budget), pose 1-3 questions ciblées
+`;
+
+            const moduleDoc = `
+=== TU ES AGENT MARK — AXILUM MARKETING & BUSINESS HUB ===
+
+Ce module Marketing (dans l'app) couvre notamment:
+- Campagnes: création/lecture, KPI (ROI, leads, budget, spent), statuts (ex: active)
+- Personas: profils clients + objectifs
+- Contenu: calendrier éditorial (type, statut, date)
+- Business: business model + objectifs + métriques (LTV, churn, MRR)
+- Analytics: section présente (peut être "en développement" selon l'UI)
+
+Stockage local (navigateur / localStorage) utilisé par le module:
+- marketingCampaigns, marketingPersonas, marketingContent, marketingBusiness
+`;
+
+            const businessSafe = (business && typeof business === 'object') ? business : {};
+            const objectives = Array.isArray(businessSafe.objectives) ? businessSafe.objectives : [];
+            const topObjectives = objectives.slice(0, 5).map(o => {
+                const title = o?.title || 'Objectif';
+                const target = o?.target ? ` | Cible: ${o.target}` : '';
+                return `- ${title}${target}`;
+            }).join('\n') || 'Aucun objectif';
+
+            const dataSnapshot = `
+---
+DONNÉES MARKETING DISPONIBLES (snapshot):
+
+Campagnes: ${list.length}
+KPIs: CAC=${cac} DA | ROI moyen=${avgRoi}% | Leads=${totalLeads} | Budget total=${Math.round(totalBudget)} DA | Dépenses=${Math.round(totalSpent)} DA
+Top campagnes (par ROI):
+${topCampaigns}
+
+Personas: ${(Array.isArray(personas) ? personas : []).length}
+${topPersonas}
+
+Contenu: ${(Array.isArray(content) ? content : []).length}
+${topContent}
+
+Business:
+- Model: ${businessSafe.model || 'Non défini'}
+- LTV: ${businessSafe.ltv || 0}
+- Churn: ${(businessSafe.churn || 0)}%
+- MRR: ${businessSafe.mrr || 0}
+- Objectifs (top):
+${topObjectives}
+---
+`;
+
+            if (mode === 'summary') {
+                return truncateText(`${constraints}${moduleDoc}${dataSnapshot}`, 6000);
+            }
+            return truncateText(`${constraints}${moduleDoc}${dataSnapshot}`, 12000);
+        }
+
         function buildAgentDevRnDContext({ mode = 'full', projects = [], milestones = [], documents = [], risks = [] } = {}) {
             const activeProjects = projects.filter(p => p && p.statut === 'actif');
             const upcomingMilestones = milestones
@@ -5335,7 +5447,19 @@ ${persona}
                     });
                 }
 
-                const contextPrefix = baseContext + agentDevExtraContext + agentHRExtraContext;
+                let agentMarketingExtraContext = '';
+                if (currentChatType === 'marketing-agent') {
+                    const mktData = getMarketingModuleDataFromStorage();
+                    agentMarketingExtraContext = '\n\n' + buildAgentMarketingContext({
+                        mode: 'summary',
+                        campaigns: mktData.campaigns,
+                        personas: mktData.personas,
+                        content: mktData.content,
+                        business: mktData.business
+                    });
+                }
+
+                const contextPrefix = baseContext + agentDevExtraContext + agentHRExtraContext + agentMarketingExtraContext;
                 let messageForBackend = contextPrefix + '\n\nUtilisateur: ' + message;
 
                 // 🖼️ Si une image a été uploadée dans cette conversation, et que l'utilisateur pose une question,
