@@ -19,6 +19,9 @@ local.settings.json
 test_*.js
 *.test.js
 
+# Exceptions: scripts de smoke test utiles
+!test_team_auto.js
+
 # Logs
 *.log
 logs/
