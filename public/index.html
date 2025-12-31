@@ -1586,14 +1586,15 @@
             /* Sessions scrollables avec limite de 5 éléments */
             .conversations {
                 flex: 0 0 auto;
-                overflow-y: auto;
-                max-height: var(--sessions-max-height, calc(var(--session-row-height, 56px) * var(--sessions-visible-limit, 5) + var(--sessions-fallback-padding, 20px)));
-                -webkit-overflow-scrolling: touch;
+                overflow-y: hidden;
+                max-height: 0;
             }
 
             .conversations.visible {
+                overflow-y: auto;
                 flex: 1;
                 max-height: var(--sessions-max-height, calc(var(--session-row-height, 56px) * var(--sessions-visible-limit, 5) + var(--sessions-fallback-padding, 20px)));
+                -webkit-overflow-scrolling: touch;
             }
 
             .chat-container.sidebar-open {
@@ -1950,13 +1951,15 @@
 
             .conversations {
                 flex: 0 0 auto;
-                overflow-y: auto;
-                -webkit-overflow-scrolling: touch;
+                overflow-y: hidden;
+                max-height: 0;
             }
 
             .conversations.visible {
+                overflow-y: auto;
                 flex: 1;
                 max-height: var(--sessions-max-height, calc(var(--session-row-height, 56px) * var(--sessions-visible-limit, 5) + var(--sessions-fallback-padding, 20px)));
+                -webkit-overflow-scrolling: touch;
             }
 
             .chat-container {
