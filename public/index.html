@@ -4611,6 +4611,121 @@ RÈGLES IMPORTANTES:
             return str.slice(0, maxChars) + `\n\n[Note: contexte tronqué à ${maxChars} caractères]`;
         }
 
+        function getHRModuleDataFromStorage() {
+            const employees = getHRData('hrEmployees');
+            const leaves = getHRData('hrLeaves');
+            const payrolls = getHRData('hrPayrolls');
+            const reviews = getHRData('hrReviews');
+            const companySettings = getHRData('companySettings', {});
+            const recruitmentJobs = getHRData('recruitmentJobs');
+            const recruitmentCandidates = getHRData('recruitmentCandidates');
+
+            return {
+                employees: Array.isArray(employees) ? employees : [],
+                leaves: Array.isArray(leaves) ? leaves : [],
+                payrolls: Array.isArray(payrolls) ? payrolls : [],
+                reviews: Array.isArray(reviews) ? reviews : [],
+                companySettings: (companySettings && typeof companySettings === 'object') ? companySettings : {},
+                recruitmentJobs: Array.isArray(recruitmentJobs) ? recruitmentJobs : [],
+                recruitmentCandidates: Array.isArray(recruitmentCandidates) ? recruitmentCandidates : []
+            };
+        }
+
+        function buildAgentHRContext({ mode = 'summary', employees = [], leaves = [], payrolls = [], reviews = [], recruitmentJobs = [], recruitmentCandidates = [], companySettings = {} } = {}) {
+            const byStatus = (arr, field = 'status') => {
+                const out = {};
+                (Array.isArray(arr) ? arr : []).forEach(x => {
+                    const k = (x && x[field]) ? String(x[field]) : 'unknown';
+                    out[k] = (out[k] || 0) + 1;
+                });
+                return out;
+            };
+
+            const employeesStatus = byStatus(employees, 'status');
+            const leavesStatus = byStatus(leaves, 'status');
+            const payrollStatus = byStatus(payrolls, 'status');
+
+            const topEmployees = (Array.isArray(employees) ? employees : []).slice(0, 5).map(e => {
+                const fullName = [e?.firstName, e?.lastName].filter(Boolean).join(' ').trim() || 'Employé';
+                const dept = e?.department ? ` | Département: ${e.department}` : '';
+                const pos = e?.position ? ` | Poste: ${e.position}` : '';
+                const status = e?.status ? ` | Statut: ${e.status}` : '';
+                return `- ${fullName}${pos}${dept}${status}`;
+            }).join('\n') || 'Aucun employé';
+
+            const pendingLeaves = (Array.isArray(leaves) ? leaves : []).filter(l => l && l.status === 'pending').slice(0, 5).map(l => {
+                const emp = (Array.isArray(employees) ? employees : []).find(e => e && e.id === l.employeeId);
+                const fullName = [emp?.firstName, emp?.lastName].filter(Boolean).join(' ').trim() || `employeeId=${l.employeeId || 'N/A'}`;
+                const type = l?.type ? ` | Type: ${l.type}` : '';
+                const start = l?.startDate ? ` | Début: ${l.startDate}` : '';
+                const end = l?.endDate ? ` | Fin: ${l.endDate}` : '';
+                return `- ${fullName}${type}${start}${end}`;
+            }).join('\n') || 'Aucune demande en attente';
+
+            const pendingPayrolls = (Array.isArray(payrolls) ? payrolls : []).filter(p => p && p.status === 'pending').slice(0, 5).map(p => {
+                const emp = (Array.isArray(employees) ? employees : []).find(e => e && e.id === p.employeeId);
+                const fullName = [emp?.firstName, emp?.lastName].filter(Boolean).join(' ').trim() || `employeeId=${p.employeeId || 'N/A'}`;
+                const period = p?.period ? ` | Période: ${p.period}` : '';
+                const net = (typeof p?.netSalary === 'number') ? ` | Net: ${p.netSalary}` : '';
+                return `- ${fullName}${period}${net}`;
+            }).join('\n') || 'Aucun bulletin en attente';
+
+            const constraints = `
+[Contraintes produit]
+- Ne prétends pas exécuter des actions automatiquement dans l'UI
+- N'invente jamais des données RH si elles ne sont pas dans le contexte ci-dessous
+- Si une info manque (période, employé, statut), pose 1-3 questions ciblées
+`;
+
+            const moduleDoc = `
+=== TU ES AGENT RH — AXILUM HR MANAGEMENT HUB ===
+
+Ce module RH (dans l'app) couvre notamment:
+- Employés: création/consultation/suppression + filtres (nom, département, statut)
+- Congés: demandes (pending/approved/rejected), calendrier, approbation/refus/suppression
+- Paie: bulletins (pending/validated/paid), génération en masse, validation, marquer comme payé, détails bulletin
+- Autres onglets présents dans l'UI: Évaluations, Turnover, Recrutement
+
+Stockage local (navigateur / localStorage) utilisé par le module:
+- hrEmployees, hrLeaves, hrPayrolls, hrReviews, companySettings, recruitmentJobs, recruitmentCandidates
+
+Workflows (statuts):
+- Congés: pending → approved | rejected (suppression possible)
+- Paie: pending → validated → paid (suppression possible)
+
+Actions UI existantes (à expliquer à l'utilisateur si demandé):
+- Employés: ajouter, voir, supprimer
+- Congés: nouvelle demande, approuver (approveLeave), refuser (rejectLeave), supprimer (deleteLeave)
+- Paie: générer tous (generateAllPayrolls), nouveau bulletin, valider (validatePayroll), marquer payé (markPayrollAsPaid), détails (viewPayrollDetails)
+`;
+
+            const dataSnapshot = `
+---
+DONNÉES RH DISPONIBLES (snapshot):
+
+Employés: ${employees.length} (statuts: ${JSON.stringify(employeesStatus)})
+${topEmployees}
+
+Congés: ${leaves.length} (statuts: ${JSON.stringify(leavesStatus)})
+Demandes en attente (top):
+${pendingLeaves}
+
+Paie: ${payrolls.length} (statuts: ${JSON.stringify(payrollStatus)})
+Bulletins en attente (top):
+${pendingPayrolls}
+
+Évaluations: ${reviews.length}
+Recrutement: offres=${recruitmentJobs.length}, candidats=${recruitmentCandidates.length}
+Paramètres entreprise: ${Object.keys(companySettings || {}).length ? 'présents' : 'absents'}
+---
+`;
+
+            if (mode === 'summary') {
+                return truncateText(`${constraints}${moduleDoc}${dataSnapshot}`, 6000);
+            }
+            return truncateText(`${constraints}${moduleDoc}${dataSnapshot}`, 12000);
+        }
+
         function buildAgentDevRnDContext({ mode = 'full', projects = [], milestones = [], documents = [], risks = [] } = {}) {
             const activeProjects = projects.filter(p => p && p.statut === 'actif');
             const upcomingMilestones = milestones
@@ -5205,7 +5320,22 @@ ${persona}
                     });
                 }
 
-                const contextPrefix = baseContext + agentDevExtraContext;
+                let agentHRExtraContext = '';
+                if (currentChatType === 'hr-management') {
+                    const hrData = getHRModuleDataFromStorage();
+                    agentHRExtraContext = '\n\n' + buildAgentHRContext({
+                        mode: 'summary',
+                        employees: hrData.employees,
+                        leaves: hrData.leaves,
+                        payrolls: hrData.payrolls,
+                        reviews: hrData.reviews,
+                        recruitmentJobs: hrData.recruitmentJobs,
+                        recruitmentCandidates: hrData.recruitmentCandidates,
+                        companySettings: hrData.companySettings
+                    });
+                }
+
+                const contextPrefix = baseContext + agentDevExtraContext + agentHRExtraContext;
                 let messageForBackend = contextPrefix + '\n\nUtilisateur: ' + message;
 
                 // 🖼️ Si une image a été uploadée dans cette conversation, et que l'utilisateur pose une question,
