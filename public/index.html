@@ -22,6 +22,9 @@
             --hi-low: #10B981;
             --hi-med: #F59E0B;
             --hi-high: #EF4444;
+            --sessions-visible-limit: 5;
+            --session-row-height: 56px;
+            --sessions-fallback-padding: 20px;
         }
 
         [data-theme="dark"] {
@@ -288,7 +291,7 @@
         }
 
         .conversations.visible {
-            max-height: var(--sessions-max-height, 100%);
+            max-height: var(--sessions-max-height, calc(var(--session-row-height, 56px) * var(--sessions-visible-limit, 5) + var(--sessions-fallback-padding, 20px)));
             opacity: 1;
             padding: 10px;
             pointer-events: auto;
@@ -1579,14 +1582,16 @@
                 -webkit-overflow-scrolling: touch;
             }
 
-            /* Un seul scroll container en mobile (évite le scroll piégé dans Sessions) */
+            /* Sessions scrollables avec limite de 5 éléments */
             .conversations {
                 flex: 0 0 auto;
-                overflow: visible;
+                overflow-y: auto;
+                max-height: var(--sessions-max-height, calc(var(--session-row-height, 56px) * var(--sessions-visible-limit, 5) + var(--sessions-fallback-padding, 20px)));
+                -webkit-overflow-scrolling: touch;
             }
 
             .conversations.visible {
-                max-height: none;
+                max-height: var(--sessions-max-height, calc(var(--session-row-height, 56px) * var(--sessions-visible-limit, 5) + var(--sessions-fallback-padding, 20px)));
             }
 
             .chat-container.sidebar-open {
@@ -1948,7 +1953,7 @@
             }
 
             .conversations.visible {
-                max-height: var(--sessions-max-height, 100%);
+                max-height: var(--sessions-max-height, calc(var(--session-row-height, 56px) * var(--sessions-visible-limit, 5) + var(--sessions-fallback-padding, 20px)));
             }
 
             .chat-container {
@@ -6682,21 +6687,23 @@ RÈGLES IMPORTANTES:
         }
 
         function applySessionsListMaxHeight() {
+            const MAX_VISIBLE_SESSIONS = 5;
             const conversationsList = document.getElementById('conversationsList');
             if (!conversationsList) return;
 
-            // On ne contraint que quand la liste est visible
             if (!conversationsList.classList.contains('visible')) return;
 
             const convItems = Array.from(conversationsList.querySelectorAll('.conv-item'));
             if (convItems.length === 0) {
                 try { conversationsList.style.removeProperty('--sessions-max-height'); } catch (_) {}
+                conversationsList.style.overflowY = 'hidden';
                 return;
             }
 
-            const targetCount = Math.min(5, convItems.length);
+            conversationsList.style.overflowY = convItems.length > MAX_VISIBLE_SESSIONS ? 'auto' : 'hidden';
 
-            // Hauteur cumulée jusqu'à targetCount conv-item (en incluant titres/espaces)
+            const targetCount = Math.min(MAX_VISIBLE_SESSIONS, convItems.length);
+
             let itemsCounted = 0;
             let targetHeight = 0;
             const children = Array.from(conversationsList.children);
@@ -6710,13 +6717,15 @@ RÈGLES IMPORTANTES:
                 }
             }
 
-            // Filet de sécurité si mesures impossibles
-            if (!targetHeight || targetHeight < 120) {
-                // Valeur raisonnable: 5 items ~ 5*52 + padding
-                targetHeight = 280;
+            const styles = window.getComputedStyle ? getComputedStyle(conversationsList) : null;
+            const rowHeight = styles ? parseFloat(styles.getPropertyValue('--session-row-height')) : NaN;
+            const fallbackPadding = styles ? parseFloat(styles.getPropertyValue('--sessions-fallback-padding')) : NaN;
+            const fallbackHeight = (Number.isFinite(rowHeight) ? rowHeight : 56) * MAX_VISIBLE_SESSIONS + (Number.isFinite(fallbackPadding) ? fallbackPadding : 20);
+
+            if (!targetHeight || targetHeight < fallbackHeight * 0.6) {
+                targetHeight = fallbackHeight;
             }
 
-            // Laisser un peu de marge pour le padding/scrollbar
             const padded = Math.ceil(targetHeight + 8);
 
             // Borne haute: ne pas manger l'espace du menu (surtout sur mobile)
