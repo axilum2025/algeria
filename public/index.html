@@ -6092,6 +6092,22 @@ ${persona}
                     });
                 }
 
+                let agentAlexExtraContext = '';
+                if (currentChatType === 'agent-alex') {
+                    const finData = getFinanceModuleDataFromStorage();
+                    agentAlexExtraContext = '\n\n' + buildAgentFinanceContext({
+                        mode: 'summary',
+                        companySettings: finData.companySettings,
+                        invoices: finData.invoices,
+                        reports: finData.reports,
+                        budgets: finData.budgets,
+                        kpis: finData.kpis,
+                        lastInvoice: finData.lastInvoice,
+                        financeDataLastUpdated: finData.financeDataLastUpdated,
+                        conversationsCount: finData.conversationsCount
+                    });
+                }
+
                 let agentWebSearchExtraContext = '';
                 if (currentChatType === 'web-search') {
                     const wsData = getWebSearchModuleDataFromStorage();
@@ -6117,7 +6133,7 @@ ${persona}
                     });
                 }
 
-                const contextPrefix = baseContext + agentDevExtraContext + agentHRExtraContext + agentMarketingExtraContext + agentExcelExtraContext + agentTodoExtraContext + agentFinanceExtraContext + agentWebSearchExtraContext + agentTonyExtraContext;
+                const contextPrefix = baseContext + agentDevExtraContext + agentHRExtraContext + agentMarketingExtraContext + agentExcelExtraContext + agentTodoExtraContext + agentFinanceExtraContext + agentAlexExtraContext + agentWebSearchExtraContext + agentTonyExtraContext;
                 let messageForBackend = contextPrefix + '\n\nUtilisateur: ' + message;
 
                 // 🖼️ Si une image a été uploadée dans cette conversation, et que l'utilisateur pose une question,
