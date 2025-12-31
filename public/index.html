@@ -17089,7 +17089,7 @@ ${recruitmentJobs.filter(j => j.status === 'closed').slice(0, 3).map(j => `  •
 ${pendingLeaves.length > 0 ? `- Valider ${pendingLeaves.length} demande(s) de congé en attente\n` : ''}${topCandidates.length > 0 ? `- Contacter ${topCandidates.length} candidat(s) excellent(s) pour entretien\n` : ''}${activeJobs.filter(j => !recruitmentCandidates.some(c => c.jobId === j.id)).length > 0 ? `- Promouvoir ${activeJobs.filter(j => !recruitmentCandidates.some(c => c.jobId === j.id)).length} offre(s) sans candidature\n` : ''}${highRiskTurnover.length > 0 ? `- Rencontrer ${highRiskTurnover.length} employé(s) à risque de départ\n` : ''}${shortlistCandidates.length > 5 ? `- Trier la shortlist (${shortlistCandidates.length} candidats qualifiés)\n` : ''}
 ` : '👔 RECRUTEMENT : Aucune offre d\'emploi ou candidature en cours. Commencez par créer une offre!';
 
-                // ========== CONSTRUCTION DU CONTEXTE COMPLET ==========
+                // ========== CONSTRUCTION DU CONTEXTE COMPLET (données RH) ==========
                 const hrContext = `
 ${companyInfo}
 
@@ -17115,27 +17115,13 @@ ${reviewsInfo}
 ${turnoverInfo}
 
 ${recruitmentInfo}
-
-═══════════════════════════════════
-TU ES AGENT RH - ASSISTANT IA EXPERT
-═══════════════════════════════════
-
-Tu as accès à TOUTES les données ci-dessus en temps réel. Tu peux :
-✅ Répondre sur les employés, congés, paies, évaluations, turnover, recrutement
-✅ Faire des calculs (budget, moyennes, prévisions)
-✅ Identifier les problèmes (congés en attente, risques turnover)
-✅ Suggérer des actions (valider congé, analyser turnover, contacter candidat)
-✅ Comparer des données (départements, périodes, employés)
-
-RÈGLES DE CONVERSATION :
-- Ne te présente PAS à chaque message (uniquement au 1er message)
-- Sois direct, concis et professionnel
-- Utilise les données EXACTES ci-dessus (ne pas inventer)
-- Mentionne les noms des employés quand pertinent
-- Utilise la devise ${currency} pour les montants
-- Si données manquantes, dis-le clairement
-- Suggère des actions concrètes quand approprié
 `;
+
+                // Aligner le context prefix avec le chat principal (knowledge app + contexte enrichi)
+                const baseContext = (typeof getApplicationKnowledge === 'function' ? getApplicationKnowledge('hr-management') : '')
+                    + (typeof AxilumContext !== 'undefined' && AxilumContext && typeof AxilumContext.getEnrichedContext === 'function'
+                        ? AxilumContext.getEnrichedContext('hr-management')
+                        : '');
 
                 
                 // Convertir l'historique au format backend
@@ -17148,7 +17134,7 @@ RÈGLES DE CONVERSATION :
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ 
-                        message: hrContext + "\n\nQuestion: " + message,
+                        message: baseContext + "\n\n" + hrContext + "\n\nUtilisateur: " + message,
                         conversationId: 'hr-management',
                         chatType: 'hr-management',
                         history: historyForBackend
