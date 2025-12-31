@@ -1326,13 +1326,13 @@ Pour commencer, sélectionnez vos langues dans le panneau latéral et saisissez 
                 width: 48px;
                 height: 48px;
                 padding: 0;
-                background: rgba(59, 130, 246, 0.2);
-                border: 1px solid var(--tp-border-strong);
-                border-radius: 12px;
-                color: white;
+                background: var(--tp-panel-bg);
+                border: 1px solid var(--tp-border);
+                border-radius: 9999px;
+                color: var(--tp-muted-2);
                 font-size: 20px;
                 cursor: pointer;
-                transition: all 0.3s ease;
+                transition: background 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
                 display: flex;
                 align-items: center;
                 justify-content: center;
@@ -1344,14 +1344,20 @@ Pour commencer, sélectionnez vos langues dans le panneau latéral et saisissez 
             }
             
             .textpro-mic-btn:hover {
-                background: rgba(59, 130, 246, 0.3);
-                transform: translateY(-2px);
-                box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+                background: var(--tp-panel-bg-strong);
+                border-color: var(--tp-border-strong);
+                transform: translateY(-1px);
+            }
+
+            .textpro-mic-btn:focus-visible {
+                outline: none;
+                box-shadow: 0 0 0 3px var(--tp-border);
             }
             
             .textpro-mic-btn.recording {
                 background: rgba(239, 68, 68, 0.3);
                 border-color: rgba(239, 68, 68, 0.6);
+                color: white;
                 animation: pulse 1.5s ease-in-out infinite;
             }
             

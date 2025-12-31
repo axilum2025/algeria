@@ -2461,8 +2461,10 @@
             width: 60px;
             height: 60px;
             border-radius: 50%;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            box-shadow: 0 0 30px rgba(102, 126, 234, 0.5);
+            background: var(--bg-sidebar);
+            border: 1px solid var(--border-color);
+            box-shadow: 0 12px 32px var(--shadow);
+            color: var(--text-primary);
             display: flex;
             align-items: center;
             justify-content: center;
@@ -2471,17 +2473,20 @@
         }
 
         .voice-orb.listening .voice-orb-core {
-            background: linear-gradient(135deg, #3B82F6 0%, #2563EB 100%);
+            border-color: var(--accent);
+            color: var(--accent);
             animation: orb-listening 1.5s ease-in-out infinite;
         }
 
         .voice-orb.thinking .voice-orb-core {
-            background: linear-gradient(135deg, #8B5CF6 0%, #7C3AED 100%);
+            border-color: var(--hi-med);
+            color: var(--hi-med);
             animation: orb-thinking 1s linear infinite;
         }
 
         .voice-orb.speaking .voice-orb-core {
-            background: linear-gradient(135deg, #10B981 0%, #059669 100%);
+            border-color: var(--hi-low);
+            color: var(--hi-low);
             animation: orb-speaking 0.5s ease-in-out infinite;
         }
 
@@ -2496,8 +2501,8 @@
         }
 
         @keyframes orb-speaking {
-            0%, 100% { transform: scale(1); box-shadow: 0 0 30px rgba(16, 185, 129, 0.5); }
-            50% { transform: scale(1.15); box-shadow: 0 0 40px rgba(16, 185, 129, 0.8); }
+            0%, 100% { transform: scale(1); box-shadow: 0 12px 32px var(--shadow); }
+            50% { transform: scale(1.15); box-shadow: 0 16px 40px var(--shadow); }
         }
 
         .voice-particles {
@@ -2534,15 +2539,15 @@
         }
 
         .voice-status-text.listening {
-            color: #3B82F6;
+            color: var(--accent);
         }
 
         .voice-status-text.thinking {
-            color: #8B5CF6;
+            color: var(--hi-med);
         }
 
         .voice-status-text.speaking {
-            color: #10B981;
+            color: var(--hi-low);
         }
 
         .voice-visualizer {
@@ -2907,8 +2912,8 @@
             <div class="voice-orb" id="voiceOrb" onclick="toggleVoiceMode()">
                 <div class="voice-particles" id="voiceParticles"></div>
                 <div class="voice-orb-core">
-                    <svg width="32" height="32" fill="white" viewBox="0 0 24 24" stroke="white" stroke-width="1.5">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 18.75a6 6 0 006-6v-1.5m-6 7.5a6 6 0 01-6-6v-1.5m6 7.5v3.75m-3.75 0h7.5M12 15.75a3 3 0 01-3-3V4.5a3 3 0 116 0v8.25a3 3 0 01-3 3z" fill="none"/>
+                    <svg width="32" height="32" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 18.75a6 6 0 006-6v-1.5m-6 7.5a6 6 0 01-6-6v-1.5m6 7.5v3.75m-3.75 0h7.5M12 15.75a3 3 0 01-3-3V4.5a3 3 0 116 0v8.25a3 3 0 01-3 3z" />
                     </svg>
                 </div>
             </div>
