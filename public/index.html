@@ -4838,6 +4838,103 @@ ${topObjectives}
             return truncateText(`${constraints}${moduleDoc}${dataSnapshot}`, 12000);
         }
 
+        function getExcelModuleDataFromStorage() {
+            const savedWorkbooks = safeJsonParse(localStorage.getItem('excelWorkbooks') || '[]', []);
+            const workbooks = Array.isArray(savedWorkbooks) ? savedWorkbooks : [];
+
+            // Ces variables existent dans le module Excel AI (même fichier).
+            // On les lit prudemment pour éviter toute erreur si non initialisées.
+            let currentName = '';
+            let columns = [];
+            let rows = [];
+            try { currentName = (typeof excelCurrentFile !== 'undefined' && excelCurrentFile && excelCurrentFile.name) ? String(excelCurrentFile.name) : ''; } catch (_) {}
+            try { columns = (typeof excelColumns !== 'undefined' && Array.isArray(excelColumns)) ? excelColumns : []; } catch (_) { columns = []; }
+            try { rows = (typeof excelSheetData !== 'undefined' && Array.isArray(excelSheetData)) ? excelSheetData : []; } catch (_) { rows = []; }
+
+            return {
+                savedWorkbooks: workbooks,
+                currentWorkbook: {
+                    name: currentName,
+                    columns: Array.isArray(columns) ? columns : [],
+                    rows: Array.isArray(rows) ? rows : []
+                }
+            };
+        }
+
+        function buildAgentExcelContext({ mode = 'summary', savedWorkbooks = [], currentWorkbook = null } = {}) {
+            const wbs = Array.isArray(savedWorkbooks) ? savedWorkbooks : [];
+            const cw = currentWorkbook && typeof currentWorkbook === 'object' ? currentWorkbook : { name: '', columns: [], rows: [] };
+
+            const colList = Array.isArray(cw.columns) ? cw.columns : [];
+            const rowList = Array.isArray(cw.rows) ? cw.rows : [];
+
+            const previewCols = colList.slice(0, 25);
+            const previewRows = rowList.slice(0, 8);
+
+            const safeRowToLine = (row) => {
+                if (!Array.isArray(row)) return '';
+                return row.slice(0, 25).map(v => String(v ?? '')).join(' | ');
+            };
+
+            const dataPreview = previewRows.length
+                ? previewRows.map(safeRowToLine).join('\n')
+                : 'Aucune donnée chargée';
+
+            const topSaved = wbs
+                .slice()
+                .sort((a, b) => String(b?.savedAt || '').localeCompare(String(a?.savedAt || '')))
+                .slice(0, 5)
+                .map(wb => {
+                    const name = wb?.name || 'Classeur';
+                    const lines = Array.isArray(wb?.data) ? wb.data.length : 0;
+                    const cols = Array.isArray(wb?.columns) ? wb.columns.length : 0;
+                    const when = wb?.savedAt ? ` | Sauvegardé: ${wb.savedAt}` : '';
+                    return `- ${name} | Lignes: ${lines} | Colonnes: ${cols}${when}`;
+                }).join('\n') || 'Aucun classeur sauvegardé';
+
+            const constraints = `
+[Contraintes produit]
+- Ne mentionne pas d'autres modules/agents/outils sauf si l'utilisateur le demande explicitement
+- N'invente jamais les données d'un classeur: utilise uniquement le contexte ci-dessous
+- Si aucun classeur n'est chargé, demande à l'utilisateur d'en importer un ou d'en créer un vide
+`;
+
+            const moduleDoc = `
+=== TU ES AGENT XCEL — AXILUM EXCEL AI EXPERT ===
+
+Ce module Excel (dans l'app) permet notamment:
+- Charger/éditer un classeur (colonnes, lignes) et visualiser un aperçu
+- Actions rapides (ex: clean, duplicates, kpi, formulas, charts selon l'UI)
+- Sauvegarder des classeurs dans le navigateur (localStorage) et les recharger
+
+Stockage local utilisé par le module:
+- excelWorkbooks (liste des classeurs sauvegardés)
+`;
+
+            const snapshot = `
+---
+DONNÉES EXCEL DISPONIBLES (snapshot):
+
+Classeur courant:
+- Nom: ${cw.name || 'Aucun'}
+- Colonnes: ${colList.length} (${previewCols.join(', ') || 'N/A'})
+- Lignes: ${rowList.length}
+
+Aperçu données (premières lignes):
+${dataPreview}
+
+Classeurs sauvegardés: ${wbs.length}
+Top récents:
+${topSaved}
+---
+`;
+
+            if (mode === 'summary') {
+                return truncateText(`${constraints}${moduleDoc}${snapshot}`, 6000);
+            }
+            return truncateText(`${constraints}${moduleDoc}${snapshot}`, 12000);
+        }
+
         function buildAgentDevRnDContext({ mode = 'full', projects = [], milestones = [], documents = [], risks = [] } = {}) {
             const activeProjects = projects.filter(p => p && p.statut === 'actif');
             const upcomingMilestones = milestones
@@ -5459,7 +5556,17 @@ ${persona}
                     });
                 }
 
-                const contextPrefix = baseContext + agentDevExtraContext + agentHRExtraContext + agentMarketingExtraContext;
+                let agentExcelExtraContext = '';
+                if (currentChatType === 'excel-expert') {
+                    const excelData = getExcelModuleDataFromStorage();
+                    agentExcelExtraContext = '\n\n' + buildAgentExcelContext({
+                        mode: 'summary',
+                        savedWorkbooks: excelData.savedWorkbooks,
+                        currentWorkbook: excelData.currentWorkbook
+                    });
+                }
+
+                const contextPrefix = baseContext + agentDevExtraContext + agentHRExtraContext + agentMarketingExtraContext + agentExcelExtraContext;
                 let messageForBackend = contextPrefix + '\n\nUtilisateur: ' + message;
 
                 // 🖼️ Si une image a été uploadée dans cette conversation, et que l'utilisateur pose une question,
