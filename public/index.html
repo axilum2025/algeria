@@ -5368,6 +5368,69 @@ ${preview || 'Aucun texte disponible'}
             return truncateText(`${constraints}${moduleDoc}${snapshot}`, 12000);
         }
 
+        function getWebSearchModuleDataFromStorage() {
+            const lastQuery = String(localStorage.getItem('webSearch_lastQuery') || '');
+            const lastResponse = String(localStorage.getItem('webSearch_lastResponse') || '');
+            const lastUpdated = localStorage.getItem('webSearch_lastUpdated') || null;
+            const sources = safeJsonParse(localStorage.getItem('webSearch_lastSources') || '[]', []);
+
+            return {
+                lastQuery,
+                lastResponse,
+                lastUpdated,
+                sources: Array.isArray(sources) ? sources : []
+            };
+        }
+
+        function buildAgentWebSearchContext({ mode = 'summary', lastQuery = '', lastResponse = '', lastUpdated = null, sources = [] } = {}) {
+            const safeStr = (v) => (typeof v === 'string') ? v : String(v ?? '');
+            const q = safeStr(lastQuery).trim();
+            const r = safeStr(lastResponse).trim();
+            const when = lastUpdated ? String(lastUpdated) : 'N/A';
+            const listSources = Array.isArray(sources) ? sources : [];
+            const topSources = listSources.slice(0, 6).map((s, idx) => {
+                const title = s && s.title ? String(s.title) : 'Source';
+                const url = s && s.url ? String(s.url) : '';
+                return `- ${idx + 1}. ${title}${url ? ` (${url})` : ''}`;
+            }).join('\n') || 'Aucune source';
+
+            const constraints = `
+[Contraintes produit]
+- Appuie-toi d'abord sur le "Contexte de recherche web" (si présent)
+- Si la recherche web est indisponible, dis-le et propose quoi vérifier
+- N'invente jamais des faits: si une info manque, pose 1-3 questions ciblées (pays, période, contexte)
+`;
+
+            const moduleDoc = `
+=== TU ES AGENT WEB SEARCH — AXILUM WEB SEARCH ===
+
+Ce mode (/agent web) sert à obtenir des informations à jour via recherche web.
+Le backend peut fournir un bloc "Contexte de recherche web" (à utiliser en priorité).
+
+Stockage local (navigateur / localStorage) utilisé pour l'alignement (suivi minimal):
+- webSearch_lastQuery, webSearch_lastResponse, webSearch_lastUpdated, webSearch_lastSources
+`;
+
+            const snapshot = `
+---
+HISTORIQUE WEB SEARCH (snapshot):
+
+Dernière requête: ${q || 'N/A'}
+Dernière MAJ: ${when}
+Sources (top):
+${topSources}
+
+Dernière réponse (aperçu):
+${r ? truncateText(r, 3500) : 'N/A'}
+---
+`;
+
+            if (mode === 'summary') {
+                return truncateText(`${constraints}${moduleDoc}${snapshot}`, 6000);
+            }
+            return truncateText(`${constraints}${moduleDoc}${snapshot}`, 12000);
+        }
+
         function buildAgentDevRnDContext({ mode = 'full', projects = [], milestones = [], documents = [], risks = [] } = {}) {
             const activeProjects = projects.filter(p => p && p.statut === 'actif');
             const upcomingMilestones = milestones
@@ -6029,6 +6092,18 @@ ${persona}
                     });
                 }
 
+                let agentWebSearchExtraContext = '';
+                if (currentChatType === 'web-search') {
+                    const wsData = getWebSearchModuleDataFromStorage();
+                    agentWebSearchExtraContext = '\n\n' + buildAgentWebSearchContext({
+                        mode: 'summary',
+                        lastQuery: wsData.lastQuery,
+                        lastResponse: wsData.lastResponse,
+                        lastUpdated: wsData.lastUpdated,
+                        sources: wsData.sources
+                    });
+                }
+
                 let agentTonyExtraContext = '';
                 if (currentChatType === 'agent-tony') {
                     const textProData = getTextProModuleDataFromStorage();
@@ -6042,7 +6117,7 @@ ${persona}
                     });
                 }
 
-                const contextPrefix = baseContext + agentDevExtraContext + agentHRExtraContext + agentMarketingExtraContext + agentExcelExtraContext + agentTodoExtraContext + agentFinanceExtraContext + agentTonyExtraContext;
+                const contextPrefix = baseContext + agentDevExtraContext + agentHRExtraContext + agentMarketingExtraContext + agentExcelExtraContext + agentTodoExtraContext + agentFinanceExtraContext + agentWebSearchExtraContext + agentTonyExtraContext;
                 let messageForBackend = contextPrefix + '\n\nUtilisateur: ' + message;
 
                 // 🖼️ Si une image a été uploadée dans cette conversation, et que l'utilisateur pose une question,
@@ -6221,6 +6296,17 @@ ${persona}
                     console.error('❌ Pas de réponse dans data:', data);
                     addMessage('❌ Erreur: L\'API n\'a pas retourné de réponse', 'bot', data);
                     return;
+                }
+
+                // 🔎 Web Search: persister un snapshot minimal (requête + réponse + sources)
+                if (currentChatType === 'web-search') {
+                    try {
+                        localStorage.setItem('webSearch_lastQuery', String(message || ''));
+                        localStorage.setItem('webSearch_lastResponse', String(data.response || ''));
+                        localStorage.setItem('webSearch_lastUpdated', new Date().toISOString());
+                        const src = Array.isArray(data.sources) ? data.sources.slice(0, 12) : [];
+                        localStorage.setItem('webSearch_lastSources', JSON.stringify(src));
+                    } catch (_) {}
                 }
                 
                 // �🛡️ Vérifier la protection contre hallucinations
@@ -14887,6 +14973,15 @@ ${persona}
                             
                             if (searchData && searchData.response) {
                                 webSearchResults = `\n\n[Contexte de recherche web] :\n${searchData.response}\n`;
+
+                                // Persister aussi le dernier contexte web (pour /agent web)
+                                try {
+                                    localStorage.setItem('webSearch_lastQuery', String(message || ''));
+                                    localStorage.setItem('webSearch_lastResponse', String(searchData.response || ''));
+                                    localStorage.setItem('webSearch_lastUpdated', new Date().toISOString());
+                                    const src = Array.isArray(searchData.sources) ? searchData.sources.slice(0, 12) : [];
+                                    localStorage.setItem('webSearch_lastSources', JSON.stringify(src));
+                                } catch (_) {}
                             }
                         }
                     } catch (searchError) {
