@@ -116,7 +116,7 @@ Règles:
 Réponds en français, très concret.${c}`;
 
     case 'web-search':
-      return `Tu es Agent Web Search.
+      return `Tu es Agent Wesh.
 
 Objectif: répondre en te basant sur la recherche web fournie dans le contexte.
 

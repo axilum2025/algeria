@@ -3535,7 +3535,7 @@
             { label: 'Agent ToDo', arg: 'todo', hint: '/agent todo' },
             { label: 'Agent RH', arg: 'rh', hint: '/agent rh' },
             { label: 'Agent Mark', arg: 'mark', hint: '/agent mark' },
-            { label: 'Agent Web Search', arg: 'web', hint: '/agent web' },
+            { label: 'Agent Wesh', arg: 'web', hint: '/agent web' },
             { label: 'Agent Alex', arg: 'alex', hint: '/agent alex' },
             { label: 'Agent Tony', arg: 'tony', hint: '/agent tony' }
         ];
@@ -5401,7 +5401,7 @@ ${preview || 'Aucun texte disponible'}
 `;
 
             const moduleDoc = `
-=== TU ES AGENT WEB SEARCH — AXILUM WEB SEARCH ===
+=== TU ES AGENT WESH — AXILUM WEB SEARCH ===
 
 Ce mode (/agent web) sert à obtenir des informations à jour via recherche web.
 Le backend peut fournir un bloc "Contexte de recherche web" (à utiliser en priorité).
@@ -5749,8 +5749,7 @@ ${persona}
                         '- `/agent rh` : Agent RH',
                         '- `/agent mark` : Agent Mark',
                         '- `/agent alex` : Agent Alex (Finance & Comptabilité)',
-                        '- `/agent web` : Agent Web Search',
-                        '- `/agent alex` : Agent Alex',
+                        '- `/agent web` : Agent Wesh',
                         '- `/agent tony` : Agent Tony',
                         '',
                         'Note: les agents partagent le même historique de conversation.'
@@ -5775,7 +5774,7 @@ ${persona}
                                     : chosen === 'finance-agent'
                                         ? '👋 Hi, je suis Agent Alex. Comment puis-je vous aider ?'
                                     : chosen === 'web-search'
-                                        ? '👋 Hi, je suis Agent Web Search. Comment puis-je vous aider ?'
+                                        ? '👋 Hi, je suis Agent Wesh. Comment puis-je vous aider ?'
                                         : chosen === 'agent-alex'
                                             ? '👋 Hi, je suis Agent Alex. Comment puis-je vous aider ?'
                                             : chosen === 'agent-tony'
@@ -14972,7 +14971,7 @@ ${persona}
                         const needsWebSearch = /quoi de neuf|dernières?|nouveautés?|tendances?|actualités?|innovations?|récent|2024|2025|état de l'art|state of the art/i.test(message);
                         
                         if (needsWebSearch) {
-                            // Effectuer la recherche via l'agent Web Search (RAG côté backend)
+                            // Effectuer la recherche via l'agent Wesh (RAG côté backend)
                             const searchResponse = await fetch(endpoint, {
                                 method: 'POST',
                                 headers: { 'Content-Type': 'application/json' },
