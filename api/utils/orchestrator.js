@@ -113,6 +113,7 @@ async function orchestrateMultiAgents({
   recentHistory,
   braveKey,
   searchBrave,
+  toolsContext,
   analyzeHallucination,
   logger,
   maxAgents = 3
@@ -130,6 +131,7 @@ async function orchestrateMultiAgents({
 
   // Web search context only if chosen agents include web-search.
   let contextFromSearch = '';
+  const toolsCtx = String(toolsContext || '').trim();
 
   // Determine agents
   let teamAgents;
@@ -175,15 +177,21 @@ async function orchestrateMultiAgents({
     }
   }
 
+  // Combine contexts for worker system prompts
+  let combinedContext = contextFromSearch || '';
+  if (toolsCtx) {
+    combinedContext += `\n\nContexte outils (résultats déjà obtenus, à utiliser si pertinent):\n${toolsCtx}\n`;
+  }
+
   const workerOutputs = [];
   let totalTokensUsed = 0;
 
   for (const agent of teamAgents) {
     const workerMessages = [
-      { role: 'system', content: buildSystemPromptForAgent(agent, contextFromSearch) },
+      { role: 'system', content: buildSystemPromptForAgent(agent, combinedContext) },
       {
         role: 'user',
-        content: `Tu es consulté comme expert (${agent}).\nRéponds de façon concise et actionnable.\n\nQuestion: ${question}${compactHistory}`
+        content: `Tu es consulté comme expert (${agent}).\nRéponds de façon concise et actionnable.\n\nQuestion: ${question}${compactHistory}${toolsCtx ? `\n\nRésultats d'outils disponibles:\n${toolsCtx}` : ''}`
       }
     ];
 
@@ -200,7 +208,7 @@ async function orchestrateMultiAgents({
     },
     {
       role: 'user',
-      content: `Question utilisateur: ${question}\n\nNotes d'experts:\n${workerOutputs.map(w => `\n[${w.agent}]\n${w.text}`).join('\n')}`
+      content: `Question utilisateur: ${question}\n\n${toolsCtx ? `Résultats d'outils (déjà obtenus):\n${toolsCtx}\n\n` : ''}Notes d'experts:\n${workerOutputs.map(w => `\n[${w.agent}]\n${w.text}`).join('\n')}`
     }
   ];
 

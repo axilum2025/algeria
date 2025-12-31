@@ -57,7 +57,7 @@ module.exports = async function (context, req) {
             context.log('⚙️ Orchestration de', neededFunctions.length, 'fonctions...');
             
             try {
-                functionResults = await orchestrateFunctions(neededFunctions, userMessage);
+                functionResults = await orchestrateFunctions(neededFunctions, userMessage, { requestBody: req.body || {} });
                 context.log('✅ Fonctions exécutées:', summarizeResults(functionResults));
             } catch (funcError) {
                 context.log.warn('⚠️ Erreur orchestration, continue sans:', funcError.message);

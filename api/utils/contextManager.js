@@ -113,9 +113,16 @@ function buildContextForFunctions(userMessage, history, functionResults = []) {
     
     // Ajouter résultats de fonctions si présents
     if (functionResults.length > 0) {
-        const functionContext = functionResults.map(r => 
-            `[${r.function}] → ${r.result}`
-        ).join('\n');
+        const functionContext = functionResults.map(r => {
+            let rendered;
+            try {
+                rendered = typeof r.result === 'string' ? r.result : JSON.stringify(r.result);
+            } catch (_) {
+                rendered = String(r.result);
+            }
+            if (rendered.length > 1200) rendered = rendered.slice(0, 1200) + '...[tronqué]';
+            return `[${r.function}] → ${rendered}`;
+        }).join('\n');
         
         contexts.push({
             type: 'function_results',

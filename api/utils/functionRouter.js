@@ -1,6 +1,8 @@
 // 🎯 Function Router - Orchestration intelligente des fonctions avec cache et retry
 // Gère les appels parallèles, séquentiels, cache, et gestion d'erreurs
 
+const DEFAULT_TIMEOUT_MS = 25_000;
+
 let NodeCache, cache;
 
 try {
@@ -25,23 +27,19 @@ function detectFunctions(userMessage) {
     
     // Détection par mots-clés (ordre de priorité)
     const patterns = {
-        // ✅ Nouvelles fonctions développées
-        excelAssistant: /excel|formule|tableau|spreadsheet|cellule|colonne|somme|moyenne/i,
+        // ✅ Fonctions réellement orchestrables sans données binaires
+        excelAssistant: /excel|formule|tableau|spreadsheet|cellule|colonne|xlookup|recherchx|vlookup|recherchev|index\s*\(|match\s*\(/i,
         translate: /traduis|traduction|translate|en anglais|en français|en espagnol|langue/i,
         taskManager: /tâche|to-?do|rappelle|note|ajoute.*liste|gérer.*tâche/i,
-        
-        // 🖼️ Fonctions existantes
-        generateImage: /génère|crée|dessine|image|photo|illustration/i,
-        analyzeImage: /analyse.*image|décris.*image|que vois-tu|reconnaissance/i,
+        generateImage: /(g[ée]n[èe]re|cr[ée]e|dessine|fabrique|produis).*(image|photo|illustration|dessin|visuel|logo)|\b(image|photo|illustration|dessin|visuel|logo)\b/i,
         searchWeb: /cherche|recherche|trouve|infos? sur|google|brave/i,
-        calendar: /calendrier|rendez-vous|réunion|planning|disponible|événement/i,
-        analyzeDocument: /analyse.*document|extrait.*données|ocr|pdf|scan/i,
-        
-        // 📧 Fonctions communication
-        sendEmail: /envoie|envoi|mail|email|message/i,
-        
-        // 🔢 Calculs et données
-        calculate: /calcul|combien|résultat|équation|mathématique/i
+
+        // ⚠️ Désactivés par défaut (besoin de données/credentials spécifiques)
+        // analyzeImage: nécessite image base64
+        // calendar: nécessite accessToken Microsoft
+        // analyzeDocument: route non présente (utiliser extractText/vision-ocr si besoin)
+        // sendEmail: nécessite paramètres email et endpoints dédiés
+        // calculate: éviter exécution arbitraire côté serveur
     };
     
     for (const [func, pattern] of Object.entries(patterns)) {
@@ -51,6 +49,61 @@ function detectFunctions(userMessage) {
     }
     
     return functions;
+}
+
+function getFunctionsBaseUrl() {
+    const explicit = process.env.AXILUM_FUNCTIONS_BASE_URL || process.env.FUNCTIONS_BASE_URL || process.env.BASE_URL;
+    if (explicit) return String(explicit).replace(/\/$/, '');
+
+    // Azure Functions
+    if (process.env.WEBSITE_HOSTNAME) return `https://${process.env.WEBSITE_HOSTNAME}`;
+
+    // Local default
+    return 'http://localhost:7071';
+}
+
+function withTimeout(fetchPromise, timeoutMs) {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), timeoutMs);
+    return {
+        promise: (async () => {
+            try {
+                return await fetchPromise(controller.signal);
+            } finally {
+                clearTimeout(timer);
+            }
+        })(),
+        controller
+    };
+}
+
+async function braveWebSearch(query) {
+    const braveKey = process.env.APPSETTING_BRAVE_API_KEY || process.env.BRAVE_API_KEY;
+    if (!braveKey) {
+        throw new Error('BRAVE_API_KEY non configurée');
+    }
+
+    const url = `https://api.search.brave.com/res/v1/web/search?q=${encodeURIComponent(query)}&count=3`;
+    const resp = await fetch(url, {
+        method: 'GET',
+        headers: {
+            'Accept': 'application/json',
+            'X-Subscription-Token': braveKey
+        }
+    });
+
+    if (!resp.ok) {
+        const txt = await resp.text();
+        throw new Error(`Brave search failed: ${resp.status} ${txt.substring(0, 300)}`);
+    }
+
+    const data = await resp.json();
+    const results = data.web?.results || [];
+    return results.slice(0, 3).map(r => ({
+        title: r.title,
+        description: r.description,
+        url: r.url
+    }));
 }
 
 /**
@@ -67,7 +120,7 @@ async function executeWithRetry(functionName, params, maxRetries = 3) {
             lastError = error;
             
             // Retry seulement sur erreurs temporaires
-            if (error.message.includes('429') || error.message.includes('timeout')) {
+            if (String(error.message || '').includes('429') || String(error.message || '').includes('timeout')) {
                 const delay = Math.pow(2, attempt) * 1000; // Exponential backoff
                 await new Promise(resolve => setTimeout(resolve, delay));
                 continue;
@@ -112,39 +165,140 @@ async function executeCached(functionName, params) {
  * Exécute réellement la fonction (à implémenter selon vos endpoints)
  */
 async function executeFunction(functionName, params) {
-    // Mapping vers vos APIs Azure Functions
-    const endpoints = {
-        searchWeb: '/api/searchBrave',
-        generateImage: '/api/generateImage',
+    // Certains “outils” sont plus fiables en inline (pas de dépendance à l’URL locale)
+    if (functionName === 'searchWeb') {
+        const query = params?.query || params?.q || params?.text || '';
+        const results = await braveWebSearch(String(query));
+        return { success: true, results };
+    }
+
+    const baseUrl = getFunctionsBaseUrl();
+
+    // Mapping vers les routes Azure Functions existantes (cf. function.json)
+    const routes = {
+        translate: '/api/translate',
+        excelAssistant: '/api/excelAssistant',
+        taskManager: '/api/tasks/smart-command',
+        generateImage: '/api/generate-image',
         calendar: '/api/microsoftCalendar',
-        analyzeDocument: '/api/analyzeDocument',
-        translate: '/api/translate'
+        extractText: '/api/extractText',
+        analyzeImage: '/api/analyze-image'
     };
-    
-    const endpoint = endpoints[functionName];
-    if (!endpoint) {
-        throw new Error(`Fonction inconnue: ${functionName}`);
-    }
-    
-    // Appel HTTP (à adapter selon votre infrastructure)
-    const response = await fetch(`${process.env.BASE_URL || ''}${endpoint}`, {
+
+    const route = routes[functionName];
+    if (!route) throw new Error(`Fonction inconnue: ${functionName}`);
+
+    const timeoutMs = Number(params?.timeoutMs || DEFAULT_TIMEOUT_MS);
+    const headers = Object.assign(
+        { 'Content-Type': 'application/json' },
+        params?.headers && typeof params.headers === 'object' ? params.headers : {}
+    );
+
+    // Ne pas forwarder des champs de contrôle internes
+    const { timeoutMs: _timeout, headers: _headers, ...body } = (params && typeof params === 'object') ? params : {};
+
+    const { promise } = withTimeout((signal) => fetch(`${baseUrl}${route}`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(params)
-    });
-    
+        headers,
+        body: JSON.stringify(body),
+        signal
+    }), timeoutMs);
+
+    const response = await promise;
     if (!response.ok) {
-        throw new Error(`${functionName} failed: ${response.status}`);
+        const txt = await response.text();
+        throw new Error(`${functionName} failed: ${response.status} ${txt.substring(0, 300)}`);
     }
-    
-    return await response.json();
+
+    const contentType = response.headers.get('content-type') || '';
+    if (contentType.includes('application/json')) return await response.json();
+    return { raw: await response.text() };
+}
+
+function buildParamsForFunction(functionName, userMessage, requestBody = {}) {
+    const message = String(userMessage || '').trim();
+
+    switch (functionName) {
+        case 'translate': {
+            // Heuristique simple: si “en anglais/en français/en espagnol…” apparaît, on l’utilise
+            const lower = message.toLowerCase();
+            let targetLang = requestBody.targetLang;
+            if (!targetLang) {
+                if (/(en\s+anglais|to\s+english)/i.test(lower)) targetLang = 'anglais';
+                else if (/(en\s+fran[çc]ais|to\s+french)/i.test(lower)) targetLang = 'français';
+                else if (/(en\s+espagnol|to\s+spanish)/i.test(lower)) targetLang = 'espagnol';
+            }
+            return {
+                text: requestBody.text || message,
+                targetLang: targetLang || 'anglais',
+                sourceLang: requestBody.sourceLang,
+                preserveFormatting: true,
+                includeAlternatives: false
+            };
+        }
+
+        case 'excelAssistant':
+            return {
+                task: requestBody.task || message,
+                data: requestBody.data,
+                context: requestBody.context
+            };
+
+        case 'taskManager': {
+            const userId = requestBody.userId;
+            return {
+                command: requestBody.command || message,
+                history: requestBody.taskHistory || requestBody.history,
+                userId
+            };
+        }
+
+        case 'generateImage':
+            return {
+                prompt: requestBody.prompt || message,
+                width: requestBody.width,
+                height: requestBody.height
+            };
+
+        case 'calendar':
+            return {
+                action: requestBody.action || 'list',
+                accessToken: requestBody.accessToken,
+                startDate: requestBody.startDate,
+                endDate: requestBody.endDate,
+                event: requestBody.event,
+                date: requestBody.date,
+                time: requestBody.time
+            };
+
+        case 'extractText':
+            return {
+                file: requestBody.file,
+                fileName: requestBody.fileName
+            };
+
+        case 'analyzeImage':
+            return {
+                imageBase64: requestBody.imageBase64 || requestBody.image,
+                question: requestBody.question || message
+            };
+
+        case 'searchWeb':
+            return {
+                query: requestBody.query || message
+            };
+
+        default:
+            return { query: message };
+    }
 }
 
 /**
  * Orchestre l'exécution de plusieurs fonctions
  */
-async function orchestrateFunctions(functions, userMessage) {
+async function orchestrateFunctions(functions, userMessage, options = {}) {
     const results = [];
+    const requestBody = options?.requestBody || {};
     
     // Séparer fonctions parallèles vs séquentielles
     const { parallel, sequential } = categorizeFunctions(functions);
@@ -152,7 +306,7 @@ async function orchestrateFunctions(functions, userMessage) {
     // 1. Exécuter fonctions parallèles (indépendantes)
     if (parallel.length > 0) {
         const promises = parallel.map(func => 
-            executeCached(func.name, { query: userMessage, ...func.params })
+            executeCached(func.name, buildParamsForFunction(func.name, userMessage, requestBody))
         );
         
         const parallelResults = await Promise.allSettled(promises);
@@ -170,7 +324,8 @@ async function orchestrateFunctions(functions, userMessage) {
     
     // 2. Exécuter fonctions séquentielles (dépendantes)
     for (const func of sequential) {
-        const params = buildParamsFromPreviousResults(func, results);
+        const baseParams = buildParamsForFunction(func.name, userMessage, requestBody);
+        const params = buildParamsFromPreviousResults({ ...func, params: baseParams }, results);
         const result = await executeCached(func.name, params);
         
         results.push({

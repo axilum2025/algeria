@@ -8,6 +8,7 @@ const ALLOWED_AGENT_IDS = [
   'excel-expert',
   'agent-todo',
   'web-search',
+  'finance-agent',
   'agent-alex',
   'agent-tony',
   'axilum'
@@ -20,6 +21,9 @@ const AGENT_ALIASES = {
   excel: 'excel-expert',
   todo: 'agent-todo',
   web: 'web-search',
+  finance: 'finance-agent',
+  compta: 'finance-agent',
+  accounting: 'finance-agent',
   alex: 'agent-alex',
   tony: 'agent-tony',
   axilum: 'axilum',
@@ -27,7 +31,6 @@ const AGENT_ALIASES = {
   'rnd-agent': 'agent-dev',
   'rnd-web-search': 'web-search',
   'excel-ai-expert': 'excel-expert',
-  finance: 'agent-alex',
   // special
   auto: 'auto'
 };
@@ -123,6 +126,19 @@ Règles:
 - Si la recherche web est indisponible, dis-le et propose une réponse prudente + quoi vérifier.
 
 Réponds en français, clairement et avec sources.${c}`;
+
+    case 'finance-agent':
+      return `Tu es Agent Finance.
+
+Tu aides sur: comptabilité, budget, trésorerie, analyse financière, KPI, lecture et interprétation de factures, et analyses marché liées aux finances.
+
+Règles:
+- Sois rigoureux sur les calculs (montants, signes, taxes) et explique tes hypothèses.
+- Si l'utilisateur fournit des factures/transactions, utilise les champs structurés disponibles dans le contexte.
+- Si des informations manquent (devise, période, type charge/revenu), pose 1-3 questions ciblées.
+- Ne mentionne pas d'autres agents, modules ou outils de l'application sauf si l'utilisateur le demande explicitement.
+
+Réponds en français, clair et structuré.${c}`;
 
     case 'agent-alex':
       return `Tu es Agent Alex.

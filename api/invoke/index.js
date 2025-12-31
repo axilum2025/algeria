@@ -3,6 +3,7 @@
 const { analyzeHallucination } = require('../utils/hallucinationDetector');
 const { buildSystemPromptForAgent, normalizeAgentId } = require('../utils/agentRegistry');
 const { orchestrateMultiAgents, callGroqChatCompletion } = require('../utils/orchestrator');
+const { detectFunctions, orchestrateFunctions, summarizeResults } = require('../utils/functionRouter');
 
 // Fonction RAG - Recherche Brave
 async function searchBrave(query, apiKey) {
@@ -83,6 +84,34 @@ module.exports = async function (context, req) {
         if (isOrchestrator) {
             const braveKey = process.env.APPSETTING_BRAVE_API_KEY || process.env.BRAVE_API_KEY;
             const teamQuestion = String(req.body.teamQuestion || userMessage || '').trim();
+
+            // 1) ⚙️ ORCHESTRATION OUTILS (automatique) - exécute les fonctions détectées
+            let toolResults = [];
+            let toolsContext = '';
+            try {
+                const neededTools = detectFunctions(teamQuestion);
+                if (neededTools.length > 0) {
+                    context.log('⚙️ Outils détectés (orchestrator):', neededTools);
+                    toolResults = await orchestrateFunctions(neededTools, teamQuestion, { requestBody: req.body || {} });
+                    context.log('✅ Outils exécutés:', summarizeResults(toolResults));
+
+                    toolsContext = toolResults.map(r => {
+                        const status = r.success ? 'success' : 'failed';
+                        let rendered;
+                        try {
+                            rendered = typeof r.result === 'string' ? r.result : JSON.stringify(r.result);
+                        } catch (_) {
+                            rendered = String(r.result);
+                        }
+                        if (rendered && rendered.length > 1200) rendered = rendered.slice(0, 1200) + '...[tronqué]';
+                        const err = r.error ? `\nErreur: ${String(r.error).slice(0, 300)}` : '';
+                        return `- [${r.function}] ${status}${r.cached ? ' (cached)' : ''}: ${rendered || ''}${err}`;
+                    }).join('\n');
+                }
+            } catch (toolErr) {
+                context.log.warn('⚠️ Orchestration outils échouée, continue sans:', toolErr?.message || toolErr);
+            }
+
             const orchestrated = await orchestrateMultiAgents({
                 groqKey,
                 teamQuestion,
@@ -90,6 +119,7 @@ module.exports = async function (context, req) {
                 recentHistory,
                 braveKey,
                 searchBrave,
+                toolsContext,
                 analyzeHallucination,
                 logger: context.log
             });
@@ -117,6 +147,8 @@ module.exports = async function (context, req) {
                     advancedFeatures: true,
                     orchestrator: true,
                     orchestratorAgents: orchestrated.orchestratorAgents || [],
+                    toolsUsed: toolResults.length,
+                    toolsSummary: toolResults.length ? summarizeResults(toolResults) : null,
                     hallucinationIndex: orchestrated.hallucination?.hiPercent ?? 0,
                     contextHistoryRatio: orchestrated.hallucination?.chrPercent ?? 0,
                     hallucinationClaims: orchestrated.hallucination?.claims || [],
