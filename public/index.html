@@ -12398,7 +12398,7 @@ ${persona}
                                         <p style="margin: 0; font-size: 14px; color: rgba(255,255,255,0.6);">Suivi et validation des demandes</p>
                                     </div>
                                     <div style="display: flex; gap: 12px;">
-                                        <button onclick="closeEmployeesModal()" style="padding: 12px 24px; background: rgba(255,255,255,0.1); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 12px; color: white; cursor: pointer; display: flex; align-items: center; gap: 8px; transition: all 0.3s; backdrop-filter: blur(10px); font-size: 14px; font-weight: 600;" onmouseover="this.style.background='rgba(16, 185, 129, 0.3)'; this.style.borderColor='#10b981'" onmouseout="this.style.background='rgba(255,255,255,0.1)'; this.style.borderColor='rgba(16, 185, 129, 0.3)'">
+                                        <button onclick="closeLeavesModal()" style="padding: 12px 24px; background: rgba(255,255,255,0.1); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 12px; color: white; cursor: pointer; display: flex; align-items: center; gap: 8px; transition: all 0.3s; backdrop-filter: blur(10px); font-size: 14px; font-weight: 600;" onmouseover="this.style.background='rgba(16, 185, 129, 0.3)'; this.style.borderColor='#10b981'" onmouseout="this.style.background='rgba(255,255,255,0.1)'; this.style.borderColor='rgba(16, 185, 129, 0.3)'">
                                             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
                                             <span>Retour</span>
                                         </button>
@@ -17037,14 +17037,67 @@ KPIs GLOBAUX :
                 initializeTurnoverData();
             }
         }
+
+        function scheduleHRTabCleanup(tabName) {
+            const doCleanup = () => {
+                try {
+                    if (tabName === 'employees') {
+                        const list = document.getElementById('employeesList');
+                        if (list) list.replaceChildren();
+                        const search = document.getElementById('employeeSearch');
+                        if (search) {
+                            search.value = '';
+                        }
+                    }
+
+                    if (tabName === 'leaves') {
+                        const list = document.getElementById('leavesList');
+                        if (list) list.replaceChildren();
+                    }
+
+                    if (tabName === 'payroll') {
+                        const list = document.getElementById('payrollsList');
+                        if (list) list.replaceChildren();
+                        const search = document.getElementById('payrollSearchInput');
+                        if (search) {
+                            search.value = '';
+                        }
+                    }
+
+                    if (tabName === 'reviews') {
+                        const list = document.getElementById('reviewsListContainer');
+                        if (list) list.replaceChildren();
+                        const search = document.getElementById('reviewSearchInput');
+                        if (search) {
+                            search.value = '';
+                        }
+                    }
+                } catch (e) {
+                    // ignore
+                }
+            };
+
+            if (typeof requestIdleCallback === 'function') {
+                requestIdleCallback(doCleanup, { timeout: 800 });
+            } else {
+                setTimeout(doCleanup, 0);
+            }
+        }
         
         // Close Employees Modal and return to Dashboard
         function closeEmployeesModal() {
             showHRTab('dashboard');
+            scheduleHRTabCleanup('employees');
+        }
+
+        function closeLeavesModal() {
+            showHRTab('dashboard');
+            scheduleHRTabCleanup('leaves');
         }
         
         function closeReviewsModal() {
             showHRTab('dashboard');
+            scheduleHRTabCleanup('reviews');
         }
         
         function initializeHRData() {
@@ -19852,6 +19905,7 @@ ${recruitmentInfo}
         
         function closePayrollModal() {
             showHRTab('dashboard');
+            scheduleHRTabCleanup('payroll');
         }
         
         // ========== FIN PAYROLL MANAGEMENT ==========
