@@ -1,11 +1,17 @@
-const fetch = require('node-fetch');
-
 /**
  * Azure Function - Transcription Audio (Speech-to-Text)
  * Transcrit un audio en texte en utilisant l'API Whisper d'OpenAI
  */
 module.exports = async function (context, req) {
     context.log('🎤 Demande de transcription audio reçue');
+
+    if (typeof fetch !== 'function') {
+        context.res = {
+            status: 500,
+            body: { error: 'Fetch API indisponible dans cet environnement Node' }
+        };
+        return;
+    }
 
     try {
         const { audio } = req.body;
