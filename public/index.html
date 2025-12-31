@@ -15923,9 +15923,7 @@ ${persona}
             `;
             
             try {
-                const endpoint = (window.location.hostname === 'localhost') 
-                    ? 'http://localhost:7071/api/agents/axilum/invoke'
-                    : '/api/agents/axilum/invoke';
+                const endpoint = getEndpoint();
                 
                 // Get Marketing context
                 const campaigns = JSON.parse(localStorage.getItem('marketingCampaigns') || '[]');
@@ -15957,20 +15955,21 @@ BUSINESS :
 KPIs GLOBAUX :
 - Total Leads: ${totalLeads}
 - ROI Moyen: ${avgRoi}%
-
-TU ES AGENT MARK - EXPERT MARKETING :
-Tu es un assistant spécialisé en Marketing Digital, Growth et Stratégie Business.
-Tu aides à optimiser les campagnes, analyser les KPIs, créer des personas, et développer des stratégies de croissance.
-Tu es expert en CAC, LTV, ROI, funnel de conversion, content marketing, SEO, Ads, et growth hacking.
-Réponds de manière professionnelle, data-driven et orientée résultats.
 `;
+
+                // Aligner le context prefix avec le chat principal (knowledge app + contexte enrichi)
+                const baseContext = (typeof getApplicationKnowledge === 'function' ? getApplicationKnowledge('marketing-agent') : '')
+                    + (typeof AxilumContext !== 'undefined' && AxilumContext && typeof AxilumContext.getEnrichedContext === 'function'
+                        ? AxilumContext.getEnrichedContext('marketing-agent')
+                        : '');
                 
                 const response = await fetch(endpoint, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
-                        message: mktContext + '\n\nQuestion: ' + message,
+                        message: baseContext + '\n\n' + mktContext + '\n\nUtilisateur: ' + message,
                         conversationId: 'marketing-agent',
+                        chatType: 'marketing-agent',
                         history: []
                     })
                 });
