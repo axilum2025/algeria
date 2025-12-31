@@ -3492,7 +3492,7 @@
             if (t === 'axilum' || t === 'default' || t === 'general') return 'axilum';
 
             // Finance (alias "argent")
-            if (t === 'argent' || t === 'money' || t === 'finance') return 'agent-alex';
+            if (t === 'argent' || t === 'money' || t === 'finance' || t === 'compta' || t === 'accounting') return 'finance-agent';
 
             // Dev
             if (t === 'dev' || t === 'agent-dev' || t === 'developer') return 'agent-dev';
@@ -3535,6 +3535,7 @@
             { label: 'Agent ToDo', arg: 'todo', hint: '/agent todo' },
             { label: 'Agent RH', arg: 'rh', hint: '/agent rh' },
             { label: 'Agent Mark', arg: 'mark', hint: '/agent mark' },
+            { label: 'Agent Finance', arg: 'finance', hint: '/agent finance' },
             { label: 'Agent Web Search', arg: 'web', hint: '/agent web' },
             { label: 'Agent Alex', arg: 'alex', hint: '/agent alex' },
             { label: 'Agent Tony', arg: 'tony', hint: '/agent tony' }
@@ -4928,6 +4929,7 @@ ${persona}
                         '- `/agent todo` : Agent ToDo',
                         '- `/agent rh` : Agent RH',
                         '- `/agent mark` : Agent Mark',
+                        '- `/agent finance` : Agent Finance',
                         '- `/agent web` : Agent Web Search',
                         '- `/agent alex` : Agent Alex',
                         '- `/agent tony` : Agent Tony',
@@ -4951,6 +4953,8 @@ ${persona}
                                 ? '👋 Hi, je suis Agent RH. Comment puis-je vous aider ?'
                                 : chosen === 'marketing-agent'
                                     ? '👋 Hi, je suis Agent Mark. Comment puis-je vous aider ?'
+                    : chosen === 'finance-agent'
+                        ? '👋 Hi, je suis Agent Finance. Comment puis-je vous aider ?'
                                     : chosen === 'web-search'
                                         ? '👋 Hi, je suis Agent Web Search. Comment puis-je vous aider ?'
                                         : chosen === 'agent-alex'
