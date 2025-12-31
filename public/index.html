@@ -4812,9 +4812,10 @@ ${persona}
                         '',
                         'Syntaxe:',
                         '- `/team dev marketing -- votre question`',
+                        '- `/team auto -- votre question`',
                         '',
                         'Alias agents:',
-                        '- dev, marketing, rh, excel, todo, web, alex, tony, axilum',
+                        '- auto, dev, marketing, rh, excel, todo, web, alex, tony, axilum',
                         '',
                         'Notes:',
                         '- max 3 agents par requête (MVP robuste)',
@@ -4838,6 +4839,7 @@ ${persona}
                 }
 
                 const aliasToChatType = {
+                    auto: 'auto',
                     dev: 'agent-dev',
                     marketing: 'marketing-agent',
                     rh: 'hr-management',

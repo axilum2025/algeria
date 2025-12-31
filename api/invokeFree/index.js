@@ -5,6 +5,8 @@
 // Vitesse : 500+ tokens/sec (ultra-rapide)
 
 const { analyzeHallucination } = require('../utils/hallucinationDetector');
+const { buildSystemPromptForAgent } = require('../utils/agentRegistry');
+const { orchestrateMultiAgents, callGroqChatCompletion } = require('../utils/orchestrator');
 
 // Fonction RAG - Recherche Brave
 async function searchBrave(query, apiKey) {
@@ -37,130 +39,7 @@ async function searchBrave(query, apiKey) {
     }
 }
 
-function pickTeamAgents(rawAgents) {
-    const allowed = new Set([
-        'agent-dev',
-        'marketing-agent',
-        'hr-management',
-        'excel-expert',
-        'agent-todo',
-        'web-search',
-        'agent-alex',
-        'agent-tony',
-        'axilum'
-    ]);
-
-    const agents = Array.isArray(rawAgents) ? rawAgents : [];
-    const normalized = agents
-        .map(a => String(a || '').trim().toLowerCase())
-        .filter(Boolean)
-        .filter(a => allowed.has(a));
-
-    return Array.from(new Set(normalized)).slice(0, 3);
-}
-
-function buildSystemPromptForAgent(chatType, contextFromSearch) {
-    const c = contextFromSearch || '';
-    switch (chatType) {
-        case 'agent-dev':
-            return `Tu es Agent Dev, un assistant spécialisé en développement logiciel.
-
-Objectif: aider l'utilisateur à concevoir, implémenter, déboguer et livrer des fonctionnalités.
-
-Règles:
-- Sois concret (étapes, commandes, fichiers, APIs), sans inventer.
-- Pose 1-3 questions si c'est bloquant; sinon avance avec l'option la plus simple.
-- Ne mentionne pas d'autres agents, modules ou outils de l'application sauf si l'utilisateur le demande explicitement.
-
-Réponds en français, clairement et professionnellement.${c}`;
-        case 'marketing-agent':
-            return `Tu es Agent Marketing.
-
-Tu aides sur: positionnement, offres, contenu, SEO, ads, emails, funnels, analytics, go-to-market.
-
-Règles:
-- Propose des plans concrets (étapes, livrables, KPI) adaptés à un SaaS.
-- Ne mentionne pas d'autres agents, modules ou outils de l'application sauf si l'utilisateur le demande explicitement.
-
-Réponds en français, clair et orienté résultats.${c}`;
-        case 'hr-management':
-            return `Tu es Agent RH, un assistant RH.
-
-Tu aides sur: politique RH, congés, paie (conceptuellement), recrutement, onboarding, performance, documents et conformité (sans avis juridique).
-
-Règles:
-- Si des données RH internes ne sont pas fournies, dis-le et demande les infos nécessaires.
-- Ne mentionne pas d'autres agents, modules ou outils de l'application sauf si l'utilisateur le demande explicitement.
-
-Réponds en français, clair, professionnel et actionnable.${c}`;
-        case 'excel-expert':
-            return `Tu es Agent Excel.
-
-Tu aides sur formules (XLOOKUP/RECHERCHEX, INDEX/EQUIV, SI, SOMME.SI.ENS), TCD, Power Query, nettoyage, bonnes pratiques.
-
-Règles:
-- Donne des exemples de formules (format Excel) et explique-les.
-- Ne prétends pas modifier un fichier.
-- Ne mentionne pas d'autres agents, modules ou outils de l'application sauf si l'utilisateur le demande explicitement.
-
-Réponds en français, pédagogique et précis.${c}`;
-        case 'agent-todo':
-            return `Tu es Agent ToDo (gestion de tâches).
-
-Objectif: aider l'utilisateur à clarifier un objectif, découper en tâches, estimer, prioriser, et proposer un plan.
-
-Règles:
-- Pose 1-3 questions si nécessaire, sinon propose directement une checklist + prochaines actions.
-- Ne prétends pas exécuter des actions automatiquement.
-
-Réponds en français, très concret.${c}`;
-        case 'web-search':
-            return `Tu es Agent Web Search.
-
-Objectif: répondre en te basant sur la recherche web fournie dans le contexte.
-
-Règles:
-- Cite 2-5 sources en fin de réponse.
-- Si la recherche web est indisponible, dis-le.
-
-Réponds en français, clairement et avec sources.${c}`;
-        case 'agent-alex':
-            return `Tu es Agent Alex.
-
-Rôle: assistant polyvalent orienté stratégie/produit/organisation.
-
-Réponds en français, clair et structuré.${c}`;
-        case 'agent-tony':
-            return `Tu es Agent Tony.
-
-Rôle: assistant orienté vente/ops (pricing, onboarding client, scripts, objections, process).
-
-Réponds en français, direct et actionnable.${c}`;
-        case 'axilum':
-        default:
-            return `Tu es Axilum AI, un assistant intelligent et serviable.
-
-Réponds en français, clairement et honnêtement.${c}`;
-    }
-}
-
-async function callGroqChatCompletion(groqKey, messages, { max_tokens = 1200, temperature = 0.5 } = {}) {
-    const resp = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${groqKey}` },
-        body: JSON.stringify({ model: 'llama-3.3-70b-versatile', messages, max_tokens, temperature })
-    });
-
-    if (!resp.ok) {
-        const errorText = await resp.text();
-        const err = new Error(`Groq Error: ${resp.status}`);
-        err.details = errorText;
-        err.status = resp.status;
-        throw err;
-    }
-
-    return await resp.json();
-}
+// NOTE: l'orchestration et les appels Groq sont centralisés dans api/utils/orchestrator.js
 
 module.exports = async function (context, req) {
     context.log('🆓 FREE PLAN - Llama 3.3 Request');
@@ -238,124 +117,50 @@ module.exports = async function (context, req) {
         const isOrchestrator = chatType === 'orchestrator';
         const forceWebSearch = chatType === 'web-search' || chatType === 'rnd-web-search';
 
-        // 🧩 ORCHESTRATEUR MULTI-AGENTS (sur demande)
+        // 🧩 ORCHESTRATEUR MULTI-AGENTS (sur demande) + mode AUTO (planner)
         if (isOrchestrator) {
-            const teamAgents = pickTeamAgents(req.body.teamAgents);
+            const braveKey = process.env.BRAVE_API_KEY;
             const teamQuestion = String(req.body.teamQuestion || userMessage || '').trim();
 
-            if (!teamQuestion) {
-                context.res = { status: 200, headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }, body: { response: "⚠️ Question vide. Utilisez: /team dev marketing -- votre question" } };
-                return;
-            }
-            if (teamAgents.length === 0) {
-                context.res = { status: 200, headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }, body: { response: "⚠️ Aucun agent valide. Exemples: dev, marketing, rh, excel, todo, web, alex, tony" } };
-                return;
-            }
-
-            const historyLines = [];
-            recentHistory.slice(-6).forEach(msg => {
-                if ((msg.type === 'user' || msg.role === 'user') && msg.content) {
-                    historyLines.push(`Utilisateur: ${String(msg.content).slice(0, 300)}`);
-                } else if ((msg.type === 'bot' || msg.role === 'assistant') && msg.content) {
-                    const clean = String(msg.content).replace(/\n*---[\s\S]*/g, '').replace(/\n*💡.*\n*/gi, '').trim();
-                    if (clean) historyLines.push(`Assistant: ${clean.slice(0, 300)}`);
-                }
+            const orchestrated = await orchestrateMultiAgents({
+                groqKey: groqApiKey,
+                teamQuestion,
+                teamAgentsRaw: req.body.teamAgents,
+                recentHistory,
+                braveKey,
+                searchBrave,
+                analyzeHallucination,
+                logger: context.log
             });
-            const compactHistory = historyLines.length ? `\n\nContexte conversation (extraits):\n${historyLines.join('\n')}` : '';
 
-            let contextFromSearch = '';
-            try {
-                const braveKey = process.env.BRAVE_API_KEY;
-                const needsSearch = teamAgents.includes('web-search');
-                if (needsSearch) {
-                    if (!braveKey) {
-                        contextFromSearch = '\n\n[Recherche web indisponible: BRAVE_API_KEY non configurée]\n';
-                    } else {
-                        const searchResults = await searchBrave(teamQuestion, braveKey);
-                        if (searchResults && searchResults.length > 0) {
-                            contextFromSearch = '\n\nContexte de recherche web (utilise ces informations si pertinentes) :\n';
-                            searchResults.forEach((r, i) => {
-                                contextFromSearch += `${i + 1}. ${r.title}: ${r.description} [${r.url}]\n`;
-                            });
-                        }
-                    }
-                }
-            } catch (_) {}
-
-            const workerOutputs = [];
-            let totalTokensUsed = 0;
-
-            for (const agent of teamAgents) {
-                const workerMessages = [
-                    { role: 'system', content: buildSystemPromptForAgent(agent, contextFromSearch) },
-                    { role: 'user', content: `Tu es consulté comme expert (${agent}).\nRéponds de façon concise et actionnable.\n\nQuestion: ${teamQuestion}${compactHistory}` }
-                ];
-                const workerData = await callGroqChatCompletion(groqApiKey, workerMessages, { max_tokens: 1000, temperature: 0.5 });
-                const workerText = workerData?.choices?.[0]?.message?.content || '';
-                totalTokensUsed += workerData?.usage?.total_tokens || 0;
-                workerOutputs.push({ agent, text: workerText });
+            if (!orchestrated.ok) {
+                context.res = {
+                    status: 200,
+                    headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
+                    body: { response: `⚠️ ${orchestrated.error || 'Erreur orchestration'}` }
+                };
+                return;
             }
-
-            const synthMessages = [
-                {
-                    role: 'system',
-                    content: `Tu es un Orchestrateur multi-agents.
-
-Objectif: produire UNE réponse finale à l'utilisateur, en te basant sur les analyses de plusieurs experts.
-
-Règles:
-- Ne mentionne pas les noms/ids des agents.
-- Fusionne et déduplique.
-- Donne un plan d'action priorisé.
-
-Réponds en français, clairement et professionnellement.`
-                },
-                {
-                    role: 'user',
-                    content: `Question utilisateur: ${teamQuestion}\n\nNotes d'experts:\n${workerOutputs.map(w => `\n[${w.agent}]\n${w.text}`).join('\n')}`
-                }
-            ];
-
-            const synthData = await callGroqChatCompletion(groqApiKey, synthMessages, { max_tokens: 1400, temperature: 0.6 });
-            const aiResponse = synthData?.choices?.[0]?.message?.content || '';
-            totalTokensUsed += synthData?.usage?.total_tokens || 0;
 
             const responseTime = Date.now() - startTime;
-
-            let hallucinationAnalysis;
-            try {
-                hallucinationAnalysis = await analyzeHallucination(aiResponse, teamQuestion);
-            } catch (_) {
-                hallucinationAnalysis = { hi: 0, chr: 0, claims: [], counts: {}, sources: [], warning: null, method: 'fallback-error' };
-            }
-
-            const hiPercent = (hallucinationAnalysis.hi * 100).toFixed(1);
-            const chrPercent = (hallucinationAnalysis.chr * 100).toFixed(1);
-            let metricsText = `\n\n---\n📊 **Métriques de Fiabilité**\nHI: ${hiPercent}% | CHR: ${chrPercent}%`;
-            if (hallucinationAnalysis.warning) metricsText += `\n${hallucinationAnalysis.warning}`;
-            if (hallucinationAnalysis.sources && hallucinationAnalysis.sources.length > 0) {
-                metricsText += `\n\n📚 Sources: ${hallucinationAnalysis.sources.join(', ')}`;
-            }
-            metricsText += `\n💡 *Orchestrateur - ${totalTokensUsed} tokens utilisés*`;
-
             context.res = {
                 status: 200,
                 headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
                 body: {
-                    response: aiResponse + metricsText,
+                    response: orchestrated.response,
                     responseTime: `${responseTime}ms`,
                     freePlan: true,
                     model: 'llama-3.3-70b',
                     provider: 'Groq',
-                    tokensUsed: totalTokensUsed,
+                    tokensUsed: orchestrated.tokensUsed || 0,
                     orchestrator: true,
-                    orchestratorAgents: teamAgents,
-                    hallucinationIndex: parseFloat(hiPercent),
-                    contextHistoryRatio: parseFloat(chrPercent),
-                    hallucinationClaims: hallucinationAnalysis.claims || [],
-                    hallucinationCounts: hallucinationAnalysis.counts || {},
-                    hallucinationSources: hallucinationAnalysis.sources || [],
-                    hallucinationMethod: hallucinationAnalysis.method || 'unknown'
+                    orchestratorAgents: orchestrated.orchestratorAgents || [],
+                    hallucinationIndex: orchestrated.hallucination?.hiPercent ?? 0,
+                    contextHistoryRatio: orchestrated.hallucination?.chrPercent ?? 0,
+                    hallucinationClaims: orchestrated.hallucination?.claims || [],
+                    hallucinationCounts: orchestrated.hallucination?.counts || {},
+                    hallucinationSources: orchestrated.hallucination?.sources || [],
+                    hallucinationMethod: orchestrated.hallucination?.method || 'unknown'
                 }
             };
             return;
@@ -384,114 +189,17 @@ Réponds en français, clairement et professionnellement.`
         }
 
         // Construire les messages
+        const normalizedChatType = String(chatType || '').trim();
+        const agentId = normalizedChatType === 'rnd-web-search'
+            ? 'web-search'
+            : normalizedChatType === 'excel-ai-expert'
+                ? 'excel-expert'
+                : normalizedChatType;
+
         const messages = [
             {
                 role: "system",
-                content: (chatType === 'agent-dev')
-                    ? `Tu es Agent Dev, un assistant spécialisé en développement logiciel.
-
-Objectif: aider l'utilisateur à concevoir, implémenter, déboguer et livrer des fonctionnalités.
-
-Règles:
-- Sois concret (étapes, commandes, fichiers, APIs), sans inventer.
-- Pose 1-3 questions si c'est bloquant; sinon avance avec l'option la plus simple.
-- Ne prétends pas "contacter" d'autres agents IA automatiquement.
-- Ne mentionne pas d'autres agents, modules ou outils de l'application sauf si l'utilisateur le demande explicitement.
-- Si l'utilisateur colle un "🔎 Rapport Hallucination Detector", reconnais-le et explique-le.
-
-Réponds en français, clairement et professionnellement.${contextFromSearch}`
-                    : (chatType === 'hr-management')
-                        ? `Tu es Agent RH, un assistant RH.
-
-Tu aides sur: politique RH, congés, paie (conceptuellement), recrutement, onboarding, performance, documents.
-
-Règles:
-- Si des données RH internes ne sont pas fournies, demande les infos nécessaires.
-- Ne mentionne pas d'autres agents, modules ou outils de l'application sauf si l'utilisateur le demande explicitement.
-
-Réponds en français, clair et actionnable.${contextFromSearch}`
-                        : (chatType === 'marketing-agent')
-                            ? `Tu es Agent Marketing.
-
-Tu aides sur: positionnement, contenu, SEO, ads, emails, funnels, analytics, go-to-market.
-
-Règles:
-- Propose des plans concrets (étapes, livrables, KPI) adaptés à un SaaS.
-- Ne mentionne pas d'autres agents, modules ou outils de l'application sauf si l'utilisateur le demande explicitement.
-
-Réponds en français, clair et orienté résultats.${contextFromSearch}`
-                            : (chatType === 'web-search' || chatType === 'rnd-web-search')
-                                ? `Tu es Agent Web Search.
-
-Objectif: répondre en t'appuyant sur le "Contexte de recherche web".
-
-Règles:
-- Cite 2-5 sources en fin de réponse (titres + URLs si disponibles).
-- Si la recherche web est indisponible, dis-le et propose une réponse prudente + quoi vérifier.
-
-Réponds en français, avec sources.${contextFromSearch}`
-                                : (chatType === 'excel-expert' || chatType === 'excel-ai-expert')
-                                    ? `Tu es Agent Excel.
-
-Tu aides sur formules, TCD, Power Query, nettoyage et bonnes pratiques.
-
-Règles:
-- Donne des exemples de formules et explique-les.
-- Ne prétends pas modifier un fichier.
-- Ne mentionne pas d'autres agents, modules ou outils de l'application sauf si l'utilisateur le demande explicitement.
-
-Réponds en français, pédagogique et précis.${contextFromSearch}`
-                                    : (chatType === 'agent-todo')
-                                        ? `Tu es Agent ToDo (gestion de tâches).
-
-Objectif: clarifier un objectif, découper en tâches, prioriser, et proposer un plan.
-
-Règles:
-- Pose 1-3 questions si nécessaire, sinon propose une checklist + prochaines actions.
-- Ne prétends pas exécuter des actions automatiquement.
-
-- Ne mentionne pas d'autres agents, modules ou outils de l'application sauf si l'utilisateur le demande explicitement.
-
-Réponds en français, concret.${contextFromSearch}`
-                                        : (chatType === 'agent-alex')
-                                            ? `Tu es Agent Alex (assistant stratégie/produit SaaS).
-
-Règles:
-- Propose options + avantages/inconvénients + next step.
-
-- Ne mentionne pas d'autres agents, modules ou outils de l'application sauf si l'utilisateur le demande explicitement.
-
-Réponds en français, clair et structuré.${contextFromSearch}`
-                                            : (chatType === 'agent-tony')
-                                                ? `Tu es Agent Tony (assistant vente/ops SaaS).
-
-Règles:
-- Propose scripts, templates et KPI.
-
-- Ne mentionne pas d'autres agents, modules ou outils de l'application sauf si l'utilisateur le demande explicitement.
-
-Réponds en français, direct et actionnable.${contextFromSearch}`
-                    : `Tu es Axilum AI, un assistant intelligent et serviable.
-
-Tu utilises un système avancé de vérification en arrière-plan pour garantir la qualité de tes réponses.
-
-Principes de réponse:
-✅ Utilise des nuances quand approprié: "généralement", "probablement", "souvent", "il semble que"
-✅ Cite des sources quand c'est pertinent: "selon", "d'après", "les études montrent"
-✅ Admets l'incertitude: "je ne suis pas sûr", "cela dépend de", "il faudrait vérifier"
-✅ Sois précis et honnête
-❌ Évite les affirmations absolues sans fondement
-❌ N'invente pas de faits que tu ne peux pas vérifier
-
-NE MENTIONNE PAS le système de détection d'hallucinations ou les métriques (HI, CHR) sauf si l'utilisateur te pose explicitement une question à ce sujet.
-
-IMPORTANT (reconnaissance du rapport):
-- Si l'utilisateur colle un bloc commençant par "🔎 Rapport Hallucination Detector" (ou te demande d'expliquer HI/CHR/claims), considère que c'est un rapport interne généré par l'application.
-- Dans ce cas, explique le rapport et propose des actions de vérification (ex: vérifier les sources recommandées).
-- Ne dis pas que ce rapport "n'existe pas" : traite-le comme un artefact du système.
-
-Réponds de manière naturelle, claire et professionnelle en français.
-Pense étape par étape avant de répondre.${contextFromSearch}`
+                content: buildSystemPromptForAgent(agentId, contextFromSearch)
             }
         ];
 
@@ -517,32 +225,20 @@ Pense étape par étape avant de répondre.${contextFromSearch}`
         context.log('📤 Calling Groq Llama 3.3 (FREE)...');
 
         // Appeler Groq API
-        const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${groqApiKey}`
-            },
-            body: JSON.stringify({
-                model: 'llama-3.3-70b-versatile',
-                messages: messages,
-                temperature: 0.7,
-                max_tokens: 2000
-            })
-        });
-
-        if (!response.ok) {
-            const errorText = await response.text();
-            context.log.error('❌ Groq API Error:', response.status, errorText);
+        let data;
+        try {
+            data = await callGroqChatCompletion(groqApiKey, messages, { max_tokens: 2000, temperature: 0.7 });
+        } catch (e) {
+            context.log.error('❌ Groq API Error:', e.status || 'n/a', e.details || e.message);
             
             // Message d'erreur plus informatif
             let errorMessage = "Je suis temporairement indisponible.";
             
-            if (response.status === 429) {
+            if (e.status === 429) {
                 errorMessage = "Limite de requêtes atteinte (30/min). Veuillez patienter quelques secondes ou essayer le mode PRO.";
-            } else if (response.status === 401) {
+            } else if (e.status === 401) {
                 errorMessage = "Clé API Groq invalide. Veuillez vérifier la configuration GROQ_API_KEY dans Azure.";
-            } else if (response.status >= 500) {
+            } else if (e.status >= 500) {
                 errorMessage = "Service Groq temporairement indisponible. Réessayez dans quelques instants ou utilisez le mode PRO.";
             }
             
@@ -559,13 +255,12 @@ Pense étape par étape avant de répondre.${contextFromSearch}`
                     responseTime: `${Date.now() - startTime}ms`,
                     freePlan: true,
                     error: true,
-                    errorCode: response.status
+                    errorCode: e.status || 500
                 }
             };
             return;
         }
 
-        const data = await response.json();
         const aiResponse = data.choices[0].message.content;
         const processingTime = Date.now() - startTime;
 
