@@ -5104,6 +5104,191 @@ Notifications:
             return truncateText(`${constraints}${moduleDoc}${snapshot}`, 12000);
         }
 
+        function getFinanceModuleDataFromStorage() {
+            const financeData = safeJsonParse(localStorage.getItem('axilum_finance_data') || '{}', {});
+            const conversationsObj = safeJsonParse(localStorage.getItem('financeConversations') || '{}', {});
+            const conversations = (conversationsObj && typeof conversationsObj === 'object') ? Object.values(conversationsObj) : [];
+
+            // Récupérer un snapshot runtime si le module Finance a déjà été initialisé
+            let runtimeContext = null;
+            try {
+                if (typeof financeContext !== 'undefined' && financeContext && typeof financeContext === 'object') {
+                    runtimeContext = financeContext;
+                }
+            } catch (_) {
+                runtimeContext = null;
+            }
+
+            // Agréger invoices/reports depuis les conversations sauvegardées
+            const invoices = [];
+            const reports = [];
+            const budgets = [];
+            const kpis = [];
+
+            (Array.isArray(conversations) ? conversations : []).forEach(conv => {
+                const ctx = conv?.context && typeof conv.context === 'object' ? conv.context : null;
+                if (!ctx) return;
+                if (Array.isArray(ctx.invoices)) invoices.push(...ctx.invoices);
+                if (Array.isArray(ctx.reports)) reports.push(...ctx.reports);
+                if (Array.isArray(ctx.budgets)) budgets.push(...ctx.budgets);
+                if (ctx.kpis && typeof ctx.kpis === 'object') kpis.push(ctx.kpis);
+            });
+
+            // Compléter avec runtime si présent
+            if (runtimeContext) {
+                if (Array.isArray(runtimeContext.invoices)) invoices.push(...runtimeContext.invoices);
+                if (Array.isArray(runtimeContext.reports)) reports.push(...runtimeContext.reports);
+                if (Array.isArray(runtimeContext.budgets)) budgets.push(...runtimeContext.budgets);
+                if (runtimeContext.kpis && typeof runtimeContext.kpis === 'object') kpis.push(runtimeContext.kpis);
+            }
+
+            // Dédupliquer grossièrement les factures (vendor+amount+date+invoiceNumber)
+            const seen = new Set();
+            const uniqInvoices = [];
+            invoices.forEach(inv => {
+                if (!inv || typeof inv !== 'object') return;
+                const key = [inv.vendor, inv.amount, inv.date, inv.invoiceNumber, inv.filename].map(v => String(v ?? '').trim()).join('|');
+                if (seen.has(key)) return;
+                seen.add(key);
+                uniqInvoices.push(inv);
+            });
+
+            // Dernière facture (runtime prioritaire)
+            let lastInvoice = null;
+            if (runtimeContext && runtimeContext.lastInvoice) {
+                lastInvoice = runtimeContext.lastInvoice;
+            } else {
+                // Sinon, prendre la facture la plus récente selon extractedAt/createdAt/date
+                lastInvoice = uniqInvoices
+                    .slice()
+                    .sort((a, b) => String(b?.extractedAt || b?.createdAt || b?.date || '').localeCompare(String(a?.extractedAt || a?.createdAt || a?.date || '')))[0] || null;
+            }
+
+            const companySettings = (runtimeContext?.companySettings && typeof runtimeContext.companySettings === 'object')
+                ? runtimeContext.companySettings
+                : ((financeData && typeof financeData.companySettings === 'object') ? financeData.companySettings : null);
+
+            return {
+                companySettings,
+                financeDataLastUpdated: financeData?.lastUpdated || null,
+                conversationsCount: (Array.isArray(conversations) ? conversations.length : 0),
+                invoices: uniqInvoices,
+                reports: Array.isArray(reports) ? reports : [],
+                budgets: Array.isArray(budgets) ? budgets : [],
+                kpis: kpis.length ? kpis[kpis.length - 1] : null,
+                lastInvoice
+            };
+        }
+
+        function buildAgentFinanceContext({ mode = 'summary', companySettings = null, invoices = [], reports = [], budgets = [], kpis = null, lastInvoice = null, financeDataLastUpdated = null, conversationsCount = 0 } = {}) {
+            const invs = Array.isArray(invoices) ? invoices : [];
+            const reps = Array.isArray(reports) ? reports : [];
+            const buds = Array.isArray(budgets) ? budgets : [];
+            const cs = (companySettings && typeof companySettings === 'object') ? companySettings : {};
+
+            const safeNum = (v) => (typeof v === 'number' && Number.isFinite(v)) ? v : (parseFloat(v) || 0);
+            const currency = cs.currency || 'EUR';
+
+            const typeField = (inv) => String(inv?.type || inv?.invoiceType || inv?.transactionType?.type || '').toLowerCase();
+            const isIncome = (inv) => ['income', 'revenue', 'vente'].includes(typeField(inv));
+            const isExpense = (inv) => ['expense', 'charge', 'achat'].includes(typeField(inv));
+
+            const totalRevenue = invs.filter(isIncome).reduce((s, i) => s + safeNum(i?.amount), 0);
+            const totalExpenses = invs.filter(isExpense).reduce((s, i) => s + safeNum(i?.amount), 0);
+            const netIncome = totalRevenue - totalExpenses;
+
+            const topInvoices = invs
+                .slice()
+                .sort((a, b) => String(b?.extractedAt || b?.createdAt || b?.date || '').localeCompare(String(a?.extractedAt || a?.createdAt || a?.date || '')))
+                .slice(0, 6)
+                .map(inv => {
+                    const vendor = inv?.vendor || inv?.supplier || inv?.client || 'N/A';
+                    const amount = inv?.amount != null ? safeNum(inv.amount) : 0;
+                    const date = inv?.date ? ` | Date: ${inv.date}` : '';
+                    const num = inv?.invoiceNumber ? ` | N°: ${inv.invoiceNumber}` : '';
+                    const t = typeField(inv) ? ` | Type: ${typeField(inv)}` : '';
+                    const dup = inv?.isDuplicate ? ' | ⚠️ Doublon' : '';
+                    return `- ${vendor} | Montant: ${amount} ${inv?.currency || currency}${date}${num}${t}${dup}`;
+                }).join('\n') || 'Aucune facture';
+
+            const topReports = reps
+                .slice()
+                .sort((a, b) => String(b?.createdAt || b?.generatedAt || '').localeCompare(String(a?.createdAt || a?.generatedAt || '')))
+                .slice(0, 4)
+                .map(r => {
+                    const title = r?.title || r?.name || r?.type || 'Rapport';
+                    const period = r?.period ? ` | Période: ${r.period}` : '';
+                    const created = r?.createdAt ? ` | Créé: ${r.createdAt}` : '';
+                    return `- ${title}${period}${created}`;
+                }).join('\n') || 'Aucun rapport';
+
+            const constraints = `
+[Contraintes produit]
+- Ne prétends pas exécuter des actions automatiquement dans l'UI
+- N'invente jamais des données financières (factures/rapports/budgets): utilise uniquement le snapshot ci-dessous
+- Si une info manque (période, devise, type, montant), pose 1-3 questions ciblées
+`;
+
+            const moduleDoc = `
+=== TU ES AGENT FINANCE — AXILUM FINANCE & ACCOUNTING HUB ===
+
+Ce module Finance (dans l'app) couvre notamment:
+- Import/OCR de factures + extraction (fournisseur, montant, date, numéro)
+- Détection de doublons
+- Analyses (revenus/charges, résultat net) et rapports
+- Paramètres entreprise (devise, infos société)
+
+Stockage local (navigateur / localStorage) utilisé par le module:
+- axilum_finance_data (companySettings)
+- financeConversations (historique + context incluant invoices/reports)
+`;
+
+            const lastInv = (lastInvoice && typeof lastInvoice === 'object') ? lastInvoice : null;
+            const lastInvBlock = lastInv ? `
+Dernire facture (si disponible):
+- Fournisseur: ${lastInv.vendor || lastInv.supplier || lastInv.client || 'N/A'}
+- Montant: ${safeNum(lastInv.amount)} ${lastInv.currency || currency}
+- Date: ${lastInv.date || 'N/A'}
+- Num e9ro: ${lastInv.invoiceNumber || 'N/A'}
+` : '\nDernire facture: N/A\n';
+
+            const snapshot = `
+---
+DONN c9ES FINANCE DISPONIBLES (snapshot):
+
+Entreprise (settings):
+- Nom: ${cs.name || 'N/A'}
+- Activit e9: ${cs.activity || 'N/A'}
+- Devise: ${currency}
+- Email: ${cs.email || 'N/A'}
+- T e9l: ${cs.phone || 'N/A'}
+- Derni e8re MAJ settings: ${financeDataLastUpdated || 'N/A'}
+
+Conversations sauvegard e9es: ${conversationsCount}
+
+Factures: ${invs.length}
+Synth e8se: revenus=${totalRevenue.toFixed(2)} ${currency} | charges=${totalExpenses.toFixed(2)} ${currency} | r e9sultat=${netIncome.toFixed(2)} ${currency}
+
+Factures r e9centes:
+${topInvoices}
+
+Rapports: ${reps.length}
+${topReports}
+
+Budgets: ${buds.length}
+
+KPIs (si disponibles): ${kpis ? JSON.stringify(kpis) : 'N/A'}
+
+${lastInvBlock}
+---
+`;
+
+            if (mode === 'summary') {
+                return truncateText(`${constraints}${moduleDoc}${snapshot}`, 6000);
+            }
+            return truncateText(`${constraints}${moduleDoc}${snapshot}`, 12000);
+        }
+
         function buildAgentDevRnDContext({ mode = 'full', projects = [], milestones = [], documents = [], risks = [] } = {}) {
             const activeProjects = projects.filter(p => p && p.statut === 'actif');
             const upcomingMilestones = milestones
@@ -5749,7 +5934,23 @@ ${persona}
                     });
                 }
 
-                const contextPrefix = baseContext + agentDevExtraContext + agentHRExtraContext + agentMarketingExtraContext + agentExcelExtraContext + agentTodoExtraContext;
+                let agentFinanceExtraContext = '';
+                if (currentChatType === 'finance-agent') {
+                    const finData = getFinanceModuleDataFromStorage();
+                    agentFinanceExtraContext = '\n\n' + buildAgentFinanceContext({
+                        mode: 'summary',
+                        companySettings: finData.companySettings,
+                        invoices: finData.invoices,
+                        reports: finData.reports,
+                        budgets: finData.budgets,
+                        kpis: finData.kpis,
+                        lastInvoice: finData.lastInvoice,
+                        financeDataLastUpdated: finData.financeDataLastUpdated,
+                        conversationsCount: finData.conversationsCount
+                    });
+                }
+
+                const contextPrefix = baseContext + agentDevExtraContext + agentHRExtraContext + agentMarketingExtraContext + agentExcelExtraContext + agentTodoExtraContext + agentFinanceExtraContext;
                 let messageForBackend = contextPrefix + '\n\nUtilisateur: ' + message;
 
                 // 🖼️ Si une image a été uploadée dans cette conversation, et que l'utilisateur pose une question,
