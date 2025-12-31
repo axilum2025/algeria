@@ -4799,6 +4799,114 @@ ${persona}
             const message = input.value.trim();
             if (!message) return;
 
+            // 🤝 Orchestration multi-agents (sur demande)
+            // Syntaxe fiable: /team dev marketing -- votre question
+            if (/^\/team\b/i.test(message)) {
+                const raw = message.replace(/^\/team\b/i, '').trim();
+                input.value = '';
+                adjustTextareaHeight();
+
+                if (!raw || /^help$/i.test(raw)) {
+                    const help = [
+                        '🤝 Orchestration multi-agents (sur demande)',
+                        '',
+                        'Syntaxe:',
+                        '- `/team dev marketing -- votre question`',
+                        '',
+                        'Alias agents:',
+                        '- dev, marketing, rh, excel, todo, web, alex, tony, axilum',
+                        '',
+                        'Notes:',
+                        '- max 3 agents par requête (MVP robuste)',
+                        '- l\'orchestrateur renvoie une seule réponse finale'
+                    ].join('\n');
+                    addMessage(help, 'bot');
+                    return;
+                }
+
+                const parts = raw.split(/\s+--\s+/);
+                if (parts.length < 2) {
+                    addMessage('⚠️ Syntaxe invalide. Exemple: `/team dev marketing -- votre question`', 'bot');
+                    return;
+                }
+
+                const agentsPart = parts[0].trim();
+                const question = parts.slice(1).join(' -- ').trim();
+                if (!agentsPart || !question) {
+                    addMessage('⚠️ Ajoutez des agents et une question. Exemple: `/team dev marketing -- votre question`', 'bot');
+                    return;
+                }
+
+                const aliasToChatType = {
+                    dev: 'agent-dev',
+                    marketing: 'marketing-agent',
+                    rh: 'hr-management',
+                    excel: 'excel-expert',
+                    todo: 'agent-todo',
+                    web: 'web-search',
+                    alex: 'agent-alex',
+                    tony: 'agent-tony',
+                    axilum: 'axilum'
+                };
+
+                const requestedAgents = agentsPart
+                    .split(/\s+/)
+                    .map(a => String(a || '').trim().toLowerCase())
+                    .filter(Boolean)
+                    .map(a => aliasToChatType[a] || a)
+                    .filter(Boolean);
+
+                const teamAgents = Array.from(new Set(requestedAgents)).slice(0, 3);
+                if (teamAgents.length === 0) {
+                    addMessage('⚠️ Aucun agent valide. Essayez: dev, marketing, rh, excel, todo, web, alex, tony, axilum', 'bot');
+                    return;
+                }
+
+                // Afficher la question utilisateur
+                addMessage(question, 'user');
+                showTyping();
+
+                // Envoyer au backend (orchestrateur)
+                try {
+                    const endpoint = getEndpoint();
+
+                    const conv = conversations.find(c => c.id === currentConversationId);
+                    const history = [];
+                    if (conv && conv.messages) {
+                        conv.messages.forEach(m => {
+                            if (m.user) history.push({ type: 'user', content: m.user });
+                            if (m.bot) history.push({ type: 'bot', content: m.bot, hiScore: m.hiScore || 0, chrScore: m.chrScore || 0 });
+                        });
+                    }
+
+                    const V2_ROLLOUT_PERCENTAGE = 0;
+                    const useV2 = shouldUseV2ForRequest(V2_ROLLOUT_PERCENTAGE);
+
+                    const response = await fetch(endpoint, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            message: question,
+                            conversationId: currentConversationId,
+                            chatType: 'orchestrator',
+                            teamAgents: teamAgents,
+                            teamQuestion: question,
+                            history: history,
+                            useV2: useV2
+                        })
+                    });
+
+                    if (!response.ok) throw new Error(`Erreur ${response.status}`);
+                    const data = await response.json();
+                    hideTyping();
+                    addMessage(data.response || 'Erreur de réponse', 'bot', data.hallucinationIndex, data.contextHistoryRatio);
+                } catch (err) {
+                    hideTyping();
+                    addMessage('❌ Erreur orchestration: ' + (err.message || String(err)), 'bot');
+                }
+                return;
+            }
+
             // 🔁 Commandes d'agent (chat principal)
             // Exemples: /agent dev | /agent axilum | /agent help
             if (/^\/agent\b/i.test(message)) {
