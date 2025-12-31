@@ -292,6 +292,8 @@
             opacity: 1;
             padding: 10px;
             pointer-events: auto;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
         }
 
         .conv-group {
@@ -1770,9 +1772,10 @@
                 padding: 8px 10px;
             }
 
-            /* Mobile: éviter que tout le sidebar scrolle; seule la liste Sessions scrolle */
+            /* Mobile: autoriser le scroll du sidebar si nécessaire */
             .sidebar {
-                overflow-y: hidden;
+                overflow-y: auto;
+                -webkit-overflow-scrolling: touch;
             }
         }
 
@@ -1934,7 +1937,8 @@
             .sidebar {
                 top: 50px;
                 height: calc(100vh - 50px);
-                overflow-y: hidden;
+                overflow-y: auto;
+                -webkit-overflow-scrolling: touch;
             }
 
             .conversations {
@@ -2365,13 +2369,8 @@
             display: flex;
             flex-direction: column;
             height: calc(100vh - 60px);
-            overflow-y: hidden;
-        }
-
-        @media (min-width: 769px) {
-            .sidebar {
-                overflow-y: auto;
-            }
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
         }
 
         /* Mode Vocal - Voice Chat */
