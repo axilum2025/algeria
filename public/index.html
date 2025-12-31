@@ -12802,7 +12802,7 @@ ${persona}
                                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
                                         Paramètres RGPD
                                     </button>
-                                    <button onclick="showHRTab('dashboard'); const area=document.querySelector('#hrManagementOverlay .hr-content-area'); if (area) area.scrollTop = 0;" style="padding: 12px 16px; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); border-radius: 12px; color: white; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 8px; font-size: 13px; transition: all 0.3s; backdrop-filter: blur(10px);" onmouseover="this.style.background='rgba(255,255,255,0.18)'; this.style.borderColor='rgba(255,255,255,0.35)'" onmouseout="this.style.background='rgba(255,255,255,0.1)'; this.style.borderColor='rgba(255,255,255,0.2)'">
+                                    <button onclick="showHRTab('dashboard'); scheduleHRTabCleanup('turnover'); const area=document.querySelector('#hrManagementOverlay .hr-content-area'); if (area) area.scrollTop = 0;" style="padding: 12px 16px; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); border-radius: 12px; color: white; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 8px; font-size: 13px; transition: all 0.3s; backdrop-filter: blur(10px);" onmouseover="this.style.background='rgba(255,255,255,0.18)'; this.style.borderColor='rgba(255,255,255,0.35)'" onmouseout="this.style.background='rgba(255,255,255,0.1)'; this.style.borderColor='rgba(255,255,255,0.2)'">
                                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
                                         Fermer
                                     </button>
@@ -17068,6 +17068,15 @@ KPIs GLOBAUX :
                         const list = document.getElementById('reviewsListContainer');
                         if (list) list.replaceChildren();
                         const search = document.getElementById('reviewSearchInput');
+                        if (search) {
+                            search.value = '';
+                        }
+                    }
+
+                    if (tabName === 'turnover') {
+                        const list = document.getElementById('turnoverListContainer');
+                        if (list) list.replaceChildren();
+                        const search = document.getElementById('turnoverEmployeeSearch');
                         if (search) {
                             search.value = '';
                         }
