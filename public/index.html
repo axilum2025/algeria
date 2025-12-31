@@ -4296,6 +4296,11 @@ RÈGLES IMPORTANTES:
             const inputContainer = document.querySelector('.input-container');
             sidebar.classList.toggle('open');
             chatContainer.classList.toggle('sidebar-open');
+
+            // Fermer Sessions pour éviter de bloquer le menu bas quand on referme
+            if (!sidebar.classList.contains('open')) {
+                closeSessionsList();
+            }
             
             // Réduire input en mobile quand sidebar ouverte
             if (sidebar.classList.contains('open')) {
@@ -4312,6 +4317,7 @@ RÈGLES IMPORTANTES:
             sidebar.classList.remove('open');
             chatContainer.classList.remove('sidebar-open');
             inputContainer.classList.remove('sidebar-open');
+            closeSessionsList();
         }
 
         function toggleTheme() {
@@ -6753,29 +6759,28 @@ RÈGLES IMPORTANTES:
             try { conversationsList.style.setProperty('--sessions-max-height', finalMax + 'px'); } catch (_) {}
         }
 
-        // Fermer sessions si clic en dehors
+        // Fermer sessions si clic en dehors ou sur un item
         document.addEventListener('click', (e) => {
             const sidebar = document.getElementById('sidebar');
             const conversationsList = document.getElementById('conversationsList');
             const toggleBtn = document.getElementById('sessionsToggleBtn');
             const convItems = document.querySelectorAll('.conv-item');
-            
-            // Si clic en dehors de la sidebar
+
+            if (!sidebar || !conversationsList || !toggleBtn) return;
+
+            // Clic hors sidebar -> fermer
             if (!sidebar.contains(e.target)) {
+                closeSessionsList();
                 return;
             }
-            
-            // Si clic sur un item de conversation, fermer la liste
+
+            // Clic sur un item de conversation -> fermer
             if (e.target.closest('.conv-item')) {
-                conversationsList.classList.remove('visible');
-                toggleBtn.classList.remove('active');
+                closeSessionsList();
                 return;
             }
-            
-            // Si clic dans sidebar mais pas sur toggle btn ou conversation item
-            if (!toggleBtn.contains(e.target) && !conversationsList.contains(e.target)) {
-                // Ne rien faire, garder l'état actuel
-            }
+
+            // Clic dans sidebar mais pas sur le bouton / la liste -> ne pas forcer
         });
 
         function loadConversations() {
@@ -7077,6 +7082,16 @@ RÈGLES IMPORTANTES:
                 console.error('Translation error', e);
                 showToast(`Erreur traduction: ${e.message || 'inconnue'}`, 'error');
             }
+        }
+
+        function closeSessionsList() {
+            const conversationsList = document.getElementById('conversationsList');
+            const toggleBtn = document.getElementById('sessionsToggleBtn');
+            if (!conversationsList || !toggleBtn) return;
+            conversationsList.classList.remove('visible');
+            toggleBtn.classList.remove('active');
+            try { conversationsList.style.removeProperty('--sessions-max-height'); } catch (_) {}
+            conversationsList.style.overflowY = 'hidden';
         }
 
         // ===== TO DO AI - Système complet de gestion de tâches =====
