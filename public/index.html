@@ -13989,9 +13989,8 @@ ${persona}
             `;
             
             try {
-                const endpoint = (window.location.hostname === 'localhost') 
-                    ? 'http://localhost:7071/api/agents/axilum/invoke'
-                    : '/api/agents/axilum/invoke';
+                // Aligner le module R&D sur le même endpoint que le chat principal
+                const endpoint = AGENT_ENDPOINT_PRO;
                 
                 // Get R&D context
                 const rndData = getRnDDataFromStorage();
@@ -14003,6 +14002,12 @@ ${persona}
                     risks: rndData.risks
                 });
 
+                // Aligner le context prefix avec le chat principal (knowledge app + contexte enrichi)
+                const baseContext = (typeof getApplicationKnowledge === 'function' ? getApplicationKnowledge('agent-dev') : '')
+                    + (typeof AxilumContext !== 'undefined' && AxilumContext && typeof AxilumContext.getEnrichedContext === 'function'
+                        ? AxilumContext.getEnrichedContext('agent-dev')
+                        : '');
+
                 // Brave Web Search si activé
                 let webSearchResults = '';
                 if (webSearchEnabled) {
@@ -14011,25 +14016,22 @@ ${persona}
                         const needsWebSearch = /quoi de neuf|dernières?|nouveautés?|tendances?|actualités?|innovations?|récent|2024|2025|état de l'art|state of the art/i.test(message);
                         
                         if (needsWebSearch) {
-                            // Effectuer la recherche Brave
-                            const searchEndpoint = (window.location.hostname === 'localhost')
-                                ? 'http://localhost:7071/api/invoke'
-                                : '/api/invoke';
-                            
-                            const searchResponse = await fetch(searchEndpoint, {
+                            // Effectuer la recherche via l'agent Web Search (RAG côté backend)
+                            const searchResponse = await fetch(endpoint, {
                                 method: 'POST',
                                 headers: { 'Content-Type': 'application/json' },
                                 body: JSON.stringify({
-                                    message: `[RECHERCHE WEB BRAVE] ${message}`,
+                                    message: message,
                                     conversationId: 'rnd-web-search',
+                                    chatType: 'web-search',
                                     history: []
                                 })
                             });
                             
                             const searchData = await searchResponse.json();
                             
-                            if (searchData.response && searchData.sources) {
-                                webSearchResults = `\n\n[RÉSULTATS DE RECHERCHE WEB BRAVE] :\n${searchData.response}\n\nSOURCES :\n${searchData.sources.map((s, i) => `${i+1}. ${s.title} - ${s.url}`).join('\n')}\n`;
+                            if (searchData && searchData.response) {
+                                webSearchResults = `\n\n[Contexte de recherche web] :\n${searchData.response}\n`;
                             }
                         }
                     } catch (searchError) {
@@ -14042,9 +14044,10 @@ ${persona}
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
-                        message: rndContext + webSearchResults + '\n\nQuestion: ' + message,
+                        message: baseContext + '\n\n' + rndContext + webSearchResults + '\n\nUtilisateur: ' + message,
                         conversationId: 'rnd-agent',
-                        history: []
+                        chatType: 'agent-dev',
+                        history: Array.isArray(rndChatHistory) ? rndChatHistory.slice(-20) : []
                     })
                 });
                 
