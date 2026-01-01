@@ -7229,49 +7229,63 @@ ${persona}
             localStorage.setItem('userTasks', JSON.stringify(userTasks));
         }
         
-        function saveEvents() {
-            localStorage.setItem('userEvents', JSON.stringify(userEvents));
-        }
-        
-        // Ajouter une tâche
-        function addTask(title, dueDate = null, priority = 'normal', category = 'général', projectId = null, description = '') {
-            const task = {
-                id: Date.now(),
-                title: title,
-                description: description,
-                completed: false,
-                createdAt: new Date().toISOString(),
-                dueDate: dueDate,
-                priority: priority, // 'low', 'normal', 'high'
-                category: category, // 'général', 'travail', 'personnel', 'voyage', 'études', 'projet'
-                projectId: projectId,
-                progress: 0, // 0-100%
-                subtasks: [],
-                notifyEnabled: false,
-                userId: currentUser?.email || 'guest'
-            };
-            userTasks.push(task);
-            saveTasks();
-            scheduleNotification(task);
-            return task;
-        }
-        
-        // Marquer tâche comme terminée
-        function completeTask(taskId) {
-            const task = userTasks.find(t => t.id === taskId);
-            if (task) {
-                task.completed = true;
-                task.completedAt = new Date().toISOString();
-                saveTasks();
-                
-                // Mettre à jour la progression du projet si applicable
-                if (task.projectId) {
-                    updateProjectProgress(task.projectId);
+        async function saveRecruitmentData() {
+            try {
+                const jobs = getRecruitmentArray('recruitmentJobs');
+                const candidates = getRecruitmentArray('recruitmentCandidates');
+
+                const exportDate = new Date().toISOString();
+                const data = {
+                    exportDate,
+                    version: '1.0',
+                    type: 'recruitment-data',
+                    statistics: {
+                        totalJobs: jobs.length,
+                        activeJobs: jobs.filter(isRecruitmentJobActive).length,
+                        totalCandidates: candidates.length,
+                        shortlist: candidates.filter(c => c.shortlisted === true).length,
+                        avgScore: candidates.length > 0 ? Math.round(candidates.reduce((sum, c) => sum + (Number(c.matchScore) || 0), 0) / candidates.length) : 0
+                    },
+                    jobs,
+                    candidates
+                };
+
+                showToast('📄 Génération du PDF...', 'info');
+
+                const response = await fetch('/api/recruitment-backup-pdf', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+
+                if (!response.ok) {
+                    throw new Error(`Erreur HTTP ${response.status}`);
                 }
-                
-                return true;
+
+                const result = await response.json();
+                if (!result?.success || !result?.contentBase64) {
+                    throw new Error(result?.error || 'Réponse invalide');
+                }
+
+                const binary = atob(result.contentBase64);
+                const bytes = new Uint8Array(binary.length);
+                for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+
+                const blob = new Blob([bytes], { type: result.mimeType || 'application/pdf' });
+                const url = URL.createObjectURL(blob);
+                const link = document.createElement('a');
+                link.href = url;
+                link.download = result.fileName || ('recrutement-backup-' + exportDate.split('T')[0] + '.pdf');
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                URL.revokeObjectURL(url);
+
+                showToast('✅ PDF téléchargé', 'success');
+            } catch (error) {
+                console.error('Erreur sauvegarde:', error);
+                showToast('❌ Erreur: ' + (error.message || error), 'error');
             }
-            return false;
         }
         
         // Supprimer une tâche
