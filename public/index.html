@@ -23444,7 +23444,7 @@ ${recruitmentInfo}
             const defaultSendInner = sendBtn.dataset.defaultInner || sendBtn.innerHTML;
             sendBtn.dataset.defaultInner = defaultSendInner;
             sendBtn.disabled = true;
-            sendBtn.textContent = 'Analyse...';
+            sendBtn.setAttribute('aria-busy', 'true');
             
             setTimeout(() => {
                 try {
@@ -23677,6 +23677,7 @@ ${recruitmentInfo}
                     })
                     .finally(() => {
                         sendBtn.disabled = false;
+                        sendBtn.setAttribute('aria-busy', 'false');
                         sendBtn.innerHTML = sendBtn.dataset.defaultInner || defaultSendInner;
                         textarea.focus();
                     });
@@ -23686,6 +23687,7 @@ ${recruitmentInfo}
                     errMsg.textContent = 'Erreur de connexion';
                     chatHist.appendChild(errMsg);
                     sendBtn.disabled = false;
+                    sendBtn.setAttribute('aria-busy', 'false');
                     sendBtn.innerHTML = sendBtn.dataset.defaultInner || defaultSendInner;
                 }
             }, 500);
