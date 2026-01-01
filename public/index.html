@@ -8377,14 +8377,12 @@ ${persona}
                     <div id="todoSidebarBackdrop" onclick="window.toggleTodoSidebar(false)" style="display: none;"></div>
                     <!-- Sidebar -->
                     <div id="todoSidebar" style="width: 240px; background: var(--bg-sidebar); border-right: 1px solid var(--border-color); overflow-y: auto; padding: 16px;">
-                        <div id="todoSidebarCloseRow" style="display: none; justify-content: flex-end; margin-bottom: 12px;">
-                            <button id="todoSidebarClose" onclick="window.toggleTodoSidebar(false)" style="display: none; padding: 8px; background: var(--bg-secondary); color: var(--text-primary); border: 1px solid var(--border-color); border-radius: 10px; cursor: pointer; transition: all 0.2s;" title="Fermer" onmouseover="this.style.background='var(--bg-hover)'" onmouseout="this.style.background='var(--bg-secondary)'">
-                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                                    <line x1="18" y1="6" x2="6" y2="18"/>
-                                    <line x1="6" y1="6" x2="18" y2="18"/>
-                                </svg>
-                            </button>
-                        </div>
+                        <button id="todoSidebarClose" onclick="window.toggleTodoSidebar(false)" style="display: none; position: absolute; top: 14px; right: 14px; padding: 8px; background: var(--bg-secondary); color: var(--text-primary); border: 1px solid var(--border-color); border-radius: 10px; cursor: pointer; transition: all 0.2s;" title="Fermer" onmouseover="this.style.background='var(--bg-hover)'" onmouseout="this.style.background='var(--bg-secondary)'">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                <line x1="18" y1="6" x2="6" y2="18"/>
+                                <line x1="6" y1="6" x2="18" y2="18"/>
+                            </svg>
+                        </button>
                         <!-- Vues -->
                         <div style="margin-bottom: 24px;">
                             <h3 style="margin-bottom: 8px; color: var(--text-secondary); font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.8px;">Vues</h3>
@@ -8581,16 +8579,12 @@ ${persona}
                         transform: translateX(-105%);
                         transition: transform 0.25s ease;
                         z-index: 10040 !important;
-                        padding-top: 16px !important;
+                        padding-top: 58px !important;
                         box-shadow: 0 20px 60px rgba(0,0,0,0.45);
                     }
 
                     #todoSidebar.open {
                         transform: translateX(0);
-                    }
-
-                    #todoSidebarCloseRow {
-                        display: flex !important;
                     }
 
                     #todoSidebarClose {
