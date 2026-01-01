@@ -18320,7 +18320,7 @@ ${highRiskTurnover.map(t => {
                     ? Math.round(recruitmentCandidates.reduce((sum, c) => sum + c.matchScore, 0) / recruitmentCandidates.length) 
                     : 0;
                 const candidatesWithAI = recruitmentCandidates.filter(c => c.parsedWithAI === true);
-                const shortlistCandidates = recruitmentCandidates.filter(c => c.matchScore >= 70);
+                const shortlistCandidates = recruitmentCandidates.filter(c => c.shortlisted === true);
                 
                 const recruitmentInfo = recruitmentJobs.length > 0 || recruitmentCandidates.length > 0 ? `
 👔 RECRUTEMENT & CANDIDATURES (Section complète) :
@@ -18332,7 +18332,7 @@ ${highRiskTurnover.map(t => {
 - CVs reçus au total : ${recruitmentCandidates.length}
   • Parsés avec IA : ${candidatesWithAI.length}
   • Saisis manuellement : ${recruitmentCandidates.length - candidatesWithAI.length}
-- Shortlist (score ≥70%) : ${shortlistCandidates.length} candidats
+- Shortlist (manuelle) : ${shortlistCandidates.length} candidats
 - Score de matching moyen : ${avgMatchScore}%
 - Candidats excellents (≥80%) : ${topCandidates.length}
 - Candidats recommandés (70-79%) : ${recruitmentCandidates.filter(c => c.matchScore >= 70 && c.matchScore < 80).length}
@@ -18342,7 +18342,7 @@ ${highRiskTurnover.map(t => {
 ${activeJobs.length > 0 ? `📢 OFFRES D'EMPLOI OUVERTES (${activeJobs.length}) :
 ${activeJobs.map(j => {
     const candidatesForJob = recruitmentCandidates.filter(c => c.jobId === j.id);
-    const shortlistForJob = candidatesForJob.filter(c => c.matchScore >= 70);
+    const shortlistForJob = candidatesForJob.filter(c => c.shortlisted === true);
     return `  • ${j.title} - ${j.location}
     Département: ${j.department}
     Type contrat: ${j.contractType}
@@ -21783,7 +21783,7 @@ ${recruitmentInfo}
         function updateRecruitmentStats(jobs, candidates) {
             const activeJobs = jobs.filter(j => j.status === 'active').length;
             const totalCVs = candidates.length;
-            const shortlist = candidates.filter(c => c.matchScore >= 70).length;
+            const shortlist = candidates.filter(c => c.shortlisted === true).length;
             const avgScore = candidates.length > 0 ? 
                 Math.round(candidates.reduce((sum, c) => sum + c.matchScore, 0) / candidates.length) : 0;
             
@@ -21811,7 +21811,7 @@ ${recruitmentInfo}
                         totalJobs: jobs.length,
                         activeJobs: jobs.filter(j => j.status === 'active').length,
                         totalCandidates: candidates.length,
-                        shortlist: candidates.filter(c => c.matchScore >= 70).length,
+                        shortlist: candidates.filter(c => c.shortlisted === true).length,
                         avgScore: candidates.length > 0 ? Math.round(candidates.reduce((sum, c) => sum + c.matchScore, 0) / candidates.length) : 0
                     },
                     jobs: jobs,
@@ -22563,6 +22563,7 @@ ${recruitmentInfo}
                             </div>
                             <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 8px;">
                                 <span class="${badgeClass}" style="display: inline-flex; align-items: center; gap: 6px;">${scoreIcon} ${candidate.matchScore}%</span>
+                                ${candidate.shortlisted === true ? `<span class="hr-badge hr-badge-success" style="display: inline-flex; align-items: center; gap: 6px;">⭐ Shortlist</span>` : ''}
                                 <span style="font-size: 11px; color: rgba(255,255,255,0.55); text-transform: uppercase; letter-spacing: 0.5px; font-weight: 700;">Match</span>
                             </div>
                         </div>
@@ -22597,6 +22598,33 @@ ${recruitmentInfo}
                     </div>
                 `;
             }).join('');
+        }
+
+        function toggleCandidateShortlist(candidateId) {
+            const candidates = getHRData('recruitmentCandidates');
+            const jobs = getHRData('recruitmentJobs');
+            const idx = candidates.findIndex(c => c.id === candidateId);
+            if (idx === -1) {
+                showToast('❌ Candidat introuvable', 'error');
+                return;
+            }
+
+            const current = candidates[idx];
+            const nextShortlisted = !(current.shortlisted === true);
+            candidates[idx] = {
+                ...current,
+                shortlisted: nextShortlisted,
+                shortlistedAt: nextShortlisted ? Date.now() : (current.shortlistedAt || null)
+            };
+
+            setHRData('recruitmentCandidates', candidates);
+            renderCandidatesList(candidates);
+            updateRecruitmentStats(jobs, candidates);
+
+            const modal = document.getElementById('candidateDetailsModal');
+            if (modal) modal.remove();
+
+            showToast(nextShortlisted ? '⭐ Ajouté à la shortlist' : '✅ Retiré de la shortlist', 'success');
         }
 
         function filterCandidatesByJob() {
@@ -22872,8 +22900,8 @@ ${recruitmentInfo}
                         <button class="hr-btn hr-btn-secondary" style="flex: 1; min-width: 200px;" onclick="this.closest('#candidateDetailsModal').remove()">
                             Fermer
                         </button>
-                        <button class="hr-btn" style="flex: 1; min-width: 200px;" onclick="alert('Fonctionnalité à venir : Ajouter à la shortlist')">
-                            ✅ Ajouter à la shortlist
+                        <button class="hr-btn" style="flex: 1; min-width: 200px;" onclick="toggleCandidateShortlist('${candidate.id}')">
+                            ${candidate.shortlisted === true ? '⭐ Retirer de la shortlist' : '✅ Ajouter à la shortlist'}
                         </button>
                     </div>
                 </div>
