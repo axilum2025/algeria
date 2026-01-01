@@ -21803,6 +21803,101 @@ ${recruitmentInfo}
             if (shortlistEl) shortlistEl.textContent = shortlist;
             if (avgScoreEl) avgScoreEl.textContent = avgScore;
         }
+
+        let recruitmentPdfLoaderPromise = null;
+
+        async function loadRecruitmentJsPdf() {
+            if (window.jspdf?.jsPDF) return window.jspdf.jsPDF;
+            if (window.jsPDF) return window.jsPDF;
+
+            if (!recruitmentPdfLoaderPromise) {
+                recruitmentPdfLoaderPromise = new Promise((resolve, reject) => {
+                    const existing = document.getElementById('jspdf-cdn');
+                    if (existing) {
+                        existing.addEventListener('load', () => resolve(window.jspdf?.jsPDF || window.jsPDF || null), { once: true });
+                        existing.addEventListener('error', () => reject(new Error('jsPDF load error')), { once: true });
+                        return;
+                    }
+
+                    const script = document.createElement('script');
+                    script.id = 'jspdf-cdn';
+                    script.src = 'https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js';
+                    script.onload = () => resolve(window.jspdf?.jsPDF || window.jsPDF || null);
+                    script.onerror = () => reject(new Error('jsPDF load failed'));
+                    document.head.appendChild(script);
+                });
+            }
+
+            return recruitmentPdfLoaderPromise;
+        }
+
+        async function downloadRecruitmentPdfFallback(data, dateLabel) {
+            const JsPdfCtor = await loadRecruitmentJsPdf();
+            if (!JsPdfCtor) throw new Error('jsPDF indisponible');
+
+            const doc = new JsPdfCtor({ unit: 'pt', format: 'a4' });
+            const margin = 40;
+            const pageHeight = doc.internal.pageSize.getHeight();
+            let y = margin;
+
+            const addLine = (text, step = 16) => {
+                if (y > pageHeight - margin) {
+                    doc.addPage();
+                    y = margin;
+                }
+                doc.text(text, margin, y);
+                y += step;
+            };
+
+            const safeJobs = Array.isArray(data.jobs) ? data.jobs : [];
+            const safeCandidates = Array.isArray(data.candidates) ? data.candidates : [];
+
+            doc.setFontSize(16);
+            doc.setTextColor(6, 78, 59);
+            addLine('RECRUTEMENT — SAUVEGARDE (fallback)', 18);
+
+            doc.setFontSize(10);
+            doc.setTextColor(90);
+            addLine(`Généré le ${new Date(data.exportDate).toLocaleString('fr-FR')}`, 14);
+
+            doc.setFontSize(12);
+            doc.setTextColor(0);
+            addLine(`Offres totales: ${safeJobs.length}`);
+            addLine(`Offres actives: ${safeJobs.filter(isRecruitmentJobActive).length}`);
+            addLine(`CV / candidats: ${safeCandidates.length}`);
+            addLine(`Shortlist: ${safeCandidates.filter(c => c?.shortlisted === true).length}`);
+            addLine(`Score moyen: ${safeCandidates.length ? Math.round(safeCandidates.reduce((s, c) => s + (Number(c?.matchScore) || 0), 0) / safeCandidates.length) : 0} / 100`);
+
+            addLine('');
+            doc.setFontSize(13);
+            doc.setTextColor(0);
+            addLine('Offres', 16);
+            doc.setFontSize(10);
+
+            safeJobs.slice(0, 80).forEach((job, idx) => {
+                const line = `${idx + 1}. ${job?.title || 'Sans titre'} — ${job?.location || 'N/A'} — ${job?.department || 'N/A'} — statut: ${job?.status || 'active'}`;
+                addLine(line, 14);
+            });
+            if (safeJobs.length > 80) addLine(`… ${safeJobs.length - 80} offres supplémentaires non affichées`, 14);
+
+            addLine('');
+            doc.setFontSize(13);
+            addLine('Candidats', 16);
+            doc.setFontSize(10);
+
+            const jobById = new Map(safeJobs.map(j => [String(j.id), j]));
+            safeCandidates.slice(0, 120).forEach((candidate, idx) => {
+                const job = jobById.get(String(candidate?.jobId || ''));
+                const jobTitle = job?.title || candidate?.jobTitle || 'Offre inconnue';
+                const score = Number(candidate?.matchScore) || 0;
+                const star = candidate?.shortlisted === true ? '⭐ ' : '';
+                addLine(`${idx + 1}. ${star}${candidate?.name || 'Sans nom'} — ${candidate?.email || 'N/A'} — ${jobTitle} — score: ${score}/100`, 14);
+            });
+            if (safeCandidates.length > 120) addLine(`… ${safeCandidates.length - 120} candidats supplémentaires non affichés`, 14);
+
+            const fileName = `recrutement-backup-${dateLabel}.pdf`;
+            doc.save(fileName);
+        }
         
         async function saveRecruitmentData() {
             const exportDate = new Date().toISOString();
@@ -21864,6 +21959,13 @@ ${recruitmentInfo}
                 showToast('✅ PDF téléchargé', 'success');
             } catch (error) {
                 console.error('Erreur sauvegarde PDF:', error);
+                try {
+                    await downloadRecruitmentPdfFallback(data, dateLabel);
+                    showToast('⚠️ PDF généré en mode local (fallback)', 'warning');
+                    return;
+                } catch (fallbackPdfError) {
+                    console.error('Erreur fallback PDF local:', fallbackPdfError);
+                }
 
                 // Fallback JSON pour ne pas bloquer la sauvegarde
                 try {
