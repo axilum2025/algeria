@@ -12369,19 +12369,25 @@ ${persona}
                         }
                     }
 
-                    /* Responsive - Onglet Recrutement (HR) */
-                    #hrContentRecruitment > .hr-close-btn {
-                        position: sticky;
-                        top: 20px;
-                        right: 20px;
+                    /* Responsive - Onglet Recrutement (HR)
+                       Le bouton de fermeture doit scroller avec le contenu (pas sticky/fixed). */
+                    #hrContentRecruitment .hr-recruitment-close-row {
+                        display: flex;
+                        justify-content: flex-end;
+                        margin-bottom: 12px;
+                    }
+
+                    #hrContentRecruitment .hr-recruitment-close-row .hr-close-btn {
+                        position: relative;
+                        top: auto;
+                        right: auto;
                     }
                     @media (max-width: 768px) {
                         #hrContentRecruitment {
                             padding: 12px !important;
                         }
-                        #hrContentRecruitment > .hr-close-btn {
-                            top: 16px;
-                            right: 12px;
+                        #hrContentRecruitment .hr-recruitment-close-row {
+                            margin-bottom: 8px;
                         }
                         #hrContentRecruitment .hr-recruitment-rgpd {
                             padding: 18px !important;
@@ -13070,10 +13076,12 @@ ${persona}
                         
                         <!-- Recruitment / CV Screening Tab -->
                         <div id="hrContentRecruitment" class="hr-content" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; overflow-y: auto; padding: 20px; background: linear-gradient(135deg, #0a4d3c 0%, #064e3b 50%, #1e3a8a 100%); z-index: 9999;">
-                            <button class="hr-close-btn" type="button" onclick="showHRTab('dashboard')" style="position: sticky; top: 16px; right: 16px; z-index: 10000; align-self: flex-end;" aria-label="Fermer Recrutement">
-                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-                            </button>
                             <div style="max-width: 1400px; margin: 0 auto; padding-top: 20px;">
+                                <div class="hr-recruitment-close-row">
+                                    <button class="hr-close-btn" type="button" onclick="showHRTab('dashboard')" style="z-index: 10000;" aria-label="Fermer Recrutement">
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                                    </button>
+                                </div>
                                 <!-- RGPD Warning Banner -->
                                 <div class="hr-recruitment-rgpd" style="background: linear-gradient(135deg, #10b981 0%, #06b6d4 50%, #3b82f6 100%); border-radius: 16px; padding: 24px; margin-bottom: 24px; color: white; border: 1px solid rgba(16, 185, 129, 0.25);">
                                     <div class="hr-recruitment-rgpd-inner" style="display: flex; align-items: start; gap: 16px;">
