@@ -21971,14 +21971,20 @@ ${recruitmentInfo}
                                 <input class="hr-input" type="number" name="minExperience" min="0" placeholder="Ex: 3" required>
                             </div>
                             <div>
-                                <label style="display: block; margin-bottom: 6px; font-size: 13px; font-weight: 700; color: rgba(255,255,255,0.85);">Niveau Langue *</label>
-                                <select class="hr-select" name="languageLevel" required>
-                                    <option value="A2">A2 - Élémentaire</option>
-                                    <option value="B1">B1 - Intermédiaire</option>
-                                    <option value="B2" selected>B2 - Intermédiaire avancé</option>
-                                    <option value="C1">C1 - Avancé</option>
-                                    <option value="C2">C2 - Maîtrise</option>
-                                </select>
+                                <div style="margin-bottom: 12px;">
+                                    <label style="display: block; margin-bottom: 6px; font-size: 13px; font-weight: 700; color: rgba(255,255,255,0.85);">Langue *</label>
+                                    <input class="hr-input" type="text" name="language" placeholder="Ex: Français" required>
+                                </div>
+                                <div>
+                                    <label style="display: block; margin-bottom: 6px; font-size: 13px; font-weight: 700; color: rgba(255,255,255,0.85);">Niveau *</label>
+                                    <select class="hr-select" name="languageLevel" required>
+                                        <option value="A2">A2 - Élémentaire</option>
+                                        <option value="B1">B1 - Intermédiaire</option>
+                                        <option value="B2" selected>B2 - Intermédiaire avancé</option>
+                                        <option value="C1">C1 - Avancé</option>
+                                        <option value="C2">C2 - Maîtrise</option>
+                                    </select>
+                                </div>
                             </div>
                         </div>
                         
@@ -22026,6 +22032,7 @@ ${recruitmentInfo}
                 description: formData.get('description'),
                 skills: formData.get('skills').split(',').map(s => s.trim()).filter(s => s),
                 minExperience: parseInt(formData.get('minExperience')),
+                language: formData.get('language'),
                 languageLevel: formData.get('languageLevel'),
                 mustHave: formData.get('mustHave').split(',').map(s => s.trim()).filter(s => s),
                 status: 'active',
