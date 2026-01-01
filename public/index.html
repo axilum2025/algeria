@@ -23010,8 +23010,10 @@ ${recruitmentInfo}
                     
                     #financeAIOverlay .chat-input { display: grid; gap: 10px; padding: 12px; border-radius: 12px; border: 1px solid rgba(148,163,184,0.2); background: rgba(15,23,42,0.85); position: sticky; bottom: 0; z-index: 5; overflow: visible; backdrop-filter: blur(8px); box-shadow: 0 10px 30px rgba(0,0,0,0.3); }
                     #financeAIOverlay .chat-compose { display: grid; gap: 8px; padding: 10px; border-radius: 12px; border: 1px solid rgba(148,163,184,0.26); background: rgba(255,255,255,0.03); }
+                    #financeAIOverlay .chat-editor { display: flex; gap: 10px; align-items: stretch; }
+                    #financeAIOverlay .chat-btns { display: flex; flex-direction: column; gap: 8px; justify-content: flex-end; }
                     #financeAIOverlay .chat-actions { display: flex; gap: 8px; justify-content: flex-end; align-items: center; }
-                    #financeAIOverlay .chat-textarea { width: 100%; min-height: 140px; background: rgba(255,255,255,0.03); border: 1px solid rgba(148,163,184,0.22); border-radius: 12px; padding: 14px; color: #e2e8f0; font-size: 13px; resize: vertical; font-family: inherit; }
+                    #financeAIOverlay .chat-textarea { width: 100%; flex: 1; min-height: 140px; background: rgba(255,255,255,0.03); border: 1px solid rgba(148,163,184,0.22); border-radius: 12px; padding: 14px; color: #e2e8f0; font-size: 13px; resize: vertical; font-family: inherit; }
                     #financeAIOverlay .quick-prompts { display: flex; gap: 6px; flex-wrap: wrap; }
                     #financeAIOverlay .quick-btn { padding: 8px 12px; border-radius: 8px; background: rgba(255,255,255,0.05); border: 1px solid rgba(148,163,184,0.2); color: #e2e8f0; font-size: 11px; cursor: pointer; transition: all 0.2s; }
                     #financeAIOverlay .quick-btn:hover { background: rgba(59,130,246,0.14); border-color: rgba(59,130,246,0.35); }
@@ -23334,17 +23336,19 @@ ${recruitmentInfo}
                                             <button class="quick-btn" onclick="document.getElementById('financeMsg').value=&quot;Étude de marché: Impacts actuels de l'inflation&quot;; document.getElementById('financeMsg').focus(); sendFinanceMessage();">Marché</button>
                                             <button class="quick-btn" onclick="document.getElementById('financeMsg').value='Comptabilité: Checklist clôture mensuelle'; document.getElementById('financeMsg').focus(); sendFinanceMessage();">Clôture</button>
                                         </div>
-                                        <textarea id="financeMsg" class="chat-textarea" placeholder="Budget, comptabilité, analyse marché, trésorerie..." style="flex: 1; margin: 0;"></textarea>
+                                        <div class="chat-editor">
+                                            <textarea id="financeMsg" class="chat-textarea" placeholder="Budget, comptabilité, analyse marché, trésorerie..." style="margin: 0;"></textarea>
+                                            <div class="chat-btns">
+                                                <input type="file" id="financeInvoiceFileInput" accept="application/pdf,image/*" style="display:none" onchange="onFinanceInvoiceSelected(event)" />
+                                                <button class="upload-btn" title="Uploader une facture" onclick="openFinanceUpload()">
+                                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                                                </button>
+                                                <button class="send-btn" id="financeSendBtn" onclick="sendFinanceMessage()">
+                                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+                                                </button>
+                                            </div>
+                                        </div>
                                     </div>
-                                <div class="chat-actions">
-                                    <input type="file" id="financeInvoiceFileInput" accept="application/pdf,image/*" style="display:none" onchange="onFinanceInvoiceSelected(event)" />
-                                    <button class="upload-btn" title="Uploader une facture" onclick="openFinanceUpload()">
-                                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-                                    </button>
-                                    <button class="send-btn" id="financeSendBtn" onclick="sendFinanceMessage()">
-                                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
-                                    </button>
-                                </div>
                             </div>
                         </div>
                     </div>
