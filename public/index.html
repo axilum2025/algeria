@@ -10926,6 +10926,36 @@ ${persona}
         function setHRData(dataType, data) {
             const key = getHRStorageKey(dataType);
             localStorage.setItem(key, JSON.stringify(data));
+
+            // Invalidation légère du cache UI RH (éviter re-render complet à chaque retour)
+            try {
+                if (!window.__hrUiState) window.__hrUiState = { activeTab: null, activeContentId: null, activeTabId: null, rendered: {}, dirty: {} };
+
+                const hrTabs = ['dashboard', 'employees', 'leaves', 'payroll', 'reviews', 'turnover', 'recruitment'];
+                const markDirty = (tab) => { window.__hrUiState.dirty[tab] = true; };
+
+                if (dataType === 'hrEmployees') {
+                    // Les employés alimentent plusieurs onglets (dropdowns, stats)
+                    hrTabs.forEach(markDirty);
+                } else if (dataType === 'hrLeaves') {
+                    markDirty('dashboard');
+                    markDirty('leaves');
+                } else if (dataType === 'hrPayrolls') {
+                    markDirty('dashboard');
+                    markDirty('payroll');
+                } else if (dataType === 'hrReviews') {
+                    markDirty('dashboard');
+                    markDirty('reviews');
+                } else if (dataType === 'recruitmentJobs' || dataType === 'recruitmentCandidates') {
+                    markDirty('dashboard');
+                    markDirty('recruitment');
+                } else if (dataType === 'companySettings') {
+                    // Peut impacter des libellés/paramètres et certaines stats
+                    markDirty('dashboard');
+                }
+            } catch (e) {
+                // ignore
+            }
         }
         
         function openHRManagement() {
@@ -17252,13 +17282,33 @@ KPIs GLOBAUX :
         }
         
         function showHRTab(tabName) {
-            // Hide all content
-            const contents = document.querySelectorAll('.hr-content');
-            contents.forEach(content => content.style.display = 'none');
-            
-            // Remove active from all tabs
-            const tabs = document.querySelectorAll('.hr-tab');
-            tabs.forEach(tab => tab.classList.remove('active'));
+            if (!window.__hrUiState) window.__hrUiState = { activeTab: null, activeContentId: null, activeTabId: null, rendered: {}, dirty: {} };
+
+            // Si l'overlay a été recréé, purger l'état précédent
+            if (window.__hrUiState.activeContentId && !document.getElementById(window.__hrUiState.activeContentId)) {
+                window.__hrUiState.activeTab = null;
+                window.__hrUiState.activeContentId = null;
+                window.__hrUiState.activeTabId = null;
+                window.__hrUiState.rendered = {};
+                window.__hrUiState.dirty = {};
+            }
+
+            // Éviter de refaire le travail si l'utilisateur clique sur l'onglet déjà actif
+            if (window.__hrUiState.activeTab === tabName) {
+                return;
+            }
+
+            // Hide only the previous content (évite de toucher tous les panneaux)
+            if (window.__hrUiState.activeContentId) {
+                const prev = document.getElementById(window.__hrUiState.activeContentId);
+                if (prev) prev.style.display = 'none';
+            }
+
+            // Remove active only from previous tab
+            if (window.__hrUiState.activeTabId) {
+                const prevTab = document.getElementById(window.__hrUiState.activeTabId);
+                if (prevTab) prevTab.classList.remove('active');
+            }
             
             // Show selected content
             const selectedContent = document.getElementById(`hrContent${tabName.charAt(0).toUpperCase() + tabName.slice(1)}`);
@@ -17283,24 +17333,35 @@ KPIs GLOBAUX :
                 selectedTab.classList.add('active');
             }
             
-            // Rafraîchir les données selon l'onglet
-            if (tabName === 'dashboard') {
-                const employees = getHRData('hrEmployees');
-                updateHRStats(employees);
-            } else if (tabName === 'employees') {
-                const employees = getHRData('hrEmployees');
-                renderEmployeesList(employees);
-            } else if (tabName === 'recruitment') {
-                initializeRecruitmentData();
-            } else if (tabName === 'leaves') {
-                initializeLeavesData();
-            } else if (tabName === 'payroll') {
-                initializePayrollData();
-            } else if (tabName === 'reviews') {
-                initializeReviewsData();
-            } else if (tabName === 'turnover') {
-                initializeTurnoverData();
+            // Rafraîchir les données selon l'onglet (uniquement si nécessaire)
+            const needsRefresh = !!window.__hrUiState.dirty[tabName] || !window.__hrUiState.rendered[tabName];
+            if (needsRefresh) {
+                if (tabName === 'dashboard') {
+                    const employees = getHRData('hrEmployees');
+                    updateHRStats(employees);
+                } else if (tabName === 'employees') {
+                    const employees = getHRData('hrEmployees');
+                    renderEmployeesList(employees);
+                } else if (tabName === 'recruitment') {
+                    initializeRecruitmentData();
+                } else if (tabName === 'leaves') {
+                    initializeLeavesData();
+                } else if (tabName === 'payroll') {
+                    initializePayrollData();
+                } else if (tabName === 'reviews') {
+                    initializeReviewsData();
+                } else if (tabName === 'turnover') {
+                    initializeTurnoverData();
+                }
+
+                window.__hrUiState.rendered[tabName] = true;
+                window.__hrUiState.dirty[tabName] = false;
             }
+
+            // Mémoriser l'état actif
+            window.__hrUiState.activeTab = tabName;
+            window.__hrUiState.activeContentId = selectedContent ? selectedContent.id : null;
+            window.__hrUiState.activeTabId = selectedTab ? selectedTab.id : null;
         }
 
         function scheduleHRTabCleanup(tabName) {
