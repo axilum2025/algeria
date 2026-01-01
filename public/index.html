@@ -23393,6 +23393,12 @@ ${recruitmentInfo}
             if (settingsPanel && settingsPanel.style.display === 'block') settingsPanel.style.display = 'none';
 
             overlay.classList.toggle('tools-open');
+
+            // Caler le drawer sous le header (évite de recouvrir les boutons)
+            const header = overlay.querySelector('.finance-header');
+            if (header) {
+                overlay.style.setProperty('--finance-header-height', `${header.offsetHeight}px`);
+            }
         }
         
         function toggleFinanceSettings() {
@@ -23645,8 +23651,49 @@ ${recruitmentInfo}
                     #financeAIOverlay .ghost-btn { width: 44px; height: 44px; border-radius: 12px; background: rgba(255,255,255,0.06); border: 1px solid rgba(148,163,184,0.28); color: #e2e8f0; display: grid; place-items: center; cursor: pointer; transition: all 0.2s; }
                     #financeAIOverlay .ghost-btn:hover { background: rgba(248,250,252,0.12); transform: rotate(90deg); }
                     
-                    #financeAIOverlay .finance-container { flex: 1; overflow: hidden; display: grid; grid-template-columns: minmax(320px, 0.9fr) minmax(0, 1.1fr); gap: 24px; padding: 28px 38px; align-items: start; }
-                    #financeAIOverlay .finance-tools { background: rgba(255,255,255,0.03); border: 1px solid rgba(148,163,184,0.22); border-radius: 16px; padding: 24px; overflow-y: auto; box-shadow: 0 14px 46px rgba(0,0,0,0.26); max-width: 520px; }
+                    #financeAIOverlay .finance-container { flex: 1; overflow: hidden; display: grid; grid-template-columns: 1fr; gap: 24px; padding: 28px 38px; align-items: start; }
+
+                    /* Drawer (sidebar) - Outils d'Automatisation */
+                    #financeAIOverlay .finance-tools-backdrop {
+                        position: fixed;
+                        left: 0;
+                        right: 0;
+                        top: var(--finance-header-height, 96px);
+                        bottom: 0;
+                        background: rgba(0,0,0,0);
+                        opacity: 0;
+                        pointer-events: none;
+                        transition: opacity 0.2s ease, background 0.2s ease;
+                        z-index: 150;
+                    }
+                    #financeAIOverlay.tools-open .finance-tools-backdrop {
+                        background: rgba(0,0,0,0.45);
+                        opacity: 1;
+                        pointer-events: auto;
+                    }
+
+                    #financeAIOverlay .finance-tools {
+                        position: fixed;
+                        top: var(--finance-header-height, 96px);
+                        right: 0;
+                        height: calc(100% - var(--finance-header-height, 96px));
+                        width: 50vw;
+                        background: rgba(15,23,42,0.92);
+                        border-left: 1px solid rgba(148,163,184,0.22);
+                        border-top: 1px solid rgba(148,163,184,0.18);
+                        border-radius: 16px 0 0 0;
+                        padding: 24px;
+                        overflow-y: auto;
+                        box-shadow: -18px 0 60px rgba(0,0,0,0.45);
+                        transform: translateX(100%);
+                        transition: transform 0.25s ease;
+                        z-index: 160;
+                        pointer-events: none;
+                    }
+                    #financeAIOverlay.tools-open .finance-tools {
+                        transform: translateX(0);
+                        pointer-events: auto;
+                    }
                     #financeAIOverlay .tools-title { font-size: 18px; font-weight: 800; color: #f8fafc; margin: 0 0 20px; display: flex; align-items: center; gap: 10px; }
                     
                     #financeAIOverlay .tool-card { background: rgba(255,255,255,0.04); border: 1px solid rgba(148,163,184,0.2); border-radius: 12px; padding: 16px; margin-bottom: 14px; cursor: pointer; transition: all 0.2s; display: flex; flex-direction: column; align-items: center; gap: 8px; text-align: center; }
@@ -23697,7 +23744,7 @@ ${recruitmentInfo}
                     #financeAIOverlay .new-conv-btn:hover { background: rgba(16,185,129,0.24); border-color: rgba(16,185,129,0.5); }
                     #financeAIOverlay .history-toggle-btn { width: 44px; height: 44px; border-radius: 12px; background: rgba(255,255,255,0.06); border: 1px solid rgba(148,163,184,0.28); color: #e2e8f0; display: grid; place-items: center; cursor: pointer; transition: all 0.2s; margin-left: 0; }
                     #financeAIOverlay .history-toggle-btn:hover { background: rgba(248,250,252,0.12); transform: scale(1.05); }
-                    #financeAIOverlay .tools-toggle-btn { display: none; }
+                    #financeAIOverlay .tools-toggle-btn { display: grid; }
                     
                     #financeAIOverlay .finance-chat { background: rgba(255,255,255,0.04); border: 1px solid rgba(148,163,184,0.22); border-radius: 16px; padding: 18px; display: flex; flex-direction: column; gap: 12px; box-shadow: 0 16px 50px rgba(0,0,0,0.28); overflow: hidden; min-width: 0; }
                     #financeAIOverlay .upload-btn { padding: 10px; width: 44px; height: 44px; min-width: unset; border-radius: 10px; background: rgba(16,185,129,0.14); border: 1px solid rgba(16,185,129,0.35); color: #a7f3d0; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; }
@@ -23737,10 +23784,6 @@ ${recruitmentInfo}
                             padding-bottom: 12px;
                         }
                         #financeAIOverlay .finance-chat { order: 1; }
-                        /* En mobile/tablette: masquer les outils pour laisser de la place au chat */
-                        #financeAIOverlay .tools-toggle-btn { display: grid; }
-                        #financeAIOverlay .finance-tools { display: none; order: 2; max-width: none; width: 100%; }
-                        #financeAIOverlay.tools-open .finance-tools { display: block; }
                         #financeAIOverlay .finance-header { padding: 20px 24px; }
                         #financeAIOverlay .finance-icon { width: 48px; height: 48px; }
                         #financeAIOverlay .finance-h1 { font-size: 22px; }
@@ -23872,6 +23915,8 @@ ${recruitmentInfo}
                             </button>
                         </div>
                     </header>
+
+                    <div class="finance-tools-backdrop" onclick="toggleFinanceTools()" aria-hidden="true"></div>
                     
                     <!-- Panneau des paramètres entreprise -->
                     <div id="financeSettingsPanel" class="history-panel" style="display: none;">
