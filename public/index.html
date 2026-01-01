@@ -22699,45 +22699,45 @@ ${recruitmentInfo}
             const candidates = getHRData('recruitmentCandidates');
             const jobs = getHRData('recruitmentJobs');
             const candidate = candidates.find(c => c.id === candidateId);
-            const job = jobs.find(j => j.id === candidate.jobId);
             
             if (!candidate) return;
+
+            const job = jobs.find(j => j.id === candidate.jobId);
             
             const modal = document.createElement('div');
             modal.id = 'candidateDetailsModal';
-            modal.style.cssText = 'position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 10004; animation: fadeIn 0.3s ease; overflow-y: auto; padding: 20px;';
+            modal.className = 'hr-modal-overlay';
+            modal.style.zIndex = '10004';
             
             modal.innerHTML = `
-                <div style="background: white; border-radius: 20px; padding: 32px; max-width: 900px; width: 100%; max-height: 90vh; overflow-y: auto; animation: slideIn 0.3s ease;">
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
-                        <div>
-                            <h2 style="margin: 0 0 4px; font-size: 28px; font-weight: 700; color: #1a1a1a;">${candidate.name}</h2>
-                            <p style="margin: 0; font-size: 14px; color: #6b7280;">📧 ${candidate.email}</p>
-                        </div>
-                        <button onclick="this.closest('#candidateDetailsModal').remove()" style="width: 36px; height: 36px; background: #f3f4f6; border: none; border-radius: 10px; cursor: pointer; display: flex; align-items: center; justify-content: center;" onmouseover="this.style.background='#e5e7eb'" onmouseout="this.style.background='#f3f4f6'">
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-                        </button>
+                <div class="hr-modal" style="max-width: 980px;">
+                    <button class="hr-modal-close" onclick="this.closest('#candidateDetailsModal').remove()" aria-label="Fermer">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                    </button>
+
+                    <div style="margin-bottom: 16px; padding-right: 56px;">
+                        <h2 class="hr-modal-title">${candidate.name}</h2>
+                        <p class="hr-modal-subtitle">📧 ${candidate.email}</p>
                     </div>
-                    
-                    <!-- Score global -->
-                    <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 16px; padding: 24px; margin-bottom: 24px; color: white;">
+
+                    <div class="hr-section" style="margin-bottom: 16px;">
                         <div style="text-align: center;">
-                            <div style="font-size: 14px; opacity: 0.9; margin-bottom: 8px;">Score de compatibilité</div>
-                            <div style="font-size: 64px; font-weight: 700; line-height: 1;">${candidate.matchScore}%</div>
-                            <div style="margin-top: 12px; font-size: 16px; font-weight: 600;">${candidate.recommendation}</div>
+                            <div class="hr-stat-label" style="margin-bottom: 8px;">Score de compatibilité</div>
+                            <div style="font-size: 64px; font-weight: 900; line-height: 1; background: linear-gradient(135deg, #10b981, #06b6d4, #3b82f6); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
+                                ${candidate.matchScore}%
+                            </div>
+                            <div style="margin-top: 10px; font-size: 14px; font-weight: 800; color: rgba(255,255,255,0.85);">${candidate.recommendation}</div>
                         </div>
                     </div>
-                    
-                    <!-- Offre ciblée -->
-                    <div style="background: #F9FAFB; border-radius: 12px; padding: 16px; margin-bottom: 24px;">
-                        <h3 style="margin: 0 0 8px; font-size: 14px; font-weight: 600; color: #6b7280;">CANDIDATURE POUR</h3>
-                        <div style="font-size: 18px; font-weight: 700; color: #1a1a1a;">${job ? job.title : 'Offre supprimée'}</div>
-                        ${job ? `<div style="font-size: 14px; color: #6b7280; margin-top: 4px;">📍 ${job.location} • ${job.department}</div>` : ''}
+
+                    <div class="hr-section" style="margin-bottom: 16px;">
+                        <div class="hr-section-title" style="margin-bottom: 10px;">Candidature pour</div>
+                        <div style="font-size: 16px; font-weight: 800; color: rgba(255,255,255,0.92);">${job ? job.title : 'Offre supprimée'}</div>
+                        ${job ? `<div style="font-size: 13px; color: rgba(255,255,255,0.65); margin-top: 6px;">📍 ${job.location} • ${job.department}</div>` : ''}
                     </div>
-                    
-                    <!-- Breakdown détaillé -->
-                    <div style="margin-bottom: 24px;">
-                        <h3 style="margin: 0 0 16px; font-size: 18px; font-weight: 700; color: #1a1a1a;">📊 Analyse détaillée</h3>
+
+                    <div class="hr-section" style="margin-bottom: 16px;">
+                        <div class="hr-section-title" style="margin-bottom: 10px;">📊 Analyse détaillée</div>
                         <div style="display: grid; gap: 12px;">
                             ${Object.entries({
                                 'Compétences': {score: candidate.scoreBreakdown.skillsScore, weight: '40%', icon: '💻'},
@@ -22748,15 +22748,15 @@ ${recruitmentInfo}
                             }).map(([label, data]) => {
                                 const color = data.score >= 80 ? '#10b981' : data.score >= 60 ? '#f59e0b' : '#ef4444';
                                 return `
-                                    <div style="background: white; border: 2px solid #f3f4f6; border-radius: 12px; padding: 16px;">
-                                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-                                            <span style="font-size: 14px; font-weight: 600; color: #1a1a1a;">${data.icon} ${label}</span>
-                                            <div style="display: flex; align-items: center; gap: 8px;">
-                                                <span style="font-size: 20px; font-weight: 700; color: ${color};">${data.score}%</span>
-                                                <span style="font-size: 12px; color: #9ca3af;">(poids: ${data.weight})</span>
+                                    <div class="hr-item" style="margin: 0; padding: 16px;">
+                                        <div style="display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-bottom: 10px;">
+                                            <div style="font-size: 14px; font-weight: 800; color: rgba(255,255,255,0.9);">${data.icon} ${label}</div>
+                                            <div style="display: flex; align-items: baseline; gap: 8px;">
+                                                <div style="font-size: 18px; font-weight: 900; color: ${color};">${data.score}%</div>
+                                                <div style="font-size: 12px; color: rgba(255,255,255,0.55); font-weight: 700;">(poids: ${data.weight})</div>
                                             </div>
                                         </div>
-                                        <div style="background: #f3f4f6; border-radius: 8px; height: 8px; overflow: hidden;">
+                                        <div style="background: rgba(255,255,255,0.08); border-radius: 999px; height: 10px; overflow: hidden; border: 1px solid rgba(255,255,255,0.10);">
                                             <div style="background: ${color}; height: 100%; width: ${data.score}%; transition: width 0.5s;"></div>
                                         </div>
                                     </div>
@@ -22764,129 +22764,115 @@ ${recruitmentInfo}
                             }).join('')}
                         </div>
                     </div>
-                    
-                    <!-- Informations candidat -->
-                    <div style="margin-bottom: 24px;">
-                        <h3 style="margin: 0 0 16px; font-size: 18px; font-weight: 700; color: #1a1a1a;">👤 Profil du candidat</h3>
-                        <div style="background: #F9FAFB; border-radius: 12px; padding: 20px;">
-                            <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; margin-bottom: 16px;">
-                                <div>
-                                    <div style="font-size: 12px; color: #6b7280; margin-bottom: 4px;">Expérience</div>
-                                    <div style="font-size: 16px; font-weight: 600; color: #1a1a1a;">${candidate.experience} ans</div>
-                                </div>
-                                <div>
-                                    <div style="font-size: 12px; color: #6b7280; margin-bottom: 4px;">Diplôme</div>
-                                    <div style="font-size: 16px; font-weight: 600; color: #1a1a1a;">${candidate.degree}</div>
-                                </div>
-                                <div>
-                                    <div style="font-size: 12px; color: #6b7280; margin-bottom: 4px;">Niveau langues</div>
-                                    <div style="font-size: 16px; font-weight: 600; color: #1a1a1a;">${candidate.languages}</div>
-                                </div>
-                                <div>
-                                    <div style="font-size: 12px; color: #6b7280; margin-bottom: 4px;">Compétences</div>
-                                    <div style="font-size: 16px; font-weight: 600; color: #1a1a1a;">${candidate.skills.length} listées</div>
+
+                    <div class="hr-section" style="margin-bottom: 16px;">
+                        <div class="hr-section-title" style="margin-bottom: 10px;">👤 Profil du candidat</div>
+                        <div class="hr-form-grid-2" style="margin-bottom: 14px;">
+                            <div class="hr-item" style="margin: 0; padding: 14px;">
+                                <div style="font-size: 12px; color: rgba(255,255,255,0.6); font-weight: 700; margin-bottom: 4px;">Expérience</div>
+                                <div style="font-size: 15px; font-weight: 900; color: rgba(255,255,255,0.92);">${candidate.experience} ans</div>
+                            </div>
+                            <div class="hr-item" style="margin: 0; padding: 14px;">
+                                <div style="font-size: 12px; color: rgba(255,255,255,0.6); font-weight: 700; margin-bottom: 4px;">Diplôme</div>
+                                <div style="font-size: 15px; font-weight: 900; color: rgba(255,255,255,0.92);">${candidate.degree}</div>
+                            </div>
+                            <div class="hr-item" style="margin: 0; padding: 14px;">
+                                <div style="font-size: 12px; color: rgba(255,255,255,0.6); font-weight: 700; margin-bottom: 4px;">Niveau langues</div>
+                                <div style="font-size: 15px; font-weight: 900; color: rgba(255,255,255,0.92);">${candidate.languages}</div>
+                            </div>
+                            <div class="hr-item" style="margin: 0; padding: 14px;">
+                                <div style="font-size: 12px; color: rgba(255,255,255,0.6); font-weight: 700; margin-bottom: 4px;">Compétences</div>
+                                <div style="font-size: 15px; font-weight: 900; color: rgba(255,255,255,0.92);">${candidate.skills.length} listées</div>
+                            </div>
+                        </div>
+
+                        ${candidate.skills.length > 0 ? `
+                            <div style="margin-bottom: 14px;">
+                                <div style="font-size: 12px; color: rgba(255,255,255,0.6); font-weight: 800; margin-bottom: 10px;">Compétences détaillées</div>
+                                <div style="display: flex; flex-wrap: wrap; gap: 8px;">
+                                    ${candidate.skills.map(skill => `
+                                        <span class="hr-badge hr-badge-info" style="padding: 6px 12px; border-radius: 999px;">${skill}</span>
+                                    `).join('')}
                                 </div>
                             </div>
-                            
-                            ${candidate.skills.length > 0 ? `
-                                <div style="margin-bottom: 16px;">
-                                    <div style="font-size: 12px; color: #6b7280; margin-bottom: 8px;">Compétences détaillées</div>
-                                    <div style="display: flex; flex-wrap: wrap; gap: 6px;">
-                                        ${candidate.skills.map(skill => `
-                                            <span style="background: white; border: 1px solid #e5e7eb; padding: 6px 12px; border-radius: 20px; font-size: 13px; color: #1a1a1a;">${skill}</span>
-                                        `).join('')}
-                                    </div>
+                        ` : ''}
+
+                        ${candidate.lastJob ? `
+                            <div class="hr-item" style="margin: 0; padding: 14px;">
+                                <div style="font-size: 12px; color: rgba(255,255,255,0.6); font-weight: 800; margin-bottom: 6px;">Dernière expérience</div>
+                                <div style="font-size: 13px; color: rgba(255,255,255,0.85);">${candidate.lastJob}</div>
+                            </div>
+                        ` : ''}
+
+                        ${candidate.certifications && candidate.certifications.length > 0 ? `
+                            <div style="margin-top: 14px;">
+                                <div style="font-size: 12px; color: rgba(255,255,255,0.6); font-weight: 800; margin-bottom: 10px;">Certifications</div>
+                                <div style="display: flex; flex-wrap: wrap; gap: 8px;">
+                                    ${candidate.certifications.map(cert => `
+                                        <span class="hr-badge hr-badge-success" style="padding: 6px 12px; border-radius: 999px;">🏆 ${cert}</span>
+                                    `).join('')}
                                 </div>
-                            ` : ''}
-                            
-                            ${candidate.lastJob ? `
-                                <div style="margin-bottom: 16px;">
-                                    <div style="font-size: 12px; color: #6b7280; margin-bottom: 4px;">Dernière expérience</div>
-                                    <div style="font-size: 14px; color: #1a1a1a;">${candidate.lastJob}</div>
-                                </div>
-                            ` : ''}
-                            
-                            ${candidate.certifications && candidate.certifications.length > 0 ? `
-                                <div>
-                                    <div style="font-size: 12px; color: #6b7280; margin-bottom: 8px;">Certifications</div>
-                                    <div style="display: flex; flex-wrap: wrap; gap: 6px;">
-                                        ${candidate.certifications.map(cert => `
-                                            <span style="background: #dbeafe; color: #1e40af; padding: 6px 12px; border-radius: 20px; font-size: 13px; font-weight: 500;">🏆 ${cert}</span>
-                                        `).join('')}
-                                    </div>
-                                </div>
-                            ` : ''}
-                        </div>
+                            </div>
+                        ` : ''}
                     </div>
-                    
-                    <!-- Points forts -->
+
                     ${candidate.strengths && candidate.strengths.length > 0 ? `
-                        <div style="margin-bottom: 24px;">
-                            <h3 style="margin: 0 0 12px; font-size: 18px; font-weight: 700; color: #1a1a1a;">✅ Points forts</h3>
-                            <div style="background: #d1fae5; border-radius: 12px; padding: 16px;">
+                        <div class="hr-section" style="margin-bottom: 16px;">
+                            <div class="hr-section-title" style="margin-bottom: 10px;">✅ Points forts</div>
+                            <div style="display: grid; gap: 10px;">
                                 ${candidate.strengths.map(strength => `
-                                    <div style="font-size: 14px; color: #065f46; margin-bottom: 8px; display: flex; align-items: start; gap: 8px;">
-                                        <span>•</span>
-                                        <span>${strength}</span>
-                                    </div>
+                                    <div class="hr-item" style="margin: 0; padding: 14px; border-color: rgba(16,185,129,0.28);">• ${strength}</div>
                                 `).join('')}
                             </div>
                         </div>
                     ` : ''}
-                    
-                    <!-- Risques -->
+
                     ${candidate.risks && candidate.risks.length > 0 ? `
-                        <div style="margin-bottom: 24px;">
-                            <h3 style="margin: 0 0 12px; font-size: 18px; font-weight: 700; color: #1a1a1a;">⚠️ Points d'attention</h3>
-                            <div style="background: #fef3c7; border-radius: 12px; padding: 16px;">
+                        <div class="hr-section" style="margin-bottom: 16px;">
+                            <div class="hr-section-title" style="margin-bottom: 10px;">⚠️ Points d'attention</div>
+                            <div style="display: grid; gap: 10px;">
                                 ${candidate.risks.map(risk => `
-                                    <div style="font-size: 14px; color: #92400e; margin-bottom: 8px; display: flex; align-items: start; gap: 8px;">
-                                        <span>•</span>
-                                        <span>${risk}</span>
-                                    </div>
+                                    <div class="hr-item" style="margin: 0; padding: 14px; border-color: rgba(251,191,36,0.30);">• ${risk}</div>
                                 `).join('')}
                             </div>
                         </div>
                     ` : ''}
-                    
-                    <!-- Compétences manquantes -->
+
                     ${candidate.missingKeywords && candidate.missingKeywords.length > 0 ? `
-                        <div style="margin-bottom: 24px;">
-                            <h3 style="margin: 0 0 12px; font-size: 18px; font-weight: 700; color: #1a1a1a;">❌ Compétences manquantes</h3>
-                            <div style="display: flex; flex-wrap: wrap; gap: 6px;">
+                        <div class="hr-section" style="margin-bottom: 16px;">
+                            <div class="hr-section-title" style="margin-bottom: 10px;">❌ Compétences manquantes</div>
+                            <div style="display: flex; flex-wrap: wrap; gap: 8px;">
                                 ${candidate.missingKeywords.map(keyword => `
-                                    <span style="background: #fee2e2; color: #991b1b; padding: 8px 14px; border-radius: 8px; font-size: 13px; font-weight: 500;">${keyword}</span>
+                                    <span class="hr-badge hr-badge-danger" style="padding: 6px 12px; border-radius: 999px;">${keyword}</span>
                                 `).join('')}
                             </div>
                         </div>
                     ` : ''}
-                    
-                    <!-- Anomalies -->
+
                     ${candidate.anomalies && candidate.anomalies.length > 0 ? `
-                        <div style="margin-bottom: 24px;">
-                            <h3 style="margin: 0 0 12px; font-size: 18px; font-weight: 700; color: #1a1a1a;">🔍 Anomalies détectées</h3>
-                            <div style="background: #fee2e2; border-radius: 12px; padding: 16px;">
+                        <div class="hr-section" style="margin-bottom: 16px;">
+                            <div class="hr-section-title" style="margin-bottom: 10px;">🔍 Anomalies détectées</div>
+                            <div style="display: grid; gap: 10px;">
                                 ${candidate.anomalies.map(anomaly => `
-                                    <div style="font-size: 14px; color: #991b1b; margin-bottom: 8px;">${anomaly}</div>
+                                    <div class="hr-item" style="margin: 0; padding: 14px; border-color: rgba(239,68,68,0.30);">${anomaly}</div>
                                 `).join('')}
                             </div>
                         </div>
                     ` : ''}
-                    
-                    <!-- RGPD Notice -->
-                    <div style="background: #F9FAFB; border: 2px solid #e5e7eb; border-radius: 12px; padding: 16px; margin-top: 24px;">
-                        <div style="font-size: 12px; color: #6b7280; line-height: 1.6;">
-                            <strong style="color: #1a1a1a;">ℹ️ Transparence RGPD :</strong> Ce scoring est calculé automatiquement selon les critères suivants :
+
+                    <div class="hr-section" style="margin-bottom: 16px;">
+                        <div style="font-size: 12px; color: rgba(255,255,255,0.7); line-height: 1.7;">
+                            <strong style="color: rgba(255,255,255,0.9);">ℹ️ Transparence RGPD :</strong> Ce scoring est calculé automatiquement selon les critères suivants :
                             Compétences (40%), Expérience (30%), Langues (10%), Diplôme (10%), Critères must-have (10%).
                             Aucune donnée sensible (origine, religion, santé) n'est analysée. La décision finale reste humaine.
                         </div>
                     </div>
-                    
-                    <div style="display: flex; gap: 12px; margin-top: 24px;">
-                        <button onclick="this.closest('#candidateDetailsModal').remove()" style="flex: 1; padding: 14px; background: #f3f4f6; border: none; border-radius: 10px; font-weight: 600; cursor: pointer;" onmouseover="this.style.background='#e5e7eb'" onmouseout="this.style.background='#f3f4f6'">
+
+                    <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+                        <button class="hr-btn hr-btn-secondary" style="flex: 1; min-width: 200px;" onclick="this.closest('#candidateDetailsModal').remove()">
                             Fermer
                         </button>
-                        <button onclick="alert('Fonctionnalité à venir : Ajouter à la shortlist')" style="flex: 1; padding: 14px; background: #10b981; border: none; border-radius: 10px; color: white; font-weight: 600; cursor: pointer;" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 12px rgba(16,185,129,0.4)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='none'">
+                        <button class="hr-btn" style="flex: 1; min-width: 200px;" onclick="alert('Fonctionnalité à venir : Ajouter à la shortlist')">
                             ✅ Ajouter à la shortlist
                         </button>
                     </div>
