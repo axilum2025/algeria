@@ -76,28 +76,28 @@
             gap: 15px;
         }
 
-        .menu-btn {
-            background: none;
-            border: none;
-            font-size: 24px;
-            cursor: pointer;
-            color: var(--text-primary);
-            padding: 8px;
-            border-radius: 8px;
-            transition: background 0.2s;
-        }
-
-        .menu-btn:hover {
-            background: var(--bg-secondary);
-        }
-
-        .logo {
-            font-size: 22px;
-            font-weight: 700;
-            color: var(--text-primary);
-            letter-spacing: -0.5px;
-            position: relative;
-            display: flex;
+                                <div class="chat-compose">
+                                    <div class="quick-prompts">
+                                        <button class="quick-btn" onclick="document.getElementById('financeMsg').value='Analyse budgetaire: Quels KPI dois-je suivre mensuellement ?'; document.getElementById('financeMsg').focus(); sendFinanceMessage();">KPIs budgetaires</button>
+                                        <button class="quick-btn" onclick="document.getElementById('financeMsg').value=&quot;Etude de marche: Impacts actuels de l'inflation&quot;; document.getElementById('financeMsg').focus(); sendFinanceMessage();">Marche</button>
+                                        <button class="quick-btn" onclick="document.getElementById('financeMsg').value='Comptabilite: Checklist cloture mensuelle'; document.getElementById('financeMsg').focus(); sendFinanceMessage();">Cloture</button>
+                                    </div>
+                                    <div class="chat-editor">
+                                        <textarea id="financeMsg" class="chat-textarea" placeholder="Budget, comptabilite, analyse marche, tresorerie..." style="flex: 1; margin: 0;"></textarea>
+                                        <button class="send-btn" id="financeSendBtn" onclick="sendFinanceMessage()" aria-label="Envoyer le message">
+                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                                <path d="M5 12h14" />
+                                                <path d="M13 6l6 6-6 6" />
+                                            </svg>
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="chat-actions">
+                                    <input type="file" id="financeInvoiceFileInput" accept="application/pdf,image/*" style="display:none" onchange="onFinanceInvoiceSelected(event)" />
+                                    <button class="upload-btn" title="Uploader une facture" onclick="openFinanceUpload()">
+                                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                                    </button>
+                                </div>
             align-items: center;
         }
 
@@ -5253,27 +5253,27 @@ Dernire facture (si disponible):
 - Fournisseur: ${lastInv.vendor || lastInv.supplier || lastInv.client || 'N/A'}
 - Montant: ${safeNum(lastInv.amount)} ${lastInv.currency || currency}
 - Date: ${lastInv.date || 'N/A'}
-- Num e9ro: ${lastInv.invoiceNumber || 'N/A'}
+- Nume9ro: ${lastInv.invoiceNumber || 'N/A'}
 ` : '\nDernire facture: N/A\n';
 
             const snapshot = `
 ---
-DONN c9ES FINANCE DISPONIBLES (snapshot):
+DONNc9ES FINANCE DISPONIBLES (snapshot):
 
 Entreprise (settings):
 - Nom: ${cs.name || 'N/A'}
-- Activit e9: ${cs.activity || 'N/A'}
+- Activite9: ${cs.activity || 'N/A'}
 - Devise: ${currency}
 - Email: ${cs.email || 'N/A'}
-- T e9l: ${cs.phone || 'N/A'}
-- Derni e8re MAJ settings: ${financeDataLastUpdated || 'N/A'}
+- Te9l: ${cs.phone || 'N/A'}
+- Dernie8re MAJ settings: ${financeDataLastUpdated || 'N/A'}
 
-Conversations sauvegard e9es: ${conversationsCount}
+Conversations sauvegarde9es: ${conversationsCount}
 
 Factures: ${invs.length}
-Synth e8se: revenus=${totalRevenue.toFixed(2)} ${currency} | charges=${totalExpenses.toFixed(2)} ${currency} | r e9sultat=${netIncome.toFixed(2)} ${currency}
+Synthe8se: revenus=${totalRevenue.toFixed(2)} ${currency} | charges=${totalExpenses.toFixed(2)} ${currency} | re9sultat=${netIncome.toFixed(2)} ${currency}
 
-Factures r e9centes:
+Factures re9centes:
 ${topInvoices}
 
 Rapports: ${reps.length}
@@ -23010,14 +23010,18 @@ ${recruitmentInfo}
                     
                     #financeAIOverlay .chat-input { display: grid; gap: 10px; padding: 12px; border-radius: 12px; border: 1px solid rgba(148,163,184,0.2); background: rgba(15,23,42,0.85); position: sticky; bottom: 0; z-index: 5; overflow: visible; backdrop-filter: blur(8px); box-shadow: 0 10px 30px rgba(0,0,0,0.3); }
                     #financeAIOverlay .chat-compose { display: grid; gap: 8px; padding: 10px; border-radius: 12px; border: 1px solid rgba(148,163,184,0.26); background: rgba(255,255,255,0.03); }
+                    #financeAIOverlay .chat-editor { position: relative; }
                     #financeAIOverlay .chat-actions { display: flex; gap: 8px; justify-content: flex-end; align-items: center; }
-                    #financeAIOverlay .chat-textarea { width: 100%; min-height: 140px; background: rgba(255,255,255,0.03); border: 1px solid rgba(148,163,184,0.22); border-radius: 12px; padding: 14px; color: #e2e8f0; font-size: 13px; resize: vertical; font-family: inherit; }
+                    #financeAIOverlay .chat-textarea { width: 100%; min-height: 120px; background: rgba(255,255,255,0.03); border: 1px solid rgba(148,163,184,0.22); border-radius: 12px; padding: 14px 64px 14px 14px; color: #e2e8f0; font-size: 13px; resize: vertical; font-family: inherit; }
                     #financeAIOverlay .quick-prompts { display: flex; gap: 6px; flex-wrap: wrap; }
                     #financeAIOverlay .quick-btn { padding: 8px 12px; border-radius: 8px; background: rgba(255,255,255,0.05); border: 1px solid rgba(148,163,184,0.2); color: #e2e8f0; font-size: 11px; cursor: pointer; transition: all 0.2s; }
                     #financeAIOverlay .quick-btn:hover { background: rgba(59,130,246,0.14); border-color: rgba(59,130,246,0.35); }
-                    #financeAIOverlay .send-btn { padding: 10px; width: 44px; height: 44px; min-width: unset; border-radius: 10px; background: rgba(16,185,129,0.14); border: 1px solid rgba(16,185,129,0.35); color: #a7f3d0; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; transition: all 0.2s; }
-                    #financeAIOverlay .send-btn:hover { background: rgba(16,185,129,0.24); border-color: rgba(16,185,129,0.5); transform: translateY(-1px); }
-                    #financeAIOverlay .send-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+                    #financeAIOverlay .send-btn { position: absolute; right: 12px; bottom: 12px; padding: 0; width: 40px; height: 40px; min-width: unset; border-radius: 999px; background: linear-gradient(135deg, #22c55e, #0ea5e9); border: 1px solid rgba(255,255,255,0.18); color: #0b1224; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; transition: all 0.2s ease; box-shadow: 0 10px 26px rgba(0,0,0,0.35); }
+                    #financeAIOverlay .send-btn svg { width: 18px; height: 18px; }
+                    #financeAIOverlay .send-btn:hover { transform: translateY(-1px); box-shadow: 0 12px 30px rgba(0,0,0,0.42); }
+                    #financeAIOverlay .send-btn:disabled { opacity: 0.6; cursor: not-allowed; box-shadow: none; transform: none; }
+                    #financeAIOverlay .send-btn.loading svg { animation: financeSendSpin 1s linear infinite; }
+                    @keyframes financeSendSpin { to { transform: rotate(360deg); } }
                     
                     /* Responsive Design - Mode Bureau Mobile & Tablette */
                     @media (max-width: 1024px) {
@@ -23084,9 +23088,14 @@ ${recruitmentInfo}
                         #financeAIOverlay .tool-name { font-size: 13px; }
                         #financeAIOverlay .tool-desc { font-size: 11px; }
                         #financeAIOverlay .chat-title { font-size: 15px; }
-                        #financeAIOverlay .chat-textarea { min-height: 60px; font-size: 12px; }
+                        #financeAIOverlay .chat-textarea { min-height: 90px; font-size: 12px; padding: 12px 56px 12px 12px; }
                         #financeAIOverlay .quick-btn { padding: 6px 10px; font-size: 10px; }
-                        #financeAIOverlay .send-btn, 
+                        #financeAIOverlay .send-btn { 
+                            width: 36px; 
+                            height: 36px; 
+                            right: 10px;
+                            bottom: 10px;
+                        }
                         #financeAIOverlay .upload-btn { 
                             width: 38px; 
                             height: 38px; 
@@ -23136,6 +23145,8 @@ ${recruitmentInfo}
                         }
                         #financeAIOverlay .chat-input { padding: 8px; }
                         #financeAIOverlay .chat-compose { padding: 6px; }
+                        #financeAIOverlay .chat-textarea { padding: 10px 52px 10px 10px; min-height: 80px; }
+                        #financeAIOverlay .send-btn { width: 34px; height: 34px; right: 8px; bottom: 8px; }
                     }
                 </style>
                 
@@ -23328,21 +23339,26 @@ ${recruitmentInfo}
                             </div>
                             <div class="chat-history" id="financeChatHistory"></div>
                             <div class="chat-input">
-                                    <div class="chat-compose">
-                                        <div class="quick-prompts">
-                                            <button class="quick-btn" onclick="document.getElementById('financeMsg').value='Analyse budgétaire: Quels KPI dois-je suivre mensuellement ?'; document.getElementById('financeMsg').focus(); sendFinanceMessage();">KPIs budgétaires</button>
-                                            <button class="quick-btn" onclick="document.getElementById('financeMsg').value=&quot;Étude de marché: Impacts actuels de l'inflation&quot;; document.getElementById('financeMsg').focus(); sendFinanceMessage();">Marché</button>
-                                            <button class="quick-btn" onclick="document.getElementById('financeMsg').value='Comptabilité: Checklist clôture mensuelle'; document.getElementById('financeMsg').focus(); sendFinanceMessage();">Clôture</button>
-                                        </div>
-                                        <textarea id="financeMsg" class="chat-textarea" placeholder="Budget, comptabilité, analyse marché, trésorerie..." style="flex: 1; margin: 0;"></textarea>
+                                <div class="chat-compose">
+                                    <div class="quick-prompts">
+                                        <button class="quick-btn" onclick="const f=document.getElementById('financeMsg'); f.value='Analyse budgetaire: Quels KPI dois-je suivre mensuellement ?'; f.focus(); sendFinanceMessage();">KPIs budgetaires</button>
+                                        <button class="quick-btn" onclick="const f=document.getElementById('financeMsg'); f.value='Etude de marche: Impacts de l inflation'; f.focus(); sendFinanceMessage();">Marche</button>
+                                        <button class="quick-btn" onclick="const f=document.getElementById('financeMsg'); f.value='Comptabilite: Checklist cloture mensuelle'; f.focus(); sendFinanceMessage();">Cloture</button>
                                     </div>
+                                    <div class="chat-editor">
+                                        <textarea id="financeMsg" class="chat-textarea" placeholder="Budget, comptabilite, analyse marche, tresorerie..." style="flex: 1; margin: 0;"></textarea>
+                                        <button class="send-btn" id="financeSendBtn" onclick="sendFinanceMessage()" aria-label="Envoyer le message">
+                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                                <path d="M5 12h14" />
+                                                <path d="M13 6l6 6-6 6" />
+                                            </svg>
+                                        </button>
+                                    </div>
+                                </div>
                                 <div class="chat-actions">
                                     <input type="file" id="financeInvoiceFileInput" accept="application/pdf,image/*" style="display:none" onchange="onFinanceInvoiceSelected(event)" />
                                     <button class="upload-btn" title="Uploader une facture" onclick="openFinanceUpload()">
                                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-                                    </button>
-                                    <button class="send-btn" id="financeSendBtn" onclick="sendFinanceMessage()">
-                                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
                                     </button>
                                 </div>
                             </div>
@@ -23420,7 +23436,7 @@ ${recruitmentInfo}
             const defaultSendInner = sendBtn.dataset.defaultInner || sendBtn.innerHTML;
             sendBtn.dataset.defaultInner = defaultSendInner;
             sendBtn.disabled = true;
-            sendBtn.textContent = 'Analyse...';
+            sendBtn.classList.add('loading');
             
             setTimeout(() => {
                 try {
@@ -23653,6 +23669,7 @@ ${recruitmentInfo}
                     })
                     .finally(() => {
                         sendBtn.disabled = false;
+                        sendBtn.classList.remove('loading');
                         sendBtn.innerHTML = sendBtn.dataset.defaultInner || defaultSendInner;
                         textarea.focus();
                     });
@@ -23662,6 +23679,7 @@ ${recruitmentInfo}
                     errMsg.textContent = 'Erreur de connexion';
                     chatHist.appendChild(errMsg);
                     sendBtn.disabled = false;
+                    sendBtn.classList.remove('loading');
                     sendBtn.innerHTML = sendBtn.dataset.defaultInner || defaultSendInner;
                 }
             }, 500);
