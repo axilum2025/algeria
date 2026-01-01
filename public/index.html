@@ -22056,7 +22056,7 @@ ${recruitmentInfo}
         
         function showUploadCVModal() {
             const jobs = getHRData('recruitmentJobs');
-            const activeJobs = jobs.filter(j => j.status === 'active');
+            const activeJobs = jobs.filter(j => !j.status || j.status === 'active');
             
             if (activeJobs.length === 0) {
                 showToast('Créez d\'abord une offre d\'emploi', 'warning');
@@ -22201,9 +22201,24 @@ ${recruitmentInfo}
                         fileName: cvFile.name
                     })
                 });
-                
+
+                if (!response.ok) {
+                    let serverMessage = '';
+                    try {
+                        const maybeJson = await response.json();
+                        serverMessage = maybeJson?.error || maybeJson?.details || '';
+                    } catch (_) {
+                        const raw = await response.text().catch(() => '');
+                        serverMessage = raw && raw.length ? raw.slice(0, 180) : '';
+                    }
+                    const sizeHint = response.status === 413
+                        ? " (charge trop volumineuse — essayez un CV plus léger)"
+                        : '';
+                    throw new Error(`Erreur API parseCV: ${response.status}${sizeHint}${serverMessage ? ' — ' + serverMessage : ''}`);
+                }
+
                 const result = await response.json();
-                
+
                 if (!result.success) {
                     throw new Error(result.error || 'Erreur lors du parsing du CV');
                 }

@@ -30,8 +30,10 @@ const app = express();
 const PORT = process.env.PORT || 8080;
 
 app.use(cors());
-app.use(express.json({ limit: '5mb' }));
-app.use(express.urlencoded({ extended: true }));
+// Upload CV: le front envoie le fichier en base64 dans du JSON (≈ +33%).
+// 10 MB côté client peut dépasser 5 MB côté serveur -> augmenter la limite.
+app.use(express.json({ limit: '20mb' }));
+app.use(express.urlencoded({ extended: true, limit: '20mb' }));
 
 // Serve static files from public
 const publicDir = path.join(__dirname, 'public');
