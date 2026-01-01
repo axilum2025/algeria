@@ -13186,6 +13186,9 @@ ${persona}
                                     </div>
 
                                     <div class="hr-recruitment-actions-right" style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+                                        <button id="recruitmentShortlistFilterBtn" onclick="toggleRecruitmentShortlistOnly()" style="padding: 12px 16px; background: rgba(255,255,255,0.1); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 12px; color: white; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; font-size: 13px; transition: all 0.3s; backdrop-filter: blur(10px);" onmouseover="this.style.borderColor='#10b981'" onmouseout="this.style.borderColor='rgba(16, 185, 129, 0.3)'">
+                                            ⭐ Tout afficher
+                                        </button>
                                         <button onclick="showRecruitmentSettings()" style="padding: 12px 16px; background: rgba(255,255,255,0.1); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 12px; color: white; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; font-size: 13px; transition: all 0.3s; backdrop-filter: blur(10px);" onmouseover="this.style.background='rgba(16, 185, 129, 0.3)'; this.style.borderColor='#10b981'" onmouseout="this.style.background='rgba(255,255,255,0.1)'; this.style.borderColor='rgba(16, 185, 129, 0.3)'">
                                             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 1v6m0 6v6m6-12l-3 3m-6 6l-3 3m12 0l-3-3m-6-6l-3-3"/></svg>
                                             Scoring & Filtres
@@ -21778,6 +21781,30 @@ ${recruitmentInfo}
             renderCandidatesList(candidates);
             updateRecruitmentStats(jobs, candidates);
             populateJobFilter(jobs);
+            syncRecruitmentShortlistFilterButton();
+        }
+
+        let recruitmentShowShortlistOnly = false;
+
+        function syncRecruitmentShortlistFilterButton() {
+            const btn = document.getElementById('recruitmentShortlistFilterBtn');
+            if (!btn) return;
+
+            if (recruitmentShowShortlistOnly) {
+                btn.textContent = '⭐ Shortlist uniquement';
+                btn.style.background = 'rgba(16, 185, 129, 0.26)';
+                btn.style.borderColor = '#10b981';
+            } else {
+                btn.textContent = '⭐ Tout afficher';
+                btn.style.background = 'rgba(255,255,255,0.10)';
+                btn.style.borderColor = 'rgba(16, 185, 129, 0.3)';
+            }
+        }
+
+        function toggleRecruitmentShortlistOnly() {
+            recruitmentShowShortlistOnly = !recruitmentShowShortlistOnly;
+            syncRecruitmentShortlistFilterButton();
+            renderCandidatesList();
         }
         
         function updateRecruitmentStats(jobs, candidates) {
@@ -22519,6 +22546,10 @@ ${recruitmentInfo}
             let filtered = candidates;
             if (selectedJobId) {
                 filtered = candidates.filter(c => c.jobId === selectedJobId);
+            }
+
+            if (recruitmentShowShortlistOnly) {
+                filtered = filtered.filter(c => c.shortlisted === true);
             }
             
             if (filtered.length === 0) {
