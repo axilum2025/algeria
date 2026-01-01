@@ -10931,6 +10931,11 @@ ${persona}
             try {
                 if (!window.__hrUiState) window.__hrUiState = { activeTab: null, activeContentId: null, activeTabId: null, rendered: {}, dirty: {} };
 
+                // Petit cache en mémoire pour éviter des relectures localStorage fréquentes
+                if (dataType === 'companySettings') {
+                    window.__hrUiState.companySettings = data;
+                }
+
                 const hrTabs = ['dashboard', 'employees', 'leaves', 'payroll', 'reviews', 'turnover', 'recruitment'];
                 const markDirty = (tab) => { window.__hrUiState.dirty[tab] = true; };
 
@@ -17563,31 +17568,65 @@ KPIs GLOBAUX :
         }
         
         function updateHRStats(employees) {
+            const safeEmployees = Array.isArray(employees) ? employees : [];
+
+            // Calculer une seule fois (évite filter + reduce à chaque retour)
+            let activeCount = 0;
+            let totalSalary = 0;
+            for (let i = 0; i < safeEmployees.length; i++) {
+                const emp = safeEmployees[i] || {};
+                if (emp.status === 'active') activeCount++;
+                totalSalary += (emp.baseSalary || 0);
+            }
+
+            // Devise: utiliser un cache mémoire si dispo (setHRData('companySettings') l'alimente)
+            let companySettings = null;
+            try {
+                if (window.__hrUiState && window.__hrUiState.companySettings) {
+                    companySettings = window.__hrUiState.companySettings;
+                } else {
+                    companySettings = getHRData('companySettings', {});
+                    if (!window.__hrUiState) window.__hrUiState = { activeTab: null, activeContentId: null, activeTabId: null, rendered: {}, dirty: {} };
+                    window.__hrUiState.companySettings = companySettings;
+                }
+            } catch (e) {
+                companySettings = {};
+            }
+            const currency = (companySettings && companySettings.currency) ? companySettings.currency : 'DA';
+
+            // Early-return si rien n'a changé depuis la dernière mise à jour
+            const statsKey = `${safeEmployees.length}|${activeCount}|${totalSalary}|${currency}`;
+            if (window.__hrUiState) {
+                if (window.__hrUiState._dashboardStatsKey === statsKey) {
+                    return;
+                }
+                window.__hrUiState._dashboardStatsKey = statsKey;
+            }
+
             // Mettre à jour Total Employés
             const totalEmployeesEl = document.getElementById('hrStatTotalEmployees');
             const totalEmployeesLabelEl = document.getElementById('hrStatTotalEmployeesLabel');
             if (totalEmployeesEl) {
-                totalEmployeesEl.textContent = employees.length;
+                const nextCount = String(safeEmployees.length);
+                if (totalEmployeesEl.textContent !== nextCount) totalEmployeesEl.textContent = nextCount;
             }
             if (totalEmployeesLabelEl) {
-                if (employees.length === 0) {
-                    totalEmployeesLabelEl.textContent = 'Aucun employé';
-                } else if (employees.length === 1) {
-                    totalEmployeesLabelEl.textContent = '1 employé actif';
+                let nextLabel = '';
+                if (safeEmployees.length === 0) {
+                    nextLabel = 'Aucun employé';
+                } else if (safeEmployees.length === 1) {
+                    nextLabel = '1 employé actif';
                 } else {
-                    const activeCount = employees.filter(e => e.status === 'active').length;
-                    totalEmployeesLabelEl.textContent = `${activeCount} employé${activeCount > 1 ? 's' : ''} actif${activeCount > 1 ? 's' : ''}`;
+                    nextLabel = `${activeCount} employé${activeCount > 1 ? 's' : ''} actif${activeCount > 1 ? 's' : ''}`;
                 }
+                if (totalEmployeesLabelEl.textContent !== nextLabel) totalEmployeesLabelEl.textContent = nextLabel;
             }
-            
+
             // Mettre à jour Masse salariale
             const totalSalaryEl = document.getElementById('hrStatTotalSalary');
             if (totalSalaryEl) {
-                const totalSalary = employees.reduce((sum, emp) => sum + (emp.baseSalary || 0), 0);
-                // Récupérer la devise depuis les paramètres de l'entreprise
-                const companySettings = getHRData('companySettings', {});
-                const currency = companySettings.currency || 'DA';
-                totalSalaryEl.textContent = totalSalary.toLocaleString('fr-DZ') + ' ' + currency;
+                const nextSalaryText = totalSalary.toLocaleString('fr-DZ') + ' ' + currency;
+                if (totalSalaryEl.textContent !== nextSalaryText) totalSalaryEl.textContent = nextSalaryText;
             }
         }
         
