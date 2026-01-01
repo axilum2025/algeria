@@ -64,29 +64,85 @@ module.exports = async function (context, req) {
 
         // STEP 1: Extract text using Azure Vision OCR
         context.log('🔍 Step 1: Extracting text with Azure Vision OCR...');
-        const analyzeUrl = `${visionEndpoint}/computervision/imageanalysis:analyze?api-version=2024-02-01&features=read`;
+        const baseUrl = String(visionEndpoint || '').replace(/\/+$/, '');
 
-        const visionResponse = await fetch(analyzeUrl, {
-            method: 'POST',
-            headers: {
-                'Ocp-Apim-Subscription-Key': visionKey,
-                'Content-Type': 'application/octet-stream'
-            },
-            body: imageBuffer
-        });
+        let extractedText = '';
+        const isPdf = String(fileType || '').toLowerCase() === 'pdf' || String(fileName || '').toLowerCase().endsWith('.pdf');
 
-        if (!visionResponse.ok) {
-            const errorText = await visionResponse.text();
-            context.log.error('❌ Azure Vision Error:', visionResponse.status, errorText);
-            throw new Error(`Azure Vision API error: ${visionResponse.status}`);
+        if (isPdf) {
+            // PDF: utiliser Computer Vision Read API (async)
+            const readUrl = `${baseUrl}/vision/v3.2/read/analyze`;
+            const startResp = await fetch(readUrl, {
+                method: 'POST',
+                headers: {
+                    'Ocp-Apim-Subscription-Key': visionKey,
+                    'Content-Type': 'application/octet-stream'
+                },
+                body: imageBuffer
+            });
+
+            if (startResp.status !== 202) {
+                const errorText = await startResp.text().catch(() => '');
+                context.log.error('❌ Azure Vision Read Error:', startResp.status, errorText);
+                throw new Error(`Azure Vision Read API error: ${startResp.status}`);
+            }
+
+            const opLoc = startResp.headers.get('operation-location') || startResp.headers.get('Operation-Location');
+            if (!opLoc) {
+                throw new Error('Azure Vision Read API: operation-location manquant');
+            }
+
+            const maxTries = 25;
+            const delayMs = 900;
+            let readResult = null;
+            for (let i = 0; i < maxTries; i++) {
+                await new Promise(res => setTimeout(res, delayMs));
+                const pollResp = await fetch(opLoc, {
+                    headers: { 'Ocp-Apim-Subscription-Key': visionKey }
+                });
+                const pollJson = await pollResp.json().catch(() => null);
+                if (!pollJson) continue;
+                if (pollJson.status === 'succeeded') {
+                    readResult = pollJson;
+                    break;
+                }
+                if (pollJson.status === 'failed') {
+                    break;
+                }
+            }
+
+            if (!readResult || readResult.status !== 'succeeded') {
+                throw new Error('Azure Vision Read: analyse non terminée ou échouée');
+            }
+
+            const lines = ((readResult.analyzeResult && readResult.analyzeResult.readResults) || [])
+                .flatMap(p => p.lines || [])
+                .map(l => l.text || '')
+                .filter(t => t && t.trim().length);
+            extractedText = lines.join('\n');
+        } else {
+            // Images: Image Analysis (sync)
+            const analyzeUrl = `${baseUrl}/computervision/imageanalysis:analyze?api-version=2024-02-01&features=read`;
+            const visionResponse = await fetch(analyzeUrl, {
+                method: 'POST',
+                headers: {
+                    'Ocp-Apim-Subscription-Key': visionKey,
+                    'Content-Type': 'application/octet-stream'
+                },
+                body: imageBuffer
+            });
+
+            if (!visionResponse.ok) {
+                const errorText = await visionResponse.text().catch(() => '');
+                context.log.error('❌ Azure Vision Error:', visionResponse.status, errorText);
+                throw new Error(`Azure Vision API error: ${visionResponse.status}`);
+            }
+
+            const visionData = await visionResponse.json();
+            extractedText = visionData.readResult?.blocks
+                ?.flatMap(block => block.lines.map(line => line.text))
+                .join('\n') || '';
         }
-
-        const visionData = await visionResponse.json();
-
-        // Extract all text from OCR
-        const extractedText = visionData.readResult?.blocks
-            ?.flatMap(block => block.lines.map(line => line.text))
-            .join('\n') || '';
 
         if (!extractedText || extractedText.trim().length < 50) {
             context.res.status = 400;

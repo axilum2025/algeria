@@ -12416,9 +12416,15 @@ ${persona}
                     }
 
                     /* Responsive - Onglet Recrutement (HR) */
+                    #hrContentRecruitment > .hr-close-btn {
+                        top: 84px;
+                    }
                     @media (max-width: 768px) {
                         #hrContentRecruitment {
                             padding: 12px !important;
+                        }
+                        #hrContentRecruitment > .hr-close-btn {
+                            top: 72px;
                         }
                         #hrContentRecruitment .hr-recruitment-rgpd {
                             padding: 18px !important;
@@ -21776,10 +21782,23 @@ ${recruitmentInfo}
         // ========== FIN TURNOVER PREDICTION ==========
         
         // ========== CV SCREENING & RECRUITMENT ==========
+
+        function getRecruitmentArray(storageKey) {
+            const value = getHRData(storageKey, []);
+            if (Array.isArray(value)) return value;
+            console.warn(`[Recruitment] Données invalides pour ${storageKey}, reset`, value);
+            setHRData(storageKey, []);
+            return [];
+        }
+
+        function isRecruitmentJobActive(job) {
+            const status = String(job?.status ?? 'active').toLowerCase();
+            return status === 'active' || status === 'actif' || status === 'open' || status === 'ouverte' || status === 'ouvert';
+        }
         
         function initializeRecruitmentData() {
-            const jobs = getHRData('recruitmentJobs');
-            const candidates = getHRData('recruitmentCandidates');
+            const jobs = getRecruitmentArray('recruitmentJobs');
+            const candidates = getRecruitmentArray('recruitmentCandidates');
             
             renderCandidatesList(candidates);
             updateRecruitmentStats(jobs, candidates);
@@ -21811,11 +21830,14 @@ ${recruitmentInfo}
         }
         
         function updateRecruitmentStats(jobs, candidates) {
-            const activeJobs = jobs.filter(j => j.status === 'active').length;
-            const totalCVs = candidates.length;
-            const shortlist = candidates.filter(c => c.shortlisted === true).length;
-            const avgScore = candidates.length > 0 ? 
-                Math.round(candidates.reduce((sum, c) => sum + c.matchScore, 0) / candidates.length) : 0;
+            const safeJobs = Array.isArray(jobs) ? jobs : [];
+            const safeCandidates = Array.isArray(candidates) ? candidates : [];
+
+            const activeJobs = safeJobs.filter(isRecruitmentJobActive).length;
+            const totalCVs = safeCandidates.length;
+            const shortlist = safeCandidates.filter(c => c.shortlisted === true).length;
+            const avgScore = safeCandidates.length > 0 ?
+                Math.round(safeCandidates.reduce((sum, c) => sum + c.matchScore, 0) / safeCandidates.length) : 0;
             
             const activeJobsEl = document.getElementById('activeJobsCount');
             const totalCVsEl = document.getElementById('totalCVsCount');
@@ -21918,9 +21940,11 @@ ${recruitmentInfo}
         function populateJobFilter(jobs) {
             const select = document.getElementById('jobFilterSelect');
             if (!select) return;
+
+            const safeJobs = Array.isArray(jobs) ? jobs : [];
             
             select.innerHTML = '<option value="">Toutes les offres</option>' + 
-                jobs.filter(j => j.status === 'active').map(job => 
+                safeJobs.filter(isRecruitmentJobActive).map(job => 
                     `<option value="${job.id}">${job.title}</option>`
                 ).join('');
         }
@@ -22055,8 +22079,8 @@ ${recruitmentInfo}
         }
         
         function showUploadCVModal() {
-            const jobs = getHRData('recruitmentJobs');
-            const activeJobs = jobs.filter(j => !j.status || j.status === 'active');
+            const jobs = getRecruitmentArray('recruitmentJobs');
+            const activeJobs = jobs.filter(isRecruitmentJobActive);
             
             if (activeJobs.length === 0) {
                 showToast('Créez d\'abord une offre d\'emploi', 'warning');
