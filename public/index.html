@@ -23009,6 +23009,7 @@ ${recruitmentInfo}
                     #financeAIOverlay .chat-msg.bot { background: rgba(16,185,129,0.08); border-color: rgba(16,185,129,0.18); color: #d1fae5; }
                     
                     #financeAIOverlay .chat-input { display: grid; gap: 10px; padding: 12px; border-radius: 12px; border: 1px solid rgba(148,163,184,0.2); background: rgba(15,23,42,0.85); position: sticky; bottom: 0; z-index: 5; overflow: visible; backdrop-filter: blur(8px); box-shadow: 0 10px 30px rgba(0,0,0,0.3); }
+                    #financeAIOverlay .chat-compose { display: grid; gap: 8px; padding: 10px; border-radius: 12px; border: 1px solid rgba(148,163,184,0.26); background: rgba(255,255,255,0.03); }
                     #financeAIOverlay .chat-actions { display: flex; gap: 8px; justify-content: flex-end; align-items: center; }
                     #financeAIOverlay .chat-textarea { width: 100%; min-height: 140px; background: rgba(255,255,255,0.03); border: 1px solid rgba(148,163,184,0.22); border-radius: 12px; padding: 14px; color: #e2e8f0; font-size: 13px; resize: vertical; font-family: inherit; }
                     #financeAIOverlay .quick-prompts { display: flex; gap: 6px; flex-wrap: wrap; }
@@ -23073,6 +23074,11 @@ ${recruitmentInfo}
                             padding: 16px; 
                             border-radius: 12px;
                         }
+                        #financeAIOverlay .chat-input { 
+                            padding: 10px; 
+                            bottom: 0; 
+                        }
+                        #financeAIOverlay .chat-compose { padding: 8px; }
                         #financeAIOverlay .tools-title { font-size: 16px; }
                         #financeAIOverlay .tool-card { padding: 12px; }
                         #financeAIOverlay .tool-name { font-size: 13px; }
@@ -23086,6 +23092,11 @@ ${recruitmentInfo}
                             height: 38px; 
                             padding: 8px;
                         }
+                        #financeAIOverlay .chat-input { 
+                            padding: 10px; 
+                            bottom: 0; 
+                        }
+                        #financeAIOverlay .chat-compose { padding: 8px; }
                         #financeAIOverlay .history-panel { 
                             width: calc(100% - 32px);
                             max-width: none;
@@ -23124,6 +23135,7 @@ ${recruitmentInfo}
                             white-space: nowrap;
                         }
                         #financeAIOverlay .chat-input { padding: 8px; }
+                        #financeAIOverlay .chat-compose { padding: 6px; }
                     }
                 </style>
                 
@@ -23316,11 +23328,14 @@ ${recruitmentInfo}
                             </div>
                             <div class="chat-history" id="financeChatHistory"></div>
                             <div class="chat-input">
-                                <div class="quick-prompts">
-                                    <button class="quick-btn" onclick="document.getElementById('financeMsg').value='Analyse budgétaire: Quels KPI dois-je suivre mensuellement ?'; document.getElementById('financeMsg').focus(); sendFinanceMessage();">KPIs budgétaires</button>
-                                    <button class="quick-btn" onclick="document.getElementById('financeMsg').value=&quot;Étude de marché: Impacts actuels de l'inflation&quot;; document.getElementById('financeMsg').focus(); sendFinanceMessage();">Marché</button>
-                                    <button class="quick-btn" onclick="document.getElementById('financeMsg').value='Comptabilité: Checklist clôture mensuelle'; document.getElementById('financeMsg').focus(); sendFinanceMessage();">Clôture</button>
-                                </div>
+                                    <div class="chat-compose">
+                                        <div class="quick-prompts">
+                                            <button class="quick-btn" onclick="document.getElementById('financeMsg').value='Analyse budgétaire: Quels KPI dois-je suivre mensuellement ?'; document.getElementById('financeMsg').focus(); sendFinanceMessage();">KPIs budgétaires</button>
+                                            <button class="quick-btn" onclick="document.getElementById('financeMsg').value=&quot;Étude de marché: Impacts actuels de l'inflation&quot;; document.getElementById('financeMsg').focus(); sendFinanceMessage();">Marché</button>
+                                            <button class="quick-btn" onclick="document.getElementById('financeMsg').value='Comptabilité: Checklist clôture mensuelle'; document.getElementById('financeMsg').focus(); sendFinanceMessage();">Clôture</button>
+                                        </div>
+                                        <textarea id="financeMsg" class="chat-textarea" placeholder="Budget, comptabilité, analyse marché, trésorerie..." style="flex: 1; margin: 0;"></textarea>
+                                    </div>
                                 <div class="chat-actions">
                                     <input type="file" id="financeInvoiceFileInput" accept="application/pdf,image/*" style="display:none" onchange="onFinanceInvoiceSelected(event)" />
                                     <button class="upload-btn" title="Uploader une facture" onclick="openFinanceUpload()">
@@ -23330,7 +23345,6 @@ ${recruitmentInfo}
                                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
                                     </button>
                                 </div>
-                                <textarea id="financeMsg" class="chat-textarea" placeholder="Budget, comptabilité, analyse marché, trésorerie..." style="flex: 1; margin: 0;"></textarea>
                             </div>
                         </div>
                     </div>
