@@ -23392,6 +23392,17 @@ ${recruitmentInfo}
             if (historyPanel && historyPanel.style.display === 'block') historyPanel.style.display = 'none';
             if (settingsPanel && settingsPanel.style.display === 'block') settingsPanel.style.display = 'none';
 
+            // Ajuster la largeur du drawer en fonction de la taille écran
+            const toolsPanel = overlay.querySelector('.finance-tools');
+            if (toolsPanel) {
+                const vw = window.innerWidth || 0;
+                let width = '50vw';
+                if (vw <= 480) width = '92vw';
+                else if (vw <= 768) width = '90vw';
+                else if (vw <= 1024) width = '70vw';
+                toolsPanel.style.width = width;
+            }
+
             overlay.classList.toggle('tools-open');
 
             // Caler le drawer sous le header (évite de recouvrir les boutons)
