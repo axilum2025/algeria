@@ -16,6 +16,86 @@ function normalizeWhitespace(text) {
   return String(text || '').replace(/\s+/g, ' ').replace(/\u00a0/g, ' ').trim();
 }
 
+function normalizeUrl(url) {
+  const u = String(url || '').trim();
+  if (!u) return '';
+  return u
+    .replace(/^https?:\/\//i, '')
+    .replace(/^www\./i, '')
+    .replace(/#.*$/, '')
+    .replace(/\?.*$/, '')
+    .replace(/\/+$/, '')
+    .toLowerCase();
+}
+
+function tokenize(text) {
+  return normalizeWhitespace(text)
+    .toLowerCase()
+    .split(/[^\p{L}\p{N}]+/u)
+    .filter(Boolean)
+    .filter(t => t.length >= 3);
+}
+
+function uniqByKey(items, getKey) {
+  const out = [];
+  const seen = new Set();
+  for (const it of Array.isArray(items) ? items : []) {
+    const key = getKey(it);
+    if (!key) continue;
+    if (seen.has(key)) continue;
+    seen.add(key);
+    out.push(it);
+  }
+  return out;
+}
+
+function isLikelyIrrelevantSemanticScholarResult({ query, title, abstract }) {
+  const q = normalizeWhitespace(query);
+  if (!q) return false;
+
+  const haystack = `${normalizeWhitespace(title)} ${normalizeWhitespace(abstract)}`.toLowerCase();
+  if (!haystack.trim()) return true;
+
+  // If the user question is about AI, require at least a weak AI signal.
+  const qLower = q.toLowerCase();
+  const queryIsAboutAi = /\b(ia|ai)\b/.test(qLower)
+    || qLower.includes('intelligence artificielle')
+    || qLower.includes('artificial intelligence')
+    || qLower.includes('générative')
+    || qLower.includes('generative');
+
+  const aiSignals = [
+    'artificial intelligence',
+    'intelligence artificielle',
+    'machine learning',
+    'deep learning',
+    'large language model',
+    'language model',
+    'llm',
+    'transformer',
+    'diffusion',
+    'generative',
+    'générative',
+    'foundation model',
+    'agent',
+    'retrieval',
+    'rag'
+  ];
+  const hasAiSignal = aiSignals.some(s => haystack.includes(s));
+  if (queryIsAboutAi && !hasAiSignal) return true;
+
+  // Otherwise, keep results that overlap with the query.
+  const qTokens = new Set(tokenize(q));
+  if (qTokens.size === 0) return false;
+  const hTokens = new Set(tokenize(haystack));
+  let overlap = 0;
+  for (const t of qTokens) {
+    if (hTokens.has(t)) overlap += 1;
+  }
+  // If no overlap at all, it's likely off-topic.
+  return overlap === 0;
+}
+
 function maxSourceIndexFromContext(ctx) {
   const text = String(ctx || '');
   let max = 0;
@@ -46,7 +126,11 @@ function formatEvidenceBlock({ id, title, url, snippet, extracts }) {
 }
 
 function appendEvidenceContext(existingContext, sources, { header } = {}) {
-  const list = Array.isArray(sources) ? sources.filter(Boolean) : [];
+  const listRaw = Array.isArray(sources) ? sources.filter(Boolean) : [];
+  const list = uniqByKey(
+    listRaw,
+    (s) => normalizeUrl(s?.url) || normalizeWhitespace(s?.title || '').toLowerCase()
+  );
   if (list.length === 0) return String(existingContext || '');
 
   let ctx = String(existingContext || '');
@@ -179,10 +263,17 @@ async function searchSemanticScholar(query, {
   limit = 2,
   timeoutMs = 5000
 } = {}) {
-  const q = normalizeWhitespace(query);
+  const rawQ = normalizeWhitespace(query);
+  let q = rawQ;
   const lim = Math.max(1, Math.min(10, Number(limit) || 2));
   const key = String(apiKey || '').trim();
   if (!q) return [];
+
+  // Help Semantic Scholar understand French "IA" queries by adding an English hint.
+  const qLower = q.toLowerCase();
+  if (/\bia\b/.test(qLower) && !qLower.includes('artificial intelligence') && !qLower.includes('intelligence artificielle')) {
+    q = `${q} artificial intelligence`;
+  }
 
   const { signal, clear } = withTimeout(timeoutMs);
   try {
@@ -213,7 +304,7 @@ async function searchSemanticScholar(query, {
     const data = await resp.json();
     const papers = Array.isArray(data?.data) ? data.data : [];
 
-    return papers.slice(0, lim).map((p) => {
+    const mapped = papers.slice(0, lim).map((p) => {
       const title = normalizeWhitespace(p?.title || '(sans titre)');
       const venue = normalizeWhitespace(p?.venue || '');
       const year = p?.year ? String(p.year) : '';
@@ -243,6 +334,18 @@ async function searchSemanticScholar(query, {
         extracts
       };
     }).filter(r => r.url);
+
+    // Filter out clearly off-topic results (ex: unrelated papers).
+    const filtered = mapped.filter((r) => !isLikelyIrrelevantSemanticScholarResult({
+      query: rawQ,
+      title: r?.title,
+      abstract: Array.isArray(r?.extracts) ? r.extracts.join(' ') : ''
+    }));
+
+    return uniqByKey(
+      filtered,
+      (r) => normalizeUrl(r?.url) || normalizeWhitespace(r?.title || '').toLowerCase()
+    ).slice(0, lim);
   } catch (_) {
     return [];
   } finally {
