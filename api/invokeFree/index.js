@@ -8,6 +8,7 @@ const { analyzeHallucination } = require('../utils/hallucinationDetector');
 const { buildSystemPromptForAgent, normalizeAgentId } = require('../utils/agentRegistry');
 const { orchestrateMultiAgents, callGroqChatCompletion } = require('../utils/orchestrator');
 const { buildWebEvidenceContext } = require('../utils/webEvidence');
+const { appendEvidenceContext, searchWikipedia, searchNewsApi } = require('../utils/sourceProviders');
 
 // Fonction RAG - Recherche Brave
 async function searchBrave(query, apiKey) {
@@ -196,6 +197,33 @@ module.exports = async function (context, req) {
         } catch (ragError) {
             context.log.warn('⚠️ RAG search failed, continuing without it:', ragError.message);
             // Continue sans RAG
+        }
+
+        // 🔎 Sources additionnelles (Wesh): Wikipedia + NewsAPI (preuves)
+        if (forceWebSearch) {
+            try {
+                const isGreeting = /^(\s)*(bonjour|salut|hello|hi|coucou|bonsoir|ça va|cv)(\s|!|\?|\.|,)*$/i.test(String(userMessage || ''));
+                const wikiEnabled = String(process.env.WESH_WIKIPEDIA_ENABLED ?? 'true').toLowerCase() !== 'false';
+                const newsEnabled = String(process.env.WESH_NEWSAPI_ENABLED ?? 'true').toLowerCase() !== 'false';
+                const newsApiKey = process.env.APPSETTING_NEWSAPI_KEY || process.env.NEWSAPI_KEY;
+
+                const wikiLimit = Math.max(0, Math.min(5, Number(process.env.WESH_WIKIPEDIA_MAX ?? 2) || 2));
+                const newsLimit = Math.max(0, Math.min(5, Number(process.env.WESH_NEWSAPI_MAX ?? 3) || 3));
+
+                if (!isGreeting) {
+                    const wiki = (wikiEnabled && wikiLimit > 0)
+                        ? await searchWikipedia(userMessage, { lang: 'fr', limit: wikiLimit, timeoutMs: 5000 })
+                        : [];
+
+                    const news = (newsEnabled && newsApiKey && newsLimit > 0)
+                        ? await searchNewsApi(userMessage, { apiKey: newsApiKey, language: 'fr', pageSize: newsLimit, timeoutMs: 5000 })
+                        : [];
+
+                    contextFromSearch = appendEvidenceContext(contextFromSearch, [...wiki, ...news]);
+                }
+            } catch (e) {
+                context.log.warn('⚠️ Sources additionnelles Wesh indisponibles:', e?.message || e);
+            }
         }
 
         // Construire les messages

@@ -7,6 +7,7 @@ const { detectFunctions, orchestrateFunctions, summarizeResults } = require('../
 const { callGroqWithRateLimit, globalRateLimiter } = require('../utils/rateLimiter');
 const { buildWebEvidenceContext } = require('../utils/webEvidence');
 const { buildSystemPromptForAgent } = require('../utils/agentRegistry');
+const { appendEvidenceContext, searchWikipedia, searchNewsApi } = require('../utils/sourceProviders');
 
 // Fonction RAG - Recherche Brave (simple)
 async function searchBrave(query, apiKey) {
@@ -104,6 +105,33 @@ module.exports = async function (context, req) {
                 }
             }
         } catch (_) {}
+
+        // 🔎 Sources additionnelles (Wesh): Wikipedia + NewsAPI (preuves)
+        if (forceWebSearch) {
+            try {
+                const isGreeting = /^(\s)*(bonjour|salut|hello|hi|coucou|bonsoir|ça va|cv)(\s|!|\?|\.|,)*$/i.test(String(userMessage || ''));
+                const wikiEnabled = String(process.env.WESH_WIKIPEDIA_ENABLED ?? 'true').toLowerCase() !== 'false';
+                const newsEnabled = String(process.env.WESH_NEWSAPI_ENABLED ?? 'true').toLowerCase() !== 'false';
+                const newsApiKey = process.env.APPSETTING_NEWSAPI_KEY || process.env.NEWSAPI_KEY;
+
+                const wikiLimit = Math.max(0, Math.min(5, Number(process.env.WESH_WIKIPEDIA_MAX ?? 2) || 2));
+                const newsLimit = Math.max(0, Math.min(5, Number(process.env.WESH_NEWSAPI_MAX ?? 3) || 3));
+
+                if (!isGreeting) {
+                    const wiki = (wikiEnabled && wikiLimit > 0)
+                        ? await searchWikipedia(userMessage, { lang: 'fr', limit: wikiLimit, timeoutMs: 5000 })
+                        : [];
+
+                    const news = (newsEnabled && newsApiKey && newsLimit > 0)
+                        ? await searchNewsApi(userMessage, { apiKey: newsApiKey, language: 'fr', pageSize: newsLimit, timeoutMs: 5000 })
+                        : [];
+
+                    contextFromSearch = appendEvidenceContext(contextFromSearch, [...wiki, ...news]);
+                }
+            } catch (e) {
+                context.log.warn('⚠️ Sources additionnelles Wesh indisponibles:', e?.message || e);
+            }
+        }
 
         // 1. 🎯 DÉTECTION DES FONCTIONS NÉCESSAIRES
         const neededFunctions = detectFunctions(userMessage);
