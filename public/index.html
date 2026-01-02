@@ -23372,7 +23372,6 @@ ${recruitmentInfo}
             
             // Fermer le panneau des paramètres s'il est ouvert
             if (overlay) overlay.classList.remove('settings-open');
-            if (settingsPanel) settingsPanel.style.display = '';
             
             if (panel.style.display === 'none' || !panel.style.display) {
                 panel.style.display = 'block';
@@ -23390,7 +23389,6 @@ ${recruitmentInfo}
             const historyPanel = document.getElementById('financeHistoryPanel');
             const settingsPanel = document.getElementById('financeSettingsPanel');
             if (historyPanel && historyPanel.style.display === 'block') historyPanel.style.display = 'none';
-            if (settingsPanel) settingsPanel.style.display = '';
 
             // Fermer le drawer Paramètres s'il est ouvert
             overlay.classList.remove('settings-open');
@@ -23420,9 +23418,6 @@ ${recruitmentInfo}
             const panel = document.getElementById('financeSettingsPanel');
             const historyPanel = document.getElementById('financeHistoryPanel');
             if (!overlay || !panel) return;
-
-            // S'assurer que le panel n'est pas bloqué par un display:none inline
-            panel.style.display = '';
 
             // Fermer le panneau historique s'il est ouvert
             if (historyPanel && historyPanel.style.display === 'block') {
@@ -23755,7 +23750,7 @@ ${recruitmentInfo}
                         right: 0;
                         height: calc(100% - var(--finance-header-height, 96px));
                         width: 50vw;
-                        display: block;
+                        display: none;
                         max-height: none;
                         overflow-y: auto;
                         overflow-x: hidden;
@@ -23771,6 +23766,7 @@ ${recruitmentInfo}
                         will-change: transform;
                     }
                     #financeAIOverlay.settings-open #financeSettingsPanel {
+                        display: block;
                         transform: translateX(0);
                         pointer-events: auto;
                     }
@@ -24000,7 +23996,7 @@ ${recruitmentInfo}
                     <div class="finance-settings-backdrop" onclick="toggleFinanceSettings()" aria-hidden="true"></div>
                     
                     <!-- Panneau des paramètres entreprise -->
-                    <div id="financeSettingsPanel" class="history-panel" style="transform: translateX(110%);">
+                    <div id="financeSettingsPanel" class="history-panel">
                         <div class="history-header">
                             <div class="history-title">⚙️ Paramètres Entreprise</div>
                             <button class="history-close" onclick="toggleFinanceSettings()">
