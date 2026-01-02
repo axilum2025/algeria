@@ -461,13 +461,13 @@ Pour commencer, sélectionnez vos langues dans le panneau latéral et saisissez 
                                     onkeydown="if(event.key === 'Enter' && !event.shiftKey) { event.preventDefault(); window.sendTextProMessage(); }"
                                     oninput="window.updateTextProCounter()"
                                 ></textarea>
-                                <button class="send-btn textpro-send-btn" onclick="window.sendTextProMessage()" title="Envoyer le message">
+                                <button class="textpro-icon-btn textpro-send-btn" onclick="window.sendTextProMessage()" title="Envoyer le message">
                                     ${SVGIcons.send}
                                 </button>
-                                <button class="input-icon-btn textpro-mic-btn" id="textProMicBtn" onclick="window.toggleTextProRecording()" title="Enregistrer un message vocal">
+                                <button class="textpro-icon-btn textpro-mic-btn" id="textProMicBtn" onclick="window.toggleTextProRecording()" title="Enregistrer un message vocal">
                                     ${SVGIcons.microphone}
                                 </button>
-                                <button class="input-icon-btn textpro-translate-btn" id="textProTranslateBtn" onclick="window.toggleInstantTranslation()" title="Traduction vocale instantanée">
+                                <button class="textpro-icon-btn textpro-translate-btn" id="textProTranslateBtn" onclick="window.toggleInstantTranslation()" title="Traduction vocale instantanée">
                                     ${SVGIcons.globe}
                                 </button>
                             </div>
@@ -1309,11 +1309,51 @@ Pour commencer, sélectionnez vos langues dans le panneau latéral et saisissez 
                 background: transparent;
                 outline: none;
                 font-size: 15px;
-                color: var(--text-primary);
+                color: white;
                 resize: none;
                 min-height: 24px;
                 line-height: 1.5;
                 padding: 6px 8px;
+            }
+
+            /* Boutons icônes (style chat principal: SVG sans carré/cercle visible) */
+            .textpro-icon-btn {
+                background: transparent;
+                border: none;
+                border-radius: 0;
+                width: 36px;
+                height: 36px;
+                padding: 0;
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                cursor: pointer;
+                color: var(--tp-primary);
+                flex-shrink: 0;
+                transition: transform 0.2s ease, opacity 0.2s ease;
+            }
+
+            .textpro-icon-btn svg {
+                width: 22px;
+                height: 22px;
+            }
+
+            .textpro-icon-btn:hover:not(:disabled) {
+                transform: scale(1.08);
+                opacity: 0.95;
+            }
+
+            .textpro-icon-btn:disabled {
+                opacity: 0.35;
+                cursor: not-allowed;
+            }
+
+            .textpro-mic-btn,
+            .textpro-translate-btn,
+            .textpro-send-btn {
+                background: transparent;
+                border: none;
+                border-radius: 0;
             }
             
             .textpro-chat-textarea:focus {
