@@ -910,11 +910,9 @@
 
     <script>
         function returnToMainChat() {
-            // Si la page a été ouverte dans un nouvel onglet (ancienne behavior), tenter de fermer.
-            try { window.close(); } catch (e) {}
-
-            // Si la fenêtre ne se ferme pas (cas courant: même onglet), revenir au chat.
-            const fallbackUrl = '/index.html';
+            // Revenir au chat principal sans fermer l'onglet.
+            // (window.close() peut quitter l'app et fermer la page)
+            const fallbackUrl = '/';
 
             // 1) Préférer l'historique (retour exact au chat)
             if (window.history && window.history.length > 1) {
