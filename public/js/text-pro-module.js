@@ -1211,9 +1211,9 @@ Pour commencer, sélectionnez vos langues dans le panneau latéral et saisissez 
                 .textpro-mic-btn,
                 .textpro-translate-btn,
                 .textpro-send-btn {
-                    width: 42px;
-                    height: 42px;
-                    border-radius: 10px;
+                    width: 32px;
+                    height: 32px;
+                    border-radius: 8px;
                 }
             }
 
@@ -1318,29 +1318,29 @@ Pour commencer, sélectionnez vos langues dans le panneau latéral et saisissez 
 
             /* Boutons icônes (style chat principal: SVG sans carré/cercle visible) */
             .textpro-icon-btn {
-                background: transparent;
+                background: none;
                 border: none;
-                border-radius: 0;
-                width: 36px;
-                height: 36px;
-                padding: 0;
+                color: var(--tp-muted);
+                cursor: pointer;
+                width: 32px;
+                height: 32px;
+                padding: 6px;
+                border-radius: 8px;
+                transition: all 0.2s;
                 display: inline-flex;
                 align-items: center;
                 justify-content: center;
-                cursor: pointer;
-                color: var(--tp-primary);
                 flex-shrink: 0;
-                transition: transform 0.2s ease, opacity 0.2s ease;
             }
 
             .textpro-icon-btn svg {
-                width: 22px;
-                height: 22px;
+                width: 20px;
+                height: 20px;
             }
 
             .textpro-icon-btn:hover:not(:disabled) {
-                transform: scale(1.08);
-                opacity: 0.95;
+                background: var(--tp-panel-bg-strong);
+                color: white;
             }
 
             .textpro-icon-btn:disabled {
@@ -1424,35 +1424,12 @@ Pour commencer, sélectionnez vos langues dans le panneau latéral et saisissez 
             }
             
             .textpro-send-btn {
-                width: 48px;
-                height: 48px;
-                padding: 0;
-                background: linear-gradient(135deg, #3b82f6, #06b6d4);
-                border: none;
-                border-radius: 10px;
-                color: white;
-                font-weight: 600;
-                font-size: 14px;
-                cursor: pointer;
-                transition: all 0.3s ease;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-            }
-            
-            .textpro-send-btn svg {
-                width: 20px;
-                height: 20px;
+                color: var(--tp-primary);
             }
             
             .textpro-send-btn:hover:not(:disabled) {
-                transform: translateY(-2px);
-                box-shadow: 0 6px 16px rgba(59, 130, 246, 0.4);
-            }
-            
-            .textpro-send-btn:disabled {
-                opacity: 0.5;
-                cursor: not-allowed;
+                background: var(--tp-panel-bg-strong);
+                color: white;
             }
             
             .textpro-counter {
@@ -1584,29 +1561,12 @@ Pour commencer, sélectionnez vos langues dans le panneau latéral et saisissez 
             }
             
             .textpro-translate-btn {
-                width: 48px;
-                height: 48px;
-                padding: 0;
-                background: rgba(59, 130, 246, 0.18);
-                border: 1px solid var(--tp-border-strong);
-                border-radius: 10px;
-                color: var(--tp-primary);
-                cursor: pointer;
-                transition: all 0.3s ease;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-            }
-            
-            .textpro-translate-btn svg {
-                width: 20px;
-                height: 20px;
+                color: var(--tp-muted);
             }
             
             .textpro-translate-btn:hover {
-                background: rgba(59, 130, 246, 0.28);
-                transform: translateY(-2px);
-                box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+                background: var(--tp-panel-bg-strong);
+                color: white;
             }
             
             .textpro-translate-btn.translating {
