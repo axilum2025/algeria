@@ -158,9 +158,7 @@ Tu aides sur: positionnement, contenu, SEO, ads, emails, funnels, analytics, go-
 
 Réponds en français, clair et orienté résultats.`
                             : (chatType === 'web-search' || chatType === 'rnd-web-search')
-                                ? (/\[S\d+\]/.test(String(contextFromSearch || ''))
-                                    ? buildSystemPromptForAgent('web-search', contextFromSearch)
-                                    : buildSystemPromptForAgent('axilum', ''))
+                                ? buildSystemPromptForAgent('web-search', contextFromSearch)
                                 : (chatType === 'excel-expert' || chatType === 'excel-ai-expert')
                                     ? `Tu es Agent Excel.
 
