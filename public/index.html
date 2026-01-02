@@ -17020,13 +17020,13 @@ ${persona}
                     </div>
                     
                     <div class="mkt-tabs">
-                        <button class="mkt-tab active" onclick="showMarketingTab('dashboard')">Dashboard</button>
-                        <button class="mkt-tab" onclick="showMarketingTab('campagnes')">Campagnes</button>
-                        <button class="mkt-tab" onclick="showMarketingTab('personas')">Personas</button>
-                        <button class="mkt-tab" onclick="showMarketingTab('contenu')">Contenu</button>
-                        <button class="mkt-tab" onclick="showMarketingTab('business')">Business</button>
-                        <button class="mkt-tab" onclick="showMarketingTab('analytics')">Analytics</button>
-                        <button class="mkt-tab" onclick="showMarketingTab('agent')">Agent mark</button>
+                        <button class="mkt-tab active" onclick="showMarketingTab('dashboard', this)">Dashboard</button>
+                        <button class="mkt-tab" onclick="showMarketingTab('campagnes', this)">Campagnes</button>
+                        <button class="mkt-tab" onclick="showMarketingTab('personas', this)">Personas</button>
+                        <button class="mkt-tab" onclick="showMarketingTab('contenu', this)">Contenu</button>
+                        <button class="mkt-tab" onclick="showMarketingTab('business', this)">Business</button>
+                        <button class="mkt-tab" onclick="showMarketingTab('analytics', this)">Analytics</button>
+                        <button class="mkt-tab" onclick="showMarketingTab('agent', this)">Agent mark</button>
                     </div>
                     
                     <div class="mkt-content">
@@ -17142,7 +17142,7 @@ ${persona}
             }
         }
         
-        function showMarketingTab(tabName) {
+        function showMarketingTab(tabName, tabButton) {
             // Hide all tabs
             document.querySelectorAll('.mkt-tab-content').forEach(tab => {
                 tab.style.display = 'none';
@@ -17170,20 +17170,157 @@ ${persona}
             }
             
             // Set active tab button
-            event.target.classList.add('active');
+            if (tabButton && tabButton.classList) {
+                tabButton.classList.add('active');
+            }
+        }
+
+        // ====================================
+        // MARKETING HELPERS (storage + UI)
+        // ====================================
+        const MARKETING_STORAGE_KEYS = {
+            campaigns: 'marketingCampaigns',
+            personas: 'marketingPersonas',
+            content: 'marketingContent',
+            business: 'marketingBusiness'
+        };
+
+        function mktEscapeHtml(value) {
+            return String(value ?? '')
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#39;');
+        }
+
+        function mktToNumber(value, fallback = 0) {
+            const n = Number(value);
+            return Number.isFinite(n) ? n : fallback;
+        }
+
+        function mktLoad(key, fallback) {
+            try {
+                const raw = localStorage.getItem(key);
+                if (!raw) return fallback;
+                return JSON.parse(raw);
+            } catch (_) {
+                return fallback;
+            }
+        }
+
+        function mktSave(key, value) {
+            localStorage.setItem(key, JSON.stringify(value));
+        }
+
+        function mktGenerateId(prefix) {
+            return `${prefix}_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 8)}`;
+        }
+
+        function mktCloseModal() {
+            const existing = document.getElementById('mktModalBackdrop');
+            if (existing) existing.remove();
+        }
+
+        function mktEnsureOverlay() {
+            const overlay = document.getElementById('marketingOverlay');
+            if (!overlay) throw new Error('Marketing overlay non disponible');
+            return overlay;
+        }
+
+        function mktOpenModal({ title, subtitle, bodyHtml, primaryLabel = 'Enregistrer', onSubmit }) {
+            mktCloseModal();
+            const overlay = mktEnsureOverlay();
+
+            const backdrop = document.createElement('div');
+            backdrop.id = 'mktModalBackdrop';
+            backdrop.style.cssText = `
+                position: fixed;
+                inset: 0;
+                background: rgba(0, 0, 0, 0.55);
+                z-index: 10002;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                padding: 18px;
+            `;
+
+            backdrop.innerHTML = `
+                <div role="dialog" aria-modal="true" style="
+                    width: min(720px, 100%);
+                    background: rgba(15, 23, 42, 0.92);
+                    border: 1px solid rgba(249, 115, 22, 0.25);
+                    border-radius: 16px;
+                    box-shadow: 0 18px 50px rgba(0,0,0,0.45);
+                    overflow: hidden;
+                ">
+                    <div style="padding: 18px 18px 12px; border-bottom: 1px solid rgba(249, 115, 22, 0.18);">
+                        <div style="display:flex; align-items:flex-start; justify-content:space-between; gap: 12px;">
+                            <div>
+                                <div style="font-size: 18px; font-weight: 700; color: white;">${mktEscapeHtml(title)}</div>
+                                ${subtitle ? `<div style="margin-top: 6px; color: rgba(255,255,255,0.65); font-size: 13px;">${mktEscapeHtml(subtitle)}</div>` : ''}
+                            </div>
+                            <button type="button" class="mkt-btn" style="padding: 10px 14px; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.18);" onclick="mktCloseModal()">Fermer</button>
+                        </div>
+                    </div>
+
+                    <form id="mktModalForm" style="padding: 16px 18px 18px;">
+                        ${bodyHtml}
+                        <div style="display:flex; justify-content:flex-end; gap: 10px; margin-top: 14px;">
+                            <button type="button" class="mkt-btn" style="padding: 12px 16px; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.18);" onclick="mktCloseModal()">Annuler</button>
+                            <button type="submit" class="mkt-btn" style="padding: 12px 16px;">${mktEscapeHtml(primaryLabel)}</button>
+                        </div>
+                    </form>
+                </div>
+            `;
+
+            backdrop.addEventListener('click', (e) => {
+                if (e.target === backdrop) mktCloseModal();
+            });
+
+            const onKeyDown = (e) => {
+                if (e.key === 'Escape') {
+                    e.preventDefault();
+                    mktCloseModal();
+                    document.removeEventListener('keydown', onKeyDown);
+                }
+            };
+            document.addEventListener('keydown', onKeyDown);
+
+            overlay.appendChild(backdrop);
+
+            const form = backdrop.querySelector('#mktModalForm');
+            if (form) {
+                form.addEventListener('submit', (e) => {
+                    e.preventDefault();
+                    if (typeof onSubmit === 'function') {
+                        onSubmit(new FormData(form));
+                    }
+                });
+            }
+
+            // Focus first input
+            const firstInput = backdrop.querySelector('input, textarea, select');
+            if (firstInput) {
+                try { firstInput.focus(); } catch (_) {}
+            }
+        }
+
+        function refreshMarketingUI() {
+            initializeMarketingData();
         }
         
         function initializeMarketingData() {
-            const campaigns = JSON.parse(localStorage.getItem('marketingCampaigns') || '[]');
-            const personas = JSON.parse(localStorage.getItem('marketingPersonas') || '[]');
-            const content = JSON.parse(localStorage.getItem('marketingContent') || '[]');
-            const business = JSON.parse(localStorage.getItem('marketingBusiness') || '{}');
+            const campaigns = mktLoad(MARKETING_STORAGE_KEYS.campaigns, []);
+            const personas = mktLoad(MARKETING_STORAGE_KEYS.personas, []);
+            const content = mktLoad(MARKETING_STORAGE_KEYS.content, []);
+            const business = mktLoad(MARKETING_STORAGE_KEYS.business, {});
             
             // Calculate KPIs
-            const totalBudget = campaigns.reduce((sum, c) => sum + (c.budget || 0), 0);
-            const totalSpent = campaigns.reduce((sum, c) => sum + (c.spent || 0), 0);
-            const totalLeads = campaigns.reduce((sum, c) => sum + (c.leads || 0), 0);
-            const avgRoi = campaigns.length > 0 ? Math.round(campaigns.reduce((sum, c) => sum + (c.roi || 0), 0) / campaigns.length) : 0;
+            const totalBudget = campaigns.reduce((sum, c) => sum + mktToNumber(c?.budget, 0), 0);
+            const totalSpent = campaigns.reduce((sum, c) => sum + mktToNumber(c?.spent, 0), 0);
+            const totalLeads = campaigns.reduce((sum, c) => sum + mktToNumber(c?.leads, 0), 0);
+            const avgRoi = campaigns.length > 0 ? Math.round(campaigns.reduce((sum, c) => sum + mktToNumber(c?.roi, 0), 0) / campaigns.length) : 0;
             const cac = totalLeads > 0 ? Math.round(totalSpent / totalLeads) : 0;
             
             // Update stats
@@ -17205,7 +17342,7 @@ ${persona}
         }
         
         function renderCampaignsList() {
-            const campaigns = JSON.parse(localStorage.getItem('marketingCampaigns') || '[]');
+            const campaigns = mktLoad(MARKETING_STORAGE_KEYS.campaigns, []);
             const container = document.getElementById('mktCampaignsList');
             
             if (campaigns.length === 0) {
@@ -17213,26 +17350,53 @@ ${persona}
                 return;
             }
             
-            container.innerHTML = campaigns.map(campaign => `
-                <div class="mkt-item">
-                    <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 12px;">
-                        <div>
-                            <h3 style="margin: 0 0 4px; font-size: 18px; color: white;">${campaign.name}</h3>
-                            <span class="mkt-badge mkt-badge-${campaign.status === 'active' ? 'success' : 'warning'}">${campaign.status}</span>
+            container.innerHTML = campaigns.map(campaign => {
+                const id = mktEscapeHtml(campaign.id || '');
+                const name = mktEscapeHtml(campaign.name || '');
+                const status = mktEscapeHtml(campaign.status || 'draft');
+                const type = mktEscapeHtml(campaign.type || '');
+                const budget = mktToNumber(campaign.budget, 0);
+                const spent = mktToNumber(campaign.spent, 0);
+                const leads = mktToNumber(campaign.leads, 0);
+                const roi = mktToNumber(campaign.roi, 0);
+                const startDate = mktEscapeHtml(campaign.startDate || '');
+                const endDate = mktEscapeHtml(campaign.endDate || '');
+
+                const badgeClass = status === 'active' || status === 'published' ? 'success' : (status === 'paused' ? 'warning' : 'warning');
+                return `
+                    <div class="mkt-item">
+                        <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 12px; gap: 12px;">
+                            <div style="min-width: 0;">
+                                <h3 style="margin: 0 0 6px; font-size: 18px; color: white; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${name || 'Campagne'}</h3>
+                                <div style="display:flex; flex-wrap:wrap; gap: 8px; align-items:center;">
+                                    <span class="mkt-badge mkt-badge-${badgeClass}">${status}</span>
+                                    <span style="font-size: 12px; color: rgba(255,255,255,0.55);">${type}</span>
+                                </div>
+                            </div>
+
+                            <div style="text-align: right; flex: 0 0 auto;">
+                                <div style="font-size: 12px; color: rgba(255, 255, 255, 0.5);">ROI</div>
+                                <div style="font-size: 20px; color: #6ee7b7; font-weight: 600;">${roi}%</div>
+                            </div>
                         </div>
-                        <div style="text-align: right;">
-                            <div style="font-size: 12px; color: rgba(255, 255, 255, 0.5);">ROI</div>
-                            <div style="font-size: 20px; color: #6ee7b7; font-weight: 600;">${campaign.roi || 0}%</div>
+
+                        <p style="margin: 0 0 10px; color: rgba(255, 255, 255, 0.75); font-size: 14px;">
+                            Budget: ${budget} DA • Dépensé: ${spent} DA • Leads: ${leads}
+                        </p>
+                        <div style="display:flex; justify-content:space-between; align-items:center; gap: 10px; flex-wrap: wrap;">
+                            <div style="font-size: 12px; color: rgba(255, 255, 255, 0.5);">${startDate || '—'} - ${endDate || '—'}</div>
+                            <div style="display:flex; gap: 8px;">
+                                <button class="mkt-btn" style="padding: 10px 12px; font-size: 12px; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.18);" onclick="showAddCampaignModal('${id}')">Modifier</button>
+                                <button class="mkt-btn" style="padding: 10px 12px; font-size: 12px; background: rgba(239, 68, 68, 0.22); border: 1px solid rgba(239, 68, 68, 0.35);" onclick="deleteMarketingCampaign('${id}')">Supprimer</button>
+                            </div>
                         </div>
                     </div>
-                    <p style="margin: 0 0 8px; color: rgba(255, 255, 255, 0.7); font-size: 14px;">${campaign.type} • Budget: ${campaign.budget} DA • Leads: ${campaign.leads || 0}</p>
-                    <div style="font-size: 12px; color: rgba(255, 255, 255, 0.5);">${campaign.startDate} - ${campaign.endDate}</div>
-                </div>
-            `).join('');
+                `;
+            }).join('');
         }
         
         function renderPersonasList() {
-            const personas = JSON.parse(localStorage.getItem('marketingPersonas') || '[]');
+            const personas = mktLoad(MARKETING_STORAGE_KEYS.personas, []);
             const container = document.getElementById('mktPersonasList');
             
             if (personas.length === 0) {
@@ -17240,17 +17404,35 @@ ${persona}
                 return;
             }
             
-            container.innerHTML = personas.map(persona => `
-                <div class="mkt-item">
-                    <h3 style="margin: 0 0 8px; font-size: 18px; color: white;">${persona.name}</h3>
-                    <p style="margin: 0 0 8px; color: rgba(255, 255, 255, 0.7); font-size: 14px;">${persona.age} ans • ${persona.profession}</p>
-                    <div style="font-size: 12px; color: rgba(255, 255, 255, 0.5);">Objectifs: ${persona.goals?.join(', ') || 'Non définis'}</div>
-                </div>
-            `).join('');
+            container.innerHTML = personas.map(persona => {
+                const id = mktEscapeHtml(persona.id || '');
+                const name = mktEscapeHtml(persona.name || '');
+                const age = mktToNumber(persona.age, 0);
+                const profession = mktEscapeHtml(persona.profession || '');
+                const goals = Array.isArray(persona.goals) ? persona.goals.map(mktEscapeHtml) : [];
+                const painPoints = Array.isArray(persona.painPoints) ? persona.painPoints.map(mktEscapeHtml) : [];
+
+                return `
+                    <div class="mkt-item">
+                        <div style="display:flex; justify-content:space-between; align-items:start; gap: 12px;">
+                            <div style="min-width:0;">
+                                <h3 style="margin: 0 0 8px; font-size: 18px; color: white; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${name || 'Persona'}</h3>
+                                <p style="margin: 0 0 10px; color: rgba(255, 255, 255, 0.75); font-size: 14px;">${age ? `${age} ans` : 'Âge —'} • ${profession || 'Profession —'}</p>
+                                <div style="font-size: 12px; color: rgba(255, 255, 255, 0.55);">Objectifs: ${goals.length ? goals.join(', ') : 'Non définis'}</div>
+                                ${painPoints.length ? `<div style="margin-top: 6px; font-size: 12px; color: rgba(255, 255, 255, 0.55);">Pain points: ${painPoints.join(', ')}</div>` : ''}
+                            </div>
+                            <div style="display:flex; gap: 8px; flex: 0 0 auto;">
+                                <button class="mkt-btn" style="padding: 10px 12px; font-size: 12px; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.18);" onclick="showAddPersonaModal('${id}')">Modifier</button>
+                                <button class="mkt-btn" style="padding: 10px 12px; font-size: 12px; background: rgba(239, 68, 68, 0.22); border: 1px solid rgba(239, 68, 68, 0.35);" onclick="deleteMarketingPersona('${id}')">Supprimer</button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
         }
         
         function renderContentList() {
-            const content = JSON.parse(localStorage.getItem('marketingContent') || '[]');
+            const content = mktLoad(MARKETING_STORAGE_KEYS.content, []);
             const container = document.getElementById('mktContentList');
             
             if (content.length === 0) {
@@ -17258,42 +17440,188 @@ ${persona}
                 return;
             }
             
-            container.innerHTML = content.map(item => `
-                <div class="mkt-item">
-                    <div style="display: flex; justify-content: space-between; align-items: start;">
-                        <div>
-                            <h3 style="margin: 0 0 4px; font-size: 18px; color: white;">${item.title}</h3>
-                            <span class="mkt-badge mkt-badge-${item.status === 'published' ? 'success' : 'warning'}">${item.type}</span>
+            container.innerHTML = content.map(item => {
+                const id = mktEscapeHtml(item.id || '');
+                const title = mktEscapeHtml(item.title || '');
+                const type = mktEscapeHtml(item.type || '');
+                const status = mktEscapeHtml(item.status || 'draft');
+                const publishDate = mktEscapeHtml(item.publishDate || '');
+                const channel = mktEscapeHtml(item.channel || '');
+                const badgeClass = status === 'published' ? 'success' : (status === 'scheduled' ? 'warning' : 'warning');
+                return `
+                    <div class="mkt-item">
+                        <div style="display:flex; justify-content:space-between; align-items:start; gap: 12px;">
+                            <div style="min-width:0;">
+                                <h3 style="margin: 0 0 6px; font-size: 18px; color: white; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${title || 'Contenu'}</h3>
+                                <div style="display:flex; flex-wrap:wrap; gap: 8px; align-items:center;">
+                                    <span class="mkt-badge mkt-badge-${badgeClass}">${mktEscapeHtml(type || 'type')}</span>
+                                    <span style="font-size: 12px; color: rgba(255,255,255,0.55);">${status}</span>
+                                    ${channel ? `<span style="font-size: 12px; color: rgba(255,255,255,0.55);">• ${channel}</span>` : ''}
+                                </div>
+                            </div>
+                            <div style="text-align:right; flex: 0 0 auto;">
+                                <div style="font-size: 12px; color: rgba(255, 255, 255, 0.5);">${publishDate || 'Non planifié'}</div>
+                                <div style="display:flex; gap: 8px; justify-content:flex-end; margin-top: 10px;">
+                                    <button class="mkt-btn" style="padding: 10px 12px; font-size: 12px; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.18);" onclick="showAddContentModal('${id}')">Modifier</button>
+                                    <button class="mkt-btn" style="padding: 10px 12px; font-size: 12px; background: rgba(239, 68, 68, 0.22); border: 1px solid rgba(239, 68, 68, 0.35);" onclick="deleteMarketingContent('${id}')">Supprimer</button>
+                                </div>
+                            </div>
                         </div>
-                        <div style="font-size: 12px; color: rgba(255, 255, 255, 0.5);">${item.publishDate || 'Non planifié'}</div>
                     </div>
-                </div>
-            `).join('');
+                `;
+            }).join('');
         }
         
         function renderBusinessContent() {
-            const business = JSON.parse(localStorage.getItem('marketingBusiness') || '{}');
+            const business = mktLoad(MARKETING_STORAGE_KEYS.business, {});
             const container = document.getElementById('mktBusinessContent');
             
             container.innerHTML = `
                 <div class="mkt-section">
-                    <div class="mkt-section-title">Modèle Économique</div>
-                    <p style="color: rgba(255, 255, 255, 0.7);">${business.model || 'Non défini'}</p>
+                    <div class="mkt-section-title">Paramètres Business</div>
+                    <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px;">
+                        <div>
+                            <label style="display:block; font-size: 12px; color: rgba(255,255,255,0.6); margin-bottom: 6px;">LTV (DA)</label>
+                            <input id="mktBusinessLtv" type="number" class="mkt-input" value="${mktEscapeHtml(business.ltv ?? 0)}" min="0" step="1" />
+                        </div>
+                        <div>
+                            <label style="display:block; font-size: 12px; color: rgba(255,255,255,0.6); margin-bottom: 6px;">MRR (DA)</label>
+                            <input id="mktBusinessMrr" type="number" class="mkt-input" value="${mktEscapeHtml(business.mrr ?? 0)}" min="0" step="1" />
+                        </div>
+                        <div>
+                            <label style="display:block; font-size: 12px; color: rgba(255,255,255,0.6); margin-bottom: 6px;">Churn (%)</label>
+                            <input id="mktBusinessChurn" type="number" class="mkt-input" value="${mktEscapeHtml(business.churn ?? 0)}" min="0" step="0.1" />
+                        </div>
+                    </div>
+
+                    <div style="margin-top: 14px;">
+                        <label style="display:block; font-size: 12px; color: rgba(255,255,255,0.6); margin-bottom: 6px;">Modèle économique</label>
+                        <textarea id="mktBusinessModel" class="mkt-input" rows="3" style="width:100%; resize: vertical;">${mktEscapeHtml(business.model || '')}</textarea>
+                    </div>
+
+                    <div style="margin-top: 14px;">
+                        <label style="display:block; font-size: 12px; color: rgba(255,255,255,0.6); margin-bottom: 6px;">Stratégie pricing</label>
+                        <textarea id="mktBusinessPricing" class="mkt-input" rows="3" style="width:100%; resize: vertical;">${mktEscapeHtml(business.pricing || '')}</textarea>
+                    </div>
+
+                    <div style="display:flex; justify-content:flex-end; margin-top: 14px;">
+                        <button class="mkt-btn" type="button" onclick="saveMarketingBusiness()">Enregistrer</button>
+                    </div>
                 </div>
                 <div class="mkt-section">
-                    <div class="mkt-section-title">Stratégie Pricing</div>
-                    <p style="color: rgba(255, 255, 255, 0.7);">Configuration en cours...</p>
+                    <div class="mkt-section-title">Objectifs</div>
+                    <div id="mktObjectivesList"></div>
+                    <div style="display:flex; justify-content:flex-end; margin-top: 14px;">
+                        <button class="mkt-btn" type="button" onclick="showAddObjectiveModal()">Ajouter un objectif</button>
+                    </div>
                 </div>
             `;
+
+            // Render objectives list
+            const list = document.getElementById('mktObjectivesList');
+            const objectives = Array.isArray(business.objectives) ? business.objectives : [];
+            if (list) {
+                if (objectives.length === 0) {
+                    list.innerHTML = '<div class="mkt-empty"><p>Aucun objectif défini</p></div>';
+                } else {
+                    list.innerHTML = objectives.map((obj, idx) => {
+                        const t = mktEscapeHtml(obj?.title || 'Objectif');
+                        const target = mktEscapeHtml(obj?.target || '');
+                        return `
+                            <div style="padding: 14px; border: 1px solid rgba(249, 115, 22, 0.18); border-radius: 12px; background: rgba(0,0,0,0.25); margin-bottom: 12px;">
+                                <div style="display:flex; justify-content:space-between; gap: 12px; align-items:start;">
+                                    <div style="min-width:0;">
+                                        <div style="color: white; font-weight: 700;">${t}</div>
+                                        <div style="margin-top: 6px; font-size: 12px; color: rgba(255,255,255,0.6);">${target || '—'}</div>
+                                    </div>
+                                    <button class="mkt-btn" style="padding: 10px 12px; font-size: 12px; background: rgba(239, 68, 68, 0.22); border: 1px solid rgba(239, 68, 68, 0.35);" type="button" onclick="deleteMarketingObjective(${idx})">Supprimer</button>
+                                </div>
+                            </div>
+                        `;
+                    }).join('');
+                }
+            }
         }
         
         function renderAnalyticsContent() {
             const container = document.getElementById('mktAnalyticsContent');
-            container.innerHTML = '<div class="mkt-empty"><div class="mkt-empty-title">Analytics en développement</div><p>Intégration des métriques en cours</p></div>';
+            const campaigns = mktLoad(MARKETING_STORAGE_KEYS.campaigns, []);
+            const content = mktLoad(MARKETING_STORAGE_KEYS.content, []);
+            const business = mktLoad(MARKETING_STORAGE_KEYS.business, {});
+
+            const totalBudget = campaigns.reduce((sum, c) => sum + mktToNumber(c?.budget, 0), 0);
+            const totalSpent = campaigns.reduce((sum, c) => sum + mktToNumber(c?.spent, 0), 0);
+            const totalLeads = campaigns.reduce((sum, c) => sum + mktToNumber(c?.leads, 0), 0);
+            const avgRoi = campaigns.length > 0 ? Math.round(campaigns.reduce((sum, c) => sum + mktToNumber(c?.roi, 0), 0) / campaigns.length) : 0;
+            const cac = totalLeads > 0 ? Math.round(totalSpent / totalLeads) : 0;
+            const burnRate = totalBudget > 0 ? Math.round((totalSpent / totalBudget) * 100) : 0;
+
+            const contentByStatus = content.reduce((acc, item) => {
+                const k = String(item?.status || 'draft');
+                acc[k] = (acc[k] || 0) + 1;
+                return acc;
+            }, {});
+
+            if (!container) return;
+
+            if (campaigns.length === 0 && content.length === 0) {
+                container.innerHTML = '<div class="mkt-empty"><div class="mkt-empty-title">Aucune donnée</div><p>Créez des campagnes/personas/contenus pour alimenter les analytics.</p></div>';
+                return;
+            }
+
+            const rows = campaigns.slice().sort((a, b) => (mktToNumber(b?.roi, 0) - mktToNumber(a?.roi, 0))).map(c => {
+                return `
+                    <tr>
+                        <td style="padding: 10px 8px; border-bottom: 1px solid rgba(249,115,22,0.15); color: rgba(255,255,255,0.92);">${mktEscapeHtml(c?.name || 'Campagne')}</td>
+                        <td style="padding: 10px 8px; border-bottom: 1px solid rgba(249,115,22,0.15); color: rgba(255,255,255,0.7);">${mktEscapeHtml(c?.type || '')}</td>
+                        <td style="padding: 10px 8px; border-bottom: 1px solid rgba(249,115,22,0.15); color: rgba(255,255,255,0.7); text-align:right;">${mktToNumber(c?.spent, 0)}</td>
+                        <td style="padding: 10px 8px; border-bottom: 1px solid rgba(249,115,22,0.15); color: rgba(255,255,255,0.7); text-align:right;">${mktToNumber(c?.leads, 0)}</td>
+                        <td style="padding: 10px 8px; border-bottom: 1px solid rgba(249,115,22,0.15); color: #6ee7b7; text-align:right; font-weight:700;">${mktToNumber(c?.roi, 0)}%</td>
+                    </tr>
+                `;
+            }).join('');
+
+            container.innerHTML = `
+                <div class="mkt-dashboard" style="margin-bottom: 24px;">
+                    <div class="mkt-stat-card"><div class="mkt-stat-value">${avgRoi}%</div><div class="mkt-stat-label">ROI Moyen</div></div>
+                    <div class="mkt-stat-card"><div class="mkt-stat-value">${cac}</div><div class="mkt-stat-label">CAC (DA)</div></div>
+                    <div class="mkt-stat-card"><div class="mkt-stat-value">${burnRate}%</div><div class="mkt-stat-label">Budget consommé</div></div>
+                    <div class="mkt-stat-card"><div class="mkt-stat-value">${mktToNumber(business.mrr, 0)}</div><div class="mkt-stat-label">MRR (DA)</div></div>
+                </div>
+
+                <div class="mkt-section">
+                    <div class="mkt-section-title">Campagnes (résumé)</div>
+                    <div style="overflow:auto; border-radius: 12px; border: 1px solid rgba(249,115,22,0.18);">
+                        <table style="width:100%; border-collapse: collapse; min-width: 560px;">
+                            <thead>
+                                <tr style="background: rgba(0,0,0,0.25);">
+                                    <th style="text-align:left; padding: 10px 8px; color: rgba(255,255,255,0.7); font-size: 12px;">Nom</th>
+                                    <th style="text-align:left; padding: 10px 8px; color: rgba(255,255,255,0.7); font-size: 12px;">Type</th>
+                                    <th style="text-align:right; padding: 10px 8px; color: rgba(255,255,255,0.7); font-size: 12px;">Dépensé (DA)</th>
+                                    <th style="text-align:right; padding: 10px 8px; color: rgba(255,255,255,0.7); font-size: 12px;">Leads</th>
+                                    <th style="text-align:right; padding: 10px 8px; color: rgba(255,255,255,0.7); font-size: 12px;">ROI</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${rows || '<tr><td colspan="5" style="padding: 12px; color: rgba(255,255,255,0.6);">Aucune campagne</td></tr>'}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="mkt-section">
+                    <div class="mkt-section-title">Contenu (pipeline)</div>
+                    <div style="display:flex; flex-wrap:wrap; gap: 10px;">
+                        ${Object.keys(contentByStatus).length === 0 ? '<div class="mkt-empty"><p>Aucun contenu</p></div>' : Object.entries(contentByStatus).map(([k, v]) => {
+                            return `<div style="padding: 12px 14px; border: 1px solid rgba(249,115,22,0.18); border-radius: 12px; background: rgba(0,0,0,0.25); color: rgba(255,255,255,0.85);"><div style="font-weight:700;">${mktEscapeHtml(k)}</div><div style="margin-top: 6px; color: rgba(255,255,255,0.6); font-size: 12px;">${v} élément(s)</div></div>`;
+                        }).join('')}
+                    </div>
+                </div>
+            `;
         }
         
         function renderDashboardTopCampaigns() {
-            const campaigns = JSON.parse(localStorage.getItem('marketingCampaigns') || '[]');
+            const campaigns = mktLoad(MARKETING_STORAGE_KEYS.campaigns, []);
             const container = document.getElementById('mktTopCampaigns');
             
             if (campaigns.length === 0) {
@@ -17301,19 +17629,19 @@ ${persona}
                 return;
             }
             
-            const topCampaigns = campaigns.sort((a, b) => (b.roi || 0) - (a.roi || 0)).slice(0, 3);
+            const topCampaigns = campaigns.slice().sort((a, b) => (mktToNumber(b?.roi, 0) - mktToNumber(a?.roi, 0))).slice(0, 3);
             container.innerHTML = topCampaigns.map(campaign => `
                 <div style="padding: 12px 0; border-bottom: 1px solid rgba(249, 115, 22, 0.2);">
                     <div style="display: flex; justify-content: space-between; align-items: center;">
-                        <span style="color: white; font-weight: 600;">${campaign.name}</span>
-                        <span style="color: #6ee7b7; font-weight: 600;">${campaign.roi || 0}% ROI</span>
+                        <span style="color: white; font-weight: 600;">${mktEscapeHtml(campaign.name || 'Campagne')}</span>
+                        <span style="color: #6ee7b7; font-weight: 600;">${mktToNumber(campaign.roi, 0)}% ROI</span>
                     </div>
                 </div>
             `).join('');
         }
         
         function renderDashboardObjectives() {
-            const business = JSON.parse(localStorage.getItem('marketingBusiness') || '{}');
+            const business = mktLoad(MARKETING_STORAGE_KEYS.business, {});
             const container = document.getElementById('mktObjectives');
             
             if (!business.objectives || business.objectives.length === 0) {
@@ -17323,8 +17651,8 @@ ${persona}
             
             container.innerHTML = business.objectives.map(obj => `
                 <div style="padding: 12px 0; border-bottom: 1px solid rgba(249, 115, 22, 0.2);">
-                    <div style="color: white; font-weight: 600;">${obj.title}</div>
-                    <div style="font-size: 12px; color: rgba(255, 255, 255, 0.5);">${obj.target}</div>
+                    <div style="color: white; font-weight: 600;">${mktEscapeHtml(obj.title || '')}</div>
+                    <div style="font-size: 12px; color: rgba(255, 255, 255, 0.5);">${mktEscapeHtml(obj.target || '')}</div>
                 </div>
             `).join('');
         }
@@ -17437,17 +17765,344 @@ KPIs GLOBAUX :
             messagesContainer.scrollTop = messagesContainer.scrollHeight;
         }
         
-        // Modal stubs
-        function showAddCampaignModal() {
-            alert('Fonctionnalité en développement: Nouvelle campagne');
+        // ====================================
+        // CAMPAGNES (CRUD)
+        // ====================================
+        function showAddCampaignModal(campaignId) {
+            const campaigns = mktLoad(MARKETING_STORAGE_KEYS.campaigns, []);
+            const existing = campaignId ? campaigns.find(c => String(c.id) === String(campaignId)) : null;
+
+            mktOpenModal({
+                title: existing ? 'Modifier la campagne' : 'Nouvelle campagne',
+                subtitle: 'Renseignez les champs principaux. Les KPIs se recalculent automatiquement.',
+                primaryLabel: existing ? 'Mettre à jour' : 'Créer',
+                bodyHtml: `
+                    <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px;">
+                        <div>
+                            <label style="display:block; font-size:12px; color: rgba(255,255,255,0.65); margin-bottom:6px;">Nom *</label>
+                            <input name="name" class="mkt-input" required value="${mktEscapeHtml(existing?.name || '')}" />
+                        </div>
+                        <div>
+                            <label style="display:block; font-size:12px; color: rgba(255,255,255,0.65); margin-bottom:6px;">Type</label>
+                            <input name="type" class="mkt-input" placeholder="ex: Ads, SEO, Email" value="${mktEscapeHtml(existing?.type || '')}" />
+                        </div>
+                        <div>
+                            <label style="display:block; font-size:12px; color: rgba(255,255,255,0.65); margin-bottom:6px;">Statut</label>
+                            <select name="status" class="mkt-input">
+                                ${['draft','active','paused','completed'].map(s => `<option value="${s}" ${String(existing?.status||'draft')===s?'selected':''}>${s}</option>`).join('')}
+                            </select>
+                        </div>
+                        <div>
+                            <label style="display:block; font-size:12px; color: rgba(255,255,255,0.65); margin-bottom:6px;">Budget (DA)</label>
+                            <input name="budget" type="number" min="0" step="1" class="mkt-input" value="${mktEscapeHtml(existing?.budget ?? 0)}" />
+                        </div>
+                        <div>
+                            <label style="display:block; font-size:12px; color: rgba(255,255,255,0.65); margin-bottom:6px;">Dépensé (DA)</label>
+                            <input name="spent" type="number" min="0" step="1" class="mkt-input" value="${mktEscapeHtml(existing?.spent ?? 0)}" />
+                        </div>
+                        <div>
+                            <label style="display:block; font-size:12px; color: rgba(255,255,255,0.65); margin-bottom:6px;">Leads</label>
+                            <input name="leads" type="number" min="0" step="1" class="mkt-input" value="${mktEscapeHtml(existing?.leads ?? 0)}" />
+                        </div>
+                        <div>
+                            <label style="display:block; font-size:12px; color: rgba(255,255,255,0.65); margin-bottom:6px;">ROI (%)</label>
+                            <input name="roi" type="number" step="1" class="mkt-input" value="${mktEscapeHtml(existing?.roi ?? 0)}" />
+                        </div>
+                        <div>
+                            <label style="display:block; font-size:12px; color: rgba(255,255,255,0.65); margin-bottom:6px;">Début</label>
+                            <input name="startDate" type="date" class="mkt-input" value="${mktEscapeHtml(existing?.startDate || '')}" />
+                        </div>
+                        <div>
+                            <label style="display:block; font-size:12px; color: rgba(255,255,255,0.65); margin-bottom:6px;">Fin</label>
+                            <input name="endDate" type="date" class="mkt-input" value="${mktEscapeHtml(existing?.endDate || '')}" />
+                        </div>
+                    </div>
+                `,
+                onSubmit: (fd) => {
+                    const next = {
+                        id: existing?.id || mktGenerateId('cmp'),
+                        name: String(fd.get('name') || '').trim(),
+                        type: String(fd.get('type') || '').trim(),
+                        status: String(fd.get('status') || 'draft').trim(),
+                        budget: mktToNumber(fd.get('budget'), 0),
+                        spent: mktToNumber(fd.get('spent'), 0),
+                        leads: mktToNumber(fd.get('leads'), 0),
+                        roi: mktToNumber(fd.get('roi'), 0),
+                        startDate: String(fd.get('startDate') || '').trim(),
+                        endDate: String(fd.get('endDate') || '').trim(),
+                        updatedAt: new Date().toISOString(),
+                        createdAt: existing?.createdAt || new Date().toISOString()
+                    };
+
+                    if (!next.name) {
+                        showToast('Nom de campagne requis.', 'error');
+                        return;
+                    }
+
+                    if (existing) {
+                        const idx = campaigns.findIndex(c => String(c.id) === String(existing.id));
+                        if (idx >= 0) campaigns[idx] = next;
+                    } else {
+                        campaigns.unshift(next);
+                    }
+
+                    mktSave(MARKETING_STORAGE_KEYS.campaigns, campaigns);
+                    mktCloseModal();
+                    refreshMarketingUI();
+                    showToast(existing ? 'Campagne mise à jour.' : 'Campagne créée.', 'success');
+                }
+            });
         }
-        
-        function showAddPersonaModal() {
-            alert('Fonctionnalité en développement: Créer persona');
+
+        function deleteMarketingCampaign(campaignId) {
+            const campaigns = mktLoad(MARKETING_STORAGE_KEYS.campaigns, []);
+            const existing = campaigns.find(c => String(c.id) === String(campaignId));
+            if (!existing) return;
+            if (!confirm(`Supprimer la campagne "${existing.name || 'Campagne'}" ?`)) return;
+            const next = campaigns.filter(c => String(c.id) !== String(campaignId));
+            mktSave(MARKETING_STORAGE_KEYS.campaigns, next);
+            refreshMarketingUI();
+            showToast('Campagne supprimée.', 'success');
         }
-        
-        function showAddContentModal() {
-            alert('Fonctionnalité en développement: Nouveau contenu');
+
+        // ====================================
+        // PERSONAS (CRUD)
+        // ====================================
+        function showAddPersonaModal(personaId) {
+            const personas = mktLoad(MARKETING_STORAGE_KEYS.personas, []);
+            const existing = personaId ? personas.find(p => String(p.id) === String(personaId)) : null;
+
+            mktOpenModal({
+                title: existing ? 'Modifier le persona' : 'Créer un persona',
+                subtitle: 'Décrivez votre client idéal. Utilisez des listes séparées par des virgules.',
+                primaryLabel: existing ? 'Mettre à jour' : 'Créer',
+                bodyHtml: `
+                    <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px;">
+                        <div>
+                            <label style="display:block; font-size:12px; color: rgba(255,255,255,0.65); margin-bottom:6px;">Nom *</label>
+                            <input name="name" class="mkt-input" required value="${mktEscapeHtml(existing?.name || '')}" />
+                        </div>
+                        <div>
+                            <label style="display:block; font-size:12px; color: rgba(255,255,255,0.65); margin-bottom:6px;">Âge</label>
+                            <input name="age" type="number" min="0" step="1" class="mkt-input" value="${mktEscapeHtml(existing?.age ?? '')}" />
+                        </div>
+                        <div style="grid-column: 1 / -1;">
+                            <label style="display:block; font-size:12px; color: rgba(255,255,255,0.65); margin-bottom:6px;">Profession</label>
+                            <input name="profession" class="mkt-input" value="${mktEscapeHtml(existing?.profession || '')}" />
+                        </div>
+                        <div style="grid-column: 1 / -1;">
+                            <label style="display:block; font-size:12px; color: rgba(255,255,255,0.65); margin-bottom:6px;">Objectifs (séparés par des virgules)</label>
+                            <input name="goals" class="mkt-input" placeholder="ex: gagner du temps, réduire les coûts" value="${mktEscapeHtml((existing?.goals || []).join(', '))}" />
+                        </div>
+                        <div style="grid-column: 1 / -1;">
+                            <label style="display:block; font-size:12px; color: rgba(255,255,255,0.65); margin-bottom:6px;">Pain points (séparés par des virgules)</label>
+                            <input name="painPoints" class="mkt-input" placeholder="ex: manque de visibilité, budget limité" value="${mktEscapeHtml((existing?.painPoints || []).join(', '))}" />
+                        </div>
+                    </div>
+                `,
+                onSubmit: (fd) => {
+                    const name = String(fd.get('name') || '').trim();
+                    if (!name) {
+                        showToast('Nom de persona requis.', 'error');
+                        return;
+                    }
+
+                    const parseList = (raw) => String(raw || '')
+                        .split(',')
+                        .map(s => s.trim())
+                        .filter(Boolean)
+                        .slice(0, 20);
+
+                    const next = {
+                        id: existing?.id || mktGenerateId('prs'),
+                        name,
+                        age: mktToNumber(fd.get('age'), 0),
+                        profession: String(fd.get('profession') || '').trim(),
+                        goals: parseList(fd.get('goals')),
+                        painPoints: parseList(fd.get('painPoints')),
+                        updatedAt: new Date().toISOString(),
+                        createdAt: existing?.createdAt || new Date().toISOString()
+                    };
+
+                    if (existing) {
+                        const idx = personas.findIndex(p => String(p.id) === String(existing.id));
+                        if (idx >= 0) personas[idx] = next;
+                    } else {
+                        personas.unshift(next);
+                    }
+
+                    mktSave(MARKETING_STORAGE_KEYS.personas, personas);
+                    mktCloseModal();
+                    refreshMarketingUI();
+                    showToast(existing ? 'Persona mis à jour.' : 'Persona créé.', 'success');
+                }
+            });
+        }
+
+        function deleteMarketingPersona(personaId) {
+            const personas = mktLoad(MARKETING_STORAGE_KEYS.personas, []);
+            const existing = personas.find(p => String(p.id) === String(personaId));
+            if (!existing) return;
+            if (!confirm(`Supprimer le persona "${existing.name || 'Persona'}" ?`)) return;
+            const next = personas.filter(p => String(p.id) !== String(personaId));
+            mktSave(MARKETING_STORAGE_KEYS.personas, next);
+            refreshMarketingUI();
+            showToast('Persona supprimé.', 'success');
+        }
+
+        // ====================================
+        // CONTENU (CRUD)
+        // ====================================
+        function showAddContentModal(contentId) {
+            const items = mktLoad(MARKETING_STORAGE_KEYS.content, []);
+            const existing = contentId ? items.find(i => String(i.id) === String(contentId)) : null;
+
+            mktOpenModal({
+                title: existing ? 'Modifier le contenu' : 'Nouveau contenu',
+                subtitle: 'Planifiez votre production (type, statut, date).',
+                primaryLabel: existing ? 'Mettre à jour' : 'Créer',
+                bodyHtml: `
+                    <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px;">
+                        <div style="grid-column: 1 / -1;">
+                            <label style="display:block; font-size:12px; color: rgba(255,255,255,0.65); margin-bottom:6px;">Titre *</label>
+                            <input name="title" class="mkt-input" required value="${mktEscapeHtml(existing?.title || '')}" />
+                        </div>
+                        <div>
+                            <label style="display:block; font-size:12px; color: rgba(255,255,255,0.65); margin-bottom:6px;">Type</label>
+                            <select name="type" class="mkt-input">
+                                ${['blog','social','email','landing','video','other'].map(t => `<option value="${t}" ${String(existing?.type||'blog')===t?'selected':''}>${t}</option>`).join('')}
+                            </select>
+                        </div>
+                        <div>
+                            <label style="display:block; font-size:12px; color: rgba(255,255,255,0.65); margin-bottom:6px;">Statut</label>
+                            <select name="status" class="mkt-input">
+                                ${['draft','scheduled','published'].map(s => `<option value="${s}" ${String(existing?.status||'draft')===s?'selected':''}>${s}</option>`).join('')}
+                            </select>
+                        </div>
+                        <div>
+                            <label style="display:block; font-size:12px; color: rgba(255,255,255,0.65); margin-bottom:6px;">Canal</label>
+                            <input name="channel" class="mkt-input" placeholder="ex: LinkedIn, Blog" value="${mktEscapeHtml(existing?.channel || '')}" />
+                        </div>
+                        <div>
+                            <label style="display:block; font-size:12px; color: rgba(255,255,255,0.65); margin-bottom:6px;">Date</label>
+                            <input name="publishDate" type="date" class="mkt-input" value="${mktEscapeHtml(existing?.publishDate || '')}" />
+                        </div>
+                    </div>
+                `,
+                onSubmit: (fd) => {
+                    const title = String(fd.get('title') || '').trim();
+                    if (!title) {
+                        showToast('Titre requis.', 'error');
+                        return;
+                    }
+
+                    const next = {
+                        id: existing?.id || mktGenerateId('cnt'),
+                        title,
+                        type: String(fd.get('type') || 'blog').trim(),
+                        status: String(fd.get('status') || 'draft').trim(),
+                        channel: String(fd.get('channel') || '').trim(),
+                        publishDate: String(fd.get('publishDate') || '').trim(),
+                        updatedAt: new Date().toISOString(),
+                        createdAt: existing?.createdAt || new Date().toISOString()
+                    };
+
+                    if (existing) {
+                        const idx = items.findIndex(i => String(i.id) === String(existing.id));
+                        if (idx >= 0) items[idx] = next;
+                    } else {
+                        items.unshift(next);
+                    }
+
+                    mktSave(MARKETING_STORAGE_KEYS.content, items);
+                    mktCloseModal();
+                    refreshMarketingUI();
+                    showToast(existing ? 'Contenu mis à jour.' : 'Contenu créé.', 'success');
+                }
+            });
+        }
+
+        function deleteMarketingContent(contentId) {
+            const items = mktLoad(MARKETING_STORAGE_KEYS.content, []);
+            const existing = items.find(i => String(i.id) === String(contentId));
+            if (!existing) return;
+            if (!confirm(`Supprimer le contenu "${existing.title || 'Contenu'}" ?`)) return;
+            const next = items.filter(i => String(i.id) !== String(contentId));
+            mktSave(MARKETING_STORAGE_KEYS.content, next);
+            refreshMarketingUI();
+            showToast('Contenu supprimé.', 'success');
+        }
+
+        // ====================================
+        // BUSINESS (édition)
+        // ====================================
+        function saveMarketingBusiness() {
+            const model = document.getElementById('mktBusinessModel');
+            const pricing = document.getElementById('mktBusinessPricing');
+            const ltv = document.getElementById('mktBusinessLtv');
+            const churn = document.getElementById('mktBusinessChurn');
+            const mrr = document.getElementById('mktBusinessMrr');
+
+            const current = mktLoad(MARKETING_STORAGE_KEYS.business, {});
+            const next = {
+                ...current,
+                model: model ? String(model.value || '').trim() : (current.model || ''),
+                pricing: pricing ? String(pricing.value || '').trim() : (current.pricing || ''),
+                ltv: ltv ? mktToNumber(ltv.value, 0) : mktToNumber(current.ltv, 0),
+                churn: churn ? mktToNumber(churn.value, 0) : mktToNumber(current.churn, 0),
+                mrr: mrr ? mktToNumber(mrr.value, 0) : mktToNumber(current.mrr, 0),
+                objectives: Array.isArray(current.objectives) ? current.objectives : [],
+                updatedAt: new Date().toISOString()
+            };
+            mktSave(MARKETING_STORAGE_KEYS.business, next);
+            refreshMarketingUI();
+            showToast('Business mis à jour.', 'success');
+        }
+
+        function showAddObjectiveModal() {
+            mktOpenModal({
+                title: 'Ajouter un objectif',
+                subtitle: 'Ex: “+200 leads” / “MRR 1M DA”.',
+                primaryLabel: 'Ajouter',
+                bodyHtml: `
+                    <div style="display:grid; grid-template-columns: 1fr; gap: 12px;">
+                        <div>
+                            <label style="display:block; font-size:12px; color: rgba(255,255,255,0.65); margin-bottom:6px;">Titre *</label>
+                            <input name="title" class="mkt-input" required />
+                        </div>
+                        <div>
+                            <label style="display:block; font-size:12px; color: rgba(255,255,255,0.65); margin-bottom:6px;">Cible</label>
+                            <input name="target" class="mkt-input" placeholder="ex: Q1 2026, 10% churn max" />
+                        </div>
+                    </div>
+                `,
+                onSubmit: (fd) => {
+                    const title = String(fd.get('title') || '').trim();
+                    const target = String(fd.get('target') || '').trim();
+                    if (!title) {
+                        showToast('Titre requis.', 'error');
+                        return;
+                    }
+                    const business = mktLoad(MARKETING_STORAGE_KEYS.business, {});
+                    const objectives = Array.isArray(business.objectives) ? business.objectives : [];
+                    objectives.unshift({ title, target });
+                    mktSave(MARKETING_STORAGE_KEYS.business, { ...business, objectives, updatedAt: new Date().toISOString() });
+                    mktCloseModal();
+                    refreshMarketingUI();
+                    showToast('Objectif ajouté.', 'success');
+                }
+            });
+        }
+
+        function deleteMarketingObjective(index) {
+            const business = mktLoad(MARKETING_STORAGE_KEYS.business, {});
+            const objectives = Array.isArray(business.objectives) ? business.objectives : [];
+            if (index < 0 || index >= objectives.length) return;
+            if (!confirm('Supprimer cet objectif ?')) return;
+            objectives.splice(index, 1);
+            mktSave(MARKETING_STORAGE_KEYS.business, { ...business, objectives, updatedAt: new Date().toISOString() });
+            refreshMarketingUI();
+            showToast('Objectif supprimé.', 'success');
         }
         
         function showHRTab(tabName) {
