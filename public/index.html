@@ -1699,12 +1699,20 @@
             }
 
             .prompt-suggestions {
-                grid-template-columns: 1fr;
+                display: flex;
+                flex-wrap: nowrap;
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
                 gap: 12px;
+            }
+
+            .prompt-suggestions::-webkit-scrollbar {
+                display: none;
             }
 
             .prompt-card {
                 padding: 16px;
+                flex: 0 0 calc((100% - 24px) / 3);
             }
 
             .prompt-card svg {
