@@ -281,6 +281,8 @@ Pour commencer, sélectionnez vos langues dans le panneau latéral et saisissez 
             z-index: 10001;
             animation: fadeIn 0.3s ease;
             display: flex;
+            -webkit-text-size-adjust: 100%;
+            text-size-adjust: 100%;
         `;
         
         overlay.innerHTML = getTextProHTML();
