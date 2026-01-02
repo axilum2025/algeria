@@ -1701,6 +1701,14 @@
             .prompt-suggestions {
                 grid-template-columns: 1fr;
                 gap: 12px;
+                max-height: 360px;
+                overflow-y: auto;
+                -webkit-overflow-scrolling: touch;
+                scrollbar-width: none; /* Firefox */
+            }
+
+            .prompt-suggestions::-webkit-scrollbar {
+                display: none; /* Chrome/Safari */
             }
 
             .prompt-card {
