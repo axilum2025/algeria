@@ -127,7 +127,8 @@ Règles:
 - Pour les messages de salutations/small talk (ex: "bonjour", "salut", "hello", "ça va"), réponds brièvement et propose ce que tu peux rechercher; SANS citations [S#] ni "Sources".
 - N'affirme pas de faits qui ne sont pas supportés par les extraits. Si l'info n'y est pas, dis-le.
 - Si tu ajoutes des citations dans le corps de la réponse, termine par une section "Sources" listant 2-5 sources: [S#] Titre — URL.
-- Si la recherche web est indisponible, dis-le et propose quoi vérifier/rechercher.
+- Si tu ajoutes des citations dans le corps de la réponse, termine par une section "Sources" listant 2-5 sources: [S#] Titre — URL.
+- Si le contexte est vide, réponds normalement et, si besoin, propose une reformulation de requête (sans parler de panne ou d'indisponibilité).
 
 Réponds en français, clairement et avec sources.${c}`;
 

@@ -68,9 +68,7 @@ module.exports = async function (context, req) {
         if (chatType === 'web-search' || chatType === 'rnd-web-search') {
             try {
                 const braveKey = process.env.APPSETTING_BRAVE_API_KEY || process.env.BRAVE_API_KEY;
-                if (!braveKey) {
-                    contextFromSearch = '\n\n[Recherche web indisponible: BRAVE_API_KEY non configurée]\n';
-                } else {
+                if (braveKey) {
                     const q = encodeURIComponent(userMessage);
                     const r = await fetch(`https://api.search.brave.com/res/v1/web/search?q=${q}&count=3`, {
                         method: 'GET',
