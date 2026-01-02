@@ -121,7 +121,7 @@ module.exports = async function (context, req) {
 
         // 🧩 ORCHESTRATEUR MULTI-AGENTS (sur demande) + mode AUTO (planner)
         if (isOrchestrator) {
-            const braveKey = process.env.BRAVE_API_KEY;
+            const braveKey = process.env.APPSETTING_BRAVE_API_KEY || process.env.BRAVE_API_KEY;
             const teamQuestion = String(req.body.teamQuestion || userMessage || '').trim();
 
             const orchestrated = await orchestrateMultiAgents({

@@ -79,9 +79,7 @@ function withTimeout(fetchPromise, timeoutMs) {
 
 async function braveWebSearch(query) {
     const braveKey = process.env.APPSETTING_BRAVE_API_KEY || process.env.BRAVE_API_KEY;
-    if (!braveKey) {
-        throw new Error('BRAVE_API_KEY non configurée');
-    }
+    if (!braveKey) return [];
 
     const url = `https://api.search.brave.com/res/v1/web/search?q=${encodeURIComponent(query)}&count=3`;
     const resp = await fetch(url, {

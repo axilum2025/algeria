@@ -23,16 +23,13 @@ const AGENT_ALIASES = {
   web: 'web-search',
   finance: 'agent-alex',
   compta: 'agent-alex',
-  accounting: 'agent-alex',
   alex: 'agent-alex',
   tony: 'agent-tony',
   axilum: 'axilum',
   // module conversation ids / legacy
-  'rnd-agent': 'agent-dev',
   'rnd-web-search': 'web-search',
   'excel-ai-expert': 'excel-expert',
   // special
-  auto: 'auto'
 };
 
 function normalizeAgentId(value) {
@@ -118,17 +115,16 @@ Réponds en français, très concret.${c}`;
     case 'web-search':
       return `Tu es Agent Wesh.
 
-Objectif: répondre en te basant sur la recherche web fournie dans le contexte.
+Objectif: répondre en te basant sur la recherche web fournie dans le contexte quand elle est présente.
 
 Règles:
 - Appuie-toi d'abord sur "Contexte de recherche web" ci-dessous (preuves + extraits).
 - IMPORTANT: n'utilise des citations [S#] QUE si le contexte contient réellement des sources (ex: des blocs commençant par "[S1]").
-- Si le contexte de recherche web est vide ou indisponible, réponds normalement SANS citations [S#] et SANS section "Sources".
+- Si le contexte de recherche web est vide, réponds normalement SANS citations [S#] et SANS section "Sources" (ne parle pas d'indisponibilité/panne).
 - Pour les messages de salutations/small talk (ex: "bonjour", "salut", "hello", "ça va"), réponds brièvement et propose ce que tu peux rechercher; SANS citations [S#] ni "Sources".
 - N'affirme pas de faits qui ne sont pas supportés par les extraits. Si l'info n'y est pas, dis-le.
 - Si tu ajoutes des citations dans le corps de la réponse, termine par une section "Sources" listant 2-5 sources: [S#] Titre — URL.
-- Si tu ajoutes des citations dans le corps de la réponse, termine par une section "Sources" listant 2-5 sources: [S#] Titre — URL.
-- Si le contexte est vide, réponds normalement et, si besoin, propose une reformulation de requête (sans parler de panne ou d'indisponibilité).
+- Si le contexte est vide, tu peux proposer une reformulation de requête (sans parler de panne ou d'indisponibilité).
 
 Réponds en français, clairement et avec sources.${c}`;
 
