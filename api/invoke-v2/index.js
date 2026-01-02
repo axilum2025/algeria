@@ -352,6 +352,84 @@ Réponds en français, direct et actionnable.`;
                 warning: null, method: 'fallback-error'
             };
         }
+
+        // 5b. 🧹 AUTO-CORRECTION (Wesh uniquement)
+        const isWesh = chatType === 'web-search' || chatType === 'rnd-web-search';
+        const hasWebSources = typeof contextFromSearch === 'string' && /\n\[S1\]\s+/m.test(contextFromSearch);
+        const isGreeting = /^(\s)*(bonjour|salut|hello|hi|coucou|bonsoir|ça va|cv)(\s|!|\?|\.|,)*$/i.test(String(userMessage || ''));
+        const riskScore = Math.max(Number(hallucinationAnalysis.hi || 0), Number(hallucinationAnalysis.chr || 0));
+
+        const autoCorrectEnabled = String(process.env.WESH_AUTOCORRECT_ENABLED ?? 'true').toLowerCase() !== 'false';
+        const parsedThreshold = Number(process.env.WESH_AUTOCORRECT_THRESHOLD ?? 0.30);
+        const autoCorrectThreshold = Number.isFinite(parsedThreshold)
+            ? Math.max(0, Math.min(1, parsedThreshold))
+            : 0.30;
+
+        const shouldAutoCorrect = autoCorrectEnabled
+            && isWesh
+            && hasWebSources
+            && !isGreeting
+            && (hallucinationAnalysis.warning || riskScore >= autoCorrectThreshold);
+
+        let finalAiResponse = aiResponse;
+        let autoCorrectionUsage = null;
+        let autoCorrectionApplied = false;
+
+        if (shouldAutoCorrect) {
+            try {
+                const correctionMessages = [
+                    { role: 'system', content: buildSystemPromptForAgent('web-search', contextFromSearch) },
+                    {
+                        role: 'system',
+                        content: [
+                            'Tu vas corriger une réponse initiale afin de réduire le risque d\'hallucination.',
+                            'Contraintes:',
+                            '- N\'utilise QUE les informations présentes dans le "Contexte de recherche web".',
+                            '- Supprime ou nuance toute affirmation qui n\'est pas explicitement supportée par les extraits.',
+                            '- Si une info n\'est pas dans les extraits, dis clairement que tu ne peux pas confirmer.',
+                            '- Conserve le style Wesh: citations [S#] uniquement si elles correspondent à de vraies sources du contexte.',
+                            '- Ne crée pas de nouvelles sources; ne cite pas de [S#] si le contexte n\'en contient pas.',
+                            '- Réponds en français, de façon concise et actionnable.'
+                        ].join('\n')
+                    },
+                    {
+                        role: 'user',
+                        content: `Question: ${userMessage}\n\nRéponse initiale à corriger:\n${aiResponse}`
+                    }
+                ];
+
+                const correctionResponse = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${groqKey}`
+                    },
+                    body: JSON.stringify({
+                        model: 'llama-3.3-70b-versatile',
+                        messages: correctionMessages,
+                        max_tokens: 2500,
+                        temperature: 0.2
+                    })
+                });
+
+                if (correctionResponse.ok) {
+                    const correctionData = await correctionResponse.json();
+                    autoCorrectionUsage = correctionData?.usage || null;
+                    const corrected = correctionData?.choices?.[0]?.message?.content;
+                    if (typeof corrected === 'string' && corrected.trim()) {
+                        finalAiResponse = corrected.trim();
+                        autoCorrectionApplied = true;
+                        try {
+                            hallucinationAnalysis = await analyzeHallucination(finalAiResponse, userMessage);
+                        } catch (_) {
+                            // keep previous analysis if re-check fails
+                        }
+                    }
+                }
+            } catch (e) {
+                context.log.warn('⚠️ Auto-correction Wesh échouée, réponse initiale conservée:', e?.message || e);
+            }
+        }
         
         // 6. 📊 MÉTRIQUES ET RÉPONSE
         const hiPercent = (hallucinationAnalysis.hi * 100).toFixed(1);
@@ -377,9 +455,10 @@ Réponds en français, direct et actionnable.`;
             }
         }
         
-        metricsText += `\n💡 *Plan Pro - ${groqResponse.usage?.total_tokens || 0} tokens utilisés*`;
+        const tokensUsedTotal = (groqResponse.usage?.total_tokens || 0) + (autoCorrectionUsage?.total_tokens || 0);
+        metricsText += `\n💡 *Plan Pro - ${tokensUsedTotal} tokens utilisés*`;
         
-        const finalResponse = aiResponse + metricsText;
+        const finalResponse = finalAiResponse + metricsText;
 
         // 7. 📈 STATS RATE LIMITER
         const rateLimiterStats = globalRateLimiter.getAllStats();
@@ -397,12 +476,16 @@ Réponds en français, direct et actionnable.`;
                 proPlan: true,
                 model: 'llama-3.3-70b',
                 provider: 'Groq',
-                tokensUsed: groqResponse.usage?.total_tokens || 0,
+                tokensUsed: tokensUsedTotal,
                 promptTokens: groqResponse.usage?.prompt_tokens || 0,
                 completionTokens: groqResponse.usage?.completion_tokens || 0,
                 contextTokensEstimated: totalTokens,
                 qualityScore: 95,
                 advancedFeatures: true,
+
+                // Auto-correction Wesh
+                autoCorrected: autoCorrectionApplied,
+                autoCorrectThreshold: autoCorrectThreshold,
                 
                 // Métriques hallucination
                 hallucinationIndex: parseFloat(hiPercent),

@@ -290,6 +290,64 @@ module.exports = async function (context, req) {
                 method: 'fallback-error'
             };
         }
+
+        // 🧹 Auto-correction (Wesh uniquement)
+        const isWesh = forceWebSearch;
+        const hasWebSources = typeof contextFromSearch === 'string' && /\n\[S1\]\s+/m.test(contextFromSearch);
+        const isGreeting = /^(\s)*(bonjour|salut|hello|hi|coucou|bonsoir|ça va|cv)(\s|!|\?|\.|,)*$/i.test(String(userMessage || ''));
+        const riskScore = Math.max(Number(hallucinationAnalysis.hi || 0), Number(hallucinationAnalysis.chr || 0));
+
+        const autoCorrectEnabled = String(process.env.WESH_AUTOCORRECT_ENABLED ?? 'true').toLowerCase() !== 'false';
+        const parsedThreshold = Number(process.env.WESH_AUTOCORRECT_THRESHOLD ?? 0.30);
+        const autoCorrectThreshold = Number.isFinite(parsedThreshold)
+            ? Math.max(0, Math.min(1, parsedThreshold))
+            : 0.30;
+
+        const shouldAutoCorrect = autoCorrectEnabled
+            && isWesh
+            && hasWebSources
+            && !isGreeting
+            && (hallucinationAnalysis.warning || riskScore >= autoCorrectThreshold);
+
+        let finalAiResponse = aiResponse;
+        let autoCorrectionUsage = null;
+        let autoCorrectionApplied = false;
+
+        if (shouldAutoCorrect) {
+            try {
+                const correctionMessages = [
+                    { role: 'system', content: buildSystemPromptForAgent('web-search', contextFromSearch) },
+                    {
+                        role: 'system',
+                        content: [
+                            'Tu vas corriger une réponse initiale afin de réduire le risque d\'hallucination.',
+                            'Contraintes:',
+                            '- N\'utilise QUE les informations présentes dans le "Contexte de recherche web".',
+                            '- Supprime ou nuance toute affirmation qui n\'est pas explicitement supportée par les extraits.',
+                            '- Si une info n\'est pas dans les extraits, dis clairement que tu ne peux pas confirmer.',
+                            '- Conserve les citations [S#] uniquement quand elles correspondent à de vraies sources du contexte.',
+                            '- Ne crée pas de nouvelles sources.'
+                        ].join('\n')
+                    },
+                    { role: 'user', content: `Question: ${userMessage}\n\nRéponse initiale à corriger:\n${aiResponse}` }
+                ];
+
+                const correctedData = await callGroqChatCompletion(groqApiKey, correctionMessages, { max_tokens: 2500, temperature: 0.2 });
+                autoCorrectionUsage = correctedData?.usage || null;
+                const corrected = correctedData?.choices?.[0]?.message?.content;
+                if (typeof corrected === 'string' && corrected.trim()) {
+                    finalAiResponse = corrected.trim();
+                    autoCorrectionApplied = true;
+                    try {
+                        hallucinationAnalysis = await analyzeHallucination(finalAiResponse, userMessage);
+                    } catch (_) {
+                        // keep previous analysis if re-check fails
+                    }
+                }
+            } catch (e) {
+                context.log.warn('Auto-correction Wesh échouée, réponse initiale conservée:', e?.message || e);
+            }
+        }
         
         // Convertir en pourcentage (0-1 → 0-100)
         const hiPercent = (hallucinationAnalysis.hi * 100).toFixed(1);
@@ -308,8 +366,9 @@ module.exports = async function (context, req) {
             metricsText += `\n\n📚 Sources: ${hallucinationAnalysis.sources.join(', ')}`;
         }
         
-        metricsText += `\n💡 *Mode Gratuit - ${data.usage?.total_tokens || 0} tokens utilisés*`;
-        const finalResponse = aiResponse + metricsText;
+        const tokensUsedTotal = (data.usage?.total_tokens || 0) + (autoCorrectionUsage?.total_tokens || 0);
+        metricsText += `\n💡 *Mode Gratuit - ${tokensUsedTotal} tokens utilisés*`;
+        const finalResponse = finalAiResponse + metricsText;
 
         context.res = {
             status: 200,
@@ -323,11 +382,13 @@ module.exports = async function (context, req) {
                 freePlan: true,
                 model: 'llama-3.3-70b',
                 provider: 'Groq',
-                tokensUsed: data.usage?.total_tokens || 0,
+                tokensUsed: tokensUsedTotal,
                 promptTokens: data.usage?.prompt_tokens || 0,
                 completionTokens: data.usage?.completion_tokens || 0,
                 qualityScore: 95,
                 advancedFeatures: false,
+                autoCorrected: autoCorrectionApplied,
+                autoCorrectThreshold: autoCorrectThreshold,
                 hallucinationIndex: parseFloat(hiPercent),
                 contextHistoryRatio: parseFloat(chrPercent),
                 hallucinationClaims: hallucinationAnalysis.claims || [],
