@@ -3173,9 +3173,70 @@
                 <!-- Introduction -->
                 <div class="about-intro">
                     <p>
-                        <strong>Axilum AI</strong> est la <strong>première et seule IA</strong> qui détecte et vous protège activement contre les hallucinations. 
-                        Notre système breveté analyse en temps réel la fiabilité de chaque réponse grâce à des métriques révolutionnaires.
+                        <strong>Axilum AI</strong> est une plateforme de chat et de modules métier (Office™ + Outils) organisée autour d’<strong>agents spécialisés</strong>.
+                        Vous discutez dans le chat principal, puis vous ouvrez des modules dédiés (Finance, RH, R&D, Marketing, etc.) quand vous avez besoin d’une interface et d’actions adaptées.
                     </p>
+                </div>
+
+                <!-- Modules Office™ -->
+                <div class="about-section">
+                    <h3>
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5a2 2 0 104 0 2 2 0 10-4 0zM5 11a2 2 0 102 2h2a2 2 0 102-2v-2a2 2 0 10-2-2H9a2 2 0 10-4 2v2zM13 13a2 2 0 112 2v2a2 2 0 11-2 2h-2a2 2 0 11-2-2v-2a2 2 0 112-2h2z"/>
+                        </svg>
+                        Modules Office™ (métiers)
+                    </h3>
+                    <div class="about-features">
+                        <div class="feature-card">
+                            <h4>Finance &amp; Compta — Agent Alex</h4>
+                            <p>Chat financier + interface dédiée pour poser des questions, uploader des factures, et générer/consulter des rapports et listes (selon configuration du module Finance).</p>
+                        </div>
+                        <div class="feature-card">
+                            <h4>HR Management Hub — Agent RH</h4>
+                            <p>Gestion RH avec écrans dédiés (employés, congés, paie, recrutement) et automatisations (selon configuration RH).</p>
+                        </div>
+                        <div class="feature-card">
+                            <h4>Research &amp; Development — Agent Dev</h4>
+                            <p>Espace R&amp;D pour assister l’innovation, structurer des idées, rédiger/itérer et organiser des éléments de travail.</p>
+                        </div>
+                        <div class="feature-card">
+                            <h4>Marketing &amp; Business — Agent Mark</h4>
+                            <p>Module marketing pour analyses, stratégie, positionnement et production de contenus (selon votre usage).</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Outils -->
+                <div class="about-section">
+                    <h3>
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                        </svg>
+                        Outils (productivité)
+                    </h3>
+                    <div class="about-features">
+                        <div class="feature-card">
+                            <h4>Excel AI Expert — Agent Xcel</h4>
+                            <p>Page dédiée pour questions Excel (formules, tableaux, analyse, graphiques) et assistance sur vos fichiers/feuilles selon votre usage.</p>
+                        </div>
+                        <div class="feature-card">
+                            <h4>AI Task — Agent ToDo</h4>
+                            <p>Gestion de tâches/organisation (to-do, planning). Les données peuvent être stockées localement et/ou synchronisées selon le mode activé.</p>
+                        </div>
+                        <div class="feature-card">
+                            <h4>Text Pro — Agent Tony</h4>
+                            <p>Traitement de texte (rédaction, correction, traduction) avec upload (TXT/PDF/DOC/DOCX) et export (PDF/TXT + DOCX simplifié).</p>
+                        </div>
+                        <div class="feature-card">
+                            <h4>AI Vision PRO — Agent Eve</h4>
+                            <p>Interface Vision dédiée (Azure Vision) pour l’analyse d’images (statut/accès selon plan). Le bouton “Retour” vous ramène au chat principal.</p>
+                        </div>
+                        <div class="feature-card">
+                            <h4>Hallucination Detector</h4>
+                            <p>Mode de vérification: collez une réponse externe et Axilum AI vous aide à repérer les zones incertaines (via HI/CHR et guidage).</p>
+                        </div>
+                    </div>
                 </div>
 
                 <!-- Métriques HI/CHR -->
@@ -3241,45 +3302,49 @@
                         Stack Technique
                     </h3>
                     <div class="tech-badges">
-                        <span class="tech-badge">Azure OpenAI GPT-4</span>
+                        <span class="tech-badge">Azure OpenAI</span>
                         <span class="tech-badge">Azure Functions</span>
-                        <span class="tech-badge">Table Storage</span>
-                        <span class="tech-badge">RAG System</span>
-                        <span class="tech-badge">Google Fact Check</span>
-                        <span class="tech-badge">Real-time Analysis</span>
+                        <span class="tech-badge">Azure Storage (Table/Blob)</span>
+                        <span class="tech-badge">IndexedDB</span>
+                        <span class="tech-badge">LocalStorage</span>
+                        <span class="tech-badge">Web Speech API (vocal)</span>
+                        <span class="tech-badge">PDF/Exports</span>
                     </div>
                 </div>
 
-                <!-- Fonctions -->
+                <!-- Agents -->
                 <div class="about-section">
                     <h3>
                         <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
                         </svg>
-                        Fonctions
+                        Agents &amp; Routage
                     </h3>
                     <p style="margin-bottom: 15px;">
-                        <strong>Plan Pro :</strong> Accédez au Chat avancé propulsé par Llama 3.3 70B avec fonctions Azure exclusives. L'Analyse d'image utilise Azure Vision pour extraire du texte, détecter des objets et analyser des scènes visuelles. La Génération d'images utilise DALL-E 3. Le Résumé de documents permet de condenser automatiquement vos fichiers PDF et DOCX en points clés essentiels.
+                        Axilum AI peut fonctionner en <strong>mode général</strong> ou en <strong>mode agent</strong>. Vous pouvez changer d’agent via la commande <strong>/agent</strong> (ou le sélecteur d’agents) pour router vos messages vers une spécialité.
                     </p>
-                    <p>
-                        <strong>Plan Free :</strong> Profitez du Chat de base avec notre IA conversationnelle pour répondre à vos questions quotidiennes. La Lecture PDF/DOCX locale vous permet d'analyser vos documents directement dans votre navigateur sans envoi sur serveur, garantissant confidentialité et rapidité.
-                    </p>
+                    <div class="about-features">
+                        <div class="feature-card">
+                            <h4>Chat général</h4>
+                            <p><strong>Axilum AI</strong> (par défaut) pour les demandes transverses et l’orientation vers les bons modules.</p>
+                        </div>
+                        <div class="feature-card">
+                            <h4>Agents spécialisés</h4>
+                            <p>dev, xcel, todo, rh, mark, web, alex, tony, eve — chacun correspond à un module/usage (R&amp;D, Excel, tâches, RH, marketing, web, finance, text, vision).</p>
+                        </div>
+                    </div>
                 </div>
 
-                <!-- Outils -->
+                <!-- Données & Confidentialité -->
                 <div class="about-section">
                     <h3>
                         <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4m0 5c0 2.21-3.582 4-8 4s-8-1.79-8-4"/>
                         </svg>
-                        Outils
+                        Données, stockage &amp; export
                     </h3>
-                    <p style="margin-bottom: 15px;">
-                        <strong>Plan Pro :</strong> Le Form Recognizer extrait intelligemment les données structurées de formulaires, factures et documents administratifs. La Recherche avancée combine Azure Cognitive Search avec notre système RAG pour des résultats précis et contextualisés dans vos bases documentaires.
-                    </p>
                     <p>
-                        <strong>Plan Free :</strong> Créez des images uniques avec la Génération d'images via Pollinations AI. La Traduction instantanée supporte plusieurs langues grâce à Azure Translator. La Synthèse vocale (TTS) convertit du texte en parole naturelle pour une accessibilité améliorée.
+                        Axilum AI gère des données (conversations, tâches, événements, paramètres) avec un <strong>stockage local</strong> (IndexedDB/LocalStorage) et des options de <strong>synchro cloud</strong> selon le mode choisi. Vous pouvez exporter vos conversations et consulter la page Confidentialité pour le détail.
                     </p>
                 </div>
 
