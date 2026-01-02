@@ -23367,12 +23367,12 @@ ${recruitmentInfo}
         function toggleFinanceHistory() {
             const panel = document.getElementById('financeHistoryPanel');
             const settingsPanel = document.getElementById('financeSettingsPanel');
+            const overlay = document.getElementById('financeAIOverlay');
             if (!panel) return;
             
             // Fermer le panneau des paramètres s'il est ouvert
-            if (settingsPanel && settingsPanel.style.display === 'block') {
-                settingsPanel.style.display = 'none';
-            }
+            if (overlay) overlay.classList.remove('settings-open');
+            if (settingsPanel) settingsPanel.style.display = '';
             
             if (panel.style.display === 'none' || !panel.style.display) {
                 panel.style.display = 'block';
@@ -23390,7 +23390,7 @@ ${recruitmentInfo}
             const historyPanel = document.getElementById('financeHistoryPanel');
             const settingsPanel = document.getElementById('financeSettingsPanel');
             if (historyPanel && historyPanel.style.display === 'block') historyPanel.style.display = 'none';
-            if (settingsPanel && settingsPanel.style.display === 'block') settingsPanel.style.display = 'none';
+            if (settingsPanel) settingsPanel.style.display = '';
 
             // Fermer le drawer Paramètres s'il est ouvert
             overlay.classList.remove('settings-open');
@@ -23420,6 +23420,9 @@ ${recruitmentInfo}
             const panel = document.getElementById('financeSettingsPanel');
             const historyPanel = document.getElementById('financeHistoryPanel');
             if (!overlay || !panel) return;
+
+            // S'assurer que le panel n'est pas bloqué par un display:none inline
+            panel.style.display = '';
 
             // Fermer le panneau historique s'il est ouvert
             if (historyPanel && historyPanel.style.display === 'block') {
