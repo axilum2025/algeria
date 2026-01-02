@@ -453,25 +453,23 @@ Pour commencer, sélectionnez vos langues dans le panneau latéral et saisissez 
                     
                     <div class="textpro-chat-input-area">
                         <div class="textpro-input-wrapper">
-                            <div class="textpro-input-top">
+                            <div class="input-wrapper textpro-input-bar">
                                 <textarea 
                                     id="textProChatInput" 
-                                    class="textpro-chat-textarea" 
+                                    class="textpro-chat-textarea textpro-chat-textarea--inline" 
                                     placeholder="Collez votre texte ou posez votre question..."
                                     onkeydown="if(event.key === 'Enter' && !event.shiftKey) { event.preventDefault(); window.sendTextProMessage(); }"
                                     oninput="window.updateTextProCounter()"
                                 ></textarea>
-                                <div class="textpro-input-buttons">
-                                    <button class="textpro-mic-btn" id="textProMicBtn" onclick="window.toggleTextProRecording()" title="Enregistrer un message vocal">
-                                        ${SVGIcons.microphone}
-                                    </button>
-                                    <button class="textpro-translate-btn" id="textProTranslateBtn" onclick="window.toggleInstantTranslation()" title="Traduction vocale instantanée">
-                                        ${SVGIcons.globe}
-                                    </button>
-                                    <button class="textpro-send-btn" onclick="window.sendTextProMessage()" title="Envoyer le message">
-                                        ${SVGIcons.send}
-                                    </button>
-                                </div>
+                                <button class="send-btn textpro-send-btn" onclick="window.sendTextProMessage()" title="Envoyer le message">
+                                    ${SVGIcons.send}
+                                </button>
+                                <button class="input-icon-btn textpro-mic-btn" id="textProMicBtn" onclick="window.toggleTextProRecording()" title="Enregistrer un message vocal">
+                                    ${SVGIcons.microphone}
+                                </button>
+                                <button class="input-icon-btn textpro-translate-btn" id="textProTranslateBtn" onclick="window.toggleInstantTranslation()" title="Traduction vocale instantanée">
+                                    ${SVGIcons.globe}
+                                </button>
                             </div>
                             <div id="textProCounter" class="textpro-counter">0 caractère | 0 mot</div>
                         </div>
@@ -1287,10 +1285,8 @@ Pour commencer, sélectionnez vos langues dans le panneau latéral et saisissez 
                 gap: 10px;
             }
 
-            .textpro-input-top {
-                display: flex;
-                gap: 12px;
-                align-items: flex-end;
+            .textpro-input-bar {
+                width: 100%;
             }
             
             .textpro-chat-textarea {
@@ -1306,11 +1302,28 @@ Pour commencer, sélectionnez vos langues dans le panneau latéral et saisissez 
                 font-family: inherit;
                 resize: vertical;
             }
+
+            /* Variante inline: même style que le chat principal (boutons intégrés) */
+            .textpro-chat-textarea--inline {
+                border: none;
+                background: transparent;
+                outline: none;
+                font-size: 15px;
+                color: var(--text-primary);
+                resize: none;
+                min-height: 24px;
+                line-height: 1.5;
+                padding: 6px 8px;
+            }
             
             .textpro-chat-textarea:focus {
                 outline: none;
                 border-color: rgba(59, 130, 246, 0.6);
                 background: rgba(0, 0, 0, 0.4);
+            }
+
+            .textpro-chat-textarea--inline:focus {
+                outline: none;
             }
             
             .textpro-chat-textarea::placeholder {
