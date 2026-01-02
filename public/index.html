@@ -23719,10 +23719,11 @@ ${recruitmentInfo}
                         padding: 24px;
                         overflow-y: auto;
                         box-shadow: -18px 0 60px rgba(0,0,0,0.45);
-                        transform: translateX(100%);
+                        transform: translateX(110%);
                         transition: transform 0.25s ease;
                         z-index: 160;
                         pointer-events: none;
+                        will-change: transform;
                     }
                     #financeAIOverlay.tools-open .finance-tools {
                         transform: translateX(0);
@@ -23763,10 +23764,11 @@ ${recruitmentInfo}
                         border-top: 1px solid rgba(148,163,184,0.18);
                         border-radius: 16px 0 0 0;
                         box-shadow: -18px 0 60px rgba(0,0,0,0.45);
-                        transform: translateX(100%);
+                        transform: translateX(110%);
                         transition: transform 0.25s ease;
                         z-index: 180;
                         pointer-events: none;
+                        will-change: transform;
                     }
                     #financeAIOverlay.settings-open #financeSettingsPanel {
                         transform: translateX(0);
@@ -23998,7 +24000,7 @@ ${recruitmentInfo}
                     <div class="finance-settings-backdrop" onclick="toggleFinanceSettings()" aria-hidden="true"></div>
                     
                     <!-- Panneau des paramètres entreprise -->
-                    <div id="financeSettingsPanel" class="history-panel">
+                    <div id="financeSettingsPanel" class="history-panel" style="transform: translateX(110%);">
                         <div class="history-header">
                             <div class="history-title">⚙️ Paramètres Entreprise</div>
                             <button class="history-close" onclick="toggleFinanceSettings()">
