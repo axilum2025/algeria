@@ -14717,6 +14717,18 @@ ${persona}
                                     <div class="rnd-stat-label">Risques Actifs</div>
                                 </div>
                             </div>
+
+                            <div id="rndActionsPanel" style="display:none; background: rgba(0,0,0,0.22); border: 1px solid rgba(99, 102, 241, 0.25); border-radius: 16px; padding: 16px 18px; margin: 0 0 24px;">
+                                <div style="display:flex; align-items:center; justify-content: space-between; gap: 12px; flex-wrap: wrap;">
+                                    <div>
+                                        <div style="color: rgba(255,255,255,0.92); font-weight: 700;">Actions Agent dev prêtes</div>
+                                        <div style="margin-top: 4px; color: rgba(255,255,255,0.65); font-size: 12px;">
+                                            <span id="rndActionsCount">0</span> action(s) en attente. Cliquez pour appliquer au dashboard.
+                                        </div>
+                                    </div>
+                                    <button id="rndApplyActionsBtn" class="rnd-btn" type="button" onclick="applyRnDLatestActionBatch()">Appliquer au dashboard</button>
+                                </div>
+                            </div>
                             
                             <div class="rnd-section">
                                 <div class="rnd-section-title">Projets Prioritaires</div>
@@ -15250,6 +15262,330 @@ ${persona}
         
         // ========== GESTION DE L'HISTORIQUE DU CHAT AGENT dev ==========
         let rndChatHistory = JSON.parse(localStorage.getItem('rndChatHistory') || '[]');
+
+        // ========== AGENT DEV ↔ ACTIONS (apply via dashboard button) ==========
+        const rndPendingActionBatches = {};
+        let rndLatestActionBatchId = null;
+
+        function rndTryParseJson(text) {
+            try {
+                return JSON.parse(text);
+            } catch (_) {
+                return null;
+            }
+        }
+
+        function rndExtractJsonFromFencedBlocks(text) {
+            const blocks = [];
+            const re = /```json\s*([\s\S]*?)\s*```/gi;
+            let match;
+            while ((match = re.exec(String(text || ''))) !== null) {
+                blocks.push(match[1]);
+            }
+            return blocks;
+        }
+
+        function rndExtractActionsFromResponse(responseText) {
+            const raw = String(responseText || '');
+
+            // 1) fenced ```json``` blocks
+            const jsonBlocks = rndExtractJsonFromFencedBlocks(raw);
+            for (const block of jsonBlocks) {
+                const obj = rndTryParseJson(block);
+                if (obj && Array.isArray(obj.axilum_actions)) {
+                    const cleaned = raw.replace(/```json[\s\S]*?```/gi, '').trim();
+                    return { actions: obj.axilum_actions, cleanedText: cleaned };
+                }
+            }
+
+            // 2) whole response is JSON
+            const trimmed = raw.trim();
+            if (trimmed.startsWith('{') && trimmed.endsWith('}')) {
+                const obj = rndTryParseJson(trimmed);
+                if (obj && Array.isArray(obj.axilum_actions)) {
+                    return { actions: obj.axilum_actions, cleanedText: '' };
+                }
+            }
+
+            return { actions: null, cleanedText: raw };
+        }
+
+        function rndRegisterPendingActions(actions) {
+            const id = `rnd_actions_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 8)}`;
+            rndPendingActionBatches[id] = {
+                actions: Array.isArray(actions) ? actions : [],
+                createdAt: Date.now(),
+                applied: false,
+                discarded: false
+            };
+            rndLatestActionBatchId = id;
+            updateRnDActionsUI();
+            return id;
+        }
+
+        function updateRnDActionsUI() {
+            const panel = document.getElementById('rndActionsPanel');
+            const countEl = document.getElementById('rndActionsCount');
+            if (!panel || !countEl) return;
+
+            const batch = rndLatestActionBatchId ? rndPendingActionBatches[String(rndLatestActionBatchId)] : null;
+            const count = (batch && !batch.applied && !batch.discarded && Array.isArray(batch.actions)) ? batch.actions.length : 0;
+
+            if (count > 0) {
+                countEl.textContent = String(count);
+                panel.style.display = 'block';
+            } else {
+                panel.style.display = 'none';
+            }
+        }
+
+        function rndToInt(value, fallback = 0) {
+            const n = Number.parseInt(String(value ?? ''), 10);
+            return Number.isFinite(n) ? n : fallback;
+        }
+
+        function rndToNumber(value, fallback = 0) {
+            const n = Number(value);
+            return Number.isFinite(n) ? n : fallback;
+        }
+
+        function rndNormalizeString(value, maxLen = 500) {
+            return String(value ?? '').trim().slice(0, maxLen);
+        }
+
+        function rndApplyAgentActions(actions) {
+            if (!Array.isArray(actions) || actions.length === 0) return { applied: 0, skipped: 0 };
+
+            const projects = JSON.parse(localStorage.getItem('rndProjects') || '[]');
+            const milestones = JSON.parse(localStorage.getItem('rndMilestones') || '[]');
+            const documents = JSON.parse(localStorage.getItem('rndDocuments') || '[]');
+            const risks = JSON.parse(localStorage.getItem('rndRisks') || '[]');
+
+            let applied = 0;
+            let skipped = 0;
+
+            const upsertById = (arr, item) => {
+                const id = item?.id;
+                if (id === undefined || id === null) return false;
+                const idx = arr.findIndex(x => String(x?.id) === String(id));
+                if (idx >= 0) {
+                    arr[idx] = { ...arr[idx], ...item, id, updated: new Date().toISOString() };
+                } else {
+                    arr.unshift({ ...item, id, created: item?.created || new Date().toISOString(), updated: new Date().toISOString() });
+                }
+                return true;
+            };
+
+            for (const action of actions) {
+                const type = String(action?.type || action?.action || '').trim();
+                const data = action?.data ?? action?.payload ?? action;
+
+                try {
+                    if (type === 'upsert_project') {
+                        const titre = rndNormalizeString(data?.titre, 180);
+                        if (!titre) { skipped++; continue; }
+
+                        const id = (data?.id !== undefined && data?.id !== null) ? rndToInt(data.id, Date.now()) : Date.now();
+                        const existing = projects.find(p => String(p?.id) === String(id));
+
+                        // Respecter la limite FREE (3 projets non archivés)
+                        const selectedPlan = String(localStorage.getItem('selectedPlan') || 'FREE').toUpperCase();
+                        const nonArchivedCount = projects.filter(p => p && p.statut !== 'archivé').length;
+                        const isNew = !existing;
+                        if (selectedPlan === 'FREE' && isNew && nonArchivedCount >= 3) {
+                            skipped++;
+                            continue;
+                        }
+
+                        const currency = rndNormalizeString(data?.budget?.devise || data?.budgetDevise || data?.devise || 'DA', 8) || 'DA';
+                        const budgetPrevu = Math.max(0, rndToInt(data?.budget?.prevu ?? data?.budgetPrevu ?? data?.budget ?? 0, 0));
+                        const budgetDepense = Math.max(0, rndToInt(data?.budget?.depense ?? data?.budgetDepense ?? existing?.budget?.depense ?? 0, 0));
+
+                        const item = {
+                            id,
+                            titre,
+                            domaine: rndNormalizeString(data?.domaine || existing?.domaine || 'autre', 40),
+                            description: rndNormalizeString(data?.description || existing?.description || '', 5000),
+                            probleme: rndNormalizeString(data?.probleme || existing?.probleme || '', 2000),
+                            budget: {
+                                prevu: budgetPrevu,
+                                depense: budgetDepense,
+                                devise: currency
+                            },
+                            duree: Math.max(1, rndToInt(data?.duree ?? existing?.duree ?? 12, 12)),
+                            equipe: Array.isArray(data?.equipe) ? data.equipe.map(v => rndNormalizeString(v, 80)).filter(Boolean) : (existing?.equipe || []),
+                            technologies: Array.isArray(data?.technologies) ? data.technologies.map(v => rndNormalizeString(v, 80)).filter(Boolean) : (existing?.technologies || []),
+                            cible: rndNormalizeString(data?.cible || existing?.cible || '', 600),
+                            phase: rndNormalizeString(data?.phase || existing?.phase || 'découverte', 24) || 'découverte',
+                            avancement: Math.min(100, Math.max(0, rndToInt(data?.avancement ?? existing?.avancement ?? 5, 5))),
+                            objectifs: Array.isArray(data?.objectifs) ? data.objectifs : (existing?.objectifs || []),
+                            kpis: Array.isArray(data?.kpis) ? data.kpis : (existing?.kpis || []),
+                            risques: Array.isArray(data?.risques) ? data.risques : (existing?.risques || []),
+                            notes: rndNormalizeString(data?.notes ?? existing?.notes ?? '', 8000),
+                            statut: rndNormalizeString(data?.statut || existing?.statut || 'actif', 24) || 'actif',
+                            created: existing?.created || new Date().toISOString(),
+                            updated: new Date().toISOString()
+                        };
+
+                        if (upsertById(projects, item)) applied++; else skipped++;
+                        continue;
+                    }
+
+                    if (type === 'delete_project') {
+                        const id = rndToInt(data?.id, NaN);
+                        if (!Number.isFinite(id)) { skipped++; continue; }
+                        const before = projects.length;
+                        const next = projects.filter(p => String(p?.id) !== String(id));
+                        if (next.length !== before) {
+                            projects.splice(0, projects.length, ...next);
+                            // Nettoyage des items liés
+                            const mBefore = milestones.length;
+                            const dBefore = documents.length;
+                            const rBefore = risks.length;
+                            const mNext = milestones.filter(m => String(m?.projectId) !== String(id));
+                            const dNext = documents.filter(d => String(d?.projectId) !== String(id));
+                            const rNext = risks.filter(r => String(r?.projectId) !== String(id));
+                            milestones.splice(0, milestones.length, ...mNext);
+                            documents.splice(0, documents.length, ...dNext);
+                            risks.splice(0, risks.length, ...rNext);
+                            applied++;
+                        } else {
+                            skipped++;
+                        }
+                        continue;
+                    }
+
+                    if (type === 'upsert_milestone') {
+                        const titre = rndNormalizeString(data?.titre, 200);
+                        const projectId = rndToInt(data?.projectId, NaN);
+                        if (!titre || !Number.isFinite(projectId)) { skipped++; continue; }
+
+                        const id = (data?.id !== undefined && data?.id !== null) ? rndToInt(data.id, Date.now()) : Date.now();
+                        const existing = milestones.find(m => String(m?.id) === String(id));
+
+                        const item = {
+                            id,
+                            projectId,
+                            titre,
+                            description: rndNormalizeString(data?.description || existing?.description || '', 2000),
+                            date: rndNormalizeString(data?.date || existing?.date || '', 40),
+                            statut: rndNormalizeString(data?.statut || existing?.statut || 'à-venir', 24) || 'à-venir',
+                            kpis: Array.isArray(data?.kpis) ? data.kpis : (existing?.kpis || []),
+                            created: existing?.created || new Date().toISOString()
+                        };
+
+                        if (upsertById(milestones, item)) applied++; else skipped++;
+                        continue;
+                    }
+
+                    if (type === 'delete_milestone') {
+                        const id = rndToInt(data?.id, NaN);
+                        if (!Number.isFinite(id)) { skipped++; continue; }
+                        const before = milestones.length;
+                        const next = milestones.filter(m => String(m?.id) !== String(id));
+                        if (next.length !== before) { milestones.splice(0, milestones.length, ...next); applied++; } else skipped++;
+                        continue;
+                    }
+
+                    if (type === 'upsert_document') {
+                        const titre = rndNormalizeString(data?.titre, 200);
+                        const projectId = rndToInt(data?.projectId, NaN);
+                        if (!titre || !Number.isFinite(projectId)) { skipped++; continue; }
+
+                        const id = (data?.id !== undefined && data?.id !== null) ? rndToInt(data.id, Date.now()) : Date.now();
+                        const existing = documents.find(d => String(d?.id) === String(id));
+
+                        const item = {
+                            id,
+                            projectId,
+                            titre,
+                            type: rndNormalizeString(data?.type || existing?.type || 'autre', 32) || 'autre',
+                            description: rndNormalizeString(data?.description || existing?.description || '', 3000),
+                            url: rndNormalizeString(data?.url || existing?.url || '', 2000),
+                            created: existing?.created || new Date().toISOString()
+                        };
+
+                        if (upsertById(documents, item)) applied++; else skipped++;
+                        continue;
+                    }
+
+                    if (type === 'delete_document') {
+                        const id = rndToInt(data?.id, NaN);
+                        if (!Number.isFinite(id)) { skipped++; continue; }
+                        const before = documents.length;
+                        const next = documents.filter(d => String(d?.id) !== String(id));
+                        if (next.length !== before) { documents.splice(0, documents.length, ...next); applied++; } else skipped++;
+                        continue;
+                    }
+
+                    if (type === 'upsert_risk') {
+                        const titre = rndNormalizeString(data?.titre, 200);
+                        const projectId = rndToInt(data?.projectId, NaN);
+                        if (!titre || !Number.isFinite(projectId)) { skipped++; continue; }
+
+                        const id = (data?.id !== undefined && data?.id !== null) ? rndToInt(data.id, Date.now()) : Date.now();
+                        const existing = risks.find(r => String(r?.id) === String(id));
+
+                        const item = {
+                            id,
+                            projectId,
+                            titre,
+                            description: rndNormalizeString(data?.description || existing?.description || '', 3000),
+                            criticite: rndNormalizeString(data?.criticite || existing?.criticite || 'moyenne', 24) || 'moyenne',
+                            impact: Math.min(100, Math.max(0, rndToInt(data?.impact ?? existing?.impact ?? 50, 50))),
+                            mitigation: rndNormalizeString(data?.mitigation || existing?.mitigation || '', 3000),
+                            statut: rndNormalizeString(data?.statut || existing?.statut || 'actif', 24) || 'actif',
+                            created: existing?.created || new Date().toISOString()
+                        };
+
+                        if (upsertById(risks, item)) applied++; else skipped++;
+                        continue;
+                    }
+
+                    if (type === 'delete_risk') {
+                        const id = rndToInt(data?.id, NaN);
+                        if (!Number.isFinite(id)) { skipped++; continue; }
+                        const before = risks.length;
+                        const next = risks.filter(r => String(r?.id) !== String(id));
+                        if (next.length !== before) { risks.splice(0, risks.length, ...next); applied++; } else skipped++;
+                        continue;
+                    }
+
+                    skipped++;
+                } catch (_) {
+                    skipped++;
+                }
+            }
+
+            localStorage.setItem('rndProjects', JSON.stringify(projects));
+            localStorage.setItem('rndMilestones', JSON.stringify(milestones));
+            localStorage.setItem('rndDocuments', JSON.stringify(documents));
+            localStorage.setItem('rndRisks', JSON.stringify(risks));
+
+            initializeRnDData();
+            renderMilestonesList();
+            renderDocsList();
+            renderRisksList();
+
+            return { applied, skipped };
+        }
+
+        function applyRnDLatestActionBatch() {
+            const batchId = rndLatestActionBatchId;
+            if (!batchId) return;
+            const batch = rndPendingActionBatches[String(batchId)];
+            if (!batch || batch.applied || batch.discarded) return;
+            if (!Array.isArray(batch.actions) || batch.actions.length === 0) return;
+
+            const ok = confirm(`Appliquer ${batch.actions.length} action(s) au dashboard R&D ?`);
+            if (!ok) return;
+
+            const result = rndApplyAgentActions(batch.actions);
+            batch.applied = true;
+            rndLatestActionBatchId = null;
+            updateRnDActionsUI();
+            showToast(`✅ Actions appliquées: ${result.applied} • Ignorées: ${result.skipped}`, 'success');
+        }
         
         function loadRnDChatHistory() {
             const messagesContainer = document.getElementById('rndChatMessages');
@@ -15386,6 +15722,24 @@ ${persona}
                     risks: rndData.risks
                 });
 
+                                const rndActionsContract = `
+
+SI l'utilisateur demande explicitement d'AJOUTER/MODIFIER/SUPPRIMER des données R&D (projets, jalons, documents, risques), renvoie TOUJOURS un bloc JSON unique (format JSON strict) avec ce format :
+{
+    "axilum_actions": [
+        {"type": "upsert_project", "data": {"id?": 0, "titre": "...", "domaine?": "...", "description?": "...", "probleme?": "...", "budgetPrevu?": 0, "budgetDevise?": "DA|EUR|USD|GBP|CAD", "duree?": 12, "equipe?": ["..."], "technologies?": ["..."], "cible?": "...", "phase?": "découverte|idéation|expérimentation|validation|déploiement", "avancement?": 0, "statut?": "actif|archivé"}},
+        {"type": "delete_project", "data": {"id": 0}},
+        {"type": "upsert_milestone", "data": {"id?": 0, "projectId": 0, "titre": "...", "description?": "...", "date?": "YYYY-MM-DD", "statut?": "à-venir|complété"}},
+        {"type": "delete_milestone", "data": {"id": 0}},
+        {"type": "upsert_document", "data": {"id?": 0, "projectId": 0, "titre": "...", "type?": "specs|architecture|rapport|presentation|contrat|autre", "description?": "...", "url?": "..."}},
+        {"type": "delete_document", "data": {"id": 0}},
+        {"type": "upsert_risk", "data": {"id?": 0, "projectId": 0, "titre": "...", "description?": "...", "criticite?": "faible|moyenne|élevée|critique", "impact?": 0, "mitigation?": "...", "statut?": "actif|en-cours|résolu"}},
+        {"type": "delete_risk", "data": {"id": 0}}
+    ]
+}
+N'inclus des actions QUE si l'utilisateur demande explicitement de modifier/ajouter/supprimer des données.
+`;
+
                 // Aligner le context prefix avec le chat principal (knowledge app + contexte enrichi)
                 const baseContext = (typeof getApplicationKnowledge === 'function' ? getApplicationKnowledge('agent-dev') : '')
                     + (typeof AxilumContext !== 'undefined' && AxilumContext && typeof AxilumContext.getEnrichedContext === 'function'
@@ -15444,7 +15798,7 @@ ${persona}
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
-                        message: baseContext + companyContext + '\n\n' + rndContext + webSearchResults + '\n\nUtilisateur: ' + message,
+                        message: baseContext + companyContext + '\n\n' + rndContext + rndActionsContract + webSearchResults + '\n\nUtilisateur: ' + message,
                         conversationId: 'rnd-agent',
                         chatType: 'agent-dev',
                         history: Array.isArray(rndChatHistory) ? rndChatHistory.slice(-20) : []
@@ -15457,7 +15811,9 @@ ${persona}
                 document.getElementById('rndTyping')?.remove();
                 
                 // Format response with sources if available
-                let responseHtml = data.response || 'Erreur de réponse';
+                const rawResponse = String(data.response || '');
+                const extracted = rndExtractActionsFromResponse(rawResponse);
+                let responseHtml = extracted.cleanedText || rawResponse || 'Erreur de réponse';
                 
                 // Add sources if from web search
                 if (data.sources && data.sources.length > 0) {
@@ -15482,6 +15838,18 @@ ${persona}
                     content: responseHtml,
                     timestamp: new Date().toISOString()
                 });
+
+                // Si l'agent propose des actions, les enregistrer (application via bouton du dashboard)
+                if (Array.isArray(extracted.actions) && extracted.actions.length > 0) {
+                    rndRegisterPendingActions(extracted.actions);
+                    messagesContainer.innerHTML += `
+                        <div style="margin-bottom: 16px; text-align: center;">
+                            <div style="display: inline-block; background: rgba(255, 255, 255, 0.08); padding: 10px 12px; border-radius: 12px; border: 1px solid rgba(99, 102, 241, 0.22); max-width: 90%;">
+                                <p style="margin: 0; color: rgba(255,255,255,0.85); font-size: 12px; line-height: 1.5;">✅ ${extracted.actions.length} action(s) prêtes. Allez sur l’onglet <strong>Dashboard</strong> et cliquez <strong>Appliquer au dashboard</strong>.</p>
+                            </div>
+                        </div>
+                    `;
+                }
                 
                 // Limiter l'historique à 50 messages pour éviter de surcharger localStorage
                 if (rndChatHistory.length > 50) {
