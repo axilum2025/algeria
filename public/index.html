@@ -13581,6 +13581,7 @@ ${persona}
                     .rnd-header {
                         background: rgba(0, 0, 0, 0.3);
                         padding: 24px 40px;
+                        position: relative;
                         border-bottom: 1px solid rgba(99, 102, 241, 0.3);
                         backdrop-filter: blur(10px);
                     }
@@ -14683,6 +14684,7 @@ ${persona}
                                 <line x1="6" y1="6" x2="18" y2="18"></line>
                             </svg>
                         </button>
+                        <button class="rnd-btn" onclick="openCompanySettings()" style="position: absolute; top: 24px; right: 96px; padding: 10px 16px; font-size: 13px;">Entreprise</button>
                         <h1 class="rnd-title">Research & Development Hub</h1>
                         <p class="rnd-subtitle">Innovation & Technology Center</p>
                     </div>
@@ -15391,6 +15393,13 @@ ${persona}
                         ? AxilumContext.getEnrichedContext('agent-dev')
                         : '');
 
+                // Contexte entreprise (alignement avec Paramètres Entreprise)
+                const companySettings = (typeof getHRData === 'function' ? getHRData('companySettings', {}) : {}) || {};
+                const companyCurrency = companySettings.currency || 'DA';
+                const companyContext = companySettings.companyName || companySettings.businessSector || companySettings.currency
+                    ? `\n\nINFORMATIONS DE L'ENTREPRISE :\n- Nom: ${companySettings.companyName || 'Non défini'}\n- Domaine d'activité: ${companySettings.businessSector || 'Non défini'}\n- Devise: ${companyCurrency}\n`
+                    : `\n\nLes informations de l'entreprise n'ont pas encore été configurées.\n`;
+
                 // Brave Web Search si activé
                 let webSearchResults = '';
                 if (webSearchEnabled) {
@@ -15436,7 +15445,7 @@ ${persona}
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
-                        message: baseContext + '\n\n' + rndContext + webSearchResults + '\n\nUtilisateur: ' + message,
+                        message: baseContext + companyContext + '\n\n' + rndContext + webSearchResults + '\n\nUtilisateur: ' + message,
                         conversationId: 'rnd-agent',
                         chatType: 'agent-dev',
                         history: Array.isArray(rndChatHistory) ? rndChatHistory.slice(-20) : []
