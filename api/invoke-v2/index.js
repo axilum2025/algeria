@@ -37,6 +37,22 @@ async function searchBrave(query, apiKey) {
     }
 }
 
+function extractUserQueryFromMessage(raw) {
+    const text = String(raw || '');
+    const markers = ['Question utilisateur:', 'Utilisateur:'];
+    let bestIdx = -1;
+    let bestMarker = '';
+    for (const m of markers) {
+        const idx = text.lastIndexOf(m);
+        if (idx > bestIdx) {
+            bestIdx = idx;
+            bestMarker = m;
+        }
+    }
+    if (bestIdx >= 0) return text.slice(bestIdx + bestMarker.length).trim();
+    return text.trim();
+}
+
 module.exports = async function (context, req) {
     context.log('💎 PRO PLAN - Architecture évolutive');
 
@@ -54,6 +70,7 @@ module.exports = async function (context, req) {
 
     try {
         const userMessage = req.body.message;
+        const userQuery = extractUserQueryFromMessage(userMessage);
         if (!userMessage) {
             context.res = { 
                 status: 400, 
@@ -85,11 +102,11 @@ module.exports = async function (context, req) {
             const braveKey = process.env.APPSETTING_BRAVE_API_KEY || process.env.BRAVE_API_KEY;
             // Si Brave n'est pas configuré, ne pas polluer le contexte: on continue sans recherche web.
             if (braveKey) {
-                const searchResults = await searchBrave(userMessage, braveKey);
+                const searchResults = await searchBrave(userQuery, braveKey);
                 if (searchResults && searchResults.length > 0) {
                     if (forceWebSearch) {
                         contextFromSearch = await buildWebEvidenceContext({
-                            question: userMessage,
+                            question: userQuery,
                             searchResults,
                             timeoutMs: 7000,
                             maxSources: 3
@@ -107,7 +124,7 @@ module.exports = async function (context, req) {
         // 🔎 Sources additionnelles (Wesh): Wikipedia + NewsAPI (preuves)
         if (forceWebSearch) {
             try {
-                const isGreeting = /^(\s)*(bonjour|salut|hello|hi|coucou|bonsoir|ça va|cv)(\s|!|\?|\.|,)*$/i.test(String(userMessage || ''));
+                const isGreeting = /^(\s)*(bonjour|salut|hello|hi|coucou|bonsoir|ça va|cv)(\s|!|\?|\.|,)*$/i.test(String(userQuery || ''));
                 const wikiEnabled = String(process.env.WESH_WIKIPEDIA_ENABLED ?? 'true').toLowerCase() !== 'false';
                 const newsEnabled = String(process.env.WESH_NEWSAPI_ENABLED ?? 'true').toLowerCase() !== 'false';
                 const semanticEnabled = String(process.env.WESH_SEMANTIC_SCHOLAR_ENABLED ?? 'true').toLowerCase() !== 'false';
@@ -120,15 +137,15 @@ module.exports = async function (context, req) {
 
                 if (!isGreeting) {
                     const wiki = (wikiEnabled && wikiLimit > 0)
-                        ? await searchWikipedia(userMessage, { lang: 'fr', limit: wikiLimit, timeoutMs: 5000 })
+                        ? await searchWikipedia(userQuery, { lang: 'fr', limit: wikiLimit, timeoutMs: 5000 })
                         : [];
 
                     const news = (newsEnabled && newsApiKey && newsLimit > 0)
-                        ? await searchNewsApi(userMessage, { apiKey: newsApiKey, language: 'fr', pageSize: newsLimit, timeoutMs: 5000 })
+                        ? await searchNewsApi(userQuery, { apiKey: newsApiKey, language: 'fr', pageSize: newsLimit, timeoutMs: 5000 })
                         : [];
 
                     const semantic = (semanticEnabled && semanticLimit > 0)
-                        ? await searchSemanticScholar(userMessage, { apiKey: semanticKey, limit: semanticLimit, timeoutMs: 5000 })
+                        ? await searchSemanticScholar(userQuery, { apiKey: semanticKey, limit: semanticLimit, timeoutMs: 5000 })
                         : [];
 
                     contextFromSearch = appendEvidenceContext(contextFromSearch, [...wiki, ...semantic, ...news]);

@@ -41,6 +41,22 @@ async function searchBrave(query, apiKey) {
     }
 }
 
+function extractUserQueryFromMessage(raw) {
+    const text = String(raw || '');
+    const markers = ['Question utilisateur:', 'Utilisateur:'];
+    let bestIdx = -1;
+    let bestMarker = '';
+    for (const marker of markers) {
+        const idx = text.lastIndexOf(marker);
+        if (idx > bestIdx) {
+            bestIdx = idx;
+            bestMarker = marker;
+        }
+    }
+    if (bestIdx >= 0) return text.slice(bestIdx + bestMarker.length).trim();
+    return text.trim();
+}
+
 // NOTE: l'orchestration et les appels Groq sont centralisés dans api/utils/orchestrator.js
 
 module.exports = async function (context, req) {
@@ -61,6 +77,7 @@ module.exports = async function (context, req) {
 
     try {
         const userMessage = req.body.message;
+        const userQuery = extractUserQueryFromMessage(userMessage);
 
         if (!userMessage) {
             context.res = {
@@ -80,7 +97,7 @@ module.exports = async function (context, req) {
             context.log.error('⚠️ GROQ_API_KEY not configured - using simple fallback');
             
             // Réponses prédéfinies pour les cas communs
-            const lowerMessage = userMessage.toLowerCase();
+            const lowerMessage = userQuery.toLowerCase();
             let fallbackResponse = "Bonjour ! Je suis Axilum AI.";
             
             if (lowerMessage.includes('bonjour') || lowerMessage.includes('salut') || lowerMessage.includes('hello')) {
@@ -90,7 +107,7 @@ module.exports = async function (context, req) {
             } else if (lowerMessage.includes('aide') || lowerMessage.includes('help')) {
                 fallbackResponse = "Je peux vous aider avec diverses questions ! Pour activer toutes mes capacités (Llama 3.2), l'administrateur doit configurer la clé API Groq. En attendant, n'hésitez pas à poser vos questions !";
             } else {
-                fallbackResponse = `Votre question : "${userMessage}"\n\nJe suis actuellement en mode configuration limitée. Pour profiter pleinement du mode gratuit avec Llama 3.2, veuillez configurer GROQ_API_KEY dans Azure.\n\nEn attendant, essayez le mode PRO pour une expérience complète avec GPT-4o !`;
+                fallbackResponse = `Votre question : "${userQuery}"\n\nJe suis actuellement en mode configuration limitée. Pour profiter pleinement du mode gratuit avec Llama 3.2, veuillez configurer GROQ_API_KEY dans Azure.\n\nEn attendant, essayez le mode PRO pour une expérience complète avec GPT-4o !`;
             }
             
             context.res = {
@@ -122,7 +139,7 @@ module.exports = async function (context, req) {
         // 🧩 ORCHESTRATEUR MULTI-AGENTS (sur demande) + mode AUTO (planner)
         if (isOrchestrator) {
             const braveKey = process.env.APPSETTING_BRAVE_API_KEY || process.env.BRAVE_API_KEY;
-            const teamQuestion = String(req.body.teamQuestion || userMessage || '').trim();
+            const teamQuestion = String(req.body.teamQuestion || userQuery || '').trim();
 
             const orchestrated = await orchestrateMultiAgents({
                 groqKey: groqApiKey,
@@ -175,11 +192,11 @@ module.exports = async function (context, req) {
             const braveKey = process.env.APPSETTING_BRAVE_API_KEY || process.env.BRAVE_API_KEY;
             // Si Brave n'est pas configuré, ne pas polluer le contexte: on continue sans recherche web.
             if (braveKey) {
-                const searchResults = await searchBrave(userMessage, braveKey);
+                const searchResults = await searchBrave(userQuery, braveKey);
                 if (searchResults && searchResults.length > 0) {
                     if (forceWebSearch) {
                         contextFromSearch = await buildWebEvidenceContext({
-                            question: userMessage,
+                            question: userQuery,
                             searchResults,
                             timeoutMs: 7000,
                             maxSources: 3
@@ -200,7 +217,7 @@ module.exports = async function (context, req) {
         // 🔎 Sources additionnelles (Wesh): Wikipedia + NewsAPI (preuves)
         if (forceWebSearch) {
             try {
-                const isGreeting = /^(\s)*(bonjour|salut|hello|hi|coucou|bonsoir|ça va|cv)(\s|!|\?|\.|,)*$/i.test(String(userMessage || ''));
+                const isGreeting = /^(\s)*(bonjour|salut|hello|hi|coucou|bonsoir|ça va|cv)(\s|!|\?|\.|,)*$/i.test(String(userQuery || ''));
                 const wikiEnabled = String(process.env.WESH_WIKIPEDIA_ENABLED ?? 'true').toLowerCase() !== 'false';
                 const newsEnabled = String(process.env.WESH_NEWSAPI_ENABLED ?? 'true').toLowerCase() !== 'false';
                 const semanticEnabled = String(process.env.WESH_SEMANTIC_SCHOLAR_ENABLED ?? 'true').toLowerCase() !== 'false';
@@ -213,15 +230,15 @@ module.exports = async function (context, req) {
 
                 if (!isGreeting) {
                     const wiki = (wikiEnabled && wikiLimit > 0)
-                        ? await searchWikipedia(userMessage, { lang: 'fr', limit: wikiLimit, timeoutMs: 5000 })
+                        ? await searchWikipedia(userQuery, { lang: 'fr', limit: wikiLimit, timeoutMs: 5000 })
                         : [];
 
                     const news = (newsEnabled && newsApiKey && newsLimit > 0)
-                        ? await searchNewsApi(userMessage, { apiKey: newsApiKey, language: 'fr', pageSize: newsLimit, timeoutMs: 5000 })
+                        ? await searchNewsApi(userQuery, { apiKey: newsApiKey, language: 'fr', pageSize: newsLimit, timeoutMs: 5000 })
                         : [];
 
                     const semantic = (semanticEnabled && semanticLimit > 0)
-                        ? await searchSemanticScholar(userMessage, { apiKey: semanticKey, limit: semanticLimit, timeoutMs: 5000 })
+                        ? await searchSemanticScholar(userQuery, { apiKey: semanticKey, limit: semanticLimit, timeoutMs: 5000 })
                         : [];
 
                     contextFromSearch = appendEvidenceContext(contextFromSearch, [...wiki, ...semantic, ...news]);
@@ -326,7 +343,7 @@ module.exports = async function (context, req) {
         // 🧹 Auto-correction (Wesh uniquement)
         const isWesh = forceWebSearch;
         const hasWebSources = typeof contextFromSearch === 'string' && /\n\[S1\]\s+/m.test(contextFromSearch);
-        const isGreeting = /^(\s)*(bonjour|salut|hello|hi|coucou|bonsoir|ça va|cv)(\s|!|\?|\.|,)*$/i.test(String(userMessage || ''));
+        const isGreeting = /^(\s)*(bonjour|salut|hello|hi|coucou|bonsoir|ça va|cv)(\s|!|\?|\.|,)*$/i.test(String(userQuery || ''));
         const riskScore = Math.max(Number(hallucinationAnalysis.hi || 0), Number(hallucinationAnalysis.chr || 0));
 
         const autoCorrectEnabled = String(process.env.WESH_AUTOCORRECT_ENABLED ?? 'true').toLowerCase() !== 'false';
@@ -361,7 +378,7 @@ module.exports = async function (context, req) {
                             '- Ne crée pas de nouvelles sources.'
                         ].join('\n')
                     },
-                    { role: 'user', content: `Question: ${userMessage}\n\nRéponse initiale à corriger:\n${aiResponse}` }
+                    { role: 'user', content: `Question: ${userQuery}\n\nRéponse initiale à corriger:\n${aiResponse}` }
                 ];
 
                 const correctedData = await callGroqChatCompletion(groqApiKey, correctionMessages, { max_tokens: 2500, temperature: 0.2 });
