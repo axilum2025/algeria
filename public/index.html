@@ -17656,6 +17656,247 @@ ${persona}
                 </div>
             `).join('');
         }
+
+        // ====================================
+        // AGENT MARK ↔ DATA/ACTIONS
+        // ====================================
+        let marketingAgentHistory = [];
+
+        function mktFormatChatText(text) {
+            return mktEscapeHtml(text).replace(/\n/g, '<br>');
+        }
+
+        function mktAppendSystemMessage(text) {
+            const messagesContainer = document.getElementById('mktChatMessages');
+            if (!messagesContainer) return;
+            messagesContainer.innerHTML += `
+                <div style="margin-bottom: 16px; text-align: center;">
+                    <div style="display: inline-block; background: rgba(255, 255, 255, 0.08); padding: 10px 12px; border-radius: 12px; border: 1px solid rgba(249, 115, 22, 0.22); max-width: 90%;">
+                        <p style="margin: 0; color: rgba(255,255,255,0.8); font-size: 12px; line-height: 1.5;">${mktFormatChatText(text)}</p>
+                    </div>
+                </div>
+            `;
+        }
+
+        function mktTryParseJson(text) {
+            try {
+                return JSON.parse(text);
+            } catch (_) {
+                return null;
+            }
+        }
+
+        function mktExtractJsonFromFencedBlocks(text) {
+            const blocks = [];
+            const re = /```json\s*([\s\S]*?)\s*```/gi;
+            let match;
+            while ((match = re.exec(String(text || ''))) !== null) {
+                blocks.push(match[1]);
+            }
+            return blocks;
+        }
+
+        function mktExtractActionsFromResponse(responseText) {
+            const raw = String(responseText || '');
+
+            // 1) fenced ```json``` blocks
+            const jsonBlocks = mktExtractJsonFromFencedBlocks(raw);
+            for (const block of jsonBlocks) {
+                const obj = mktTryParseJson(block);
+                if (obj && Array.isArray(obj.axilum_actions)) {
+                    const cleaned = raw.replace(/```json[\s\S]*?```/gi, '').trim();
+                    return { actions: obj.axilum_actions, cleanedText: cleaned };
+                }
+            }
+
+            // 2) whole response is JSON
+            const trimmed = raw.trim();
+            if (trimmed.startsWith('{') && trimmed.endsWith('}')) {
+                const obj = mktTryParseJson(trimmed);
+                if (obj && Array.isArray(obj.axilum_actions)) {
+                    return { actions: obj.axilum_actions, cleanedText: '' };
+                }
+            }
+
+            return { actions: null, cleanedText: raw };
+        }
+
+        function mktNormalizeString(value, maxLen = 240) {
+            return String(value ?? '').trim().slice(0, maxLen);
+        }
+
+        function mktApplyAgentActions(actions) {
+            if (!Array.isArray(actions) || actions.length === 0) return { applied: 0, skipped: 0 };
+
+            const campaigns = mktLoad(MARKETING_STORAGE_KEYS.campaigns, []);
+            const personas = mktLoad(MARKETING_STORAGE_KEYS.personas, []);
+            const content = mktLoad(MARKETING_STORAGE_KEYS.content, []);
+            const business = mktLoad(MARKETING_STORAGE_KEYS.business, {});
+            const objectives = Array.isArray(business.objectives) ? business.objectives : [];
+
+            let applied = 0;
+            let skipped = 0;
+
+            const upsertById = (arr, item) => {
+                const id = String(item.id || '').trim();
+                if (!id) return false;
+                const idx = arr.findIndex(x => String(x.id) === id);
+                if (idx >= 0) {
+                    arr[idx] = { ...arr[idx], ...item, id, updatedAt: new Date().toISOString() };
+                } else {
+                    arr.unshift({ ...item, id, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() });
+                }
+                return true;
+            };
+
+            for (const action of actions) {
+                const type = String(action?.type || action?.action || '').trim();
+                const data = action?.data ?? action?.payload ?? action;
+
+                try {
+                    if (type === 'upsert_campaign') {
+                        const name = mktNormalizeString(data?.name, 120);
+                        if (!name) { skipped++; continue; }
+                        const id = mktNormalizeString(data?.id, 80) || mktGenerateId('cmp');
+                        const item = {
+                            id,
+                            name,
+                            type: mktNormalizeString(data?.type, 80),
+                            status: mktNormalizeString(data?.status || 'draft', 24),
+                            budget: Math.max(0, mktToNumber(data?.budget, 0)),
+                            spent: Math.max(0, mktToNumber(data?.spent, 0)),
+                            leads: Math.max(0, mktToNumber(data?.leads, 0)),
+                            roi: mktToNumber(data?.roi, 0),
+                            startDate: mktNormalizeString(data?.startDate, 40),
+                            endDate: mktNormalizeString(data?.endDate, 40)
+                        };
+                        if (upsertById(campaigns, item)) applied++; else skipped++;
+                        continue;
+                    }
+
+                    if (type === 'delete_campaign') {
+                        const id = mktNormalizeString(data?.id, 80);
+                        if (!id) { skipped++; continue; }
+                        const before = campaigns.length;
+                        const next = campaigns.filter(c => String(c.id) !== String(id));
+                        if (next.length !== before) {
+                            campaigns.splice(0, campaigns.length, ...next);
+                            applied++;
+                        } else {
+                            skipped++;
+                        }
+                        continue;
+                    }
+
+                    if (type === 'upsert_persona') {
+                        const name = mktNormalizeString(data?.name, 120);
+                        if (!name) { skipped++; continue; }
+                        const id = mktNormalizeString(data?.id, 80) || mktGenerateId('prs');
+                        const listFrom = (v) => Array.isArray(v) ? v.map(x => mktNormalizeString(x, 80)).filter(Boolean).slice(0, 20) : [];
+                        const item = {
+                            id,
+                            name,
+                            age: Math.max(0, mktToNumber(data?.age, 0)),
+                            profession: mktNormalizeString(data?.profession, 120),
+                            goals: listFrom(data?.goals),
+                            painPoints: listFrom(data?.painPoints)
+                        };
+                        if (upsertById(personas, item)) applied++; else skipped++;
+                        continue;
+                    }
+
+                    if (type === 'delete_persona') {
+                        const id = mktNormalizeString(data?.id, 80);
+                        if (!id) { skipped++; continue; }
+                        const before = personas.length;
+                        const next = personas.filter(p => String(p.id) !== String(id));
+                        if (next.length !== before) {
+                            personas.splice(0, personas.length, ...next);
+                            applied++;
+                        } else {
+                            skipped++;
+                        }
+                        continue;
+                    }
+
+                    if (type === 'upsert_content') {
+                        const title = mktNormalizeString(data?.title, 160);
+                        if (!title) { skipped++; continue; }
+                        const id = mktNormalizeString(data?.id, 80) || mktGenerateId('cnt');
+                        const item = {
+                            id,
+                            title,
+                            type: mktNormalizeString(data?.type || 'blog', 32),
+                            status: mktNormalizeString(data?.status || 'draft', 24),
+                            channel: mktNormalizeString(data?.channel, 80),
+                            publishDate: mktNormalizeString(data?.publishDate, 40)
+                        };
+                        if (upsertById(content, item)) applied++; else skipped++;
+                        continue;
+                    }
+
+                    if (type === 'delete_content') {
+                        const id = mktNormalizeString(data?.id, 80);
+                        if (!id) { skipped++; continue; }
+                        const before = content.length;
+                        const next = content.filter(i => String(i.id) !== String(id));
+                        if (next.length !== before) {
+                            content.splice(0, content.length, ...next);
+                            applied++;
+                        } else {
+                            skipped++;
+                        }
+                        continue;
+                    }
+
+                    if (type === 'update_business') {
+                        const nextBusiness = {
+                            ...business,
+                            model: (data?.model !== undefined) ? mktNormalizeString(data.model, 2000) : (business.model || ''),
+                            pricing: (data?.pricing !== undefined) ? mktNormalizeString(data.pricing, 2000) : (business.pricing || ''),
+                            ltv: (data?.ltv !== undefined) ? Math.max(0, mktToNumber(data.ltv, 0)) : mktToNumber(business.ltv, 0),
+                            mrr: (data?.mrr !== undefined) ? Math.max(0, mktToNumber(data.mrr, 0)) : mktToNumber(business.mrr, 0),
+                            churn: (data?.churn !== undefined) ? Math.max(0, mktToNumber(data.churn, 0)) : mktToNumber(business.churn, 0),
+                            objectives,
+                            updatedAt: new Date().toISOString()
+                        };
+                        mktSave(MARKETING_STORAGE_KEYS.business, nextBusiness);
+                        applied++;
+                        continue;
+                    }
+
+                    if (type === 'add_objective') {
+                        const title = mktNormalizeString(data?.title, 140);
+                        const target = mktNormalizeString(data?.target, 240);
+                        if (!title) { skipped++; continue; }
+                        objectives.unshift({ title, target });
+                        mktSave(MARKETING_STORAGE_KEYS.business, { ...business, objectives, updatedAt: new Date().toISOString() });
+                        applied++;
+                        continue;
+                    }
+
+                    if (type === 'delete_objective') {
+                        const idx = mktToNumber(data?.index, -1);
+                        if (!Number.isInteger(idx) || idx < 0 || idx >= objectives.length) { skipped++; continue; }
+                        objectives.splice(idx, 1);
+                        mktSave(MARKETING_STORAGE_KEYS.business, { ...business, objectives, updatedAt: new Date().toISOString() });
+                        applied++;
+                        continue;
+                    }
+
+                    skipped++;
+                } catch (_) {
+                    skipped++;
+                }
+            }
+
+            mktSave(MARKETING_STORAGE_KEYS.campaigns, campaigns);
+            mktSave(MARKETING_STORAGE_KEYS.personas, personas);
+            mktSave(MARKETING_STORAGE_KEYS.content, content);
+
+            refreshMarketingUI();
+            return { applied, skipped };
+        }
         
         async function sendMarketingMessage() {
             const input = document.getElementById('mktChatInput');
@@ -17668,10 +17909,13 @@ ${persona}
             messagesContainer.innerHTML += `
                 <div style="margin-bottom: 16px; text-align: right;">
                     <div style="display: inline-block; background: linear-gradient(135deg, #f97316, #ec4899); padding: 12px 16px; border-radius: 12px; max-width: 70%;">
-                        <p style="margin: 0; color: white; font-size: 14px;">${message}</p>
+                        <p style="margin: 0; color: white; font-size: 14px;">${mktFormatChatText(message)}</p>
                     </div>
                 </div>
             `;
+
+            marketingAgentHistory.push({ role: 'user', content: message, at: Date.now() });
+            marketingAgentHistory = marketingAgentHistory.slice(-20);
             
             input.value = '';
             messagesContainer.scrollTop = messagesContainer.scrollHeight;
@@ -17689,35 +17933,78 @@ ${persona}
                 const endpoint = getEndpoint();
                 
                 // Get Marketing context
-                const campaigns = JSON.parse(localStorage.getItem('marketingCampaigns') || '[]');
-                const personas = JSON.parse(localStorage.getItem('marketingPersonas') || '[]');
-                const content = JSON.parse(localStorage.getItem('marketingContent') || '[]');
-                const business = JSON.parse(localStorage.getItem('marketingBusiness') || '{}');
-                
-                const totalLeads = campaigns.reduce((sum, c) => sum + (c.leads || 0), 0);
-                const avgRoi = campaigns.length > 0 ? Math.round(campaigns.reduce((sum, c) => sum + (c.roi || 0), 0) / campaigns.length) : 0;
+                                const campaigns = mktLoad(MARKETING_STORAGE_KEYS.campaigns, []);
+                                const personas = mktLoad(MARKETING_STORAGE_KEYS.personas, []);
+                                const content = mktLoad(MARKETING_STORAGE_KEYS.content, []);
+                                const business = mktLoad(MARKETING_STORAGE_KEYS.business, {});
+
+                                const totalBudget = campaigns.reduce((sum, c) => sum + mktToNumber(c?.budget, 0), 0);
+                                const totalSpent = campaigns.reduce((sum, c) => sum + mktToNumber(c?.spent, 0), 0);
+                                const totalLeads = campaigns.reduce((sum, c) => sum + mktToNumber(c?.leads, 0), 0);
+                                const avgRoi = campaigns.length > 0 ? Math.round(campaigns.reduce((sum, c) => sum + mktToNumber(c?.roi, 0), 0) / campaigns.length) : 0;
+                                const cac = totalLeads > 0 ? Math.round(totalSpent / totalLeads) : 0;
+                                const budgetConsumed = totalBudget > 0 ? Math.round((totalSpent / totalBudget) * 100) : 0;
+
+                                const campaignsSnapshot = campaigns.slice(0, 20).map(c => {
+                                        return `- ${c.name} (${c.type || 'n/a'}) | statut=${c.status || 'draft'} | budget=${mktToNumber(c.budget, 0)} DA | dépensé=${mktToNumber(c.spent, 0)} DA | leads=${mktToNumber(c.leads, 0)} | ROI=${mktToNumber(c.roi, 0)}% | ${c.startDate || '—'}→${c.endDate || '—'}`;
+                                }).join('\n');
+
+                                const personasSnapshot = personas.slice(0, 20).map(p => {
+                                        const goals = Array.isArray(p.goals) ? p.goals.join(', ') : '';
+                                        const pains = Array.isArray(p.painPoints) ? p.painPoints.join(', ') : '';
+                                        return `- ${p.name} (${mktToNumber(p.age, 0)} ans, ${p.profession || 'n/a'}) | objectifs=[${goals}] | pains=[${pains}]`;
+                                }).join('\n');
+
+                                const contentSnapshot = content.slice(0, 30).map(c => {
+                                        return `- ${c.title} | type=${c.type || 'n/a'} | statut=${c.status || 'draft'} | canal=${c.channel || 'n/a'} | date=${c.publishDate || '—'}`;
+                                }).join('\n');
+
+                                const objectives = Array.isArray(business.objectives) ? business.objectives : [];
+                                const objectivesSnapshot = objectives.slice(0, 15).map((o, idx) => `- [${idx}] ${o.title || ''} | cible=${o.target || ''}`).join('\n');
                 
                 const mktContext = `
 CONTEXTE MARKETING COMPLET :
 
+RÈGLE IMPORTANTE : base-toi UNIQUEMENT sur les données ci-dessous (pas d'invention). Si une info manque, pose une question.
+
 CAMPAGNES ACTIVES (${campaigns.length}) :
-${campaigns.map(c => `- ${c.name} (${c.type}): Budget ${c.budget} DA, ROI ${c.roi || 0}%, Leads ${c.leads || 0} - ${c.status}`).join('\n')}
+${campaignsSnapshot || '- Aucune'}
 
 PERSONAS (${personas.length}) :
-${personas.map(p => `- ${p.name} (${p.age} ans, ${p.profession}): Objectifs ${p.goals?.join(', ')}`).join('\n')}
+${personasSnapshot || '- Aucun'}
 
 CONTENU PLANIFIÉ (${content.length}) :
-${content.map(c => `- ${c.title} (${c.type}): ${c.status} - ${c.publishDate}`).join('\n')}
+${contentSnapshot || '- Aucun'}
 
 BUSINESS :
 - Modèle économique: ${business.model || 'Non défini'}
-- LTV: ${business.ltv || 0} DA
-- Churn: ${business.churn || 0}%
-- MRR: ${business.mrr || 0} DA
+- Pricing: ${business.pricing || 'Non défini'}
+- LTV: ${mktToNumber(business.ltv, 0)} DA
+- Churn: ${mktToNumber(business.churn, 0)}%
+- MRR: ${mktToNumber(business.mrr, 0)} DA
+
+OBJECTIFS (${objectives.length}) :
+${objectivesSnapshot || '- Aucun'}
 
 KPIs GLOBAUX :
 - Total Leads: ${totalLeads}
 - ROI Moyen: ${avgRoi}%
+- CAC estimé: ${cac} DA
+- Budget: ${totalBudget} DA | Dépensé: ${totalSpent} DA | Consommé: ${budgetConsumed}%
+
+SI tu veux proposer des mises à jour sur les données (campagnes, personas, contenu, business, objectifs), tu PEUX renvoyer un bloc JSON unique (format JSON strict) avec ce format :
+{
+    "axilum_actions": [
+        {"type": "upsert_campaign", "data": {"id?": "...", "name": "...", "type?": "...", "status?": "draft|active|paused|completed", "budget?": 0, "spent?": 0, "leads?": 0, "roi?": 0, "startDate?": "YYYY-MM-DD", "endDate?": "YYYY-MM-DD"}},
+        {"type": "delete_campaign", "data": {"id": "..."}},
+        {"type": "upsert_persona", "data": {"id?": "...", "name": "...", "age?": 0, "profession?": "...", "goals?": ["..."], "painPoints?": ["..."]}},
+        {"type": "upsert_content", "data": {"id?": "...", "title": "...", "type?": "blog|social|email|landing|video|other", "status?": "draft|scheduled|published", "channel?": "...", "publishDate?": "YYYY-MM-DD"}},
+        {"type": "update_business", "data": {"model?": "...", "pricing?": "...", "ltv?": 0, "mrr?": 0, "churn?": 0}},
+        {"type": "add_objective", "data": {"title": "...", "target?": "..."}},
+        {"type": "delete_objective", "data": {"index": 0}}
+    ]
+}
+N'inclus des actions QUE si l'utilisateur demande explicitement de modifier/ajouter/supprimer des données.
 `;
 
                 // Aligner le context prefix avec le chat principal (knowledge app + contexte enrichi)
@@ -17733,7 +18020,7 @@ KPIs GLOBAUX :
                         message: baseContext + '\n\n' + mktContext + '\n\nUtilisateur: ' + message,
                         conversationId: 'marketing-agent',
                         chatType: 'marketing-agent',
-                        history: []
+                        history: marketingAgentHistory.slice(-12).map(m => ({ role: m.role, content: m.content }))
                     })
                 });
                 
@@ -17741,22 +18028,39 @@ KPIs GLOBAUX :
                 
                 // Remove typing indicator
                 document.getElementById('mktTyping')?.remove();
+
+                const rawResponse = String(data.response || '');
+                const extracted = mktExtractActionsFromResponse(rawResponse);
+                const cleanedText = extracted.cleanedText;
                 
                 // Add bot response
                 messagesContainer.innerHTML += `
                     <div style="margin-bottom: 16px;">
                         <div style="display: inline-block; background: rgba(255, 255, 255, 0.1); padding: 12px 16px; border-radius: 12px; max-width: 70%; border: 1px solid rgba(249, 115, 22, 0.3);">
-                            <p style="margin: 0; color: white; font-size: 14px; line-height: 1.6;">${data.response || 'Erreur de réponse'}</p>
+                            <p style="margin: 0; color: white; font-size: 14px; line-height: 1.6;">${mktFormatChatText(cleanedText || rawResponse || 'Erreur de réponse')}</p>
                         </div>
                     </div>
                 `;
+
+                marketingAgentHistory.push({ role: 'assistant', content: rawResponse, at: Date.now() });
+                marketingAgentHistory = marketingAgentHistory.slice(-20);
+
+                if (Array.isArray(extracted.actions) && extracted.actions.length > 0) {
+                    const ok = confirm(`Agent Mark propose d'appliquer ${extracted.actions.length} action(s) sur vos données Marketing. Appliquer maintenant ?`);
+                    if (ok) {
+                        const result = mktApplyAgentActions(extracted.actions);
+                        mktAppendSystemMessage(`✅ Actions appliquées: ${result.applied}. Ignorées: ${result.skipped}. Dashboard mis à jour.`);
+                    } else {
+                        mktAppendSystemMessage('⏸️ Actions non appliquées.');
+                    }
+                }
                 
             } catch (error) {
                 document.getElementById('mktTyping')?.remove();
                 messagesContainer.innerHTML += `
                     <div style="margin-bottom: 16px;">
                         <div style="display: inline-block; background: rgba(239, 68, 68, 0.2); padding: 12px 16px; border-radius: 12px; max-width: 70%; border: 1px solid rgba(239, 68, 68, 0.3);">
-                            <p style="margin: 0; color: #fca5a5; font-size: 14px;">Erreur: ${error.message}</p>
+                            <p style="margin: 0; color: #fca5a5; font-size: 14px;">Erreur: ${mktFormatChatText(error.message)}</p>
                         </div>
                     </div>
                 `;
