@@ -1375,18 +1375,18 @@ Pour commencer, sélectionnez vos langues dans le panneau latéral et saisissez 
                 gap: 8px;
             }
             
+            /* Micro: même visuel que le chat principal (bouton icône discret) */
             .textpro-mic-btn {
-                width: 48px;
-                height: 48px;
-                padding: 0;
-                background: var(--tp-panel-bg);
-                border: 1px solid var(--tp-border);
-                border-radius: 9999px;
-                color: var(--tp-muted-2);
-                font-size: 20px;
+                background: none;
+                border: none;
+                color: var(--tp-muted);
                 cursor: pointer;
-                transition: background 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
-                display: flex;
+                width: 32px;
+                height: 32px;
+                padding: 6px;
+                border-radius: 8px;
+                transition: all 0.2s;
+                display: inline-flex;
                 align-items: center;
                 justify-content: center;
             }
@@ -1398,8 +1398,7 @@ Pour commencer, sélectionnez vos langues dans le panneau latéral et saisissez 
             
             .textpro-mic-btn:hover {
                 background: var(--tp-panel-bg-strong);
-                border-color: var(--tp-border-strong);
-                transform: translateY(-1px);
+                color: white;
             }
 
             .textpro-mic-btn:focus-visible {
@@ -1409,7 +1408,6 @@ Pour commencer, sélectionnez vos langues dans le panneau latéral et saisissez 
             
             .textpro-mic-btn.recording {
                 background: rgba(239, 68, 68, 0.3);
-                border-color: rgba(239, 68, 68, 0.6);
                 color: white;
                 animation: pulse 1.5s ease-in-out infinite;
             }
