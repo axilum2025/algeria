@@ -184,6 +184,15 @@ module.exports = async function (context, req) {
                             timeoutMs: 7000,
                             maxSources: 3
                         });
+
+                        // Ajoute également les résultats Brave comme preuves [S#] (sinon fallback sans sources)
+                        const braveEvidence = searchResults.map((r) => ({
+                            title: r.title,
+                            url: r.url,
+                            snippet: r.description,
+                            extracts: r.description ? [r.description] : []
+                        }));
+                        contextFromSearch = appendEvidenceContext(contextFromSearch, braveEvidence);
                     } else {
                         contextFromSearch = '\n\nContexte de recherche web (utilise ces informations si pertinentes) :\n';
                         searchResults.forEach((r, i) => {
