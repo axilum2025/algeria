@@ -1288,6 +1288,19 @@ Pour commencer, sélectionnez vos langues dans le panneau latéral et saisissez 
             .textpro-input-bar {
                 width: 100%;
             }
+
+            /* Surcharge du style global .input-wrapper (chat principal) pour rester cohérent avec Text Pro */
+            .textpro-input-bar.input-wrapper {
+                background: rgba(0, 0, 0, 0.3);
+                border-color: var(--tp-border);
+                box-shadow: none;
+            }
+
+            .textpro-input-bar.input-wrapper:focus-within {
+                border-color: rgba(59, 130, 246, 0.6);
+                background: rgba(0, 0, 0, 0.4);
+                box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.14);
+            }
             
             .textpro-chat-textarea {
                 flex: 1;
