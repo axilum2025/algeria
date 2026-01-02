@@ -1,6 +1,7 @@
 // Source providers for evidence-backed answers (Wesh)
 // - Wikipedia (no key)
 // - NewsAPI.org (optional key)
+// - Semantic Scholar (no key, optional key)
 
 function withTimeout(timeoutMs) {
   const controller = new AbortController();
@@ -173,8 +174,85 @@ async function searchNewsApi(query, {
   }
 }
 
+async function searchSemanticScholar(query, {
+  apiKey,
+  limit = 2,
+  timeoutMs = 5000
+} = {}) {
+  const q = normalizeWhitespace(query);
+  const lim = Math.max(1, Math.min(10, Number(limit) || 2));
+  const key = String(apiKey || '').trim();
+  if (!q) return [];
+
+  const { signal, clear } = withTimeout(timeoutMs);
+  try {
+    const fields = [
+      'title',
+      'url',
+      'abstract',
+      'authors',
+      'year',
+      'venue',
+      'citationCount',
+      'isOpenAccess',
+      'openAccessPdf'
+    ].join(',');
+
+    const url = `https://api.semanticscholar.org/graph/v1/paper/search?query=${encodeURIComponent(q)}&limit=${encodeURIComponent(lim)}&offset=0&fields=${encodeURIComponent(fields)}`;
+
+    const headers = { 'Accept': 'application/json' };
+    if (key) headers['x-api-key'] = key;
+
+    const resp = await fetch(url, {
+      method: 'GET',
+      headers,
+      signal
+    });
+
+    if (!resp.ok) return [];
+    const data = await resp.json();
+    const papers = Array.isArray(data?.data) ? data.data : [];
+
+    return papers.slice(0, lim).map((p) => {
+      const title = normalizeWhitespace(p?.title || '(sans titre)');
+      const venue = normalizeWhitespace(p?.venue || '');
+      const year = p?.year ? String(p.year) : '';
+      const citationCount = Number.isFinite(p?.citationCount) ? p.citationCount : null;
+
+      const authors = Array.isArray(p?.authors) ? p.authors.map(a => normalizeWhitespace(a?.name)).filter(Boolean) : [];
+      const authorsShort = authors.slice(0, 3).join(', ');
+
+      const oaUrl = p?.openAccessPdf?.url ? String(p.openAccessPdf.url) : '';
+      const paperUrl = String(p?.url || '').trim();
+      const url = paperUrl || oaUrl;
+
+      const parts = ['Semantic Scholar'];
+      if (venue) parts.push(venue);
+      if (year) parts.push(year);
+      if (citationCount !== null) parts.push(`Citations: ${citationCount}`);
+      if (authorsShort) parts.push(`Auteurs: ${authorsShort}`);
+
+      const snippet = normalizeWhitespace(parts.join(' • '));
+      const abs = normalizeWhitespace(p?.abstract || '');
+      const extracts = abs ? [abs.slice(0, 900)] : [];
+
+      return {
+        title,
+        url,
+        snippet,
+        extracts
+      };
+    }).filter(r => r.url);
+  } catch (_) {
+    return [];
+  } finally {
+    clear();
+  }
+}
+
 module.exports = {
   appendEvidenceContext,
   searchWikipedia,
-  searchNewsApi
+  searchNewsApi,
+  searchSemanticScholar
 };

@@ -7,7 +7,7 @@ const { detectFunctions, orchestrateFunctions, summarizeResults } = require('../
 const { callGroqWithRateLimit, globalRateLimiter } = require('../utils/rateLimiter');
 const { buildWebEvidenceContext } = require('../utils/webEvidence');
 const { buildSystemPromptForAgent } = require('../utils/agentRegistry');
-const { appendEvidenceContext, searchWikipedia, searchNewsApi } = require('../utils/sourceProviders');
+const { appendEvidenceContext, searchWikipedia, searchNewsApi, searchSemanticScholar } = require('../utils/sourceProviders');
 
 // Fonction RAG - Recherche Brave (simple)
 async function searchBrave(query, apiKey) {
@@ -112,10 +112,13 @@ module.exports = async function (context, req) {
                 const isGreeting = /^(\s)*(bonjour|salut|hello|hi|coucou|bonsoir|ça va|cv)(\s|!|\?|\.|,)*$/i.test(String(userMessage || ''));
                 const wikiEnabled = String(process.env.WESH_WIKIPEDIA_ENABLED ?? 'true').toLowerCase() !== 'false';
                 const newsEnabled = String(process.env.WESH_NEWSAPI_ENABLED ?? 'true').toLowerCase() !== 'false';
+                const semanticEnabled = String(process.env.WESH_SEMANTIC_SCHOLAR_ENABLED ?? 'true').toLowerCase() !== 'false';
                 const newsApiKey = process.env.APPSETTING_NEWSAPI_KEY || process.env.NEWSAPI_KEY;
+                const semanticKey = process.env.APPSETTING_SEMANTIC_SCHOLAR_API_KEY || process.env.SEMANTIC_SCHOLAR_API_KEY;
 
                 const wikiLimit = Math.max(0, Math.min(5, Number(process.env.WESH_WIKIPEDIA_MAX ?? 2) || 2));
                 const newsLimit = Math.max(0, Math.min(5, Number(process.env.WESH_NEWSAPI_MAX ?? 3) || 3));
+                const semanticLimit = Math.max(0, Math.min(5, Number(process.env.WESH_SEMANTIC_SCHOLAR_MAX ?? 2) || 2));
 
                 if (!isGreeting) {
                     const wiki = (wikiEnabled && wikiLimit > 0)
@@ -126,7 +129,11 @@ module.exports = async function (context, req) {
                         ? await searchNewsApi(userMessage, { apiKey: newsApiKey, language: 'fr', pageSize: newsLimit, timeoutMs: 5000 })
                         : [];
 
-                    contextFromSearch = appendEvidenceContext(contextFromSearch, [...wiki, ...news]);
+                    const semantic = (semanticEnabled && semanticLimit > 0)
+                        ? await searchSemanticScholar(userMessage, { apiKey: semanticKey, limit: semanticLimit, timeoutMs: 5000 })
+                        : [];
+
+                    contextFromSearch = appendEvidenceContext(contextFromSearch, [...wiki, ...semantic, ...news]);
                 }
             } catch (e) {
                 context.log.warn('⚠️ Sources additionnelles Wesh indisponibles:', e?.message || e);
