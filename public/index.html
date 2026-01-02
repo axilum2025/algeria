@@ -17661,6 +17661,7 @@ ${persona}
         // AGENT MARK ↔ DATA/ACTIONS
         // ====================================
         let marketingAgentHistory = [];
+        const marketingPendingActionBatches = {};
 
         function mktFormatChatText(text) {
             return mktEscapeHtml(text).replace(/\n/g, '<br>');
@@ -17676,6 +17677,52 @@ ${persona}
                     </div>
                 </div>
             `;
+        }
+
+        function mktRegisterPendingActions(actions) {
+            const id = `mkt_actions_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 8)}`;
+            marketingPendingActionBatches[id] = {
+                actions: Array.isArray(actions) ? actions : [],
+                createdAt: Date.now(),
+                applied: false,
+                discarded: false
+            };
+            return id;
+        }
+
+        function applyMarketingActionBatch(batchId) {
+            const batch = marketingPendingActionBatches[String(batchId)];
+            if (!batch || batch.applied || batch.discarded) return;
+            if (!Array.isArray(batch.actions) || batch.actions.length === 0) return;
+
+            const ok = confirm(`Appliquer ${batch.actions.length} action(s) au dashboard Marketing ?`);
+            if (!ok) return;
+
+            const result = mktApplyAgentActions(batch.actions);
+            batch.applied = true;
+
+            const el = document.getElementById(`mktActionsCard_${batchId}`);
+            if (el) {
+                el.innerHTML = `
+                    <div style="color: rgba(255,255,255,0.9); font-weight: 700;">✅ Actions appliquées</div>
+                    <div style="margin-top: 6px; color: rgba(255,255,255,0.65); font-size: 12px;">Appliquées: ${result.applied} • Ignorées: ${result.skipped}</div>
+                `;
+            }
+
+            mktAppendSystemMessage(`✅ Dashboard mis à jour (actions appliquées: ${result.applied}, ignorées: ${result.skipped}).`);
+        }
+
+        function discardMarketingActionBatch(batchId) {
+            const batch = marketingPendingActionBatches[String(batchId)];
+            if (!batch || batch.applied || batch.discarded) return;
+            batch.discarded = true;
+            const el = document.getElementById(`mktActionsCard_${batchId}`);
+            if (el) {
+                el.innerHTML = `
+                    <div style="color: rgba(255,255,255,0.85); font-weight: 700;">⏸️ Actions ignorées</div>
+                    <div style="margin-top: 6px; color: rgba(255,255,255,0.6); font-size: 12px;">Aucune modification n’a été appliquée.</div>
+                `;
+            }
         }
 
         function mktTryParseJson(text) {
@@ -17992,7 +18039,7 @@ KPIs GLOBAUX :
 - CAC estimé: ${cac} DA
 - Budget: ${totalBudget} DA | Dépensé: ${totalSpent} DA | Consommé: ${budgetConsumed}%
 
-SI tu veux proposer des mises à jour sur les données (campagnes, personas, contenu, business, objectifs), tu PEUX renvoyer un bloc JSON unique (format JSON strict) avec ce format :
+SI l'utilisateur demande explicitement d'AJOUTER/MODIFIER/SUPPRIMER des données (campagnes, personas, contenu, business, objectifs), renvoie TOUJOURS un bloc JSON unique (format JSON strict) avec ce format :
 {
     "axilum_actions": [
         {"type": "upsert_campaign", "data": {"id?": "...", "name": "...", "type?": "...", "status?": "draft|active|paused|completed", "budget?": 0, "spent?": 0, "leads?": 0, "roi?": 0, "startDate?": "YYYY-MM-DD", "endDate?": "YYYY-MM-DD"}},
@@ -18046,13 +18093,26 @@ N'inclus des actions QUE si l'utilisateur demande explicitement de modifier/ajou
                 marketingAgentHistory = marketingAgentHistory.slice(-20);
 
                 if (Array.isArray(extracted.actions) && extracted.actions.length > 0) {
-                    const ok = confirm(`Agent Mark propose d'appliquer ${extracted.actions.length} action(s) sur vos données Marketing. Appliquer maintenant ?`);
-                    if (ok) {
-                        const result = mktApplyAgentActions(extracted.actions);
-                        mktAppendSystemMessage(`✅ Actions appliquées: ${result.applied}. Ignorées: ${result.skipped}. Dashboard mis à jour.`);
-                    } else {
-                        mktAppendSystemMessage('⏸️ Actions non appliquées.');
-                    }
+                    const batchId = mktRegisterPendingActions(extracted.actions);
+                    messagesContainer.innerHTML += `
+                        <div style="margin-bottom: 16px;">
+                            <div id="mktActionsCard_${batchId}" style="
+                                display: inline-block;
+                                background: rgba(0, 0, 0, 0.28);
+                                padding: 12px 14px;
+                                border-radius: 12px;
+                                border: 1px solid rgba(249, 115, 22, 0.22);
+                                max-width: 70%;
+                            ">
+                                <div style="color: rgba(255,255,255,0.9); font-weight: 700;">Proposition d'actions</div>
+                                <div style="margin-top: 6px; color: rgba(255,255,255,0.65); font-size: 12px;">${extracted.actions.length} action(s) prêtes à appliquer au dashboard.</div>
+                                <div style="display:flex; gap: 10px; margin-top: 10px; flex-wrap: wrap;">
+                                    <button class="mkt-btn" type="button" onclick="applyMarketingActionBatch('${batchId}')">Appliquer au dashboard</button>
+                                    <button class="mkt-btn" type="button" style="background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.18);" onclick="discardMarketingActionBatch('${batchId}')">Ignorer</button>
+                                </div>
+                            </div>
+                        </div>
+                    `;
                 }
                 
             } catch (error) {
