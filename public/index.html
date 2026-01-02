@@ -417,7 +417,7 @@
             width: 120px;
             height: 120px;
             margin: 0 auto 30px;
-            animation: float 3s ease-in-out infinite;
+            animation: welcome-float 6s ease-in-out infinite;
         }
 
         .welcome-logo svg {
@@ -564,6 +564,11 @@
         @keyframes float {
             0%, 100% { transform: translateY(0px); }
             50% { transform: translateY(-10px); }
+        }
+
+        @keyframes welcome-float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-4px); }
         }
 
         @keyframes pulse {
@@ -2781,13 +2786,13 @@
                             <!-- Orbite 1 -->
                             <ellipse cx="60" cy="60" rx="35" ry="15" stroke="url(#gradient1)" stroke-width="1" opacity="0.3">
                                 <animateTransform attributeName="transform" type="rotate"
-                                    from="0 60 60" to="360 60 60" dur="6s" repeatCount="indefinite"/>
+                                    from="0 60 60" to="360 60 60" dur="10s" repeatCount="indefinite"/>
                             </ellipse>
                             
                             <!-- Orbite 2 -->
                             <ellipse cx="60" cy="60" rx="35" ry="15" stroke="url(#gradient1)" stroke-width="1" opacity="0.3">
                                 <animateTransform attributeName="transform" type="rotate"
-                                    from="60 60 60" to="420 60 60" dur="7s" repeatCount="indefinite"/>
+                                    from="60 60 60" to="420 60 60" dur="12s" repeatCount="indefinite"/>
                             </ellipse>
                             
                             <!-- Node central pulsant -->
