@@ -5466,7 +5466,7 @@ ${preview || 'Aucun texte disponible'}
                 const title = s && s.title ? String(s.title) : 'Source';
                 const url = s && s.url ? String(s.url) : '';
                 return `- ${idx + 1}. ${title}${url ? ` (${url})` : ''}`;
-            }).join('\n') || 'Aucune source';
+            }).join('\n') || 'N/A';
 
             const constraints = `
 [Contraintes produit]
@@ -6527,10 +6527,46 @@ ${persona}
             let ragSources = []; // Extraire sources RAG
             
             if (type === 'bot' && !isDetectorReport) {
-                // Extraire sources RAG avant nettoyage
-                const sourcesMatch = text.match(/📚\s*Sources:\s*([^\n]+)/i);
-                if (sourcesMatch) {
-                    ragSources = sourcesMatch[1].split(',').map(s => s.trim()).filter(s => s);
+                // Extraire sources RAG (priorité: payload API data.sources)
+                const isPlaceholderSource = (s) => {
+                    const v = String(s || '').trim().toLowerCase();
+                    return (
+                        v === 'aucune source' ||
+                        v === 'aucune source disponible' ||
+                        v === 'aucune source trouvée' ||
+                        v === 'aucune source trouvée via brave' ||
+                        v === 'no source' ||
+                        v === 'no sources' ||
+                        v === 'no sources available' ||
+                        v === 'no source available'
+                    );
+                };
+
+                if (data && Array.isArray(data.sources) && data.sources.length > 0) {
+                    ragSources = data.sources
+                        .slice(0, 12)
+                        .map((s) => {
+                            if (!s) return '';
+                            const title = s.title ? String(s.title).trim() : '';
+                            const url = s.url ? String(s.url).trim() : '';
+                            if (title && url) return `${title} — ${url}`;
+                            return (url || title || '').trim();
+                        })
+                        .filter((s) => s && !isPlaceholderSource(s));
+                } else {
+                    // Fallback: parse depuis le texte si l'API ne fournit pas sources
+                    const sourcesMatch = text.match(/📚\s*Sources:\s*([^\n]+)/i);
+                    if (sourcesMatch) {
+                        ragSources = sourcesMatch[1]
+                            .split(',')
+                            .map(s => s.trim())
+                            .filter(s => s && !isPlaceholderSource(s));
+                    }
+                }
+
+                // Dédoublonner
+                if (ragSources.length > 1) {
+                    ragSources = Array.from(new Set(ragSources));
                 }
                 
                 // Retirer toutes les variations de métriques (HI/CHR/pourcentages)
@@ -6546,6 +6582,8 @@ ${persona}
                     // Retirer warnings et sources recommandées
                     .replace(/\n*⚠️\s*Attention\s*:.*?$/gm, '')
                     .replace(/\n*Sources recommandées\s*:[\s\S]*/gi, '')
+                    // Retirer la ligne "📚 Sources:" (les sources sont rendues séparément)
+                    .replace(/\n*📚\s*Sources:\s*[^\n]*\n*/gi, '\n')
                     .trim();
             }
 
