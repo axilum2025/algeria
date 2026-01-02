@@ -234,11 +234,14 @@ module.exports = async function (context, req) {
         // Construire les messages
         const normalizedChatType = String(chatType || '').trim();
         const agentId = normalizeAgentId(normalizedChatType) || normalizedChatType;
+        const resolvedAgentId = (agentId === 'web-search' && !/\[S\d+\]/.test(String(contextFromSearch || '')))
+            ? 'axilum'
+            : agentId;
 
         const messages = [
             {
                 role: "system",
-                content: buildSystemPromptForAgent(agentId, contextFromSearch)
+                content: buildSystemPromptForAgent(resolvedAgentId, contextFromSearch)
             }
         ];
 

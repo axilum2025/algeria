@@ -351,7 +351,9 @@ Pense étape par étape avant de répondre.${contextFromSearch}`
             buildSystemPromptForAgent('marketing-agent', contextFromSearch)
             : isWebSearch ?
             // 🌐 PROMPT AGENT WEB SEARCH
-            buildSystemPromptForAgent('web-search', contextFromSearch)
+            (/\[S\d+\]/.test(String(contextFromSearch || ''))
+                ? buildSystemPromptForAgent('web-search', contextFromSearch)
+                : buildSystemPromptForAgent('axilum', ''))
             : isExcel ?
             // 📊 PROMPT AGENT EXCEL
             buildSystemPromptForAgent('excel-expert', contextFromSearch)

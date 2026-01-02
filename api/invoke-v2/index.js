@@ -285,7 +285,9 @@ Règles:
 
 Réponds en français, clair et orienté résultats.`;
             } else if (chatType === 'web-search' || chatType === 'rnd-web-search') {
-                systemPrompt = buildSystemPromptForAgent('web-search', contextFromSearch);
+                systemPrompt = /\[S\d+\]/.test(String(contextFromSearch || ''))
+                    ? buildSystemPromptForAgent('web-search', contextFromSearch)
+                    : buildSystemPromptForAgent('axilum', '');
             } else if (chatType === 'agent-todo') {
                 systemPrompt = `Tu es Agent ToDo (gestion de tâches).
 
