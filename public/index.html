@@ -15277,7 +15277,8 @@ ${persona}
 
         function rndExtractJsonFromFencedBlocks(text) {
             const blocks = [];
-            const re = /```json\s*([\s\S]*?)\s*```/gi;
+            // Supporte ```json, ```JSON, et même ``` sans tag
+            const re = /```(?:\w+)?\s*([\s\S]*?)\s*```/gi;
             let match;
             while ((match = re.exec(String(text || ''))) !== null) {
                 blocks.push(match[1]);
@@ -15285,15 +15286,67 @@ ${persona}
             return blocks;
         }
 
+        function rndExtractJsonObjectContainingKey(raw, key = 'axilum_actions') {
+            const text = String(raw || '');
+            const keyQuoted = `"${key}"`;
+            let idx = text.indexOf(keyQuoted);
+            if (idx < 0) idx = text.indexOf(key);
+            if (idx < 0) return null;
+
+            const start = text.lastIndexOf('{', idx);
+            if (start < 0) return null;
+
+            let depth = 0;
+            let inString = false;
+            let escaped = false;
+            for (let i = start; i < text.length; i++) {
+                const ch = text[i];
+                if (inString) {
+                    if (escaped) {
+                        escaped = false;
+                        continue;
+                    }
+                    if (ch === '\\') {
+                        escaped = true;
+                        continue;
+                    }
+                    if (ch === '"') {
+                        inString = false;
+                    }
+                    continue;
+                }
+
+                if (ch === '"') {
+                    inString = true;
+                    continue;
+                }
+
+                if (ch === '{') depth++;
+                if (ch === '}') {
+                    depth--;
+                    if (depth === 0) {
+                        return text.slice(start, i + 1);
+                    }
+                }
+            }
+
+            return null;
+        }
+
         function rndExtractActionsFromResponse(responseText) {
             const raw = String(responseText || '');
 
-            // 1) fenced ```json``` blocks
-            const jsonBlocks = rndExtractJsonFromFencedBlocks(raw);
-            for (const block of jsonBlocks) {
+            // 1) fenced code blocks (tag quelconque)
+            // On parse uniquement les blocs qui contiennent axilum_actions.
+            const reBlock = /```(?:\w+)?\s*([\s\S]*?)\s*```/gi;
+            let match;
+            while ((match = reBlock.exec(raw)) !== null) {
+                const fullMatch = match[0];
+                const block = match[1];
+                if (!String(block).includes('axilum_actions')) continue;
                 const obj = rndTryParseJson(block);
                 if (obj && Array.isArray(obj.axilum_actions)) {
-                    const cleaned = raw.replace(/```json[\s\S]*?```/gi, '').trim();
+                    const cleaned = raw.replace(fullMatch, '').trim();
                     return { actions: obj.axilum_actions, cleanedText: cleaned };
                 }
             }
@@ -15304,6 +15357,16 @@ ${persona}
                 const obj = rndTryParseJson(trimmed);
                 if (obj && Array.isArray(obj.axilum_actions)) {
                     return { actions: obj.axilum_actions, cleanedText: '' };
+                }
+            }
+
+            // 3) JSON imbriqué dans du texte (heuristique)
+            const embedded = rndExtractJsonObjectContainingKey(raw, 'axilum_actions');
+            if (embedded) {
+                const obj = rndTryParseJson(embedded);
+                if (obj && Array.isArray(obj.axilum_actions)) {
+                    const cleaned = raw.replace(embedded, '').trim();
+                    return { actions: obj.axilum_actions, cleanedText: cleaned };
                 }
             }
 
@@ -15336,6 +15399,46 @@ ${persona}
                 panel.style.display = 'block';
             } else {
                 panel.style.display = 'none';
+            }
+        }
+
+        function applyRnDActionBatch(batchId) {
+            const batch = rndPendingActionBatches[String(batchId)];
+            if (!batch || batch.applied || batch.discarded) return;
+            if (!Array.isArray(batch.actions) || batch.actions.length === 0) return;
+
+            const ok = confirm(`Appliquer ${batch.actions.length} action(s) au dashboard R&D ?`);
+            if (!ok) return;
+
+            const result = rndApplyAgentActions(batch.actions);
+            batch.applied = true;
+            if (rndLatestActionBatchId === String(batchId)) rndLatestActionBatchId = null;
+            updateRnDActionsUI();
+
+            const el = document.getElementById(`rndActionsCard_${batchId}`);
+            if (el) {
+                el.innerHTML = `
+                    <div style="color: rgba(255,255,255,0.92); font-weight: 700;">✅ Actions appliquées</div>
+                    <div style="margin-top: 6px; color: rgba(255,255,255,0.65); font-size: 12px;">Appliquées: ${result.applied} • Ignorées: ${result.skipped}</div>
+                `;
+            }
+
+            showToast(`✅ Actions appliquées: ${result.applied} • Ignorées: ${result.skipped}`, 'success');
+        }
+
+        function discardRnDActionBatch(batchId) {
+            const batch = rndPendingActionBatches[String(batchId)];
+            if (!batch || batch.applied || batch.discarded) return;
+            batch.discarded = true;
+            if (rndLatestActionBatchId === String(batchId)) rndLatestActionBatchId = null;
+            updateRnDActionsUI();
+
+            const el = document.getElementById(`rndActionsCard_${batchId}`);
+            if (el) {
+                el.innerHTML = `
+                    <div style="color: rgba(255,255,255,0.85); font-weight: 700;">⏸️ Actions ignorées</div>
+                    <div style="margin-top: 6px; color: rgba(255,255,255,0.6); font-size: 12px;">Aucune modification n’a été appliquée.</div>
+                `;
             }
         }
 
@@ -15813,7 +15916,15 @@ N'inclus des actions QUE si l'utilisateur demande explicitement de modifier/ajou
                 // Format response with sources if available
                 const rawResponse = String(data.response || '');
                 const extracted = rndExtractActionsFromResponse(rawResponse);
-                let responseHtml = extracted.cleanedText || rawResponse || 'Erreur de réponse';
+
+                let responseHtml = '';
+                if (Array.isArray(extracted.actions) && extracted.actions.length > 0) {
+                    responseHtml = extracted.cleanedText
+                        ? extracted.cleanedText
+                        : '✅ Proposition d’actions prête. Allez sur l’onglet <strong>Dashboard</strong> puis cliquez <strong>Appliquer au dashboard</strong>.';
+                } else {
+                    responseHtml = extracted.cleanedText || rawResponse || 'Erreur de réponse';
+                }
                 
                 // Add sources if from web search
                 if (data.sources && data.sources.length > 0) {
@@ -15841,11 +15952,24 @@ N'inclus des actions QUE si l'utilisateur demande explicitement de modifier/ajou
 
                 // Si l'agent propose des actions, les enregistrer (application via bouton du dashboard)
                 if (Array.isArray(extracted.actions) && extracted.actions.length > 0) {
-                    rndRegisterPendingActions(extracted.actions);
+                    const batchId = rndRegisterPendingActions(extracted.actions);
                     messagesContainer.innerHTML += `
-                        <div style="margin-bottom: 16px; text-align: center;">
-                            <div style="display: inline-block; background: rgba(255, 255, 255, 0.08); padding: 10px 12px; border-radius: 12px; border: 1px solid rgba(99, 102, 241, 0.22); max-width: 90%;">
-                                <p style="margin: 0; color: rgba(255,255,255,0.85); font-size: 12px; line-height: 1.5;">✅ ${extracted.actions.length} action(s) prêtes. Allez sur l’onglet <strong>Dashboard</strong> et cliquez <strong>Appliquer au dashboard</strong>.</p>
+                        <div style="margin-bottom: 16px;">
+                            <div id="rndActionsCard_${batchId}" style="
+                                display: inline-block;
+                                background: rgba(0, 0, 0, 0.28);
+                                padding: 12px 14px;
+                                border-radius: 12px;
+                                border: 1px solid rgba(99, 102, 241, 0.22);
+                                max-width: 70%;
+                                text-align: left;
+                            ">
+                                <div style="color: rgba(255,255,255,0.9); font-weight: 700;">Proposition d'actions</div>
+                                <div style="margin-top: 6px; color: rgba(255,255,255,0.65); font-size: 12px;">${extracted.actions.length} action(s) prêtes à appliquer au dashboard R&D.</div>
+                                <div style="display:flex; gap: 10px; margin-top: 10px; flex-wrap: wrap;">
+                                    <button class="rnd-btn" type="button" onclick="applyRnDActionBatch('${batchId}')">Appliquer au dashboard</button>
+                                    <button class="rnd-btn" type="button" style="background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.18);" onclick="discardRnDActionBatch('${batchId}')">Ignorer</button>
+                                </div>
                             </div>
                         </div>
                     `;
