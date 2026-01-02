@@ -77,6 +77,7 @@ module.exports = async function (context, req) {
 
         // RAG - Recherche Brave (optionnelle, ou forcée selon l'agent)
         let contextFromSearch = '';
+        let sourcesForClient = [];
         const rawChatType = req.body.chatType || req.body.conversationId;
         const chatType = normalizeAgentId(rawChatType) || rawChatType;
         const isOrchestrator = chatType === 'orchestrator';
@@ -169,6 +170,13 @@ module.exports = async function (context, req) {
             if (braveKey) {
                 const searchResults = await searchBrave(userMessage, braveKey);
                 if (searchResults && searchResults.length > 0) {
+                    // Exposer au client les liens Brave (utile si pas de preuves Wesh)
+                    sourcesForClient = sourcesForClient.concat(searchResults.map((r) => ({
+                        title: r.title || 'Résultat web',
+                        url: r.url || '',
+                        snippet: r.description || ''
+                    })).filter(s => s.url));
+
                     if (forceWebSearch) {
                         contextFromSearch = await buildWebEvidenceContext({
                             question: userMessage,
@@ -216,7 +224,14 @@ module.exports = async function (context, req) {
                         ? await searchSemanticScholar(userMessage, { apiKey: semanticKey, limit: semanticLimit, timeoutMs: 5000 })
                         : [];
 
-                    contextFromSearch = appendEvidenceContext(contextFromSearch, [...wiki, ...semantic, ...news]);
+                    const evidenceSources = [...wiki, ...semantic, ...news];
+                    contextFromSearch = appendEvidenceContext(contextFromSearch, evidenceSources);
+                    // Exposer au client les vraies sources de preuves (titre + URL)
+                    sourcesForClient = sourcesForClient.concat(evidenceSources.map((s) => ({
+                        title: s.title || 'Source',
+                        url: s.url || '',
+                        snippet: s.snippet || ''
+                    })).filter(s => s.url));
                 }
             } catch (e) {
                 context.log.warn('⚠️ Sources additionnelles Wesh indisponibles:', e?.message || e);
@@ -538,7 +553,9 @@ Ne mentionne pas tes capacités ou fonctionnalités à moins que l'utilisateur n
                 hallucinationClaims: hallucinationAnalysis.claims || [],
                 hallucinationCounts: hallucinationAnalysis.counts || {},
                 hallucinationSources: hallucinationAnalysis.sources || [],
-                hallucinationMethod: hallucinationAnalysis.method || 'unknown'
+                hallucinationMethod: hallucinationAnalysis.method || 'unknown',
+                // Sources exposées au frontend pour afficher l'encart RAG sans placeholders
+                sources: sourcesForClient
             }
         };
     } catch (error) {
