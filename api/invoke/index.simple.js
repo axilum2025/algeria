@@ -82,9 +82,16 @@ module.exports = async function (context, req) {
                         const data = await r.json();
                         const results = data.web?.results?.slice(0, 3) || [];
                         if (results.length > 0) {
-                            contextFromSearch = '\n\nContexte de recherche web (utilise ces informations si pertinentes) :\n';
-                            results.forEach((it, i) => {
-                                contextFromSearch += `${i+1}. ${it.title}: ${it.description} [${it.url}]\n`;
+                            const { buildWebEvidenceContext } = require('../utils/webEvidence');
+                            contextFromSearch = await buildWebEvidenceContext({
+                                question: userMessage,
+                                searchResults: results.map(it => ({
+                                    title: it.title,
+                                    description: it.description,
+                                    url: it.url
+                                })),
+                                timeoutMs: 7000,
+                                maxSources: 3
                             });
                         }
                     }
@@ -102,9 +109,6 @@ module.exports = async function (context, req) {
 Objectif: aider l'utilisateur à concevoir, implémenter, déboguer et livrer des fonctionnalités.
 
 Règles:
-- Sois concret (étapes, commandes, fichiers, APIs), sans inventer.
-- Ne mentionne pas d'autres agents, modules ou outils de l'application sauf si l'utilisateur le demande explicitement.
-- Si l'utilisateur colle un "🔎 Rapport Hallucination Detector", reconnais-le et explique-le.
 
 Réponds en français, clairement et professionnellement.`
                     : (chatType === 'hr-management')
@@ -113,7 +117,6 @@ Réponds en français, clairement et professionnellement.`
 Tu aides sur: politique RH, congés, paie (conceptuellement), recrutement, onboarding, performance, documents.
 
 Règles:
-- Si des données RH internes ne sont pas fournies, demande les infos nécessaires.
 
 Réponds en français, clair et actionnable.`
                         : (chatType === 'marketing-agent')
@@ -123,13 +126,17 @@ Tu aides sur: positionnement, contenu, SEO, ads, emails, funnels, analytics, go-
 
 Réponds en français, clair et orienté résultats.`
                             : (chatType === 'web-search' || chatType === 'rnd-web-search')
-                                ? `Tu es Agent Web Search.
+                                ? `Tu es Agent Wesh.
 
 Objectif: répondre en te basant sur la recherche web fournie.
 
 Règles:
-- Cite 2-5 sources en fin de réponse.
-- Si la recherche web est indisponible, dis-le et propose une réponse prudente + quoi vérifier.
+
+- Appuie-toi sur les extraits fournis dans "Contexte de recherche web" (preuves).
+- N'affirme pas de faits non supportés par les extraits. Si l'info manque, dis-le.
+- Ajoute des citations [S1], [S2]… sur les phrases factuelles.
+- Termine par une section "Sources" listant 2-5 sources: [S#] Titre — URL.
+
 
 Réponds en français, avec sources.${contextFromSearch}`
                                 : (chatType === 'excel-expert' || chatType === 'excel-ai-expert')
@@ -144,34 +151,26 @@ Réponds en français, pédagogique et précis.`
 Objectif: clarifier un objectif, découper en tâches, prioriser, et proposer un plan.
 
 Règles:
-- Ne mentionne pas d'autres agents, modules ou outils de l'application sauf si l'utilisateur le demande explicitement.
 
 Réponds en français, concret.`
                                         : (chatType === 'agent-alex')
                                             ? `Tu es Agent Alex (assistant stratégie/produit SaaS).
 
 Règles:
-- Ne mentionne pas d'autres agents, modules ou outils de l'application sauf si l'utilisateur le demande explicitement.
 
 Réponds en français, clair et structuré.`
                                             : (chatType === 'agent-tony')
                                                 ? `Tu es Agent Tony (assistant vente/ops SaaS).
 
 Règles:
-- Ne mentionne pas d'autres agents, modules ou outils de l'application sauf si l'utilisateur le demande explicitement.
 
 Réponds en français, direct et actionnable.`
                     : `Tu es Axilum AI, un assistant intelligent et serviable propulsé par Azure OpenAI GPT-5 mini. 
 Réponds de manière claire, précise et professionnelle en français.
 
 IMPORTANT (Rapport Hallucination Detector):
-- Si l'utilisateur fournit un bloc commençant par "🔎 Rapport Hallucination Detector" ou pose une question sur HI/CHR/claims, considère que c'est un rapport interne de fiabilité généré par l'application.
-- Explique ce rapport (Score, HI, CHR, Claims, non confirmés, sources) et indique comment vérifier.
 
 **Capacités Pro** :
-- Conversations avancées et contextuelles
-- Analyse approfondie et raisonnement
-- Réponses détaillées et structurées`
             }
         ];
 

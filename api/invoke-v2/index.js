@@ -5,6 +5,7 @@ const { analyzeHallucination } = require('../utils/hallucinationDetector');
 const { buildContextForFunctions, buildCompactSystemPrompt } = require('../utils/contextManager');
 const { detectFunctions, orchestrateFunctions, summarizeResults } = require('../utils/functionRouter');
 const { callGroqWithRateLimit, globalRateLimiter } = require('../utils/rateLimiter');
+const { buildWebEvidenceContext } = require('../utils/webEvidence');
 
 // Fonction RAG - Recherche Brave (simple)
 async function searchBrave(query, apiKey) {
@@ -86,10 +87,19 @@ module.exports = async function (context, req) {
             if (braveKey) {
                 const searchResults = await searchBrave(userMessage, braveKey);
                 if (searchResults && searchResults.length > 0) {
-                    contextFromSearch = '\n\nContexte de recherche web (utilise ces informations si pertinentes) :\n';
-                    searchResults.forEach((r, i) => {
-                        contextFromSearch += `${i+1}. ${r.title}: ${r.description} [${r.url}]\n`;
-                    });
+                    if (forceWebSearch) {
+                        contextFromSearch = await buildWebEvidenceContext({
+                            question: userMessage,
+                            searchResults,
+                            timeoutMs: 7000,
+                            maxSources: 3
+                        });
+                    } else {
+                        contextFromSearch = '\n\nContexte de recherche web (utilise ces informations si pertinentes) :\n';
+                        searchResults.forEach((r, i) => {
+                            contextFromSearch += `${i+1}. ${r.title}: ${r.description} [${r.url}]\n`;
+                        });
+                    }
                 }
             }
         } catch (_) {}
@@ -241,13 +251,16 @@ Règles:
 
 Réponds en français, clair et orienté résultats.`;
             } else if (chatType === 'web-search' || chatType === 'rnd-web-search') {
-                systemPrompt = `Tu es Agent Web Search.
+                systemPrompt = `Tu es Agent Wesh.
 
 Objectif: répondre en te basant sur la recherche web fournie.
 
 Règles:
-- Cite 2-5 sources en fin de réponse.
-- Si la recherche web est indisponible, dis-le et propose une réponse prudente + quoi vérifier.
+- Appuie-toi sur les extraits fournis dans "Contexte de recherche web" (preuves).
+- N'affirme pas de faits non supportés par les extraits. Si l'info manque, dis-le.
+- Ajoute des citations [S1], [S2]… sur les phrases factuelles.
+- Termine par une section "Sources" listant [S#] Titre — URL.
+- Si la recherche web est indisponible, dis-le et propose quoi vérifier.
 
 Réponds en français, avec sources.${contextFromSearch}`;
             } else if (chatType === 'agent-todo') {

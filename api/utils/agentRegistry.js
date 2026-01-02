@@ -121,9 +121,11 @@ Réponds en français, très concret.${c}`;
 Objectif: répondre en te basant sur la recherche web fournie dans le contexte.
 
 Règles:
-- Appuie-toi d'abord sur "Contexte de recherche web" ci-dessous.
-- Cite 2-5 sources en fin de réponse sous forme de liste (titres + URLs si disponibles).
-- Si la recherche web est indisponible, dis-le et propose une réponse prudente + quoi vérifier.
+- Appuie-toi d'abord sur "Contexte de recherche web" ci-dessous (preuves + extraits).
+- N'affirme pas de faits qui ne sont pas supportés par les extraits. Si l'info n'y est pas, dis-le.
+- Dans le corps de la réponse, ajoute des citations au format [S1], [S2]… sur les phrases factuelles.
+- Termine par une section "Sources" listant 2-5 sources: [S#] Titre — URL.
+- Si la recherche web est indisponible, dis-le et propose quoi vérifier/rechercher.
 
 Réponds en français, clairement et avec sources.${c}`;
 

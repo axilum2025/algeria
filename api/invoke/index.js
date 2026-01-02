@@ -4,6 +4,7 @@ const { analyzeHallucination } = require('../utils/hallucinationDetector');
 const { buildSystemPromptForAgent, normalizeAgentId } = require('../utils/agentRegistry');
 const { orchestrateMultiAgents, callGroqChatCompletion } = require('../utils/orchestrator');
 const { detectFunctions, orchestrateFunctions, summarizeResults } = require('../utils/functionRouter');
+const { buildWebEvidenceContext } = require('../utils/webEvidence');
 
 // Fonction RAG - Recherche Brave
 async function searchBrave(query, apiKey) {
@@ -169,10 +170,19 @@ module.exports = async function (context, req) {
             if (braveKey) {
                 const searchResults = await searchBrave(userMessage, braveKey);
                 if (searchResults && searchResults.length > 0) {
-                    contextFromSearch = '\n\nContexte de recherche web (utilise ces informations si pertinentes) :\n';
-                    searchResults.forEach((r, i) => {
-                        contextFromSearch += `${i+1}. ${r.title}: ${r.description} [${r.url}]\n`;
-                    });
+                    if (forceWebSearch) {
+                        contextFromSearch = await buildWebEvidenceContext({
+                            question: userMessage,
+                            searchResults,
+                            timeoutMs: 7000,
+                            maxSources: 3
+                        });
+                    } else {
+                        contextFromSearch = '\n\nContexte de recherche web (utilise ces informations si pertinentes) :\n';
+                        searchResults.forEach((r, i) => {
+                            contextFromSearch += `${i+1}. ${r.title}: ${r.description} [${r.url}]\n`;
+                        });
+                    }
                 }
             }
         } catch (ragError) {
