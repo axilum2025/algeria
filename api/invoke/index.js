@@ -374,10 +374,8 @@ Pense étape par étape avant de répondre.${contextFromSearch}`
             // 📣 PROMPT AGENT MARKETING
             buildSystemPromptForAgent('marketing-agent', contextFromSearch)
             : isWebSearch ?
-            // 🌐 PROMPT AGENT WEB SEARCH
-            (/\[S\d+\]/.test(String(contextFromSearch || ''))
-                ? buildSystemPromptForAgent('web-search', contextFromSearch)
-                : buildSystemPromptForAgent('axilum', ''))
+            // 🌐 PROMPT AGENT WEB SEARCH (toujours Wesh, même sans [S#])
+            buildSystemPromptForAgent('web-search', contextFromSearch)
             : isExcel ?
             // 📊 PROMPT AGENT EXCEL
             buildSystemPromptForAgent('excel-expert', contextFromSearch)
