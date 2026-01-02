@@ -6,6 +6,7 @@ const { buildContextForFunctions, buildCompactSystemPrompt } = require('../utils
 const { detectFunctions, orchestrateFunctions, summarizeResults } = require('../utils/functionRouter');
 const { callGroqWithRateLimit, globalRateLimiter } = require('../utils/rateLimiter');
 const { buildWebEvidenceContext } = require('../utils/webEvidence');
+const { buildSystemPromptForAgent } = require('../utils/agentRegistry');
 
 // Fonction RAG - Recherche Brave (simple)
 async function searchBrave(query, apiKey) {
@@ -251,18 +252,7 @@ Règles:
 
 Réponds en français, clair et orienté résultats.`;
             } else if (chatType === 'web-search' || chatType === 'rnd-web-search') {
-                systemPrompt = `Tu es Agent Wesh.
-
-Objectif: répondre en te basant sur la recherche web fournie.
-
-Règles:
-- Appuie-toi sur les extraits fournis dans "Contexte de recherche web" (preuves).
-- N'affirme pas de faits non supportés par les extraits. Si l'info manque, dis-le.
-- Ajoute des citations [S1], [S2]… sur les phrases factuelles.
-- Termine par une section "Sources" listant [S#] Titre — URL.
-- Si la recherche web est indisponible, dis-le et propose quoi vérifier.
-
-Réponds en français, avec sources.${contextFromSearch}`;
+                systemPrompt = buildSystemPromptForAgent('web-search', contextFromSearch);
             } else if (chatType === 'agent-todo') {
                 systemPrompt = `Tu es Agent ToDo (gestion de tâches).
 

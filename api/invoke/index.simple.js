@@ -61,6 +61,7 @@ module.exports = async function (context, req) {
         const recentHistory = conversationHistory.slice(-20); // Limiter à 20 messages
 
         const chatType = req.body.chatType || req.body.conversationId;
+        const { buildSystemPromptForAgent } = require('../utils/agentRegistry');
 
         // (Optionnel) RAG - Recherche Brave pour le mode web-search
         let contextFromSearch = '';
@@ -126,19 +127,7 @@ Tu aides sur: positionnement, contenu, SEO, ads, emails, funnels, analytics, go-
 
 Réponds en français, clair et orienté résultats.`
                             : (chatType === 'web-search' || chatType === 'rnd-web-search')
-                                ? `Tu es Agent Wesh.
-
-Objectif: répondre en te basant sur la recherche web fournie.
-
-Règles:
-
-- Appuie-toi sur les extraits fournis dans "Contexte de recherche web" (preuves).
-- N'affirme pas de faits non supportés par les extraits. Si l'info manque, dis-le.
-- Ajoute des citations [S1], [S2]… sur les phrases factuelles.
-- Termine par une section "Sources" listant 2-5 sources: [S#] Titre — URL.
-
-
-Réponds en français, avec sources.${contextFromSearch}`
+                                ? buildSystemPromptForAgent('web-search', contextFromSearch)
                                 : (chatType === 'excel-expert' || chatType === 'excel-ai-expert')
                                     ? `Tu es Agent Excel.
 
@@ -165,12 +154,9 @@ Réponds en français, clair et structuré.`
 Règles:
 
 Réponds en français, direct et actionnable.`
-                    : `Tu es Axilum AI, un assistant intelligent et serviable propulsé par Azure OpenAI GPT-5 mini. 
-Réponds de manière claire, précise et professionnelle en français.
+                    : `Tu es Axilum AI, un assistant intelligent et serviable.
 
-IMPORTANT (Rapport Hallucination Detector):
-
-**Capacités Pro** :
+Réponds de manière claire, précise et professionnelle en français.`
             }
         ];
 
