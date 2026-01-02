@@ -6525,6 +6525,8 @@ ${persona}
             // Nettoyer le texte des métriques pour l'affichage
             let displayText = text;
             let ragSources = []; // Extraire sources RAG
+            let ragSourcesStructured = []; // [{title,url}] si disponible
+            let sourceUrlById = {}; // {'1': 'https://...'} pour rendre [S#] cliquable
             
             if (type === 'bot' && !isDetectorReport) {
                 // Extraire sources RAG (priorité: payload API data.sources)
@@ -6543,6 +6545,22 @@ ${persona}
                 };
 
                 if (data && Array.isArray(data.sources) && data.sources.length > 0) {
+                    ragSourcesStructured = data.sources
+                        .filter(Boolean)
+                        .map((s) => ({
+                            title: s?.title ? String(s.title).trim() : '',
+                            url: s?.url ? String(s.url).trim() : ''
+                        }))
+                        .filter(s => s.title || s.url)
+                        .slice(0, 12);
+
+                    // Construire le mapping [S#] -> URL (index 1-based)
+                    sourceUrlById = {};
+                    ragSourcesStructured.forEach((s, idx) => {
+                        const id = String(idx + 1);
+                        if (s.url) sourceUrlById[id] = s.url;
+                    });
+
                     ragSources = data.sources
                         .slice(0, 12)
                         .map((s) => {
@@ -6584,6 +6602,8 @@ ${persona}
                     .replace(/\n*Sources recommandées\s*:[\s\S]*/gi, '')
                     // Retirer la ligne "📚 Sources:" (les sources sont rendues séparément)
                     .replace(/\n*📚\s*Sources:\s*[^\n]*\n*/gi, '\n')
+                        // Retirer la section "Sources :" (format Wesh) en fin de message pour éviter duplication
+                        .replace(/\n\s*Sources\s*:\s*[\s\S]*$/i, '')
                     .trim();
             }
 
@@ -6619,6 +6639,32 @@ ${persona}
                              loading="eager">
                     </div>
                 `;
+            }
+
+            // Pour les messages bot, rendre [S#] cliquable et afficher une liste compacte des sources (titres uniquement)
+            if (type === 'bot' && !isDetectorReport && !(data && data.imageUrl && data.imageGenerated)) {
+                const safe = escapeHtml(displayText);
+                const linkified = safe.replace(/\[S(\d+)\]/g, (m, n) => {
+                    const url = sourceUrlById[String(n)];
+                    if (!url) return m;
+                    return `<a href="${escapeHtml(url)}" target="_blank" rel="noopener noreferrer" style="color: var(--accent); text-decoration: underline;">[S${n}]</a>`;
+                });
+
+                let compactSourcesHTML = '';
+                if (ragSourcesStructured.length > 0) {
+                    const lines = ragSourcesStructured.map((s, idx) => {
+                        const id = idx + 1;
+                        const title = s.title || s.url || '';
+                        const url = s.url || '';
+                        const sTag = url
+                            ? `<a href="${escapeHtml(url)}" target="_blank" rel="noopener noreferrer" style="color: var(--accent); text-decoration: underline;">[S${id}]</a>`
+                            : `[S${id}]`;
+                        return `${sTag} ${escapeHtml(title)}`;
+                    });
+                    compactSourcesHTML = `\n\n<div style="margin-top: 10px; font-size: 12px; color: var(--text-secondary);">Sources:\n${lines.join('\n')}</div>`;
+                }
+
+                contentHTML = `<div>${linkified}${compactSourcesHTML}</div>`;
             }
 
             // Rapport Hallucination Detector: préserver les sauts de ligne et éviter le nettoyage UI
@@ -6659,7 +6705,18 @@ ${persona}
                         </div>
                     </div>
                     <div style="color: var(--text-secondary); line-height: 1.5; word-break: break-all; overflow-wrap: break-word;">
-                        ${ragSources.map(s => `• ${s}`).join('<br>')}
+                        ${(
+                            ragSourcesStructured.length > 0
+                                ? ragSourcesStructured.map((s) => {
+                                    const title = s.title || s.url || '';
+                                    const url = s.url || '';
+                                    if (url) {
+                                        return `• <a href="${escapeHtml(url)}" target="_blank" rel="noopener noreferrer" style="color: var(--accent); text-decoration: underline;">${escapeHtml(title)}</a> — ${escapeHtml(url)}`;
+                                    }
+                                    return `• ${escapeHtml(title)}`;
+                                }).join('<br>')
+                                : ragSources.map(s => `• ${escapeHtml(s)}`).join('<br>')
+                        )}
                     </div>
                 </div>
                 ` : ''}
