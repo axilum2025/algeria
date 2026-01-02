@@ -15678,6 +15678,61 @@ ${persona}
             return { applied, skipped };
         }
 
+        function rndValidateActions(actions) {
+            if (!Array.isArray(actions) || actions.length === 0) return null;
+
+            const valid = [];
+            for (const action of actions) {
+                const type = String(action?.type || action?.action || '').trim();
+                const data = action?.data ?? action?.payload ?? action;
+
+                if (type === 'upsert_project') {
+                    if (String(data?.titre || '').trim()) valid.push(action);
+                    continue;
+                }
+                if (type === 'delete_project') {
+                    if (data?.id !== undefined && data?.id !== null && String(data.id).trim() !== '') valid.push(action);
+                    continue;
+                }
+
+                if (type === 'upsert_milestone') {
+                    const hasProject = data?.projectId !== undefined && data?.projectId !== null && String(data.projectId).trim() !== '';
+                    const hasTitle = String(data?.titre || '').trim();
+                    const hasDate = String(data?.date || '').trim();
+                    if (hasProject && hasTitle && hasDate) valid.push(action);
+                    continue;
+                }
+                if (type === 'delete_milestone') {
+                    if (data?.id !== undefined && data?.id !== null && String(data.id).trim() !== '') valid.push(action);
+                    continue;
+                }
+
+                if (type === 'upsert_document') {
+                    const hasProject = data?.projectId !== undefined && data?.projectId !== null && String(data.projectId).trim() !== '';
+                    const hasTitle = String(data?.titre || '').trim();
+                    if (hasProject && hasTitle) valid.push(action);
+                    continue;
+                }
+                if (type === 'delete_document') {
+                    if (data?.id !== undefined && data?.id !== null && String(data.id).trim() !== '') valid.push(action);
+                    continue;
+                }
+
+                if (type === 'upsert_risk') {
+                    const hasProject = data?.projectId !== undefined && data?.projectId !== null && String(data.projectId).trim() !== '';
+                    const hasTitle = String(data?.titre || '').trim();
+                    if (hasProject && hasTitle) valid.push(action);
+                    continue;
+                }
+                if (type === 'delete_risk') {
+                    if (data?.id !== undefined && data?.id !== null && String(data.id).trim() !== '') valid.push(action);
+                    continue;
+                }
+            }
+
+            return valid.length > 0 ? valid : null;
+        }
+
         function applyRnDLatestActionBatch() {
             const batchId = rndLatestActionBatchId;
             if (!batchId) return;
@@ -15832,7 +15887,12 @@ ${persona}
 
                                 const rndActionsContract = `
 
-SI l'utilisateur demande explicitement d'AJOUTER/MODIFIER/SUPPRIMER des données R&D (projets, jalons, documents, risques), renvoie TOUJOURS un bloc JSON unique (format JSON strict) avec ce format :
+RÈGLE ACTIONS (IMPORTANT):
+- Ne parle JAMAIS de "JSON", "bloc", "code" ou "format".
+- Si tu n'as PAS encore toutes les infos nécessaires (ex: titre + date + projet pour un jalon), pose les questions nécessaires d'abord.
+- Quand (et seulement quand) tu es prêt à appliquer une modification ET que l'utilisateur a confirmé / fourni les champs requis, réponds UNIQUEMENT avec un objet JSON strict contenant "axilum_actions". Aucune phrase autour.
+
+Format de réponse (uniquement quand prêt à appliquer):
 {
     "axilum_actions": [
         {"type": "upsert_project", "data": {"id?": 0, "titre": "...", "domaine?": "...", "description?": "...", "probleme?": "...", "budgetPrevu?": 0, "budgetDevise?": "DA|EUR|USD|GBP|CAD", "duree?": 12, "equipe?": ["..."], "technologies?": ["..."], "cible?": "...", "phase?": "découverte|idéation|expérimentation|validation|déploiement", "avancement?": 0, "statut?": "actif|archivé"}},
@@ -15863,10 +15923,11 @@ N'inclus des actions QUE si l'utilisateur demande explicitement de modifier/ajou
 
                 // Brave Web Search si activé
                 let webSearchResults = '';
+                let needsWebSearch = false;
                 if (webSearchEnabled) {
                     try {
                         // Déterminer si la question nécessite une recherche web
-                        const needsWebSearch = /quoi de neuf|dernières?|nouveautés?|tendances?|actualités?|innovations?|récent|2024|2025|état de l'art|state of the art/i.test(message);
+                        needsWebSearch = /quoi de neuf|dernières?|nouveautés?|tendances?|actualités?|innovations?|récent|2024|2025|état de l'art|state of the art/i.test(message);
                         
                         if (needsWebSearch) {
                             // Effectuer la recherche via l'agent Wesh (RAG côté backend)
@@ -15921,9 +15982,10 @@ N'inclus des actions QUE si l'utilisateur demande explicitement de modifier/ajou
                 // Format response with sources if available
                 const rawResponse = String(data.response || '');
                 const extracted = rndExtractActionsFromResponse(rawResponse);
+                const validActions = rndValidateActions(extracted.actions);
 
                 let responseHtml = '';
-                if (Array.isArray(extracted.actions) && extracted.actions.length > 0) {
+                if (Array.isArray(validActions) && validActions.length > 0) {
                     responseHtml = extracted.cleanedText
                         ? extracted.cleanedText
                         : '✅ Proposition d’actions prête. Allez sur l’onglet <strong>Dashboard</strong> puis cliquez <strong>Appliquer au dashboard</strong>.';
@@ -15931,8 +15993,8 @@ N'inclus des actions QUE si l'utilisateur demande explicitement de modifier/ajou
                     responseHtml = extracted.cleanedText || rawResponse || 'Erreur de réponse';
                 }
                 
-                // Add sources if from web search
-                if (data.sources && data.sources.length > 0) {
+                // Add sources only when web search was actually used
+                if (webSearchEnabled && needsWebSearch && data.sources && data.sources.length > 0) {
                     responseHtml += '<br><br><strong style="color: #fcd34d;">Sources :</strong><br>';
                     responseHtml += data.sources.map((s, i) => 
                         `<small>${i+1}. <a href="${s.url}" target="_blank" style="color: #60a5fa; text-decoration: none;">${s.title}</a></small>`
@@ -15956,8 +16018,8 @@ N'inclus des actions QUE si l'utilisateur demande explicitement de modifier/ajou
                 });
 
                 // Si l'agent propose des actions, les enregistrer (application via bouton du dashboard)
-                if (Array.isArray(extracted.actions) && extracted.actions.length > 0) {
-                    const batchId = rndRegisterPendingActions(extracted.actions);
+                if (Array.isArray(validActions) && validActions.length > 0) {
+                    const batchId = rndRegisterPendingActions(validActions);
                     messagesContainer.innerHTML += `
                         <div style="margin-bottom: 16px;">
                             <div id="rndActionsCard_${batchId}" style="
@@ -15970,7 +16032,7 @@ N'inclus des actions QUE si l'utilisateur demande explicitement de modifier/ajou
                                 text-align: left;
                             ">
                                 <div style="color: rgba(255,255,255,0.9); font-weight: 700;">Proposition d'actions</div>
-                                <div style="margin-top: 6px; color: rgba(255,255,255,0.65); font-size: 12px;">${extracted.actions.length} action(s) prêtes à appliquer au dashboard R&D.</div>
+                                <div style="margin-top: 6px; color: rgba(255,255,255,0.65); font-size: 12px;">${validActions.length} action(s) prêtes à appliquer au dashboard R&D.</div>
                                 <div style="display:flex; gap: 10px; margin-top: 10px; flex-wrap: wrap;">
                                     <button class="rnd-btn" type="button" onclick="applyRnDActionBatch('${batchId}')">Appliquer au dashboard</button>
                                     <button class="rnd-btn" type="button" style="background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.18);" onclick="discardRnDActionBatch('${batchId}')">Ignorer</button>
