@@ -83,9 +83,7 @@ module.exports = async function (context, req) {
         const forceWebSearch = chatType === 'web-search' || chatType === 'rnd-web-search';
         try {
             const braveKey = process.env.APPSETTING_BRAVE_API_KEY || process.env.BRAVE_API_KEY;
-            if (!braveKey && forceWebSearch) {
-                contextFromSearch = '\n\n[Recherche web indisponible: BRAVE_API_KEY non configurée]\n';
-            }
+            // Si Brave n'est pas configuré, ne pas polluer le contexte: on continue sans recherche web.
             if (braveKey) {
                 const searchResults = await searchBrave(userMessage, braveKey);
                 if (searchResults && searchResults.length > 0) {

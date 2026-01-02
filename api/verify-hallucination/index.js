@@ -44,7 +44,7 @@ module.exports = async function (context, req) {
         context.log('🔍 Analyse hallucination:', hallucinationAnalysis);
 
         // 3. Vérifier les faits avec Brave Search
-        const braveApiKey = process.env.APPSETTING_BRAVE_API_KEY;
+        const braveApiKey = process.env.APPSETTING_BRAVE_API_KEY || process.env.BRAVE_API_KEY;
         const verifiedFacts = [];
         const suspiciousFacts = [];
         const hallucinations = [];

@@ -161,9 +161,7 @@ async function orchestrateMultiAgents({
   // If planner picked web-search, fetch search context
   if (teamAgents.includes('web-search')) {
     try {
-      if (!braveKey) {
-        contextFromSearch = '\n\n[Recherche web indisponible: BRAVE_API_KEY non configurée]\n';
-      } else if (typeof searchBrave === 'function') {
+      if (braveKey && typeof searchBrave === 'function') {
         const results = await searchBrave(question, braveKey);
         if (results && results.length > 0) {
           contextFromSearch = '\n\nContexte de recherche web (utilise ces informations si pertinentes) :\n';
