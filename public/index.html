@@ -23392,6 +23392,9 @@ ${recruitmentInfo}
             if (historyPanel && historyPanel.style.display === 'block') historyPanel.style.display = 'none';
             if (settingsPanel && settingsPanel.style.display === 'block') settingsPanel.style.display = 'none';
 
+            // Fermer le drawer Paramètres s'il est ouvert
+            overlay.classList.remove('settings-open');
+
             // Ajuster la largeur du drawer en fonction de la taille écran
             const toolsPanel = overlay.querySelector('.finance-tools');
             if (toolsPanel) {
@@ -23413,20 +23416,37 @@ ${recruitmentInfo}
         }
         
         function toggleFinanceSettings() {
+            const overlay = document.getElementById('financeAIOverlay');
             const panel = document.getElementById('financeSettingsPanel');
             const historyPanel = document.getElementById('financeHistoryPanel');
-            if (!panel) return;
-            
+            if (!overlay || !panel) return;
+
             // Fermer le panneau historique s'il est ouvert
             if (historyPanel && historyPanel.style.display === 'block') {
                 historyPanel.style.display = 'none';
             }
-            
-            if (panel.style.display === 'none' || !panel.style.display) {
-                panel.style.display = 'block';
+
+            // Fermer le drawer Outils s'il est ouvert (évite empilement)
+            overlay.classList.remove('tools-open');
+
+            // Ajuster la largeur du drawer en fonction de la taille écran
+            const vw = window.innerWidth || 0;
+            let width = '50vw';
+            if (vw <= 480) width = '92vw';
+            else if (vw <= 768) width = '90vw';
+            else if (vw <= 1024) width = '70vw';
+            panel.style.width = width;
+
+            overlay.classList.toggle('settings-open');
+
+            // Caler le drawer sous le header
+            const header = overlay.querySelector('.finance-header');
+            if (header) {
+                overlay.style.setProperty('--finance-header-height', `${header.offsetHeight}px`);
+            }
+
+            if (overlay.classList.contains('settings-open')) {
                 loadFinanceCompanySettings();
-            } else {
-                panel.style.display = 'none';
             }
         }
         
@@ -23705,6 +23725,50 @@ ${recruitmentInfo}
                         transform: translateX(0);
                         pointer-events: auto;
                     }
+
+                    /* Drawer (sidebar) - Paramètres Entreprise */
+                    #financeAIOverlay .finance-settings-backdrop {
+                        position: fixed;
+                        left: 0;
+                        right: 0;
+                        top: var(--finance-header-height, 96px);
+                        bottom: 0;
+                        background: rgba(0,0,0,0);
+                        opacity: 0;
+                        pointer-events: none;
+                        transition: opacity 0.2s ease, background 0.2s ease;
+                        z-index: 170;
+                    }
+                    #financeAIOverlay.settings-open .finance-settings-backdrop {
+                        background: rgba(0,0,0,0.45);
+                        opacity: 1;
+                        pointer-events: auto;
+                    }
+
+                    #financeAIOverlay #financeSettingsPanel {
+                        position: fixed;
+                        top: var(--finance-header-height, 96px);
+                        right: 0;
+                        height: calc(100% - var(--finance-header-height, 96px));
+                        width: 50vw;
+                        display: block;
+                        max-height: none;
+                        overflow-y: auto;
+                        overflow-x: hidden;
+                        background: rgba(15,23,42,0.92);
+                        border-left: 1px solid rgba(148,163,184,0.22);
+                        border-top: 1px solid rgba(148,163,184,0.18);
+                        border-radius: 16px 0 0 0;
+                        box-shadow: -18px 0 60px rgba(0,0,0,0.45);
+                        transform: translateX(100%);
+                        transition: transform 0.25s ease;
+                        z-index: 180;
+                        pointer-events: none;
+                    }
+                    #financeAIOverlay.settings-open #financeSettingsPanel {
+                        transform: translateX(0);
+                        pointer-events: auto;
+                    }
                     #financeAIOverlay .tools-title { font-size: 18px; font-weight: 800; color: #f8fafc; margin: 0 0 20px; display: flex; align-items: center; gap: 10px; }
                     
                     #financeAIOverlay .tool-card { background: rgba(255,255,255,0.04); border: 1px solid rgba(148,163,184,0.2); border-radius: 12px; padding: 16px; margin-bottom: 14px; cursor: pointer; transition: all 0.2s; display: flex; flex-direction: column; align-items: center; gap: 8px; text-align: center; }
@@ -23928,9 +23992,10 @@ ${recruitmentInfo}
                     </header>
 
                     <div class="finance-tools-backdrop" onclick="toggleFinanceTools()" aria-hidden="true"></div>
+                    <div class="finance-settings-backdrop" onclick="toggleFinanceSettings()" aria-hidden="true"></div>
                     
                     <!-- Panneau des paramètres entreprise -->
-                    <div id="financeSettingsPanel" class="history-panel" style="display: none;">
+                    <div id="financeSettingsPanel" class="history-panel">
                         <div class="history-header">
                             <div class="history-title">⚙️ Paramètres Entreprise</div>
                             <button class="history-close" onclick="toggleFinanceSettings()">
