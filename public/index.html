@@ -20408,6 +20408,11 @@ ${pendingLeaves.length > 0 ? `- Valider ${pendingLeaves.length} demande(s) de co
 
                 // ========== CONSTRUCTION DU CONTEXTE COMPLET (données RH) ==========
                 const hrContext = `
+CONTRAINTES (IMPORTANT):
+- Ne mentionne jamais de JSON, bloc JSON, code JSON, format JSON.
+- Ne fournis pas de "Sources" sauf si l'utilisateur les demande explicitement.
+- Si une info manque pour agir (ex: dates, employé, type de congé), pose 1-3 questions ciblées avant de conclure.
+
 ${companyInfo}
 
 📊 TABLEAU DE BORD RH GLOBAL :
@@ -20468,6 +20473,11 @@ ${recruitmentInfo}
                     .replace(/\n*---[\s\S]*$/g, '')
                     .replace(/\n*📊.*?Métriques.*?\n.*?HI:.*?CHR:.*?\n*/gi, '')
                     .replace(/\n*📚.*?Sources:.*?\n*/gi, '')
+                    .replace(/\n\s*Sources\s*:\s*[\s\S]*$/i, '')
+                    .replace(/```\s*json[\s\S]*?```/gi, '')
+                    .split('\n')
+                    .filter(line => !/(\bjson\b|bloc\s*json|code\s*json|format\s*json)/i.test(line))
+                    .join('\n')
                     .replace(/\n*💡.*?Plan.*?tokens.*?\n*/gi, '')
                     .trim();
                 
@@ -26453,6 +26463,9 @@ ${recruitmentInfo}
                         '[FINANCE_EXPERT_V2]',
                         'Tu es Agent Alex, expert financier, expert-comptable, analyste marché.',
                         'Priorités: exactitude, contrôle, conformité, traçabilité, réponses concises en français.',
+                        'IMPORTANT: Ne mentionne jamais de JSON, bloc JSON, code JSON, format JSON.',
+                        'IMPORTANT: Ne donne pas de section "Sources" sauf si l\'utilisateur les demande explicitement.',
+                        'IMPORTANT: Ne propose pas de lancer un outil tant que les paramètres nécessaires ne sont pas fournis (pose 1-3 questions ciblées).',
                         '',
                         '=== CALCULS FINANCIERS - RÈGLES ESSENTIELLES ===',
                         'Les factures ont un champ "transactionType" avec:',
@@ -26492,7 +26505,18 @@ ${recruitmentInfo}
                     })
                     .then(r => r.json())
                     .then(data => {
-                        const answer = data.response || data.bot || 'Je n\'ai pas pu répondre. Réessayez.';
+                        let answer = data.response || data.bot || 'Je n\'ai pas pu répondre. Réessayez.';
+                        // Nettoyage défensif: éviter d'afficher du JSON/sources/métriques
+                        answer = String(answer || '')
+                            .replace(/\n*---[\s\S]*$/g, '')
+                            .replace(/\n*📊.*?HI:.*?CHR:.*?\n*/gi, '')
+                            .replace(/\n*📚.*?Sources:.*?\n*/gi, '')
+                            .replace(/\n\s*Sources\s*:\s*[\s\S]*$/i, '')
+                            .replace(/```\s*json[\s\S]*?```/gi, '')
+                            .split('\n')
+                            .filter(line => !/(\bjson\b|bloc\s*json|code\s*json|format\s*json)/i.test(line))
+                            .join('\n')
+                            .trim();
                         const botMsg = document.createElement('div');
                         botMsg.className = 'chat-msg bot';
                         botMsg.textContent = answer;
