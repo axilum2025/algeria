@@ -12688,14 +12688,6 @@ ${persona}
                         <h1 class="hr-title">Human Resources Hub</h1>
                         <p class="hr-subtitle">Talent Management & Development Center</p>
                         
-                        <div style="display: flex; gap: 12px; margin-top: 16px;">
-                            <button onclick="toggleHRChat()" class="hr-btn" style="background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2);">
-                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display: inline; margin-right: 8px; vertical-align: middle;">
-                                    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
-                                </svg>
-                                Agent RH
-                            </button>
-                        </div>
                     </div>
                     
                     <!-- Navigation Tabs -->
@@ -12721,7 +12713,10 @@ ${persona}
                         <button onclick="showHRTab('turnover')" id="hrTabTurnover" class="hr-tab">
                             Turnover
                         </button>
-                        <button onclick="openCompanySettings()" id="hrTabCompany" class="hr-tab">
+                              <button onclick=\"toggleHRChat()\" class=\"hr-tab\" title=\"Ouvrir Agent RH\">
+          Agent RH
+      </button>
+<button onclick="openCompanySettings()" id="hrTabCompany" class="hr-tab">
                             Entreprise
                         </button>
                     </div>
