@@ -13765,39 +13765,6 @@ ${persona}
                         box-shadow: 0 8px 20px rgba(99, 102, 241, 0.4);
                     }
                     
-
-  .rnd-icon-btn {
-      background: none;
-      border: none;
-      color: rgba(255, 255, 255, 0.75);
-      cursor: pointer;
-      width: 32px;
-      height: 32px;
-      padding: 6px;
-      border-radius: 8px;
-      transition: all 0.2s;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      flex-shrink: 0;
-  }
-
-  .rnd-icon-btn:hover {
-      background: rgba(255, 255, 255, 0.08);
-      color: rgba(255, 255, 255, 0.95);
-  }
-
-  .rnd-icon-btn.delete:hover {
-      background: rgba(239, 68, 68, 0.14);
-      color: #fca5a5;
-  }
-
-  .rnd-icon-btn svg {
-      width: 20px;
-      height: 20px;
-      stroke: currentColor;
-  }
-
                     .rnd-close-btn {
                         position: absolute;
                         top: 24px;
@@ -14964,26 +14931,7 @@ ${persona}
                             ${project ? `<div style="font-size: 12px; color: rgba(99, 102, 241, 0.9);">Projet: ${project.titre}</div>` : ''}
                         </div>
                         <div style="text-align: right;">
-                            
-          <div style="display: flex; gap: 6px; justify-content: flex-end; margin-bottom: 8px;">
-              ${milestone.statut !== 'complété' ? `
-                  <button class="rnd-icon-btn" onclick="completeMilestone(${milestone.id})" title="Effectuer (marquer comme complété)">
-                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                          <path d="M20 6L9 17l-5-5" />
-                      </svg>
-                  </button>
-              ` : ''}
-              <button class="rnd-icon-btn delete" onclick="deleteMilestone(${milestone.id})" title="Supprimer le jalon">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                      <polyline points="3 6 5 6 21 6" />
-                      <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
-                      <path d="M10 11v6" />
-                      <path d="M14 11v6" />
-                      <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2" />
-                  </svg>
-              </button>
-          </div>
-          <span class="rnd-badge rnd-badge-${milestone.statut === 'complété' ? 'high' : isPast ? 'error' : 'medium'}">
+                            <span class="rnd-badge rnd-badge-${milestone.statut === 'complété' ? 'high' : isPast ? 'error' : 'medium'}">
                                 ${milestone.statut === 'complété' ? '✓ Complété' : isPast ? '⚠ Retard' : '⏳ À venir'}
                             </span>
                             <div style="margin-top: 8px; font-size: 14px; color: rgba(255, 255, 255, 0.9); font-weight: 600;">
@@ -16218,45 +16166,7 @@ N'inclus des actions QUE si l'utilisateur demande explicitement de modifier/ajou
             alert('✅ Jalon ajouté avec succès');
         }
         
-        
-
-        function deleteMilestone(id) {
-            const milestoneId = Number(id);
-            if (!Number.isFinite(milestoneId)) return;
-            if (!confirm('⚠️ Supprimer ce jalon ?
-
-Cette action est irréversible.')) return;
-
-            const milestones = JSON.parse(localStorage.getItem('rndMilestones') || '[]');
-            const next = Array.isArray(milestones) ? milestones.filter(m => Number(m?.id) !== milestoneId) : [];
-            localStorage.setItem('rndMilestones', JSON.stringify(next));
-
-            initializeRnDData();
-            renderMilestonesList();
-            alert('🗑️ Jalon supprimé');
-        }
-
-        function completeMilestone(id) {
-            const milestoneId = Number(id);
-            if (!Number.isFinite(milestoneId)) return;
-
-            const milestones = JSON.parse(localStorage.getItem('rndMilestones') || '[]');
-            if (!Array.isArray(milestones)) return;
-
-            const milestone = milestones.find(m => Number(m?.id) === milestoneId);
-            if (!milestone) return;
-            if (milestone.statut === 'complété') return;
-
-            milestone.statut = 'complété';
-            milestone.completed = new Date().toISOString();
-            localStorage.setItem('rndMilestones', JSON.stringify(milestones));
-
-            initializeRnDData();
-            renderMilestonesList();
-            alert('✅ Jalon marqué comme complété');
-        }
-
-function showAddDocumentModal() {
+        function showAddDocumentModal() {
             const projects = JSON.parse(localStorage.getItem('rndProjects') || '[]');
             
             if (projects.length === 0) {
