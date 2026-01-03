@@ -18396,7 +18396,8 @@ N'inclus des actions QUE si l'utilisateur demande explicitement de modifier/ajou
 
         function mktExtractJsonFromFencedBlocks(text) {
             const blocks = [];
-            const re = /```json\s*([\s\S]*?)\s*```/gi;
+            // Supporte ```json ...``` et ``` ...``` (certains modèles n'ajoutent pas le tag).
+            const re = /```(?:json)?\s*([\s\S]*?)\s*```/gi;
             let match;
             while ((match = re.exec(String(text || ''))) !== null) {
                 blocks.push(match[1]);
@@ -18410,6 +18411,8 @@ N'inclus des actions QUE si l'utilisateur demande explicitement de modifier/ajou
             // 1) fenced ```json``` blocks
             const jsonBlocks = mktExtractJsonFromFencedBlocks(raw);
             for (const block of jsonBlocks) {
+                // On parse uniquement les blocs qui contiennent axilum_actions.
+                if (!String(block).includes('axilum_actions')) continue;
                 const obj = mktTryParseJson(block);
                 if (obj && Array.isArray(obj.axilum_actions)) {
                     const cleaned = raw.replace(/```json[\s\S]*?```/gi, '').trim();
@@ -18423,6 +18426,23 @@ N'inclus des actions QUE si l'utilisateur demande explicitement de modifier/ajou
                 const obj = mktTryParseJson(trimmed);
                 if (obj && Array.isArray(obj.axilum_actions)) {
                     return { actions: obj.axilum_actions, cleanedText: '' };
+                }
+            }
+
+            // 3) JSON imbriqué dans du texte
+            if (typeof rndExtractJsonObjectContainingKey === 'function') {
+                const embedded = rndExtractJsonObjectContainingKey(raw, 'axilum_actions');
+                if (embedded) {
+                    const obj = mktTryParseJson(embedded);
+                    if (obj && Array.isArray(obj.axilum_actions)) {
+                        let cleaned = raw;
+                        const idx = raw.indexOf(embedded);
+                        if (idx >= 0) {
+                            cleaned = (raw.slice(0, idx) + raw.slice(idx + embedded.length)).trim();
+                        }
+                        cleaned = cleaned.replace(/```(?:json)?[\s\S]*?```/gi, '').trim();
+                        return { actions: obj.axilum_actions, cleanedText: cleaned };
+                    }
                 }
             }
 
@@ -18811,17 +18831,20 @@ N'inclus des actions QUE si l'utilisateur demande explicitement de modifier/ajou
                 document.getElementById('mktTyping')?.remove();
 
                 const rawResponse = String(data.response || '');
-                const extracted = mktExtractActionsFromResponse(rawResponse);
+                const extracted = (typeof rndExtractActionsFromResponse === 'function')
+                    ? rndExtractActionsFromResponse(rawResponse)
+                    : mktExtractActionsFromResponse(rawResponse);
                 const validActions = mktValidateActions(extracted.actions);
                 const cleanedText = mktSanitizeAssistantText(extracted.cleanedText || rawResponse);
+                const shouldShowActions = Array.isArray(validActions) && validActions.length > 0;
                 
                 // Add bot response
                 messagesContainer.innerHTML += `
                     <div style="margin-bottom: 16px;">
                         <div style="display: inline-block; background: rgba(255, 255, 255, 0.1); padding: 12px 16px; border-radius: 12px; max-width: 70%; border: 1px solid rgba(249, 115, 22, 0.3);">
                             <p style="margin: 0; color: white; font-size: 14px; line-height: 1.6;">${mktFormatChatText(
-                                (Array.isArray(validActions) && validActions.length > 0)
-                                    ? (cleanedText || '✅ Proposition d’actions prête. Allez sur l’onglet Dashboard puis cliquez Appliquer au dashboard.')
+                                shouldShowActions
+                                    ? '✅ Proposition d’actions prête. Utilisez les boutons ci-dessous pour appliquer ou ignorer.'
                                     : (cleanedText || 'Erreur de réponse')
                             )}</p>
                         </div>
@@ -18831,7 +18854,7 @@ N'inclus des actions QUE si l'utilisateur demande explicitement de modifier/ajou
                 marketingAgentHistory.push({ role: 'assistant', content: rawResponse, at: Date.now() });
                 marketingAgentHistory = marketingAgentHistory.slice(-20);
 
-                if (Array.isArray(validActions) && validActions.length > 0) {
+                if (shouldShowActions) {
                     const batchId = mktRegisterPendingActions(validActions);
                     messagesContainer.innerHTML += `
                         <div style="margin-bottom: 16px;">
