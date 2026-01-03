@@ -20129,12 +20129,12 @@ N'inclus des actions QUE si l'utilisateur demande explicitement de modifier/ajou
             try {
                 if (typeof rndExtractJsonObjectContainingKey === 'function') {
                     const embedded = rndExtractJsonObjectContainingKey(raw, 'axilum_actions');
-                    if (embedded && Array.isArray(embedded.axilum_actions)) {
-                        const cleaned = raw
-                            .replace(/```json[\s\S]*?```/gi, '')
-                            .replace(/\{[\s\S]*\}/g, '')
-                            .trim();
-                        return { actions: embedded.axilum_actions, cleanedText: cleaned };
+                    if (embedded) {
+                        const obj = hrTryParseJson(embedded);
+                        if (obj && Array.isArray(obj.axilum_actions)) {
+                            const cleaned = raw.replace(embedded, '').trim();
+                            return { actions: obj.axilum_actions, cleanedText: cleaned };
+                        }
                     }
                 }
             } catch (_) {}
@@ -20890,9 +20890,13 @@ ${recruitmentInfo}
                 
                 const data = await response.json();
                 const rawResponse = data.response || data.message || 'Désolé, je n\'ai pas pu traiter votre demande.';
-                const extracted = hrExtractActionsFromResponse(rawResponse);
+                const extracted = (typeof rndExtractActionsFromResponse === 'function')
+                    ? rndExtractActionsFromResponse(rawResponse)
+                    : hrExtractActionsFromResponse(rawResponse);
                 const validActions = hrValidateActions(extracted.actions);
-                let aiResponse = extracted.cleanedText || rawResponse;
+                let aiResponse = (Array.isArray(validActions) && validActions.length > 0)
+                    ? (extracted.cleanedText || '✅ Proposition d’actions prête. Cliquez sur "Appliquer au dashboard" pour mettre à jour le module RH.')
+                    : (extracted.cleanedText || rawResponse);
                 
                 // Nettoyer les métriques
                 aiResponse = aiResponse
