@@ -6529,6 +6529,17 @@ ${persona}
             let sourceUrlById = {}; // {'1': 'https://...'} pour rendre [S#] cliquable
             
             if (type === 'bot' && !isDetectorReport) {
+                const allowSources = (typeof currentChatType !== 'undefined' && String(currentChatType) === 'web-search');
+                const shouldStripJsonMeta = (t) => {
+                    const raw = String(t || '');
+                    return (
+                        /axilum_actions/i.test(raw)
+                        || /```\s*json/i.test(raw)
+                        || /(bloc\s*json|code\s*json|format\s*json)/i.test(raw)
+                        || /g[ée]n[ée]r(?:er|e|ai|a|ons)[\s\S]{0,40}\bjson\b/i.test(raw)
+                    );
+                };
+
                 // Extraire sources RAG (priorité: payload API data.sources)
                 const isPlaceholderSource = (s) => {
                     const v = String(s || '').trim().toLowerCase();
@@ -6544,7 +6555,7 @@ ${persona}
                     );
                 };
 
-                if (data && Array.isArray(data.sources) && data.sources.length > 0) {
+                if (allowSources && data && Array.isArray(data.sources) && data.sources.length > 0) {
                     ragSourcesStructured = data.sources
                         .filter(Boolean)
                         .map((s) => ({
@@ -6571,7 +6582,7 @@ ${persona}
                             return (url || title || '').trim();
                         })
                         .filter((s) => s && !isPlaceholderSource(s));
-                } else {
+                } else if (allowSources) {
                     // Fallback: parse depuis le texte si l'API ne fournit pas sources
                     const sourcesMatch = text.match(/📚\s*Sources:\s*([^\n]+)/i);
                     if (sourcesMatch) {
@@ -6580,6 +6591,10 @@ ${persona}
                             .map(s => s.trim())
                             .filter(s => s && !isPlaceholderSource(s));
                     }
+                } else {
+                    ragSources = [];
+                    ragSourcesStructured = [];
+                    sourceUrlById = {};
                 }
 
                 // Dédoublonner
@@ -6605,6 +6620,14 @@ ${persona}
                         // Retirer la section "Sources :" (format Wesh) en fin de message pour éviter duplication
                         .replace(/\n\s*Sources\s*:\s*[\s\S]*$/i, '')
                     .trim();
+
+                if (shouldStripJsonMeta(text)) {
+                    displayText = displayText
+                        .split('\n')
+                        .filter(line => !/(\bjson\b|bloc\s*json|code\s*json|format\s*json)/i.test(line))
+                        .join('\n')
+                        .trim();
+                }
             }
 
             const now = new Date();
