@@ -18287,6 +18287,24 @@ N'inclus des actions QUE si l'utilisateur demande explicitement de modifier/ajou
             return mktEscapeHtml(text).replace(/\n/g, '<br>');
         }
 
+        function mktStripSourcesFromText(text) {
+            const raw = String(text || '');
+            // Supprime un éventuel bloc "Sources:" à la fin de la réponse.
+            const idx = raw.search(/\n\s*Sources\s*:\s*/i);
+            if (idx >= 0) return raw.slice(0, idx).trim();
+            return raw;
+        }
+
+        function mktSanitizeAssistantText(text) {
+            const raw = mktStripSourcesFromText(String(text || ''));
+            // Par sécurité, retire les lignes qui mentionnent JSON/bloc/code/format.
+            return raw
+                .split('\n')
+                .filter(line => !/(\bjson\b|bloc\s*json|code\s*json|format\s*json)/i.test(line))
+                .join('\n')
+                .trim();
+        }
+
         function mktAppendSystemMessage(text) {
             const messagesContainer = document.getElementById('mktChatMessages');
             if (!messagesContainer) return;
@@ -18564,6 +18582,57 @@ N'inclus des actions QUE si l'utilisateur demande explicitement de modifier/ajou
             refreshMarketingUI();
             return { applied, skipped };
         }
+
+        function mktValidateActions(actions) {
+            if (!Array.isArray(actions) || actions.length === 0) return null;
+
+            const valid = [];
+            for (const action of actions) {
+                const type = String(action?.type || action?.action || '').trim();
+                const data = action?.data ?? action?.payload ?? action;
+
+                if (type === 'upsert_campaign') {
+                    if (String(data?.name || '').trim()) valid.push(action);
+                    continue;
+                }
+                if (type === 'delete_campaign') {
+                    if (String(data?.id || '').trim()) valid.push(action);
+                    continue;
+                }
+                if (type === 'upsert_persona') {
+                    if (String(data?.name || '').trim()) valid.push(action);
+                    continue;
+                }
+                if (type === 'delete_persona') {
+                    if (String(data?.id || '').trim()) valid.push(action);
+                    continue;
+                }
+                if (type === 'upsert_content') {
+                    if (String(data?.title || '').trim()) valid.push(action);
+                    continue;
+                }
+                if (type === 'delete_content') {
+                    if (String(data?.id || '').trim()) valid.push(action);
+                    continue;
+                }
+                if (type === 'update_business') {
+                    const hasAny = ['model', 'pricing', 'ltv', 'mrr', 'churn'].some(k => data?.[k] !== undefined);
+                    if (hasAny) valid.push(action);
+                    continue;
+                }
+                if (type === 'add_objective') {
+                    if (String(data?.title || '').trim()) valid.push(action);
+                    continue;
+                }
+                if (type === 'delete_objective') {
+                    const idx = Number(data?.index);
+                    if (Number.isInteger(idx) && idx >= 0) valid.push(action);
+                    continue;
+                }
+            }
+
+            return valid.length > 0 ? valid : null;
+        }
         
         async function sendMarketingMessage() {
             const input = document.getElementById('mktChatInput');
@@ -18676,7 +18745,12 @@ KPIs GLOBAUX :
 - CAC estimé: ${cac} ${currencyLabel}
 - Budget: ${totalBudget} ${currencyLabel} | Dépensé: ${totalSpent} ${currencyLabel} | Consommé: ${budgetConsumed}%
 
-SI l'utilisateur demande explicitement d'AJOUTER/MODIFIER/SUPPRIMER des données (campagnes, personas, contenu, business, objectifs), renvoie TOUJOURS un bloc JSON unique (format JSON strict) avec ce format :
+RÈGLE ACTIONS (IMPORTANT):
+- Ne parle JAMAIS de "JSON", "bloc", "code" ou "format".
+- Si tu n'as PAS encore toutes les infos nécessaires, pose les questions nécessaires d'abord.
+- Quand (et seulement quand) tu es prêt à appliquer une modification ET que l'utilisateur a confirmé / fourni les champs requis, réponds UNIQUEMENT avec un objet JSON strict contenant "axilum_actions". Aucune phrase autour.
+
+Format de réponse (uniquement quand prêt à appliquer):
 {
     "axilum_actions": [
         {"type": "upsert_campaign", "data": {"id?": "...", "name": "...", "type?": "...", "status?": "draft|active|paused|completed", "budget?": 0, "spent?": 0, "leads?": 0, "roi?": 0, "startDate?": "YYYY-MM-DD", "endDate?": "YYYY-MM-DD"}},
@@ -18715,13 +18789,18 @@ N'inclus des actions QUE si l'utilisateur demande explicitement de modifier/ajou
 
                 const rawResponse = String(data.response || '');
                 const extracted = mktExtractActionsFromResponse(rawResponse);
-                const cleanedText = extracted.cleanedText;
+                const validActions = mktValidateActions(extracted.actions);
+                const cleanedText = mktSanitizeAssistantText(extracted.cleanedText || rawResponse);
                 
                 // Add bot response
                 messagesContainer.innerHTML += `
                     <div style="margin-bottom: 16px;">
                         <div style="display: inline-block; background: rgba(255, 255, 255, 0.1); padding: 12px 16px; border-radius: 12px; max-width: 70%; border: 1px solid rgba(249, 115, 22, 0.3);">
-                            <p style="margin: 0; color: white; font-size: 14px; line-height: 1.6;">${mktFormatChatText(cleanedText || rawResponse || 'Erreur de réponse')}</p>
+                            <p style="margin: 0; color: white; font-size: 14px; line-height: 1.6;">${mktFormatChatText(
+                                (Array.isArray(validActions) && validActions.length > 0)
+                                    ? (cleanedText || '✅ Proposition d’actions prête. Allez sur l’onglet Dashboard puis cliquez Appliquer au dashboard.')
+                                    : (cleanedText || 'Erreur de réponse')
+                            )}</p>
                         </div>
                     </div>
                 `;
@@ -18729,8 +18808,8 @@ N'inclus des actions QUE si l'utilisateur demande explicitement de modifier/ajou
                 marketingAgentHistory.push({ role: 'assistant', content: rawResponse, at: Date.now() });
                 marketingAgentHistory = marketingAgentHistory.slice(-20);
 
-                if (Array.isArray(extracted.actions) && extracted.actions.length > 0) {
-                    const batchId = mktRegisterPendingActions(extracted.actions);
+                if (Array.isArray(validActions) && validActions.length > 0) {
+                    const batchId = mktRegisterPendingActions(validActions);
                     messagesContainer.innerHTML += `
                         <div style="margin-bottom: 16px;">
                             <div id="mktActionsCard_${batchId}" style="
@@ -18742,7 +18821,7 @@ N'inclus des actions QUE si l'utilisateur demande explicitement de modifier/ajou
                                 max-width: 70%;
                             ">
                                 <div style="color: rgba(255,255,255,0.9); font-weight: 700;">Proposition d'actions</div>
-                                <div style="margin-top: 6px; color: rgba(255,255,255,0.65); font-size: 12px;">${extracted.actions.length} action(s) prêtes à appliquer au dashboard.</div>
+                                <div style="margin-top: 6px; color: rgba(255,255,255,0.65); font-size: 12px;">${validActions.length} action(s) prêtes à appliquer au dashboard.</div>
                                 <div style="display:flex; gap: 10px; margin-top: 10px; flex-wrap: wrap;">
                                     <button class="mkt-btn" type="button" onclick="applyMarketingActionBatch('${batchId}')">Appliquer au dashboard</button>
                                     <button class="mkt-btn" type="button" style="background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.18);" onclick="discardMarketingActionBatch('${batchId}')">Ignorer</button>
