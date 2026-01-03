@@ -5323,27 +5323,27 @@ Dernire facture (si disponible):
 - Fournisseur: ${lastInv.vendor || lastInv.supplier || lastInv.client || 'N/A'}
 - Montant: ${safeNum(lastInv.amount)} ${lastInv.currency || currency}
 - Date: ${lastInv.date || 'N/A'}
-- Num e9ro: ${lastInv.invoiceNumber || 'N/A'}
+- Numéro: ${lastInv.invoiceNumber || 'N/A'}
 ` : '\nDernire facture: N/A\n';
 
             const snapshot = `
 ---
-DONN c9ES FINANCE DISPONIBLES (snapshot):
+DONNÉES FINANCE DISPONIBLES (snapshot):
 
 Entreprise (settings):
 - Nom: ${cs.name || 'N/A'}
-- Activit e9: ${cs.activity || 'N/A'}
+- Activité: ${cs.activity || 'N/A'}
 - Devise: ${currency}
 - Email: ${cs.email || 'N/A'}
-- T e9l: ${cs.phone || 'N/A'}
-- Derni e8re MAJ settings: ${financeDataLastUpdated || 'N/A'}
+- Tél: ${cs.phone || 'N/A'}
+- Dernière MAJ settings: ${financeDataLastUpdated || 'N/A'}
 
-Conversations sauvegard e9es: ${conversationsCount}
+Conversations sauvegardées: ${conversationsCount}
 
 Factures: ${invs.length}
-Synth e8se: revenus=${totalRevenue.toFixed(2)} ${currency} | charges=${totalExpenses.toFixed(2)} ${currency} | r e9sultat=${netIncome.toFixed(2)} ${currency}
+Synthèse: revenus=${totalRevenue.toFixed(2)} ${currency} | charges=${totalExpenses.toFixed(2)} ${currency} | résultat=${netIncome.toFixed(2)} ${currency}
 
-Factures r e9centes:
+Factures récentes:
 ${topInvoices}
 
 Rapports: ${reps.length}
@@ -13765,6 +13765,39 @@ ${persona}
                         box-shadow: 0 8px 20px rgba(99, 102, 241, 0.4);
                     }
                     
+
+
+  .rnd-icon-btn {
+      background: none;
+      border: none;
+      color: rgba(255, 255, 255, 0.75);
+      cursor: pointer;
+      width: 32px;
+      height: 32px;
+      padding: 6px;
+      border-radius: 8px;
+      transition: all 0.2s;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+  }
+
+  .rnd-icon-btn:hover {
+      background: rgba(255, 255, 255, 0.08);
+      color: rgba(255, 255, 255, 0.95);
+  }
+
+  .rnd-icon-btn.delete:hover {
+      background: rgba(239, 68, 68, 0.14);
+      color: #fca5a5;
+  }
+
+  .rnd-icon-btn svg {
+      width: 20px;
+      height: 20px;
+      stroke: currentColor;
+  }
                     .rnd-close-btn {
                         position: absolute;
                         top: 24px;
@@ -14931,6 +14964,25 @@ ${persona}
                             ${project ? `<div style="font-size: 12px; color: rgba(99, 102, 241, 0.9);">Projet: ${project.titre}</div>` : ''}
                         </div>
                         <div style="text-align: right;">
+
+                            <div style="display: flex; gap: 6px; justify-content: flex-end; margin-bottom: 8px;">
+                                ${milestone.statut !== 'complété' ? `
+                                    <button class="rnd-icon-btn" onclick="completeMilestone(${milestone.id})" title="Effectuer (marquer comme complété)">
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                            <path d="M20 6L9 17l-5-5" />
+                                        </svg>
+                                    </button>
+                                ` : ''}
+                                <button class="rnd-icon-btn delete" onclick="deleteMilestone(${milestone.id})" title="Supprimer le jalon">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <polyline points="3 6 5 6 21 6" />
+                                        <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
+                                        <path d="M10 11v6" />
+                                        <path d="M14 11v6" />
+                                        <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2" />
+                                    </svg>
+                                </button>
+                            </div>
                             <span class="rnd-badge rnd-badge-${milestone.statut === 'complété' ? 'high' : isPast ? 'error' : 'medium'}">
                                 ${milestone.statut === 'complété' ? '✓ Complété' : isPast ? '⚠ Retard' : '⏳ À venir'}
                             </span>
@@ -16166,7 +16218,27 @@ N'inclus des actions QUE si l'utilisateur demande explicitement de modifier/ajou
             alert('✅ Jalon ajouté avec succès');
         }
         
-        function showAddDocumentModal() {
+        
+        function deleteMilestone(id) {
+            if (!confirm('Supprimer ce jalon ?')) return;
+            const milestones = JSON.parse(localStorage.getItem('rndMilestones') || '[]');
+            const next = milestones.filter(m => m.id !== id);
+            localStorage.setItem('rndMilestones', JSON.stringify(next));
+            initializeRnDData();
+            renderMilestonesList();
+        }
+
+        function completeMilestone(id) {
+            const milestones = JSON.parse(localStorage.getItem('rndMilestones') || '[]');
+            const index = milestones.findIndex(m => m.id === id);
+            if (index === -1) return;
+            milestones[index] = { ...milestones[index], statut: 'complété' };
+            localStorage.setItem('rndMilestones', JSON.stringify(milestones));
+            initializeRnDData();
+            renderMilestonesList();
+        }
+
+function showAddDocumentModal() {
             const projects = JSON.parse(localStorage.getItem('rndProjects') || '[]');
             
             if (projects.length === 0) {
