@@ -15110,6 +15110,18 @@ ${persona}
                             ` : ''}
                         </div>
                         <div style="text-align: right; min-width: 100px;">
+
+                            <div style="display: flex; justify-content: flex-end; margin-bottom: 8px;">
+                                <button class="rnd-icon-btn delete" onclick="deleteRisk(${risk.id})" title="Supprimer le risque">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <polyline points="3 6 5 6 21 6" />
+                                        <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
+                                        <path d="M10 11v6" />
+                                        <path d="M14 11v6" />
+                                        <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2" />
+                                    </svg>
+                                </button>
+                            </div>
                             <span class="rnd-badge rnd-badge-${risk.statut === 'résolu' ? 'high' : risk.statut === 'en-cours' ? 'medium' : 'low'}">
                                 ${risk.statut === 'résolu' ? '✓ Résolu' : risk.statut === 'en-cours' ? '🔄 En cours' : '⚠ Actif'}
                             </span>
@@ -16440,7 +16452,17 @@ function showAddDocumentModal() {
             alert('✅ Risque ajouté avec succès');
         }
         
-        function showAddProjectModal() {
+        
+        function deleteRisk(id) {
+            if (!confirm('Supprimer ce risque ?')) return;
+            const risks = JSON.parse(localStorage.getItem('rndRisks') || '[]');
+            const next = risks.filter(r => r.id !== id);
+            localStorage.setItem('rndRisks', JSON.stringify(next));
+            initializeRnDData();
+            renderRisksList();
+        }
+
+function showAddProjectModal() {
             // Vérifier la limite FREE (3 projets max)
             const currentPlan = localStorage.getItem('selectedPlan') || 'FREE';
             const projects = JSON.parse(localStorage.getItem('rndProjects') || '[]');
