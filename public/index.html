@@ -20077,6 +20077,403 @@ N'inclus des actions QUE si l'utilisateur demande explicitement de modifier/ajou
         // ========== HR AI CHAT ==========
         let hrChatHistory = getHRData('hrChatHistory');
         let hrAiProcessing = false;
+
+        // Agent RH ↔ Actions (apply via dashboard)
+        const hrPendingActionBatches = {};
+
+        function hrGenerateId(prefix = 'hr') {
+            return `${prefix}_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 8)}`;
+        }
+
+        function hrTryParseJson(text) {
+            try {
+                return JSON.parse(text);
+            } catch (_) {
+                return null;
+            }
+        }
+
+        function hrExtractJsonFromFencedBlocks(text) {
+            const blocks = [];
+            const re = /```json\s*([\s\S]*?)\s*```/gi;
+            let match;
+            while ((match = re.exec(String(text || ''))) !== null) {
+                blocks.push(match[1]);
+            }
+            return blocks;
+        }
+
+        function hrExtractActionsFromResponse(responseText) {
+            const raw = String(responseText || '');
+
+            // 1) fenced ```json``` blocks
+            const jsonBlocks = hrExtractJsonFromFencedBlocks(raw);
+            for (const block of jsonBlocks) {
+                const obj = hrTryParseJson(block);
+                if (obj && Array.isArray(obj.axilum_actions)) {
+                    const cleaned = raw.replace(/```json[\s\S]*?```/gi, '').trim();
+                    return { actions: obj.axilum_actions, cleanedText: cleaned };
+                }
+            }
+
+            // 2) whole response is JSON
+            const trimmed = raw.trim();
+            if (trimmed.startsWith('{') && trimmed.endsWith('}')) {
+                const obj = hrTryParseJson(trimmed);
+                if (obj && Array.isArray(obj.axilum_actions)) {
+                    return { actions: obj.axilum_actions, cleanedText: '' };
+                }
+            }
+
+            // 3) embedded JSON containing key (réutilise helper robuste si présent)
+            try {
+                if (typeof rndExtractJsonObjectContainingKey === 'function') {
+                    const embedded = rndExtractJsonObjectContainingKey(raw, 'axilum_actions');
+                    if (embedded && Array.isArray(embedded.axilum_actions)) {
+                        const cleaned = raw
+                            .replace(/```json[\s\S]*?```/gi, '')
+                            .replace(/\{[\s\S]*\}/g, '')
+                            .trim();
+                        return { actions: embedded.axilum_actions, cleanedText: cleaned };
+                    }
+                }
+            } catch (_) {}
+
+            return { actions: null, cleanedText: raw };
+        }
+
+        function hrValidateActions(actions) {
+            if (!Array.isArray(actions) || actions.length === 0) return null;
+
+            const valid = [];
+            for (const action of actions) {
+                const type = String(action?.type || action?.action || '').trim();
+                const data = action?.data ?? action?.payload ?? action;
+
+                if (type === 'upsert_employee') {
+                    if (String(data?.firstName || '').trim() && String(data?.lastName || '').trim()) valid.push(action);
+                    continue;
+                }
+                if (type === 'delete_employee') {
+                    if (data?.id !== undefined && data?.id !== null && String(data.id).trim() !== '') valid.push(action);
+                    continue;
+                }
+
+                if (type === 'upsert_leave') {
+                    const hasEmp = data?.employeeId !== undefined && data?.employeeId !== null && String(data.employeeId).trim() !== '';
+                    const hasStart = String(data?.startDate || '').trim();
+                    const hasEnd = String(data?.endDate || '').trim();
+                    if (hasEmp && hasStart && hasEnd) valid.push(action);
+                    continue;
+                }
+                if (type === 'approve_leave' || type === 'reject_leave' || type === 'delete_leave') {
+                    if (data?.id !== undefined && data?.id !== null && String(data.id).trim() !== '') valid.push(action);
+                    continue;
+                }
+
+                if (type === 'upsert_payroll') {
+                    const hasEmp = data?.employeeId !== undefined && data?.employeeId !== null && String(data.employeeId).trim() !== '';
+                    const hasMonth = String(data?.month || data?.period || '').trim();
+                    if (hasEmp && hasMonth) valid.push(action);
+                    continue;
+                }
+                if (type === 'validate_payroll' || type === 'mark_payroll_paid' || type === 'delete_payroll') {
+                    if (data?.id !== undefined && data?.id !== null && String(data.id).trim() !== '') valid.push(action);
+                    continue;
+                }
+
+                if (type === 'upsert_recruitment_job') {
+                    if (String(data?.title || '').trim()) valid.push(action);
+                    continue;
+                }
+                if (type === 'delete_recruitment_job') {
+                    if (data?.id !== undefined && data?.id !== null && String(data.id).trim() !== '') valid.push(action);
+                    continue;
+                }
+
+                if (type === 'upsert_candidate') {
+                    const hasJob = data?.jobId !== undefined && data?.jobId !== null && String(data.jobId).trim() !== '';
+                    const hasName = String(data?.name || '').trim();
+                    if (hasJob && hasName) valid.push(action);
+                    continue;
+                }
+                if (type === 'delete_candidate') {
+                    if (data?.id !== undefined && data?.id !== null && String(data.id).trim() !== '') valid.push(action);
+                    continue;
+                }
+            }
+
+            return valid.length > 0 ? valid : null;
+        }
+
+        function hrRegisterPendingActions(actions) {
+            const id = `hr_actions_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 8)}`;
+            hrPendingActionBatches[id] = {
+                actions: Array.isArray(actions) ? actions : [],
+                createdAt: Date.now(),
+                applied: false,
+                discarded: false
+            };
+            return id;
+        }
+
+        function hrApplyAgentActions(actions) {
+            if (!Array.isArray(actions) || actions.length === 0) return { applied: 0, skipped: 0 };
+
+            const toNum = (v, fallback = 0) => {
+                const n = (typeof v === 'number' && Number.isFinite(v)) ? v : parseFloat(v);
+                return Number.isFinite(n) ? n : fallback;
+            };
+
+            const employees = Array.isArray(getHRData('hrEmployees')) ? getHRData('hrEmployees') : [];
+            const leaves = Array.isArray(getHRData('hrLeaves')) ? getHRData('hrLeaves') : [];
+            const payrolls = Array.isArray(getHRData('hrPayrolls')) ? getHRData('hrPayrolls') : [];
+            const recruitmentJobs = Array.isArray(getHRData('recruitmentJobs')) ? getHRData('recruitmentJobs') : [];
+            const recruitmentCandidates = Array.isArray(getHRData('recruitmentCandidates')) ? getHRData('recruitmentCandidates') : [];
+
+            let applied = 0;
+            let skipped = 0;
+
+            const upsertById = (arr, item, prefix) => {
+                const id = (item && item.id !== undefined && item.id !== null && String(item.id).trim() !== '')
+                    ? String(item.id).trim()
+                    : hrGenerateId(prefix);
+                const idx = arr.findIndex(x => x && String(x.id) === id);
+                const nowIso = new Date().toISOString();
+                if (idx >= 0) arr[idx] = { ...arr[idx], ...item, id, updatedAt: nowIso };
+                else arr.unshift({ ...item, id, createdAt: nowIso, updatedAt: nowIso });
+                return true;
+            };
+
+            for (const action of actions) {
+                const type = String(action?.type || action?.action || '').trim();
+                const data = action?.data ?? action?.payload ?? action;
+                try {
+                    if (type === 'upsert_employee') {
+                        const item = {
+                            id: data?.id,
+                            firstName: String(data?.firstName || '').trim(),
+                            lastName: String(data?.lastName || '').trim(),
+                            email: String(data?.email || '').trim(),
+                            department: String(data?.department || '').trim(),
+                            position: String(data?.position || '').trim(),
+                            contractType: String(data?.contractType || '').trim(),
+                            hireDate: String(data?.hireDate || '').trim(),
+                            birthDate: String(data?.birthDate || '').trim(),
+                            address: String(data?.address || '').trim(),
+                            baseSalary: toNum(data?.baseSalary, 0),
+                            status: String(data?.status || 'active').trim()
+                        };
+                        if (!item.firstName || !item.lastName) { skipped++; continue; }
+                        upsertById(employees, item, 'emp');
+                        applied++;
+                        continue;
+                    }
+
+                    if (type === 'delete_employee') {
+                        const id = String(data?.id || '').trim();
+                        if (!id) { skipped++; continue; }
+                        const before = employees.length;
+                        const next = employees.filter(e => e && String(e.id) !== id);
+                        if (next.length !== before) { employees.splice(0, employees.length, ...next); applied++; }
+                        else skipped++;
+                        continue;
+                    }
+
+                    if (type === 'upsert_leave') {
+                        const item = {
+                            id: data?.id,
+                            employeeId: data?.employeeId,
+                            startDate: String(data?.startDate || '').trim(),
+                            endDate: String(data?.endDate || '').trim(),
+                            days: Math.max(0, toNum(data?.days, 0)),
+                            type: String(data?.type || '').trim(),
+                            status: String(data?.status || 'pending').trim()
+                        };
+                        if (!String(item.employeeId || '').trim() || !item.startDate || !item.endDate) { skipped++; continue; }
+                        upsertById(leaves, item, 'lv');
+                        applied++;
+                        continue;
+                    }
+
+                    if (type === 'approve_leave' || type === 'reject_leave') {
+                        const id = String(data?.id || '').trim();
+                        if (!id) { skipped++; continue; }
+                        const idx = leaves.findIndex(l => l && String(l.id) === id);
+                        if (idx < 0) { skipped++; continue; }
+                        leaves[idx] = { ...leaves[idx], status: (type === 'approve_leave') ? 'approved' : 'rejected', updatedAt: new Date().toISOString() };
+                        applied++;
+                        continue;
+                    }
+
+                    if (type === 'delete_leave') {
+                        const id = String(data?.id || '').trim();
+                        if (!id) { skipped++; continue; }
+                        const before = leaves.length;
+                        const next = leaves.filter(l => l && String(l.id) !== id);
+                        if (next.length !== before) { leaves.splice(0, leaves.length, ...next); applied++; }
+                        else skipped++;
+                        continue;
+                    }
+
+                    if (type === 'upsert_payroll') {
+                        const month = String(data?.month || data?.period || '').trim();
+                        const item = {
+                            id: data?.id,
+                            employeeId: data?.employeeId,
+                            month,
+                            period: month,
+                            grossSalary: toNum(data?.grossSalary, 0),
+                            netSalary: toNum(data?.netSalary, 0),
+                            status: String(data?.status || 'pending').trim()
+                        };
+                        if (!String(item.employeeId || '').trim() || !month) { skipped++; continue; }
+                        upsertById(payrolls, item, 'pay');
+                        applied++;
+                        continue;
+                    }
+
+                    if (type === 'validate_payroll' || type === 'mark_payroll_paid') {
+                        const id = String(data?.id || '').trim();
+                        if (!id) { skipped++; continue; }
+                        const idx = payrolls.findIndex(p => p && String(p.id) === id);
+                        if (idx < 0) { skipped++; continue; }
+                        payrolls[idx] = { ...payrolls[idx], status: (type === 'validate_payroll') ? 'validated' : 'paid', updatedAt: new Date().toISOString() };
+                        applied++;
+                        continue;
+                    }
+
+                    if (type === 'delete_payroll') {
+                        const id = String(data?.id || '').trim();
+                        if (!id) { skipped++; continue; }
+                        const before = payrolls.length;
+                        const next = payrolls.filter(p => p && String(p.id) !== id);
+                        if (next.length !== before) { payrolls.splice(0, payrolls.length, ...next); applied++; }
+                        else skipped++;
+                        continue;
+                    }
+
+                    if (type === 'upsert_recruitment_job') {
+                        const item = {
+                            id: data?.id,
+                            title: String(data?.title || '').trim(),
+                            location: String(data?.location || '').trim(),
+                            department: String(data?.department || '').trim(),
+                            contractType: String(data?.contractType || '').trim(),
+                            salaryRange: String(data?.salaryRange || '').trim(),
+                            skills: Array.isArray(data?.skills) ? data.skills.map(s => String(s).trim()).filter(Boolean).slice(0, 40) : [],
+                            mustHave: Array.isArray(data?.mustHave) ? data.mustHave.map(s => String(s).trim()).filter(Boolean).slice(0, 40) : [],
+                            niceToHave: Array.isArray(data?.niceToHave) ? data.niceToHave.map(s => String(s).trim()).filter(Boolean).slice(0, 40) : [],
+                            status: String(data?.status || 'active').trim()
+                        };
+                        if (!item.title) { skipped++; continue; }
+                        upsertById(recruitmentJobs, item, 'job');
+                        applied++;
+                        continue;
+                    }
+
+                    if (type === 'delete_recruitment_job') {
+                        const id = String(data?.id || '').trim();
+                        if (!id) { skipped++; continue; }
+                        const before = recruitmentJobs.length;
+                        const next = recruitmentJobs.filter(j => j && String(j.id) !== id);
+                        if (next.length !== before) { recruitmentJobs.splice(0, recruitmentJobs.length, ...next); applied++; }
+                        else skipped++;
+                        continue;
+                    }
+
+                    if (type === 'upsert_candidate') {
+                        const item = {
+                            id: data?.id,
+                            jobId: data?.jobId,
+                            name: String(data?.name || '').trim(),
+                            email: String(data?.email || '').trim(),
+                            phone: String(data?.phone || '').trim(),
+                            matchScore: Math.max(0, toNum(data?.matchScore, 0)),
+                            recommendation: String(data?.recommendation || '').trim(),
+                            skills: Array.isArray(data?.skills) ? data.skills.map(s => String(s).trim()).filter(Boolean).slice(0, 60) : [],
+                            experience: Math.max(0, toNum(data?.experience, 0)),
+                            degree: String(data?.degree || '').trim(),
+                            languages: String(data?.languages || '').trim(),
+                            shortlisted: !!data?.shortlisted,
+                            parsedWithAI: (data?.parsedWithAI === undefined) ? true : !!data?.parsedWithAI
+                        };
+                        if (!String(item.jobId || '').trim() || !item.name) { skipped++; continue; }
+                        upsertById(recruitmentCandidates, item, 'cand');
+                        applied++;
+                        continue;
+                    }
+
+                    if (type === 'delete_candidate') {
+                        const id = String(data?.id || '').trim();
+                        if (!id) { skipped++; continue; }
+                        const before = recruitmentCandidates.length;
+                        const next = recruitmentCandidates.filter(c => c && String(c.id) !== id);
+                        if (next.length !== before) { recruitmentCandidates.splice(0, recruitmentCandidates.length, ...next); applied++; }
+                        else skipped++;
+                        continue;
+                    }
+
+                    skipped++;
+                } catch (_) {
+                    skipped++;
+                }
+            }
+
+            setHRData('hrEmployees', employees);
+            setHRData('hrLeaves', leaves);
+            setHRData('hrPayrolls', payrolls);
+            setHRData('recruitmentJobs', recruitmentJobs);
+            setHRData('recruitmentCandidates', recruitmentCandidates);
+
+            // Rafraîchir les écrans HR (best-effort)
+            try {
+                if (typeof renderEmployeesList === 'function') renderEmployeesList(employees);
+                if (typeof updateHRStats === 'function') updateHRStats(employees);
+            } catch (_) {}
+            try { if (typeof renderLeavesList === 'function') renderLeavesList(leaves); } catch (_) {}
+            try { if (typeof updateLeavesStats === 'function') updateLeavesStats(leaves); } catch (_) {}
+            try { if (typeof renderPayrollsList === 'function') renderPayrollsList(payrolls); } catch (_) {}
+            try { if (typeof updatePayrollStats === 'function') updatePayrollStats(payrolls); } catch (_) {}
+            try { if (typeof initializeRecruitmentData === 'function') initializeRecruitmentData(); } catch (_) {}
+
+            return { applied, skipped };
+        }
+
+        function applyHrActionBatch(batchId) {
+            const batch = hrPendingActionBatches[String(batchId)];
+            if (!batch || batch.applied || batch.discarded) return;
+            if (!Array.isArray(batch.actions) || batch.actions.length === 0) return;
+
+            const ok = confirm(`Appliquer ${batch.actions.length} action(s) au dashboard RH ?`);
+            if (!ok) return;
+
+            const result = hrApplyAgentActions(batch.actions);
+            batch.applied = true;
+
+            const el = document.getElementById(`hrActionsCard_${batchId}`);
+            if (el) {
+                el.innerHTML = `
+                    <div style="color: #111827; font-weight: 800;">✅ Actions appliquées</div>
+                    <div style="margin-top: 6px; color: rgba(17,24,39,0.7); font-size: 12px;">Appliquées: ${result.applied} • Ignorées: ${result.skipped}</div>
+                `;
+            }
+
+            addHRChatMessage(`✅ Dashboard RH mis à jour (actions appliquées: ${result.applied}, ignorées: ${result.skipped}).`, 'system', false);
+        }
+
+        function discardHrActionBatch(batchId) {
+            const batch = hrPendingActionBatches[String(batchId)];
+            if (!batch || batch.applied || batch.discarded) return;
+            batch.discarded = true;
+            const el = document.getElementById(`hrActionsCard_${batchId}`);
+            if (el) {
+                el.innerHTML = `
+                    <div style="color: #111827; font-weight: 800;">⏸️ Actions ignorées</div>
+                    <div style="margin-top: 6px; color: rgba(17,24,39,0.7); font-size: 12px;">Aucune modification n’a été appliquée.</div>
+                `;
+            }
+        }
         
         function toggleHRChat() {
             const chatPanel = document.getElementById('hrAiChatPanel');
@@ -20413,6 +20810,32 @@ CONTRAINTES (IMPORTANT):
 - Ne fournis pas de "Sources" sauf si l'utilisateur les demande explicitement.
 - Si une info manque pour agir (ex: dates, employé, type de congé), pose 1-3 questions ciblées avant de conclure.
 
+RÈGLE ACTIONS (IMPORTANT):
+- Quand (et seulement quand) tu es prêt à appliquer une modification ET que l'utilisateur a confirmé / fourni les champs requis, réponds UNIQUEMENT avec un objet JSON strict contenant "axilum_actions". Aucune phrase autour.
+
+Format de réponse (uniquement quand prêt à appliquer):
+{
+    "axilum_actions": [
+        {"type": "upsert_employee", "data": {"id?": "...", "firstName": "...", "lastName": "...", "email?": "...", "department?": "...", "position?": "...", "contractType?": "...", "hireDate?": "YYYY-MM-DD", "birthDate?": "YYYY-MM-DD", "address?": "...", "baseSalary?": 0, "status?": "active|inactive"}},
+        {"type": "delete_employee", "data": {"id": "..."}},
+
+        {"type": "upsert_leave", "data": {"id?": "...", "employeeId": "...", "startDate": "YYYY-MM-DD", "endDate": "YYYY-MM-DD", "days?": 0, "type?": "...", "status?": "pending|approved|rejected"}},
+        {"type": "approve_leave", "data": {"id": "..."}},
+        {"type": "reject_leave", "data": {"id": "..."}},
+        {"type": "delete_leave", "data": {"id": "..."}},
+
+        {"type": "upsert_payroll", "data": {"id?": "...", "employeeId": "...", "month": "YYYY-MM", "grossSalary?": 0, "netSalary?": 0, "status?": "pending|validated|paid"}},
+        {"type": "validate_payroll", "data": {"id": "..."}},
+        {"type": "mark_payroll_paid", "data": {"id": "..."}},
+        {"type": "delete_payroll", "data": {"id": "..."}},
+
+        {"type": "upsert_recruitment_job", "data": {"id?": "...", "title": "...", "location?": "...", "department?": "...", "contractType?": "...", "salaryRange?": "...", "skills?": ["..."], "mustHave?": ["..."], "niceToHave?": ["..."], "status?": "active|closed"}},
+        {"type": "delete_recruitment_job", "data": {"id": "..."}},
+        {"type": "upsert_candidate", "data": {"id?": "...", "jobId": "...", "name": "...", "email?": "...", "phone?": "...", "matchScore?": 0, "recommendation?": "...", "skills?": ["..."], "experience?": 0, "degree?": "...", "languages?": "...", "shortlisted?": true}},
+        {"type": "delete_candidate", "data": {"id": "..."}}
+    ]
+}
+
 ${companyInfo}
 
 📊 TABLEAU DE BORD RH GLOBAL :
@@ -20466,7 +20889,10 @@ ${recruitmentInfo}
                 if (!response.ok) throw new Error('Erreur API');
                 
                 const data = await response.json();
-                let aiResponse = data.response || data.message || 'Désolé, je n\'ai pas pu traiter votre demande.';
+                const rawResponse = data.response || data.message || 'Désolé, je n\'ai pas pu traiter votre demande.';
+                const extracted = hrExtractActionsFromResponse(rawResponse);
+                const validActions = hrValidateActions(extracted.actions);
+                let aiResponse = extracted.cleanedText || rawResponse;
                 
                 // Nettoyer les métriques
                 aiResponse = aiResponse
@@ -20491,6 +20917,35 @@ ${recruitmentInfo}
                 setHRData('hrChatHistory', hrChatHistory);
                 
                 addHRChatMessage(aiResponse, 'bot');
+
+                // Carte actions (si actions valides)
+                if (Array.isArray(validActions) && validActions.length > 0) {
+                    const batchId = hrRegisterPendingActions(validActions);
+                    const messagesContainer = document.getElementById('hrChatMessages');
+                    if (messagesContainer) {
+                        const wrapper = document.createElement('div');
+                        wrapper.style.marginTop = '8px';
+                        wrapper.innerHTML = `
+                            <div id="hrActionsCard_${batchId}" style="
+                                padding: 12px 14px;
+                                background: rgba(16, 185, 129, 0.08);
+                                border: 1px solid rgba(16, 185, 129, 0.25);
+                                border-radius: 12px;
+                                max-width: 85%;
+                                align-self: flex-start;
+                            ">
+                                <div style="color: #064e3b; font-weight: 800;">Proposition d'actions</div>
+                                <div style="margin-top: 6px; color: rgba(17,24,39,0.7); font-size: 12px;">${validActions.length} action(s) prêtes à appliquer au dashboard RH.</div>
+                                <div style="display:flex; gap: 10px; margin-top: 10px; flex-wrap: wrap;">
+                                    <button class="hr-btn" type="button" onclick="applyHrActionBatch('${batchId}')" style="padding: 10px 14px; font-size: 13px;">Appliquer au dashboard</button>
+                                    <button class="hr-btn" type="button" onclick="discardHrActionBatch('${batchId}')" style="padding: 10px 14px; font-size: 13px; background: rgba(17,24,39,0.08); border: 1px solid rgba(17,24,39,0.12);">Ignorer</button>
+                                </div>
+                            </div>
+                        `;
+                        messagesContainer.appendChild(wrapper);
+                        messagesContainer.scrollTop = messagesContainer.scrollHeight;
+                    }
+                }
                 showToast('✅ Réponse générée', 'success');
             } catch (error) {
                 console.error('Erreur Agent RH:', error);
