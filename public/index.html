@@ -15153,10 +15153,6 @@ ${persona}
                                         Effacer chat
                                     </button>
                                 </div>
-                                <label style="display: flex; align-items: center; gap: 8px; color: rgba(255, 255, 255, 0.8); font-size: 13px; cursor: pointer;">
-                                    <input type="checkbox" id="rndWebSearchEnabled" checked style="cursor: pointer;">
-                                    <span>Activer la recherche web (Brave Search) pour des infos à jour</span>
-                                </label>
                             </div>
                             
                             <div class="rnd-chat-container">
@@ -16226,7 +16222,6 @@ ${persona}
             if (!message) return;
 
             const messagesContainer = document.getElementById('rndChatMessages');
-            const webSearchEnabled = document.getElementById('rndWebSearchEnabled')?.checked || false;
             
             // Add user message
             messagesContainer.innerHTML += `
@@ -16249,9 +16244,7 @@ ${persona}
             messagesContainer.scrollTop = messagesContainer.scrollHeight;
             
             // Add typing indicator
-            const typingIndicator = webSearchEnabled 
-                ? 'Agent dev recherche sur le web...' 
-                : 'Agent dev analyse...';
+            const typingIndicator = 'Agent dev analyse...';
             messagesContainer.innerHTML += `
                 <div id="rndTyping" style="margin-bottom: 16px;">
                     <div style="display: inline-block; background: rgba(255, 255, 255, 0.1); padding: 12px 16px; border-radius: 12px;">
@@ -16310,53 +16303,11 @@ N'inclus des actions QUE si l'utilisateur demande explicitement de modifier/ajou
                     ? `\n\nINFORMATIONS DE L'ENTREPRISE :\n- Nom: ${companySettings.companyName || 'Non défini'}\n- Domaine d'activité: ${companySettings.businessSector || 'Non défini'}\n- Devise: ${companyCurrency}\n`
                     : `\n\nLes informations de l'entreprise n'ont pas encore été configurées.\n`;
 
-                // Brave Web Search si activé
-                let webSearchResults = '';
-                let needsWebSearch = false;
-                if (webSearchEnabled) {
-                    try {
-                        // Déterminer si la question nécessite une recherche web
-                        needsWebSearch = /quoi de neuf|dernières?|nouveautés?|tendances?|actualités?|innovations?|récent|2024|2025|état de l'art|state of the art/i.test(message);
-                        
-                        if (needsWebSearch) {
-                            // Effectuer la recherche via l'agent Wesh (RAG côté backend)
-                            const searchResponse = await fetch(endpoint, {
-                                method: 'POST',
-                                headers: { 'Content-Type': 'application/json' },
-                                body: JSON.stringify({
-                                    message: message,
-                                    conversationId: 'rnd-web-search',
-                                    chatType: 'web-search',
-                                    history: []
-                                })
-                            });
-                            
-                            const searchData = await searchResponse.json();
-                            
-                            if (searchData && searchData.response) {
-                                webSearchResults = `\n\n[Contexte de recherche web] :\n${searchData.response}\n`;
-
-                                // Persister aussi le dernier contexte web (pour /agent web)
-                                try {
-                                    localStorage.setItem('webSearch_lastQuery', String(message || ''));
-                                    localStorage.setItem('webSearch_lastResponse', String(searchData.response || ''));
-                                    localStorage.setItem('webSearch_lastUpdated', new Date().toISOString());
-                                    const src = Array.isArray(searchData.sources) ? searchData.sources.slice(0, 12) : [];
-                                    localStorage.setItem('webSearch_lastSources', JSON.stringify(src));
-                                } catch (_) {}
-                            }
-                        }
-                    } catch (searchError) {
-                        console.error('Erreur recherche Brave:', searchError);
-                        webSearchResults = '\n\n[Note: La recherche web n\'a pas pu être effectuée]\n';
-                    }
-                }
-                
                 const response = await fetch(endpoint, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
-                        message: baseContext + companyContext + '\n\n' + rndContext + rndActionsContract + webSearchResults + '\n\nUtilisateur: ' + message,
+                        message: baseContext + companyContext + '\n\n' + rndContext + rndActionsContract + '\n\nUtilisateur: ' + message,
                         conversationId: 'rnd-agent',
                         chatType: 'agent-dev',
                         history: Array.isArray(rndChatHistory) ? rndChatHistory.slice(-20) : []
@@ -16380,14 +16331,6 @@ N'inclus des actions QUE si l'utilisateur demande explicitement de modifier/ajou
                         : '✅ Proposition d’actions prête. Allez sur l’onglet <strong>Dashboard</strong> puis cliquez <strong>Appliquer au dashboard</strong>.';
                 } else {
                     responseHtml = extracted.cleanedText || rawResponse || 'Erreur de réponse';
-                }
-                
-                // Add sources only when web search was actually used
-                if (webSearchEnabled && needsWebSearch && data.sources && data.sources.length > 0) {
-                    responseHtml += '<br><br><strong style="color: #fcd34d;">Sources :</strong><br>';
-                    responseHtml += data.sources.map((s, i) => 
-                        `<small>${i+1}. <a href="${s.url}" target="_blank" style="color: #60a5fa; text-decoration: none;">${s.title}</a></small>`
-                    ).join('<br>');
                 }
                 
                 // Add bot response
