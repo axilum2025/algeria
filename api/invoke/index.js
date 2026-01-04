@@ -7,7 +7,7 @@ const { shouldUseInternalBoost, buildAxilumInternalBoostContext } = require('../
 const { detectFunctions, orchestrateFunctions, summarizeResults } = require('../utils/functionRouter');
 const { buildWebEvidenceContext } = require('../utils/webEvidence');
 const { appendEvidenceContext, searchWikipedia, searchNewsApi, searchSemanticScholar } = require('../utils/sourceProviders');
-const { looksTimeSensitiveForHR, buildSilentWebContext } = require('../utils/silentWebRefresh');
+const { looksTimeSensitiveForHR, looksTimeSensitiveForMarketing, buildSilentWebContext } = require('../utils/silentWebRefresh');
 
 // Fonction RAG - Recherche Brave
 async function searchBrave(query, apiKey) {
@@ -139,6 +139,9 @@ module.exports = async function (context, req) {
         const isHRChat = chatType === 'hr-management';
         const hrSilentWebRefreshEnabled = isHRChat && String(process.env.HR_SILENT_WEB_REFRESH_ENABLED ?? 'true').toLowerCase() !== 'false';
         const hrNeedsFreshInfo = isHRChat && looksTimeSensitiveForHR(userQuery);
+        const isMarketingChat = chatType === 'marketing-agent';
+        const marketingSilentWebRefreshEnabled = isMarketingChat && String(process.env.MARKETING_SILENT_WEB_REFRESH_ENABLED ?? 'true').toLowerCase() !== 'false';
+        const marketingNeedsFreshInfo = isMarketingChat && looksTimeSensitiveForMarketing(userQuery);
         const skipWebSearchBecauseConversation = forceWebSearch
             && !userAsksForSourcesForWesh(userQuery)
             && (isSmallTalkForWesh(userQuery) || isQuestionnaireForWesh(userQuery));
@@ -255,6 +258,15 @@ module.exports = async function (context, req) {
                         contextFromSearch = appendEvidenceContext(contextFromSearch, braveEvidence);
                     } else if (hrSilentWebRefreshEnabled && hrNeedsFreshInfo) {
                         // 🔒 Enrichissement silencieux (Agent RH): on récupère des extraits, mais on retire URLs/citations.
+                        const evidence = await buildWebEvidenceContext({
+                            question: userQuery,
+                            searchResults,
+                            timeoutMs: 7000,
+                            maxSources: 3
+                        });
+                        contextFromSearch = buildSilentWebContext(evidence);
+                    } else if (marketingSilentWebRefreshEnabled && marketingNeedsFreshInfo) {
+                        // 🔒 Enrichissement silencieux (Agent Marketing): web à jour sans exposer liens/sources.
                         const evidence = await buildWebEvidenceContext({
                             question: userQuery,
                             searchResults,

@@ -8,6 +8,11 @@ function looksTimeSensitiveForHR(question) {
   return /(r[ée]cent|2024|2025|2026|nouveaut[ée]s?|tendance|actualit[ée]s?|benchmark|barom[èe]tre|statistique|chiffres?|march[ée]|salaire|r[ée]mun[ée]ration|compensation|taux|turnover|attrition|d[ée]mission|t[ée]l[ée]travail|remote|ia|g[ée]n[ée]rative|sirh|ats)\b/i.test(q);
 }
 
+function looksTimeSensitiveForMarketing(question) {
+  const q = String(question || '');
+  return /(r[ée]cent|2024|2025|2026|nouveaut[ée]s?|tendance|actualit[ée]s?|benchmark|barom[èe]tre|statistique|chiffres?|march[ée]|cpc|cpm|ctr|roas|cac|ltv|seo|sem|google\s*ads|meta\s*ads|facebook\s*ads|tiktok|linkedin|algorithme|update|core\s*update|serp|cookies?|rgpd|attribution|tracking|ga4|analytics|consent|influence|newsletter)\b/i.test(q);
+}
+
 function sanitizeWebEvidenceForInternalUse(text) {
   let t = String(text || '');
   if (!t.trim()) return '';
@@ -55,6 +60,7 @@ function buildSilentWebContext(evidenceText) {
 
 module.exports = {
   looksTimeSensitiveForHR,
+  looksTimeSensitiveForMarketing,
   sanitizeWebEvidenceForInternalUse,
   buildSilentWebContext
 };
