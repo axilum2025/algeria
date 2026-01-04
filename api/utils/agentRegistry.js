@@ -21,6 +21,7 @@ const AGENT_ALIASES = {
   excel: 'excel-expert',
   todo: 'agent-todo',
   web: 'web-search',
+  'finance-agent': 'agent-alex',
   finance: 'agent-alex',
   compta: 'agent-alex',
   alex: 'agent-alex',
