@@ -13,6 +13,13 @@ function looksTimeSensitiveForMarketing(question) {
   return /(r[ée]cent|2024|2025|2026|nouveaut[ée]s?|tendance|actualit[ée]s?|benchmark|barom[èe]tre|statistique|chiffres?|march[ée]|cpc|cpm|ctr|roas|cac|ltv|seo|sem|google\s*ads|meta\s*ads|facebook\s*ads|tiktok|linkedin|algorithme|update|core\s*update|serp|cookies?|rgpd|attribution|tracking|ga4|analytics|consent|influence|newsletter)\b/i.test(q);
 }
 
+function looksTimeSensitiveForDev(question) {
+  const q = String(question || '');
+  // Typical dev cases that benefit from up-to-date info: versions, breaking changes, recent releases, security advisories.
+  return /(r[ée]cent|2024|2025|2026|latest|derni[èe]re\s+version|nouvelle\s+version|release|changelog|breaking\s+change|d[ée]pr[ée]ci[ée]|deprecated|deprecation|cve|vuln[ée]rabilit[ée]|security\s+advisory|patch|hotfix|migration|upgrade|update)\b/i.test(q)
+    || /(node(\.js)?\s*(\d+)?|npm|pnpm|yarn|typescript|react|next\.js|vite|webpack|eslint|prettier|python\s*3\.?\d*|pip|django|fastapi|flask|java\s*\d+|spring|dotnet|\.net|kubernetes|k8s|docker|azure|aws|gcp)\b/i.test(q);
+}
+
 function sanitizeWebEvidenceForInternalUse(text) {
   let t = String(text || '');
   if (!t.trim()) return '';
@@ -61,6 +68,7 @@ function buildSilentWebContext(evidenceText) {
 module.exports = {
   looksTimeSensitiveForHR,
   looksTimeSensitiveForMarketing,
+  looksTimeSensitiveForDev,
   sanitizeWebEvidenceForInternalUse,
   buildSilentWebContext
 };

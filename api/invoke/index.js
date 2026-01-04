@@ -7,7 +7,7 @@ const { shouldUseInternalBoost, buildAxilumInternalBoostContext } = require('../
 const { detectFunctions, orchestrateFunctions, summarizeResults } = require('../utils/functionRouter');
 const { buildWebEvidenceContext } = require('../utils/webEvidence');
 const { appendEvidenceContext, searchWikipedia, searchNewsApi, searchSemanticScholar } = require('../utils/sourceProviders');
-const { looksTimeSensitiveForHR, looksTimeSensitiveForMarketing, buildSilentWebContext } = require('../utils/silentWebRefresh');
+const { looksTimeSensitiveForHR, looksTimeSensitiveForMarketing, looksTimeSensitiveForDev, buildSilentWebContext } = require('../utils/silentWebRefresh');
 
 // Fonction RAG - Recherche Brave
 async function searchBrave(query, apiKey) {
@@ -142,6 +142,9 @@ module.exports = async function (context, req) {
         const isMarketingChat = chatType === 'marketing-agent';
         const marketingSilentWebRefreshEnabled = isMarketingChat && String(process.env.MARKETING_SILENT_WEB_REFRESH_ENABLED ?? 'true').toLowerCase() !== 'false';
         const marketingNeedsFreshInfo = isMarketingChat && looksTimeSensitiveForMarketing(userQuery);
+        const isDevChat = chatType === 'agent-dev';
+        const devSilentWebRefreshEnabled = isDevChat && String(process.env.DEV_SILENT_WEB_REFRESH_ENABLED ?? 'true').toLowerCase() !== 'false';
+        const devNeedsFreshInfo = isDevChat && looksTimeSensitiveForDev(userQuery);
         const skipWebSearchBecauseConversation = forceWebSearch
             && !userAsksForSourcesForWesh(userQuery)
             && (isSmallTalkForWesh(userQuery) || isQuestionnaireForWesh(userQuery));
@@ -267,6 +270,15 @@ module.exports = async function (context, req) {
                         contextFromSearch = buildSilentWebContext(evidence);
                     } else if (marketingSilentWebRefreshEnabled && marketingNeedsFreshInfo) {
                         // 🔒 Enrichissement silencieux (Agent Marketing): web à jour sans exposer liens/sources.
+                        const evidence = await buildWebEvidenceContext({
+                            question: userQuery,
+                            searchResults,
+                            timeoutMs: 7000,
+                            maxSources: 3
+                        });
+                        contextFromSearch = buildSilentWebContext(evidence);
+                    } else if (devSilentWebRefreshEnabled && devNeedsFreshInfo) {
+                        // 🔒 Enrichissement silencieux (Agent Dev): web à jour sans exposer liens/sources.
                         const evidence = await buildWebEvidenceContext({
                             question: userQuery,
                             searchResults,
