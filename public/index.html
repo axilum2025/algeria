@@ -3663,7 +3663,7 @@
             if (t === 'team' || t === 'team-auto' || t === 'orchestrator-auto') return 'team-auto';
 
             // Finance (alias "argent") -> Agent Alex
-            if (t === 'argent' || t === 'money' || t === 'finance' || t === 'compta' || t === 'accounting') return 'agent-alex';
+            if (t === 'finance-agent' || t === 'argent' || t === 'money' || t === 'finance' || t === 'compta' || t === 'accounting') return 'agent-alex';
 
             // Dev
             if (t === 'dev' || t === 'agent-dev' || t === 'developer') return 'agent-dev';
@@ -6071,8 +6071,6 @@ ${persona}
                                 ? '👋 Hi, je suis Agent RH. Comment puis-je vous aider ?'
                                 : chosen === 'marketing-agent'
                                     ? '👋 Hi, je suis Agent Mark. Comment puis-je vous aider ?'
-                                    : chosen === 'finance-agent'
-                                        ? '👋 Hi, je suis Agent Alex. Comment puis-je vous aider ?'
                                     : chosen === 'web-search'
                                         ? '👋 Hi, je suis Agent Wesh. Comment puis-je vous aider ?'
                                         : chosen === 'agent-alex'
@@ -6377,20 +6375,7 @@ ${persona}
                 }
 
                 let agentFinanceExtraContext = '';
-                if (currentChatType === 'finance-agent') {
-                    const finData = getFinanceModuleDataFromStorage();
-                    agentFinanceExtraContext = '\n\n' + buildAgentFinanceContext({
-                        mode: 'summary',
-                        companySettings: finData.companySettings,
-                        invoices: finData.invoices,
-                        reports: finData.reports,
-                        budgets: finData.budgets,
-                        kpis: finData.kpis,
-                        lastInvoice: finData.lastInvoice,
-                        financeDataLastUpdated: finData.financeDataLastUpdated,
-                        conversationsCount: finData.conversationsCount
-                    });
-                }
+                // (legacy) finance-agent est désormais normalisé en agent-alex
 
                 let agentAlexExtraContext = '';
                 if (currentChatType === 'agent-alex') {
