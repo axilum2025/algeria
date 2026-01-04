@@ -129,7 +129,9 @@ Règles:
 - Si tu ajoutes des citations dans le corps de la réponse, termine par une section "Sources" listant 2-5 sources: [S#] Titre — URL.
 - Si le contexte est vide, tu peux proposer une reformulation de requête.
 
-Réponds en français, clairement et avec sources.${c}`;
+Réponds en français, clairement.
+- N'ajoute des citations [S#] et une section "Sources" que si tu t'es réellement appuyé sur des preuves présentes dans le contexte.
+- Sinon, n'ajoute aucune section "Sources" et ne mentionne pas de sources.${c}`;
 
     case 'finance-agent':
       return `Tu es Agent Finance.

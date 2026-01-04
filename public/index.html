@@ -6505,10 +6505,64 @@ ${persona}
             }
         }
 
+        function axilumNormalizeForIntent(str) {
+            return String(str || '')
+                .toLowerCase()
+                .replace(/[’]/g, "'")
+                .trim();
+        }
+
+        function axilumUserAsksForSources(str) {
+            const s = axilumNormalizeForIntent(str);
+            return /(\bsources?\b|\br[ée]f[ée]rences?\b|\bcitations?\b|\bciter\b|\bpreuve(s)?\b|\bjustifie\b|\bjustification\b|\bliens?\b|\burl\b|\barticles?\b)/i.test(s);
+        }
+
+        function axilumIsSmallTalk(str) {
+            const s0 = axilumNormalizeForIntent(str);
+            if (!s0) return false;
+
+            const s = s0
+                .replace(/[^a-z0-9à-ÿ\s'_-]/gi, ' ')
+                .replace(/\s+/g, ' ')
+                .trim();
+
+            // Salutations / acquiescements courts
+            if (/^(bonjour|salut|coucou|hello|hey|yo|bonsoir|bonne\s+nuit|merci|merci\s+beaucoup|ok|d\s*accord|ça\s+marche|ca\s+marche|super|cool)\b/i.test(s)) {
+                return true;
+            }
+
+            // Petites phrases sociales
+            if (/(comment\s+ça\s+va|comment\s+ca\s+va|ça\s+va\s*\?|ca\s+va\s*\?|tu\s+vas\s+bien)/i.test(s)) {
+                return true;
+            }
+
+            // Identité / nom de l'agent
+            if (/(quel\s+est\s+ton\s+nom|tu\s+t'appelles\s+comment|qui\s+es\s*-?\s*tu|tu\s+es\s+qui)/i.test(s)) {
+                return true;
+            }
+
+            return false;
+        }
+
+        function axilumShouldShowWebSources(lastUserMessage) {
+            const m = String(lastUserMessage || '').trim();
+            if (!m) return true;
+            if (axilumUserAsksForSources(m)) return true;
+            if (axilumIsSmallTalk(m)) return false;
+            return true;
+        }
+
         function addMessage(text, type, data = null) {
             const chatMessages = document.getElementById('chatMessages');
             const messageWrapper = document.createElement('div');
             messageWrapper.className = `message-wrapper ${type}`;
+
+            // Garder une trace du dernier message utilisateur pour gater l'affichage des sources (mode Wesh).
+            try {
+                if (type === 'user') {
+                    window.__axilum_lastUserMessage = String(text || '').trim();
+                }
+            } catch (_) {}
 
             const isDetectorReport = type === 'bot' && data && data.detectorReport === true;
 
@@ -6530,6 +6584,10 @@ ${persona}
             
             if (type === 'bot' && !isDetectorReport) {
                 const allowSources = (typeof currentChatType !== 'undefined' && String(currentChatType) === 'web-search');
+                const lastUserMsg = (typeof window !== 'undefined' && window.__axilum_lastUserMessage)
+                    ? String(window.__axilum_lastUserMessage)
+                    : '';
+                const shouldShowSources = allowSources && axilumShouldShowWebSources(lastUserMsg);
                 const shouldStripJsonMeta = (t) => {
                     const raw = String(t || '');
                     return (
@@ -6555,7 +6613,7 @@ ${persona}
                     );
                 };
 
-                if (allowSources && data && Array.isArray(data.sources) && data.sources.length > 0) {
+                if (shouldShowSources && data && Array.isArray(data.sources) && data.sources.length > 0) {
                     ragSourcesStructured = data.sources
                         .filter(Boolean)
                         .map((s) => ({
@@ -6582,7 +6640,7 @@ ${persona}
                             return (url || title || '').trim();
                         })
                         .filter((s) => s && !isPlaceholderSource(s));
-                } else if (allowSources) {
+                } else if (shouldShowSources) {
                     // Fallback: parse depuis le texte si l'API ne fournit pas sources
                     const sourcesMatch = text.match(/📚\s*Sources:\s*([^\n]+)/i);
                     if (sourcesMatch) {
