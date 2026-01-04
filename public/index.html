@@ -20307,6 +20307,67 @@ N'inclus des actions QUE si l'utilisateur demande explicitement de modifier/ajou
                     if (data?.id !== undefined && data?.id !== null && String(data.id).trim() !== '') valid.push(action);
                     continue;
                 }
+
+                if (type === 'upsert_review') {
+                    const hasEmp = data?.employeeId !== undefined && data?.employeeId !== null && String(data.employeeId).trim() !== '';
+                    const hasPeriod = String(data?.period || '').trim();
+                    if (hasEmp && hasPeriod) valid.push(action);
+                    continue;
+                }
+                if (type === 'delete_review') {
+                    if (data?.id !== undefined && data?.id !== null && String(data.id).trim() !== '') valid.push(action);
+                    continue;
+                }
+
+                if (type === 'set_turnover_consent') {
+                    if (typeof data?.consent === 'boolean' || typeof data?.value === 'boolean') valid.push(action);
+                    continue;
+                }
+                if (type === 'analyze_turnover') {
+                    valid.push(action);
+                    continue;
+                }
+                if (type === 'delete_turnover_analysis') {
+                    const empId = String(data?.employeeId || data?.id || '').trim();
+                    if (empId) valid.push(action);
+                    continue;
+                }
+
+                if (type === 'set_recruitment_job_status') {
+                    const id = String(data?.jobId || data?.id || '').trim();
+                    const status = String(data?.status || '').trim();
+                    if (id && (status === 'active' || status === 'closed')) valid.push(action);
+                    continue;
+                }
+                if (type === 'set_candidate_shortlisted') {
+                    const id = String(data?.candidateId || data?.id || '').trim();
+                    if (id && (typeof data?.shortlisted === 'boolean' || typeof data?.value === 'boolean')) valid.push(action);
+                    continue;
+                }
+                if (type === 'set_candidate_match_score') {
+                    const id = String(data?.candidateId || data?.id || '').trim();
+                    const score = (typeof data?.matchScore === 'number') ? data.matchScore : parseFloat(data?.matchScore);
+                    if (id && Number.isFinite(score)) valid.push(action);
+                    continue;
+                }
+
+                if (type === 'generate_payrolls_for_period') {
+                    const period = String(data?.period || data?.month || '').trim();
+                    if (/^\d{4}-\d{2}$/.test(period)) valid.push(action);
+                    continue;
+                }
+                if (type === 'set_payroll_status_for_period') {
+                    const period = String(data?.period || data?.month || '').trim();
+                    const status = String(data?.status || '').trim();
+                    if (/^\d{4}-\d{2}$/.test(period) && (status === 'pending' || status === 'validated' || status === 'paid')) valid.push(action);
+                    continue;
+                }
+
+                if (type === 'update_company_settings') {
+                    const payload = (data && typeof data === 'object') ? data : null;
+                    if (payload && Object.keys(payload).length > 0) valid.push(action);
+                    continue;
+                }
             }
 
             return valid.length > 0 ? valid : null;
@@ -20334,8 +20395,13 @@ N'inclus des actions QUE si l'utilisateur demande explicitement de modifier/ajou
             const employees = Array.isArray(getHRData('hrEmployees')) ? getHRData('hrEmployees') : [];
             const leaves = Array.isArray(getHRData('hrLeaves')) ? getHRData('hrLeaves') : [];
             const payrolls = Array.isArray(getHRData('hrPayrolls')) ? getHRData('hrPayrolls') : [];
+            const reviews = Array.isArray(getHRData('hrReviews')) ? getHRData('hrReviews') : [];
             const recruitmentJobs = Array.isArray(getHRData('recruitmentJobs')) ? getHRData('recruitmentJobs') : [];
             const recruitmentCandidates = Array.isArray(getHRData('recruitmentCandidates')) ? getHRData('recruitmentCandidates') : [];
+            const companySettings = getHRData('companySettings', {});
+
+            let companySettingsChanged = false;
+            let turnoverTouched = false;
 
             let applied = 0;
             let skipped = 0;
@@ -20520,6 +20586,211 @@ N'inclus des actions QUE si l'utilisateur demande explicitement de modifier/ajou
                         continue;
                     }
 
+                    if (type === 'upsert_review') {
+                        const employeeId = String(data?.employeeId || '').trim();
+                        const period = String(data?.period || '').trim();
+                        if (!employeeId || !period) { skipped++; continue; }
+
+                        const scores = (data?.scores && typeof data.scores === 'object') ? data.scores : {};
+                        const technical = Math.max(0, Math.min(5, toNum(scores?.technical ?? data?.technical, 0)));
+                        const behavioral = Math.max(0, Math.min(5, toNum(scores?.behavioral ?? data?.behavioral, 0)));
+                        const performance = Math.max(0, Math.min(5, toNum(scores?.performance ?? data?.performance, 0)));
+                        const development = Math.max(0, Math.min(5, toNum(scores?.development ?? data?.development, 0)));
+
+                        const computedOverall = (technical + behavioral + performance + development) / 4;
+                        const overallRating = Number.isFinite(toNum(data?.overallRating, NaN))
+                            ? Math.max(0, Math.min(5, toNum(data?.overallRating, computedOverall)))
+                            : Math.max(0, Math.min(5, computedOverall));
+
+                        const item = {
+                            id: data?.id,
+                            employeeId,
+                            period,
+                            type: String(data?.type || '').trim() || 'Annuelle',
+                            evaluator: String(data?.evaluator || '').trim(),
+                            scores: { technical, behavioral, performance, development },
+                            overallRating: parseFloat(overallRating.toFixed(1)),
+                            strengths: String(data?.strengths || '').trim(),
+                            areasForImprovement: String(data?.areasForImprovement || '').trim(),
+                            objectives: String(data?.objectives || '').trim(),
+                            comments: String(data?.comments || '').trim(),
+                            date: String(data?.date || '').trim() || new Date().toISOString(),
+                            updatedAt: Date.now()
+                        };
+                        if (item.id === undefined || item.id === null || String(item.id).trim() === '') {
+                            item.id = String(Date.now());
+                            item.createdAt = Date.now();
+                        }
+                        const idx = reviews.findIndex(r => r && String(r.id) === String(item.id));
+                        if (idx >= 0) reviews[idx] = { ...reviews[idx], ...item };
+                        else reviews.push(item);
+                        applied++;
+                        continue;
+                    }
+
+                    if (type === 'delete_review') {
+                        const id = String(data?.id || '').trim();
+                        if (!id) { skipped++; continue; }
+                        const before = reviews.length;
+                        const next = reviews.filter(r => r && String(r.id) !== id);
+                        if (next.length !== before) { reviews.splice(0, reviews.length, ...next); applied++; }
+                        else skipped++;
+                        continue;
+                    }
+
+                    if (type === 'set_turnover_consent') {
+                        const consent = (typeof data?.consent === 'boolean') ? data.consent : (typeof data?.value === 'boolean' ? data.value : null);
+                        if (consent === null) { skipped++; continue; }
+                        try { if (typeof setTurnoverConsent === 'function') setTurnoverConsent(!!consent); } catch (_) {}
+                        turnoverTouched = true;
+                        applied++;
+                        continue;
+                    }
+
+                    if (type === 'analyze_turnover') {
+                        try { if (typeof analyzeTurnoverRisks === 'function') analyzeTurnoverRisks(); } catch (_) {}
+                        turnoverTouched = true;
+                        applied++;
+                        continue;
+                    }
+
+                    if (type === 'delete_turnover_analysis') {
+                        const employeeId = String(data?.employeeId || data?.id || '').trim();
+                        if (!employeeId) { skipped++; continue; }
+                        try {
+                            let analyses = JSON.parse(localStorage.getItem('turnoverAnalyses') || '[]');
+                            const before = Array.isArray(analyses) ? analyses.length : 0;
+                            analyses = (Array.isArray(analyses) ? analyses : []).filter(a => a && String(a.employeeId) !== employeeId);
+                            if (analyses.length === before) { skipped++; continue; }
+                            localStorage.setItem('turnoverAnalyses', JSON.stringify(analyses));
+                            turnoverTouched = true;
+                            applied++;
+                        } catch (_) {
+                            skipped++;
+                        }
+                        continue;
+                    }
+
+                    if (type === 'set_recruitment_job_status') {
+                        const id = String(data?.jobId || data?.id || '').trim();
+                        const status = String(data?.status || '').trim();
+                        if (!id || (status !== 'active' && status !== 'closed')) { skipped++; continue; }
+                        const idx = recruitmentJobs.findIndex(j => j && String(j.id) === id);
+                        if (idx < 0) { skipped++; continue; }
+                        recruitmentJobs[idx] = { ...recruitmentJobs[idx], status, updatedAt: new Date().toISOString() };
+                        applied++;
+                        continue;
+                    }
+
+                    if (type === 'set_candidate_shortlisted') {
+                        const id = String(data?.candidateId || data?.id || '').trim();
+                        const shortlisted = (typeof data?.shortlisted === 'boolean') ? data.shortlisted : (typeof data?.value === 'boolean' ? data.value : null);
+                        if (!id || shortlisted === null) { skipped++; continue; }
+                        const idx = recruitmentCandidates.findIndex(c => c && String(c.id) === id);
+                        if (idx < 0) { skipped++; continue; }
+                        recruitmentCandidates[idx] = { ...recruitmentCandidates[idx], shortlisted: !!shortlisted, updatedAt: new Date().toISOString() };
+                        applied++;
+                        continue;
+                    }
+
+                    if (type === 'set_candidate_match_score') {
+                        const id = String(data?.candidateId || data?.id || '').trim();
+                        const scoreRaw = (typeof data?.matchScore === 'number') ? data.matchScore : parseFloat(data?.matchScore);
+                        if (!id || !Number.isFinite(scoreRaw)) { skipped++; continue; }
+                        const idx = recruitmentCandidates.findIndex(c => c && String(c.id) === id);
+                        if (idx < 0) { skipped++; continue; }
+                        recruitmentCandidates[idx] = { ...recruitmentCandidates[idx], matchScore: Math.max(0, Math.min(100, scoreRaw)), updatedAt: new Date().toISOString() };
+                        applied++;
+                        continue;
+                    }
+
+                    if (type === 'generate_payrolls_for_period') {
+                        const period = String(data?.period || data?.month || '').trim();
+                        if (!/^\d{4}-\d{2}$/.test(period)) { skipped++; continue; }
+
+                        const targetEmployees = Array.isArray(data?.employeeIds) ? data.employeeIds.map(x => String(x).trim()).filter(Boolean) : null;
+                        let generated = 0;
+                        for (const employee of employees) {
+                            if (!employee || !String(employee.id || '').trim()) continue;
+                            if (Array.isArray(targetEmployees) && targetEmployees.length > 0 && !targetEmployees.includes(String(employee.id))) continue;
+
+                            const exists = payrolls.find(p => p && String(p.employeeId) === String(employee.id) && String(p.period) === period);
+                            if (exists) continue;
+
+                            const annualSalary = parseFloat(employee.baseSalary) || parseFloat(employee.salary) || 0;
+                            const baseSalary = annualSalary > 0 ? (annualSalary / 12) : 30000;
+                            const grossSalary = baseSalary;
+                            const deductions = grossSalary * 0.09;
+
+                            let taxes = 0;
+                            if (grossSalary > 30000) taxes = (grossSalary - 30000) * 0.35;
+                            else if (grossSalary > 20000) taxes = (grossSalary - 20000) * 0.20;
+                            else if (grossSalary > 10000) taxes = (grossSalary - 10000) * 0.10;
+
+                            const netSalary = grossSalary - deductions - taxes;
+                            payrolls.push({
+                                id: `${Date.now().toString()}_${employee.id}`,
+                                employeeId: employee.id,
+                                period,
+                                baseSalary: baseSalary,
+                                bonuses: 0,
+                                overtime: 0,
+                                overtimePay: 0,
+                                grossSalary: Math.round(grossSalary),
+                                deductions: Math.round(deductions),
+                                taxes: Math.round(taxes),
+                                netSalary: Math.round(netSalary),
+                                status: 'pending',
+                                createdAt: Date.now(),
+                                updatedAt: Date.now()
+                            });
+                            generated++;
+                        }
+
+                        if (generated > 0) applied++;
+                        else skipped++;
+                        continue;
+                    }
+
+                    if (type === 'set_payroll_status_for_period') {
+                        const period = String(data?.period || data?.month || '').trim();
+                        const status = String(data?.status || '').trim();
+                        if (!/^\d{4}-\d{2}$/.test(period) || (status !== 'pending' && status !== 'validated' && status !== 'paid')) { skipped++; continue; }
+
+                        const employeeId = String(data?.employeeId || '').trim();
+                        let touched = 0;
+                        for (let i = 0; i < payrolls.length; i++) {
+                            const p = payrolls[i];
+                            if (!p) continue;
+                            if (String(p.period) !== period) continue;
+                            if (employeeId && String(p.employeeId) !== employeeId) continue;
+                            payrolls[i] = { ...p, status, updatedAt: Date.now() };
+                            touched++;
+                        }
+                        if (touched > 0) applied++;
+                        else skipped++;
+                        continue;
+                    }
+
+                    if (type === 'update_company_settings') {
+                        const payload = (data && typeof data === 'object') ? data : null;
+                        if (!payload) { skipped++; continue; }
+
+                        const next = { ...(companySettings && typeof companySettings === 'object' ? companySettings : {}) };
+                        const allowedKeys = ['companyName', 'businessSector', 'address', 'phone', 'email', 'currency', 'registrationNumber'];
+                        for (const k of allowedKeys) {
+                            if (payload[k] !== undefined) next[k] = payload[k];
+                        }
+                        next.updatedAt = Date.now();
+
+                        if (companySettings && typeof companySettings === 'object') {
+                            Object.assign(companySettings, next);
+                        }
+                        companySettingsChanged = true;
+                        applied++;
+                        continue;
+                    }
+
                     skipped++;
                 } catch (_) {
                     skipped++;
@@ -20529,8 +20800,10 @@ N'inclus des actions QUE si l'utilisateur demande explicitement de modifier/ajou
             setHRData('hrEmployees', employees);
             setHRData('hrLeaves', leaves);
             setHRData('hrPayrolls', payrolls);
+            setHRData('hrReviews', reviews);
             setHRData('recruitmentJobs', recruitmentJobs);
             setHRData('recruitmentCandidates', recruitmentCandidates);
+            if (companySettingsChanged) setHRData('companySettings', companySettings);
 
             // Rafraîchir les écrans HR (best-effort)
             try {
@@ -20541,7 +20814,11 @@ N'inclus des actions QUE si l'utilisateur demande explicitement de modifier/ajou
             try { if (typeof updateLeavesStats === 'function') updateLeavesStats(leaves); } catch (_) {}
             try { if (typeof renderPayrollsList === 'function') renderPayrollsList(payrolls); } catch (_) {}
             try { if (typeof updatePayrollStats === 'function') updatePayrollStats(payrolls); } catch (_) {}
+            try { if (typeof initializeReviewsData === 'function') initializeReviewsData(); } catch (_) {}
             try { if (typeof initializeRecruitmentData === 'function') initializeRecruitmentData(); } catch (_) {}
+            if (turnoverTouched) {
+                try { if (typeof initializeTurnoverData === 'function') initializeTurnoverData(); } catch (_) {}
+            }
 
             return { applied, skipped };
         }
@@ -20938,7 +21215,23 @@ Format de réponse (uniquement quand prêt à appliquer):
         {"type": "upsert_recruitment_job", "data": {"id?": "...", "title": "...", "location?": "...", "department?": "...", "contractType?": "...", "salaryRange?": "...", "skills?": ["..."], "mustHave?": ["..."], "niceToHave?": ["..."], "status?": "active|closed"}},
         {"type": "delete_recruitment_job", "data": {"id": "..."}},
         {"type": "upsert_candidate", "data": {"id?": "...", "jobId": "...", "name": "...", "email?": "...", "phone?": "...", "matchScore?": 0, "recommendation?": "...", "skills?": ["..."], "experience?": 0, "degree?": "...", "languages?": "...", "shortlisted?": true}},
-        {"type": "delete_candidate", "data": {"id": "..."}}
+        {"type": "delete_candidate", "data": {"id": "..."}},
+
+        {"type": "set_recruitment_job_status", "data": {"jobId": "...", "status": "active|closed"}},
+        {"type": "set_candidate_shortlisted", "data": {"candidateId": "...", "shortlisted": true}},
+        {"type": "set_candidate_match_score", "data": {"candidateId": "...", "matchScore": 0}},
+
+        {"type": "upsert_review", "data": {"id?": "...", "employeeId": "...", "period": "...", "type?": "Annuelle|Semestrielle|Trimestrielle|Probation", "evaluator?": "...", "scores?": {"technical?": 0, "behavioral?": 0, "performance?": 0, "development?": 0}, "overallRating?": 0, "strengths?": "...", "areasForImprovement?": "...", "objectives?": "...", "comments?": "...", "date?": "YYYY-MM-DD"}},
+        {"type": "delete_review", "data": {"id": "..."}},
+
+        {"type": "set_turnover_consent", "data": {"consent": true}},
+        {"type": "analyze_turnover", "data": {}},
+        {"type": "delete_turnover_analysis", "data": {"employeeId": "..."}},
+
+        {"type": "generate_payrolls_for_period", "data": {"period": "YYYY-MM", "employeeIds?": ["..."]}},
+        {"type": "set_payroll_status_for_period", "data": {"period": "YYYY-MM", "status": "pending|validated|paid", "employeeId?": "..."}},
+
+        {"type": "update_company_settings", "data": {"companyName?": "...", "businessSector?": "...", "address?": "...", "phone?": "...", "email?": "...", "currency?": "DZD|EUR|USD|MAD|TND", "registrationNumber?": "..."}}
     ]
 }
 
