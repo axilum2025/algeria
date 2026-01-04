@@ -10837,6 +10837,19 @@ ${persona}
 
         // Text Pro - Chargement modulaire pour éviter de bloquer l'application
         let textProModuleLoaded = false;
+
+        function preventTextProAutoFocus() {
+            // Évite que l'ouverture de Text Pro capture le curseur automatiquement.
+            // L'utilisateur pourra cliquer dans la zone de texte s'il veut écrire.
+            setTimeout(() => {
+                try {
+                    const ae = document.activeElement;
+                    if (!ae) return;
+                    const tag = String(ae.tagName || '').toUpperCase();
+                    if (tag === 'INPUT' || tag === 'TEXTAREA') ae.blur();
+                } catch (_) {}
+            }, 0);
+        }
         
         function loadTextProModule() {
             // 🎯 Tracking: Utilisateur ouvre Text Pro
@@ -10844,6 +10857,7 @@ ${persona}
             
             if (textProModuleLoaded && typeof window.openTextProModule === 'function') {
                 window.openTextProModule();
+                preventTextProAutoFocus();
                 return;
             }
             
@@ -10855,8 +10869,11 @@ ${persona}
                 console.log('Module Text Pro chargé');
                 if (typeof window.openTextProModule === 'function') {
                     window.openTextProModule();
+                    preventTextProAutoFocus();
                 } else {
                     console.error('openTextProModule non disponible');
+                    // Fallback UI
+                    try { openTextPro(); } catch (_) {}
                 }
             };
             script.onerror = function() {
@@ -11252,7 +11269,7 @@ ${persona}
                             </div>
                             
                             <div class="textpro-actions">
-                                <button class="textpro-btn" onclick="closeTextPro(); setTimeout(() => document.getElementById('messageInput').focus(), 300);">
+                                <button class="textpro-btn" onclick="closeTextPro(); setTimeout(() => document.getElementById('userInput')?.focus(), 300);">
                                     Commencer à utiliser
                                 </button>
                                 <button class="textpro-btn textpro-btn-secondary" onclick="closeTextPro()">
@@ -11322,7 +11339,7 @@ ${persona}
             } catch (_) {}
             
             // Envoyer le texte au chat
-            const messageInput = document.getElementById('messageInput');
+            const messageInput = document.getElementById('userInput');
             if (messageInput) {
                 messageInput.value = `Voici le texte à traiter:\n\n${text}\n\nQue souhaitez-vous faire avec ce texte?`;
                 
