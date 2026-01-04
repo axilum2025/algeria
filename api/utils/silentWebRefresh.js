@@ -43,6 +43,14 @@ function looksTimeSensitiveForTony(question) {
     || /(rgpd|cookies?|tracking|google\s*ads|meta\s*ads|linkedin|tiktok|conditions\s+d'utilisation|policy|api\s+pricing|limitation|quota|modification)\b/i.test(q);
 }
 
+function looksTimeSensitiveForTodo(question) {
+  const q = String(question || '');
+  // Task planning usually doesn't need web, but freshness matters for regulations, platform changes, and time-bound events.
+  return /(r[ée]cent|2024|2025|2026|nouveaut[ée]s?|tendance|actualit[ée]s?|deadline|date\s+limite|butoir|calendrier|d[ée]lai|planning)\b/i.test(q)
+    || /(loi|d[ée]cret|arr[êe]t[ée]|r[èe]glement|conformit[ée]|rgpd|norme|appel\s+d'offres|ao|march[ée]\s+public|subvention|programme)\b/i.test(q)
+    || /(google\s*ads|meta\s*ads|linkedin|tiktok|stripe|paypal|azure|aws|gcp|microsoft\s*365|office\s*365|jira|github|gitlab|notion|slack|teams)\b/i.test(q);
+}
+
 function sanitizeWebEvidenceForInternalUse(text) {
   let t = String(text || '');
   if (!t.trim()) return '';
@@ -95,6 +103,7 @@ module.exports = {
   looksTimeSensitiveForExcel,
   looksTimeSensitiveForAlex,
   looksTimeSensitiveForTony,
+  looksTimeSensitiveForTodo,
   sanitizeWebEvidenceForInternalUse,
   buildSilentWebContext
 };

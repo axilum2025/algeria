@@ -7,7 +7,7 @@ const { shouldUseInternalBoost, buildAxilumInternalBoostContext } = require('../
 const { detectFunctions, orchestrateFunctions, summarizeResults } = require('../utils/functionRouter');
 const { buildWebEvidenceContext } = require('../utils/webEvidence');
 const { appendEvidenceContext, searchWikipedia, searchNewsApi, searchSemanticScholar } = require('../utils/sourceProviders');
-const { looksTimeSensitiveForHR, looksTimeSensitiveForMarketing, looksTimeSensitiveForDev, looksTimeSensitiveForExcel, looksTimeSensitiveForAlex, looksTimeSensitiveForTony, buildSilentWebContext } = require('../utils/silentWebRefresh');
+const { looksTimeSensitiveForHR, looksTimeSensitiveForMarketing, looksTimeSensitiveForDev, looksTimeSensitiveForExcel, looksTimeSensitiveForAlex, looksTimeSensitiveForTony, looksTimeSensitiveForTodo, buildSilentWebContext } = require('../utils/silentWebRefresh');
 
 // Fonction RAG - Recherche Brave
 async function searchBrave(query, apiKey) {
@@ -167,6 +167,9 @@ module.exports = async function (context, req) {
         const isTonyChat = chatType === 'agent-tony';
         const tonySilentWebRefreshEnabled = isTonyChat && String(process.env.TONY_SILENT_WEB_REFRESH_ENABLED ?? 'true').toLowerCase() !== 'false';
         const tonyNeedsFreshInfo = isTonyChat && looksTimeSensitiveForTony(userQuery);
+        const isTodoChat = chatType === 'agent-todo';
+        const todoSilentWebRefreshEnabled = isTodoChat && String(process.env.TODO_SILENT_WEB_REFRESH_ENABLED ?? 'true').toLowerCase() !== 'false';
+        const todoNeedsFreshInfo = isTodoChat && looksTimeSensitiveForTodo(userQuery);
         const skipWebSearchBecauseConversation = forceWebSearch
             && !userAsksForSourcesForWesh(userQuery)
             && (isSmallTalkForWesh(userQuery) || isQuestionnaireForWesh(userQuery));
@@ -328,6 +331,15 @@ module.exports = async function (context, req) {
                         contextFromSearch = buildSilentWebContext(evidence);
                     } else if (tonySilentWebRefreshEnabled && tonyNeedsFreshInfo) {
                         // 🔒 Enrichissement silencieux (Agent Tony): web à jour sans exposer liens/sources.
+                        const evidence = await buildWebEvidenceContext({
+                            question: userQuery,
+                            searchResults,
+                            timeoutMs: 7000,
+                            maxSources: 3
+                        });
+                        contextFromSearch = buildSilentWebContext(evidence);
+                    } else if (todoSilentWebRefreshEnabled && todoNeedsFreshInfo) {
+                        // 🔒 Enrichissement silencieux (Agent ToDo): web à jour sans exposer liens/sources.
                         const evidence = await buildWebEvidenceContext({
                             question: userQuery,
                             searchResults,
