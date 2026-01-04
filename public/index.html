@@ -921,6 +921,21 @@
             white-space: nowrap;
         }
 
+        .agent-picker-left {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .agent-picker-icon {
+            width: 16px;
+            height: 16px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0.95;
+        }
+
         #userInput {
             flex: 1;
             border: none;
@@ -3566,6 +3581,9 @@
             // Général
             if (t === 'axilum' || t === 'default' || t === 'general') return 'axilum';
 
+            // Team (orchestrator auto)
+            if (t === 'team' || t === 'team-auto' || t === 'orchestrator-auto') return 'team-auto';
+
             // Finance (alias "argent") -> Agent Alex
             if (t === 'argent' || t === 'money' || t === 'finance' || t === 'compta' || t === 'accounting') return 'agent-alex';
 
@@ -3604,6 +3622,12 @@
         // 🔁 Agent Picker (UI)
         // ===================================
         const AXILUM_AGENT_CHOICES = [
+            {
+                label: 'Team',
+                arg: 'team',
+                hint: '/team auto',
+                icon: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>'
+            },
             { label: 'Axilum Ai', arg: 'axilum', hint: '/agent axilum' },
             { label: 'Agent Dev', arg: 'dev', hint: '/agent dev' },
             { label: 'Agent Xcel', arg: 'xcel', hint: '/agent xcel' },
@@ -3614,6 +3638,15 @@
             { label: 'Agent Alex', arg: 'alex', hint: '/agent alex' },
             { label: 'Agent Tony', arg: 'tony', hint: '/agent tony' }
         ];
+
+        function activateTeamAutoMode() {
+            try { setChatType('team-auto'); } catch (_) {}
+            try { closeAgentPicker(); } catch (_) {}
+            try { showToast('🤝 Team Auto activé', 'info'); } catch (_) {}
+            try {
+                addMessage('🤝 Team Auto activé. Posez votre question et je la route vers l’orchestrator.', 'bot');
+            } catch (_) {}
+        }
 
         function isAgentPickerOpen() {
             const picker = document.getElementById('agentPicker');
@@ -3645,9 +3678,10 @@
             picker.innerHTML = items.map(a => {
                 const safeLabel = String(a.label || '');
                 const safeArg = String(a.arg || '').replace(/"/g, '&quot;');
+                const icon = a && a.icon ? String(a.icon) : '';
                 return `
                     <button class="agent-picker-item" type="button" data-agent-arg="${safeArg}">
-                        <span>${safeLabel}</span>
+                        <span class="agent-picker-left">${icon ? `<span class="agent-picker-icon">${icon}</span>` : ''}<span>${safeLabel}</span></span>
                     </button>
                 `;
             }).join('');
@@ -3672,6 +3706,13 @@
             const input = document.getElementById('userInput');
             if (!input) return;
             closeAgentPicker();
+
+            const chosen = String(arg || '').trim().toLowerCase();
+            if (chosen === 'team') {
+                activateTeamAutoMode();
+                return;
+            }
+
             input.value = `/agent ${String(arg || '').trim()}`;
             try { adjustTextareaHeight(); } catch (_) {}
             try { sendMessage(); } catch (_) {}
@@ -3682,6 +3723,50 @@
             const input = document.getElementById('userInput');
             if (!input || input.dataset.agentPickerBound === '1') return;
             input.dataset.agentPickerBound = '1';
+
+            // Appui long sur le bouton Agent => activer Team Auto
+            try {
+                const agentBtn = document.getElementById('agentBtn');
+                if (agentBtn && agentBtn.dataset && agentBtn.dataset.teamLongPressBound !== '1') {
+                    agentBtn.dataset.teamLongPressBound = '1';
+                    let lpTimer = null;
+                    let didLongPress = false;
+
+                    const clear = () => {
+                        if (lpTimer) {
+                            clearTimeout(lpTimer);
+                            lpTimer = null;
+                        }
+                    };
+
+                    const start = (e) => {
+                        didLongPress = false;
+                        clear();
+                        lpTimer = setTimeout(() => {
+                            didLongPress = true;
+                            try { activateTeamAutoMode(); } catch (_) {}
+                        }, 650);
+                    };
+
+                    agentBtn.addEventListener('touchstart', start, { passive: true });
+                    agentBtn.addEventListener('mousedown', start);
+                    agentBtn.addEventListener('touchend', clear, { passive: true });
+                    agentBtn.addEventListener('mouseup', clear);
+                    agentBtn.addEventListener('mouseleave', clear);
+                    agentBtn.addEventListener('touchcancel', clear, { passive: true });
+
+                    // Empêcher l'ouverture de la liste si l'appui long a déclenché Team
+                    agentBtn.addEventListener('click', (e) => {
+                        if (!didLongPress) return;
+                        try {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            e.stopImmediatePropagation();
+                        } catch (_) {}
+                        didLongPress = false;
+                    }, true);
+                }
+            } catch (_) {}
 
             // Clic agent: utiliser la délégation d'événements (plus fiable que onclick inline)
             try {
@@ -5693,6 +5778,55 @@ ${persona}
             const message = input.value.trim();
             if (!message) return;
 
+            // 🤝 Mode Team Auto (orchestrator) : route automatiquement la question vers /team auto
+            if (typeof currentChatType !== 'undefined' && String(currentChatType) === 'team-auto' && !/^\/team\b/i.test(message)) {
+                input.value = '';
+                try { adjustTextareaHeight(); } catch (_) {}
+
+                // Afficher la question utilisateur
+                addMessage(message, 'user');
+                showTyping();
+
+                try {
+                    const endpoint = getEndpoint();
+
+                    const conv = conversations.find(c => c.id === currentConversationId);
+                    const history = [];
+                    if (conv && conv.messages) {
+                        conv.messages.forEach(m => {
+                            if (m.user) history.push({ type: 'user', content: m.user });
+                            if (m.bot) history.push({ type: 'bot', content: m.bot, hiScore: m.hiScore || 0, chrScore: m.chrScore || 0 });
+                        });
+                    }
+
+                    const V2_ROLLOUT_PERCENTAGE = 0;
+                    const useV2 = shouldUseV2ForRequest(V2_ROLLOUT_PERCENTAGE);
+
+                    const response = await fetch(endpoint, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            message: message,
+                            conversationId: currentConversationId,
+                            chatType: 'orchestrator',
+                            teamAgents: ['auto'],
+                            teamQuestion: message,
+                            history: history,
+                            useV2: useV2
+                        })
+                    });
+
+                    if (!response.ok) throw new Error(`Erreur ${response.status}`);
+                    const data = await response.json();
+                    hideTyping();
+                    addMessage(data.response || 'Erreur de réponse', 'bot', data.hallucinationIndex, data.contextHistoryRatio);
+                } catch (err) {
+                    hideTyping();
+                    addMessage('❌ Erreur orchestration: ' + (err.message || String(err)), 'bot');
+                }
+                return;
+            }
+
             // 🤝 Orchestration multi-agents (sur demande)
             // Syntaxe fiable: /team dev marketing -- votre question
             if (/^\/team\b/i.test(message)) {
@@ -5853,6 +5987,8 @@ ${persona}
                                             ? '👋 Hi, je suis Agent Alex. Comment puis-je vous aider ?'
                                             : chosen === 'agent-tony'
                                                 ? '👋 Hi, je suis Agent Tony. Comment puis-je vous aider ?'
+                                                                            : chosen === 'team-auto'
+                                                                                ? '🤝 Team Auto activé. Donnez-moi votre question.'
                                                 : '👋 Hi, je suis Axilum Ai. Comment puis-je vous aider ?';
 
                 addMessage(welcome, 'bot');
