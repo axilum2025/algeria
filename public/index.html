@@ -5778,8 +5778,10 @@ ${persona}
             const message = input.value.trim();
             if (!message) return;
 
-            // 🤝 Mode Team Auto (orchestrator) : route automatiquement la question vers /team auto
-            if (typeof currentChatType !== 'undefined' && String(currentChatType) === 'team-auto' && !/^\/team\b/i.test(message)) {
+            // 🤝 Mode Team Auto (orchestrator) : route automatiquement les messages "normaux".
+            // IMPORTANT: ne jamais intercepter les commandes (ex: /agent ...) sinon on reste coincé en Team.
+            const isCommand = /^\s*\//.test(message);
+            if (typeof currentChatType !== 'undefined' && String(currentChatType) === 'team-auto' && !isCommand) {
                 input.value = '';
                 try { adjustTextareaHeight(); } catch (_) {}
 
