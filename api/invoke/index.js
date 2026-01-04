@@ -3,6 +3,7 @@
 const { analyzeHallucination } = require('../utils/hallucinationDetector');
 const { buildSystemPromptForAgent, normalizeAgentId } = require('../utils/agentRegistry');
 const { orchestrateMultiAgents, callGroqChatCompletion } = require('../utils/orchestrator');
+const { shouldUseInternalBoost, buildAxilumInternalBoostContext } = require('../utils/axilumInternalBoost');
 const { detectFunctions, orchestrateFunctions, summarizeResults } = require('../utils/functionRouter');
 const { buildWebEvidenceContext } = require('../utils/webEvidence');
 const { appendEvidenceContext, searchWikipedia, searchNewsApi, searchSemanticScholar } = require('../utils/sourceProviders');
@@ -312,6 +313,23 @@ module.exports = async function (context, req) {
         const isTodo = chatType === 'agent-todo';
         const isAlex = chatType === 'agent-alex';
         const isTony = chatType === 'agent-tony';
+
+        const isAxilum = !isAIManagement && !isAgentDev && !isHR && !isMarketing && !isWebSearch && !isExcel && !isTodo && !isAlex && !isTony;
+
+        let internalBoostContext = '';
+        if (isAxilum && shouldUseInternalBoost(userQuery, { userMessage })) {
+            try {
+                internalBoostContext = await buildAxilumInternalBoostContext({
+                    groqKey,
+                    question: userQuery,
+                    recentHistory,
+                    logger: context.log
+                });
+            } catch (e) {
+                context.log.warn('⚠️ Boost interne indisponible (Axilum), continue sans:', e?.message || e);
+                internalBoostContext = '';
+            }
+        }
         
         const messages = [{
             role: "system",
@@ -466,7 +484,7 @@ IMPORTANT (reconnaissance du rapport):
 
 Réponds de manière naturelle, claire et professionnelle en français.
 Pense étape par étape avant de répondre.
-Ne mentionne pas tes capacités ou fonctionnalités à moins que l'utilisateur ne le demande explicitement.${contextFromSearch}`
+Ne mentionne pas tes capacités ou fonctionnalités à moins que l'utilisateur ne le demande explicitement.${contextFromSearch}${internalBoostContext}`
         }];
 
         recentHistory.forEach(msg => {

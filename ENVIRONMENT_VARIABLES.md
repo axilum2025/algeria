@@ -212,6 +212,20 @@ curl https://delightful-rock-0b18acd1e.3.azurestaticapps.net/api/testConfig
 
 ## ⚠️ Variables optionnelles selon les fonctionnalités
 
+### Boost interne Axilum (enrichissement invisible)
+Permet à Axilum de consulter des "notes internes" (agents experts) sur les requêtes complexes, sans changer l'UX.
+
+```bash
+# Active/désactive le boost interne (défaut: true)
+AXILUM_INTERNAL_BOOST_ENABLED=true
+
+# Limite le nombre d'experts consultés (0-3, défaut: 2)
+AXILUM_INTERNAL_BOOST_MAX_AGENTS=2
+
+# Limite le nombre de tours d'historique injectés dans la requête interne (0-10, défaut: 6)
+AXILUM_INTERNAL_BOOST_MAX_TURNS=6
+```
+
 ### Si vous n'utilisez PAS certaines fonctionnalités :
 
 - **Pas d'analyse d'images Pro** → Pas besoin de `AZURE_VISION_*`

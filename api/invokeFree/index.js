@@ -9,6 +9,7 @@ const { buildSystemPromptForAgent, normalizeAgentId } = require('../utils/agentR
 const { orchestrateMultiAgents, callGroqChatCompletion } = require('../utils/orchestrator');
 const { buildWebEvidenceContext } = require('../utils/webEvidence');
 const { appendEvidenceContext, searchWikipedia, searchNewsApi, searchSemanticScholar } = require('../utils/sourceProviders');
+const { shouldUseInternalBoost, buildAxilumInternalBoostContext } = require('../utils/axilumInternalBoost');
 
 // Fonction RAG - Recherche Brave
 async function searchBrave(query, apiKey) {
@@ -285,10 +286,27 @@ module.exports = async function (context, req) {
         // Construire les messages
         const normalizedChatType = String(chatType || '').trim();
         const agentId = normalizeAgentId(normalizedChatType) || normalizedChatType;
+
+        let internalBoostContext = '';
+        if (agentId === 'axilum' && shouldUseInternalBoost(userQuery, { userMessage })) {
+            try {
+                internalBoostContext = await buildAxilumInternalBoostContext({
+                    groqKey: groqApiKey,
+                    question: userQuery,
+                    recentHistory,
+                    logger: context.log
+                });
+            } catch (e) {
+                context.log.warn('⚠️ Boost interne indisponible (Axilum), continue sans:', e?.message || e);
+                internalBoostContext = '';
+            }
+        }
+
+        const contextWithBoost = `${contextFromSearch || ''}${internalBoostContext || ''}`;
         const messages = [
             {
                 role: "system",
-                content: buildSystemPromptForAgent(agentId, contextFromSearch)
+                content: buildSystemPromptForAgent(agentId, contextWithBoost)
             }
         ];
 
