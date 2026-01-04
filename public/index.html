@@ -18032,8 +18032,21 @@ function showAddProjectModal() {
                         <!-- Agent mark -->
                         <div id="mktAgent" class="mkt-tab-content" style="display: none;">
                             <div style="margin-bottom: 24px;">
-                                <h2 style="margin: 0 0 8px; font-size: 24px; color: white;">Agent mark</h2>
-                                <p style="margin: 0; color: rgba(255, 255, 255, 0.6); font-size: 14px;">Assistant IA spécialisé en Marketing Digital et Growth</p>
+                                <div style="display: flex; justify-content: space-between; align-items: start; gap: 12px;">
+                                    <div style="flex: 1; min-width: 0;">
+                                        <h2 style="margin: 0 0 8px; font-size: 24px; color: white;">Agent mark</h2>
+                                        <p style="margin: 0; color: rgba(255, 255, 255, 0.6); font-size: 14px;">Assistant IA spécialisé en Marketing Digital et Growth</p>
+                                    </div>
+                                    <button onclick="clearMarketingChatHistory()" title="Effacer l'historique du chat" style="padding: 10px 16px; background: rgba(239, 68, 68, 0.2); border: 1px solid rgba(239, 68, 68, 0.4); border-radius: 8px; color: #fca5a5; cursor: pointer; font-size: 13px; font-weight: 600; display: flex; align-items: center; gap: 6px; transition: all 0.2s;" onmouseover="this.style.background='rgba(239, 68, 68, 0.3)'" onmouseout="this.style.background='rgba(239, 68, 68, 0.2)'">
+                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                            <polyline points="3 6 5 6 21 6"></polyline>
+                                            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                                            <line x1="10" y1="11" x2="10" y2="17"></line>
+                                            <line x1="14" y1="11" x2="14" y2="17"></line>
+                                        </svg>
+                                        Effacer chat
+                                    </button>
+                                </div>
                             </div>
                             
                             <div class="mkt-chat-container">
@@ -18092,6 +18105,11 @@ function showAddProjectModal() {
             // Set active tab button
             if (tabButton && tabButton.classList) {
                 tabButton.classList.add('active');
+            }
+
+            // Charger l'historique du chat Agent mark si l'onglet est activé
+            if (tabName === 'agent') {
+                try { loadMarketingChatHistory(); } catch (_) {}
             }
         }
 
@@ -18628,6 +18646,8 @@ function showAddProjectModal() {
         let marketingAgentHistory = [];
         const marketingPendingActionBatches = {};
 
+        const MKT_CHAT_HISTORY_KEY = 'mktChatHistory';
+
         function mktFormatChatText(text) {
             return mktEscapeHtml(text).replace(/\n/g, '<br>');
         }
@@ -18648,6 +18668,100 @@ function showAddProjectModal() {
                 .filter(line => !/(\bjson\b|bloc\s*json|code\s*json|format\s*json)/i.test(line))
                 .join('\n')
                 .trim();
+        }
+
+        function saveMarketingChatHistory() {
+            try {
+                const list = Array.isArray(marketingAgentHistory) ? marketingAgentHistory.slice(-50) : [];
+                localStorage.setItem(MKT_CHAT_HISTORY_KEY, JSON.stringify(list));
+            } catch (e) {
+                console.error('[Marketing] Erreur sauvegarde chat:', e);
+            }
+        }
+
+        function loadMarketingChatHistory() {
+            try {
+                const saved = JSON.parse(localStorage.getItem(MKT_CHAT_HISTORY_KEY) || '[]');
+                marketingAgentHistory = Array.isArray(saved) ? saved : [];
+            } catch (e) {
+                marketingAgentHistory = [];
+            }
+
+            const messagesContainer = document.getElementById('mktChatMessages');
+            if (!messagesContainer) return;
+
+            messagesContainer.innerHTML = '';
+
+            if (!Array.isArray(marketingAgentHistory) || marketingAgentHistory.length === 0) {
+                messagesContainer.innerHTML = `
+                    <div style="margin-bottom: 16px;">
+                        <div style="display: inline-block; background: rgba(255, 255, 255, 0.1); padding: 12px 16px; border-radius: 12px; max-width: 70%; border: 1px solid rgba(249, 115, 22, 0.3);">
+                            <p style="margin: 0; color: white; font-size: 14px; line-height: 1.6;">👋 Bonjour! Je suis Agent mark, votre assistant IA spécialisé en Marketing Digital et Growth.<br><br>Je peux vous aider avec :<br>• Stratégie marketing & positionnement<br>• Campagnes, personas, contenu & KPIs<br>• Analyse marché & recommandations<br><br>Comment puis-je vous aider ?</p>
+                        </div>
+                    </div>
+                `;
+                messagesContainer.scrollTop = messagesContainer.scrollHeight;
+                return;
+            }
+
+            marketingAgentHistory.forEach(msg => {
+                const role = msg && msg.role;
+                const content = (msg && typeof msg.content === 'string') ? msg.content : '';
+
+                if (role === 'user') {
+                    messagesContainer.innerHTML += `
+                        <div style="margin-bottom: 16px; text-align: right;">
+                            <div style="display: inline-block; background: linear-gradient(135deg, #f97316, #ec4899); padding: 12px 16px; border-radius: 12px; max-width: 70%;">
+                                <p style="margin: 0; color: white; font-size: 14px;">${mktFormatChatText(content)}</p>
+                            </div>
+                        </div>
+                    `;
+                } else if (role === 'assistant') {
+                    messagesContainer.innerHTML += `
+                        <div style="margin-bottom: 16px;">
+                            <div style="display: inline-block; background: rgba(255, 255, 255, 0.1); padding: 12px 16px; border-radius: 12px; max-width: 70%; border: 1px solid rgba(249, 115, 22, 0.3);">
+                                <p style="margin: 0; color: white; font-size: 14px; line-height: 1.6;">${mktFormatChatText(content)}</p>
+                            </div>
+                        </div>
+                    `;
+                }
+            });
+
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }
+
+        function clearMarketingChatHistory() {
+            if (!confirm('⚠️ Êtes-vous sûr de vouloir effacer tout l\'historique des conversations avec Agent mark?\n\nCette action est irréversible.')) return;
+
+            marketingAgentHistory = [];
+            try { localStorage.setItem(MKT_CHAT_HISTORY_KEY, '[]'); } catch (_) {}
+
+            loadMarketingChatHistory();
+
+            const overlay = document.getElementById('marketingOverlay');
+            if (overlay) {
+                const toast = document.createElement('div');
+                toast.style.cssText = `
+                    position: fixed;
+                    top: 20px;
+                    right: 20px;
+                    background: linear-gradient(135deg, #10b981, #059669);
+                    color: white;
+                    padding: 16px 24px;
+                    border-radius: 12px;
+                    font-size: 14px;
+                    font-weight: 600;
+                    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+                    z-index: 10003;
+                    animation: slideIn 0.3s ease;
+                `;
+                toast.textContent = '🗑️ Historique du chat effacé avec succès';
+                overlay.appendChild(toast);
+                setTimeout(() => {
+                    toast.style.animation = 'fadeOut 0.3s ease';
+                    setTimeout(() => toast.remove(), 300);
+                }, 3000);
+            }
         }
 
         function mktAppendSystemMessage(text) {
@@ -19017,6 +19131,7 @@ function showAddProjectModal() {
 
             marketingAgentHistory.push({ role: 'user', content: message, at: Date.now() });
             marketingAgentHistory = marketingAgentHistory.slice(-20);
+            saveMarketingChatHistory();
             
             input.value = '';
             messagesContainer.scrollTop = messagesContainer.scrollHeight;
@@ -19159,22 +19274,24 @@ N'inclus des actions QUE si l'utilisateur demande explicitement de modifier/ajou
                 const validActions = mktValidateActions(extracted.actions);
                 const cleanedText = mktSanitizeAssistantText(extracted.cleanedText || rawResponse);
                 const shouldShowActions = Array.isArray(validActions) && validActions.length > 0;
+                const assistantDisplayText = shouldShowActions
+                    ? '✅ Proposition d’actions prête. Utilisez les boutons ci-dessous pour appliquer ou ignorer.'
+                    : (cleanedText || 'Erreur de réponse');
                 
                 // Add bot response
                 messagesContainer.innerHTML += `
                     <div style="margin-bottom: 16px;">
                         <div style="display: inline-block; background: rgba(255, 255, 255, 0.1); padding: 12px 16px; border-radius: 12px; max-width: 70%; border: 1px solid rgba(249, 115, 22, 0.3);">
                             <p style="margin: 0; color: white; font-size: 14px; line-height: 1.6;">${mktFormatChatText(
-                                shouldShowActions
-                                    ? '✅ Proposition d’actions prête. Utilisez les boutons ci-dessous pour appliquer ou ignorer.'
-                                    : (cleanedText || 'Erreur de réponse')
+                                assistantDisplayText
                             )}</p>
                         </div>
                     </div>
                 `;
 
-                marketingAgentHistory.push({ role: 'assistant', content: rawResponse, at: Date.now() });
+                marketingAgentHistory.push({ role: 'assistant', content: assistantDisplayText, at: Date.now() });
                 marketingAgentHistory = marketingAgentHistory.slice(-20);
+                saveMarketingChatHistory();
 
                 if (shouldShowActions) {
                     const batchId = mktRegisterPendingActions(validActions);
@@ -19208,6 +19325,10 @@ N'inclus des actions QUE si l'utilisateur demande explicitement de modifier/ajou
                         </div>
                     </div>
                 `;
+
+                marketingAgentHistory.push({ role: 'assistant', content: `Erreur: ${String(error?.message || error)}`, at: Date.now() });
+                marketingAgentHistory = marketingAgentHistory.slice(-20);
+                saveMarketingChatHistory();
             }
             
             messagesContainer.scrollTop = messagesContainer.scrollHeight;
