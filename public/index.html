@@ -446,24 +446,28 @@
 
         .prompt-suggestions {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-            gap: 16px;
-            margin-bottom: 40px;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 12px;
+            margin-bottom: 32px;
         }
 
         .prompt-card {
             background: rgba(255, 255, 255, 0.03);
             backdrop-filter: blur(10px);
             border: 1px solid var(--border-color);
-            border-radius: 16px;
-            padding: 20px;
+            border-radius: 14px;
+            padding: 14px;
             display: flex;
             align-items: flex-start;
-            gap: 16px;
+            gap: 12px;
             cursor: pointer;
             transition: all 0.3s ease;
             text-align: left;
             animation: slideUp 0.6s ease backwards;
+        }
+
+        .prompt-card--hidden {
+            display: none;
         }
 
         .prompt-card:nth-child(1) { animation-delay: 0.1s; }
@@ -481,23 +485,23 @@
         }
 
         .prompt-card svg {
-            width: 32px;
-            height: 32px;
+            width: 24px;
+            height: 24px;
             color: var(--accent);
             flex-shrink: 0;
         }
 
         .prompt-text h3 {
-            font-size: 1rem;
+            font-size: 0.95rem;
             font-weight: 600;
             color: var(--text-primary);
-            margin-bottom: 4px;
+            margin-bottom: 2px;
         }
 
         .prompt-text p {
-            font-size: 0.875rem;
+            font-size: 0.82rem;
             color: var(--text-secondary);
-            line-height: 1.4;
+            line-height: 1.35;
         }
 
         .welcome-footer {
@@ -1719,12 +1723,12 @@
             }
 
             .prompt-card {
-                padding: 16px;
+                padding: 14px;
             }
 
             .prompt-card svg {
-                width: 28px;
-                height: 28px;
+                width: 24px;
+                height: 24px;
             }
 
             .welcome-footer {
@@ -2858,8 +2862,18 @@
                                 <p>Analyse dépenses et revenus</p>
                             </div>
                         </div>
+
+                        <div class="prompt-card prompt-card--more" id="welcomeMorePromptsCard" onclick="showMoreWelcomePrompts()">
+                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v14m-7-7h14"/>
+                            </svg>
+                            <div class="prompt-text">
+                                <h3>Plus</h3>
+                                <p>Afficher plus de suggestions</p>
+                            </div>
+                        </div>
                         
-                        <div class="prompt-card" onclick="useSuggestion('Recherche des informations détaillées sur [sujet] et résume les points clés')">
+                        <div class="prompt-card prompt-card--hidden welcome-prompt--extra" onclick="useSuggestion('Recherche des informations détaillées sur [sujet] et résume les points clés')">
                             <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
                             </svg>
@@ -2869,7 +2883,7 @@
                             </div>
                         </div>
                         
-                        <div class="prompt-card" onclick="useSuggestion('Rédige un email professionnel pour [destinataire] concernant [sujet]')">
+                        <div class="prompt-card prompt-card--hidden welcome-prompt--extra" onclick="useSuggestion('Rédige un email professionnel pour [destinataire] concernant [sujet]')">
                             <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
                             </svg>
@@ -2879,7 +2893,7 @@
                             </div>
                         </div>
                         
-                        <div class="prompt-card" onclick="useSuggestion('Analyse cette image et décris en détail ce que tu vois')">
+                        <div class="prompt-card prompt-card--hidden welcome-prompt--extra" onclick="useSuggestion('Analyse cette image et décris en détail ce que tu vois')">
                             <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
                             </svg>
@@ -2889,7 +2903,7 @@
                             </div>
                         </div>
                         
-                        <div class="prompt-card" onclick="useSuggestion('Aide-moi à organiser mes tâches et crée un planning pour la semaine')">
+                        <div class="prompt-card prompt-card--hidden welcome-prompt--extra" onclick="useSuggestion('Aide-moi à organiser mes tâches et crée un planning pour la semaine')">
                             <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/>
                             </svg>
@@ -4625,6 +4639,14 @@ RÈGLES IMPORTANTES:
             if (autoSend === true) {
                 try { sendMessage(); } catch (_) {}
             }
+        }
+
+        function showMoreWelcomePrompts() {
+            const extraCards = document.querySelectorAll('.welcome-prompt--extra');
+            extraCards.forEach(card => card.classList.remove('prompt-card--hidden'));
+
+            const moreCard = document.getElementById('welcomeMorePromptsCard');
+            if (moreCard) moreCard.classList.add('prompt-card--hidden');
         }
 
         // 🆓💎 Plan Management
