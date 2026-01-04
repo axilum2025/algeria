@@ -27,6 +27,14 @@ function looksTimeSensitiveForExcel(question) {
     || /(excel|microsoft\s*365|office\s*365|power\s*query|power\s*pivot|tcd|tableau\s+crois[ée]\s+dynamique|recherchx|xlookup|dynamic\s+array|tableaux?\s+dynamiques?|lambda\b|let\b|python\s+in\s+excel|copilot\s+excel)\b/i.test(q);
 }
 
+function looksTimeSensitiveForAlex(question) {
+  const q = String(question || '');
+  // Finance/compta cases where freshness matters: regulation changes, rates, standards updates, market data.
+  return /(r[ée]cent|2024|2025|2026|nouveaut[ée]s?|tendance|actualit[ée]s?|update|mise\s*[àa]\s*jour|changement|r[ée]forme|nouvelle\s+loi|d[ée]cret|arr[êe]t[ée]|instruction|circulaire)\b/i.test(q)
+    || /(tva|taxe|imp[oô]t|fiscal|fiscale|fiscalit[ée]|ir|ibs|ifrs|ias|norme\s+comptable|comptabilit[ée]|plan\s+comptable|pcn|gaap|audit|contr[ôo]le\s+interne|conformit[ée]|aml|kyc|fraude)\b/i.test(q)
+    || /(taux|inflation|bce|fed|banque\s+centrale|taux\s+directeur|prix|march[ée]|baril|brent|usd|eur|dinar|da)\b/i.test(q);
+}
+
 function sanitizeWebEvidenceForInternalUse(text) {
   let t = String(text || '');
   if (!t.trim()) return '';
@@ -77,6 +85,7 @@ module.exports = {
   looksTimeSensitiveForMarketing,
   looksTimeSensitiveForDev,
   looksTimeSensitiveForExcel,
+  looksTimeSensitiveForAlex,
   sanitizeWebEvidenceForInternalUse,
   buildSilentWebContext
 };

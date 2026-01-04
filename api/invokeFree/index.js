@@ -10,7 +10,7 @@ const { orchestrateMultiAgents, callGroqChatCompletion } = require('../utils/orc
 const { buildWebEvidenceContext } = require('../utils/webEvidence');
 const { appendEvidenceContext, searchWikipedia, searchNewsApi, searchSemanticScholar } = require('../utils/sourceProviders');
 const { shouldUseInternalBoost, buildAxilumInternalBoostContext } = require('../utils/axilumInternalBoost');
-const { looksTimeSensitiveForHR, looksTimeSensitiveForMarketing, looksTimeSensitiveForDev, looksTimeSensitiveForExcel, buildSilentWebContext } = require('../utils/silentWebRefresh');
+const { looksTimeSensitiveForHR, looksTimeSensitiveForMarketing, looksTimeSensitiveForDev, looksTimeSensitiveForExcel, looksTimeSensitiveForAlex, buildSilentWebContext } = require('../utils/silentWebRefresh');
 
 // Fonction RAG - Recherche Brave
 async function searchBrave(query, apiKey) {
@@ -193,6 +193,9 @@ module.exports = async function (context, req) {
         const isExcelChat = (normalizeAgentId(chatType) || String(chatType || '').trim()) === 'excel-expert';
         const excelSilentWebRefreshEnabled = isExcelChat && String(process.env.EXCEL_SILENT_WEB_REFRESH_ENABLED ?? 'true').toLowerCase() !== 'false';
         const excelNeedsFreshInfo = isExcelChat && looksTimeSensitiveForExcel(userQuery);
+        const isAlexChat = (normalizeAgentId(chatType) || String(chatType || '').trim()) === 'agent-alex';
+        const alexSilentWebRefreshEnabled = isAlexChat && String(process.env.ALEX_SILENT_WEB_REFRESH_ENABLED ?? 'true').toLowerCase() !== 'false';
+        const alexNeedsFreshInfo = isAlexChat && looksTimeSensitiveForAlex(userQuery);
         const skipWebSearchBecauseConversation = forceWebSearch
             && !userAsksForSourcesForWesh(userQuery)
             && (isSmallTalkForWesh(userQuery) || isQuestionnaireForWesh(userQuery));
@@ -287,6 +290,14 @@ module.exports = async function (context, req) {
                         });
                         contextFromSearch = buildSilentWebContext(evidence);
                     } else if (excelSilentWebRefreshEnabled && excelNeedsFreshInfo) {
+                        const evidence = await buildWebEvidenceContext({
+                            question: userQuery,
+                            searchResults,
+                            timeoutMs: 7000,
+                            maxSources: 3
+                        });
+                        contextFromSearch = buildSilentWebContext(evidence);
+                    } else if (alexSilentWebRefreshEnabled && alexNeedsFreshInfo) {
                         const evidence = await buildWebEvidenceContext({
                             question: userQuery,
                             searchResults,
