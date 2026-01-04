@@ -59,6 +59,19 @@ function extractUserQueryFromMessage(raw) {
     return text.trim();
 }
 
+function userExplicitlyAsksForReliabilityMetrics(q) {
+    const s = String(q || '').toLowerCase().replace(/[’]/g, "'");
+    return /(m[ée]triques?\s+de\s+fiabilit[ée]|indice\s+d'?hallucination|hallucination\s+detector|\bhi\b|\bchr\b)/i.test(s);
+}
+
+function stripReliabilityFooter(text) {
+    const s = String(text || '');
+    return s
+        .replace(/\n*\s*---\s*\n\s*📊\s*\*\*M[ée]triques\s+de\s+Fiabilit[ée]\*\*[\s\S]*$/m, '')
+        .replace(/\n*\s*📊\s*\*\*M[ée]triques\s+de\s+Fiabilit[ée]\*\*[\s\S]*$/m, '')
+        .trim();
+}
+
 
 module.exports = async function (context, req) {
     // ✨ Détection V2 via query parameter ou body
@@ -653,8 +666,11 @@ Ne mentionne pas tes capacités ou fonctionnalités à moins que l'utilisateur n
         
         const tokensUsedTotal = (data.usage?.total_tokens || 0) + (autoCorrectionUsage?.total_tokens || 0);
         metricsText += `\n💡 *Plan Pro - ${tokensUsedTotal} tokens utilisés*`;
-        
-        const finalResponse = finalAiResponse + metricsText;
+
+        const wantsReliabilityMetrics = userExplicitlyAsksForReliabilityMetrics(userQuery);
+        const includeReliabilityFooter = !isDevChat || wantsReliabilityMetrics;
+        const cleanedAnswer = includeReliabilityFooter ? String(finalAiResponse || '').trim() : stripReliabilityFooter(finalAiResponse);
+        const finalResponse = includeReliabilityFooter ? (cleanedAnswer + metricsText) : cleanedAnswer;
 
         context.res = {
             status: 200,
@@ -679,7 +695,8 @@ Ne mentionne pas tes capacités ou fonctionnalités à moins que l'utilisateur n
                 hallucinationSources: hallucinationAnalysis.sources || [],
                 hallucinationMethod: hallucinationAnalysis.method || 'unknown',
                 // Sources exposées au frontend pour afficher l'encart RAG sans placeholders
-                sources: sourcesForClient
+                // Agent dev: ne pas exposer de sources (recherche silencieuse côté backend)
+                sources: isDevChat ? [] : sourcesForClient
             }
         };
     } catch (error) {

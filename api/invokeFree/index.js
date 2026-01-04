@@ -59,6 +59,19 @@ function extractUserQueryFromMessage(raw) {
     return text.trim();
 }
 
+function userExplicitlyAsksForReliabilityMetrics(q) {
+    const s = String(q || '').toLowerCase().replace(/[’]/g, "'");
+    return /(m[ée]triques?\s+de\s+fiabilit[ée]|indice\s+d'?hallucination|hallucination\s+detector|\bhi\b|\bchr\b)/i.test(s);
+}
+
+function stripReliabilityFooter(text) {
+    const s = String(text || '');
+    return s
+        .replace(/\n*\s*---\s*\n\s*📊\s*\*\*M[ée]triques\s+de\s+Fiabilit[ée]\*\*[\s\S]*$/m, '')
+        .replace(/\n*\s*📊\s*\*\*M[ée]triques\s+de\s+Fiabilit[ée]\*\*[\s\S]*$/m, '')
+        .trim();
+}
+
 // NOTE: l'orchestration et les appels Groq sont centralisés dans api/utils/orchestrator.js
 
 module.exports = async function (context, req) {
@@ -503,7 +516,11 @@ module.exports = async function (context, req) {
         
         const tokensUsedTotal = (data.usage?.total_tokens || 0) + (autoCorrectionUsage?.total_tokens || 0);
         metricsText += `\n💡 *Mode Gratuit - ${tokensUsedTotal} tokens utilisés*`;
-        const finalResponse = finalAiResponse + metricsText;
+
+        const wantsReliabilityMetrics = userExplicitlyAsksForReliabilityMetrics(userQuery);
+        const includeReliabilityFooter = !isDevChat || wantsReliabilityMetrics;
+        const cleanedAnswer = includeReliabilityFooter ? String(finalAiResponse || '').trim() : stripReliabilityFooter(finalAiResponse);
+        const finalResponse = includeReliabilityFooter ? (cleanedAnswer + metricsText) : cleanedAnswer;
 
         context.res = {
             status: 200,
