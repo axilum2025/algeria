@@ -21232,12 +21232,6 @@ N'inclus des actions QUE si l'utilisateur demande explicitement de modifier/ajou
                 
                 // Charger et afficher l'historique
                 loadHRChatHistory();
-                
-                // Focus sur l'input
-                setTimeout(() => {
-                    const input = document.getElementById('hrChatInput');
-                    if (input) input.focus();
-                }, 100);
             } else {
                 chatPanel.style.display = 'none';
             }
