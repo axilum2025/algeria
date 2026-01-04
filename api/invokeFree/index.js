@@ -10,7 +10,7 @@ const { orchestrateMultiAgents, callGroqChatCompletion } = require('../utils/orc
 const { buildWebEvidenceContext } = require('../utils/webEvidence');
 const { appendEvidenceContext, searchWikipedia, searchNewsApi, searchSemanticScholar } = require('../utils/sourceProviders');
 const { shouldUseInternalBoost, buildAxilumInternalBoostContext } = require('../utils/axilumInternalBoost');
-const { looksTimeSensitiveForHR, looksTimeSensitiveForMarketing, looksTimeSensitiveForDev, looksTimeSensitiveForExcel, looksTimeSensitiveForAlex, looksTimeSensitiveForTony, looksTimeSensitiveForTodo, buildSilentWebContext } = require('../utils/silentWebRefresh');
+const { looksTimeSensitiveForHR, looksTimeSensitiveForMarketing, looksTimeSensitiveForDev, looksTimeSensitiveForExcel, looksTimeSensitiveForAlex, looksTimeSensitiveForTony, looksTimeSensitiveForTodo, looksTimeSensitiveForAIManagement, buildSilentWebContext } = require('../utils/silentWebRefresh');
 
 // Fonction RAG - Recherche Brave
 async function searchBrave(query, apiKey) {
@@ -202,6 +202,9 @@ module.exports = async function (context, req) {
         const isTodoChat = (normalizeAgentId(chatType) || String(chatType || '').trim()) === 'agent-todo';
         const todoSilentWebRefreshEnabled = isTodoChat && String(process.env.TODO_SILENT_WEB_REFRESH_ENABLED ?? 'true').toLowerCase() !== 'false';
         const todoNeedsFreshInfo = isTodoChat && looksTimeSensitiveForTodo(userQuery);
+        const isAIManagementChat = (normalizeAgentId(chatType) || String(chatType || '').trim()) === 'ai-management';
+        const aiManagementSilentWebRefreshEnabled = isAIManagementChat && String(process.env.AI_MANAGEMENT_SILENT_WEB_REFRESH_ENABLED ?? 'true').toLowerCase() !== 'false';
+        const aiManagementNeedsFreshInfo = isAIManagementChat && looksTimeSensitiveForAIManagement(userQuery);
         const skipWebSearchBecauseConversation = forceWebSearch
             && !userAsksForSourcesForWesh(userQuery)
             && (isSmallTalkForWesh(userQuery) || isQuestionnaireForWesh(userQuery));
@@ -320,6 +323,14 @@ module.exports = async function (context, req) {
                         });
                         contextFromSearch = buildSilentWebContext(evidence);
                     } else if (todoSilentWebRefreshEnabled && todoNeedsFreshInfo) {
+                        const evidence = await buildWebEvidenceContext({
+                            question: userQuery,
+                            searchResults,
+                            timeoutMs: 7000,
+                            maxSources: 3
+                        });
+                        contextFromSearch = buildSilentWebContext(evidence);
+                    } else if (aiManagementSilentWebRefreshEnabled && aiManagementNeedsFreshInfo) {
                         const evidence = await buildWebEvidenceContext({
                             question: userQuery,
                             searchResults,

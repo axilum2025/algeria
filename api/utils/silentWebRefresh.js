@@ -51,6 +51,14 @@ function looksTimeSensitiveForTodo(question) {
     || /(google\s*ads|meta\s*ads|linkedin|tiktok|stripe|paypal|azure|aws|gcp|microsoft\s*365|office\s*365|jira|github|gitlab|notion|slack|teams)\b/i.test(q);
 }
 
+function looksTimeSensitiveForAIManagement(question) {
+  const q = String(question || '');
+  // ai-management is multi-domain; trigger only on clear freshness signals to keep it minimal.
+  return /(r[ée]cent|2024|2025|2026|nouveaut[ée]s?|tendance|actualit[ée]s?|mise\s*[àa]\s*jour|update|changement|nouvelle\s+r[èe]gle)\b/i.test(q)
+    || /(loi|d[ée]cret|arr[êe]t[ée]|r[èe]glement|conformit[ée]|rgpd|proc[ée]dure|subvention|appel\s+d'offres|ao)\b/i.test(q)
+    || /(pricing|tarifs?|prix|benchmark|comparatif|concurrent|google\s*ads|meta\s*ads|linkedin|tiktok|api\s+pricing|quota|limitation|policy|conditions\s+d'utilisation)\b/i.test(q);
+}
+
 function sanitizeWebEvidenceForInternalUse(text) {
   let t = String(text || '');
   if (!t.trim()) return '';
@@ -104,6 +112,7 @@ module.exports = {
   looksTimeSensitiveForAlex,
   looksTimeSensitiveForTony,
   looksTimeSensitiveForTodo,
+  looksTimeSensitiveForAIManagement,
   sanitizeWebEvidenceForInternalUse,
   buildSilentWebContext
 };
