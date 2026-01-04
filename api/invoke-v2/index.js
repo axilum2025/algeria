@@ -8,6 +8,7 @@ const { callGroqWithRateLimit, globalRateLimiter } = require('../utils/rateLimit
 const { buildWebEvidenceContext } = require('../utils/webEvidence');
 const { buildSystemPromptForAgent } = require('../utils/agentRegistry');
 const { appendEvidenceContext, searchWikipedia, searchNewsApi, searchSemanticScholar } = require('../utils/sourceProviders');
+const { looksTimeSensitiveForHR, buildSilentWebContext } = require('../utils/silentWebRefresh');
 
 // Fonction RAG - Recherche Brave (simple)
 async function searchBrave(query, apiKey) {
@@ -129,6 +130,9 @@ module.exports = async function (context, req) {
         // RAG - Recherche Brave (optionnelle, ou forcée selon l'agent)
         let contextFromSearch = '';
         const forceWebSearch = chatType === 'web-search' || chatType === 'rnd-web-search';
+        const isHRChat = String(chatType || '').trim() === 'hr-management';
+        const hrSilentWebRefreshEnabled = isHRChat && String(process.env.HR_SILENT_WEB_REFRESH_ENABLED ?? 'true').toLowerCase() !== 'false';
+        const hrNeedsFreshInfo = isHRChat && looksTimeSensitiveForHR(userQuery);
         const skipWebSearchBecauseConversation = forceWebSearch
             && !userAsksForSourcesForWesh(userQuery)
             && (isSmallTalkForWesh(userQuery) || isQuestionnaireForWesh(userQuery));
@@ -145,6 +149,14 @@ module.exports = async function (context, req) {
                             timeoutMs: 7000,
                             maxSources: 3
                         });
+                    } else if (hrSilentWebRefreshEnabled && hrNeedsFreshInfo) {
+                        const evidence = await buildWebEvidenceContext({
+                            question: userQuery,
+                            searchResults,
+                            timeoutMs: 7000,
+                            maxSources: 3
+                        });
+                        contextFromSearch = buildSilentWebContext(evidence);
                     } else {
                         contextFromSearch = '\n\nContexte de recherche web (utilise ces informations si pertinentes) :\n';
                         searchResults.forEach((r, i) => {

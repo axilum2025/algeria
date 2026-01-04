@@ -7,6 +7,7 @@ const { shouldUseInternalBoost, buildAxilumInternalBoostContext } = require('../
 const { detectFunctions, orchestrateFunctions, summarizeResults } = require('../utils/functionRouter');
 const { buildWebEvidenceContext } = require('../utils/webEvidence');
 const { appendEvidenceContext, searchWikipedia, searchNewsApi, searchSemanticScholar } = require('../utils/sourceProviders');
+const { looksTimeSensitiveForHR, buildSilentWebContext } = require('../utils/silentWebRefresh');
 
 // Fonction RAG - Recherche Brave
 async function searchBrave(query, apiKey) {
@@ -135,6 +136,9 @@ module.exports = async function (context, req) {
         const chatType = normalizeAgentId(rawChatType) || rawChatType;
         const isOrchestrator = chatType === 'orchestrator';
         const forceWebSearch = chatType === 'web-search' || chatType === 'rnd-web-search';
+        const isHRChat = chatType === 'hr-management';
+        const hrSilentWebRefreshEnabled = isHRChat && String(process.env.HR_SILENT_WEB_REFRESH_ENABLED ?? 'true').toLowerCase() !== 'false';
+        const hrNeedsFreshInfo = isHRChat && looksTimeSensitiveForHR(userQuery);
         const skipWebSearchBecauseConversation = forceWebSearch
             && !userAsksForSourcesForWesh(userQuery)
             && (isSmallTalkForWesh(userQuery) || isQuestionnaireForWesh(userQuery));
@@ -226,13 +230,6 @@ module.exports = async function (context, req) {
             if (braveKey && !skipWebSearchBecauseConversation) {
                 const searchResults = await searchBrave(userQuery, braveKey);
                 if (searchResults && searchResults.length > 0) {
-                    // Exposer au client les liens Brave (utile si pas de preuves Wesh)
-                    sourcesForClient = sourcesForClient.concat(searchResults.map((r) => ({
-                        title: r.title || 'Résultat web',
-                        url: r.url || '',
-                        snippet: r.description || ''
-                    })).filter(s => s.url));
-
                     if (forceWebSearch) {
                         contextFromSearch = await buildWebEvidenceContext({
                             question: userQuery,
@@ -240,6 +237,13 @@ module.exports = async function (context, req) {
                             timeoutMs: 7000,
                             maxSources: 3
                         });
+
+                        // Exposer au client les liens Brave en mode Wesh (preuves visibles)
+                        sourcesForClient = sourcesForClient.concat(searchResults.map((r) => ({
+                            title: r.title || 'Résultat web',
+                            url: r.url || '',
+                            snippet: r.description || ''
+                        })).filter(s => s.url));
 
                         // Ajoute également les résultats Brave comme preuves [S#] (sinon fallback sans sources)
                         const braveEvidence = searchResults.map((r) => ({
@@ -249,7 +253,23 @@ module.exports = async function (context, req) {
                             extracts: r.description ? [r.description] : []
                         }));
                         contextFromSearch = appendEvidenceContext(contextFromSearch, braveEvidence);
+                    } else if (hrSilentWebRefreshEnabled && hrNeedsFreshInfo) {
+                        // 🔒 Enrichissement silencieux (Agent RH): on récupère des extraits, mais on retire URLs/citations.
+                        const evidence = await buildWebEvidenceContext({
+                            question: userQuery,
+                            searchResults,
+                            timeoutMs: 7000,
+                            maxSources: 3
+                        });
+                        contextFromSearch = buildSilentWebContext(evidence);
                     } else {
+                        // Exposer au client les liens Brave (utile si UI affiche des sources)
+                        sourcesForClient = sourcesForClient.concat(searchResults.map((r) => ({
+                            title: r.title || 'Résultat web',
+                            url: r.url || '',
+                            snippet: r.description || ''
+                        })).filter(s => s.url));
+
                         contextFromSearch = '\n\nContexte de recherche web (utilise ces informations si pertinentes) :\n';
                         searchResults.forEach((r, i) => {
                             contextFromSearch += `${i+1}. ${r.title}: ${r.description} [${r.url}]\n`;
