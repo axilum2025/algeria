@@ -27476,9 +27476,22 @@ ${recruitmentInfo}
                 updateConversationTitle();
             }
             
-            // Focus textarea
+            // Ne pas autofocus le textarea: sinon le curseur est capturé dès l'ouverture
+            // et la saisie perturbe le reste de la page (comportement observé surtout au 1er open).
             const ta = overlay.querySelector('#financeMsg');
-            if (ta) ta.focus();
+            if (ta) {
+                // Important: ne pas laisser les touches du textarea déclencher des handlers globaux
+                // (ex: raccourcis clavier / overlays) qui perturbent la page Finance.
+                ta.addEventListener('keydown', (e) => {
+                    try { e.stopPropagation(); } catch (_) {}
+
+                    // Envoi volontaire uniquement via Ctrl/⌘+Enter (sinon Enter = nouvelle ligne)
+                    if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+                        e.preventDefault();
+                        try { sendFinanceMessage(); } catch (_) {}
+                    }
+                });
+            }
         }
         
         function sendFinanceMessage() {
