@@ -4432,7 +4432,7 @@ RÈGLES IMPORTANTES:
             
             // Si aucune conversation n'existe, en créer une nouvelle
             if (conversations.length === 0) {
-                newConversation();
+                newConversation({ autoFocus: false });
             } else {
                 // Sinon, charger la conversation la plus récente
                 const userConversations = conversations.filter(conv => {
@@ -4451,7 +4451,7 @@ RÈGLES IMPORTANTES:
                     }
                 } else {
                     // Si l'utilisateur n'a pas de conversations, en créer une
-                    newConversation();
+                    newConversation({ autoFocus: false });
                 }
             }
             
@@ -4578,7 +4578,10 @@ RÈGLES IMPORTANTES:
             localStorage.setItem('theme', newTheme);
         }
 
-        function newConversation() {
+        function newConversation(options) {
+            const autoFocus = (options && Object.prototype.hasOwnProperty.call(options, 'autoFocus'))
+                ? !!options.autoFocus
+                : true;
             currentConversationId = Date.now().toString();
             const newConv = {
                 id: currentConversationId,
@@ -4591,8 +4594,10 @@ RÈGLES IMPORTANTES:
             saveConversations();
             loadConversations();
             clearChat();
-            // Focus sur l'input pour démarrer directement
-            document.getElementById('userInput').focus();
+            // Ne pas autofocus par défaut au démarrage (évite de capturer la saisie sans clic).
+            if (autoFocus) {
+                try { document.getElementById('userInput')?.focus(); } catch (_) {}
+            }
         }
 
         function clearChat() {
@@ -32868,7 +32873,7 @@ Réponds UNIQUEMENT dans ce format JSON:
 
                 // Ouvrir la conversation la plus récente ou en créer une
                 const userConvs = conversations.filter(c => c && c.userId === currentUser.id);
-                if (userConvs.length === 0) newConversation();
+                if (userConvs.length === 0) newConversation({ autoFocus: false });
                 else {
                     const last = userConvs[0];
                     if (last && last.messages && last.messages.length > 0) await loadConversation(last.id);
