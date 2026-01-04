@@ -35,6 +35,14 @@ function looksTimeSensitiveForAlex(question) {
     || /(taux|inflation|bce|fed|banque\s+centrale|taux\s+directeur|prix|march[ée]|baril|brent|usd|eur|dinar|da)\b/i.test(q);
 }
 
+function looksTimeSensitiveForTony(question) {
+  const q = String(question || '');
+  // Sales/ops cases where freshness matters: market benchmarks, SaaS pricing trends, platform/policy changes.
+  return /(r[ée]cent|2024|2025|2026|nouveaut[ée]s?|tendance|actualit[ée]s?|update|mise\s*[àa]\s*jour|benchmark|barom[èe]tre|statistique|chiffres?|march[ée])\b/i.test(q)
+    || /(pricing|tarif|prix|benchmark\s+prix|comparatif|concurrent|concurrence|offre|pack|plan\s+pro|plan\s+free|saas|b2b|b2c|onboarding|activation|churn|r[ée]tention|mrr|arr|cac|ltv|nrr|upsell|cross[-\s]?sell|objection|script|prospection|cold\s*email|cold\s*call|linkedin)\b/i.test(q)
+    || /(rgpd|cookies?|tracking|google\s*ads|meta\s*ads|linkedin|tiktok|conditions\s+d'utilisation|policy|api\s+pricing|limitation|quota|modification)\b/i.test(q);
+}
+
 function sanitizeWebEvidenceForInternalUse(text) {
   let t = String(text || '');
   if (!t.trim()) return '';
@@ -86,6 +94,7 @@ module.exports = {
   looksTimeSensitiveForDev,
   looksTimeSensitiveForExcel,
   looksTimeSensitiveForAlex,
+  looksTimeSensitiveForTony,
   sanitizeWebEvidenceForInternalUse,
   buildSilentWebContext
 };
