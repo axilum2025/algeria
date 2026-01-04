@@ -20,6 +20,13 @@ function looksTimeSensitiveForDev(question) {
     || /(node(\.js)?\s*(\d+)?|npm|pnpm|yarn|typescript|react|next\.js|vite|webpack|eslint|prettier|python\s*3\.?\d*|pip|django|fastapi|flask|java\s*\d+|spring|dotnet|\.net|kubernetes|k8s|docker|azure|aws|gcp)\b/i.test(q);
 }
 
+function looksTimeSensitiveForExcel(question) {
+  const q = String(question || '');
+  // Excel is usually stable, but up-to-date info matters for new functions/features and Microsoft 365 changes.
+  return /(r[ée]cent|2024|2025|2026|nouveaut[ée]s?|tendance|actualit[ée]s?|update|mise\s*[àa]\s*jour|derni[èe]re\s+version|release|changelog|preview|b[ée]ta|insider)\b/i.test(q)
+    || /(excel|microsoft\s*365|office\s*365|power\s*query|power\s*pivot|tcd|tableau\s+crois[ée]\s+dynamique|recherchx|xlookup|dynamic\s+array|tableaux?\s+dynamiques?|lambda\b|let\b|python\s+in\s+excel|copilot\s+excel)\b/i.test(q);
+}
+
 function sanitizeWebEvidenceForInternalUse(text) {
   let t = String(text || '');
   if (!t.trim()) return '';
@@ -69,6 +76,7 @@ module.exports = {
   looksTimeSensitiveForHR,
   looksTimeSensitiveForMarketing,
   looksTimeSensitiveForDev,
+  looksTimeSensitiveForExcel,
   sanitizeWebEvidenceForInternalUse,
   buildSilentWebContext
 };

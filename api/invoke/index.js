@@ -7,7 +7,7 @@ const { shouldUseInternalBoost, buildAxilumInternalBoostContext } = require('../
 const { detectFunctions, orchestrateFunctions, summarizeResults } = require('../utils/functionRouter');
 const { buildWebEvidenceContext } = require('../utils/webEvidence');
 const { appendEvidenceContext, searchWikipedia, searchNewsApi, searchSemanticScholar } = require('../utils/sourceProviders');
-const { looksTimeSensitiveForHR, looksTimeSensitiveForMarketing, looksTimeSensitiveForDev, buildSilentWebContext } = require('../utils/silentWebRefresh');
+const { looksTimeSensitiveForHR, looksTimeSensitiveForMarketing, looksTimeSensitiveForDev, looksTimeSensitiveForExcel, buildSilentWebContext } = require('../utils/silentWebRefresh');
 
 // Fonction RAG - Recherche Brave
 async function searchBrave(query, apiKey) {
@@ -158,6 +158,9 @@ module.exports = async function (context, req) {
         const isDevChat = chatType === 'agent-dev';
         const devSilentWebRefreshEnabled = isDevChat && String(process.env.DEV_SILENT_WEB_REFRESH_ENABLED ?? 'true').toLowerCase() !== 'false';
         const devNeedsFreshInfo = isDevChat && looksTimeSensitiveForDev(userQuery);
+        const isExcelChat = chatType === 'excel-expert';
+        const excelSilentWebRefreshEnabled = isExcelChat && String(process.env.EXCEL_SILENT_WEB_REFRESH_ENABLED ?? 'true').toLowerCase() !== 'false';
+        const excelNeedsFreshInfo = isExcelChat && looksTimeSensitiveForExcel(userQuery);
         const skipWebSearchBecauseConversation = forceWebSearch
             && !userAsksForSourcesForWesh(userQuery)
             && (isSmallTalkForWesh(userQuery) || isQuestionnaireForWesh(userQuery));
@@ -292,6 +295,15 @@ module.exports = async function (context, req) {
                         contextFromSearch = buildSilentWebContext(evidence);
                     } else if (devSilentWebRefreshEnabled && devNeedsFreshInfo) {
                         // 🔒 Enrichissement silencieux (Agent Dev): web à jour sans exposer liens/sources.
+                        const evidence = await buildWebEvidenceContext({
+                            question: userQuery,
+                            searchResults,
+                            timeoutMs: 7000,
+                            maxSources: 3
+                        });
+                        contextFromSearch = buildSilentWebContext(evidence);
+                    } else if (excelSilentWebRefreshEnabled && excelNeedsFreshInfo) {
+                        // 🔒 Enrichissement silencieux (Agent Excel): web à jour sans exposer liens/sources.
                         const evidence = await buildWebEvidenceContext({
                             question: userQuery,
                             searchResults,
