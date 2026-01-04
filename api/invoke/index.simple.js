@@ -80,9 +80,22 @@ module.exports = async function (context, req) {
         const chatType = req.body.chatType || req.body.conversationId;
         const { buildSystemPromptForAgent } = require('../utils/agentRegistry');
 
+        const isSmallTalkForWesh = (q) => {
+            const s0 = String(q || '').toLowerCase().replace(/[’]/g, "'").trim();
+            if (!s0) return false;
+            const s = s0
+                .replace(/[^a-z0-9à-ÿ\s'_-]/gi, ' ')
+                .replace(/\s+/g, ' ')
+                .trim();
+            if (/^(bonjour|salut|coucou|hello|hey|yo|bonsoir|bonne\s+nuit|merci|merci\s+beaucoup|ok|d\s*accord|ça\s+marche|ca\s+marche|super|cool)\b/i.test(s)) return true;
+            if (/(comment\s+ça\s+va|comment\s+ca\s+va|ça\s+va\s*\?|ca\s+va\s*\?|tu\s+vas\s+bien)/i.test(s)) return true;
+            if (/(quel\s+est\s+ton\s+nom|tu\s+t'appelles\s+comment|qui\s+es\s*-?\s*tu|tu\s+es\s+qui)/i.test(s)) return true;
+            return false;
+        };
+
         // (Optionnel) RAG - Recherche Brave pour le mode web-search
         let contextFromSearch = '';
-        if (chatType === 'web-search' || chatType === 'rnd-web-search') {
+        if ((chatType === 'web-search' || chatType === 'rnd-web-search') && !isSmallTalkForWesh(userQuery)) {
             try {
                 const braveKey = process.env.APPSETTING_BRAVE_API_KEY || process.env.BRAVE_API_KEY;
                 if (braveKey) {

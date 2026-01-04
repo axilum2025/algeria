@@ -79,6 +79,20 @@ module.exports = async function (context, req) {
     try {
         const userMessage = req.body.message;
         const userQuery = extractUserQueryFromMessage(userMessage);
+
+        const isSmallTalkForWesh = (q) => {
+            const s0 = String(q || '').toLowerCase().replace(/[’]/g, "'").trim();
+            if (!s0) return false;
+            const s = s0
+                .replace(/[^a-z0-9à-ÿ\s'_-]/gi, ' ')
+                .replace(/\s+/g, ' ')
+                .trim();
+            if (/^(bonjour|salut|coucou|hello|hey|yo|bonsoir|bonne\s+nuit|merci|merci\s+beaucoup|ok|d\s*accord|ça\s+marche|ca\s+marche|super|cool)\b/i.test(s)) return true;
+            if (/(comment\s+ça\s+va|comment\s+ca\s+va|ça\s+va\s*\?|ca\s+va\s*\?|tu\s+vas\s+bien)/i.test(s)) return true;
+            if (/(quel\s+est\s+ton\s+nom|tu\s+t'appelles\s+comment|qui\s+es\s*-?\s*tu|tu\s+es\s+qui)/i.test(s)) return true;
+            return false;
+        };
+
         if (!userMessage) {
             context.res = { status: 400, headers: { 'Content-Type': 'application/json' }, body: { error: "Message is required" } };
             return;
@@ -102,6 +116,7 @@ module.exports = async function (context, req) {
         const chatType = normalizeAgentId(rawChatType) || rawChatType;
         const isOrchestrator = chatType === 'orchestrator';
         const forceWebSearch = chatType === 'web-search' || chatType === 'rnd-web-search';
+        const skipWebSearchBecauseSmallTalk = forceWebSearch && isSmallTalkForWesh(userQuery);
 
         // 🧩 ORCHESTRATEUR MULTI-AGENTS (sur demande)
         if (isOrchestrator) {
@@ -187,7 +202,7 @@ module.exports = async function (context, req) {
             const braveKey = process.env.APPSETTING_BRAVE_API_KEY || process.env.BRAVE_API_KEY;
             // Si Brave n'est pas configuré, ne pas polluer le contexte: on continue sans recherche web.
 
-            if (braveKey) {
+            if (braveKey && !skipWebSearchBecauseSmallTalk) {
                 const searchResults = await searchBrave(userQuery, braveKey);
                 if (searchResults && searchResults.length > 0) {
                     // Exposer au client les liens Brave (utile si pas de preuves Wesh)
@@ -227,7 +242,7 @@ module.exports = async function (context, req) {
         }
 
         // 🔎 Sources additionnelles (Wesh): Wikipedia + NewsAPI (preuves)
-        if (forceWebSearch) {
+        if (forceWebSearch && !skipWebSearchBecauseSmallTalk) {
             try {
                 const isGreeting = /^(\s)*(bonjour|salut|hello|hi|coucou|bonsoir|ça va|cv)(\s|!|\?|\.|,)*$/i.test(String(userQuery || ''));
                 const wikiEnabled = String(process.env.WESH_WIKIPEDIA_ENABLED ?? 'true').toLowerCase() !== 'false';
