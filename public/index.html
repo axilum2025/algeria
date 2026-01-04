@@ -6531,6 +6531,11 @@ ${persona}
                 return true;
             }
 
+            // Au revoir / fin de conversation
+            if (/^(au\s+revoir|a\s+plus|à\s+plus|a\+|bye|ciao|à\s+bient[oô]t|a\s+bient[oô]t|à\s+demain|a\s+demain|à\s+tout\s+à\s+l'heure|a\s+tout\s+à\s+l'heure|à\s+tout\s+de\s+suite|a\s+tout\s+de\s+suite|bonne\s+journ[ée]e|bonne\s+soir[ée]e|bon\s+week-?end)\b/i.test(s)) {
+                return true;
+            }
+
             // Petites phrases sociales
             if (/(comment\s+ça\s+va|comment\s+ca\s+va|ça\s+va\s*\?|ca\s+va\s*\?|tu\s+vas\s+bien)/i.test(s)) {
                 return true;
@@ -6544,11 +6549,31 @@ ${persona}
             return false;
         }
 
+        function axilumIsQuestionnaire(str) {
+            const s0 = axilumNormalizeForIntent(str);
+            if (!s0) return false;
+            const s = s0.replace(/\s+/g, ' ').trim();
+
+            // Mot-clé explicite
+            if (/\b(questionnaire|interview|sondage)\b/i.test(s)) return true;
+            if (/(pose(-|\s)?moi\s+des\s+questions|pose\s+des\s+questions|je\s+vais\s+te\s+poser\s+des\s+questions)/i.test(s)) return true;
+
+            // Plusieurs questions dans un même message
+            const qm = (s.match(/\?/g) || []).length;
+            if (qm >= 2) return true;
+
+            // Liste numérotée (1) / 1. / 1-
+            if (/(^|\n)\s*\d{1,2}\s*[\)\.-]\s+/.test(String(str || ''))) return true;
+
+            return false;
+        }
+
         function axilumShouldShowWebSources(lastUserMessage) {
             const m = String(lastUserMessage || '').trim();
             if (!m) return true;
             if (axilumUserAsksForSources(m)) return true;
             if (axilumIsSmallTalk(m)) return false;
+            if (axilumIsQuestionnaire(m)) return false;
             return true;
         }
 

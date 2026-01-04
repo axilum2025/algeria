@@ -80,6 +80,11 @@ module.exports = async function (context, req) {
         const chatType = req.body.chatType || req.body.conversationId;
         const { buildSystemPromptForAgent } = require('../utils/agentRegistry');
 
+        const userAsksForSourcesForWesh = (q) => {
+            const s = String(q || '').toLowerCase().replace(/[’]/g, "'").trim();
+            return /(\bsources?\b|\br[ée]f[ée]rences?\b|\bcitations?\b|\bciter\b|\bpreuve(s)?\b|\bjustifie\b|\bjustification\b|\bliens?\b|\burl\b|\barticles?\b|\brecherche\b|\btrouve\b|\btrouver\b)/i.test(s);
+        };
+
         const isSmallTalkForWesh = (q) => {
             const s0 = String(q || '').toLowerCase().replace(/[’]/g, "'").trim();
             if (!s0) return false;
@@ -88,14 +93,31 @@ module.exports = async function (context, req) {
                 .replace(/\s+/g, ' ')
                 .trim();
             if (/^(bonjour|salut|coucou|hello|hey|yo|bonsoir|bonne\s+nuit|merci|merci\s+beaucoup|ok|d\s*accord|ça\s+marche|ca\s+marche|super|cool)\b/i.test(s)) return true;
+            if (/^(au\s+revoir|a\s+plus|à\s+plus|a\+|bye|ciao|à\s+bient[oô]t|a\s+bient[oô]t|à\s+demain|a\s+demain|à\s+tout\s+à\s+l'heure|a\s+tout\s+à\s+l'heure|à\s+tout\s+de\s+suite|a\s+tout\s+de\s+suite|bonne\s+journ[ée]e|bonne\s+soir[ée]e|bon\s+week-?end)\b/i.test(s)) return true;
             if (/(comment\s+ça\s+va|comment\s+ca\s+va|ça\s+va\s*\?|ca\s+va\s*\?|tu\s+vas\s+bien)/i.test(s)) return true;
             if (/(quel\s+est\s+ton\s+nom|tu\s+t'appelles\s+comment|qui\s+es\s*-?\s*tu|tu\s+es\s+qui)/i.test(s)) return true;
             return false;
         };
 
+        const isQuestionnaireForWesh = (q) => {
+            const s0 = String(q || '').toLowerCase().replace(/[’]/g, "'").trim();
+            if (!s0) return false;
+            const s = s0.replace(/\s+/g, ' ').trim();
+            if (/\b(questionnaire|interview|sondage)\b/i.test(s)) return true;
+            if (/(pose(-|\s)?moi\s+des\s+questions|pose\s+des\s+questions|je\s+vais\s+te\s+poser\s+des\s+questions)/i.test(s)) return true;
+            const qm = (s.match(/\?/g) || []).length;
+            if (qm >= 2) return true;
+            if (/(^|\n)\s*\d{1,2}\s*[\)\.-]\s+/.test(String(q || ''))) return true;
+            return false;
+        };
+
         // (Optionnel) RAG - Recherche Brave pour le mode web-search
         let contextFromSearch = '';
-        if ((chatType === 'web-search' || chatType === 'rnd-web-search') && !isSmallTalkForWesh(userQuery)) {
+        const skipWebSearchBecauseConversation = (chatType === 'web-search' || chatType === 'rnd-web-search')
+            && !userAsksForSourcesForWesh(userQuery)
+            && (isSmallTalkForWesh(userQuery) || isQuestionnaireForWesh(userQuery));
+
+        if ((chatType === 'web-search' || chatType === 'rnd-web-search') && !skipWebSearchBecauseConversation) {
             try {
                 const braveKey = process.env.APPSETTING_BRAVE_API_KEY || process.env.BRAVE_API_KEY;
                 if (braveKey) {
