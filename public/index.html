@@ -20252,10 +20252,6 @@ N'inclus des actions QUE si l'utilisateur demande explicitement de modifier/ajou
             if (!Array.isArray(actions) || actions.length === 0) return null;
 
             const valid = [];
-            const getEmployeeRef = (data) => String(
-                data?.employeeId ?? data?.employee ?? data?.employeeName ?? data?.email ?? ''
-            ).trim();
-
             for (const action of actions) {
                 const type = String(action?.type || action?.action || '').trim();
                 const data = action?.data ?? action?.payload ?? action;
@@ -20270,7 +20266,7 @@ N'inclus des actions QUE si l'utilisateur demande explicitement de modifier/ajou
                 }
 
                 if (type === 'upsert_leave') {
-                    const hasEmp = getEmployeeRef(data) !== '';
+                    const hasEmp = data?.employeeId !== undefined && data?.employeeId !== null && String(data.employeeId).trim() !== '';
                     const hasStart = String(data?.startDate || '').trim();
                     const hasEnd = String(data?.endDate || '').trim();
                     if (hasEmp && hasStart && hasEnd) valid.push(action);
@@ -20282,65 +20278,13 @@ N'inclus des actions QUE si l'utilisateur demande explicitement de modifier/ajou
                 }
 
                 if (type === 'upsert_payroll') {
-                    const hasEmp = getEmployeeRef(data) !== '';
+                    const hasEmp = data?.employeeId !== undefined && data?.employeeId !== null && String(data.employeeId).trim() !== '';
                     const hasMonth = String(data?.month || data?.period || '').trim();
                     if (hasEmp && hasMonth) valid.push(action);
                     continue;
                 }
-                if (type === 'generate_payrolls_for_period') {
-                    const period = String(data?.period || data?.month || '').trim();
-                    if (/^\d{4}-\d{2}$/.test(period)) valid.push(action);
-                    continue;
-                }
-                if (type === 'set_payroll_status_for_period') {
-                    const period = String(data?.period || data?.month || '').trim();
-                    const status = String(data?.status || '').trim();
-                    if (/^\d{4}-\d{2}$/.test(period) && status) valid.push(action);
-                    continue;
-                }
                 if (type === 'validate_payroll' || type === 'mark_payroll_paid' || type === 'delete_payroll') {
                     if (data?.id !== undefined && data?.id !== null && String(data.id).trim() !== '') valid.push(action);
-                    continue;
-                }
-
-                if (type === 'upsert_review') {
-                    const hasEmp = getEmployeeRef(data) !== '';
-                    const hasPeriod = String(data?.period || '').trim();
-                    const hasType = String(data?.type || '').trim();
-                    const hasEvaluator = String(data?.evaluator || '').trim();
-
-                    const scores = (data?.scores && typeof data.scores === 'object') ? data.scores : null;
-                    const hasScores = scores && (
-                        scores.technical !== undefined || scores.behavioral !== undefined || scores.performance !== undefined || scores.development !== undefined
-                    );
-                    const hasOverall = data?.overallRating !== undefined && data?.overallRating !== null && String(data.overallRating).trim() !== '';
-
-                    if (hasEmp && hasPeriod && hasType && hasEvaluator && (hasScores || hasOverall)) valid.push(action);
-                    continue;
-                }
-                if (type === 'delete_review') {
-                    if (data?.id !== undefined && data?.id !== null && String(data.id).trim() !== '') valid.push(action);
-                    continue;
-                }
-
-                if (type === 'set_turnover_consent') {
-                    if (data?.consent !== undefined && data?.consent !== null) valid.push(action);
-                    continue;
-                }
-                if (type === 'analyze_turnover') {
-                    valid.push(action);
-                    continue;
-                }
-                if (type === 'delete_turnover_analysis') {
-                    const hasEmp = getEmployeeRef(data) !== '';
-                    if (hasEmp) valid.push(action);
-                    continue;
-                }
-
-                if (type === 'update_company_settings') {
-                    const keys = ['companyName', 'businessSector', 'address', 'phone', 'email', 'currency', 'registrationNumber'];
-                    const hasAny = keys.some(k => String(data?.[k] || '').trim() !== '');
-                    if (hasAny) valid.push(action);
                     continue;
                 }
 
@@ -20352,28 +20296,11 @@ N'inclus des actions QUE si l'utilisateur demande explicitement de modifier/ajou
                     if (data?.id !== undefined && data?.id !== null && String(data.id).trim() !== '') valid.push(action);
                     continue;
                 }
-                if (type === 'set_recruitment_job_status') {
-                    const hasId = data?.id !== undefined && data?.id !== null && String(data.id).trim() !== '';
-                    const hasStatus = String(data?.status || '').trim() !== '';
-                    if (hasId && hasStatus) valid.push(action);
-                    continue;
-                }
 
                 if (type === 'upsert_candidate') {
                     const hasJob = data?.jobId !== undefined && data?.jobId !== null && String(data.jobId).trim() !== '';
                     const hasName = String(data?.name || '').trim();
                     if (hasJob && hasName) valid.push(action);
-                    continue;
-                }
-                if (type === 'set_candidate_shortlisted') {
-                    const hasRef = String(data?.id || data?.email || data?.name || '').trim() !== '';
-                    if (hasRef && (data?.shortlisted !== undefined && data?.shortlisted !== null)) valid.push(action);
-                    continue;
-                }
-                if (type === 'set_candidate_match_score') {
-                    const hasRef = String(data?.id || data?.email || data?.name || '').trim() !== '';
-                    const hasScore = data?.matchScore !== undefined && data?.matchScore !== null && String(data.matchScore).trim() !== '';
-                    if (hasRef && hasScore) valid.push(action);
                     continue;
                 }
                 if (type === 'delete_candidate') {
@@ -20695,537 +20622,227 @@ N'inclus des actions QUE si l'utilisateur demande explicitement de modifier/ajou
         }
         
         function clearHRChatHistory() {
-            function hrApplyAgentActions(actions) {
-                if (!Array.isArray(actions) || actions.length === 0) return { applied: 0, skipped: 0 };
-
-                const toNum = (v, fallback = 0) => {
-                    const n = (typeof v === 'number' && Number.isFinite(v)) ? v : parseFloat(v);
-                    return Number.isFinite(n) ? n : fallback;
-                };
-
-                const clamp = (v, min, max) => Math.min(Math.max(Number(v) || 0, min), max);
-                const normalize = (v) => String(v || '').trim();
-
-                const employees = Array.isArray(getHRData('hrEmployees')) ? getHRData('hrEmployees') : [];
-                const leaves = Array.isArray(getHRData('hrLeaves')) ? getHRData('hrLeaves') : [];
-                const payrolls = Array.isArray(getHRData('hrPayrolls')) ? getHRData('hrPayrolls') : [];
-                const reviews = Array.isArray(getHRData('hrReviews')) ? getHRData('hrReviews') : [];
-                const recruitmentJobs = Array.isArray(getHRData('recruitmentJobs')) ? getHRData('recruitmentJobs') : [];
-                const recruitmentCandidates = Array.isArray(getHRData('recruitmentCandidates')) ? getHRData('recruitmentCandidates') : [];
-                const companySettings = (getHRData('companySettings', {}) && typeof getHRData('companySettings', {}) === 'object')
-                    ? getHRData('companySettings', {})
-                    : {};
-
-                const resolveEmployeeId = (raw, extra = {}) => {
-                    const ref = normalize(raw || extra.employee || extra.employeeName || extra.email);
-                    if (!ref) return '';
-
-                    const lowerRef = ref.toLowerCase();
-                    const byId = employees.find(e => normalize(e?.id) === ref);
-                    if (byId) return byId.id;
-
-                    const byEmail = employees.find(e => normalize(e?.email).toLowerCase() === lowerRef);
-                    if (byEmail) return byEmail.id;
-
-                    const byName = employees.find(e => {
-                        const full = `${normalize(e?.firstName)} ${normalize(e?.lastName)}`.trim().toLowerCase();
-                        return full && full === lowerRef;
-                    });
-                    if (byName) return byName.id;
-
-                    return ref;
-                };
-
-                const findCandidateIndexByRef = (refRaw) => {
-                    const ref = normalize(refRaw);
-                    if (!ref) return -1;
-                    const lower = ref.toLowerCase();
-                    let idx = recruitmentCandidates.findIndex(c => c && normalize(c.id) === ref);
-                    if (idx >= 0) return idx;
-                    idx = recruitmentCandidates.findIndex(c => normalize(c?.email).toLowerCase() === lower);
-                    if (idx >= 0) return idx;
-                    idx = recruitmentCandidates.findIndex(c => normalize(c?.name).toLowerCase() === lower);
-                    return idx;
-                };
-
-                let applied = 0;
-                let skipped = 0;
-
-                const upsertById = (arr, item, prefix) => {
-                    const id = (item && item.id !== undefined && item.id !== null && String(item.id).trim() !== '')
-                        ? String(item.id).trim()
-                        : hrGenerateId(prefix);
-                    const idx = arr.findIndex(x => x && String(x.id) === id);
-                    const nowIso = new Date().toISOString();
-                    if (idx >= 0) arr[idx] = { ...arr[idx], ...item, id, updatedAt: nowIso };
-                    else arr.unshift({ ...item, id, createdAt: nowIso, updatedAt: nowIso });
-                    return true;
-                };
-
-                for (const action of actions) {
-                    const type = String(action?.type || action?.action || '').trim();
-                    const data = action?.data ?? action?.payload ?? action;
-                    try {
-                        if (type === 'upsert_employee') {
-                            const item = {
-                                id: data?.id,
-                                firstName: String(data?.firstName || '').trim(),
-                                lastName: String(data?.lastName || '').trim(),
-                                email: String(data?.email || '').trim(),
-                                department: String(data?.department || '').trim(),
-                                position: String(data?.position || '').trim(),
-                                contractType: String(data?.contractType || '').trim(),
-                                hireDate: String(data?.hireDate || '').trim(),
-                                birthDate: String(data?.birthDate || '').trim(),
-                                address: String(data?.address || '').trim(),
-                                baseSalary: toNum(data?.baseSalary, 0),
-                                status: String(data?.status || 'active').trim()
-                            };
-                            if (!item.firstName || !item.lastName) { skipped++; continue; }
-                            upsertById(employees, item, 'emp');
-                            applied++;
-                            continue;
-                        }
-
-                        if (type === 'delete_employee') {
-                            const id = String(data?.id || '').trim();
-                            if (!id) { skipped++; continue; }
-                            const before = employees.length;
-                            const next = employees.filter(e => e && String(e.id) !== id);
-                            if (next.length !== before) { employees.splice(0, employees.length, ...next); applied++; }
-                            else skipped++;
-                            continue;
-                        }
-
-                        if (type === 'upsert_leave') {
-                            const employeeId = resolveEmployeeId(data?.employeeId, data);
-                            const item = {
-                                id: data?.id,
-                                employeeId,
-                                startDate: String(data?.startDate || '').trim(),
-                                endDate: String(data?.endDate || '').trim(),
-                                days: Math.max(0, toNum(data?.days, 0)),
-                                type: String(data?.type || '').trim(),
-                                status: String(data?.status || 'pending').trim()
-                            };
-                            if (!String(item.employeeId || '').trim() || !item.startDate || !item.endDate) { skipped++; continue; }
-                            upsertById(leaves, item, 'lv');
-                            applied++;
-                            continue;
-                        }
-
-                        if (type === 'approve_leave' || type === 'reject_leave') {
-                            const id = String(data?.id || '').trim();
-                            if (!id) { skipped++; continue; }
-                            const idx = leaves.findIndex(l => l && String(l.id) === id);
-                            if (idx < 0) { skipped++; continue; }
-                            leaves[idx] = { ...leaves[idx], status: (type === 'approve_leave') ? 'approved' : 'rejected', updatedAt: new Date().toISOString() };
-                            applied++;
-                            continue;
-                        }
-
-                        if (type === 'delete_leave') {
-                            const id = String(data?.id || '').trim();
-                            if (!id) { skipped++; continue; }
-                            const before = leaves.length;
-                            const next = leaves.filter(l => l && String(l.id) !== id);
-                            if (next.length !== before) { leaves.splice(0, leaves.length, ...next); applied++; }
-                            else skipped++;
-                            continue;
-                        }
-
-                        if (type === 'generate_payrolls_for_period') {
-                            const period = String(data?.period || data?.month || '').trim();
-                            if (!/^\d{4}-\d{2}$/.test(period)) { skipped++; continue; }
-                            if (!Array.isArray(employees) || employees.length === 0) { skipped++; continue; }
-
-                            let generated = 0;
-                            for (const employee of employees) {
-                                if (!employee || !employee.id) continue;
-                                const exists = payrolls.some(p => p && p.employeeId === employee.id && String(p.period || p.month) === period);
-                                if (exists) continue;
-
-                                const annualSalary = toNum(employee?.baseSalary ?? employee?.salary, 0);
-                                const baseSalary = annualSalary > 0 ? (annualSalary / 12) : 30000;
-                                const bonuses = 0;
-                                const overtime = 0;
-                                const grossSalary = baseSalary + bonuses;
-                                const deductions = grossSalary * 0.09;
-
-                                let taxes = 0;
-                                if (grossSalary > 30000) taxes = (grossSalary - 30000) * 0.35;
-                                else if (grossSalary > 20000) taxes = (grossSalary - 20000) * 0.20;
-                                else if (grossSalary > 10000) taxes = (grossSalary - 10000) * 0.10;
-
-                                const netSalary = grossSalary - deductions - taxes;
-                                payrolls.push({
-                                    id: hrGenerateId('pay'),
-                                    employeeId: employee.id,
-                                    period,
-                                    month: period,
-                                    baseSalary: baseSalary,
-                                    bonuses: bonuses,
-                                    overtime: overtime,
-                                    overtimePay: 0,
-                                    grossSalary: Math.round(grossSalary),
-                                    deductions: Math.round(deductions),
-                                    taxes: Math.round(taxes),
-                                    netSalary: Math.round(netSalary),
-                                    status: 'pending',
-                                    createdAt: Date.now(),
-                                    updatedAt: Date.now()
-                                });
-                                generated++;
-                            }
-
-                            if (generated > 0) { applied++; } else { skipped++; }
-                            continue;
-                        }
-
-                        if (type === 'set_payroll_status_for_period') {
-                            const period = String(data?.period || data?.month || '').trim();
-                            const status = String(data?.status || '').trim();
-                            if (!/^\d{4}-\d{2}$/.test(period) || !status) { skipped++; continue; }
-                            let changed = 0;
-                            for (let i = 0; i < payrolls.length; i++) {
-                                const p = payrolls[i];
-                                if (!p) continue;
-                                if (String(p.period || p.month) !== period) continue;
-                                if (String(p.status || '') === status) continue;
-                                payrolls[i] = { ...p, status, paidAt: (status === 'paid' ? (p.paidAt || Date.now()) : p.paidAt), updatedAt: new Date().toISOString() };
-                                changed++;
-                            }
-                            if (changed > 0) { applied++; } else { skipped++; }
-                            continue;
-                        }
-
-                        if (type === 'upsert_payroll') {
-                            const month = String(data?.month || data?.period || '').trim();
-                            const employeeId = resolveEmployeeId(data?.employeeId, data);
-
-                            const employee = employees.find(e => e && String(e.id) === String(employeeId));
-                            const annualSalary = employee ? toNum(employee?.baseSalary ?? employee?.salary, 0) : 0;
-                            const fallbackBase = annualSalary > 0 ? (annualSalary / 12) : 0;
-
-                            const baseSalary = toNum(data?.baseSalary, fallbackBase);
-                            const bonuses = toNum(data?.bonuses, 0);
-                            const overtime = Math.max(0, toNum(data?.overtime, 0));
-
-                            const customBonusesIn = Array.isArray(data?.customBonuses) ? data.customBonuses : [];
-                            const customBonuses = customBonusesIn
-                                .map(b => ({ name: String(b?.name || '').trim(), amount: Math.round(Math.max(0, toNum(b?.amount, 0))) }))
-                                .filter(b => b.name && b.amount > 0)
-                                .slice(0, 50);
-                            const totalCustomBonuses = customBonuses.reduce((s, b) => s + (Number(b.amount) || 0), 0);
-
-                            const hourlyRate = baseSalary / 173.33;
-                            const overtimePay = (data?.overtimePay !== undefined && data?.overtimePay !== null && String(data.overtimePay).trim() !== '')
-                                ? Math.round(Math.max(0, toNum(data?.overtimePay, 0)))
-                                : Math.round(Math.max(0, overtime * hourlyRate * 1.5));
-
-                            const grossComputed = baseSalary + bonuses + overtimePay + totalCustomBonuses;
-                            const grossSalary = (data?.grossSalary !== undefined && data?.grossSalary !== null && String(data.grossSalary).trim() !== '')
-                                ? Math.round(Math.max(0, toNum(data?.grossSalary, 0)))
-                                : Math.round(Math.max(0, grossComputed));
-
-                            const customDeductionsIn = Array.isArray(data?.customDeductions) ? data.customDeductions : [];
-                            const customDeductions = customDeductionsIn
-                                .map(d => {
-                                    const name = String(d?.name || '').trim();
-                                    const rate = toNum(d?.rate, 0);
-                                    const amount = (d?.amount !== undefined && d?.amount !== null && String(d.amount).trim() !== '')
-                                        ? Math.round(Math.max(0, toNum(d?.amount, 0)))
-                                        : Math.round(Math.max(0, grossSalary * (rate / 100)));
-                                    return { name, rate, amount };
-                                })
-                                .filter(d => d.name && (Number(d.amount) || 0) > 0)
-                                .slice(0, 80);
-                            const totalDeductions = customDeductions.reduce((s, d) => s + (Number(d.amount) || 0), 0);
-
-                            const deductions = Math.max(0, toNum(data?.deductions, 0));
-                            const taxes = Math.max(0, toNum(data?.taxes, 0));
-
-                            const netComputed = grossSalary - totalDeductions - deductions - taxes;
-                            const netSalary = (data?.netSalary !== undefined && data?.netSalary !== null && String(data.netSalary).trim() !== '')
-                                ? Math.round(Math.max(0, toNum(data?.netSalary, 0)))
-                                : Math.round(Math.max(0, netComputed));
-
-                            const item = {
-                                id: data?.id,
-                                employeeId,
-                                month,
-                                period: month,
-                                baseSalary: Math.round(Math.max(0, baseSalary)),
-                                bonuses: Math.round(Math.max(0, bonuses)),
-                                overtime: overtime,
-                                overtimePay: overtimePay,
-                                customBonuses,
-                                totalCustomBonuses,
-                                customDeductions,
-                                totalDeductions,
-                                deductions: Math.round(deductions),
-                                taxes: Math.round(taxes),
-                                grossSalary,
-                                netSalary,
-                                status: String(data?.status || 'pending').trim()
-                            };
-                            if (!String(item.employeeId || '').trim() || !month) { skipped++; continue; }
-                            upsertById(payrolls, item, 'pay');
-                            applied++;
-                            continue;
-                        }
-
-                        if (type === 'validate_payroll' || type === 'mark_payroll_paid') {
-                            const id = String(data?.id || '').trim();
-                            if (!id) { skipped++; continue; }
-                            const idx = payrolls.findIndex(p => p && String(p.id) === id);
-                            if (idx < 0) { skipped++; continue; }
-                            payrolls[idx] = { ...payrolls[idx], status: (type === 'validate_payroll') ? 'validated' : 'paid', updatedAt: new Date().toISOString() };
-                            applied++;
-                            continue;
-                        }
-
-                        if (type === 'delete_payroll') {
-                            const id = String(data?.id || '').trim();
-                            if (!id) { skipped++; continue; }
-                            const before = payrolls.length;
-                            const next = payrolls.filter(p => p && String(p.id) !== id);
-                            if (next.length !== before) { payrolls.splice(0, payrolls.length, ...next); applied++; }
-                            else skipped++;
-                            continue;
-                        }
-
-                        if (type === 'upsert_review') {
-                            const employeeId = resolveEmployeeId(data?.employeeId, data);
-                            const period = String(data?.period || '').trim();
-                            const reviewType = String(data?.type || '').trim();
-                            const evaluator = String(data?.evaluator || '').trim();
-
-                            const scoresRaw = (data?.scores && typeof data.scores === 'object') ? data.scores : {};
-                            const technical = Math.round(clamp(toNum(scoresRaw.technical ?? data?.technical, 0), 0, 5));
-                            const behavioral = Math.round(clamp(toNum(scoresRaw.behavioral ?? data?.behavioral, 0), 0, 5));
-                            const performance = Math.round(clamp(toNum(scoresRaw.performance ?? data?.performance, 0), 0, 5));
-                            const development = Math.round(clamp(toNum(scoresRaw.development ?? data?.development, 0), 0, 5));
-
-                            const overall = (data?.overallRating !== undefined && data?.overallRating !== null)
-                                ? clamp(toNum(data?.overallRating, 0), 0, 5)
-                                : clamp((technical + behavioral + performance + development) / 4, 0, 5);
-
-                            const dateStr = String(data?.date || '').trim();
-                            const parsedDate = dateStr ? new Date(dateStr) : null;
-                            const isoDate = parsedDate && Number.isFinite(parsedDate.getTime())
-                                ? parsedDate.toISOString()
-                                : new Date().toISOString();
-
-                            const item = {
-                                id: data?.id,
-                                employeeId,
-                                period,
-                                type: reviewType,
-                                evaluator,
-                                scores: { technical, behavioral, performance, development },
-                                overallRating: parseFloat(Number(overall).toFixed(1)),
-                                strengths: String(data?.strengths || '').trim(),
-                                areasForImprovement: String(data?.areasForImprovement || '').trim(),
-                                objectives: String(data?.objectives || '').trim(),
-                                comments: String(data?.comments || '').trim(),
-                                date: isoDate
-                            };
-
-                            if (!String(item.employeeId || '').trim() || !period || !reviewType || !evaluator) { skipped++; continue; }
-                            upsertById(reviews, item, 'rev');
-                            applied++;
-                            continue;
-                        }
-
-                        if (type === 'delete_review') {
-                            const id = String(data?.id || '').trim();
-                            if (!id) { skipped++; continue; }
-                            const before = reviews.length;
-                            const next = reviews.filter(r => r && String(r.id) !== id);
-                            if (next.length !== before) { reviews.splice(0, reviews.length, ...next); applied++; }
-                            else skipped++;
-                            continue;
-                        }
-
-                        if (type === 'set_turnover_consent') {
-                            const consent = !!data?.consent;
-                            try { if (typeof setTurnoverConsent === 'function') setTurnoverConsent(consent); } catch (_) {}
-                            try { localStorage.setItem('turnoverConsent', consent ? 'true' : 'false'); } catch (_) {}
-                            applied++;
-                            continue;
-                        }
-
-                        if (type === 'analyze_turnover') {
-                            try {
-                                const consent = (typeof getTurnoverConsent === 'function') ? getTurnoverConsent() : (localStorage.getItem('turnoverConsent') === 'true');
-                                if (!consent) { skipped++; continue; }
-
-                                const windowMonths = Math.max(1, Math.min(36, parseInt(data?.windowMonths, 10) || 12));
-                                if (typeof calculateTurnoverRisk !== 'function') { skipped++; continue; }
-
-                                const analyses = employees.map(emp => calculateTurnoverRisk(emp, leaves, reviews, payrolls, { windowMonths }));
-                                localStorage.setItem('turnoverAnalyses', JSON.stringify(analyses));
-                                try { if (typeof initializeTurnoverData === 'function') initializeTurnoverData(); } catch (_) {}
-                                applied++;
-                            } catch (_) {
-                                skipped++;
-                            }
-                            continue;
-                        }
-
-                        if (type === 'delete_turnover_analysis') {
-                            try {
-                                const employeeId = resolveEmployeeId(data?.employeeId, data);
-                                if (!employeeId) { skipped++; continue; }
-                                const current = JSON.parse(localStorage.getItem('turnoverAnalyses') || '[]');
-                                const before = Array.isArray(current) ? current.length : 0;
-                                const next = Array.isArray(current) ? current.filter(a => a && String(a.employeeId) !== String(employeeId)) : [];
-                                localStorage.setItem('turnoverAnalyses', JSON.stringify(next));
-                                if (next.length !== before) { applied++; } else { skipped++; }
-                                try { if (typeof initializeTurnoverData === 'function') initializeTurnoverData(); } catch (_) {}
-                            } catch (_) {
-                                skipped++;
-                            }
-                            continue;
-                        }
-
-                        if (type === 'update_company_settings') {
-                            const next = { ...companySettings };
-                            const keys = ['companyName', 'businessSector', 'address', 'phone', 'email', 'currency', 'registrationNumber'];
-                            for (const k of keys) {
-                                const v = String(data?.[k] ?? '').trim();
-                                if (v) next[k] = v;
-                            }
-                            next.updatedAt = Date.now();
-                            setHRData('companySettings', next);
-                            try { if (typeof updateHRStats === 'function') updateHRStats(employees); } catch (_) {}
-                            applied++;
-                            continue;
-                        }
-
-                        if (type === 'upsert_recruitment_job') {
-                            const item = {
-                                id: data?.id,
-                                title: String(data?.title || '').trim(),
-                                location: String(data?.location || '').trim(),
-                                department: String(data?.department || '').trim(),
-                                contractType: String(data?.contractType || '').trim(),
-                                salaryRange: String(data?.salaryRange || '').trim(),
-                                skills: Array.isArray(data?.skills) ? data.skills.map(s => String(s).trim()).filter(Boolean).slice(0, 40) : [],
-                                mustHave: Array.isArray(data?.mustHave) ? data.mustHave.map(s => String(s).trim()).filter(Boolean).slice(0, 40) : [],
-                                niceToHave: Array.isArray(data?.niceToHave) ? data.niceToHave.map(s => String(s).trim()).filter(Boolean).slice(0, 40) : [],
-                                status: String(data?.status || 'active').trim()
-                            };
-                            if (!item.title) { skipped++; continue; }
-                            upsertById(recruitmentJobs, item, 'job');
-                            applied++;
-                            continue;
-                        }
-
-                        if (type === 'delete_recruitment_job') {
-                            const id = String(data?.id || '').trim();
-                            if (!id) { skipped++; continue; }
-                            const before = recruitmentJobs.length;
-                            const next = recruitmentJobs.filter(j => j && String(j.id) !== id);
-                            if (next.length !== before) { recruitmentJobs.splice(0, recruitmentJobs.length, ...next); applied++; }
-                            else skipped++;
-                            continue;
-                        }
-
-                        if (type === 'set_recruitment_job_status') {
-                            const id = String(data?.id || '').trim();
-                            const status = String(data?.status || '').trim();
-                            if (!id || !status) { skipped++; continue; }
-                            const idx = recruitmentJobs.findIndex(j => j && String(j.id) === id);
-                            if (idx < 0) { skipped++; continue; }
-                            recruitmentJobs[idx] = { ...recruitmentJobs[idx], status, updatedAt: new Date().toISOString() };
-                            applied++;
-                            continue;
-                        }
-
-                        if (type === 'upsert_candidate') {
-                            const item = {
-                                id: data?.id,
-                                jobId: data?.jobId,
-                                name: String(data?.name || '').trim(),
-                                email: String(data?.email || '').trim(),
-                                phone: String(data?.phone || '').trim(),
-                                matchScore: Math.max(0, toNum(data?.matchScore, 0)),
-                                recommendation: String(data?.recommendation || '').trim(),
-                                skills: Array.isArray(data?.skills) ? data.skills.map(s => String(s).trim()).filter(Boolean).slice(0, 60) : [],
-                                experience: Math.max(0, toNum(data?.experience, 0)),
-                                degree: String(data?.degree || '').trim(),
-                                languages: String(data?.languages || '').trim(),
-                                shortlisted: !!data?.shortlisted,
-                                parsedWithAI: (data?.parsedWithAI === undefined) ? true : !!data?.parsedWithAI
-                            };
-                            if (!String(item.jobId || '').trim() || !item.name) { skipped++; continue; }
-                            upsertById(recruitmentCandidates, item, 'cand');
-                            applied++;
-                            continue;
-                        }
-
-                        if (type === 'set_candidate_shortlisted') {
-                            const ref = data?.id || data?.email || data?.name;
-                            const idx = findCandidateIndexByRef(ref);
-                            if (idx < 0) { skipped++; continue; }
-                            recruitmentCandidates[idx] = { ...recruitmentCandidates[idx], shortlisted: !!data?.shortlisted, updatedAt: Date.now() };
-                            applied++;
-                            continue;
-                        }
-
-                        if (type === 'set_candidate_match_score') {
-                            const ref = data?.id || data?.email || data?.name;
-                            const idx = findCandidateIndexByRef(ref);
-                            if (idx < 0) { skipped++; continue; }
-                            const matchScore = Math.max(0, Math.min(100, toNum(data?.matchScore, 0)));
-                            recruitmentCandidates[idx] = { ...recruitmentCandidates[idx], matchScore, updatedAt: Date.now() };
-                            applied++;
-                            continue;
-                        }
-
-                        if (type === 'delete_candidate') {
-                            const id = String(data?.id || '').trim();
-                            if (!id) { skipped++; continue; }
-                            const before = recruitmentCandidates.length;
-                            const next = recruitmentCandidates.filter(c => c && String(c.id) !== id);
-                            if (next.length !== before) { recruitmentCandidates.splice(0, recruitmentCandidates.length, ...next); applied++; }
-                            else skipped++;
-                            continue;
-                        }
-
-                        skipped++;
-                    } catch (_) {
-                        skipped++;
-                    }
-                }
-
-                setHRData('hrEmployees', employees);
-                setHRData('hrLeaves', leaves);
-                setHRData('hrPayrolls', payrolls);
-                setHRData('hrReviews', reviews);
-                setHRData('recruitmentJobs', recruitmentJobs);
-                setHRData('recruitmentCandidates', recruitmentCandidates);
-                // Rafraîchir les écrans HR (best-effort)
-                try {
-                    if (typeof renderEmployeesList === 'function') renderEmployeesList(employees);
-                    if (typeof updateHRStats === 'function') updateHRStats(employees);
-                } catch (_) {}
-                try { if (typeof renderLeavesList === 'function') renderLeavesList(leaves); } catch (_) {}
-                try { if (typeof updateLeavesStats === 'function') updateLeavesStats(leaves); } catch (_) {}
-                try { if (typeof renderPayrollsList === 'function') renderPayrollsList(payrolls); } catch (_) {}
-                try { if (typeof updatePayrollStats === 'function') updatePayrollStats(payrolls); } catch (_) {}
-                try {
-                    if (typeof renderReviewsList === 'function') renderReviewsList(reviews);
-                    if (typeof updateReviewStats === 'function') updateReviewStats(reviews);
-                    if (typeof populateReviewPeriodFilter === 'function') populateReviewPeriodFilter(reviews);
-                } catch (_) {}
-                try { if (typeof initializeTurnoverData === 'function') initializeTurnoverData(); } catch (_) {}
-                try { if (typeof initializeRecruitmentData === 'function') initializeRecruitmentData(); } catch (_) {}
-
-                return { applied, skipped };
+            if (!confirm('Êtes-vous sûr de vouloir effacer tout l\'historique des conversations?')) return;
+            
+            hrChatHistory = [];
+            setHRData('hrChatHistory', []);
+            
+            const messagesContainer = document.getElementById('hrChatMessages');
+            if (messagesContainer) {
+                messagesContainer.innerHTML = '';
             }
+            
+            showToast('🗑️ Historique effacé', 'info');
+            
+            // Afficher le message de bienvenue
+            addHRChatMessage('Bonjour! Je suis votre assistant IA pour la gestion RH. Comment puis-je vous aider?', 'bot', false);
+        }
+        
+        function addHRChatMessage(message, type, saveToHistory = true) {
+            const messagesContainer = document.getElementById('hrChatMessages');
+            if (!messagesContainer) return;
+            
+            const isBot = type === 'bot';
+            const isSystem = type === 'system';
+            const messageDiv = document.createElement('div');
+            
+            if (isSystem) {
+                // Message système (notification) - ne pas sauvegarder dans l'historique
+                messageDiv.innerHTML = `
+                    <div style="padding: 8px 12px; background: #f0f9ff; border-left: 3px solid #3b82f6; border-radius: 8px; margin: 8px 0; font-size: 12px; color: #1e40af;">
+                        ${message}
+                    </div>
+                `;
+            } else if (isBot) {
+                messageDiv.innerHTML = `
+                    <div style="padding: 12px 16px; background: white; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); max-width: 85%; align-self: flex-start;">
+                        <div style="color: #6366F1; font-size: 10px; font-weight: 700; margin-bottom: 4px; display: flex; align-items: center; gap: 4px;">
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/></svg>
+                            Agent RH
+                        </div>
+                        <div style="color: #1a1a1a; font-size: 13px; line-height: 1.6; white-space: pre-wrap;">${message}</div>
+                    </div>
+                `;
+            } else {
+                messageDiv.innerHTML = `
+                    <div style="padding: 12px 16px; background: linear-gradient(135deg, #10b981, #059669); color: white; border-radius: 12px; max-width: 85%; align-self: flex-end; margin-left: auto;">
+                        <div style="font-size: 13px; line-height: 1.6; white-space: pre-wrap;">${message}</div>
+                    </div>
+                `;
+            }
+            
+            messagesContainer.appendChild(messageDiv);
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }
+        
+        async function sendHRChatMessage() {
+            const input = document.getElementById('hrChatInput');
+            const message = input.value.trim();
+            if (!message || hrAiProcessing) return;
+            
+            addHRChatMessage(message, 'user');
+            input.value = '';
+            hrAiProcessing = true;
+            
+            // Ajouter le message utilisateur à l'historique
+            hrChatHistory.push({
+                role: 'user',
+                content: message
+            });
+            
+            // Sauvegarder l'historique dans localStorage
+            setHRData('hrChatHistory', hrChatHistory);
+            
+            showToast('🤖 Agent RH en cours...', 'info');
+            
+            try {
+                const endpoint = getEndpoint();
+                
+                // ========== RÉCUPÉRATION DE TOUTES LES DONNÉES RH ==========
+                const employees = getHRData('hrEmployees');
+                const companySettings = getHRData('companySettings', {});
+                const leaves = getHRData('hrLeaves');
+                const payrolls = getHRData('hrPayrolls');
+                const reviews = getHRData('hrReviews');
+                const turnoverAnalyses = JSON.parse(localStorage.getItem('turnoverAnalyses') || '[]');
+                const recruitmentJobs = getHRData('recruitmentJobs');
+                const recruitmentCandidates = getHRData('recruitmentCandidates');
+                
+                const currency = companySettings.currency || 'DA';
+                
+                // ========== INFORMATIONS ENTREPRISE ==========
+                const companyInfo = companySettings.companyName ? `
+INFORMATIONS DE L'ENTREPRISE :
+- Nom: ${companySettings.companyName}
+- Domaine d'activité: ${companySettings.businessSector || 'Non spécifié'}
+- Adresse: ${companySettings.address || 'Non spécifiée'}
+- Téléphone: ${companySettings.phone || 'Non spécifié'}
+- Email: ${companySettings.email || 'Non spécifié'}
+- Devise: ${currency}
+- Numéro d'enregistrement: ${companySettings.registrationNumber || 'Non spécifié'}
+` : 'Les informations de l\'entreprise n\'ont pas encore été configurées.';
+                
+                // ========== STATISTIQUES GLOBALES ==========
+                const activeEmployees = employees.filter(e => e.status === 'active');
+                const pendingLeaves = leaves.filter(l => l.status === 'pending');
+                const approvedLeaves = leaves.filter(l => l.status === 'approved');
+                const currentMonthPayrolls = payrolls.filter(p => {
+                    const payrollDate = new Date(p.month + '-01');
+                    const now = new Date();
+                    return payrollDate.getMonth() === now.getMonth() && payrollDate.getFullYear() === now.getFullYear();
+                });
+                const highRiskTurnover = turnoverAnalyses.filter(t => t.riskLevel === 'high');
+                const mediumRiskTurnover = turnoverAnalyses.filter(t => t.riskLevel === 'medium');
+                const activeJobs = recruitmentJobs.filter(j => j.status === 'active');
+                const topCandidates = recruitmentCandidates.filter(c => c.matchScore >= 80);
+                
+                // ========== DÉTAILS EMPLOYÉS ==========
+                const employeesDetails = employees.map(emp => `
+  • ${emp.firstName} ${emp.lastName}
+    - Poste: ${emp.position}
+    - Département: ${emp.department}
+    - Email: ${emp.email}
+    - Type de contrat: ${emp.contractType}
+    - Date d'embauche: ${emp.hireDate}
+    - Salaire de base: ${emp.baseSalary ? emp.baseSalary + ' ' + currency : 'N/A'}
+    - Statut: ${emp.status === 'active' ? 'Actif' : 'Inactif'}
+`).join('\n');
+
+                // ========== CONGÉS ==========
+                const leavesInfo = leaves.length > 0 ? `
+📅 CONGÉS & ABSENCES :
+- Total demandes : ${leaves.length}
+- En attente de validation : ${pendingLeaves.length}
+- Approuvées : ${approvedLeaves.length}
+- Rejetées : ${leaves.filter(l => l.status === 'rejected').length}
+
+${pendingLeaves.length > 0 ? `⚠️ DEMANDES EN ATTENTE (nécessitent validation) :
+${pendingLeaves.map(l => {
+    const emp = employees.find(e => e.id === l.employeeId);
+    return `  • ${emp ? emp.firstName + ' ' + emp.lastName : 'Employé inconnu'}: ${l.days} jours (${l.startDate} → ${l.endDate}) - Type: ${l.type}`;
+}).join('\n')}` : ''}
+
+${approvedLeaves.length > 0 ? `✅ Congés approuvés récents :
+${approvedLeaves.slice(-5).map(l => {
+    const emp = employees.find(e => e.id === l.employeeId);
+    return `  • ${emp ? emp.firstName + ' ' + emp.lastName : 'Employé inconnu'}: ${l.days} jours (${l.startDate} → ${l.endDate})`;
+}).join('\n')}` : ''}
+` : '📅 CONGÉS : Aucune demande de congé pour le moment.';
+
+                // ========== PAIES ==========
+                const totalPayroll = currentMonthPayrolls.reduce((sum, p) => sum + (p.netSalary || 0), 0);
+                const payrollsInfo = payrolls.length > 0 ? `
+💰 PAIE & RÉMUNÉRATION :
+- Total bulletins générés : ${payrolls.length}
+- Bulletins du mois en cours : ${currentMonthPayrolls.length}
+- Budget paie mensuel actuel : ${totalPayroll.toLocaleString()} ${currency}
+- Masse salariale annuelle estimée : ${(totalPayroll * 12).toLocaleString()} ${currency}
+
+${currentMonthPayrolls.length > 0 ? `📊 Détails paies du mois :
+${currentMonthPayrolls.map(p => {
+    const emp = employees.find(e => e.id === p.employeeId);
+    return `  • ${emp ? emp.firstName + ' ' + emp.lastName : 'Employé inconnu'}: ${p.netSalary} ${currency} (Brut: ${p.grossSalary} ${currency})`;
+}).join('\n')}` : ''}
+` : '💰 PAIE : Aucun bulletin de paie généré pour le moment.';
+
+                // ========== ÉVALUATIONS ==========
+                const avgPerformance = reviews.length > 0 
+                    ? (reviews.reduce((sum, r) => sum + (r.overallRating || 0), 0) / reviews.length).toFixed(1) 
+                    : 'N/A';
+                const reviewsInfo = reviews.length > 0 ? `
+⭐ ÉVALUATIONS DE PERFORMANCE :
+- Total évaluations : ${reviews.length}
+- Score moyen global : ${avgPerformance}/5
+- Évaluations récentes : ${reviews.filter(r => {
+    const reviewDate = new Date(r.createdAt);
+    const monthAgo = new Date();
+    monthAgo.setMonth(monthAgo.getMonth() - 1);
+    return reviewDate > monthAgo;
+}).length}
+
+${reviews.slice(-5).map(r => {
+    const emp = employees.find(e => e.id === r.employeeId);
+    return `  • ${emp ? emp.firstName + ' ' + emp.lastName : 'Employé inconnu'}: ${(r.overallRating ?? 0)}/5 (${r.period})`;
+}).join('\n')}
+` : '⭐ ÉVALUATIONS : Aucune évaluation de performance enregistrée.';
+
+                // ========== TURNOVER & RISQUES ==========
+                const turnoverInfo = turnoverAnalyses.length > 0 ? `
+ANALYSE TURNOVER (Prédiction des départs) :
+- Employés analysés : ${turnoverAnalyses.length}
+- Risque élevé (>70%) : ${highRiskTurnover.length} employés
+- Risque moyen (40-70%) : ${mediumRiskTurnover.length} employés
+- Risque faible (<40%) : ${turnoverAnalyses.filter(t => t.riskLevel === 'low').length} employés
+
+${highRiskTurnover.length > 0 ? `EMPLOYÉS À RISQUE CRITIQUE (action urgente recommandée) :
+${highRiskTurnover.map(t => {
+    const emp = employees.find(e => e.id === t.employeeId);
+    return `  • ${emp ? emp.firstName + ' ' + emp.lastName : 'Employé inconnu'} (${emp ? emp.department : 'N/A'}): ${t.riskScore}% de risque de départ
+    Actions suggérées: ${t.suggestedActions.slice(0, 2).join(', ')}`;
+}).join('\n')}` : ''}
+` : 'TURNOVER : Aucune analyse de risque de turnover effectuée.';
+
+                // ========== RECRUTEMENT ==========
+                const avgMatchScore = recruitmentCandidates.length > 0 
+                    ? Math.round(recruitmentCandidates.reduce((sum, c) => sum + c.matchScore, 0) / recruitmentCandidates.length) 
+                    : 0;
+                const candidatesWithAI = recruitmentCandidates.filter(c => c.parsedWithAI === true);
+                const shortlistCandidates = recruitmentCandidates.filter(c => c.shortlisted === true);
+                
+                const recruitmentInfo = recruitmentJobs.length > 0 || recruitmentCandidates.length > 0 ? `
+👔 RECRUTEMENT & CANDIDATURES (Section complète) :
+════════════════════════════════════════════════
+📊 STATISTIQUES GLOBALES :
+- Offres d'emploi totales : ${recruitmentJobs.length}
+  • Actives : ${activeJobs.length}
+  • Fermées : ${recruitmentJobs.filter(j => j.status === 'closed').length}
+- CVs reçus au total : ${recruitmentCandidates.length}
+  • Parsés avec IA : ${candidatesWithAI.length}
+  • Saisis manuellement : ${recruitmentCandidates.length - candidatesWithAI.length}
+- Shortlist (manuelle) : ${shortlistCandidates.length} candidats
+- Score de matching moyen : ${avgMatchScore}%
+- Candidats excellents (≥80%) : ${topCandidates.length}
+- Candidats recommandés (70-79%) : ${recruitmentCandidates.filter(c => c.matchScore >= 70 && c.matchScore < 80).length}
 - Candidats à revoir (50-69%) : ${recruitmentCandidates.filter(c => c.matchScore >= 50 && c.matchScore < 70).length}
 - Candidats non qualifiés (<50%) : ${recruitmentCandidates.filter(c => c.matchScore < 50).length}
 
