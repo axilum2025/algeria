@@ -5889,6 +5889,18 @@ ${persona}
                 } catch (_) {}
             };
 
+            // Cas important: l'utilisateur quitte l'onglet/la fenêtre pendant l'attente.
+            // Sans ça, on peut refocus au retour même si l'utilisateur n'a rien cliqué "dans" la page.
+            const markTabOrWindowLeft = () => {
+                userInteractedOutsideChatInput = true;
+            };
+
+            const markVisibilityHidden = () => {
+                try {
+                    if (document.hidden) userInteractedOutsideChatInput = true;
+                } catch (_) {}
+            };
+
             // 🤝 Mode Team Auto (orchestrator) : route automatiquement les messages "normaux".
             // IMPORTANT: ne jamais intercepter les commandes (ex: /agent ...) sinon on reste coincé en Team.
             const isCommand = /^\s*\//.test(message);
@@ -6128,6 +6140,8 @@ ${persona}
                 try {
                     document.addEventListener('pointerdown', markInteractionOutside, true);
                     document.addEventListener('focusin', markInteractionOutside, true);
+                    window.addEventListener('blur', markTabOrWindowLeft, true);
+                    document.addEventListener('visibilitychange', markVisibilityHidden, true);
                 } catch (_) {}
 
                 sendBtn.disabled = true;
@@ -6263,6 +6277,8 @@ ${persona}
                     try {
                         document.removeEventListener('pointerdown', markInteractionOutside, true);
                         document.removeEventListener('focusin', markInteractionOutside, true);
+                        window.removeEventListener('blur', markTabOrWindowLeft, true);
+                        document.removeEventListener('visibilitychange', markVisibilityHidden, true);
                     } catch (_) {}
 
                     hallucinationVerifyMode.active = false;
@@ -6319,6 +6335,8 @@ ${persona}
             try {
                 document.addEventListener('pointerdown', markInteractionOutside, true);
                 document.addEventListener('focusin', markInteractionOutside, true);
+                window.addEventListener('blur', markTabOrWindowLeft, true);
+                document.addEventListener('visibilitychange', markVisibilityHidden, true);
             } catch (_) {}
 
             sendBtn.disabled = true;
@@ -6767,6 +6785,8 @@ ${persona}
                 try {
                     document.removeEventListener('pointerdown', markInteractionOutside, true);
                     document.removeEventListener('focusin', markInteractionOutside, true);
+                    window.removeEventListener('blur', markTabOrWindowLeft, true);
+                    document.removeEventListener('visibilitychange', markVisibilityHidden, true);
                 } catch (_) {}
                 sendBtn.disabled = false;
                 input.disabled = false;
