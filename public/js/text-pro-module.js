@@ -2720,6 +2720,32 @@ Pour commencer, sélectionnez vos langues dans le panneau latéral et saisissez 
             
             sendBtn.disabled = true;
             sendBtn.innerHTML = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>';
+
+            // Ne pas voler le focus après la réponse : on ne refocus que si l'utilisateur
+            // était déjà dans le champ/bouton et n'a pas interagi ailleurs pendant l'attente.
+            const allowAutoRefocus = document.activeElement === input || document.activeElement === sendBtn;
+            let userInteractedOutsideTextProInput = false;
+            let cleanupTextProRefocusGuards = null;
+
+            if (allowAutoRefocus) {
+                const markOutside = (e) => {
+                    const target = e && e.target ? e.target : null;
+                    if (!target) return;
+                    const isInput = target === input || (input && input.contains(target));
+                    const isSendBtn = target === sendBtn || (sendBtn && sendBtn.contains(target));
+                    if (!isInput && !isSendBtn) {
+                        userInteractedOutsideTextProInput = true;
+                    }
+                };
+
+                document.addEventListener('pointerdown', markOutside, true);
+                document.addEventListener('focusin', markOutside, true);
+
+                cleanupTextProRefocusGuards = () => {
+                    document.removeEventListener('pointerdown', markOutside, true);
+                    document.removeEventListener('focusin', markOutside, true);
+                };
+            }
             
             // Préparer les messages
             const modeInfo = translationModes[currentTranslationMode];
@@ -2814,7 +2840,11 @@ Tu peux traduire, réécrire, corriger, résumer, analyser et améliorer des tex
                 sendBtn.disabled = false;
                 sendBtn.innerHTML = SVGIcons.send;
             }
-            if (input) input.focus();
+            try { cleanupTextProRefocusGuards && cleanupTextProRefocusGuards(); } catch (_) {}
+
+            if (input && allowAutoRefocus && !userInteractedOutsideTextProInput) {
+                try { input.focus(); } catch (_) {}
+            }
         }
     };
     
