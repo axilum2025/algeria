@@ -27591,6 +27591,32 @@ ${recruitmentInfo}
             sendBtn.dataset.defaultInner = defaultSendInner;
             sendBtn.disabled = true;
             sendBtn.setAttribute('aria-busy', 'true');
+
+            // Ne pas voler le focus après la réponse: refocus uniquement si l'utilisateur
+            // était déjà dans le champ/bouton d'envoi ET s'il n'a pas interagi ailleurs.
+            const allowAutoRefocus = document.activeElement === textarea || document.activeElement === sendBtn;
+            let userInteractedOutsideFinanceChatInput = false;
+            let cleanupFinanceRefocusGuards = null;
+
+            if (allowAutoRefocus) {
+                const markOutside = (e) => {
+                    const target = e && e.target;
+                    if (!target) return;
+                    const isTextarea = target === textarea || textarea.contains(target);
+                    const isSendBtn = target === sendBtn || sendBtn.contains(target);
+                    if (!isTextarea && !isSendBtn) {
+                        userInteractedOutsideFinanceChatInput = true;
+                    }
+                };
+
+                document.addEventListener('pointerdown', markOutside, true);
+                document.addEventListener('focusin', markOutside, true);
+
+                cleanupFinanceRefocusGuards = () => {
+                    document.removeEventListener('pointerdown', markOutside, true);
+                    document.removeEventListener('focusin', markOutside, true);
+                };
+            }
             
             setTimeout(() => {
                 try {
@@ -27839,7 +27865,11 @@ ${recruitmentInfo}
                         sendBtn.disabled = false;
                         sendBtn.setAttribute('aria-busy', 'false');
                         sendBtn.innerHTML = sendBtn.dataset.defaultInner || defaultSendInner;
-                        textarea.focus();
+                        try { cleanupFinanceRefocusGuards && cleanupFinanceRefocusGuards(); } catch (_) {}
+
+                        if (allowAutoRefocus && !userInteractedOutsideFinanceChatInput) {
+                            try { textarea.focus(); } catch (_) {}
+                        }
                     });
                 } catch (e) {
                     const errMsg = document.createElement('div');
@@ -27849,6 +27879,7 @@ ${recruitmentInfo}
                     sendBtn.disabled = false;
                     sendBtn.setAttribute('aria-busy', 'false');
                     sendBtn.innerHTML = sendBtn.dataset.defaultInner || defaultSendInner;
+                    try { cleanupFinanceRefocusGuards && cleanupFinanceRefocusGuards(); } catch (_) {}
                 }
             }, 500);
         }
