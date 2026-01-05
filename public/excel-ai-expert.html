@@ -552,7 +552,7 @@
                 height: auto;
             }
 
-            /* Agent xcel: drawer latéral (au lieu d'être en bas) */
+            /* Agent Xcel: drawer latéral (au lieu d'être en bas) */
             .sidebar-panel {
                 position: fixed;
                 top: var(--excel-header-height, 60px);
@@ -1005,7 +1005,7 @@
                         <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/>
                         <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
                     </svg>
-                    Agent xcel
+                    Agent Xcel
                 </div>
             </div>
 
@@ -1051,7 +1051,7 @@
             <div class="ai-chat-container">
                 <div class="chat-messages" id="chatMessages">
                     <div class="chat-message bot">
-                        👋 Bonjour ! Je suis Agent xcel, votre assistant Excel AI. Importez un fichier pour commencer ou posez-moi une question sur Excel.
+                        👋 Bonjour ! Je suis Agent Xcel, votre assistant Excel AI. Importez un fichier pour commencer ou posez-moi une question sur Excel.
                     </div>
                 </div>
 
@@ -1241,7 +1241,7 @@
                     // Message de bienvenue par défaut
                     const welcomeDiv = document.createElement('div');
                     welcomeDiv.className = 'chat-message bot';
-                    welcomeDiv.textContent = '👋 Bonjour ! Je suis Agent xcel, votre assistant Excel AI. Importez un fichier pour commencer ou posez-moi une question sur Excel.';
+                    welcomeDiv.textContent = '👋 Bonjour ! Je suis Agent Xcel, votre assistant Excel AI. Importez un fichier pour commencer ou posez-moi une question sur Excel.';
                     chatMessages.appendChild(welcomeDiv);
                 }
 
@@ -1304,7 +1304,7 @@
                     chatMessages.innerHTML = '';
                     const welcomeDiv = document.createElement('div');
                     welcomeDiv.className = 'chat-message bot';
-                    welcomeDiv.textContent = '👋 Bonjour ! Je suis Agent xcel, votre assistant Excel AI. Importez un fichier pour commencer ou posez-moi une question sur Excel.';
+                    welcomeDiv.textContent = '👋 Bonjour ! Je suis Agent Xcel, votre assistant Excel AI. Importez un fichier pour commencer ou posez-moi une question sur Excel.';
                     chatMessages.appendChild(welcomeDiv);
                     
                     // Réinitialiser l'historique
@@ -2217,7 +2217,7 @@ Contexte Excel actuel :
 - Colonnes : ${excelColumns.join(', ')}
 - Aperçu des données : ${JSON.stringify(excelData)}
 
-Tu es Agent xcel, expert Excel AI. Tu peux modifier directement les fichiers Excel en générant des commandes JSON.
+Tu es Agent Xcel, expert Excel AI. Tu peux modifier directement les fichiers Excel en générant des commandes JSON.
 
 COMMANDES JSON DISPONIBLES :
 1. Ajouter colonne : {"action":"addColumn","name":"NomColonne","defaultValue":""}
@@ -2254,7 +2254,7 @@ Tu réponds:
 \`\`\`
 
 La colonne Remise a été ajoutée avec succès !"
-` : `Tu es Agent xcel, expert Excel AI. Aide l'utilisateur avec Excel : formules, analyses, Power Query, tableaux croisés dynamiques, etc.`;
+` : `Tu es Agent Xcel, expert Excel AI. Aide l'utilisateur avec Excel : formules, analyses, Power Query, tableaux croisés dynamiques, etc.`;
 
                     // Convertir l'historique au format backend
                     const historyForBackend = chatHistory.slice(0, -2).map(msg => ({
