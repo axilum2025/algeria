@@ -9,6 +9,10 @@ const { buildWebEvidenceContext } = require('../utils/webEvidence');
 const { buildSystemPromptForAgent } = require('../utils/agentRegistry');
 const { appendEvidenceContext, searchWikipedia, searchNewsApi, searchSemanticScholar } = require('../utils/sourceProviders');
 const { looksTimeSensitiveForHR, looksTimeSensitiveForMarketing, looksTimeSensitiveForDev, looksTimeSensitiveForExcel, looksTimeSensitiveForAlex, looksTimeSensitiveForTony, looksTimeSensitiveForTodo, looksTimeSensitiveForAIManagement, buildSilentWebContext } = require('../utils/silentWebRefresh');
+const { getAuthEmail } = require('../utils/auth');
+const { getUserPlan, hasFeature, getPlanPriority } = require('../utils/entitlements');
+const { checkAndConsume } = require('../utils/planQuota');
+const { appendAuditEvent } = require('../utils/auditStorage');
 
 // Fonction RAG - Recherche Brave (simple)
 async function searchBrave(query, apiKey) {
@@ -76,7 +80,7 @@ module.exports = async function (context, req) {
             headers: { 
                 'Access-Control-Allow-Origin': '*', 
                 'Access-Control-Allow-Methods': 'POST, OPTIONS', 
-                'Access-Control-Allow-Headers': 'Content-Type' 
+                'Access-Control-Allow-Headers': 'Content-Type, Authorization' 
             } 
         };
         return;
@@ -108,6 +112,52 @@ module.exports = async function (context, req) {
 
         const conversationHistory = req.body.history || [];
         const chatType = req.body.chatType || req.body.conversationId;
+
+        const email = getAuthEmail(req);
+        const plan = await getUserPlan(email);
+        const isExcel = chatType === 'excel-expert' || chatType === 'excel-ai-expert';
+
+        // Epic 1: gating/quotas MVP ciblés pour Excel AI Expert (sans casser les autres chatType)
+        if (isExcel && !hasFeature(plan, 'excel_chat')) {
+            await appendAuditEvent({
+                email,
+                action: 'invoke_v2_excel',
+                status: 'blocked',
+                plan,
+                meta: { reason: 'feature_disabled' }
+            });
+            context.res = {
+                status: 403,
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Access-Control-Allow-Origin': '*'
+                },
+                body: { error: 'Accès non autorisé pour votre plan' }
+            };
+            return;
+        }
+
+        if (isExcel) {
+            const quota = checkAndConsume({ plan, email: email || 'guest', feature: 'excel_chat' });
+            if (!quota.allowed) {
+                await appendAuditEvent({
+                    email,
+                    action: 'invoke_v2_excel',
+                    status: 'blocked',
+                    plan,
+                    meta: { reason: 'rate_limited', resetInMs: quota.resetInMs }
+                });
+                context.res = {
+                    status: 429,
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Access-Control-Allow-Origin': '*'
+                    },
+                    body: { error: 'Limite atteinte. Réessayez plus tard.' }
+                };
+                return;
+            }
+        }
 
         const userAsksForSourcesForWesh = (q) => {
             const s = String(q || '').toLowerCase().replace(/[’]/g, "'").trim();
@@ -320,6 +370,7 @@ module.exports = async function (context, req) {
         context.log(`📝 Contexte: ${totalTokens} tokens estimés`);
 
         // 4. 💬 APPEL GROQ AVEC RATE LIMITING
+        const priority = isExcel ? getPlanPriority(plan) : 'normal';
         const groqResponse = await callGroqWithRateLimit(async () => {
             // Prompt spécifique selon le chatType
             let systemPrompt;
@@ -524,7 +575,7 @@ Réponds en français, direct et actionnable.`;
             }
 
             return await response.json();
-        }, 'normal');
+        }, priority);
 
         const aiResponse = groqResponse.choices[0].message.content;
         const responseTime = Date.now() - startTime;
@@ -654,6 +705,21 @@ Réponds en français, direct et actionnable.`;
         // 7. 📈 STATS RATE LIMITER
         const rateLimiterStats = globalRateLimiter.getAllStats();
         context.log('⏱️ Rate limiter stats:', rateLimiterStats);
+
+        if (isExcel) {
+            await appendAuditEvent({
+                email,
+                action: 'invoke_v2_excel',
+                status: 'ok',
+                plan,
+                meta: {
+                    responseTimeMs: responseTime,
+                    tokensUsed: tokensUsedTotal,
+                    contextTokensEstimated: totalTokens,
+                    autoCorrected: !!autoCorrectionApplied
+                }
+            });
+        }
 
         context.res = {
             status: 200,

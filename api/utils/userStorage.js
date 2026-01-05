@@ -35,6 +35,11 @@ async function createUser(username, data) {
         rowKey: username,
         createdAt: new Date()
     });
+
+    // Plan par défaut (MVP)
+    if (!entity.plan) {
+        entity.plan = 'free';
+    }
     // Azure Tables n'accepte pas les arrays directement
     if (entity.roles && Array.isArray(entity.roles)) {
         entity.roles = JSON.stringify(entity.roles);
