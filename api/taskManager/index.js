@@ -54,6 +54,9 @@ module.exports = async function (context, req) {
             case 'productivity':
                 return await productivityStats(context, req, userId);
 
+            case 'coach':
+                return await coachAdvice(context, req, userId);
+
             case 'summary':
                 return await summary(context, req, userId);
             
@@ -61,7 +64,7 @@ module.exports = async function (context, req) {
                 context.res = {
                     status: 400,
                     headers: { 'Content-Type': 'application/json' },
-                    body: { error: "Unknown action. Use: create, list, update, delete, smart-add, smart-command, sync, prioritize, schedule, productivity, summary" }
+                    body: { error: "Unknown action. Use: create, list, update, delete, smart-add, smart-command, sync, prioritize, schedule, productivity, coach, summary" }
                 };
         }
 
@@ -145,6 +148,122 @@ function parseEstimatedMinutes(value) {
 
 function clamp(n, min, max) {
     return Math.min(Math.max(n, min), max);
+}
+
+function parseOptionalInt(value) {
+    if (value === undefined || value === null) return null;
+    const n = parseInt(String(value), 10);
+    return Number.isFinite(n) ? n : null;
+}
+
+function parseOptionalString(value) {
+    if (value === undefined || value === null) return null;
+    const s = String(value).trim();
+    return s ? s : null;
+}
+
+function parsePersonalProfile(req) {
+    const age = parseOptionalInt(req.query?.age ?? req.body?.age);
+    const sex = parseOptionalString(req.query?.sex ?? req.body?.sex);
+    const focusHoursRaw = req.query?.focusHours ?? req.body?.focusHours;
+    const focusHoursNum = focusHoursRaw === undefined || focusHoursRaw === null || focusHoursRaw === ''
+        ? null
+        : Number(focusHoursRaw);
+    const focusHours = Number.isFinite(focusHoursNum) ? clamp(focusHoursNum, 1, 16) : null;
+
+    const provided = age !== null || sex !== null || focusHours !== null;
+
+    return {
+        provided,
+        age: age !== null ? clamp(age, 10, 120) : null,
+        sex,
+        focusHours
+    };
+}
+
+function computeMentalLoadScore(metrics) {
+    const pending = Number(metrics.pending || 0);
+    const overdue = Number(metrics.overdue || 0);
+    const next24Hours = Number(metrics.next24Hours || 0);
+    const overload = metrics.overloadNext24 ? 1 : 0;
+
+    const score = (pending * 8) + (overdue * 15) + (next24Hours * 6) + (overload * 18);
+    return clamp(Math.round(score), 0, 100);
+}
+
+function computeStressIndex(metrics, profile) {
+    const overdue = Number(metrics.overdue || 0);
+    const next24Hours = Number(metrics.next24Hours || 0);
+    const overload = metrics.overloadNext24 ? 1 : 0;
+    const streak = Number(metrics.streakDays || 0);
+
+    const focusHours = Number(profile?.focusHours);
+    const hasFocusHours = Number.isFinite(focusHours);
+    const capacityPenalty = hasFocusHours ? Math.max(0, (next24Hours - focusHours) * 8) : 0;
+
+    const score = (overdue * 20) + (next24Hours * 5) + (overload * 22) - (streak >= 3 ? 8 : 0) + capacityPenalty;
+    return clamp(Math.round(score), 0, 100);
+}
+
+function buildCoachAdvice({ metrics, profile }) {
+    const completed = Number(metrics.completed || 0);
+    const pending = Number(metrics.pending || 0);
+    const overdue = Number(metrics.overdue || 0);
+    const next24Hours = Number(metrics.next24Hours || 0);
+    const pendingEstimatedHours = Number(metrics.pendingEstimatedHours || 0);
+    const overloadNext24 = !!metrics.overloadNext24;
+    const completionRate = Number(metrics.completionRate || 0);
+    const mentalLoadScore = Number(metrics.mentalLoadScore || 0);
+    const stressIndex = Number(metrics.stressIndex || 0);
+
+    const focusHours = Number(profile?.focusHours);
+    const hasFocusHours = Number.isFinite(focusHours);
+
+    const work = [];
+    const personal = [];
+
+    if (!profile?.provided) {
+        work.push("Compléter le profil (âge/sexe/capacité) pour affiner les métriques.");
+    } else if (!hasFocusHours) {
+        work.push("Renseigner une capacité (heures focus/jour) pour détecter la surcharge plus finement.");
+    }
+
+    if (overdue > 0) {
+        work.push(`Traiter d'abord les ${overdue} tâche(s) en retard: choisir 1 urgence + découper la plus lourde en 2–3 sous-tâches.`);
+    }
+
+    if (overloadNext24) {
+        const capHint = hasFocusHours ? ` (capacité ≈ ${focusHours}h)` : '';
+        work.push(`Journée chargée: ~${next24Hours}h prévues sur 24h${capHint}. Reporter 1–2 tâches non critiques et protéger 1 bloc focus.`);
+    } else if (pendingEstimatedHours >= 6) {
+        work.push(`Charge globale élevée (~${pendingEstimatedHours}h). Planifier 2 blocs focus et regrouper les micro-tâches.`);
+    } else {
+        work.push("Rythme stable: garder 1 bloc focus + 1 tâche courte pour maintenir l'élan.");
+    }
+
+    if (pending >= 8 || mentalLoadScore >= 70) {
+        work.push("Réduire la charge mentale: limiter la liste visible à 5 tâches, le reste en backlog.");
+    }
+
+    if (stressIndex >= 70) {
+        personal.push("Stress élevé: bloquer 10 min de pause (respiration/marche) entre 2 tâches importantes.");
+    } else {
+        personal.push("Préserver l'énergie: 1 pause courte toutes les 90 minutes de focus.");
+    }
+
+    if (completionRate < 30 && (pending > 0 || overdue > 0)) {
+        personal.push("Objectif victoire rapide: terminer 1 petite tâche (≤15 min) pour relancer la motivation.");
+    } else if (completed >= 3) {
+        personal.push("Bon rythme: clôturer la journée par un mini bilan (3 lignes) et préparer 1 priorité pour demain.");
+    }
+
+    const response = [
+        `Conseiller: charge ${pending} en cours, ${overdue} en retard.`,
+        `Scores: mental ${mentalLoadScore}/100, stress ${stressIndex}/100, completion ${completionRate}%.`,
+        `Top actions: ${work.slice(0, 2).join(' ')} ${personal.slice(0, 1).join(' ')}`
+    ].join('\n');
+
+    return { response, advice: { work, personal } };
 }
 
 function daysBetween(a, b) {
@@ -410,6 +529,8 @@ async function productivityStats(context, req, userId) {
     const now = new Date();
     const tasks = (await getTasks(userId)).map(normalizeTaskShape);
 
+    const profile = parsePersonalProfile(req);
+
     const completed = tasks.filter(t => String(t.status || '').toLowerCase() === 'completed');
     const pending = tasks.filter(t => String(t.status || '').toLowerCase() !== 'completed');
 
@@ -438,6 +559,21 @@ async function productivityStats(context, req, userId) {
     const totalEstimatedPendingMin = pending.reduce((sum, t) => sum + (parseEstimatedMinutes(t.estimatedTime) || 60), 0);
     const overload = calcOverload(tasks, now);
 
+    const metricsBase = {
+        total: tasks.length,
+        completed: completed.length,
+        pending: pending.length,
+        overdue: overdue.length,
+        streakDays: streak,
+        pendingEstimatedHours: Math.round((totalEstimatedPendingMin / 60) * 10) / 10,
+        overloadNext24: overload.overload,
+        next24Hours: Math.round((overload.next24Minutes / 60) * 10) / 10
+    };
+
+    const completionRate = metricsBase.total > 0 ? Math.round((metricsBase.completed / metricsBase.total) * 100) : 0;
+    const mentalLoadScore = computeMentalLoadScore(metricsBase);
+    const stressIndex = computeStressIndex(metricsBase, profile);
+
     context.res = {
         status: 200,
         headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
@@ -445,15 +581,91 @@ async function productivityStats(context, req, userId) {
             userId,
             now: now.toISOString(),
             metrics: {
-                total: tasks.length,
-                completed: completed.length,
-                pending: pending.length,
-                overdue: overdue.length,
-                streakDays: streak,
-                pendingEstimatedHours: Math.round((totalEstimatedPendingMin / 60) * 10) / 10,
-                overloadNext24: overload.overload,
-                next24Hours: Math.round((overload.next24Minutes / 60) * 10) / 10
+                ...metricsBase,
+                completionRate,
+                mentalLoadScore,
+                stressIndex,
+                profile: {
+                    provided: profile.provided,
+                    age: profile.age,
+                    sex: profile.sex,
+                    focusHours: profile.focusHours
+                }
             }
+        }
+    };
+}
+
+async function coachAdvice(context, req, userId) {
+    const now = new Date();
+    const tasks = (await getTasks(userId)).map(normalizeTaskShape);
+    const profile = parsePersonalProfile(req);
+
+    const completed = tasks.filter(t => String(t.status || '').toLowerCase() === 'completed');
+    const pending = tasks.filter(t => String(t.status || '').toLowerCase() !== 'completed');
+    const overdue = pending.filter(t => {
+        const d = parseIsoDate(t.deadline);
+        return d && d.getTime() < now.getTime();
+    });
+
+    const byDay = new Set(
+        completed
+            .map(t => parseIsoDate(t.completedAt || t.updatedAt))
+            .filter(Boolean)
+            .map(d => d.toISOString().slice(0, 10))
+    );
+
+    let streak = 0;
+    for (let i = 0; i < 365; i++) {
+        const d = new Date(now);
+        d.setDate(now.getDate() - i);
+        const key = d.toISOString().slice(0, 10);
+        if (byDay.has(key)) streak++;
+        else break;
+    }
+
+    const totalEstimatedPendingMin = pending.reduce((sum, t) => sum + (parseEstimatedMinutes(t.estimatedTime) || 60), 0);
+    const overload = calcOverload(tasks, now);
+
+    const metricsBase = {
+        total: tasks.length,
+        completed: completed.length,
+        pending: pending.length,
+        overdue: overdue.length,
+        streakDays: streak,
+        pendingEstimatedHours: Math.round((totalEstimatedPendingMin / 60) * 10) / 10,
+        overloadNext24: overload.overload,
+        next24Hours: Math.round((overload.next24Minutes / 60) * 10) / 10
+    };
+
+    const completionRate = metricsBase.total > 0 ? Math.round((metricsBase.completed / metricsBase.total) * 100) : 0;
+    const mentalLoadScore = computeMentalLoadScore(metricsBase);
+    const stressIndex = computeStressIndex(metricsBase, profile);
+
+    const metrics = {
+        ...metricsBase,
+        completionRate,
+        mentalLoadScore,
+        stressIndex
+    };
+
+    const coach = buildCoachAdvice({ metrics, profile });
+
+    context.res = {
+        status: 200,
+        headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
+        body: {
+            userId,
+            now: now.toISOString(),
+            profile: {
+                provided: profile.provided,
+                age: profile.age,
+                sex: profile.sex,
+                focusHours: profile.focusHours
+            },
+            metrics,
+            response: coach.response,
+            advice: coach.advice
         }
     };
 }
