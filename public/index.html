@@ -159,6 +159,29 @@
             margin-right: 10px;
         }
 
+        /* Quota Counter (près du plan) */
+        .quota-indicator {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: var(--bg-secondary);
+            padding: 6px 10px;
+            border-radius: 10px;
+            color: var(--text-secondary);
+            font-size: 12px;
+            font-weight: 600;
+            white-space: nowrap;
+        }
+
+        .quota-indicator svg {
+            width: 14px;
+            height: 14px;
+        }
+
+        .quota-indicator .quota-value {
+            font-variant-numeric: tabular-nums;
+        }
+
         .plan-badge {
             border: none;
             padding: 6px 14px;
@@ -2634,6 +2657,18 @@
                 <button class="plan-badge pro active" id="planBadgePro" title="Plan Pro - Llama 3.3 70B + Fonctions Azure">
                     PRO
                 </button>
+                <button class="plan-badge pro enterprise" id="planBadgeEnterprise" title="Plan Entreprise - Llama 3.3 70B + Fonctions Azure">
+                    ENTREPRISE
+                </button>
+            </div>
+
+            <!-- Quota Counter -->
+            <div class="quota-indicator" id="quotaIndicator" title="Quota (indicatif)">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <path d="M12 1v22"/>
+                    <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7H14a3.5 3.5 0 0 1 0 7H6"/>
+                </svg>
+                <span class="quota-value" id="quotaValue">—</span>
             </div>
         </div>
     </div>
@@ -2688,6 +2723,13 @@
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
                 </svg>
                 <span class="menu-item-text">À propos</span>
+            </button>
+
+            <button class="menu-item" onclick="try { switchToPlan('enterprise'); } catch (_) {}">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5a2 2 0 104 0 2 2 0 10-4 0zM5 11a2 2 0 102 2h2a2 2 0 102-2v-2a2 2 0 10-2-2H9a2 2 0 10-4 2v2zM13 13a2 2 0 112 2v2a2 2 0 11-2 2h-2a2 2 0 11-2-2v-2a2 2 0 112-2h2z"/>
+                </svg>
+                <span class="menu-item-text">Entreprise</span>
             </button>
             <!-- Section Office™ (dépliable) -->
             <button class="menu-item" onclick="toggleFunctionsSection()" title="Office™">
@@ -5797,22 +5839,43 @@ ${persona}
             return full;
         }
 
+        function getQuotaLabelForPlan(plan) {
+            const p = String(plan || '').toLowerCase();
+            if (p === 'free') return '50';
+            if (p === 'enterprise') return '5000';
+            return '500';
+        }
+
+        function updateQuotaUI(plan) {
+            const quotaValue = document.getElementById('quotaValue');
+            if (!quotaValue) return;
+            quotaValue.textContent = getQuotaLabelForPlan(plan);
+        }
+
         function switchToPlan(plan) {
-            currentPlan = plan;
-            localStorage.setItem('axilum_plan', plan);
-            localStorage.setItem('selectedPlan', plan.toUpperCase()); // Synchroniser avec selectedPlan
-            
+            const p = String(plan || '').toLowerCase();
+            const normalized = (p === 'free' || p === 'pro' || p === 'enterprise') ? p : 'pro';
+
+            currentPlan = normalized;
+            localStorage.setItem('axilum_plan', normalized);
+            localStorage.setItem('selectedPlan', normalized.toUpperCase()); // Synchroniser avec selectedPlan
+
             // Update UI
             const freeBadge = document.getElementById('planBadgeFree');
             const proBadge = document.getElementById('planBadgePro');
-            
-            if (plan === 'free') {
-                freeBadge.classList.add('active');
-                proBadge.classList.remove('active');
+            const entBadge = document.getElementById('planBadgeEnterprise');
+
+            if (freeBadge) freeBadge.classList.toggle('active', normalized === 'free');
+            if (proBadge) proBadge.classList.toggle('active', normalized === 'pro');
+            if (entBadge) entBadge.classList.toggle('active', normalized === 'enterprise');
+
+            updateQuotaUI(normalized);
+
+            if (normalized === 'free') {
                 showToast('Mode FREE', 'info');
+            } else if (normalized === 'enterprise') {
+                showToast('Mode ENTREPRISE', 'success');
             } else {
-                proBadge.classList.add('active');
-                freeBadge.classList.remove('active');
                 showToast('Mode PRO', 'success');
             }
         }
@@ -5848,10 +5911,12 @@ ${persona}
             const menuBtn = document.getElementById('menuToggleBtn');
             const freeBadge = document.getElementById('planBadgeFree');
             const proBadge = document.getElementById('planBadgePro');
+            const entBadge = document.getElementById('planBadgeEnterprise');
             
             if (menuBtn) menuBtn.addEventListener('click', toggleSidebar);
             if (freeBadge) freeBadge.addEventListener('click', () => switchToPlan('free'));
             if (proBadge) proBadge.addEventListener('click', () => switchToPlan('pro'));
+            if (entBadge) entBadge.addEventListener('click', () => switchToPlan('enterprise'));
             
             switchToPlan(currentPlan);
         });
@@ -6511,7 +6576,7 @@ ${persona}
 
                 if (lastImageBase64) {
                     const selectedPlan = (localStorage.getItem('selectedPlan') || '').toUpperCase();
-                    const isPro = currentPlan === 'pro' || selectedPlan === 'PRO';
+                    const isPro = currentPlan === 'pro' || currentPlan === 'enterprise' || selectedPlan === 'PRO' || selectedPlan === 'ENTERPRISE';
 
                     if (!isPro) {
                         usedFreeOcr = true;
@@ -7613,7 +7678,7 @@ ${persona}
                         
                         // Réactiver l'analyse uniquement pour le plan PRO
                         const currentPlan = localStorage.getItem('selectedPlan') || 'FREE';
-                        if (currentPlan === 'PRO') {
+                        if (currentPlan === 'PRO' || currentPlan === 'ENTERPRISE') {
                             const analyzeEndpoint = '/api/analyze-image-pro';
                             showToast('🔍 Analyse avec Azure Vision (PRO)...', 'info');
                             showTyping();
@@ -17653,7 +17718,7 @@ function showAddProjectModal() {
             // Vérifier si l'utilisateur est en mode PRO
             const currentPlan = localStorage.getItem('selectedPlan') || 'FREE';
             
-            if (currentPlan !== 'PRO') {
+            if (currentPlan !== 'PRO' && currentPlan !== 'ENTERPRISE') {
                 showToast('AI Vision PRO est réservé aux utilisateurs PRO. Passez au plan PRO pour accéder à cette fonctionnalité.', 'error');
                 return;
             }
