@@ -10073,10 +10073,32 @@ ${persona}
                 const isProductivity = /(\bproductiv|\bstats|\bmétriques|\bmetriques|\bperformance)/i.test(normalized);
                 const isCoach = /(\bcoach|\bconseil|\bconseiller|\bbien[-\s]?etre|\blife)/i.test(normalized);
 
-                // Laisser les opérations "action" passer sur smart-command même en mode coach
-                const isTaskOperation = /(\bajoute|\bajouter|\bcrée|\bcreer|\bcréer|\bsupprime|\bsupprimer|\bdelete|\btermine|\bterminer|\bcompl[eé]te|\bcompl[eé]ter|\bmarque|\bmodifier|\bmodifie|\bedite|\bedit)/i.test(normalized);
+                // Laisser TOUTES les commandes d'action (CRUD/édition/déplacement/complétion) passer sur smart-command
+                // même si le mode Coach est activé et/ou si le message contient "coach".
+                const isSlashCommand = /^\s*\//.test(command);
+                const taskOperationRe = new RegExp(
+                    '(?:' +
+                    // Ajout / création
+                    '\\bajoute(?:r|z)?\\b|\\bajouter\\b|\\brajoute(?:r|z)?\\b|\\brajouter\\b|' +
+                    '\\bcr[eé]e(?:r|z)?\\b|\\bcr[eé]er\\b|\\bcree(?:r|z)?\\b|\\bcreer\\b|' +
+                    // Suppression
+                    '\\bsupprime(?:r|z)?\\b|\\bsupprimer\\b|\\befface(?:r|z)?\\b|\\beffacer\\b|' +
+                    '\\benl[eè]ve(?:r|z)?\\b|\\benlever\\b|\\bretire(?:r|z)?\\b|\\bretirer\\b|' +
+                    // Modification
+                    '\\bmodifie(?:r|z)?\\b|\\bmodifier\\b|\\bchange(?:r|z)?\\b|\\bchanger\\b|\\bupdate\\b|\\bedit\\b|\\b(?:[eé])dite(?:r|z)?\\b|' +
+                    // Déplacement / replanification
+                    '\\bd[eé]place(?:r|z)?\\b|\\bd[eé]placer\\b|\\breporte(?:r|z)?\\b|\\breporter\\b|\\b(?:re)?planifie(?:r|z)?\\b|\\b(?:re)?planifier\\b|' +
+                    // Statut / clôture
+                    '\\bmarque(?:r|z)?\\b|\\bmarquer\\b|\\btermine(?:r|z)?\\b|\\bterminer\\b|\\bcompl[eé]te(?:r|z)?\\b|\\bcompl[eé]ter\\b|' +
+                    '\\bdone\\b|\\bclose\\b|\\bcl[oô]ture(?:r|z)?\\b|\\bcl[oô]turer\\b|' +
+                    // Anglais
+                    '\\bdelete\\b' +
+                    ')',
+                    'i'
+                );
+                const isTaskOperation = isSlashCommand || taskOperationRe.test(normalized);
 
-                const shouldUseCoach = isCoach || (coachEnabled && !isPrioritize && !isSchedule && !isSummary && !isProductivity && !isTaskOperation);
+                const shouldUseCoach = (!isTaskOperation) && (isCoach || (coachEnabled && !isPrioritize && !isSchedule && !isSummary && !isProductivity));
 
                 if (isPrioritize || isSchedule || isSummary || isProductivity || shouldUseCoach) {
                     await syncTasksToServer();
