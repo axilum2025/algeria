@@ -10906,15 +10906,20 @@ ${persona}
             const onFocusIn = (e) => {
                 try {
                     const textarea = document.getElementById('textProTextarea');
-                    if (!textarea) return;
+                    const chatInput = document.getElementById('textProChatInput');
+                    if (!textarea && !chatInput) return;
                     const target = e && e.target ? e.target : null;
                     if (!target) return;
 
-                    const isTextProField = target === textarea || textarea.contains(target);
+                    const isTextProField = (textarea && (target === textarea || textarea.contains(target)))
+                        || (chatInput && (target === chatInput || chatInput.contains(target)));
                     if (!isTextProField) return;
 
                     const delta = Date.now() - (lastPointerDown.t || 0);
-                    const pointerInsideField = !!(lastPointerDown.target && (lastPointerDown.target === textarea || textarea.contains(lastPointerDown.target)));
+                    const pointerInsideField = !!(lastPointerDown.target && (
+                        (textarea && (lastPointerDown.target === textarea || textarea.contains(lastPointerDown.target))) ||
+                        (chatInput && (lastPointerDown.target === chatInput || chatInput.contains(lastPointerDown.target)))
+                    ));
 
                     // Si le focus n'est pas déclenché par un clic direct dans la zone, on blur.
                     if (!pointerInsideField || delta > 250) {
@@ -10930,9 +10935,12 @@ ${persona}
             setTimeout(() => {
                 try {
                     const textarea = document.getElementById('textProTextarea');
+                    const chatInput = document.getElementById('textProChatInput');
                     const ae = document.activeElement;
-                    if (!textarea || !ae) return;
-                    if (ae === textarea || textarea.contains(ae)) {
+                    if (!ae || (!textarea && !chatInput)) return;
+                    const isInTextArea = textarea && (ae === textarea || textarea.contains(ae));
+                    const isInChatInput = chatInput && (ae === chatInput || chatInput.contains(ae));
+                    if (isInTextArea || isInChatInput) {
                         try { ae.blur(); } catch (_) {}
                     }
                 } catch (_) {}
