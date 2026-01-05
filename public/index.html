@@ -9548,6 +9548,10 @@ ${persona}
             if (overlay) {
                 overlay.remove();
             }
+
+            // Fermer le modal profil s'il est ouvert (sinon il peut rester affiché/masqué)
+            try { closePersonalProfileModal(); } catch (_) {}
+
             selectedTask = null;
             detailsPanelOpen = false;
             stopNotificationCheck();
@@ -10658,7 +10662,8 @@ ${persona}
             modal.style.alignItems = 'center';
             modal.style.justifyContent = 'center';
             modal.style.padding = '18px';
-            modal.style.zIndex = '9999';
+            // Doit passer au-dessus des overlays (ex: AI Task overlay z-index 10000)
+            modal.style.zIndex = '40000';
 
             modal.innerHTML = `
                 <div role="dialog" aria-modal="true" style="width: 100%; max-width: 520px; background: var(--bg-primary); border: 1px solid var(--border-color); border-radius: 14px; padding: 16px; box-shadow: 0 12px 30px var(--shadow);">
