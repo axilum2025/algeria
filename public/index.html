@@ -10895,15 +10895,56 @@ ${persona}
 
         function preventTextProAutoFocus() {
             // Évite que l'ouverture de Text Pro capture le curseur automatiquement.
-            // L'utilisateur pourra cliquer dans la zone de texte s'il veut écrire.
+            // IMPORTANT: certains modules déclenchent un focus() différé; on protège
+            // donc pendant un court laps de temps, sans bloquer le clic volontaire.
+            let lastPointerDown = { t: 0, target: null };
+
+            const onPointerDown = (e) => {
+                lastPointerDown = { t: Date.now(), target: e && e.target ? e.target : null };
+            };
+
+            const onFocusIn = (e) => {
+                try {
+                    const textarea = document.getElementById('textProTextarea');
+                    if (!textarea) return;
+                    const target = e && e.target ? e.target : null;
+                    if (!target) return;
+
+                    const isTextProField = target === textarea || textarea.contains(target);
+                    if (!isTextProField) return;
+
+                    const delta = Date.now() - (lastPointerDown.t || 0);
+                    const pointerInsideField = !!(lastPointerDown.target && (lastPointerDown.target === textarea || textarea.contains(lastPointerDown.target)));
+
+                    // Si le focus n'est pas déclenché par un clic direct dans la zone, on blur.
+                    if (!pointerInsideField || delta > 250) {
+                        try { target.blur(); } catch (_) {}
+                    }
+                } catch (_) {}
+            };
+
+            document.addEventListener('pointerdown', onPointerDown, true);
+            document.addEventListener('focusin', onFocusIn, true);
+
+            // Blur immédiat si un focus a déjà été pris au moment de l'ouverture.
             setTimeout(() => {
                 try {
+                    const textarea = document.getElementById('textProTextarea');
                     const ae = document.activeElement;
-                    if (!ae) return;
-                    const tag = String(ae.tagName || '').toUpperCase();
-                    if (tag === 'INPUT' || tag === 'TEXTAREA') ae.blur();
+                    if (!textarea || !ae) return;
+                    if (ae === textarea || textarea.contains(ae)) {
+                        try { ae.blur(); } catch (_) {}
+                    }
                 } catch (_) {}
             }, 0);
+
+            // Nettoyage: ne pas garder les listeners trop longtemps.
+            setTimeout(() => {
+                try {
+                    document.removeEventListener('pointerdown', onPointerDown, true);
+                    document.removeEventListener('focusin', onFocusIn, true);
+                } catch (_) {}
+            }, 1200);
         }
         
         function loadTextProModule() {
