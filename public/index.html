@@ -5873,6 +5873,22 @@ ${persona}
             const message = input.value.trim();
             if (!message) return;
 
+            // Ne pas "voler" le focus après la réponse : si l'utilisateur clique ailleurs pendant l'attente,
+            // on évite de remettre automatiquement le focus dans le champ du chat.
+            let allowAutoRefocus = false;
+            let userInteractedOutsideChatInput = false;
+            const markInteractionOutside = (e) => {
+                try {
+                    const target = e && e.target;
+                    if (!target) return;
+                    if (target === input) return;
+                    const sendBtnEl = document.getElementById('sendBtn');
+                    if (sendBtnEl && target === sendBtnEl) return;
+                    if (typeof target.closest === 'function' && target.closest('.input-container')) return;
+                    userInteractedOutsideChatInput = true;
+                } catch (_) {}
+            };
+
             // 🤝 Mode Team Auto (orchestrator) : route automatiquement les messages "normaux".
             // IMPORTANT: ne jamais intercepter les commandes (ex: /agent ...) sinon on reste coincé en Team.
             const isCommand = /^\s*\//.test(message);
@@ -6103,6 +6119,17 @@ ${persona}
 
                 // Disable input
                 const sendBtn = document.getElementById('sendBtn');
+
+                try {
+                    allowAutoRefocus = (document.activeElement === input || document.activeElement === sendBtn);
+                } catch (_) {
+                    allowAutoRefocus = false;
+                }
+                try {
+                    document.addEventListener('pointerdown', markInteractionOutside, true);
+                    document.addEventListener('focusin', markInteractionOutside, true);
+                } catch (_) {}
+
                 sendBtn.disabled = true;
                 input.disabled = true;
 
@@ -6233,6 +6260,11 @@ ${persona}
                     hideTyping();
                     addMessage(`❌ Erreur analyse: ${err.message}`, 'bot', { detectorReport: true });
                 } finally {
+                    try {
+                        document.removeEventListener('pointerdown', markInteractionOutside, true);
+                        document.removeEventListener('focusin', markInteractionOutside, true);
+                    } catch (_) {}
+
                     hallucinationVerifyMode.active = false;
                     if (input) {
                         try {
@@ -6246,7 +6278,11 @@ ${persona}
                     const sendBtn = document.getElementById('sendBtn');
                     sendBtn.disabled = false;
                     input.disabled = false;
-                    try { input.focus(); } catch (_) {}
+                    try {
+                        if (!userInteractedOutsideChatInput && allowAutoRefocus) {
+                            input.focus();
+                        }
+                    } catch (_) {}
                 }
 
                 return;
@@ -6274,6 +6310,17 @@ ${persona}
 
             // Disable input
             const sendBtn = document.getElementById('sendBtn');
+
+            try {
+                allowAutoRefocus = (document.activeElement === input || document.activeElement === sendBtn);
+            } catch (_) {
+                allowAutoRefocus = false;
+            }
+            try {
+                document.addEventListener('pointerdown', markInteractionOutside, true);
+                document.addEventListener('focusin', markInteractionOutside, true);
+            } catch (_) {}
+
             sendBtn.disabled = true;
             input.disabled = true;
 
@@ -6717,9 +6764,17 @@ ${persona}
                 addMessage(`Erreur: ${error.message}`, 'error');
                 showToast('❌ Erreur de connexion', 'error');
             } finally {
+                try {
+                    document.removeEventListener('pointerdown', markInteractionOutside, true);
+                    document.removeEventListener('focusin', markInteractionOutside, true);
+                } catch (_) {}
                 sendBtn.disabled = false;
                 input.disabled = false;
-                input.focus();
+                try {
+                    if (!userInteractedOutsideChatInput && allowAutoRefocus) {
+                        input.focus();
+                    }
+                } catch (_) {}
             }
         }
 
