@@ -63,6 +63,39 @@ module.exports = async function (context, req) {
     }
 };
 
+function normalizeId(value) {
+    if (value === null || value === undefined) return '';
+    return String(value);
+}
+
+function coerceArray(value) {
+    return Array.isArray(value) ? value : [];
+}
+
+function normalizeAction(action, { hasWrites } = {}) {
+    const allowed = new Set(['organize', 'suggest', 'modify', 'analyze', 'info']);
+    const a = String(action || '').trim().toLowerCase();
+    if (allowed.has(a)) return a;
+    // Compat: si l'IA répond "create"/"delete", on l'expose comme "modify"
+    if (hasWrites) return 'modify';
+    return 'info';
+}
+
+function normalizeTaskShape(task) {
+    const t = task && typeof task === 'object' ? task : {};
+    const id = normalizeId(t.id || Date.now().toString() + Math.random().toString(36).slice(2));
+    // Compat: accepter dueDate côté client et stocker en deadline
+    const deadline = t.deadline ?? t.dueDate ?? null;
+
+    return {
+        ...t,
+        id,
+        deadline,
+        createdAt: t.createdAt || new Date().toISOString(),
+        updatedAt: t.updatedAt || new Date().toISOString()
+    };
+}
+
 /**
  * Ajout intelligent de tâche via IA (parse langage naturel)
  */
@@ -153,13 +186,13 @@ Output: {"title":"Acheter du lait","priority":"low","category":"personnel",...}`
     const parsedTask = JSON.parse(aiData.choices[0].message.content);
 
     // Créer la tâche avec ID
-    const task = {
+    const task = normalizeTaskShape({
         id: Date.now().toString(),
         ...parsedTask,
         status: 'pending',
         createdAt: new Date().toISOString(),
         originalInput: description
-    };
+    });
 
     // Sauvegarder (simulation - en production: Azure Storage)
     const tasks = await getTasks(userId);
@@ -184,18 +217,18 @@ Output: {"title":"Acheter du lait","priority":"low","category":"personnel",...}`
  * Créer une tâche manuellement (ou mettre à jour si existe)
  */
 async function createTask(context, req, userId) {
-    const task = {
-        id: req.body.id || Date.now().toString(),
+    const task = normalizeTaskShape({
+        id: req.body?.id || Date.now().toString(),
         ...req.body,
-        status: req.body.status || 'pending',
-        createdAt: req.body.createdAt || new Date().toISOString(),
+        status: req.body?.status || 'pending',
+        createdAt: req.body?.createdAt || new Date().toISOString(),
         updatedAt: new Date().toISOString()
-    };
+    });
 
     const tasks = await getTasks(userId);
     
     // Chercher si la tâche existe déjà (par ID)
-    const existingIndex = tasks.findIndex(t => t.id === task.id);
+    const existingIndex = tasks.findIndex(t => normalizeId(t.id) === task.id);
     
     if (existingIndex >= 0) {
         // Mettre à jour la tâche existante
@@ -265,7 +298,8 @@ async function updateTask(context, req, userId) {
     }
 
     const tasks = await getTasks(userId);
-    const taskIndex = tasks.findIndex(t => t.id === taskId);
+    const taskIdNorm = normalizeId(taskId);
+    const taskIndex = tasks.findIndex(t => normalizeId(t.id) === taskIdNorm);
 
     if (taskIndex === -1) {
         context.res = {
@@ -276,11 +310,19 @@ async function updateTask(context, req, userId) {
         return;
     }
 
-    tasks[taskIndex] = {
+    // Compat: accepter dueDate côté client
+    const normalizedUpdates = { ...updates };
+    if (normalizedUpdates.dueDate != null && normalizedUpdates.deadline == null) {
+        normalizedUpdates.deadline = normalizedUpdates.dueDate;
+        delete normalizedUpdates.dueDate;
+    }
+
+    tasks[taskIndex] = normalizeTaskShape({
         ...tasks[taskIndex],
-        ...updates,
+        ...normalizedUpdates,
+        id: normalizeId(tasks[taskIndex].id),
         updatedAt: new Date().toISOString()
-    };
+    });
 
     await saveTasks(userId, tasks);
 
@@ -313,7 +355,8 @@ async function deleteTask(context, req, userId) {
     }
 
     const tasks = await getTasks(userId);
-    const filtered = tasks.filter(t => t.id !== taskId);
+    const taskIdNorm = normalizeId(taskId);
+    const filtered = tasks.filter(t => normalizeId(t.id) !== taskIdNorm);
 
     if (filtered.length === tasks.length) {
         context.res = {
@@ -354,8 +397,9 @@ async function syncTasks(context, req, userId) {
         return;
     }
 
-    // Remplacer complètement les tâches du serveur
-    await saveTasks(userId, tasks);
+    // Remplacer complètement les tâches du serveur (normalisées)
+    const normalized = coerceArray(tasks).map(normalizeTaskShape);
+    await saveTasks(userId, normalized);
 
     context.res = {
         status: 200,
@@ -398,7 +442,7 @@ async function smartCommand(context, req, userId) {
     }
 
     // Récupérer toutes les tâches pour contexte
-    const tasks = await getTasks(userId);
+    const tasks = (await getTasks(userId)).map(normalizeTaskShape);
     
     // Contexte temporel
     const now = new Date();
@@ -541,52 +585,86 @@ RÈGLES:
     }
 
     const aiData = await response.json();
-    const result = JSON.parse(aiData.choices[0].message.content);
+    let result;
+    try {
+        result = JSON.parse(aiData.choices[0].message.content);
+    } catch (e) {
+        context.res = {
+            status: 200,
+            headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
+            body: { error: 'Réponse IA invalide (JSON).', details: String(e && e.message ? e.message : e) }
+        };
+        return;
+    }
+
+    const changes = coerceArray(result.changes);
+    const created = coerceArray(result.created);
+    const deleted = coerceArray(result.deleted);
+    const hasWrites = changes.length > 0 || created.length > 0 || deleted.length > 0;
+    const normalizedAction = normalizeAction(result.action, { hasWrites });
 
     // Appliquer les changements suggérés par l'IA
     let updatedTasks = [...tasks];
     let tasksModified = 0;
 
     // 1. Modifier les tâches existantes
-    if (result.changes && result.changes.length > 0) {
-        result.changes.forEach(change => {
-            const taskIndex = updatedTasks.findIndex(t => t.id === change.taskId);
+    if (changes.length > 0) {
+        changes.forEach(change => {
+            const changeTaskId = normalizeId(change && change.taskId);
+            const taskIndex = updatedTasks.findIndex(t => normalizeId(t.id) === changeTaskId);
             if (taskIndex !== -1) {
-                updatedTasks[taskIndex] = {
+                const rawUpdates = (change && change.updates && typeof change.updates === 'object') ? change.updates : {};
+                // Compat: accepter dueDate côté client
+                const safeUpdates = { ...rawUpdates };
+                if (safeUpdates.dueDate != null && safeUpdates.deadline == null) {
+                    safeUpdates.deadline = safeUpdates.dueDate;
+                    delete safeUpdates.dueDate;
+                }
+
+                // Normaliser status
+                if (typeof safeUpdates.status === 'string') {
+                    const s = safeUpdates.status.toLowerCase();
+                    if (s === 'done' || s === 'completed' || s === 'finish' || s === 'finished') safeUpdates.status = 'completed';
+                    if (s === 'todo' || s === 'pending' || s === 'open') safeUpdates.status = 'pending';
+                }
+
+                updatedTasks[taskIndex] = normalizeTaskShape({
                     ...updatedTasks[taskIndex],
-                    ...change.updates,
+                    ...safeUpdates,
+                    id: normalizeId(updatedTasks[taskIndex].id),
                     updatedAt: new Date().toISOString()
-                };
+                });
                 tasksModified++;
             }
         });
     }
 
     // 2. Créer de nouvelles tâches
-    if (result.created && result.created.length > 0) {
-        result.created.forEach(newTask => {
-            const task = {
-                id: Date.now().toString() + Math.random().toString(36).substr(2, 9),
-                title: newTask.title,
-                description: newTask.description || '',
-                priority: newTask.priority || 'normal',
-                deadline: newTask.deadline || null,
-                category: newTask.category || 'personnel',
-                status: newTask.status || 'pending',
-                estimatedTime: newTask.estimatedTime || null,
-                subtasks: newTask.subtasks || [],
+    if (created.length > 0) {
+        created.forEach(newTask => {
+            const task = normalizeTaskShape({
+                id: Date.now().toString() + Math.random().toString(36).slice(2),
+                title: newTask && newTask.title,
+                description: (newTask && newTask.description) || '',
+                priority: (newTask && newTask.priority) || 'normal',
+                deadline: (newTask && (newTask.deadline ?? newTask.dueDate)) || null,
+                category: (newTask && newTask.category) || 'personnel',
+                status: (newTask && newTask.status) || 'pending',
+                estimatedTime: (newTask && newTask.estimatedTime) || null,
+                subtasks: (newTask && newTask.subtasks) || [],
                 createdAt: new Date().toISOString(),
                 updatedAt: new Date().toISOString()
-            };
+            });
             updatedTasks.push(task);
             tasksModified++;
         });
     }
 
     // 3. Supprimer des tâches
-    if (result.deleted && result.deleted.length > 0) {
-        result.deleted.forEach(taskId => {
-            const taskIndex = updatedTasks.findIndex(t => t.id === taskId);
+    if (deleted.length > 0) {
+        deleted.forEach(taskId => {
+            const taskIdNorm = normalizeId(taskId);
+            const taskIndex = updatedTasks.findIndex(t => normalizeId(t.id) === taskIdNorm);
             if (taskIndex !== -1) {
                 updatedTasks.splice(taskIndex, 1);
                 tasksModified++;
@@ -606,13 +684,13 @@ RÈGLES:
             'Access-Control-Allow-Origin': '*'
         },
         body: {
-            response: result.response,
-            action: result.action,
-            changes: result.changes || [],
-            created: result.created || [],
-            deleted: result.deleted || [],
-            suggestions: result.suggestions || [],
-            insights: result.insights || {},
+            response: String(result.response || ''),
+            action: normalizedAction,
+            changes: changes,
+            created: created,
+            deleted: deleted,
+            suggestions: coerceArray(result.suggestions),
+            insights: (result.insights && typeof result.insights === 'object') ? result.insights : {},
             tasksModified: tasksModified,
             tokensUsed: aiData.usage?.total_tokens || 0
         }
@@ -623,10 +701,10 @@ RÈGLES:
 let tasksCache = {};
 
 async function getTasks(userId) {
-    return tasksCache[userId] || [];
+    return coerceArray(tasksCache[userId]);
 }
 
 async function saveTasks(userId, tasks) {
-    tasksCache[userId] = tasks;
+    tasksCache[userId] = coerceArray(tasks).map(normalizeTaskShape);
     return true;
 }

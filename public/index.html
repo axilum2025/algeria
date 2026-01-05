@@ -7930,9 +7930,67 @@ ${persona}
         function saveTasks() {
             localStorage.setItem('userTasks', JSON.stringify(userTasks));
         }
+
+        function normalizeTodoId(value) {
+            if (value === null || value === undefined) return '';
+            return String(value);
+        }
+
+        function findTaskById(taskId) {
+            const id = normalizeTodoId(taskId);
+            return userTasks.find(t => normalizeTodoId(t && t.id) === id) || null;
+        }
+
+        // Ajouter une tâche (helper, utilisé par Agent ToDo + fallback)
+        function addTask(title, dueDate = null, priority = 'medium', category = 'Autre', projectId = null, description = '') {
+            const cleanTitle = String(title || '').trim();
+            if (!cleanTitle) return null;
+
+            let prio = String(priority || 'medium').toLowerCase();
+            if (prio === 'urgent' || prio === 'high' || prio === 'haute') prio = 'high';
+            else if (prio === 'low' || prio === 'basse') prio = 'low';
+            else prio = 'medium';
+
+            const task = {
+                id: normalizeTodoId(Date.now()) + Math.random().toString(36).slice(2, 8),
+                title: cleanTitle,
+                description: String(description || ''),
+                priority: prio,
+                dueDate: dueDate || null,
+                category: category || 'Autre',
+                completed: false,
+                inProgress: false,
+                createdAt: new Date().toISOString(),
+                updatedAt: new Date().toISOString(),
+                subtasks: [],
+                notifyEnabled: false,
+                notificationEnabled: false,
+                projectId: projectId != null ? projectId : null,
+                progress: 0,
+                userId: currentUser?.email || 'guest'
+            };
+
+            userTasks.push(task);
+            saveTasks();
+            return task;
+        }
+
+        // Marquer une tâche comme terminée (helper legacy)
+        function completeTask(taskId) {
+            const task = findTaskById(taskId);
+            if (!task) return false;
+            task.completed = true;
+            task.inProgress = false;
+            task.updatedAt = new Date().toISOString();
+            saveTasks();
+            if (task.projectId != null) updateProjectProgress(task.projectId);
+            return true;
+        }
+
         // Supprimer une tâche
         function deleteTask(taskId) {
-            userTasks = userTasks.filter(t => t.id !== taskId);
+            const id = normalizeTodoId(taskId);
+            userTasks = userTasks.filter(t => normalizeTodoId(t && t.id) !== id);
             saveTasks();
         }
         
@@ -9487,12 +9545,30 @@ ${persona}
         let aiAssistantOpen = false;
         let aiAssistantMinimized = false;
 
+        function getTodoUserId() {
+            try {
+                const email = currentUser?.email;
+                return email ? String(email) : 'guest';
+            } catch (_) {
+                return 'guest';
+            }
+        }
+
+        function escapeHtml(value) {
+            return String(value ?? '')
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#39;');
+        }
+
         // Synchronisation localStorage <-> Serveur
         async function syncTasksToServer() {
             try {
                 // Envoyer toutes les tâches localStorage au serveur (REMPLACER complètement)
                 const tasks = userTasks.map(task => ({
-                    id: task.id || Date.now().toString() + Math.random().toString(36).substr(2, 9),
+                    id: task && task.id != null ? String(task.id) : (Date.now().toString() + Math.random().toString(36).substr(2, 9)),
                     title: task.title,
                     description: task.description || '',
                     priority: task.priority || 'medium',
@@ -9509,7 +9585,7 @@ ${persona}
                 const response = await fetch('/api/tasks/sync', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ tasks: tasks })
+                    body: JSON.stringify({ tasks: tasks, userId: getTodoUserId() })
                 });
 
                 if (response.ok) {
@@ -9525,13 +9601,13 @@ ${persona}
 
         async function syncTasksFromServer() {
             try {
-                const response = await fetch('/api/tasks/list');
+                const response = await fetch(`/api/tasks/list?userId=${encodeURIComponent(getTodoUserId())}`);
                 const data = await response.json();
                 
                 if (data.tasks && data.tasks.length > 0) {
                     // Serveur a des tâches - les charger
                     userTasks = data.tasks.map(serverTask => ({
-                        id: serverTask.id,
+                        id: serverTask && serverTask.id != null ? String(serverTask.id) : (Date.now().toString() + Math.random().toString(36).substr(2, 9)),
                         title: serverTask.title,
                         description: serverTask.description || '',
                         priority: serverTask.priority || 'medium',
@@ -9861,6 +9937,8 @@ ${persona}
         async function askAi(command) {
             if (!command || !command.trim()) return;
 
+            const safeCommand = escapeHtml(command);
+
             const input = document.getElementById('aiCommandInput');
             if (input) input.value = '';
 
@@ -9875,7 +9953,7 @@ ${persona}
             // Message utilisateur
             const userMsg = document.createElement('div');
             userMsg.style.cssText = 'margin-bottom: 12px; text-align: right;';
-            userMsg.innerHTML = `<div style="display: inline-block; background: var(--bg-secondary); color: var(--text-primary); padding: 10px 14px; border-radius: 12px 12px 4px 12px; max-width: 80%; font-size: 13px; border: 1px solid var(--border-color);">${command}</div>`;
+            userMsg.innerHTML = `<div style="display: inline-block; background: var(--bg-secondary); color: var(--text-primary); padding: 10px 14px; border-radius: 12px 12px 4px 12px; max-width: 80%; font-size: 13px; border: 1px solid var(--border-color);">${safeCommand}</div>`;
             messagesContainer.appendChild(userMsg);
 
             // Ajouter à l'historique
@@ -9913,7 +9991,8 @@ ${persona}
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ 
                         command: command,
-                        history: aiChatHistory
+                        history: aiChatHistory,
+                        userId: getTodoUserId()
                     })
                 });
 
@@ -9940,15 +10019,17 @@ ${persona}
                 if (data.error) {
                     const errorMsg = document.createElement('div');
                     errorMsg.style.cssText = 'margin-bottom: 12px;';
-                    errorMsg.innerHTML = `<div style="display: inline-block; background: #FEE2E2; color: #DC2626; padding: 10px 14px; border-radius: 12px 12px 12px 4px; max-width: 80%; font-size: 13px;">❌ ${data.error}</div>`;
+                    errorMsg.innerHTML = `<div style="display: inline-block; background: #FEE2E2; color: #DC2626; padding: 10px 14px; border-radius: 12px 12px 12px 4px; max-width: 80%; font-size: 13px;">❌ ${escapeHtml(data.error)}</div>`;
                     messagesContainer.appendChild(errorMsg);
                 } else {
                     // Réponse IA
                     const aiMsg = document.createElement('div');
                     aiMsg.style.cssText = 'margin-bottom: 12px;';
+
+                    const safeResponse = escapeHtml(data.response || '').replace(/\n/g, '<br>');
                     
                     let responseHtml = `<div style="display: inline-block; background: var(--bg-secondary); color: var(--text-primary); padding: 10px 14px; border-radius: 12px 12px 12px 4px; max-width: 80%; font-size: 13px; line-height: 1.5; border: 1px solid var(--border-color);">
-                        ${data.response}
+                        ${safeResponse}
                     `;
 
                     // Afficher suggestions
@@ -9958,7 +10039,7 @@ ${persona}
                         data.suggestions.slice(0, 3).forEach((s, i) => {
                             const task = userTasks.find(t => t.id === s.taskId);
                             if (task) {
-                                responseHtml += `<div style="font-size: 12px; margin-bottom: 4px; color: var(--text-primary);">${i+1}. ${task.title} <span style="color: var(--text-secondary); font-size: 11px;">(${s.reason})</span></div>`;
+                                responseHtml += `<div style="font-size: 12px; margin-bottom: 4px; color: var(--text-primary);">${i+1}. ${escapeHtml(task.title)} <span style="color: var(--text-secondary); font-size: 11px;">(${escapeHtml(s.reason)})</span></div>`;
                             }
                         });
                         responseHtml += `</div>`;
@@ -10056,8 +10137,7 @@ ${persona}
         }
 
         function toggleTaskNotification(taskId, enabled) {
-            // Convertir taskId en number si c'est une string
-            const id = typeof taskId === 'string' ? parseInt(taskId) : taskId;
+            const id = String(taskId);
             
             console.log('🔔 toggleTaskNotification appelé:', {
                 taskIdOriginal: taskId,
@@ -10067,7 +10147,7 @@ ${persona}
                 userTasksLength: userTasks.length
             });
             
-            const task = userTasks.find(t => t.id === id);
+            const task = userTasks.find(t => String(t.id) === id);
             
             console.log('🔍 Tâche trouvée:', task ? {
                 id: task.id,
@@ -10097,7 +10177,7 @@ ${persona}
                 } : 'TÂCHE NON TROUVÉE DANS localStorage');
                 
                 // Mettre à jour selectedTask si c'est la tâche actuelle
-                if (selectedTask && selectedTask.id === id) {
+                if (selectedTask && String(selectedTask.id) === id) {
                     selectedTask.notifyEnabled = enabled;
                     selectedTask.notificationEnabled = enabled;
                 }
@@ -10747,7 +10827,7 @@ ${persona}
                     
                     // Créer la tâche avec les données parsées
                     const newTask = {
-                        id: Date.now(),
+                        id: Date.now().toString() + Math.random().toString(36).slice(2, 8),
                         title: task.title,
                         description: description,
                         priority: priority,
@@ -10794,7 +10874,8 @@ ${persona}
         }
 
         function toggleTaskComplete(taskId) {
-            const task = userTasks.find(t => t.id === taskId);
+            const id = String(taskId);
+            const task = userTasks.find(t => String(t.id) === id);
             if (task) {
                 task.completed = !task.completed;
                 localStorage.setItem('userTasks', JSON.stringify(userTasks));
