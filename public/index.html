@@ -10739,6 +10739,26 @@ ${persona}
             localStorage.setItem(getPersonalProfileStorageKey(userId), JSON.stringify(cleaned));
         }
 
+        function savePersonalProfileFromModal() {
+            const userId = typeof getTodoUserId === 'function' ? getTodoUserId() : 'anonymous';
+            const ageRaw = document.getElementById('profileAgeInput')?.value ?? '';
+            const sexRaw = document.getElementById('profileSexInput')?.value ?? '';
+            const focusRaw = document.getElementById('profileFocusHoursInput')?.value ?? '';
+            const age = String(ageRaw).trim();
+            const sex = String(sexRaw).trim();
+            const focusHours = String(focusRaw).trim();
+
+            savePersonalProfile(userId, { age, sex, focusHours });
+            closePersonalProfileModal();
+
+            try {
+                if (typeof todoView !== 'undefined' && todoView === 'personal') {
+                    const mainArea = document.querySelector('.todo-main') || document.getElementById('todoMainArea') || null;
+                    if (mainArea) renderPersonalSpaceView(mainArea);
+                }
+            } catch (_) {}
+        }
+
         function closePersonalProfileModal() {
             const el = document.getElementById('personalProfileModal');
             if (el) el.remove();
@@ -10802,17 +10822,7 @@ ${persona}
                     </div>
 
                     <div style="margin-top: 14px; display:flex; gap: 10px; justify-content: flex-end;">
-                        <button type="button" onclick="(function(){
-                            const ageRaw = document.getElementById('profileAgeInput')?.value ?? '';
-                            const sexRaw = document.getElementById('profileSexInput')?.value ?? '';
-                            const focusRaw = document.getElementById('profileFocusHoursInput')?.value ?? '';
-                            const age = String(ageRaw).trim();
-                            const sex = String(sexRaw).trim();
-                            const focusHours = String(focusRaw).trim();
-                            savePersonalProfile(userId, { age, sex, focusHours });
-                            closePersonalProfileModal();
-                            try { if (typeof todoView !== 'undefined' && todoView === 'personal') { const mainArea = document.querySelector('.todo-main') || document.getElementById('todoMainArea') || null; if (mainArea) renderPersonalSpaceView(mainArea); } } catch (_) {}
-                        })()" style="border: none; background: var(--accent); color: white; border-radius: 10px; padding: 10px 12px; cursor: pointer; font-weight: 800;">Enregistrer</button>
+                        <button type="button" onclick="savePersonalProfileFromModal()" style="border: none; background: var(--accent); color: white; border-radius: 10px; padding: 10px 12px; cursor: pointer; font-weight: 800;">Enregistrer</button>
                     </div>
                 </div>
             `;
