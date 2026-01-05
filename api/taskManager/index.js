@@ -601,6 +601,12 @@ async function coachAdvice(context, req, userId) {
     const tasks = (await getTasks(userId)).map(normalizeTaskShape);
     const profile = parsePersonalProfile(req);
 
+    const coachModeRaw = String(req.query?.coachMode ?? req.body?.coachMode ?? '').trim().toLowerCase();
+    const wantsLlm = coachModeRaw === 'llm' || coachModeRaw === 'ai' || coachModeRaw === 'true' || coachModeRaw === '1';
+    const message = parseOptionalString(req.query?.message ?? req.body?.message) || '';
+    const historyExcerptRaw = parseOptionalString(req.query?.historyExcerpt ?? req.body?.historyExcerpt) || '';
+    const historyExcerpt = historyExcerptRaw.length > 1200 ? historyExcerptRaw.slice(historyExcerptRaw.length - 1200) : historyExcerptRaw;
+
     const completed = tasks.filter(t => String(t.status || '').toLowerCase() === 'completed');
     const pending = tasks.filter(t => String(t.status || '').toLowerCase() !== 'completed');
     const overdue = pending.filter(t => {
@@ -649,7 +655,86 @@ async function coachAdvice(context, req, userId) {
         stressIndex
     };
 
-    const coach = buildCoachAdvice({ metrics, profile });
+    const topPending = tasks
+        .filter(t => String(t.status || '').toLowerCase() !== 'completed')
+        .map(t => ({ t, s: computeTaskScore(t, now) }))
+        .sort((a, b) => b.s.score - a.s.score)
+        .slice(0, 8)
+        .map(x => ({
+            id: x.t.id,
+            title: x.t.title,
+            priority: x.t.priority,
+            deadline: x.t.deadline,
+            estimatedTime: x.t.estimatedTime,
+            category: x.t.category
+        }));
+
+    let coach = buildCoachAdvice({ metrics, profile });
+
+    if (wantsLlm) {
+        const groqKey = process.env.APPSETTING_GROQ_API_KEY || process.env.GROQ_API_KEY;
+        if (groqKey) {
+            try {
+                const systemPrompt = `Tu es "AI Coach" pour Agent ToDo. Objectif: aider l'utilisateur à avancer aujourd'hui.
+
+Contraintes:
+- Réponds en français.
+- Ton: conversationnel, bienveillant, direct (style ChatGPT), sans te présenter.
+- Utilise le contexte (métriques, top tâches, historique court) pour personnaliser.
+- Propose 3 actions concrètes max (priorisées), et 1 micro-action (≤ 5 min) si utile.
+- Ne promets pas de résultats et n'invente pas de données.
+
+FORMAT JSON STRICT:
+{
+  "response": "texte court (5-10 lignes max)",
+  "advice": {"work": ["..."], "personal": ["..."]}
+}`;
+
+                const userPayload = {
+                    now: now.toISOString(),
+                    userMessage: message,
+                    historyExcerpt,
+                    profile: {
+                        provided: profile.provided,
+                        age: profile.age,
+                        sex: profile.sex,
+                        focusHours: profile.focusHours
+                    },
+                    metrics,
+                    topPending
+                };
+
+                const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${groqKey}`
+                    },
+                    body: JSON.stringify({
+                        model: 'llama-3.3-70b-versatile',
+                        messages: [
+                            { role: 'system', content: systemPrompt },
+                            { role: 'user', content: JSON.stringify(userPayload, null, 2) }
+                        ],
+                        max_tokens: 900,
+                        temperature: 0.4,
+                        response_format: { type: 'json_object' }
+                    })
+                });
+
+                if (response.ok) {
+                    const aiData = await response.json();
+                    const parsed = JSON.parse(aiData.choices[0].message.content);
+                    const respText = parseOptionalString(parsed?.response) || coach.response;
+                    const work = Array.isArray(parsed?.advice?.work) ? parsed.advice.work.map(x => String(x)).filter(Boolean) : coach.advice.work;
+                    const personal = Array.isArray(parsed?.advice?.personal) ? parsed.advice.personal.map(x => String(x)).filter(Boolean) : coach.advice.personal;
+                    coach = { response: respText, advice: { work, personal } };
+                }
+            } catch (e) {
+                context.log('coach llm fallback:', e && e.message ? e.message : e);
+            }
+        }
+    }
 
     context.res = {
         status: 200,
@@ -657,6 +742,7 @@ async function coachAdvice(context, req, userId) {
         body: {
             userId,
             now: now.toISOString(),
+            mode: wantsLlm ? 'llm' : 'heuristic',
             profile: {
                 provided: profile.provided,
                 age: profile.age,

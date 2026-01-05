@@ -9896,11 +9896,22 @@ ${persona}
             
             const panel = document.createElement('div');
             panel.id = 'aiAssistantPanel';
+            const coachEnabled = isTodoCoachEnabled(typeof getTodoUserId === 'function' ? getTodoUserId() : 'anonymous');
             panel.innerHTML = `
                 <div id="aiAssistantPanelContent" style="position: fixed; bottom: 80px; right: 20px; width: 380px; max-height: 500px; background: var(--bg-primary); border: 1px solid var(--border-color); border-radius: 12px; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1), 0 10px 10px -5px rgba(0,0,0,0.04); z-index: 20000; display: flex; flex-direction: column; overflow: hidden;">
                     <!-- Header -->
                     <div id="aiAssistantPanelHeader" style="padding: 16px 20px; background: var(--bg-primary); color: var(--text-primary); display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border-color);">
                         <div id="aiAssistantPanelTitle" style="display: flex; align-items: center; gap: 10px;">
+                            <div style="position: relative; display: inline-flex; align-items: center; justify-content: center;">
+                                <button id="todoCoachBtn" onclick="toggleTodoCoachMode()" title="Mode Coach" aria-label="Mode Coach" style="padding: 6px; background: transparent; color: var(--text-secondary); border: none; border-radius: 10px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center;" onmouseover="this.style.background='var(--bg-secondary)'; this.style.color='var(--text-primary)'" onmouseout="this.style.background='transparent'; this.style.color='var(--text-secondary)'">
+                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                        <path d="M12 2a4 4 0 0 0-4 4c0 1.4.7 2.7 1.8 3.4L9 12l3-2 3 2-.8-2.6A4 4 0 0 0 16 6a4 4 0 0 0-4-4z"/>
+                                        <path d="M7 14h10"/>
+                                        <path d="M8 18h8"/>
+                                    </svg>
+                                </button>
+                                <span id="todoCoachDot" style="position: absolute; top: 4px; right: 4px; width: 7px; height: 7px; background: #22c55e; border-radius: 999px; display: ${coachEnabled ? 'block' : 'none'};"></span>
+                            </div>
                             <div>
                                 <div style="font-weight: 600; font-size: 15px; letter-spacing: -0.01em;">Agent ToDo</div>
                                 <div style="font-size: 11px; color: var(--text-secondary);">Gestion intelligente</div>
@@ -9953,6 +9964,45 @@ ${persona}
             if (panel) panel.remove();
         }
 
+        function getTodoCoachStorageKey(userId) {
+            return `aiTaskTodoCoachEnabled:${String(userId || 'anonymous')}`;
+        }
+
+        function isTodoCoachEnabled(userId) {
+            try {
+                return localStorage.getItem(getTodoCoachStorageKey(userId)) === 'true';
+            } catch (_) {
+                return false;
+            }
+        }
+
+        function setTodoCoachEnabled(userId, enabled) {
+            try {
+                localStorage.setItem(getTodoCoachStorageKey(userId), enabled ? 'true' : 'false');
+            } catch (_) {}
+        }
+
+        function syncTodoCoachUi() {
+            const userId = typeof getTodoUserId === 'function' ? getTodoUserId() : 'anonymous';
+            const enabled = isTodoCoachEnabled(userId);
+            const dot = document.getElementById('todoCoachDot');
+            if (dot) dot.style.display = enabled ? 'block' : 'none';
+        }
+
+        async function toggleTodoCoachMode() {
+            const userId = typeof getTodoUserId === 'function' ? getTodoUserId() : 'anonymous';
+            const next = !isTodoCoachEnabled(userId);
+            setTodoCoachEnabled(userId, next);
+            syncTodoCoachUi();
+
+            // Déclencher une première réponse coach quand on active
+            if (next) {
+                try {
+                    await askAi('Donne-moi un conseil rapide pour aujourd\'hui.');
+                } catch (_) {}
+            }
+        }
+
         async function askAi(command) {
             if (!command || !command.trim()) return;
 
@@ -10000,6 +10050,22 @@ ${persona}
                 const userId = getTodoUserId();
                 const normalized = command.toLowerCase();
 
+                const coachEnabled = isTodoCoachEnabled(userId);
+
+                function buildTodoHistoryExcerpt(history, { maxMessages = 8, maxChars = 900 } = {}) {
+                    const items = Array.isArray(history) ? history.slice(-maxMessages) : [];
+                    const lines = items
+                        .map(m => {
+                            const role = (m && m.role) === 'assistant' ? 'A' : 'U';
+                            const content = String(m && m.content ? m.content : '').replace(/\s+/g, ' ').trim();
+                            return `${role}: ${content}`;
+                        })
+                        .filter(Boolean);
+                    let text = lines.join('\n');
+                    if (text.length > maxChars) text = text.slice(text.length - maxChars);
+                    return text;
+                }
+
                 // Commandes rapides (sans LLM)
                 const isPrioritize = /(\bpriori|\bpriorise|\bprioriser|\bpriorité)/i.test(normalized);
                 const isSchedule = /(\bplanifie|\bplanifier|\bschedule|\bplanning)/i.test(normalized);
@@ -10007,7 +10073,12 @@ ${persona}
                 const isProductivity = /(\bproductiv|\bstats|\bmétriques|\bmetriques|\bperformance)/i.test(normalized);
                 const isCoach = /(\bcoach|\bconseil|\bconseiller|\bbien[-\s]?etre|\blife)/i.test(normalized);
 
-                if (isPrioritize || isSchedule || isSummary || isProductivity || isCoach) {
+                // Laisser les opérations "action" passer sur smart-command même en mode coach
+                const isTaskOperation = /(\bajoute|\bajouter|\bcrée|\bcreer|\bcréer|\bsupprime|\bsupprimer|\bdelete|\btermine|\bterminer|\bcompl[eé]te|\bcompl[eé]ter|\bmarque|\bmodifier|\bmodifie|\bedite|\bedit)/i.test(normalized);
+
+                const shouldUseCoach = isCoach || (coachEnabled && !isPrioritize && !isSchedule && !isSummary && !isProductivity && !isTaskOperation);
+
+                if (isPrioritize || isSchedule || isSummary || isProductivity || shouldUseCoach) {
                     await syncTasksToServer();
 
                     const baseUrl = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
@@ -10026,14 +10097,20 @@ ${persona}
                         endpoint = 'schedule';
                         method = 'POST';
                         body = { userId, tasks: userTasks, events: userEvents || [], preferences: { days: 5, workBlocks: [[9, 12], [14, 17]] } };
-                    } else if (isCoach) {
+                    } else if (shouldUseCoach) {
                         const profile = getPersonalProfile(userId);
-                        const qp = new URLSearchParams({ userId: String(userId) });
-                        if (profile.age) qp.set('age', String(profile.age));
-                        if (profile.sex) qp.set('sex', String(profile.sex));
-                        if (profile.focusHours) qp.set('focusHours', String(profile.focusHours));
-                        endpoint = `coach?${qp.toString()}`;
-                        method = 'GET';
+                        endpoint = 'coach';
+                        method = 'POST';
+                        const historyExcerpt = buildTodoHistoryExcerpt(aiChatHistory);
+                        body = {
+                            userId,
+                            message: command,
+                            historyExcerpt,
+                            coachMode: coachEnabled ? 'llm' : 'heuristic',
+                            ...(profile.age ? { age: profile.age } : {}),
+                            ...(profile.sex ? { sex: profile.sex } : {}),
+                            ...(profile.focusHours ? { focusHours: profile.focusHours } : {})
+                        };
                     } else if (isProductivity) {
                         const profile = getPersonalProfile(userId);
                         const qp = new URLSearchParams({ userId: String(userId) });
@@ -10079,7 +10156,7 @@ ${persona}
                         text = blocks.length
                             ? `Proposition de planning (sans créer d'événements):\n${lines.join('\n')}`
                             : `Je n'ai pas pu proposer de créneaux (pas assez de tâches ou pas de disponibilité).`;
-                    } else if (isCoach) {
+                    } else if (shouldUseCoach) {
                         const coachText = data.response || 'Conseils indisponibles.';
                         const work = Array.isArray(data.advice?.work) ? data.advice.work.slice(0, 4) : [];
                         const personal = Array.isArray(data.advice?.personal) ? data.advice.personal.slice(0, 3) : [];
