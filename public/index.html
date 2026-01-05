@@ -215,6 +215,19 @@
             box-shadow: 0 2px 8px rgba(102, 126, 234, 0.4);
         }
 
+        /* Sidebar badge (Entreprise actif) */
+        .menu-item-badge {
+            margin-left: auto;
+            padding: 4px 8px;
+            border-radius: 999px;
+            font-size: 11px;
+            font-weight: 700;
+            background: var(--accent);
+            color: #fff;
+            line-height: 1;
+            white-space: nowrap;
+        }
+
         /* Sidebar */
         .sidebar {
             position: fixed;
@@ -2657,9 +2670,6 @@
                 <button class="plan-badge pro active" id="planBadgePro" title="Plan Pro - Llama 3.3 70B + Fonctions Azure">
                     PRO
                 </button>
-                <button class="plan-badge pro enterprise" id="planBadgeEnterprise" title="Plan Entreprise - Llama 3.3 70B + Fonctions Azure">
-                    ENTREPRISE
-                </button>
             </div>
 
             <!-- Quota Counter -->
@@ -2725,11 +2735,12 @@
                 <span class="menu-item-text">À propos</span>
             </button>
 
-            <button class="menu-item" onclick="window.location.assign('/enterprise.html')">
+            <button class="menu-item" id="enterpriseMenuBtn" onclick="window.location.assign('/enterprise.html')">
                 <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5a2 2 0 104 0 2 2 0 10-4 0zM5 11a2 2 0 102 2h2a2 2 0 102-2v-2a2 2 0 10-2-2H9a2 2 0 10-4 2v2zM13 13a2 2 0 112 2v2a2 2 0 11-2 2h-2a2 2 0 11-2-2v-2a2 2 0 112-2h2z"/>
                 </svg>
                 <span class="menu-item-text">Entreprise</span>
+                <span class="menu-item-badge" id="enterpriseActiveBadge" style="display:none;">Actif</span>
             </button>
             <!-- Section Office™ (dépliable) -->
             <button class="menu-item" onclick="toggleFunctionsSection()" title="Office™">
@@ -5868,6 +5879,21 @@ ${persona}
                 const data = await res.json().catch(() => null);
                 if (!res.ok || !data || !data.quota) throw new Error('bad_response');
 
+                // Si l'utilisateur est authentifié, l'API renvoie le plan réel: on synchronise l'UI automatiquement.
+                try {
+                    if (data && data.authenticated && data.plan) {
+                        const serverPlan = String(data.plan).toLowerCase();
+                        const localPlan = String(currentPlan || '').toLowerCase();
+                        if (serverPlan && serverPlan !== localPlan) {
+                            if (!window.__axilumPlanSyncing) {
+                                window.__axilumPlanSyncing = true;
+                                switchToPlan(serverPlan);
+                                window.__axilumPlanSyncing = false;
+                            }
+                        }
+                    }
+                } catch (_) {}
+
                 const remaining = (data.quota.remaining != null) ? String(data.quota.remaining) : '—';
                 quotaValue.textContent = remaining;
                 if (quotaIndicator) {
@@ -5886,6 +5912,25 @@ ${persona}
             refreshQuotaFromServer(plan);
         }
 
+        function updateEnterpriseBadgeUI(plan) {
+            const badge = document.getElementById('enterpriseActiveBadge');
+            if (!badge) return;
+            const p = String(plan || '').toLowerCase();
+            badge.style.display = (p === 'enterprise') ? 'inline-flex' : 'none';
+        }
+
+        function getCurrentPlanFromStorage() {
+            try {
+                const ax = String(localStorage.getItem('axilum_plan') || '').toLowerCase();
+                if (ax) return ax;
+            } catch (_) {}
+            try {
+                const sp = String(localStorage.getItem('selectedPlan') || '').toLowerCase();
+                if (sp) return sp;
+            } catch (_) {}
+            return 'pro';
+        }
+
         function switchToPlan(plan) {
             const p = String(plan || '').toLowerCase();
             const normalized = (p === 'free' || p === 'pro' || p === 'enterprise') ? p : 'pro';
@@ -5897,13 +5942,13 @@ ${persona}
             // Update UI
             const freeBadge = document.getElementById('planBadgeFree');
             const proBadge = document.getElementById('planBadgePro');
-            const entBadge = document.getElementById('planBadgeEnterprise');
 
             if (freeBadge) freeBadge.classList.toggle('active', normalized === 'free');
-            if (proBadge) proBadge.classList.toggle('active', normalized === 'pro');
-            if (entBadge) entBadge.classList.toggle('active', normalized === 'enterprise');
+            // Header: ENTREPRISE n'est pas sélectionnable ici; on reflète l'état via PRO
+            if (proBadge) proBadge.classList.toggle('active', normalized === 'pro' || normalized === 'enterprise');
 
             updateQuotaUI(normalized);
+            updateEnterpriseBadgeUI(normalized);
 
             if (normalized === 'free') {
                 showToast('Mode FREE', 'info');
@@ -5945,14 +5990,21 @@ ${persona}
             const menuBtn = document.getElementById('menuToggleBtn');
             const freeBadge = document.getElementById('planBadgeFree');
             const proBadge = document.getElementById('planBadgePro');
-            const entBadge = document.getElementById('planBadgeEnterprise');
             
             if (menuBtn) menuBtn.addEventListener('click', toggleSidebar);
             if (freeBadge) freeBadge.addEventListener('click', () => switchToPlan('free'));
             if (proBadge) proBadge.addEventListener('click', () => switchToPlan('pro'));
-            if (entBadge) entBadge.addEventListener('click', () => switchToPlan('enterprise'));
             
             switchToPlan(currentPlan);
+
+            // Si un paiement/activation change le plan via localStorage (plus tard), refléter l'état
+            window.addEventListener('storage', (e) => {
+                try {
+                    if (!e || (e.key !== 'axilum_plan' && e.key !== 'selectedPlan')) return;
+                    const nextPlan = getCurrentPlanFromStorage();
+                    switchToPlan(nextPlan);
+                } catch (_) {}
+            });
         });
 
         async function sendMessage() {
