@@ -28,6 +28,34 @@ function bucketKey({ plan, email, feature }) {
   return `${normalizePlan(plan)}|${e}|${f}`;
 }
 
+function peekQuota({ plan, email, feature }) {
+  const { windowMs, max } = getLimits(plan);
+  const key = bucketKey({ plan, email, feature });
+
+  const now = nowMs();
+  const b = buckets.get(key) || { start: now, count: 0 };
+
+  // fenêtre expirée → considérer comme reset (sans écrire)
+  if (now - b.start >= windowMs) {
+    return {
+      allowed: true,
+      limit: max,
+      windowMs,
+      remaining: max,
+      resetInMs: windowMs
+    };
+  }
+
+  const remaining = Math.max(0, max - b.count);
+  return {
+    allowed: remaining > 0,
+    limit: max,
+    windowMs,
+    remaining,
+    resetInMs: Math.max(0, windowMs - (now - b.start))
+  };
+}
+
 function checkAndConsume({ plan, email, feature }) {
   const { windowMs, max } = getLimits(plan);
   const key = bucketKey({ plan, email, feature });
@@ -52,5 +80,6 @@ function checkAndConsume({ plan, email, feature }) {
 }
 
 module.exports = {
-  checkAndConsume
+  checkAndConsume,
+  peekQuota
 };

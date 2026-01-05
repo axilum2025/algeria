@@ -2725,7 +2725,7 @@
                 <span class="menu-item-text">À propos</span>
             </button>
 
-            <button class="menu-item" onclick="try { switchToPlan('enterprise'); } catch (_) {}">
+            <button class="menu-item" onclick="window.location.assign('/enterprise.html')">
                 <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5a2 2 0 104 0 2 2 0 10-4 0zM5 11a2 2 0 102 2h2a2 2 0 102-2v-2a2 2 0 10-2-2H9a2 2 0 10-4 2v2zM13 13a2 2 0 112 2v2a2 2 0 11-2 2h-2a2 2 0 11-2-2v-2a2 2 0 112-2h2z"/>
                 </svg>
@@ -5846,10 +5846,44 @@ ${persona}
             return '500';
         }
 
-        function updateQuotaUI(plan) {
+        async function refreshQuotaFromServer(plan) {
             const quotaValue = document.getElementById('quotaValue');
+            const quotaIndicator = document.getElementById('quotaIndicator');
             if (!quotaValue) return;
-            quotaValue.textContent = getQuotaLabelForPlan(plan);
+
+            // placeholder (garde un rendu stable)
+            quotaValue.textContent = '…';
+
+            const p = String(plan || '').toLowerCase();
+            const qs = new URLSearchParams({ feature: 'excel_chat', plan: p });
+
+            const headers = {};
+            try {
+                const token = (typeof getAuthToken === 'function') ? getAuthToken() : null;
+                if (token) headers['Authorization'] = `Bearer ${token}`;
+            } catch (_) {}
+
+            try {
+                const res = await fetch(`/api/me/plan-quota?${qs.toString()}`, { method: 'GET', headers });
+                const data = await res.json().catch(() => null);
+                if (!res.ok || !data || !data.quota) throw new Error('bad_response');
+
+                const remaining = (data.quota.remaining != null) ? String(data.quota.remaining) : '—';
+                quotaValue.textContent = remaining;
+                if (quotaIndicator) {
+                    const limit = (data.quota.limit != null) ? String(data.quota.limit) : '';
+                    const resetAt = data.quota.resetAt ? String(data.quota.resetAt) : '';
+                    quotaIndicator.title = limit ? `Quota: ${remaining}/${limit}${resetAt ? ` • Reset: ${resetAt}` : ''}` : 'Quota';
+                }
+            } catch (_) {
+                // Fallback indicatif
+                quotaValue.textContent = getQuotaLabelForPlan(plan);
+                if (quotaIndicator) quotaIndicator.title = 'Quota (indicatif)';
+            }
+        }
+
+        function updateQuotaUI(plan) {
+            refreshQuotaFromServer(plan);
         }
 
         function switchToPlan(plan) {
@@ -17719,7 +17753,7 @@ function showAddProjectModal() {
             const currentPlan = localStorage.getItem('selectedPlan') || 'FREE';
             
             if (currentPlan !== 'PRO' && currentPlan !== 'ENTERPRISE') {
-                showToast('AI Vision PRO est réservé aux utilisateurs PRO. Passez au plan PRO pour accéder à cette fonctionnalité.', 'error');
+                showToast('AI Vision PRO est réservé aux utilisateurs PRO/ENTREPRISE. Passez au plan PRO pour accéder à cette fonctionnalité.', 'error');
                 return;
             }
             

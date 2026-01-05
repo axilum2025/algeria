@@ -1,0 +1,202 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Axilum AI — Offre Entreprise</title>
+  <style>
+    :root {
+      --bg-primary: #FAFBFC;
+      --bg-secondary: #F4F6F8;
+      --bg-sidebar: #FFFFFF;
+      --text-primary: #1F2937;
+      --text-secondary: #6B7280;
+      --border-color: #E5E7EB;
+      --accent: #3B82F6;
+      --shadow: rgba(0, 0, 0, 0.08);
+    }
+
+    [data-theme="dark"] {
+      --bg-primary: #111827;
+      --bg-secondary: #1F2937;
+      --bg-sidebar: #0F172A;
+      --text-primary: #F9FAFB;
+      --text-secondary: #9CA3AF;
+      --border-color: #374151;
+      --shadow: rgba(0, 0, 0, 0.4);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+      background: var(--bg-primary);
+      color: var(--text-primary);
+      transition: background 0.3s, color 0.3s;
+    }
+
+    .page-header {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      background: var(--bg-primary);
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .page-header-inner {
+      max-width: 980px;
+      margin: 0 auto;
+      padding: 14px 16px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      justify-content: space-between;
+    }
+
+    .btn {
+      appearance: none;
+      border: 1px solid var(--border-color);
+      background: var(--bg-secondary);
+      color: var(--text-primary);
+      border-radius: 10px;
+      padding: 10px 12px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: opacity 0.2s;
+      white-space: nowrap;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .btn:hover { opacity: 0.92; }
+
+    .title {
+      margin: 0;
+      font-size: 18px;
+      font-weight: 800;
+      letter-spacing: -0.2px;
+    }
+
+    .container {
+      max-width: 980px;
+      margin: 0 auto;
+      padding: 18px 16px 28px;
+    }
+
+    .card {
+      background: var(--bg-sidebar);
+      border: 1px solid var(--border-color);
+      border-radius: 14px;
+      box-shadow: 0 6px 16px var(--shadow);
+      padding: 16px;
+    }
+
+    h2 {
+      margin: 18px 0 10px;
+      font-size: 16px;
+    }
+
+    p {
+      margin: 10px 0;
+      color: var(--text-secondary);
+      line-height: 1.55;
+      font-size: 14px;
+    }
+
+    ul {
+      margin: 8px 0 0 18px;
+      color: var(--text-secondary);
+      line-height: 1.55;
+      font-size: 14px;
+    }
+
+    li { margin: 6px 0; }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 10px;
+      border-radius: 999px;
+      border: 1px solid var(--border-color);
+      background: var(--bg-secondary);
+      color: var(--text-secondary);
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .row {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-top: 12px;
+    }
+  </style>
+</head>
+<body>
+  <header class="page-header">
+    <div class="page-header-inner">
+      <button class="btn" type="button" onclick="goBackToApp()">← Retour</button>
+      <h1 class="title">Offre Entreprise</h1>
+      <div style="width: 90px;"></div>
+    </div>
+  </header>
+
+  <main class="container">
+    <div class="card">
+      <div class="row">
+        <span class="pill">Sécurité</span>
+        <span class="pill">Audit</span>
+        <span class="pill">Intégrations</span>
+        <span class="pill">Support</span>
+      </div>
+
+      <h2>Objectif</h2>
+      <p>
+        L’offre Entreprise est conçue pour les organisations qui veulent déployer Axilum AI à grande échelle,
+        avec des contrôles de sécurité renforcés, de l’audit, et des intégrations.
+      </p>
+
+      <h2>Ce qui est prévu</h2>
+      <ul>
+        <li>Contrôles d’accès et permissions (rôles, entitlements, quotas)</li>
+        <li>Audit & traçabilité des actions (journalisation)</li>
+        <li>Intégrations (Microsoft 365 / Power Automate) selon les modules</li>
+        <li>Options de déploiement et isolation selon besoins</li>
+      </ul>
+
+      <h2>Tarifs</h2>
+      <p><strong>Les prix finaux seront définis à la fin du développement.</strong></p>
+
+      <h2>Demander une démo</h2>
+      <p>
+        Dites-nous votre contexte (taille équipe, modules, intégrations souhaitées) et on vous propose un cadrage.
+      </p>
+
+      <div class="row">
+        <a class="btn" href="mailto:contact@axilum.ai?subject=Demande%20Offre%20Entreprise%20Axilum%20AI">Contacter</a>
+        <a class="btn" href="/">Ouvrir l’app</a>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    (function initTheme() {
+      try {
+        const theme = localStorage.getItem('theme') || localStorage.getItem('axilum_theme') || 'light';
+        document.body.setAttribute('data-theme', theme);
+      } catch (_) {}
+    })();
+
+    function goBackToApp() {
+      try {
+        window.location.assign('/');
+      } catch (_) {
+        history.back();
+      }
+    }
+  </script>
+</body>
+</html>
