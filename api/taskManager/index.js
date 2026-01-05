@@ -44,12 +44,24 @@ module.exports = async function (context, req) {
             
             case 'sync':
                 return await syncTasks(context, req, userId);
+
+            case 'prioritize':
+                return await prioritizeTasks(context, req, userId);
+
+            case 'schedule':
+                return await suggestSchedule(context, req, userId);
+
+            case 'productivity':
+                return await productivityStats(context, req, userId);
+
+            case 'summary':
+                return await summary(context, req, userId);
             
             default:
                 context.res = {
                     status: 400,
                     headers: { 'Content-Type': 'application/json' },
-                    body: { error: "Unknown action. Use: create, list, update, delete, smart-add, smart-command, sync" }
+                    body: { error: "Unknown action. Use: create, list, update, delete, smart-add, smart-command, sync, prioritize, schedule, productivity, summary" }
                 };
         }
 
@@ -93,6 +105,403 @@ function normalizeTaskShape(task) {
         deadline,
         createdAt: t.createdAt || new Date().toISOString(),
         updatedAt: t.updatedAt || new Date().toISOString()
+    };
+}
+
+function parseIsoDate(value) {
+    if (!value) return null;
+    const d = new Date(value);
+    if (isNaN(d.getTime())) return null;
+    return d;
+}
+
+function parseEstimatedMinutes(value) {
+    if (!value) return null;
+    if (typeof value === 'number' && isFinite(value)) return Math.max(1, Math.round(value));
+    const raw = String(value).trim().toLowerCase();
+    if (!raw) return null;
+    // Formats: "90", "90m", "1h", "1h30", "1h 30m", "2h15"
+    if (/^\d+$/.test(raw)) return Math.max(1, parseInt(raw, 10));
+
+    const h = raw.match(/(\d+)\s*h/);
+    const m = raw.match(/(\d+)\s*m/);
+    if (h || m) {
+        const hours = h ? parseInt(h[1], 10) : 0;
+        const mins = m ? parseInt(m[1], 10) : 0;
+        const total = hours * 60 + mins;
+        return total > 0 ? total : null;
+    }
+
+    const compact = raw.match(/^(\d+)h(\d{1,2})$/);
+    if (compact) {
+        const hours = parseInt(compact[1], 10);
+        const mins = parseInt(compact[2], 10);
+        const total = hours * 60 + mins;
+        return total > 0 ? total : null;
+    }
+
+    return null;
+}
+
+function clamp(n, min, max) {
+    return Math.min(Math.max(n, min), max);
+}
+
+function daysBetween(a, b) {
+    const ms = b.getTime() - a.getTime();
+    return ms / (24 * 60 * 60 * 1000);
+}
+
+function computePriorityWeight(priority) {
+    const p = String(priority || '').toLowerCase();
+    if (p === 'urgent') return 120;
+    if (p === 'high') return 90;
+    if (p === 'medium' || p === 'normal') return 60;
+    if (p === 'low') return 30;
+    return 45;
+}
+
+function computeTaskScore(task, now) {
+    const status = String(task.status || '').toLowerCase();
+    if (status === 'completed') return -9999;
+
+    const base = computePriorityWeight(task.priority);
+    const deadline = parseIsoDate(task.deadline);
+    let deadlineScore = 0;
+    let overdue = false;
+
+    if (deadline) {
+        const days = daysBetween(now, deadline);
+        overdue = days < 0;
+        if (overdue) {
+            deadlineScore = 120;
+        } else if (days <= 0.75) {
+            deadlineScore = 100;
+        } else if (days <= 1) {
+            deadlineScore = 85;
+        } else if (days <= 3) {
+            deadlineScore = 60;
+        } else if (days <= 7) {
+            deadlineScore = 35;
+        } else {
+            deadlineScore = 10;
+        }
+    }
+
+    const estMin = parseEstimatedMinutes(task.estimatedTime);
+    // Favoriser les tâches courtes quand c'est tard dans la journée
+    const hour = now.getHours();
+    const timeOfDayBias = hour >= 18 ? 10 : hour < 12 ? 5 : 0;
+    const sizeScore = estMin ? clamp(60 - estMin / 3, -20, 30) : 0;
+
+    return {
+        score: base + deadlineScore + sizeScore + timeOfDayBias,
+        overdue,
+        deadline: deadline ? deadline.toISOString() : null,
+        estMin: estMin || null
+    };
+}
+
+function groupSimilarTasks(tasks) {
+    const groups = new Map();
+    tasks.forEach(t => {
+        const cat = String(t.category || 'autre').toLowerCase();
+        if (!groups.has(cat)) groups.set(cat, []);
+        groups.get(cat).push(t);
+    });
+    return Array.from(groups.entries()).map(([category, items]) => ({ category, count: items.length, taskIds: items.map(x => x.id) }));
+}
+
+function calcOverload(tasks, now) {
+    const upcoming = tasks
+        .filter(t => String(t.status || '').toLowerCase() !== 'completed')
+        .map(t => ({ t, d: parseIsoDate(t.deadline) }))
+        .filter(x => x.d);
+
+    const next24 = upcoming.filter(x => x.d.getTime() - now.getTime() <= 24 * 60 * 60 * 1000 && x.d.getTime() >= now.getTime());
+    const totalMin = next24.reduce((sum, x) => sum + (parseEstimatedMinutes(x.t.estimatedTime) || 60), 0);
+
+    // Heuristique simple: surcharge si > 6h à faire en 24h
+    const overload = totalMin >= 360;
+    return { overload, next24Count: next24.length, next24Minutes: totalMin };
+}
+
+// ==========================
+//  ENDPOINTS "FONDATIONS"
+// ==========================
+
+async function prioritizeTasks(context, req, userId) {
+    const now = new Date();
+    const inputTasks = req.body?.tasks;
+    const tasks = (Array.isArray(inputTasks) ? inputTasks : await getTasks(userId)).map(normalizeTaskShape);
+
+    const scored = tasks
+        .filter(t => String(t.status || '').toLowerCase() !== 'completed')
+        .map(t => {
+            const s = computeTaskScore(t, now);
+            return {
+                id: t.id,
+                title: t.title,
+                priority: t.priority,
+                deadline: s.deadline,
+                category: t.category,
+                estimatedMinutes: s.estMin,
+                score: s.score,
+                reason: s.overdue ? 'En retard' : (s.deadline ? 'Échéance proche / priorité' : 'Priorité / effort')
+            };
+        })
+        .sort((a, b) => b.score - a.score);
+
+    const groups = groupSimilarTasks(tasks.filter(t => String(t.status || '').toLowerCase() !== 'completed'));
+    const overload = calcOverload(tasks, now);
+
+    const suggestions = [];
+    groups
+        .filter(g => g.count >= 3)
+        .slice(0, 3)
+        .forEach(g => suggestions.push({ type: 'batch', message: `Regrouper les tâches "${g.category}" (x${g.count}) en un seul créneau.`, category: g.category, taskIds: g.taskIds }));
+
+    if (overload.overload) {
+        suggestions.push({
+            type: 'overload',
+            message: `Surcharge probable: ~${Math.round(overload.next24Minutes / 60)}h à faire dans les prochaines 24h. Envisager de reporter/déléguer 1-2 tâches.`,
+            next24Count: overload.next24Count,
+            next24Minutes: overload.next24Minutes
+        });
+    }
+
+    context.res = {
+        status: 200,
+        headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
+        body: {
+            userId,
+            now: now.toISOString(),
+            prioritized: scored.slice(0, 50),
+            suggestions,
+            insights: {
+                overload: overload.overload,
+                next24Count: overload.next24Count,
+                next24Hours: Math.round((overload.next24Minutes / 60) * 10) / 10
+            }
+        }
+    };
+}
+
+function buildTimeSlots({ startDate, days = 5, workBlocks = [[9, 12], [14, 17]] } = {}) {
+    const start = startDate ? new Date(startDate) : new Date();
+    start.setSeconds(0, 0);
+    const slots = [];
+    for (let i = 0; i < days; i++) {
+        const day = new Date(start);
+        day.setDate(start.getDate() + i);
+        for (const block of workBlocks) {
+            const [fromH, toH] = block;
+            const from = new Date(day);
+            from.setHours(fromH, 0, 0, 0);
+            const to = new Date(day);
+            to.setHours(toH, 0, 0, 0);
+            slots.push({ start: from, end: to });
+        }
+    }
+    return slots;
+}
+
+function subtractEvents(slots, events) {
+    const busy = (Array.isArray(events) ? events : [])
+        .map(e => {
+            const s = parseIsoDate(e.startDate || e.start);
+            const en = parseIsoDate(e.endDate || e.end || e.startDate || e.start);
+            if (!s || !en) return null;
+            return { start: s, end: en };
+        })
+        .filter(Boolean)
+        .sort((a, b) => a.start.getTime() - b.start.getTime());
+
+    const free = [];
+    slots.forEach(slot => {
+        let windows = [{ start: slot.start, end: slot.end }];
+        busy.forEach(b => {
+            windows = windows.flatMap(w => {
+                if (b.end <= w.start || b.start >= w.end) return [w];
+                const out = [];
+                if (b.start > w.start) out.push({ start: w.start, end: new Date(Math.min(b.start.getTime(), w.end.getTime())) });
+                if (b.end < w.end) out.push({ start: new Date(Math.max(b.end.getTime(), w.start.getTime())), end: w.end });
+                return out.filter(x => x.end > x.start);
+            });
+        });
+        free.push(...windows);
+    });
+    return free;
+}
+
+async function suggestSchedule(context, req, userId) {
+    const now = new Date();
+    const tasksRaw = req.body?.tasks;
+    const events = req.body?.events || [];
+    const preferences = req.body?.preferences || {};
+    const days = typeof preferences.days === 'number' ? clamp(preferences.days, 1, 14) : 5;
+    const workBlocks = Array.isArray(preferences.workBlocks) ? preferences.workBlocks : [[9, 12], [14, 17]];
+
+    const tasks = (Array.isArray(tasksRaw) ? tasksRaw : await getTasks(userId)).map(normalizeTaskShape);
+    const pending = tasks.filter(t => String(t.status || '').toLowerCase() !== 'completed');
+
+    // Prioriser avant planification
+    const prioritized = pending
+        .map(t => ({ t, s: computeTaskScore(t, now) }))
+        .sort((a, b) => b.s.score - a.s.score)
+        .map(x => x.t);
+
+    const baseSlots = buildTimeSlots({ startDate: now, days, workBlocks });
+    const freeSlots = subtractEvents(baseSlots, events).filter(s => s.end.getTime() - s.start.getTime() >= 20 * 60 * 1000);
+
+    const schedule = [];
+    const unscheduled = [];
+
+    // Greedy fit: remplir les créneaux disponibles
+    let slotIndex = 0;
+    for (const task of prioritized) {
+        const durMin = parseEstimatedMinutes(task.estimatedTime) || 60;
+        let placed = false;
+
+        while (slotIndex < freeSlots.length) {
+            const slot = freeSlots[slotIndex];
+            const slotMinutes = Math.floor((slot.end.getTime() - slot.start.getTime()) / 60000);
+            if (slotMinutes < durMin) {
+                slotIndex++;
+                continue;
+            }
+
+            const start = new Date(slot.start);
+            const end = new Date(start.getTime() + durMin * 60000);
+
+            schedule.push({
+                taskId: task.id,
+                title: task.title,
+                start: start.toISOString(),
+                end: end.toISOString(),
+                minutes: durMin,
+                reason: 'Placement automatique selon priorité et disponibilité'
+            });
+
+            // Réduire le slot courant
+            slot.start = end;
+            placed = true;
+            break;
+        }
+
+        if (!placed) {
+            unscheduled.push({ taskId: task.id, title: task.title, estimatedMinutes: durMin, reason: 'Aucun créneau libre dans la fenêtre de planification' });
+        }
+    }
+
+    context.res = {
+        status: 200,
+        headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
+        body: {
+            userId,
+            window: { days, workBlocks },
+            schedule,
+            unscheduled
+        }
+    };
+}
+
+async function productivityStats(context, req, userId) {
+    const now = new Date();
+    const tasks = (await getTasks(userId)).map(normalizeTaskShape);
+
+    const completed = tasks.filter(t => String(t.status || '').toLowerCase() === 'completed');
+    const pending = tasks.filter(t => String(t.status || '').toLowerCase() !== 'completed');
+
+    const overdue = pending.filter(t => {
+        const d = parseIsoDate(t.deadline);
+        return d && d.getTime() < now.getTime();
+    });
+
+    // Streak simple (jours consécutifs avec au moins 1 tâche complétée)
+    const byDay = new Set(
+        completed
+            .map(t => parseIsoDate(t.completedAt || t.updatedAt))
+            .filter(Boolean)
+            .map(d => d.toISOString().slice(0, 10))
+    );
+
+    let streak = 0;
+    for (let i = 0; i < 365; i++) {
+        const d = new Date(now);
+        d.setDate(now.getDate() - i);
+        const key = d.toISOString().slice(0, 10);
+        if (byDay.has(key)) streak++;
+        else break;
+    }
+
+    const totalEstimatedPendingMin = pending.reduce((sum, t) => sum + (parseEstimatedMinutes(t.estimatedTime) || 60), 0);
+    const overload = calcOverload(tasks, now);
+
+    context.res = {
+        status: 200,
+        headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
+        body: {
+            userId,
+            now: now.toISOString(),
+            metrics: {
+                total: tasks.length,
+                completed: completed.length,
+                pending: pending.length,
+                overdue: overdue.length,
+                streakDays: streak,
+                pendingEstimatedHours: Math.round((totalEstimatedPendingMin / 60) * 10) / 10,
+                overloadNext24: overload.overload,
+                next24Hours: Math.round((overload.next24Minutes / 60) * 10) / 10
+            }
+        }
+    };
+}
+
+async function summary(context, req, userId) {
+    const now = new Date();
+    const mode = String(req.query?.mode || req.body?.mode || 'daily').toLowerCase();
+    const tasks = (await getTasks(userId)).map(normalizeTaskShape);
+
+    const start = new Date(now);
+    if (mode === 'weekly') start.setDate(now.getDate() - 7);
+    else start.setHours(0, 0, 0, 0);
+
+    const completed = tasks.filter(t => {
+        const status = String(t.status || '').toLowerCase();
+        if (status !== 'completed') return false;
+        const d = parseIsoDate(t.completedAt || t.updatedAt);
+        return d && d.getTime() >= start.getTime();
+    });
+
+    const pending = tasks.filter(t => String(t.status || '').toLowerCase() !== 'completed');
+    const prioritized = pending
+        .map(t => ({ t, s: computeTaskScore(t, now) }))
+        .sort((a, b) => b.s.score - a.s.score)
+        .slice(0, 5)
+        .map(x => ({ taskId: x.t.id, title: x.t.title, reason: x.s.overdue ? 'En retard' : (x.t.deadline ? 'Échéance / priorité' : 'Priorité') }));
+
+    const overload = calcOverload(tasks, now);
+
+    const text = mode === 'weekly'
+        ? `🗓️ Récap hebdo: ${completed.length} terminée(s), ${pending.length} en cours. ${overload.overload ? '⚠️ surcharge possible.' : ''}`
+        : `📅 Récap du jour: ${completed.length} terminée(s), ${pending.length} en cours. ${overload.overload ? '⚠️ surcharge possible.' : ''}`;
+
+    context.res = {
+        status: 200,
+        headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
+        body: {
+            userId,
+            mode,
+            response: text,
+            completedCount: completed.length,
+            pendingCount: pending.length,
+            topNext: prioritized,
+            insights: {
+                overload: overload.overload,
+                next24Hours: Math.round((overload.next24Minutes / 60) * 10) / 10
+            }
+        }
     };
 }
 

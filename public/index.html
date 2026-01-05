@@ -7981,6 +7981,8 @@ ${persona}
             if (!task) return false;
             task.completed = true;
             task.inProgress = false;
+            task.status = 'completed';
+            task.completedAt = new Date().toISOString();
             task.updatedAt = new Date().toISOString();
             saveTasks();
             if (task.projectId != null) updateProjectProgress(task.projectId);
@@ -9175,6 +9177,13 @@ ${persona}
                                 </svg>
                                 Calendrier
                             </button>
+                            <button onclick="switchTodoView('personal')" id="viewPersonal" class="sidebar-btn" style="width: 100%; padding: 8px 12px; text-align: left; border: none; background: transparent; color: var(--text-primary); border-radius: 8px; cursor: pointer; font-size: 14px; display: flex; align-items: center; gap: 10px; margin-bottom: 4px; transition: all 0.2s;">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                    <path d="M3 17l6-6 4 4 8-8"/>
+                                    <path d="M14 7h7v7"/>
+                                </svg>
+                                Espace personnel
+                            </button>
                         </div>
 
                         <!-- Filtres -->
@@ -9978,6 +9987,92 @@ ${persona}
             messagesContainer.scrollTop = messagesContainer.scrollHeight;
 
             try {
+                const userId = getTodoUserId();
+                const normalized = command.toLowerCase();
+
+                // Commandes rapides (sans LLM)
+                const isPrioritize = /(\bpriori|\bpriorise|\bprioriser|\bpriorité)/i.test(normalized);
+                const isSchedule = /(\bplanifie|\bplanifier|\bschedule|\bplanning)/i.test(normalized);
+                const isSummary = /(\brésume|\bresume|\brécap|\brecap|\bsummary)/i.test(normalized);
+                const isProductivity = /(\bproductiv|\bstats|\bmétriques|\bmetriques|\bperformance)/i.test(normalized);
+
+                if (isPrioritize || isSchedule || isSummary || isProductivity) {
+                    await syncTasksToServer();
+
+                    const baseUrl = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
+                        ? 'http://localhost:7071/api/tasks'
+                        : '/api/tasks';
+
+                    let endpoint = 'summary';
+                    let method = 'GET';
+                    let body = null;
+
+                    if (isPrioritize) {
+                        endpoint = 'prioritize';
+                        method = 'POST';
+                        body = { userId, tasks: userTasks };
+                    } else if (isSchedule) {
+                        endpoint = 'schedule';
+                        method = 'POST';
+                        body = { userId, tasks: userTasks, events: userEvents || [], preferences: { days: 5, workBlocks: [[9, 12], [14, 17]] } };
+                    } else if (isProductivity) {
+                        endpoint = `productivity?userId=${encodeURIComponent(userId)}`;
+                        method = 'GET';
+                    } else if (isSummary) {
+                        endpoint = `summary?userId=${encodeURIComponent(userId)}`;
+                        method = 'GET';
+                    }
+
+                    const resp = await fetch(`${baseUrl}/${endpoint}`, {
+                        method,
+                        headers: method === 'POST' ? { 'Content-Type': 'application/json' } : undefined,
+                        body: method === 'POST' ? JSON.stringify(body) : undefined
+                    });
+
+                    if (!resp.ok) {
+                        throw new Error(`Erreur serveur: ${resp.status} ${resp.statusText}`);
+                    }
+
+                    const data = await resp.json();
+                    loadingMsg.remove();
+
+                    let text = 'OK';
+                    if (isPrioritize) {
+                        const top = Array.isArray(data.prioritized) ? data.prioritized.slice(0, 7) : [];
+                        const lines = top.map((t, i) => {
+                            const due = t.deadline ? ` (échéance: ${new Date(t.deadline).toLocaleString('fr-FR')})` : '';
+                            return `${i + 1}. ${t.title}${due}`;
+                        });
+                        const extra = data.insights?.overload ? `\n\n⚠️ Surcharge possible dans 24h (~${data.insights.next24Hours}h).` : '';
+                        text = (lines.length ? `Voici tes priorités:\n${lines.join('\n')}` : `Je n'ai pas trouvé de tâches à prioriser.`) + extra;
+                    } else if (isSchedule) {
+                        const blocks = Array.isArray(data.schedule) ? data.schedule.slice(0, 8) : [];
+                        const lines = blocks.map(b => {
+                            const s = new Date(b.start).toLocaleString('fr-FR');
+                            const e = new Date(b.end).toLocaleTimeString('fr-FR');
+                            return `- ${s} → ${e} : ${b.title}`;
+                        });
+                        text = blocks.length
+                            ? `Proposition de planning (sans créer d'événements):\n${lines.join('\n')}`
+                            : `Je n'ai pas pu proposer de créneaux (pas assez de tâches ou pas de disponibilité).`;
+                    } else if (isProductivity) {
+                        const m = data.metrics || {};
+                        text = `Productivité: ${m.completed || 0} terminée(s), ${m.pending || 0} en cours, ${m.overdue || 0} en retard.\nStreak: ${m.streakDays || 0} jour(s).\nCharge estimée: ~${m.pendingEstimatedHours || 0}h.`;
+                    } else if (isSummary) {
+                        const next = Array.isArray(data.topNext) ? data.topNext : [];
+                        const lines = next.map((t, i) => `${i + 1}. ${t.title} — ${t.reason}`);
+                        const extra = data.insights?.overload ? `\n⚠️ Surcharge possible dans 24h (~${data.insights.next24Hours}h).` : '';
+                        text = `${data.response || 'Résumé.'}${lines.length ? `\n\nÀ faire ensuite:\n${lines.join('\n')}` : ''}${extra}`;
+                    }
+
+                    const aiMsg = document.createElement('div');
+                    aiMsg.style.cssText = 'margin-bottom: 12px;';
+                    aiMsg.innerHTML = `<div style="display: inline-block; background: var(--bg-secondary); color: var(--text-primary); padding: 10px 14px; border-radius: 12px 12px 12px 4px; max-width: 80%; font-size: 13px; line-height: 1.5; border: 1px solid var(--border-color);">${escapeHtml(text).replace(/\n/g, '<br>')}</div>`;
+                    messagesContainer.appendChild(aiMsg);
+                    messagesContainer.scrollTop = messagesContainer.scrollHeight;
+                    return;
+                }
+
                 // Synchroniser les tâches localStorage vers serveur avant commande
                 await syncTasksToServer();
 
@@ -9992,7 +10087,7 @@ ${persona}
                     body: JSON.stringify({ 
                         command: command,
                         history: aiChatHistory,
-                        userId: getTodoUserId()
+                        userId
                     })
                 });
 
@@ -10476,6 +10571,188 @@ ${persona}
                 renderKanbanView(mainArea);
             } else if (todoView === 'calendar') {
                 renderCalendarView(mainArea);
+            } else if (todoView === 'personal') {
+                renderPersonalSpaceView(mainArea);
+            }
+        }
+
+        function clampNumber(value, min, max) {
+            return Math.min(Math.max(value, min), max);
+        }
+
+        function computeMentalLoadScore(metrics) {
+            const pending = Number(metrics.pending || 0);
+            const overdue = Number(metrics.overdue || 0);
+            const next24Hours = Number(metrics.next24Hours || 0);
+            const overload = metrics.overloadNext24 ? 1 : 0;
+
+            const score = (pending * 8) + (overdue * 15) + (next24Hours * 6) + (overload * 18);
+            return clampNumber(Math.round(score), 0, 100);
+        }
+
+        function computeStressIndex(metrics) {
+            const overdue = Number(metrics.overdue || 0);
+            const next24Hours = Number(metrics.next24Hours || 0);
+            const overload = metrics.overloadNext24 ? 1 : 0;
+            const streak = Number(metrics.streakDays || 0);
+
+            const score = (overdue * 20) + (next24Hours * 5) + (overload * 22) - (streak >= 3 ? 8 : 0);
+            return clampNumber(Math.round(score), 0, 100);
+        }
+
+        function renderScoreCard({ title, value, subtitle, hint }) {
+            const numeric = typeof value === 'number' ? value : parseFloat(String(value).replace('%', ''));
+            const bar = clampNumber(isFinite(numeric) ? numeric : 0, 0, 100);
+            return `
+                <div style="background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 12px; padding: 16px;">
+                    <div style="font-size: 12px; color: var(--text-secondary); font-weight: 700; text-transform: uppercase; letter-spacing: 0.6px;">${title}</div>
+                    <div style="margin-top: 6px; font-size: 26px; font-weight: 800; color: var(--text-primary); line-height: 1;">${value}</div>
+                    ${subtitle ? `<div style="margin-top: 8px; font-size: 13px; color: var(--text-secondary);">${subtitle}</div>` : ''}
+                    <div style="margin-top: 12px; height: 10px; background: var(--bg-primary); border: 1px solid var(--border-color); border-radius: 999px; overflow: hidden;">
+                        <div style="height: 100%; width: ${bar}%; background: var(--accent);"></div>
+                    </div>
+                    ${hint ? `<div style="margin-top: 10px; font-size: 13px; color: var(--text-secondary);">${hint}</div>` : ''}
+                </div>
+            `;
+        }
+
+        async function renderPersonalSpaceView(container) {
+            container.innerHTML = `
+                <div style="max-width: 980px; margin: 0 auto;">
+                    <h2 style="color: var(--text-primary); margin-bottom: 18px; font-size: 22px; font-weight: 700; display: flex; align-items: center; gap: 10px;">
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <path d="M3 17l6-6 4 4 8-8"/>
+                            <path d="M14 7h7v7"/>
+                        </svg>
+                        Espace personnel
+                    </h2>
+
+                    <div style="background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 12px; padding: 16px; margin-bottom: 14px;">
+                        <div style="color: var(--text-secondary); font-size: 13px;">Chargement des métriques…</div>
+                    </div>
+                </div>
+            `;
+
+            const userId = getTodoUserId();
+            const baseUrl = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
+                ? 'http://localhost:7071/api/tasks'
+                : '/api/tasks';
+
+            try {
+                const resp = await fetch(`${baseUrl}/productivity?userId=${encodeURIComponent(userId)}`);
+                if (!resp.ok) throw new Error(`Erreur serveur: ${resp.status} ${resp.statusText}`);
+                const data = await resp.json();
+                const metrics = data.metrics || {};
+
+                const total = Number(metrics.total || 0);
+                const completed = Number(metrics.completed || 0);
+                const pending = Number(metrics.pending || 0);
+                const overdue = Number(metrics.overdue || 0);
+                const pendingHours = Number(metrics.pendingEstimatedHours || 0);
+                const next24Hours = Number(metrics.next24Hours || 0);
+                const overloadNext24 = !!metrics.overloadNext24;
+                const streakDays = Number(metrics.streakDays || 0);
+
+                const completionRate = total > 0 ? Math.round((completed / total) * 100) : 0;
+                const mentalLoad = computeMentalLoadScore({ pending, overdue, next24Hours, overloadNext24 });
+                const stress = computeStressIndex({ overdue, next24Hours, overloadNext24, streakDays });
+
+                const advice = [];
+                if (overdue > 0) advice.push(`Prioriser les tâches en retard (${overdue}) et découper la plus grosse en sous-tâches.`);
+                if (overloadNext24) advice.push(`Journée trop chargée (≈ ${next24Hours}h sur 24h). Proposer un mode “journée allégée” ou reporter 1–2 tâches.`);
+                if (!overloadNext24 && pendingHours >= 6) advice.push(`Charge globale élevée (≈ ${pendingHours}h). Planifier 2 blocs focus et réduire le multitâche.`);
+                if (advice.length === 0) advice.push(`Rythme stable. Conserver 1 bloc focus + 1 tâche courte pour garder l'élan.`);
+
+                const cardsHtml = `
+                    <div id="personalCardsGrid" style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px;">
+                        ${renderScoreCard({
+                            title: 'Completion Rate',
+                            value: `${completionRate}%`,
+                            subtitle: `${completed} terminée(s) / ${total} au total`,
+                            hint: 'But MVP: augmenter la régularité, pas la vitesse.'
+                        })}
+                        ${renderScoreCard({
+                            title: 'Mental Load Score',
+                            value: mentalLoad,
+                            subtitle: `${pending} en cours • ${overdue} en retard`,
+                            hint: 'IA: réduire le nombre de tâches visibles et regrouper.'
+                        })}
+                        ${renderScoreCard({
+                            title: 'Stress Index',
+                            value: stress,
+                            subtitle: overloadNext24 ? `Surcharge 24h (~${next24Hours}h)` : `Streak: ${streakDays} jour(s)`,
+                            hint: 'IA: proposer des ajustements avant l’accumulation de retards.'
+                        })}
+                    </div>
+                `;
+
+                const detailsHtml = `
+                    <div style="margin-top: 12px; background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 12px; padding: 16px;">
+                        <div style="font-size: 12px; color: var(--text-secondary); font-weight: 700; text-transform: uppercase; letter-spacing: 0.6px; margin-bottom: 10px;">Détails</div>
+                        <div id="personalDetailsGrid" style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px;">
+                            <div style="padding: 12px; border: 1px solid var(--border-color); border-radius: 10px; background: var(--bg-primary);">
+                                <div style="font-size: 12px; color: var(--text-secondary);">En cours</div>
+                                <div style="font-size: 18px; font-weight: 800; color: var(--text-primary);">${pending}</div>
+                            </div>
+                            <div style="padding: 12px; border: 1px solid var(--border-color); border-radius: 10px; background: var(--bg-primary);">
+                                <div style="font-size: 12px; color: var(--text-secondary);">En retard</div>
+                                <div style="font-size: 18px; font-weight: 800; color: var(--text-primary);">${overdue}</div>
+                            </div>
+                            <div style="padding: 12px; border: 1px solid var(--border-color); border-radius: 10px; background: var(--bg-primary);">
+                                <div style="font-size: 12px; color: var(--text-secondary);">Charge (estimée)</div>
+                                <div style="font-size: 18px; font-weight: 800; color: var(--text-primary);">${pendingHours}h</div>
+                            </div>
+                            <div style="padding: 12px; border: 1px solid var(--border-color); border-radius: 10px; background: var(--bg-primary);">
+                                <div style="font-size: 12px; color: var(--text-secondary);">Prochaines 24h</div>
+                                <div style="font-size: 18px; font-weight: 800; color: var(--text-primary);">${next24Hours}h</div>
+                            </div>
+                        </div>
+                        <div style="margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--border-color);">
+                            <div style="font-weight: 800; color: var(--text-primary); margin-bottom: 8px; font-size: 13px;">Conseils IA</div>
+                            <div style="color: var(--text-secondary); font-size: 13px; line-height: 1.5;">
+                                ${advice.map(a => `• ${a}`).join('<br>')}
+                            </div>
+                        </div>
+                    </div>
+                `;
+
+                container.innerHTML = `
+                    <div style="max-width: 980px; margin: 0 auto;">
+                        <h2 style="color: var(--text-primary); margin-bottom: 18px; font-size: 22px; font-weight: 700; display: flex; align-items: center; gap: 10px;">
+                            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                <path d="M3 17l6-6 4 4 8-8"/>
+                                <path d="M14 7h7v7"/>
+                            </svg>
+                            Espace personnel
+                        </h2>
+
+                        ${cardsHtml}
+                        ${detailsHtml}
+                    </div>
+                `;
+
+                if (window.innerWidth <= 900) {
+                    const cardsGrid = document.getElementById('personalCardsGrid');
+                    if (cardsGrid) cardsGrid.style.gridTemplateColumns = '1fr';
+                    const detailsGrid = document.getElementById('personalDetailsGrid');
+                    if (detailsGrid) detailsGrid.style.gridTemplateColumns = 'repeat(2, minmax(0, 1fr))';
+                }
+            } catch (e) {
+                console.error('Metrics error:', e);
+                container.innerHTML = `
+                    <div style="max-width: 980px; margin: 0 auto;">
+                        <h2 style="color: var(--text-primary); margin-bottom: 18px; font-size: 22px; font-weight: 700; display: flex; align-items: center; gap: 10px;">
+                            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                <path d="M3 17l6-6 4 4 8-8"/>
+                                <path d="M14 7h7v7"/>
+                            </svg>
+                            Espace personnel
+                        </h2>
+                        <div style="background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 12px; padding: 16px;">
+                            <div style="color: var(--text-secondary); font-size: 13px;">Impossible de charger les métriques. Vérifiez que l’API est disponible.</div>
+                        </div>
+                    </div>
+                `;
             }
         }
 
@@ -10699,7 +10976,7 @@ ${persona}
             todoView = view;
             
             // Update visual feedback on sidebar buttons
-            ['list', 'kanban', 'calendar'].forEach(v => {
+            ['list', 'kanban', 'calendar', 'personal'].forEach(v => {
                 const btn = document.getElementById('view' + v.charAt(0).toUpperCase() + v.slice(1));
                 if (btn) {
                     if (v === view) {
@@ -10878,6 +11155,11 @@ ${persona}
             const task = userTasks.find(t => String(t.id) === id);
             if (task) {
                 task.completed = !task.completed;
+                task.status = task.completed ? 'completed' : 'pending';
+                task.updatedAt = new Date().toISOString();
+                if (task.completed) {
+                    task.completedAt = new Date().toISOString();
+                }
                 localStorage.setItem('userTasks', JSON.stringify(userTasks));
                 showToast(task.completed ? '✅ Tâche terminée !' : '🔄 Tâche réactivée', 'success');
                 renderTodoFilters();
