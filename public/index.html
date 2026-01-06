@@ -3821,17 +3821,15 @@
             const current = getSelectedAiModel();
 
             const m = Array.isArray(models) ? models.find(x => x && x.id === current) : null;
-            if (m && (m.in != null || m.out != null)) {
-                const cur = String(m.pricingCurrency || '').toUpperCase() || '';
-                const inRate = (m.in != null && Number.isFinite(Number(m.in))) ? Number(m.in) : null;
-                const outRate = (m.out != null && Number.isFinite(Number(m.out))) ? Number(m.out) : null;
-                const inTxt = inRate == null ? 'N/A' : `${inRate} ${cur}/1M tokens (entrée)`;
-                const outTxt = outRate == null ? 'N/A' : `${outRate} ${cur}/1M tokens (sortie)`;
-                help.textContent = `Modèle actif: ${current}. Prix indicatifs: ${inTxt}, ${outTxt}.`;
-                return;
-            }
-
-            help.textContent = `Modèle actif: ${current}.`;
+            const hasPricing = m && (m.in != null || m.out != null);
+            const cur = m ? (String(m.pricingCurrency || '').toUpperCase() || '') : '';
+            const inRate = hasPricing && m.in != null && Number.isFinite(Number(m.in)) ? Number(m.in) : null;
+            const outRate = hasPricing && m.out != null && Number.isFinite(Number(m.out)) ? Number(m.out) : null;
+            const inTxt = inRate == null ? 'N/A' : `${inRate} ${cur}/1M tokens (entrée)`;
+            const outTxt = outRate == null ? 'N/A' : `${outRate} ${cur}/1M tokens (sortie)`;
+            const cat = m && m.category ? ` • ${m.category}` : '';
+            const desc = m && m.description ? ` • ${m.description}` : '';
+            help.textContent = `Modèle actif: ${current}${cat}. Prix: ${inTxt}, ${outTxt}.${desc ? ` ${desc}` : ''}`;
         }
 
         async function refreshAiModelSelect() {
@@ -3852,7 +3850,8 @@
                     const id = String(m.id || '').trim();
                     if (!id) return '';
                     const selected = id === current ? ' selected' : '';
-                    return `<option value="${id}"${selected}>${id}</option>`;
+                    const label = m && m.category ? `${id} (${m.category})` : id;
+                    return `<option value="${id}"${selected}>${label}</option>`;
                 }).join('') || `<option value="${DEFAULT_AI_MODEL}">${DEFAULT_AI_MODEL}</option>`;
 
                 // Si le modèle stocké n'existe plus, revenir au défaut.
