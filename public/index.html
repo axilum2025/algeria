@@ -7630,6 +7630,12 @@ ${persona}
                     performance: [],
                     quality: []
                 };
+
+                // Synchroniser le modèle affiché avec le choix utilisateur (si backend silencieux)
+                const selectedModelForUi = (typeof getSelectedAiModel === 'function') ? getSelectedAiModel() : null;
+                if (selectedModelForUi) {
+                    data.model = selectedModelForUi;
+                }
                 
                 // Métriques de performance
                 if (data.cached === true) {
