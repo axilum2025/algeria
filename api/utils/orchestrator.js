@@ -5,6 +5,9 @@ const {
   buildSystemPromptForAgent
 } = require('./agentRegistry');
 
+const { assertWithinBudget, recordUsage } = require('./aiUsageBudget');
+const { precheckCredit, debitAfterUsage } = require('./aiCreditGuard');
+
 function safeJsonParse(value) {
   try {
     return JSON.parse(value);
@@ -33,7 +36,10 @@ function compactHistoryFromMessages(recentHistory, { maxTurns = 8, maxCharsPerLi
     : '';
 }
 
-async function callGroqChatCompletion(groqKey, messages, { max_tokens = 1400, temperature = 0.5 } = {}) {
+async function callGroqChatCompletion(groqKey, messages, { max_tokens = 1400, temperature = 0.5, userId = 'guest' } = {}) {
+  await assertWithinBudget({ provider: 'Groq', route: 'orchestrator', userId });
+  await precheckCredit({ userId, model: 'llama-3.3-70b-versatile', messages, maxTokens: max_tokens });
+  const startedAt = Date.now();
   const resp = await fetch('https://api.groq.com/openai/v1/chat/completions', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${groqKey}` },
@@ -48,7 +54,30 @@ async function callGroqChatCompletion(groqKey, messages, { max_tokens = 1400, te
     throw err;
   }
 
-  return await resp.json();
+  const data = await resp.json();
+
+  // Débit du crédit sur le coût réel
+  try {
+    await debitAfterUsage({ userId, model: data?.model || 'llama-3.3-70b-versatile', usage: data?.usage });
+  } catch (_) {
+    // best-effort
+  }
+
+  try {
+    await recordUsage({
+      provider: 'Groq',
+      model: data?.model || 'llama-3.3-70b-versatile',
+      route: 'orchestrator',
+      userId: String(userId || ''),
+      usage: data?.usage,
+      latencyMs: Date.now() - startedAt,
+      ok: true
+    });
+  } catch (_) {
+    // best-effort
+  }
+
+  return data;
 }
 
 function heuristicPickAgents(question) {
@@ -91,7 +120,7 @@ Contraintes:
   const data = await callGroqChatCompletion(groqKey, [
     { role: 'system', content: system },
     { role: 'user', content: user }
-  ], { max_tokens: 250, temperature: 0.1 });
+  ], { max_tokens: 250, temperature: 0.1, userId: 'guest' });
 
   const raw = data?.choices?.[0]?.message?.content || '';
   const parsed = safeJsonParse(raw);
@@ -116,7 +145,8 @@ async function orchestrateMultiAgents({
   toolsContext,
   analyzeHallucination,
   logger,
-  maxAgents = 3
+  maxAgents = 3,
+  userId = 'guest'
 }) {
   const question = String(teamQuestion || '').trim();
   if (!question) {
@@ -193,7 +223,7 @@ async function orchestrateMultiAgents({
       }
     ];
 
-    const workerData = await callGroqChatCompletion(groqKey, workerMessages, { max_tokens: 1200, temperature: 0.5 });
+    const workerData = await callGroqChatCompletion(groqKey, workerMessages, { max_tokens: 1200, temperature: 0.5, userId });
     const workerText = workerData?.choices?.[0]?.message?.content || '';
     totalTokensUsed += workerData?.usage?.total_tokens || 0;
     workerOutputs.push({ agent, text: workerText });
@@ -210,13 +240,13 @@ async function orchestrateMultiAgents({
     }
   ];
 
-  const synthData = await callGroqChatCompletion(groqKey, synthMessages, { max_tokens: 1600, temperature: 0.6 });
+  const synthData = await callGroqChatCompletion(groqKey, synthMessages, { max_tokens: 1600, temperature: 0.6, userId });
   const aiResponse = synthData?.choices?.[0]?.message?.content || '';
   totalTokensUsed += synthData?.usage?.total_tokens || 0;
 
   let hallucinationAnalysis;
   try {
-    hallucinationAnalysis = await analyzeHallucination(aiResponse, question);
+    hallucinationAnalysis = await analyzeHallucination(aiResponse, question, null, { userId });
   } catch (analysisError) {
     if (logger?.warn) logger.warn('Hallucination analysis failed, using defaults:', analysisError?.message || analysisError);
     hallucinationAnalysis = { hi: 0, chr: 0, claims: [], counts: {}, sources: [], warning: null, method: 'fallback-error' };

@@ -135,6 +135,7 @@ module.exports = async function (context, req) {
         }
 
         const startTime = Date.now();
+        const userIdForBilling = req.body?.userId || req.query?.userId || 'guest';
         
         // Groq API configuration
         const groqApiKey = process.env.GROQ_API_KEY;
@@ -396,7 +397,8 @@ module.exports = async function (context, req) {
                     groqKey: groqApiKey,
                     question: userQuery,
                     recentHistory,
-                    logger: context.log
+                    logger: context.log,
+                    userId: userIdForBilling
                 });
             } catch (e) {
                 context.log.warn('⚠️ Boost interne indisponible (Axilum), continue sans:', e?.message || e);
@@ -436,7 +438,7 @@ module.exports = async function (context, req) {
         // Appeler Groq API
         let data;
         try {
-            data = await callGroqChatCompletion(groqApiKey, messages, { max_tokens: 2000, temperature: 0.7 });
+            data = await callGroqChatCompletion(groqApiKey, messages, { max_tokens: 2000, temperature: 0.7, userId: userIdForBilling });
         } catch (e) {
             context.log.error('❌ Groq API Error:', e.status || 'n/a', e.details || e.message);
             
@@ -480,7 +482,7 @@ module.exports = async function (context, req) {
         // Analyse anti-hallucination avec modèles GRATUITS (Groq/Gemini)
         let hallucinationAnalysis;
         try {
-            hallucinationAnalysis = await analyzeHallucination(aiResponse, userMessage);
+            hallucinationAnalysis = await analyzeHallucination(aiResponse, userMessage, null, { userId: userIdForBilling });
         } catch (analysisError) {
             context.log.warn('Hallucination analysis failed, using defaults:', analysisError.message);
             hallucinationAnalysis = {
@@ -535,14 +537,14 @@ module.exports = async function (context, req) {
                     { role: 'user', content: `Question: ${userQuery}\n\nRéponse initiale à corriger:\n${aiResponse}` }
                 ];
 
-                const correctedData = await callGroqChatCompletion(groqApiKey, correctionMessages, { max_tokens: 2500, temperature: 0.2 });
+                const correctedData = await callGroqChatCompletion(groqApiKey, correctionMessages, { max_tokens: 2500, temperature: 0.2, userId: userIdForBilling });
                 autoCorrectionUsage = correctedData?.usage || null;
                 const corrected = correctedData?.choices?.[0]?.message?.content;
                 if (typeof corrected === 'string' && corrected.trim()) {
                     finalAiResponse = corrected.trim();
                     autoCorrectionApplied = true;
                     try {
-                        hallucinationAnalysis = await analyzeHallucination(finalAiResponse, userMessage);
+                        hallucinationAnalysis = await analyzeHallucination(finalAiResponse, userMessage, null, { userId: userIdForBilling });
                     } catch (_) {
                         // keep previous analysis if re-check fails
                     }

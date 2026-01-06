@@ -5,6 +5,8 @@ const { analyzeHallucination } = require('../utils/hallucinationDetector');
 const { buildContextForFunctions, buildCompactSystemPrompt } = require('../utils/contextManager');
 const { detectFunctions, orchestrateFunctions, summarizeResults } = require('../utils/functionRouter');
 const { callGroqWithRateLimit, globalRateLimiter } = require('../utils/rateLimiter');
+const { getAuthEmail } = require('../utils/auth');
+const { precheckCredit, debitAfterUsage } = require('../utils/aiCreditGuard');
 
 module.exports = async function (context, req) {
     context.log('💎 PRO PLAN - Architecture évolutive');
@@ -45,6 +47,8 @@ module.exports = async function (context, req) {
         }
 
         const conversationHistory = req.body.history || [];
+        const email = getAuthEmail(req);
+        const userIdForBilling = email || req.body?.userId || req.query?.userId || 'guest';
 
         // 1. 🎯 DÉTECTION DES FONCTIONS NÉCESSAIRES
         const neededFunctions = detectFunctions(userMessage);
@@ -107,6 +111,9 @@ module.exports = async function (context, req) {
             // Message utilisateur
             messages.push({ role: "user", content: userMessage });
 
+            // Crédit prépayé (EUR)
+            await precheckCredit({ userId: userIdForBilling, model: 'llama-3.3-70b-versatile', messages, maxTokens: 4000 });
+
             // Appel Groq
             const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
                 method: 'POST',
@@ -130,13 +137,18 @@ module.exports = async function (context, req) {
             return await response.json();
         }, 'normal');
 
+        // Débit du crédit sur le coût réel
+        try {
+            await debitAfterUsage({ userId: userIdForBilling, model: groqResponse?.model || 'llama-3.3-70b-versatile', usage: groqResponse?.usage });
+        } catch (_) {}
+
         const aiResponse = groqResponse.choices[0].message.content;
         const responseTime = Date.now() - startTime;
 
         // 5. 🛡️ ANALYSE ANTI-HALLUCINATION
         let hallucinationAnalysis;
         try {
-            hallucinationAnalysis = await analyzeHallucination(aiResponse, userMessage);
+            hallucinationAnalysis = await analyzeHallucination(aiResponse, userMessage, null, { userId: userIdForBilling });
         } catch (analysisError) {
             context.log.warn('⚠️ Analyse hallucination échouée:', analysisError.message);
             hallucinationAnalysis = {

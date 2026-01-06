@@ -3,6 +3,7 @@
 const { analyzeHallucination } = require('../utils/hallucinationDetector');
 const { buildSystemPromptForAgent, normalizeAgentId } = require('../utils/agentRegistry');
 const { orchestrateMultiAgents, callGroqChatCompletion } = require('../utils/orchestrator');
+const { getAuthEmail } = require('../utils/auth');
 const { shouldUseInternalBoost, buildAxilumInternalBoostContext } = require('../utils/axilumInternalBoost');
 const { detectFunctions, orchestrateFunctions, summarizeResults } = require('../utils/functionRouter');
 const { buildWebEvidenceContext } = require('../utils/webEvidence');
@@ -133,6 +134,7 @@ module.exports = async function (context, req) {
 
         const startTime = Date.now();
         const groqKey = process.env.APPSETTING_GROQ_API_KEY || process.env.GROQ_API_KEY;
+        const userIdForBilling = getAuthEmail(req) || req.body?.userId || req.query?.userId || 'guest';
         
         if (!groqKey) {
             context.res = { status: 200, headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }, body: { error: "Groq API Key not configured", responseTime: `${Date.now() - startTime}ms` } };
@@ -218,7 +220,8 @@ module.exports = async function (context, req) {
                 searchBrave,
                 toolsContext,
                 analyzeHallucination,
-                logger: context.log
+                logger: context.log,
+                userId: (getAuthEmail(req) || req.body?.userId || req.query?.userId || 'guest')
             });
 
             if (!orchestrated.ok) {
@@ -440,7 +443,8 @@ module.exports = async function (context, req) {
                     groqKey,
                     question: userQuery,
                     recentHistory,
-                    logger: context.log
+                    logger: context.log,
+                    userId: userIdForBilling
                 });
             } catch (e) {
                 context.log.warn('⚠️ Boost interne indisponible (Axilum), continue sans:', e?.message || e);
@@ -620,7 +624,7 @@ Ne mentionne pas tes capacités ou fonctionnalités à moins que l'utilisateur n
 
         let data;
         try {
-            data = await callGroqChatCompletion(groqKey, messages, { max_tokens: 4000, temperature: 0.7 });
+            data = await callGroqChatCompletion(groqKey, messages, { max_tokens: 4000, temperature: 0.7, userId: userIdForBilling });
         } catch (e) {
             context.res = {
                 status: 200,
@@ -635,7 +639,7 @@ Ne mentionne pas tes capacités ou fonctionnalités à moins que l'utilisateur n
         // 🛡️ Analyse anti-hallucination avec modèles GRATUITS (Groq/Gemini)
         let hallucinationAnalysis;
         try {
-            hallucinationAnalysis = await analyzeHallucination(aiResponse, userMessage);
+            hallucinationAnalysis = await analyzeHallucination(aiResponse, userMessage, null, { userId: userIdForBilling });
         } catch (analysisError) {
             context.log.warn('⚠️ Hallucination analysis failed, using defaults:', analysisError.message);
             hallucinationAnalysis = {
@@ -690,14 +694,14 @@ Ne mentionne pas tes capacités ou fonctionnalités à moins que l'utilisateur n
                     { role: 'user', content: `Question: ${userMessage}\n\nRéponse initiale à corriger:\n${aiResponse}` }
                 ];
 
-                const correctedData = await callGroqChatCompletion(groqKey, correctionMessages, { max_tokens: 2500, temperature: 0.2 });
+                const correctedData = await callGroqChatCompletion(groqKey, correctionMessages, { max_tokens: 2500, temperature: 0.2, userId: userIdForBilling });
                 autoCorrectionUsage = correctedData?.usage || null;
                 const corrected = correctedData?.choices?.[0]?.message?.content;
                 if (typeof corrected === 'string' && corrected.trim()) {
                     finalAiResponse = corrected.trim();
                     autoCorrectionApplied = true;
                     try {
-                        hallucinationAnalysis = await analyzeHallucination(finalAiResponse, userMessage);
+                        hallucinationAnalysis = await analyzeHallucination(finalAiResponse, userMessage, null, { userId: userIdForBilling });
                     } catch (_) {
                         // keep previous analysis if re-check fails
                     }

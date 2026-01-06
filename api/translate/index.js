@@ -1,6 +1,10 @@
 // 🌍 Traduction Avancée - Détection langue + Traduction contextuelle + Explications
 // Utilise Llama 3.3 70B pour traductions naturelles avec contexte culturel
 
+const { assertWithinBudget, recordUsage, BudgetExceededError } = require('../utils/aiUsageBudget');
+const { getAuthEmail } = require('../utils/auth');
+const { precheckCredit, debitAfterUsage } = require('../utils/aiCreditGuard');
+
 module.exports = async function (context, req) {
     context.log('🌍 Translation Request');
 
@@ -17,7 +21,9 @@ module.exports = async function (context, req) {
     }
 
     try {
-        const { text, targetLang, sourceLang, preserveFormatting, includeAlternatives } = req.body;
+        const { text, targetLang, sourceLang, preserveFormatting, includeAlternatives, userId: bodyUserId } = req.body;
+        const authEmail = getAuthEmail(req);
+        const userId = authEmail || bodyUserId || 'guest';
 
         if (!text || !targetLang) {
             context.res = {
@@ -37,6 +43,61 @@ module.exports = async function (context, req) {
                 body: { error: "Groq API Key not configured" }
             };
             return;
+        }
+
+        // Crédit prépayé (EUR)
+        try {
+            const maxTokens = Math.min(text.length * 3, 2000);
+            await precheckCredit({ userId, model: 'llama-3.3-70b-versatile', messages, maxTokens });
+        } catch (e) {
+            if (e?.code === 'INSUFFICIENT_CREDIT') {
+                context.res = {
+                    status: e.status || 402,
+                    headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
+                    body: {
+                        error: 'Quota prépayé insuffisant.',
+                        code: 'INSUFFICIENT_CREDIT',
+                        currency: e.currency || 'EUR',
+                        balanceCents: Number(e.remainingCents || 0),
+                        balanceEur: Number(((Number(e.remainingCents || 0)) / 100).toFixed(2))
+                    }
+                };
+                return;
+            }
+            if (e?.code === 'PRICING_MISSING') {
+                context.res = {
+                    status: e.status || 500,
+                    headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
+                    body: { error: 'Pricing manquant pour calculer le quota.', code: 'PRICING_MISSING', details: e.message }
+                };
+                return;
+            }
+            throw e;
+        }
+
+        // Bloquer si le budget mensuel est dépassé
+        try {
+            await assertWithinBudget({ provider: 'Groq', route: 'translate', userId: req.body?.userId || '' });
+        } catch (e) {
+            if (e instanceof BudgetExceededError || e?.code === 'BUDGET_EXCEEDED') {
+                context.res = {
+                    status: e.status || 429,
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Access-Control-Allow-Origin': '*',
+                        'Retry-After': String(e.retryAfterSeconds || 3600)
+                    },
+                    body: {
+                        error: 'Budget IA mensuel dépassé. Réessayez le mois prochain ou augmentez le budget.',
+                        code: 'BUDGET_EXCEEDED',
+                        used: e.used,
+                        limit: e.limit,
+                        currency: e.currency
+                    }
+                };
+                return;
+            }
+            throw e;
         }
 
         // Détection automatique de la langue source si non fournie
@@ -76,6 +137,7 @@ ${includeAlternatives ? `
         ];
 
         // Appel Groq
+        const startedAt = Date.now();
         const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
             method: 'POST',
             headers: {
@@ -106,6 +168,28 @@ ${includeAlternatives ? `
         const aiData = await response.json();
         const translation = aiData.choices[0].message.content;
 
+        // Débiter le crédit sur le coût réel
+        const creditAfter = await debitAfterUsage({
+            userId,
+            model: aiData?.model || 'llama-3.3-70b-versatile',
+            usage: aiData?.usage
+        });
+
+        // Enregistrer usage (tokens + coût si pricing configuré)
+        try {
+            await recordUsage({
+                provider: 'Groq',
+                model: aiData?.model || 'llama-3.3-70b-versatile',
+                route: 'translate',
+                userId: req.body?.userId || '',
+                usage: aiData?.usage,
+                latencyMs: Date.now() - startedAt,
+                ok: true
+            });
+        } catch (_) {
+            // best-effort
+        }
+
         // Parser la réponse pour extraire traduction et alternatives
         const parsed = parseTranslationResponse(translation, includeAlternatives);
 
@@ -124,14 +208,15 @@ ${includeAlternatives ? `
                 originalText: text,
                 tokensUsed: aiData.usage?.total_tokens || 0,
                 model: 'llama-3.3-70b',
-                provider: 'Groq'
+                provider: 'Groq',
+                credit: creditAfter || null
             }
         };
 
     } catch (error) {
         context.log.error('❌ Error:', error);
         context.res = {
-            status: 200,
+            status: error?.status || 200,
             headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
             body: { error: error.message }
         };

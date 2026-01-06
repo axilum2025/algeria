@@ -1,6 +1,9 @@
 // 📊 Excel Assistant - Génération formules, analyse de données, création tableaux
 // Utilise Llama 3.3 70B pour comprendre les besoins et générer des solutions Excel
 
+const { getAuthEmail } = require('../utils/auth');
+const { precheckCredit, debitAfterUsage } = require('../utils/aiCreditGuard');
+
 module.exports = async function (context, req) {
     context.log('📊 Excel Assistant Request');
 
@@ -17,7 +20,9 @@ module.exports = async function (context, req) {
     }
 
     try {
-        const { task, data, context: taskContext } = req.body;
+        const { task, data, context: taskContext, userId: bodyUserId } = req.body;
+        const authEmail = getAuthEmail(req);
+        const userId = authEmail || bodyUserId || 'guest';
 
         if (!task) {
             context.res = {
@@ -71,6 +76,26 @@ ${taskContext ? `\n📋 **Contexte**:\n${taskContext}` : ''}`;
             { role: "user", content: task }
         ];
 
+        // Crédit prépayé (EUR)
+        try {
+            await precheckCredit({ userId, model: 'llama-3.3-70b-versatile', messages, maxTokens: 2000 });
+        } catch (e) {
+            context.res = {
+                status: e?.code === 'INSUFFICIENT_CREDIT' ? (e.status || 402) : (e?.status || 500),
+                headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
+                body: e?.code === 'INSUFFICIENT_CREDIT'
+                    ? {
+                        error: 'Quota prépayé insuffisant.',
+                        code: 'INSUFFICIENT_CREDIT',
+                        currency: e.currency || 'EUR',
+                        balanceCents: Number(e.remainingCents || 0),
+                        balanceEur: Number(((Number(e.remainingCents || 0)) / 100).toFixed(2))
+                    }
+                    : { error: 'Pricing manquant pour calculer le quota.', code: e?.code || 'CREDIT_ERROR', details: String(e?.message || e) }
+            };
+            return;
+        }
+
         // Appel Groq avec Llama 3.3 70B
         const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
             method: 'POST',
@@ -102,6 +127,8 @@ ${taskContext ? `\n📋 **Contexte**:\n${taskContext}` : ''}`;
         const aiData = await response.json();
         const solution = aiData.choices[0].message.content;
 
+        const creditAfter = await debitAfterUsage({ userId, model: aiData?.model || 'llama-3.3-70b-versatile', usage: aiData?.usage });
+
         // Extraire les formules Excel du texte
         const formulas = extractExcelFormulas(solution);
 
@@ -117,7 +144,8 @@ ${taskContext ? `\n📋 **Contexte**:\n${taskContext}` : ''}`;
                 task: task,
                 tokensUsed: aiData.usage?.total_tokens || 0,
                 model: 'llama-3.3-70b',
-                provider: 'Groq'
+                provider: 'Groq',
+                credit: creditAfter || null
             }
         };
 

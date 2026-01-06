@@ -5876,6 +5876,25 @@ ${persona}
             } catch (_) {}
 
             try {
+                // 1) Crédit prépayé (EUR) - priorité
+                try {
+                    const u = (typeof currentUser !== 'undefined' && currentUser)
+                        ? (currentUser.email || currentUser.id)
+                        : (typeof getTodoUserId === 'function' ? getTodoUserId() : 'guest');
+                    const creditQs = new URLSearchParams();
+                    if (u) creditQs.set('userId', String(u));
+                    const cres = await fetch(`/api/me/credit?${creditQs.toString()}`, { method: 'GET', headers });
+                    const cdata = await cres.json().catch(() => null);
+                    if (cres.ok && cdata && typeof cdata.balanceEur === 'number') {
+                        const remainingEur = Number(cdata.balanceEur).toFixed(2);
+                        quotaValue.textContent = `${remainingEur}€`;
+                        if (quotaIndicator) {
+                            quotaIndicator.title = `Crédit: ${remainingEur}€`;
+                        }
+                        return;
+                    }
+                } catch (_) {}
+
                 const res = await fetch(`/api/me/plan-quota?${qs.toString()}`, { method: 'GET', headers });
                 const data = await res.json().catch(() => null);
                 if (!res.ok || !data || !data.quota) throw new Error('bad_response');

@@ -1,4 +1,7 @@
 const axios = require('axios');
+const { assertWithinBudget, recordUsage, BudgetExceededError } = require('../utils/aiUsageBudget');
+const { getAuthEmail } = require('../utils/auth');
+const { precheckCredit, debitAfterUsage } = require('../utils/aiCreditGuard');
 
 /**
  * Détecte si on doit proposer le téléchargement du résultat
@@ -61,7 +64,9 @@ module.exports = async function (context, req) {
   }
 
   try {
-    const { messages, userId, context: reqContext } = req.body || {};
+    const { messages, userId: bodyUserId, context: reqContext } = req.body || {};
+    const authEmail = getAuthEmail(req);
+    const userId = authEmail || bodyUserId || 'guest';
     
     if (!messages || !Array.isArray(messages)) {
       setCors();
@@ -90,7 +95,56 @@ module.exports = async function (context, req) {
       return;
     }
 
+    // Crédit prépayé (EUR)
+    try {
+      await precheckCredit({ userId, model: 'llama-3.3-70b-versatile', messages, maxTokens: 2000 });
+    } catch (e) {
+      if (e?.code === 'INSUFFICIENT_CREDIT') {
+        setCors();
+        context.res.status = e.status || 402;
+        context.res.headers['Content-Type'] = 'application/json';
+        context.res.body = {
+          error: 'Quota prépayé insuffisant.',
+          code: 'INSUFFICIENT_CREDIT',
+          currency: e.currency || 'EUR',
+          balanceCents: Number(e.remainingCents || 0),
+          balanceEur: Number(((Number(e.remainingCents || 0)) / 100).toFixed(2))
+        };
+        return;
+      }
+      if (e?.code === 'PRICING_MISSING') {
+        setCors();
+        context.res.status = e.status || 500;
+        context.res.headers['Content-Type'] = 'application/json';
+        context.res.body = { error: 'Pricing manquant pour calculer le quota.', code: 'PRICING_MISSING', details: e.message };
+        return;
+      }
+      throw e;
+    }
+
+    // Bloquer si le budget mensuel est dépassé (contrôle centralisé côté serveur)
+    try {
+      await assertWithinBudget({ provider: 'Groq', route: 'chat', userId });
+    } catch (e) {
+      if (e instanceof BudgetExceededError || e?.code === 'BUDGET_EXCEEDED') {
+        setCors();
+        context.res.status = e.status || 429;
+        context.res.headers['Content-Type'] = 'application/json';
+        context.res.headers['Retry-After'] = String(e.retryAfterSeconds || 3600);
+        context.res.body = {
+          error: 'Budget IA mensuel dépassé. Réessayez le mois prochain ou augmentez le budget.',
+          code: 'BUDGET_EXCEEDED',
+          used: e.used,
+          limit: e.limit,
+          currency: e.currency
+        };
+        return;
+      }
+      throw e;
+    }
+
     // Call Groq API
+    const startedAt = Date.now();
     const groqResponse = await axios.post(
       'https://api.groq.com/openai/v1/chat/completions',
       {
@@ -107,6 +161,28 @@ module.exports = async function (context, req) {
       }
     );
 
+    // Débiter le crédit sur le coût réel
+    const creditAfter = await debitAfterUsage({
+      userId,
+      model: groqResponse?.data?.model || 'llama-3.3-70b-versatile',
+      usage: groqResponse?.data?.usage
+    });
+
+    // Enregistrer usage (tokens + coût si pricing configuré)
+    try {
+      await recordUsage({
+        provider: 'Groq',
+        model: groqResponse?.data?.model || 'llama-3.3-70b-versatile',
+        route: 'chat',
+        userId,
+        usage: groqResponse?.data?.usage,
+        latencyMs: Date.now() - startedAt,
+        ok: true
+      });
+    } catch (_) {
+      // best-effort
+    }
+
     const assistantMessage = groqResponse.data.choices?.[0]?.message?.content || 'Pas de réponse générée.';
 
     // Détecter si on doit proposer le téléchargement
@@ -119,13 +195,14 @@ module.exports = async function (context, req) {
       response: assistantMessage,
       userId,
       context: reqContext,
-      offerDownload: shouldOfferDownload
+      offerDownload: shouldOfferDownload,
+      credit: creditAfter || null
     };
 
   } catch (error) {
     context.log.error('Chat API Error:', error.message);
     setCors();
-    context.res.status = 500;
+    context.res.status = error?.status || 500;
     context.res.headers['Content-Type'] = 'application/json';
     context.res.body = { 
       error: error.message || String(error),

@@ -1,6 +1,9 @@
 // 🛡️ Système avancé de détection d'hallucinations
 // Utilise des modèles GRATUITS (Groq, Gemini Flash) pour l'analyse
 
+const { assertWithinBudget, recordUsage } = require('./aiUsageBudget');
+const { precheckCredit, debitAfterUsage } = require('./aiCreditGuard');
+
 // Configuration des modèles gratuits
 const FREE_MODELS = {
     groq: {
@@ -64,13 +67,32 @@ FORMAT JSON ATTENDU:
 /**
  * Analyse avec Groq (priorité - gratuit et ultra-rapide)
  */
-async function analyzeWithGroq(response, originalQuestion) {
+async function analyzeWithGroq(response, originalQuestion, { userId } = {}) {
     const groqKey = process.env.APPSETTING_GROQ_API_KEY || process.env.GROQ_API_KEY;
     
     if (!groqKey) {
         throw new Error('GROQ_API_KEY non configurée');
     }
 
+    // Bloquer si le budget mensuel est dépassé
+    await assertWithinBudget({ provider: 'Groq', route: 'hallucinationDetector' });
+
+    const messages = [
+        { role: 'system', content: ANALYSIS_PROMPT },
+        {
+            role: 'user',
+            content: `Question originale: ${originalQuestion}\n\nRéponse à analyser:\n${response}`
+        }
+    ];
+
+    await precheckCredit({
+        userId: userId || 'guest',
+        model: FREE_MODELS.groq.model,
+        messages,
+        maxTokens: 2000
+    });
+
+    const startedAt = Date.now();
     const apiResponse = await fetch(FREE_MODELS.groq.url, {
         method: 'POST',
         headers: {
@@ -79,13 +101,7 @@ async function analyzeWithGroq(response, originalQuestion) {
         },
         body: JSON.stringify({
             model: FREE_MODELS.groq.model,
-            messages: [
-                { role: 'system', content: ANALYSIS_PROMPT },
-                { 
-                    role: 'user', 
-                    content: `Question originale: ${originalQuestion}\n\nRéponse à analyser:\n${response}`
-                }
-            ],
+            messages,
             temperature: 0.1, // Déterministe
             max_tokens: 2000,
             response_format: { type: "json_object" } // Force JSON
@@ -98,6 +114,25 @@ async function analyzeWithGroq(response, originalQuestion) {
     }
 
     const data = await apiResponse.json();
+    await debitAfterUsage({
+        userId: userId || 'guest',
+        model: data?.model || FREE_MODELS.groq.model,
+        usage: data?.usage
+    });
+
+    try {
+        await recordUsage({
+            provider: 'Groq',
+            model: data?.model || FREE_MODELS.groq.model,
+            route: 'hallucinationDetector',
+            userId: String(userId || ''),
+            usage: data?.usage,
+            latencyMs: Date.now() - startedAt,
+            ok: true
+        });
+    } catch (_) {
+        // best-effort
+    }
     const analysisText = data.choices[0].message.content;
     
     return JSON.parse(analysisText);
@@ -242,11 +277,11 @@ function analyzeLocal(text) {
  * Fonction principale avec cascade intelligente
  * Essaie Groq → Gemini → Analyse locale
  */
-async function analyzeHallucination(response, question = '', sources = null) {
+async function analyzeHallucination(response, question = '', sources = null, options = null) {
     // 1er essai : Groq (gratuit, ultra-rapide)
     try {
         console.log('🔍 Analyse hallucinations avec Groq...');
-        const result = await analyzeWithGroq(response, question);
+        const result = await analyzeWithGroq(response, question, (options && typeof options === 'object') ? options : {});
         result.method = 'groq';
         console.log('✅ Analyse Groq réussie - HI:', result.hi, 'CHR:', result.chr);
         return result;

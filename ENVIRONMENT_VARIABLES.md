@@ -26,6 +26,100 @@ GROQ_API_KEY=votre_clé_groq_ici
 **Utilisé dans** : invoke, invoke-v2, invokeFree, taskManager, excelAssistant, translate, hallucinationDetector
 **Obtenir la clé** : https://console.groq.com/
 
+### Suivi & budget IA (Azure Table)
+
+- `AZURE_STORAGE_CONNECTION_STRING` (ou `APPSETTING_AZURE_STORAGE_CONNECTION_STRING`) : requis pour persister les métriques dans Azure Table.
+- `AI_BUDGET_MONTHLY` : budget mensuel (nombre). Si défini et > 0, l'API bloque quand le budget est dépassé.
+- `AI_BUDGET_CURRENCY` : devise affichée (ex: `USD`, `EUR`, `DZD`).
+- `AI_PRICING_JSON` : table de prix par modèle (JSON). Format recommandé (prix par 1M tokens):
+  - `{"llama-3.3-70b-versatile":{"in":0.0,"out":0.0},"llama-3.1-8b-instant":{"in":0.0,"out":0.0}}`
+- `AI_PRICING_CURRENCY` : devise des prix dans `AI_PRICING_JSON` (défaut: `EUR`).
+- `AI_COST_CURRENCY` : devise dans laquelle on calcule les coûts (défaut: `EUR`).
+- `AI_FX_USD_TO_EUR` : taux de conversion si `AI_PRICING_CURRENCY=USD` et `AI_COST_CURRENCY=EUR`.
+
+### Quota prépayé utilisateur (EUR)
+
+- `AI_CREDIT_ENFORCE=1` : active le blocage basé sur le crédit prépayé utilisateur.
+- Stockage: table `UserCredits` (PartitionKey par user, RowKey `BALANCE`) avec `balanceCents` en centimes.
+
+Notes:
+- Si `AI_CREDIT_ENFORCE=1`, il faut aussi configurer `AI_PRICING_JSON` sinon l'API ne peut pas calculer le coût.
+- Si vos prix Groq sont en USD (cas courant), utilisez:
+  - `AI_PRICING_CURRENCY=USD`
+  - `AI_COST_CURRENCY=EUR`
+  - `AI_FX_USD_TO_EUR=0.92` (exemple)
+
+Exemple `AI_PRICING_JSON` (USD / 1M tokens, à adapter aux IDs exacts des modèles):
+
+```json
+{
+  "gpt-oss-20b": { "in": 0.075, "out": 0.30 },
+  "gpt-oss-safeguard-20b": { "in": 0.075, "out": 0.30 },
+  "gpt-oss-120b": { "in": 0.15, "out": 0.60 },
+  "llama-4-scout": { "in": 0.11, "out": 0.34 },
+  "llama-4-maverick": { "in": 0.20, "out": 0.60 },
+  "llama-guard-4": { "in": 0.20, "out": 0.20 },
+  "qwen3-32b": { "in": 0.29, "out": 0.59 },
+  "llama-3.3-70b-versatile": { "in": 0.59, "out": 0.79 },
+  "llama-3.1-8b-instant": { "in": 0.05, "out": 0.08 }
+}
+```
+
+---
+
+## 📦 Estimation des coûts Azure (pour fixer un prix + marge)
+
+L'application utilise aussi des services Azure (Table Storage, Blob Storage, Vision/OCR, Email). Pour estimer ces coûts et produire un prix de vente « raisonnable + marge », l'endpoint `GET /api/admin-cost-estimate` calcule:
+- Coût IA (depuis `AiUsageMonthly.totalCost`)
+- Surcoûts Azure estimés (configurables)
+- Prix conseillé = (coût total + fixe) × (1 + marge)
+
+Variables (toutes en EUR):
+
+```bash
+# (Optionnel) sécurise l'endpoint /api/admin-cost-estimate
+ADMIN_API_KEY=...
+
+# Pricing (marge)
+PRICING_MARGIN_PCT=0.15
+PRICING_FIXED_EUR=0
+
+# Azure overhead (mettre à jour selon votre région/pricing Azure)
+AZ_COST_FIXED_MONTHLY_EUR=0
+AZ_COST_TABLE_EUR_PER_100K_TXN=0
+AZ_COST_TABLE_TXN_PER_AI_CALL=8
+AZ_COST_FUNCTIONS_EUR_PER_1M_INVOCATIONS=0
+AZ_COST_FUNCTIONS_INVOCATIONS_PER_AI_CALL=1
+
+AZ_COST_BLOB_EUR_PER_GB_MONTH=0
+AZ_COST_BLOB_EUR_PER_10K_WRITE=0
+AZ_COST_BLOB_EUR_PER_10K_READ=0
+AZ_COST_EGRESS_EUR_PER_GB=0
+
+AZ_COST_VISION_EUR_PER_1K_TXN=0
+AZ_COST_FORMRECOGNIZER_EUR_PER_1K_PAGES=0
+AZ_COST_EMAIL_EUR_PER_1K=0
+```
+
+Tester avec overrides (POST JSON):
+
+```json
+{
+  "azure": {
+    "blobStorageGbMonth": 5,
+    "blobWrites": 200,
+    "blobReads": 800,
+    "egressGb": 10,
+    "visionTransactions": 100,
+    "formRecognizerPages": 500,
+    "emailsSent": 50
+  }
+}
+```
+
+Notes:
+- Le blocage se base sur les coûts calculés à partir de `usage.prompt_tokens` / `usage.completion_tokens` retournés par Groq.
+- Les écritures se font dans les tables `AiUsage` (détails) et `AiUsageMonthly` (agrégats mensuels).
 ---
 
 ### 2. **Azure Storage** (Stockage utilisateurs et données)

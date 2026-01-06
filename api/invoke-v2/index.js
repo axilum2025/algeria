@@ -13,6 +13,7 @@ const { getAuthEmail } = require('../utils/auth');
 const { getUserPlan, hasFeature, getPlanPriority } = require('../utils/entitlements');
 const { checkAndConsume } = require('../utils/planQuota');
 const { appendAuditEvent } = require('../utils/auditStorage');
+const { precheckCredit, debitAfterUsage } = require('../utils/aiCreditGuard');
 
 // Fonction RAG - Recherche Brave (simple)
 async function searchBrave(query, apiKey) {
@@ -114,6 +115,7 @@ module.exports = async function (context, req) {
         const chatType = req.body.chatType || req.body.conversationId;
 
         const email = getAuthEmail(req);
+        const userIdForBilling = email || req.body?.userId || req.query?.userId || 'guest';
         const plan = await getUserPlan(email);
         const isExcel = chatType === 'excel-expert' || chatType === 'excel-ai-expert';
 
@@ -554,6 +556,9 @@ Réponds en français, direct et actionnable.`;
             // Message utilisateur
             messages.push({ role: "user", content: userMessage });
 
+            // Crédit prépayé (EUR)
+            await precheckCredit({ userId: userIdForBilling, model: 'llama-3.3-70b-versatile', messages, maxTokens: 4000 });
+
             // Appel Groq
             const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
                 method: 'POST',
@@ -577,13 +582,18 @@ Réponds en français, direct et actionnable.`;
             return await response.json();
         }, priority);
 
+        // Débit du crédit sur le coût réel
+        try {
+            await debitAfterUsage({ userId: userIdForBilling, model: groqResponse?.model || 'llama-3.3-70b-versatile', usage: groqResponse?.usage });
+        } catch (_) {}
+
         const aiResponse = groqResponse.choices[0].message.content;
         const responseTime = Date.now() - startTime;
 
         // 5. 🛡️ ANALYSE ANTI-HALLUCINATION
         let hallucinationAnalysis;
         try {
-            hallucinationAnalysis = await analyzeHallucination(aiResponse, userMessage);
+            hallucinationAnalysis = await analyzeHallucination(aiResponse, userMessage, null, { userId: userIdForBilling });
         } catch (analysisError) {
             context.log.warn('⚠️ Analyse hallucination échouée:', analysisError.message);
             hallucinationAnalysis = {
@@ -654,12 +664,18 @@ Réponds en français, direct et actionnable.`;
                 if (correctionResponse.ok) {
                     const correctionData = await correctionResponse.json();
                     autoCorrectionUsage = correctionData?.usage || null;
+
+                    // Débit du crédit sur le coût réel de l'auto-correction
+                    try {
+                        await debitAfterUsage({ userId: userIdForBilling, model: correctionData?.model || 'llama-3.3-70b-versatile', usage: correctionData?.usage });
+                    } catch (_) {}
+
                     const corrected = correctionData?.choices?.[0]?.message?.content;
                     if (typeof corrected === 'string' && corrected.trim()) {
                         finalAiResponse = corrected.trim();
                         autoCorrectionApplied = true;
                         try {
-                            hallucinationAnalysis = await analyzeHallucination(finalAiResponse, userMessage);
+                            hallucinationAnalysis = await analyzeHallucination(finalAiResponse, userMessage, null, { userId: userIdForBilling });
                         } catch (_) {
                             // keep previous analysis if re-check fails
                         }

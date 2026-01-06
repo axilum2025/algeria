@@ -7,6 +7,7 @@ const { callGroqWithRateLimit, globalRateLimiter } = require('../utils/rateLimit
 const { checkAndConsume } = require('../utils/planQuota');
 const { getUserPlan, getPlanPriority } = require('../utils/entitlements');
 const { appendAuditEvent } = require('../utils/auditStorage');
+const { precheckCredit, debitAfterUsage } = require('../utils/aiCreditGuard');
 
 const MAX_TEXT_CHARS = Math.max(200, Math.min(20_000, Number(process.env.TODO_TASKS_MAX_TEXT_CHARS || 4000) || 4000));
 const MAX_HISTORY_TURNS = Math.max(0, Math.min(20, Number(process.env.TODO_TASKS_MAX_HISTORY_TURNS || 8) || 8));
@@ -802,6 +803,19 @@ FORMAT JSON STRICT:
                     topPending
                 };
 
+                const model = 'llama-3.3-70b-versatile';
+                const messages = [
+                    { role: 'system', content: systemPrompt },
+                    { role: 'user', content: JSON.stringify(userPayload, null, 2) }
+                ];
+
+                await precheckCredit({
+                    userId,
+                    model,
+                    messages,
+                    maxTokens: 900
+                });
+
                 const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
                     method: 'POST',
                     headers: {
@@ -809,11 +823,8 @@ FORMAT JSON STRICT:
                         'Authorization': `Bearer ${groqKey}`
                     },
                     body: JSON.stringify({
-                        model: 'llama-3.3-70b-versatile',
-                        messages: [
-                            { role: 'system', content: systemPrompt },
-                            { role: 'user', content: JSON.stringify(userPayload, null, 2) }
-                        ],
+                        model,
+                        messages,
                         max_tokens: 900,
                         temperature: 0.4,
                         response_format: { type: 'json_object' }
@@ -822,6 +833,7 @@ FORMAT JSON STRICT:
 
                 if (response.ok) {
                     const aiData = await response.json();
+                    await debitAfterUsage({ userId, model, usage: aiData.usage });
                     const parsed = JSON.parse(aiData.choices[0].message.content);
                     const respText = parseOptionalString(parsed?.response) || coach.response;
                     const work = Array.isArray(parsed?.advice?.work) ? parsed.advice.work.map(x => String(x)).filter(Boolean) : coach.advice.work;
@@ -829,7 +841,11 @@ FORMAT JSON STRICT:
                     coach = { response: respText, advice: { work, personal } };
                 }
             } catch (e) {
-                context.log('coach llm fallback:', e && e.message ? e.message : e);
+                if (e?.status === 402 || e?.code === 'INSUFFICIENT_CREDIT') {
+                    // Crédit épuisé: fallback heuristique silencieux.
+                } else {
+                    context.log('coach llm fallback:', e && e.message ? e.message : e);
+                }
             }
         }
     }
@@ -959,6 +975,26 @@ Output: {"title":"Acheter du lait","priority":"low","category":"personnel",...}`
         { role: "user", content: `Parse cette tâche (date du jour: ${new Date().toISOString().split('T')[0]}):\n\n${description}` }
     ];
 
+    const model = 'llama-3.3-70b-versatile';
+    try {
+        await precheckCredit({ userId, model, messages, maxTokens: 500 });
+    } catch (e) {
+        if (e?.status === 402 || e?.code === 'INSUFFICIENT_CREDIT') {
+            context.res = {
+                status: 402,
+                headers: corsJsonHeaders(),
+                body: {
+                    error: 'Crédit insuffisant',
+                    currency: e.currency || 'EUR',
+                    remainingCents: Number(e.remainingCents || 0),
+                    remainingEur: Number((Number(e.remainingCents || 0) / 100).toFixed(2))
+                }
+            };
+            return;
+        }
+        throw e;
+    }
+
     const priority = String(req.__axilumPlanPriority || 'normal');
     const response = await callGroqWithRateLimit(async () => fetch('https://api.groq.com/openai/v1/chat/completions', {
         method: 'POST',
@@ -967,7 +1003,7 @@ Output: {"title":"Acheter du lait","priority":"low","category":"personnel",...}`
             'Authorization': `Bearer ${groqKey}`
         },
         body: JSON.stringify({
-            model: 'llama-3.3-70b-versatile',
+            model,
             messages: messages,
             max_tokens: 500,
             temperature: 0.2,
@@ -989,6 +1025,7 @@ Output: {"title":"Acheter du lait","priority":"low","category":"personnel",...}`
     }
 
     const aiData = await response.json();
+    const credit = await debitAfterUsage({ userId, model, usage: aiData.usage });
     let parsedTask;
     try {
         parsedTask = JSON.parse(aiData.choices[0].message.content);
@@ -1029,7 +1066,8 @@ Output: {"title":"Acheter du lait","priority":"low","category":"personnel",...}`
         body: {
             task: task,
             message: "Tâche créée avec succès",
-            tokensUsed: aiData.usage?.total_tokens || 0
+            tokensUsed: aiData.usage?.total_tokens || 0,
+            credit
         }
     };
 }
@@ -1418,6 +1456,26 @@ RÈGLES:
     // Ajouter le message actuel de l'utilisateur
     messages.push({ role: "user", content: userMessage });
 
+    const model = 'llama-3.3-70b-versatile';
+    try {
+        await precheckCredit({ userId, model, messages, maxTokens: 2000 });
+    } catch (e) {
+        if (e?.status === 402 || e?.code === 'INSUFFICIENT_CREDIT') {
+            context.res = {
+                status: 402,
+                headers: corsJsonHeaders(),
+                body: {
+                    error: 'Crédit insuffisant',
+                    currency: e.currency || 'EUR',
+                    remainingCents: Number(e.remainingCents || 0),
+                    remainingEur: Number((Number(e.remainingCents || 0) / 100).toFixed(2))
+                }
+            };
+            return;
+        }
+        throw e;
+    }
+
     const priority = String(req.__axilumPlanPriority || 'normal');
     const response = await callGroqWithRateLimit(async () => fetch('https://api.groq.com/openai/v1/chat/completions', {
         method: 'POST',
@@ -1426,7 +1484,7 @@ RÈGLES:
             'Authorization': `Bearer ${groqKey}`
         },
         body: JSON.stringify({
-            model: 'llama-3.3-70b-versatile',
+            model,
             messages: messages,
             max_tokens: 2000,
             temperature: 0.3,
@@ -1445,6 +1503,7 @@ RÈGLES:
     }
 
     const aiData = await response.json();
+    const credit = await debitAfterUsage({ userId, model, usage: aiData.usage });
     let result;
     try {
         result = JSON.parse(aiData.choices[0].message.content);
@@ -1557,7 +1616,8 @@ RÈGLES:
             suggestions: coerceArray(result.suggestions),
             insights: (result.insights && typeof result.insights === 'object') ? result.insights : {},
             tasksModified: tasksModified,
-            tokensUsed: aiData.usage?.total_tokens || 0
+            tokensUsed: aiData.usage?.total_tokens || 0,
+            credit
         }
     };
 }
