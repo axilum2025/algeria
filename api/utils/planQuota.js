@@ -14,9 +14,27 @@ function normalizePlan(raw) {
   return 'free';
 }
 
-function getLimits(plan) {
+function getLimits(plan, feature) {
   const p = normalizePlan(plan);
+  const f = String(feature || 'generic').toLowerCase().trim();
+
   // Limites volontairement simples (à ajuster selon pricing)
+  // Notes:
+  // - todo_ai = endpoints qui déclenchent IA (plus coûteux)
+  // - todo_api = CRUD/sync (plus permissif)
+  if (f === 'todo_ai') {
+    if (p === 'enterprise') return { windowMs: 60_000, max: 60 };
+    if (p === 'pro') return { windowMs: 60_000, max: 30 };
+    return { windowMs: 60_000, max: 10 };
+  }
+
+  if (f === 'todo_api') {
+    if (p === 'enterprise') return { windowMs: 60_000, max: 240 };
+    if (p === 'pro') return { windowMs: 60_000, max: 120 };
+    return { windowMs: 60_000, max: 40 };
+  }
+
+  // Default generic
   if (p === 'enterprise') return { windowMs: 60_000, max: 120 };
   if (p === 'pro') return { windowMs: 60_000, max: 60 };
   return { windowMs: 60_000, max: 20 };
@@ -29,7 +47,7 @@ function bucketKey({ plan, email, feature }) {
 }
 
 function peekQuota({ plan, email, feature }) {
-  const { windowMs, max } = getLimits(plan);
+  const { windowMs, max } = getLimits(plan, feature);
   const key = bucketKey({ plan, email, feature });
 
   const now = nowMs();
@@ -57,7 +75,7 @@ function peekQuota({ plan, email, feature }) {
 }
 
 function checkAndConsume({ plan, email, feature }) {
-  const { windowMs, max } = getLimits(plan);
+  const { windowMs, max } = getLimits(plan, feature);
   const key = bucketKey({ plan, email, feature });
 
   const now = nowMs();

@@ -10951,15 +10951,9 @@ ${persona}
 
         function savePersonalProfileFromModal() {
             const userId = typeof getTodoUserId === 'function' ? getTodoUserId() : 'anonymous';
-            const ageEl = document.getElementById('profileAgeInput');
-            const sexEl = document.getElementById('profileSexInput');
-            const focusEl = document.getElementById('profileFocusHoursInput');
-
-            // Certains navigateurs (surtout mobile) n'actualisent pas toujours la valeur
-            // d'un champ au moment du clic. On mémorise donc la dernière saisie via dataset.
-            const ageRaw = (ageEl?.value ?? '') || (ageEl?.dataset?.rawValue ?? '');
-            const sexRaw = (sexEl?.value ?? '');
-            const focusRaw = (focusEl?.value ?? '') || (focusEl?.dataset?.rawValue ?? '');
+            const ageRaw = document.getElementById('profileAgeInput')?.value ?? '';
+            const sexRaw = document.getElementById('profileSexInput')?.value ?? '';
+            const focusRaw = document.getElementById('profileFocusHoursInput')?.value ?? '';
             const age = normalizeProfileNumber(ageRaw, { min: 0, max: 120, allowFloat: false });
             const sex = String(sexRaw).trim();
             const focusHours = normalizeProfileNumber(focusRaw, { min: 0, max: 24, allowFloat: true });
@@ -11018,7 +11012,7 @@ ${persona}
                     <div style="margin-top: 14px; display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
                         <div>
                             <div style="font-size: 12px; color: var(--text-secondary); font-weight: 700; margin-bottom: 6px;">Âge</div>
-                            <input id="profileAgeInput" type="text" inputmode="numeric" autocomplete="off" placeholder="ex: 32" value="${String(current.age ?? '')}" style="width: 100%; padding: 10px 12px; border-radius: 10px; border: 1px solid var(--border-color); background: var(--bg-secondary); color: var(--text-primary);" />
+                            <input id="profileAgeInput" type="number" inputmode="numeric" min="0" max="120" placeholder="ex: 32" value="${String(current.age ?? '')}" style="width: 100%; padding: 10px 12px; border-radius: 10px; border: 1px solid var(--border-color); background: var(--bg-secondary); color: var(--text-primary);" />
                         </div>
                         <div>
                             <div style="font-size: 12px; color: var(--text-secondary); font-weight: 700; margin-bottom: 6px;">Sexe</div>
@@ -11033,7 +11027,7 @@ ${persona}
 
                     <div style="margin-top: 10px;">
                         <div style="font-size: 12px; color: var(--text-secondary); font-weight: 700; margin-bottom: 6px;">Capacité (heures focus / jour)</div>
-                        <input id="profileFocusHoursInput" type="text" inputmode="decimal" autocomplete="off" placeholder="ex: 6" value="${String(current.focusHours ?? '')}" style="width: 100%; padding: 10px 12px; border-radius: 10px; border: 1px solid var(--border-color); background: var(--bg-secondary); color: var(--text-primary);" />
+                        <input id="profileFocusHoursInput" type="number" inputmode="decimal" min="0" max="24" step="0.5" placeholder="ex: 6" value="${String(current.focusHours ?? '')}" style="width: 100%; padding: 10px 12px; border-radius: 10px; border: 1px solid var(--border-color); background: var(--bg-secondary); color: var(--text-primary);" />
                         <div style="margin-top: 6px; font-size: 12px; color: var(--text-secondary);">Aide à interpréter la surcharge (prochaines 24h).</div>
                     </div>
 
@@ -11048,24 +11042,6 @@ ${persona}
             });
 
             document.body.appendChild(modal);
-
-            // Mémoriser la dernière valeur tapée pour éviter les cas où .value est vide au clic
-            try {
-                const ageEl = document.getElementById('profileAgeInput');
-                const focusEl = document.getElementById('profileFocusHoursInput');
-                if (ageEl) {
-                    ageEl.dataset.rawValue = String(ageEl.value ?? '');
-                    ageEl.addEventListener('input', () => {
-                        ageEl.dataset.rawValue = String(ageEl.value ?? '');
-                    });
-                }
-                if (focusEl) {
-                    focusEl.dataset.rawValue = String(focusEl.value ?? '');
-                    focusEl.addEventListener('input', () => {
-                        focusEl.dataset.rawValue = String(focusEl.value ?? '');
-                    });
-                }
-            } catch (_) {}
         }
 
         function computeMentalLoadScore(metrics) {

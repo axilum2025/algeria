@@ -1,6 +1,56 @@
 // ✅ Task Manager Intelligent - Gestion de tâches avec IA
 // Détection automatique de priorité, deadline, sous-tâches via Llama 3.3 70B
 
+const { getAuthEmail } = require('../utils/auth');
+const taskStore = require('../utils/todoTaskStorage');
+const { callGroqWithRateLimit, globalRateLimiter } = require('../utils/rateLimiter');
+const { checkAndConsume } = require('../utils/planQuota');
+const { getUserPlan, getPlanPriority } = require('../utils/entitlements');
+const { appendAuditEvent } = require('../utils/auditStorage');
+
+const MAX_TEXT_CHARS = Math.max(200, Math.min(20_000, Number(process.env.TODO_TASKS_MAX_TEXT_CHARS || 4000) || 4000));
+const MAX_HISTORY_TURNS = Math.max(0, Math.min(20, Number(process.env.TODO_TASKS_MAX_HISTORY_TURNS || 8) || 8));
+const MAX_TASKS_IN_AI_CONTEXT = Math.max(10, Math.min(1000, Number(process.env.TODO_TASKS_MAX_TASKS_IN_AI_CONTEXT || 200) || 200));
+const MAX_AI_CHANGES = Math.max(1, Math.min(200, Number(process.env.TODO_TASKS_MAX_AI_CHANGES || 50) || 50));
+const MAX_AI_CREATED = Math.max(1, Math.min(200, Number(process.env.TODO_TASKS_MAX_AI_CREATED || 25) || 25));
+const MAX_AI_DELETED = Math.max(1, Math.min(500, Number(process.env.TODO_TASKS_MAX_AI_DELETED || 50) || 50));
+
+function corsJsonHeaders(extra = {}) {
+    return {
+        'Content-Type': 'application/json',
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+        'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+        ...extra
+    };
+}
+
+function safeText(value, maxChars = MAX_TEXT_CHARS) {
+    const s = String(value ?? '');
+    if (!s) return '';
+    return s.length > maxChars ? s.slice(0, maxChars) : s;
+}
+
+function normalizeHistory(history) {
+    const arr = Array.isArray(history) ? history : [];
+    const out = [];
+    for (const item of arr.slice(-MAX_HISTORY_TURNS)) {
+        const role = String(item?.role || item?.type || '').toLowerCase();
+        const content = safeText(item?.content || '', 1200);
+        if (!content) continue;
+        if (role === 'user' || role === 'assistant') out.push({ role, content });
+    }
+    return out;
+}
+
+async function auditSafe({ email, action, status, plan, meta }) {
+    try {
+        await appendAuditEvent({ email, action, status, plan, meta });
+    } catch (_) {
+        // ignore
+    }
+}
+
 module.exports = async function (context, req) {
     context.log('✅ Task Manager Request:', req.method, req.params.action);
 
@@ -10,7 +60,7 @@ module.exports = async function (context, req) {
             headers: {
                 'Access-Control-Allow-Origin': '*',
                 'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
-                'Access-Control-Allow-Headers': 'Content-Type'
+                'Access-Control-Allow-Headers': 'Content-Type, Authorization'
             }
         };
         return;
@@ -18,10 +68,58 @@ module.exports = async function (context, req) {
 
     try {
         const action = req.params.action || 'list';
-        const userId = req.query.userId || req.body?.userId || 'default';
+        const requireAuth = String(process.env.TODO_TASKS_REQUIRE_AUTH ?? (process.env.NODE_ENV === 'production' ? 'true' : 'false')).toLowerCase() === 'true';
+        const authEmail = getAuthEmail(req);
+        if (requireAuth && !authEmail) {
+            context.res = {
+                status: 401,
+                headers: corsJsonHeaders(),
+                body: { error: 'Non authentifié' }
+            };
+            return;
+        }
 
-        // Simuler stockage (en production: Azure Table Storage ou Cosmos DB)
-        const TASKS_STORAGE_KEY = `tasks_${userId}`;
+        // Prefer authenticated identity; fallback to client-provided id for local/dev.
+        const userId = authEmail || req.query.userId || req.body?.userId || 'default';
+
+        // ✅ Rate limit (bêta-prod): quota simple par minute, par user + feature.
+        const rateLimitEnabled = String(process.env.TODO_TASKS_RATE_LIMIT_ENABLED ?? 'true').toLowerCase() !== 'false';
+        let plan = 'free';
+        let priority = 'normal';
+        if (rateLimitEnabled) {
+            try {
+                plan = await getUserPlan(authEmail);
+                priority = getPlanPriority(plan);
+            } catch (_) {
+                plan = 'free';
+                priority = 'normal';
+            }
+
+            const feature = (action === 'smart-add' || action === 'smart-command' || action === 'coach' || action === 'summary' || action === 'prioritize' || action === 'schedule' || action === 'productivity')
+                ? 'todo_ai'
+                : 'todo_api';
+
+            const quota = checkAndConsume({ plan, email: authEmail || userId || 'guest', feature });
+            if (!quota.allowed) {
+                const retryAfterSeconds = Math.max(1, Math.ceil((quota.resetInMs || 1000) / 1000));
+                context.res = {
+                    status: 429,
+                    headers: corsJsonHeaders({ 'Retry-After': String(retryAfterSeconds) }),
+                    body: {
+                        error: 'Rate limit atteint',
+                        feature,
+                        plan,
+                        limitPerMinute: quota.limit,
+                        resetInMs: quota.resetInMs
+                    }
+                };
+                return;
+            }
+        }
+
+        // Exposer priorité plan aux handlers (utilisé pour la queue Groq)
+        req.__axilumPlanPriority = priority;
+        req.__axilumPlan = plan;
         
         switch (action) {
             case 'create':
@@ -63,7 +161,7 @@ module.exports = async function (context, req) {
             default:
                 context.res = {
                     status: 400,
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: corsJsonHeaders(),
                     body: { error: "Unknown action. Use: create, list, update, delete, smart-add, smart-command, sync, prioritize, schedule, productivity, coach, summary" }
                 };
         }
@@ -71,8 +169,8 @@ module.exports = async function (context, req) {
     } catch (error) {
         context.log.error('❌ Error:', error);
         context.res = {
-            status: 200,
-            headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
+            status: 500,
+            headers: corsJsonHeaders(),
             body: { error: error.message }
         };
     }
@@ -391,7 +489,7 @@ async function prioritizeTasks(context, req, userId) {
 
     context.res = {
         status: 200,
-        headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
+        headers: corsJsonHeaders(),
         body: {
             userId,
             now: now.toISOString(),
@@ -515,7 +613,7 @@ async function suggestSchedule(context, req, userId) {
 
     context.res = {
         status: 200,
-        headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
+        headers: corsJsonHeaders(),
         body: {
             userId,
             window: { days, workBlocks },
@@ -576,7 +674,7 @@ async function productivityStats(context, req, userId) {
 
     context.res = {
         status: 200,
-        headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
+        headers: corsJsonHeaders(),
         body: {
             userId,
             now: now.toISOString(),
@@ -738,7 +836,7 @@ FORMAT JSON STRICT:
 
     context.res = {
         status: 200,
-        headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
+        headers: corsJsonHeaders(),
         body: {
             userId,
             now: now.toISOString(),
@@ -787,7 +885,7 @@ async function summary(context, req, userId) {
 
     context.res = {
         status: 200,
-        headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
+        headers: corsJsonHeaders(),
         body: {
             userId,
             mode,
@@ -807,12 +905,12 @@ async function summary(context, req, userId) {
  * Ajout intelligent de tâche via IA (parse langage naturel)
  */
 async function smartAddTask(context, req, userId) {
-    const { description } = req.body;
+    const description = safeText(req.body?.description, MAX_TEXT_CHARS).trim();
 
     if (!description) {
         context.res = {
             status: 400,
-            headers: { 'Content-Type': 'application/json' },
+            headers: corsJsonHeaders(),
             body: { error: "Task description is required" }
         };
         return;
@@ -822,8 +920,8 @@ async function smartAddTask(context, req, userId) {
 
     if (!groqKey) {
         context.res = {
-            status: 200,
-            headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
+            status: 500,
+            headers: corsJsonHeaders(),
             body: { error: "Groq API Key not configured" }
         };
         return;
@@ -861,7 +959,8 @@ Output: {"title":"Acheter du lait","priority":"low","category":"personnel",...}`
         { role: "user", content: `Parse cette tâche (date du jour: ${new Date().toISOString().split('T')[0]}):\n\n${description}` }
     ];
 
-    const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+    const priority = String(req.__axilumPlanPriority || 'normal');
+    const response = await callGroqWithRateLimit(async () => fetch('https://api.groq.com/openai/v1/chat/completions', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
@@ -874,23 +973,33 @@ Output: {"title":"Acheter du lait","priority":"low","category":"personnel",...}`
             temperature: 0.2,
             response_format: { type: "json_object" }
         })
-    });
+    }), priority);
 
     if (!response.ok) {
         const errorText = await response.text();
         context.res = {
-            status: 200,
-            headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
+            status: 502,
+            headers: corsJsonHeaders(),
             body: {
                 error: `Groq Error: ${response.status}`,
-                details: errorText
+                details: safeText(errorText, 2000)
             }
         };
         return;
     }
 
     const aiData = await response.json();
-    const parsedTask = JSON.parse(aiData.choices[0].message.content);
+    let parsedTask;
+    try {
+        parsedTask = JSON.parse(aiData.choices[0].message.content);
+    } catch (e) {
+        context.res = {
+            status: 502,
+            headers: corsJsonHeaders(),
+            body: { error: 'Réponse IA invalide (JSON).', details: String(e && e.message ? e.message : e) }
+        };
+        return;
+    }
 
     // Créer la tâche avec ID
     const task = normalizeTaskShape({
@@ -906,12 +1015,17 @@ Output: {"title":"Acheter du lait","priority":"low","category":"personnel",...}`
     tasks.push(task);
     await saveTasks(userId, tasks);
 
+    await auditSafe({
+        email: getAuthEmail(req) || null,
+        action: 'todo.smart_add',
+        status: 'ok',
+        plan: String(req.__axilumPlan || ''),
+        meta: { userId, tokensUsed: aiData.usage?.total_tokens || 0 }
+    });
+
     context.res = {
         status: 200,
-        headers: {
-            'Content-Type': 'application/json',
-            'Access-Control-Allow-Origin': '*'
-        },
+        headers: corsJsonHeaders(),
         body: {
             task: task,
             message: "Tâche créée avec succès",
@@ -924,40 +1038,56 @@ Output: {"title":"Acheter du lait","priority":"low","category":"personnel",...}`
  * Créer une tâche manuellement (ou mettre à jour si existe)
  */
 async function createTask(context, req, userId) {
-    const task = normalizeTaskShape({
-        id: req.body?.id || Date.now().toString(),
-        ...req.body,
-        status: req.body?.status || 'pending',
-        createdAt: req.body?.createdAt || new Date().toISOString(),
-        updatedAt: new Date().toISOString()
-    });
+    try {
+        const task = normalizeTaskShape({
+            id: req.body?.id || Date.now().toString(),
+            ...req.body,
+            status: req.body?.status || 'pending',
+            createdAt: req.body?.createdAt || new Date().toISOString(),
+            updatedAt: new Date().toISOString()
+        });
 
-    const tasks = await getTasks(userId);
-    
-    // Chercher si la tâche existe déjà (par ID)
-    const existingIndex = tasks.findIndex(t => normalizeId(t.id) === task.id);
-    
-    if (existingIndex >= 0) {
-        // Mettre à jour la tâche existante
-        tasks[existingIndex] = task;
-    } else {
-        // Ajouter nouvelle tâche
-        tasks.push(task);
-    }
-    
-    await saveTasks(userId, tasks);
+        const tasks = await getTasks(userId);
 
-    context.res = {
-        status: 200,
-        headers: {
-            'Content-Type': 'application/json',
-            'Access-Control-Allow-Origin': '*'
-        },
-        body: {
-            task: task,
-            message: "Tâche créée"
+        // Chercher si la tâche existe déjà (par ID)
+        const existingIndex = tasks.findIndex(t => normalizeId(t.id) === task.id);
+
+        if (existingIndex >= 0) {
+            // Mettre à jour la tâche existante
+            tasks[existingIndex] = task;
+        } else {
+            // Ajouter nouvelle tâche
+            tasks.push(task);
         }
-    };
+
+        await saveTasks(userId, tasks);
+
+        await auditSafe({
+            email: getAuthEmail(req) || null,
+            action: 'todo.create',
+            status: 'ok',
+            plan: String(req.__axilumPlan || ''),
+            meta: { userId, taskId: task.id }
+        });
+
+        context.res = {
+            status: 200,
+            headers: corsJsonHeaders(),
+            body: {
+                task: task,
+                message: "Tâche créée"
+            }
+        };
+    } catch (error) {
+        await auditSafe({
+            email: getAuthEmail(req) || null,
+            action: 'todo.create',
+            status: 'error',
+            plan: String(req.__axilumPlan || ''),
+            meta: { userId, error: String(error && error.message ? error.message : error) }
+        });
+        throw error;
+    }
 }
 
 /**
@@ -978,10 +1108,7 @@ async function listTasks(context, req, userId) {
 
     context.res = {
         status: 200,
-        headers: {
-            'Content-Type': 'application/json',
-            'Access-Control-Allow-Origin': '*'
-        },
+        headers: corsJsonHeaders(),
         body: {
             tasks: filtered,
             total: filtered.length
@@ -998,7 +1125,7 @@ async function updateTask(context, req, userId) {
     if (!taskId) {
         context.res = {
             status: 400,
-            headers: { 'Content-Type': 'application/json' },
+            headers: corsJsonHeaders(),
             body: { error: "taskId is required" }
         };
         return;
@@ -1011,7 +1138,7 @@ async function updateTask(context, req, userId) {
     if (taskIndex === -1) {
         context.res = {
             status: 404,
-            headers: { 'Content-Type': 'application/json' },
+            headers: corsJsonHeaders(),
             body: { error: "Task not found" }
         };
         return;
@@ -1033,12 +1160,17 @@ async function updateTask(context, req, userId) {
 
     await saveTasks(userId, tasks);
 
+    await auditSafe({
+        email: getAuthEmail(req) || null,
+        action: 'todo.update',
+        status: 'ok',
+        plan: String(req.__axilumPlan || ''),
+        meta: { userId, taskId: taskIdNorm }
+    });
+
     context.res = {
         status: 200,
-        headers: {
-            'Content-Type': 'application/json',
-            'Access-Control-Allow-Origin': '*'
-        },
+        headers: corsJsonHeaders(),
         body: {
             task: tasks[taskIndex],
             message: "Tâche mise à jour"
@@ -1055,7 +1187,7 @@ async function deleteTask(context, req, userId) {
     if (!taskId) {
         context.res = {
             status: 400,
-            headers: { 'Content-Type': 'application/json' },
+            headers: corsJsonHeaders(),
             body: { error: "taskId is required" }
         };
         return;
@@ -1068,7 +1200,7 @@ async function deleteTask(context, req, userId) {
     if (filtered.length === tasks.length) {
         context.res = {
             status: 404,
-            headers: { 'Content-Type': 'application/json' },
+            headers: corsJsonHeaders(),
             body: { error: "Task not found" }
         };
         return;
@@ -1076,12 +1208,17 @@ async function deleteTask(context, req, userId) {
 
     await saveTasks(userId, filtered);
 
+    await auditSafe({
+        email: getAuthEmail(req) || null,
+        action: 'todo.delete',
+        status: 'ok',
+        plan: String(req.__axilumPlan || ''),
+        meta: { userId, taskId: taskIdNorm }
+    });
+
     context.res = {
         status: 200,
-        headers: {
-            'Content-Type': 'application/json',
-            'Access-Control-Allow-Origin': '*'
-        },
+        headers: corsJsonHeaders(),
         body: {
             message: "Tâche supprimée",
             remainingTasks: filtered.length
@@ -1098,8 +1235,17 @@ async function syncTasks(context, req, userId) {
     if (!Array.isArray(tasks)) {
         context.res = {
             status: 400,
-            headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
+            headers: corsJsonHeaders(),
             body: { error: "Tasks array is required" }
+        };
+        return;
+    }
+
+    if (tasks.length > 2000) {
+        context.res = {
+            status: 413,
+            headers: corsJsonHeaders(),
+            body: { error: 'Too many tasks in sync', limit: 2000 }
         };
         return;
     }
@@ -1108,12 +1254,17 @@ async function syncTasks(context, req, userId) {
     const normalized = coerceArray(tasks).map(normalizeTaskShape);
     await saveTasks(userId, normalized);
 
+    await auditSafe({
+        email: getAuthEmail(req) || null,
+        action: 'todo.sync',
+        status: 'ok',
+        plan: String(req.__axilumPlan || ''),
+        meta: { userId, count: normalized.length }
+    });
+
     context.res = {
         status: 200,
-        headers: {
-            'Content-Type': 'application/json',
-            'Access-Control-Allow-Origin': '*'
-        },
+        headers: corsJsonHeaders(),
         body: {
             message: "Synchronisation réussie",
             taskCount: tasks.length,
@@ -1127,12 +1278,13 @@ async function syncTasks(context, req, userId) {
  * Exemples: "Organise ma semaine", "Qu'est-ce que je dois faire maintenant?", "Déplace ça à demain"
  */
 async function smartCommand(context, req, userId) {
-    const { command, history } = req.body;
+    const command = safeText(req.body?.command, MAX_TEXT_CHARS).trim();
+    const history = normalizeHistory(req.body?.history);
 
     if (!command) {
         context.res = {
             status: 400,
-            headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
+            headers: corsJsonHeaders(),
             body: { error: "Command is required" }
         };
         return;
@@ -1141,15 +1293,16 @@ async function smartCommand(context, req, userId) {
     const groqKey = process.env.APPSETTING_GROQ_API_KEY || process.env.GROQ_API_KEY;
     if (!groqKey) {
         context.res = {
-            status: 200,
-            headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
+            status: 500,
+            headers: corsJsonHeaders(),
             body: { error: "Groq API Key not configured" }
         };
         return;
     }
 
-    // Récupérer toutes les tâches pour contexte
-    const tasks = (await getTasks(userId)).map(normalizeTaskShape);
+    // Récupérer toutes les tâches (et limiter ce qu'on envoie au modèle)
+    const allTasks = (await getTasks(userId)).map(normalizeTaskShape);
+    const tasks = allTasks.slice(0, MAX_TASKS_IN_AI_CONTEXT);
     
     // Contexte temporel
     const now = new Date();
@@ -1251,7 +1404,8 @@ RÈGLES:
 - Le soir: tâches simples/administratives
 - Si plusieurs tâches matchent, demande clarification`;
 
-    const userMessage = `Tâches actuelles (${tasks.length}):\n${JSON.stringify(taskContext, null, 2)}\n\nCommande utilisateur:\n${command}`;
+    const omitted = allTasks.length > tasks.length ? (allTasks.length - tasks.length) : 0;
+    const userMessage = `Tâches actuelles (total ${allTasks.length}, incluses ${tasks.length}${omitted ? `, omises ${omitted}` : ''}):\n${JSON.stringify(taskContext, null, 2)}\n\nCommande utilisateur:\n${command}`;
 
     // Construire l'historique des messages
     const messages = [
@@ -1259,14 +1413,13 @@ RÈGLES:
     ];
 
     // Ajouter l'historique de conversation s'il existe
-    if (history && Array.isArray(history)) {
-        messages.push(...history);
-    }
+    if (history.length > 0) messages.push(...history);
 
     // Ajouter le message actuel de l'utilisateur
     messages.push({ role: "user", content: userMessage });
 
-    const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+    const priority = String(req.__axilumPlanPriority || 'normal');
+    const response = await callGroqWithRateLimit(async () => fetch('https://api.groq.com/openai/v1/chat/completions', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
@@ -1279,13 +1432,13 @@ RÈGLES:
             temperature: 0.3,
             response_format: { type: "json_object" }
         })
-    });
+    }), priority);
 
     if (!response.ok) {
         const errorText = await response.text();
         context.res = {
-            status: 200,
-            headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
+            status: 502,
+            headers: corsJsonHeaders(),
             body: { error: `Groq Error: ${response.status}`, details: errorText }
         };
         return;
@@ -1297,21 +1450,21 @@ RÈGLES:
         result = JSON.parse(aiData.choices[0].message.content);
     } catch (e) {
         context.res = {
-            status: 200,
-            headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
+            status: 502,
+            headers: corsJsonHeaders(),
             body: { error: 'Réponse IA invalide (JSON).', details: String(e && e.message ? e.message : e) }
         };
         return;
     }
 
-    const changes = coerceArray(result.changes);
-    const created = coerceArray(result.created);
-    const deleted = coerceArray(result.deleted);
+    const changes = coerceArray(result.changes).slice(0, MAX_AI_CHANGES);
+    const created = coerceArray(result.created).slice(0, MAX_AI_CREATED);
+    const deleted = coerceArray(result.deleted).slice(0, MAX_AI_DELETED);
     const hasWrites = changes.length > 0 || created.length > 0 || deleted.length > 0;
     const normalizedAction = normalizeAction(result.action, { hasWrites });
 
     // Appliquer les changements suggérés par l'IA
-    let updatedTasks = [...tasks];
+    let updatedTasks = [...allTasks];
     let tasksModified = 0;
 
     // 1. Modifier les tâches existantes
@@ -1384,12 +1537,17 @@ RÈGLES:
         await saveTasks(userId, updatedTasks);
     }
 
+    await auditSafe({
+        email: getAuthEmail(req) || null,
+        action: 'todo.smart_command',
+        status: 'ok',
+        plan: String(req.__axilumPlan || ''),
+        meta: { userId, tasksModified, tokensUsed: aiData.usage?.total_tokens || 0, action: normalizedAction }
+    });
+
     context.res = {
         status: 200,
-        headers: {
-            'Content-Type': 'application/json',
-            'Access-Control-Allow-Origin': '*'
-        },
+        headers: corsJsonHeaders(),
         body: {
             response: String(result.response || ''),
             action: normalizedAction,
@@ -1405,13 +1563,12 @@ RÈGLES:
 }
 
 // Helpers pour stockage (simulation - à remplacer par Azure Storage)
-let tasksCache = {};
-
 async function getTasks(userId) {
-    return coerceArray(tasksCache[userId]);
+    return coerceArray(await taskStore.listTasks(userId));
 }
 
 async function saveTasks(userId, tasks) {
-    tasksCache[userId] = coerceArray(tasks).map(normalizeTaskShape);
+    const normalized = coerceArray(tasks).map(normalizeTaskShape);
+    await taskStore.replaceAllTasks(userId, normalized);
     return true;
 }
