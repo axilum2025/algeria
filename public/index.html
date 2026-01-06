@@ -3552,6 +3552,7 @@
                             <select id="aiModelSelect" onchange="onAiModelChanged()" style="flex:1; min-width:240px; padding:10px; border:1px solid var(--border-color); border-radius:10px; background:var(--bg-primary); color:var(--text-primary);">
                                 <option value="">Chargement…</option>
                             </select>
+                            <button type="button" onclick="validateAiModelSelection()" style="padding:10px 14px; border:1px solid var(--border-color); border-radius:10px; background:var(--bg-secondary); color:var(--text-primary); cursor:pointer;">Valider ce modèle</button>
                         </div>
                         <div id="aiModelHelp" style="margin-top:10px; color: var(--text-secondary); font-size: 13px; line-height: 1.4;"></div>
                     </div>
@@ -3776,6 +3777,19 @@
         // 🤖 Modèle IA (sélection utilisateur)
         // ===================================
         const DEFAULT_AI_MODEL = 'llama-3.3-70b-versatile';
+        const GROQ_MODEL_CATALOG_FALLBACK = [
+            'llama-3.3-70b-versatile',
+            'llama-3.1-70b-versatile',
+            'llama-3.1-8b-instant',
+            'llama-3.2-90b-vision-preview',
+            'llama-3.2-11b-vision-preview',
+            'llama-3.2-3b-preview',
+            'llama-3.2-1b-preview',
+            'mixtral-8x7b-32768',
+            'gemma2-9b-it',
+            'whisper-large-v3',
+            'distil-whisper-large-v3'
+        ];
         let selectedAiModel = (() => {
             try {
                 return String(localStorage.getItem('axilum_ai_model') || '').trim();
@@ -3803,6 +3817,15 @@
             setSelectedAiModel(next);
             try { showToast('Modèle IA mis à jour', 'success'); } catch (_) {}
             try { updateAiModelHelp(); } catch (_) {}
+        }
+
+        function validateAiModelSelection() {
+            const sel = document.getElementById('aiModelSelect');
+            if (!sel) return;
+            const next = String(sel.value || '').trim() || DEFAULT_AI_MODEL;
+            setSelectedAiModel(next);
+            updateAiModelHelp();
+            try { showToast(`Modèle ${next} validé`, 'success'); } catch (_) {}
         }
 
         function updateAiModelHelp(models) {
@@ -3836,7 +3859,7 @@
                 const models = (res.ok && data && Array.isArray(data.models)) ? data.models : [];
 
                 const current = getSelectedAiModel();
-                const options = models.length ? models : [{ id: DEFAULT_AI_MODEL }];
+                const options = models.length ? models : GROQ_MODEL_CATALOG_FALLBACK.map(id => ({ id }));
 
                 sel.innerHTML = options.map(m => {
                     const id = String(m.id || '').trim();
