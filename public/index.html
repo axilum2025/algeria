@@ -3777,19 +3777,6 @@
         // 🤖 Modèle IA (sélection utilisateur)
         // ===================================
         const DEFAULT_AI_MODEL = 'llama-3.3-70b-versatile';
-        const GROQ_MODEL_CATALOG_FALLBACK = [
-            'llama-3.3-70b-versatile',
-            'llama-3.1-70b-versatile',
-            'llama-3.1-8b-instant',
-            'llama-3.2-90b-vision-preview',
-            'llama-3.2-11b-vision-preview',
-            'llama-3.2-3b-preview',
-            'llama-3.2-1b-preview',
-            'mixtral-8x7b-32768',
-            'gemma2-9b-it',
-            'whisper-large-v3',
-            'distil-whisper-large-v3'
-        ];
         let selectedAiModel = (() => {
             try {
                 return String(localStorage.getItem('axilum_ai_model') || '').trim();
@@ -3859,7 +3846,7 @@
                 const models = (res.ok && data && Array.isArray(data.models)) ? data.models : [];
 
                 const current = getSelectedAiModel();
-                const options = models.length ? models : GROQ_MODEL_CATALOG_FALLBACK.map(id => ({ id }));
+                const options = models.length ? models : [{ id: DEFAULT_AI_MODEL }];
 
                 sel.innerHTML = options.map(m => {
                     const id = String(m.id || '').trim();
