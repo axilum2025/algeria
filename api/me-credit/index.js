@@ -11,7 +11,7 @@ module.exports = async function (context, req) {
   setCors(context, 'GET, OPTIONS');
 
   try {
-    const currency = 'EUR';
+    const currency = String(process.env.AI_COST_CURRENCY || 'USD').trim().toUpperCase() || 'USD';
 
     // Prefer auth email (safer), fallback to provided userId for demo/non-auth mode
     const email = getAuthEmail(req);

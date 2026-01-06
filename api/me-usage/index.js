@@ -44,12 +44,13 @@ module.exports = async function (context, req) {
     const userId = email || fallbackUserId || 'guest';
 
     const month = String((req.query && (req.query.month || req.query.monthKey)) || '').trim() || monthKeyFromDate();
-    const currency = String((req.query && req.query.currency) || 'EUR').trim().toUpperCase() || 'EUR';
+    const defaultCurrency = String(process.env.AI_COST_CURRENCY || 'USD').trim().toUpperCase() || 'USD';
+    const currency = String((req.query && req.query.currency) || defaultCurrency).trim().toUpperCase() || defaultCurrency;
     const limit = normalizeLimit(req.query && (req.query.limit || req.query.n), 25, 1, 100);
 
     const credit = await getCredit(userId, { currency }).catch(() => ({ balanceCents: 0, currency }));
     const balanceCents = Number(credit?.balanceCents || 0);
-    const balanceEur = Math.round(balanceCents) / 100;
+    const balanceAmount = Math.round(balanceCents) / 100;
 
     const totals = await getUserMonthlyTotals(userId, month);
 
@@ -107,7 +108,7 @@ module.exports = async function (context, req) {
         credit: {
           currency,
           balanceCents,
-          balanceEur
+          balanceEur: balanceAmount
         },
         totals: {
           currency: totals.currency || null,

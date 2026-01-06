@@ -3596,7 +3596,7 @@
                     </h3>
                     <div style="background: var(--bg-secondary); padding: 15px; border-radius: 10px; border: 1px solid var(--border-color);">
                         <p style="margin: 0; color: var(--text-secondary); font-size: 13px; line-height: 1.5;">
-                            <strong>Axilum AI fonctionne en prépayé :</strong> vous chargez un crédit (en €) et vous pouvez utiliser tous les modules tant que ce crédit n’est pas épuisé.
+                            <strong>Axilum AI fonctionne en prépayé :</strong> vous chargez un crédit (en $) et vous pouvez utiliser tous les modules tant que ce crédit n’est pas épuisé.
                             La consommation est calculée côté serveur à partir des usages réels (tokens, appels IA) et déduite automatiquement.
                         </p>
                         <p style="margin: 10px 0 0; color: var(--text-secondary); font-size: 13px; line-height: 1.5;">
@@ -3604,8 +3604,8 @@
                             <strong>Pour voir le détail</strong> (période, coût IA, etc.), cliquez directement sur ce compteur.
                         </p>
                         <p style="margin: 10px 0 0; color: var(--text-secondary); font-size: 13px; line-height: 1.5;">
-                            <strong>Devise :</strong> la facturation est en €.
-                            Si le fournisseur IA facture en USD, le calcul utilise un taux de conversion configuré côté serveur.
+                            <strong>Devise :</strong> la facturation est en $ (USD).
+                            Si besoin d’autres devises, configurez le taux côté serveur.
                         </p>
                     </div>
                 </div>
@@ -6114,7 +6114,7 @@ ${persona}
         function formatMoney(amount, currency) {
             const n = Number(amount);
             if (!Number.isFinite(n)) return '—';
-            const c = String(currency || '').trim().toUpperCase() || 'EUR';
+            const c = String(currency || '').trim().toUpperCase() || 'USD';
             try {
                 return new Intl.NumberFormat('fr-FR', { style: 'currency', currency: c, minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(n);
             } catch (_) {
