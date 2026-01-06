@@ -5,6 +5,27 @@ const { assertWithinBudget, recordUsage, BudgetExceededError } = require('../uti
 const { getAuthEmail } = require('../utils/auth');
 const { precheckCredit, debitAfterUsage } = require('../utils/aiCreditGuard');
 
+const DEFAULT_GROQ_MODEL = 'llama-3.3-70b-versatile';
+
+function safeJsonParse(value) {
+    try {
+        return JSON.parse(value);
+    } catch (_) {
+        return null;
+    }
+}
+
+function resolveRequestedGroqModel(requested) {
+    const r = String(requested || '').trim();
+    if (!r) return DEFAULT_GROQ_MODEL;
+    const raw = String(process.env.AI_PRICING_JSON || '').trim();
+    if (!raw) return DEFAULT_GROQ_MODEL;
+    const pricing = safeJsonParse(raw);
+    if (!pricing || typeof pricing !== 'object') return DEFAULT_GROQ_MODEL;
+    if (!Object.prototype.hasOwnProperty.call(pricing, r)) return DEFAULT_GROQ_MODEL;
+    return r;
+}
+
 module.exports = async function (context, req) {
     context.log('🌍 Translation Request');
 
@@ -22,6 +43,8 @@ module.exports = async function (context, req) {
 
     try {
         const { text, targetLang, sourceLang, preserveFormatting, includeAlternatives, userId: bodyUserId } = req.body;
+        const requestedModel = req.body?.model || req.body?.aiModel || null;
+        const resolvedModel = resolveRequestedGroqModel(requestedModel);
         const authEmail = getAuthEmail(req);
         const userId = authEmail || bodyUserId || 'guest';
 
@@ -45,10 +68,15 @@ module.exports = async function (context, req) {
             return;
         }
 
-        // Crédit prépayé (EUR)
+        const maxTokens = Math.min(text.length * 3, 2000);
+
+        // Crédit prépayé (EUR) - pré-check conservateur
         try {
-            const maxTokens = Math.min(text.length * 3, 2000);
-            await precheckCredit({ userId, model: 'llama-3.3-70b-versatile', messages, maxTokens });
+            const precheckMessages = [
+                { role: 'system', content: 'Tu es un traducteur professionnel expert.' },
+                { role: 'user', content: `Traduis ce texte:\n\n${text}` }
+            ];
+            await precheckCredit({ userId, model: resolvedModel, messages: precheckMessages, maxTokens });
         } catch (e) {
             if (e?.code === 'INSUFFICIENT_CREDIT') {
                 context.res = {
@@ -77,7 +105,7 @@ module.exports = async function (context, req) {
 
         // Bloquer si le budget mensuel est dépassé
         try {
-            await assertWithinBudget({ provider: 'Groq', route: 'translate', userId: req.body?.userId || '' });
+            await assertWithinBudget({ provider: 'Groq', route: 'translate', userId });
         } catch (e) {
             if (e instanceof BudgetExceededError || e?.code === 'BUDGET_EXCEEDED') {
                 context.res = {
@@ -103,7 +131,7 @@ module.exports = async function (context, req) {
         // Détection automatique de la langue source si non fournie
         let detectedSourceLang = sourceLang;
         if (!sourceLang) {
-            detectedSourceLang = await detectLanguage(text, groqKey);
+            detectedSourceLang = await detectLanguage(text, groqKey, resolvedModel);
         }
 
         // Construire le prompt de traduction
@@ -145,9 +173,9 @@ ${includeAlternatives ? `
                 'Authorization': `Bearer ${groqKey}`
             },
             body: JSON.stringify({
-                model: 'llama-3.3-70b-versatile',
+                model: resolvedModel,
                 messages: messages,
-                max_tokens: Math.min(text.length * 3, 2000), // Proportionnel au texte source
+                max_tokens: maxTokens, // Proportionnel au texte source
                 temperature: 0.3
             })
         });
@@ -171,7 +199,7 @@ ${includeAlternatives ? `
         // Débiter le crédit sur le coût réel
         const creditAfter = await debitAfterUsage({
             userId,
-            model: aiData?.model || 'llama-3.3-70b-versatile',
+            model: aiData?.model || resolvedModel,
             usage: aiData?.usage
         });
 
@@ -179,9 +207,9 @@ ${includeAlternatives ? `
         try {
             await recordUsage({
                 provider: 'Groq',
-                model: aiData?.model || 'llama-3.3-70b-versatile',
+                model: aiData?.model || resolvedModel,
                 route: 'translate',
-                userId: req.body?.userId || '',
+                userId,
                 usage: aiData?.usage,
                 latencyMs: Date.now() - startedAt,
                 ok: true
@@ -226,8 +254,9 @@ ${includeAlternatives ? `
 /**
  * Détecte la langue du texte source
  */
-async function detectLanguage(text, groqKey) {
+async function detectLanguage(text, groqKey, model) {
     try {
+        const resolvedModel = resolveRequestedGroqModel(model);
         const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
             method: 'POST',
             headers: {
@@ -235,7 +264,7 @@ async function detectLanguage(text, groqKey) {
                 'Authorization': `Bearer ${groqKey}`
             },
             body: JSON.stringify({
-                model: 'llama-3.3-70b-versatile',
+                model: resolvedModel,
                 messages: [
                     {
                         role: "system",

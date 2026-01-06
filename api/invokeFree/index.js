@@ -93,6 +93,7 @@ module.exports = async function (context, req) {
     try {
         const userMessage = req.body.message;
         const userQuery = extractUserQueryFromMessage(userMessage);
+        const requestedModel = req.body?.model || req.body?.aiModel || null;
 
         const userAsksForSourcesForWesh = (q) => {
             const s = String(q || '').toLowerCase().replace(/[’]/g, "'").trim();
@@ -223,7 +224,9 @@ module.exports = async function (context, req) {
                 braveKey,
                 searchBrave,
                 analyzeHallucination,
-                logger: context.log
+                logger: context.log,
+                model: requestedModel,
+                userId: (req.body?.userId || req.query?.userId || 'guest')
             });
 
             if (!orchestrated.ok) {
@@ -398,7 +401,8 @@ module.exports = async function (context, req) {
                     question: userQuery,
                     recentHistory,
                     logger: context.log,
-                    userId: userIdForBilling
+                    userId: userIdForBilling,
+                    model: requestedModel
                 });
             } catch (e) {
                 context.log.warn('⚠️ Boost interne indisponible (Axilum), continue sans:', e?.message || e);
@@ -438,7 +442,7 @@ module.exports = async function (context, req) {
         // Appeler Groq API
         let data;
         try {
-            data = await callGroqChatCompletion(groqApiKey, messages, { max_tokens: 2000, temperature: 0.7, userId: userIdForBilling });
+            data = await callGroqChatCompletion(groqApiKey, messages, { max_tokens: 2000, temperature: 0.7, userId: userIdForBilling, model: requestedModel });
         } catch (e) {
             context.log.error('❌ Groq API Error:', e.status || 'n/a', e.details || e.message);
             
@@ -537,7 +541,7 @@ module.exports = async function (context, req) {
                     { role: 'user', content: `Question: ${userQuery}\n\nRéponse initiale à corriger:\n${aiResponse}` }
                 ];
 
-                const correctedData = await callGroqChatCompletion(groqApiKey, correctionMessages, { max_tokens: 2500, temperature: 0.2, userId: userIdForBilling });
+                const correctedData = await callGroqChatCompletion(groqApiKey, correctionMessages, { max_tokens: 2500, temperature: 0.2, userId: userIdForBilling, model: requestedModel });
                 autoCorrectionUsage = correctedData?.usage || null;
                 const corrected = correctedData?.choices?.[0]?.message?.content;
                 if (typeof corrected === 'string' && corrected.trim()) {

@@ -15,6 +15,27 @@ const { checkAndConsume } = require('../utils/planQuota');
 const { appendAuditEvent } = require('../utils/auditStorage');
 const { precheckCredit, debitAfterUsage } = require('../utils/aiCreditGuard');
 
+const DEFAULT_GROQ_MODEL = 'llama-3.3-70b-versatile';
+
+function safeJsonParse(value) {
+    try {
+        return JSON.parse(value);
+    } catch (_) {
+        return null;
+    }
+}
+
+function resolveRequestedGroqModel(requested) {
+    const r = String(requested || '').trim();
+    if (!r) return DEFAULT_GROQ_MODEL;
+    const raw = String(process.env.AI_PRICING_JSON || '').trim();
+    if (!raw) return DEFAULT_GROQ_MODEL;
+    const pricing = safeJsonParse(raw);
+    if (!pricing || typeof pricing !== 'object') return DEFAULT_GROQ_MODEL;
+    if (!Object.prototype.hasOwnProperty.call(pricing, r)) return DEFAULT_GROQ_MODEL;
+    return r;
+}
+
 // Fonction RAG - Recherche Brave (simple)
 async function searchBrave(query, apiKey) {
     if (!apiKey) return null;
@@ -116,6 +137,8 @@ module.exports = async function (context, req) {
 
         const email = getAuthEmail(req);
         const userIdForBilling = email || req.body?.userId || req.query?.userId || 'guest';
+        const requestedModel = req.body?.model || req.body?.aiModel || null;
+        const resolvedModel = resolveRequestedGroqModel(requestedModel);
         const plan = await getUserPlan(email);
         const isExcel = chatType === 'excel-expert' || chatType === 'excel-ai-expert';
 
@@ -557,7 +580,7 @@ Réponds en français, direct et actionnable.`;
             messages.push({ role: "user", content: userMessage });
 
             // Crédit prépayé (EUR)
-            await precheckCredit({ userId: userIdForBilling, model: 'llama-3.3-70b-versatile', messages, maxTokens: 4000 });
+            await precheckCredit({ userId: userIdForBilling, model: resolvedModel, messages, maxTokens: 4000 });
 
             // Appel Groq
             const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
@@ -567,7 +590,7 @@ Réponds en français, direct et actionnable.`;
                     'Authorization': `Bearer ${groqKey}` 
                 },
                 body: JSON.stringify({ 
-                    model: 'llama-3.3-70b-versatile', 
+                    model: resolvedModel, 
                     messages: messages, 
                     max_tokens: 4000, 
                     temperature: 0.7 
@@ -584,7 +607,7 @@ Réponds en français, direct et actionnable.`;
 
         // Débit du crédit sur le coût réel
         try {
-            await debitAfterUsage({ userId: userIdForBilling, model: groqResponse?.model || 'llama-3.3-70b-versatile', usage: groqResponse?.usage });
+            await debitAfterUsage({ userId: userIdForBilling, model: groqResponse?.model || resolvedModel, usage: groqResponse?.usage });
         } catch (_) {}
 
         const aiResponse = groqResponse.choices[0].message.content;
@@ -654,7 +677,7 @@ Réponds en français, direct et actionnable.`;
                         'Authorization': `Bearer ${groqKey}`
                     },
                     body: JSON.stringify({
-                        model: 'llama-3.3-70b-versatile',
+                            model: resolvedModel,
                         messages: correctionMessages,
                         max_tokens: 2500,
                         temperature: 0.2
@@ -667,7 +690,7 @@ Réponds en français, direct et actionnable.`;
 
                     // Débit du crédit sur le coût réel de l'auto-correction
                     try {
-                        await debitAfterUsage({ userId: userIdForBilling, model: correctionData?.model || 'llama-3.3-70b-versatile', usage: correctionData?.usage });
+                        await debitAfterUsage({ userId: userIdForBilling, model: correctionData?.model || resolvedModel, usage: correctionData?.usage });
                     } catch (_) {}
 
                     const corrected = correctionData?.choices?.[0]?.message?.content;

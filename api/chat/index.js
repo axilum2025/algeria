@@ -3,6 +3,28 @@ const { assertWithinBudget, recordUsage, BudgetExceededError } = require('../uti
 const { getAuthEmail } = require('../utils/auth');
 const { precheckCredit, debitAfterUsage } = require('../utils/aiCreditGuard');
 
+const DEFAULT_GROQ_MODEL = 'llama-3.3-70b-versatile';
+
+function safeJsonParse(value) {
+  try {
+    return JSON.parse(value);
+  } catch (_) {
+    return null;
+  }
+}
+
+function resolveRequestedGroqModel(requested) {
+  const r = String(requested || '').trim();
+  if (!r) return DEFAULT_GROQ_MODEL;
+
+  const raw = String(process.env.AI_PRICING_JSON || '').trim();
+  if (!raw) return DEFAULT_GROQ_MODEL;
+  const pricing = safeJsonParse(raw);
+  if (!pricing || typeof pricing !== 'object') return DEFAULT_GROQ_MODEL;
+  if (!Object.prototype.hasOwnProperty.call(pricing, r)) return DEFAULT_GROQ_MODEL;
+  return r;
+}
+
 /**
  * Détecte si on doit proposer le téléchargement du résultat
  * Basé sur le contexte de la conversation et le type de réponse
@@ -65,6 +87,8 @@ module.exports = async function (context, req) {
 
   try {
     const { messages, userId: bodyUserId, context: reqContext } = req.body || {};
+    const requestedModel = req.body?.model || req.body?.aiModel || null;
+    const resolvedModel = resolveRequestedGroqModel(requestedModel);
     const authEmail = getAuthEmail(req);
     const userId = authEmail || bodyUserId || 'guest';
     
@@ -97,7 +121,7 @@ module.exports = async function (context, req) {
 
     // Crédit prépayé (EUR)
     try {
-      await precheckCredit({ userId, model: 'llama-3.3-70b-versatile', messages, maxTokens: 2000 });
+      await precheckCredit({ userId, model: resolvedModel, messages, maxTokens: 2000 });
     } catch (e) {
       if (e?.code === 'INSUFFICIENT_CREDIT') {
         setCors();
@@ -148,7 +172,7 @@ module.exports = async function (context, req) {
     const groqResponse = await axios.post(
       'https://api.groq.com/openai/v1/chat/completions',
       {
-        model: 'llama-3.3-70b-versatile',
+        model: resolvedModel,
         messages: messages,
         temperature: 0.7,
         max_tokens: 2000
@@ -164,7 +188,7 @@ module.exports = async function (context, req) {
     // Débiter le crédit sur le coût réel
     const creditAfter = await debitAfterUsage({
       userId,
-      model: groqResponse?.data?.model || 'llama-3.3-70b-versatile',
+      model: groqResponse?.data?.model || resolvedModel,
       usage: groqResponse?.data?.usage
     });
 
@@ -172,7 +196,7 @@ module.exports = async function (context, req) {
     try {
       await recordUsage({
         provider: 'Groq',
-        model: groqResponse?.data?.model || 'llama-3.3-70b-versatile',
+        model: groqResponse?.data?.model || resolvedModel,
         route: 'chat',
         userId,
         usage: groqResponse?.data?.usage,

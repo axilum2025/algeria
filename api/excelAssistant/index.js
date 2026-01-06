@@ -4,6 +4,27 @@
 const { getAuthEmail } = require('../utils/auth');
 const { precheckCredit, debitAfterUsage } = require('../utils/aiCreditGuard');
 
+const DEFAULT_GROQ_MODEL = 'llama-3.3-70b-versatile';
+
+function safeJsonParse(value) {
+    try {
+        return JSON.parse(value);
+    } catch (_) {
+        return null;
+    }
+}
+
+function resolveRequestedGroqModel(requested) {
+    const r = String(requested || '').trim();
+    if (!r) return DEFAULT_GROQ_MODEL;
+    const raw = String(process.env.AI_PRICING_JSON || '').trim();
+    if (!raw) return DEFAULT_GROQ_MODEL;
+    const pricing = safeJsonParse(raw);
+    if (!pricing || typeof pricing !== 'object') return DEFAULT_GROQ_MODEL;
+    if (!Object.prototype.hasOwnProperty.call(pricing, r)) return DEFAULT_GROQ_MODEL;
+    return r;
+}
+
 module.exports = async function (context, req) {
     context.log('📊 Excel Assistant Request');
 
@@ -21,6 +42,8 @@ module.exports = async function (context, req) {
 
     try {
         const { task, data, context: taskContext, userId: bodyUserId } = req.body;
+        const requestedModel = req.body?.model || req.body?.aiModel || null;
+        const resolvedModel = resolveRequestedGroqModel(requestedModel);
         const authEmail = getAuthEmail(req);
         const userId = authEmail || bodyUserId || 'guest';
 
@@ -78,7 +101,7 @@ ${taskContext ? `\n📋 **Contexte**:\n${taskContext}` : ''}`;
 
         // Crédit prépayé (EUR)
         try {
-            await precheckCredit({ userId, model: 'llama-3.3-70b-versatile', messages, maxTokens: 2000 });
+            await precheckCredit({ userId, model: resolvedModel, messages, maxTokens: 2000 });
         } catch (e) {
             context.res = {
                 status: e?.code === 'INSUFFICIENT_CREDIT' ? (e.status || 402) : (e?.status || 500),
@@ -104,7 +127,7 @@ ${taskContext ? `\n📋 **Contexte**:\n${taskContext}` : ''}`;
                 'Authorization': `Bearer ${groqKey}`
             },
             body: JSON.stringify({
-                model: 'llama-3.3-70b-versatile',
+                model: resolvedModel,
                 messages: messages,
                 max_tokens: 2000,
                 temperature: 0.3 // Plus déterministe pour formules
@@ -127,7 +150,7 @@ ${taskContext ? `\n📋 **Contexte**:\n${taskContext}` : ''}`;
         const aiData = await response.json();
         const solution = aiData.choices[0].message.content;
 
-        const creditAfter = await debitAfterUsage({ userId, model: aiData?.model || 'llama-3.3-70b-versatile', usage: aiData?.usage });
+        const creditAfter = await debitAfterUsage({ userId, model: aiData?.model || resolvedModel, usage: aiData?.usage });
 
         // Extraire les formules Excel du texte
         const formulas = extractExcelFormulas(solution);

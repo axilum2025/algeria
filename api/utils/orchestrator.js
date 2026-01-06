@@ -8,12 +8,32 @@ const {
 const { assertWithinBudget, recordUsage } = require('./aiUsageBudget');
 const { precheckCredit, debitAfterUsage } = require('./aiCreditGuard');
 
+const DEFAULT_GROQ_MODEL = 'llama-3.3-70b-versatile';
+
 function safeJsonParse(value) {
   try {
     return JSON.parse(value);
   } catch (_) {
     return null;
   }
+}
+
+function getAllowedGroqModelsFromPricing() {
+  const raw = String(process.env.AI_PRICING_JSON || '').trim();
+  if (!raw) return null;
+  const parsed = safeJsonParse(raw);
+  if (!parsed || typeof parsed !== 'object') return null;
+  const keys = Object.keys(parsed).map(k => String(k).trim()).filter(Boolean);
+  return keys.length ? keys : null;
+}
+
+function resolveRequestedModel(requested) {
+  const r = String(requested || '').trim();
+  if (!r) return DEFAULT_GROQ_MODEL;
+  const allowed = getAllowedGroqModelsFromPricing();
+  if (!allowed) return DEFAULT_GROQ_MODEL;
+  if (!allowed.includes(r)) return DEFAULT_GROQ_MODEL;
+  return r;
 }
 
 function compactHistoryFromMessages(recentHistory, { maxTurns = 8, maxCharsPerLine = 400 } = {}) {
@@ -36,14 +56,15 @@ function compactHistoryFromMessages(recentHistory, { maxTurns = 8, maxCharsPerLi
     : '';
 }
 
-async function callGroqChatCompletion(groqKey, messages, { max_tokens = 1400, temperature = 0.5, userId = 'guest' } = {}) {
+async function callGroqChatCompletion(groqKey, messages, { max_tokens = 1400, temperature = 0.5, userId = 'guest', model } = {}) {
+  const resolvedModel = resolveRequestedModel(model);
   await assertWithinBudget({ provider: 'Groq', route: 'orchestrator', userId });
-  await precheckCredit({ userId, model: 'llama-3.3-70b-versatile', messages, maxTokens: max_tokens });
+  await precheckCredit({ userId, model: resolvedModel, messages, maxTokens: max_tokens });
   const startedAt = Date.now();
   const resp = await fetch('https://api.groq.com/openai/v1/chat/completions', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${groqKey}` },
-    body: JSON.stringify({ model: 'llama-3.3-70b-versatile', messages, max_tokens, temperature })
+    body: JSON.stringify({ model: resolvedModel, messages, max_tokens, temperature })
   });
 
   if (!resp.ok) {
@@ -58,7 +79,7 @@ async function callGroqChatCompletion(groqKey, messages, { max_tokens = 1400, te
 
   // Débit du crédit sur le coût réel
   try {
-    await debitAfterUsage({ userId, model: data?.model || 'llama-3.3-70b-versatile', usage: data?.usage });
+    await debitAfterUsage({ userId, model: data?.model || resolvedModel, usage: data?.usage });
   } catch (_) {
     // best-effort
   }
@@ -66,7 +87,7 @@ async function callGroqChatCompletion(groqKey, messages, { max_tokens = 1400, te
   try {
     await recordUsage({
       provider: 'Groq',
-      model: data?.model || 'llama-3.3-70b-versatile',
+      model: data?.model || resolvedModel,
       route: 'orchestrator',
       userId: String(userId || ''),
       usage: data?.usage,
@@ -102,7 +123,7 @@ function heuristicPickAgents(question) {
   return picked.slice(0, 3);
 }
 
-async function planAgentsWithLLM({ groqKey, teamQuestion, compactHistory, contextFromSearch = '' }) {
+async function planAgentsWithLLM({ groqKey, teamQuestion, compactHistory, contextFromSearch = '', model } = {}) {
   const system = `Tu es un routeur multi-agents.
 
 Ta tâche: choisir jusqu'à 3 agents pertinents pour répondre à la question.
@@ -120,7 +141,7 @@ Contraintes:
   const data = await callGroqChatCompletion(groqKey, [
     { role: 'system', content: system },
     { role: 'user', content: user }
-  ], { max_tokens: 250, temperature: 0.1, userId: 'guest' });
+  ], { max_tokens: 250, temperature: 0.1, userId: 'guest', model });
 
   const raw = data?.choices?.[0]?.message?.content || '';
   const parsed = safeJsonParse(raw);
@@ -146,7 +167,8 @@ async function orchestrateMultiAgents({
   analyzeHallucination,
   logger,
   maxAgents = 3,
-  userId = 'guest'
+  userId = 'guest',
+  model
 }) {
   const question = String(teamQuestion || '').trim();
   if (!question) {
@@ -179,7 +201,7 @@ async function orchestrateMultiAgents({
         }
       }
 
-      teamAgents = await planAgentsWithLLM({ groqKey, teamQuestion: question, compactHistory, contextFromSearch });
+      teamAgents = await planAgentsWithLLM({ groqKey, teamQuestion: question, compactHistory, contextFromSearch, model });
     } catch (e) {
       if (logger?.warn) logger.warn('Planner failed, using heuristics:', e?.message || e);
       teamAgents = heuristicPickAgents(question);
@@ -223,7 +245,7 @@ async function orchestrateMultiAgents({
       }
     ];
 
-    const workerData = await callGroqChatCompletion(groqKey, workerMessages, { max_tokens: 1200, temperature: 0.5, userId });
+    const workerData = await callGroqChatCompletion(groqKey, workerMessages, { max_tokens: 1200, temperature: 0.5, userId, model });
     const workerText = workerData?.choices?.[0]?.message?.content || '';
     totalTokensUsed += workerData?.usage?.total_tokens || 0;
     workerOutputs.push({ agent, text: workerText });
@@ -240,7 +262,7 @@ async function orchestrateMultiAgents({
     }
   ];
 
-  const synthData = await callGroqChatCompletion(groqKey, synthMessages, { max_tokens: 1600, temperature: 0.6, userId });
+  const synthData = await callGroqChatCompletion(groqKey, synthMessages, { max_tokens: 1600, temperature: 0.6, userId, model });
   const aiResponse = synthData?.choices?.[0]?.message?.content || '';
   totalTokensUsed += synthData?.usage?.total_tokens || 0;
 

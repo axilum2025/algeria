@@ -3538,6 +3538,25 @@
                     </div>
                 </div>
 
+                <!-- IA -->
+                <div class="about-section">
+                    <h3>
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 3a.75.75 0 00-.75.75V6h6V3.75a.75.75 0 00-.75-.75h-4.5zM6 6h12v3H6V6zm0 5h12v9a1 1 0 01-1 1H7a1 1 0 01-1-1v-9z"/>
+                        </svg>
+                        IA
+                    </h3>
+                    <div style="background: var(--bg-secondary); padding: 15px; border-radius: 10px; border: 1px solid var(--border-color);">
+                        <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
+                            <label for="aiModelSelect" style="min-width:140px; color: var(--text-secondary); font-size: 13px;">Modèle (Groq)</label>
+                            <select id="aiModelSelect" onchange="onAiModelChanged()" style="flex:1; min-width:240px; padding:10px; border:1px solid var(--border-color); border-radius:10px; background:var(--bg-primary); color:var(--text-primary);">
+                                <option value="">Chargement…</option>
+                            </select>
+                        </div>
+                        <div id="aiModelHelp" style="margin-top:10px; color: var(--text-secondary); font-size: 13px; line-height: 1.4;"></div>
+                    </div>
+                </div>
+
                 <!-- Données -->
                 <div class="about-section">
                     <h3>
@@ -3752,6 +3771,94 @@
         let messageStats = JSON.parse(localStorage.getItem('messageStats') || '{"hiHistory":[],"chrHistory":[]}');
         let isRecording = false;
         let recognition = null;
+
+        // ===================================
+        // 🤖 Modèle IA (sélection utilisateur)
+        // ===================================
+        const DEFAULT_AI_MODEL = 'llama-3.3-70b-versatile';
+        let selectedAiModel = (() => {
+            try {
+                return String(localStorage.getItem('axilum_ai_model') || '').trim();
+            } catch (_) {
+                return '';
+            }
+        })();
+
+        function getSelectedAiModel() {
+            const m = String(selectedAiModel || '').trim();
+            return m || DEFAULT_AI_MODEL;
+        }
+
+        function setSelectedAiModel(modelId) {
+            selectedAiModel = String(modelId || '').trim();
+            try {
+                localStorage.setItem('axilum_ai_model', selectedAiModel);
+            } catch (_) {}
+        }
+
+        function onAiModelChanged() {
+            const sel = document.getElementById('aiModelSelect');
+            if (!sel) return;
+            const next = String(sel.value || '').trim();
+            setSelectedAiModel(next);
+            try { showToast('Modèle IA mis à jour', 'success'); } catch (_) {}
+            try { updateAiModelHelp(); } catch (_) {}
+        }
+
+        function updateAiModelHelp(models) {
+            const help = document.getElementById('aiModelHelp');
+            if (!help) return;
+            const current = getSelectedAiModel();
+
+            const m = Array.isArray(models) ? models.find(x => x && x.id === current) : null;
+            if (m && (m.in != null || m.out != null)) {
+                const cur = String(m.pricingCurrency || '').toUpperCase() || '';
+                const inRate = (m.in != null && Number.isFinite(Number(m.in))) ? Number(m.in) : null;
+                const outRate = (m.out != null && Number.isFinite(Number(m.out))) ? Number(m.out) : null;
+                const inTxt = inRate == null ? 'N/A' : `${inRate} ${cur}/1M tokens (entrée)`;
+                const outTxt = outRate == null ? 'N/A' : `${outRate} ${cur}/1M tokens (sortie)`;
+                help.textContent = `Modèle actif: ${current}. Prix indicatifs: ${inTxt}, ${outTxt}.`;
+                return;
+            }
+
+            help.textContent = `Modèle actif: ${current}.`;
+        }
+
+        async function refreshAiModelSelect() {
+            const sel = document.getElementById('aiModelSelect');
+            if (!sel) return;
+
+            sel.innerHTML = '<option value="">Chargement…</option>';
+
+            try {
+                const res = await fetch('/api/ai/models', { method: 'GET' });
+                const data = await res.json().catch(() => null);
+                const models = (res.ok && data && Array.isArray(data.models)) ? data.models : [];
+
+                const current = getSelectedAiModel();
+                const options = models.length ? models : [{ id: DEFAULT_AI_MODEL }];
+
+                sel.innerHTML = options.map(m => {
+                    const id = String(m.id || '').trim();
+                    if (!id) return '';
+                    const selected = id === current ? ' selected' : '';
+                    return `<option value="${id}"${selected}>${id}</option>`;
+                }).join('') || `<option value="${DEFAULT_AI_MODEL}">${DEFAULT_AI_MODEL}</option>`;
+
+                // Si le modèle stocké n'existe plus, revenir au défaut.
+                const exists = options.some(m => String(m.id || '').trim() === current);
+                if (!exists) {
+                    setSelectedAiModel(DEFAULT_AI_MODEL);
+                    sel.value = DEFAULT_AI_MODEL;
+                }
+
+                updateAiModelHelp(options);
+            } catch (_) {
+                sel.innerHTML = `<option value="${DEFAULT_AI_MODEL}">${DEFAULT_AI_MODEL}</option>`;
+                sel.value = DEFAULT_AI_MODEL;
+                updateAiModelHelp([{ id: DEFAULT_AI_MODEL }]);
+            }
+        }
 
         function normalizeChatType(type) {
             const t = String(type || '').trim().toLowerCase();
@@ -6230,6 +6337,8 @@ ${persona}
             const message = input.value.trim();
             if (!message) return;
 
+            const selectedModel = (typeof getSelectedAiModel === 'function') ? getSelectedAiModel() : null;
+
             // Ne pas "voler" le focus après la réponse : si l'utilisateur clique ailleurs pendant l'attente,
             // on évite de remettre automatiquement le focus dans le champ du chat.
             let allowAutoRefocus = false;
@@ -6288,6 +6397,7 @@ ${persona}
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({
+                            model: selectedModel,
                             message: message,
                             conversationId: currentConversationId,
                             chatType: 'orchestrator',
@@ -6398,6 +6508,7 @@ ${persona}
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({
+                            model: selectedModel,
                             message: question,
                             conversationId: currentConversationId,
                             chatType: 'orchestrator',
@@ -6974,6 +7085,7 @@ ${persona}
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ 
+                        model: selectedModel,
                         message: messageForBackend,  // 🎯 Connaissance app + contexte + message (ou OCR)
                         conversationId: currentConversationId,
                         chatType: currentChatType,
@@ -9147,6 +9259,7 @@ ${persona}
         function showSettings() {
             document.getElementById('settingsModal').style.display = 'flex';
             refreshStorageModeUI();
+            try { refreshAiModelSelect(); } catch (_) {}
         }
 
         function closeSettingsModal() {
@@ -9250,7 +9363,7 @@ ${persona}
                 const res = await fetch(endpoint, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ prompt })
+                    body: JSON.stringify({ prompt, model: getSelectedAiModel() })
                 });
 
                 hideTyping();
@@ -11791,7 +11904,8 @@ ${persona}
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     description: description,
-                    userId: 'current-user'
+                    userId: 'current-user',
+                    model: (typeof getSelectedAiModel === 'function') ? getSelectedAiModel() : null
                 })
             })
             .then(res => res.json())

@@ -9,12 +9,34 @@ const { getUserPlan, getPlanPriority } = require('../utils/entitlements');
 const { appendAuditEvent } = require('../utils/auditStorage');
 const { precheckCredit, debitAfterUsage } = require('../utils/aiCreditGuard');
 
+const DEFAULT_GROQ_MODEL = 'llama-3.3-70b-versatile';
+
 const MAX_TEXT_CHARS = Math.max(200, Math.min(20_000, Number(process.env.TODO_TASKS_MAX_TEXT_CHARS || 4000) || 4000));
 const MAX_HISTORY_TURNS = Math.max(0, Math.min(20, Number(process.env.TODO_TASKS_MAX_HISTORY_TURNS || 8) || 8));
 const MAX_TASKS_IN_AI_CONTEXT = Math.max(10, Math.min(1000, Number(process.env.TODO_TASKS_MAX_TASKS_IN_AI_CONTEXT || 200) || 200));
 const MAX_AI_CHANGES = Math.max(1, Math.min(200, Number(process.env.TODO_TASKS_MAX_AI_CHANGES || 50) || 50));
 const MAX_AI_CREATED = Math.max(1, Math.min(200, Number(process.env.TODO_TASKS_MAX_AI_CREATED || 25) || 25));
 const MAX_AI_DELETED = Math.max(1, Math.min(500, Number(process.env.TODO_TASKS_MAX_AI_DELETED || 50) || 50));
+
+function safeJsonParse(value) {
+    try {
+        return JSON.parse(value);
+    } catch (_) {
+        return null;
+    }
+}
+
+function resolveRequestedGroqModel(req) {
+    const requested = (req && req.body && (req.body.model || req.body.aiModel)) || null;
+    const r = String(requested || '').trim();
+    if (!r) return DEFAULT_GROQ_MODEL;
+    const raw = String(process.env.AI_PRICING_JSON || '').trim();
+    if (!raw) return DEFAULT_GROQ_MODEL;
+    const pricing = safeJsonParse(raw);
+    if (!pricing || typeof pricing !== 'object') return DEFAULT_GROQ_MODEL;
+    if (!Object.prototype.hasOwnProperty.call(pricing, r)) return DEFAULT_GROQ_MODEL;
+    return r;
+}
 
 function corsJsonHeaders(extra = {}) {
     return {
@@ -803,7 +825,7 @@ FORMAT JSON STRICT:
                     topPending
                 };
 
-                const model = 'llama-3.3-70b-versatile';
+                const model = resolveRequestedGroqModel(req);
                 const messages = [
                     { role: 'system', content: systemPrompt },
                     { role: 'user', content: JSON.stringify(userPayload, null, 2) }
@@ -833,7 +855,7 @@ FORMAT JSON STRICT:
 
                 if (response.ok) {
                     const aiData = await response.json();
-                    await debitAfterUsage({ userId, model, usage: aiData.usage });
+                    await debitAfterUsage({ userId, model: aiData?.model || model, usage: aiData.usage });
                     const parsed = JSON.parse(aiData.choices[0].message.content);
                     const respText = parseOptionalString(parsed?.response) || coach.response;
                     const work = Array.isArray(parsed?.advice?.work) ? parsed.advice.work.map(x => String(x)).filter(Boolean) : coach.advice.work;
@@ -975,7 +997,7 @@ Output: {"title":"Acheter du lait","priority":"low","category":"personnel",...}`
         { role: "user", content: `Parse cette tâche (date du jour: ${new Date().toISOString().split('T')[0]}):\n\n${description}` }
     ];
 
-    const model = 'llama-3.3-70b-versatile';
+    const model = resolveRequestedGroqModel(req);
     try {
         await precheckCredit({ userId, model, messages, maxTokens: 500 });
     } catch (e) {
@@ -1025,7 +1047,7 @@ Output: {"title":"Acheter du lait","priority":"low","category":"personnel",...}`
     }
 
     const aiData = await response.json();
-    const credit = await debitAfterUsage({ userId, model, usage: aiData.usage });
+    const credit = await debitAfterUsage({ userId, model: aiData?.model || model, usage: aiData.usage });
     let parsedTask;
     try {
         parsedTask = JSON.parse(aiData.choices[0].message.content);
@@ -1456,7 +1478,7 @@ RÈGLES:
     // Ajouter le message actuel de l'utilisateur
     messages.push({ role: "user", content: userMessage });
 
-    const model = 'llama-3.3-70b-versatile';
+    const model = resolveRequestedGroqModel(req);
     try {
         await precheckCredit({ userId, model, messages, maxTokens: 2000 });
     } catch (e) {
@@ -1503,7 +1525,7 @@ RÈGLES:
     }
 
     const aiData = await response.json();
-    const credit = await debitAfterUsage({ userId, model, usage: aiData.usage });
+    const credit = await debitAfterUsage({ userId, model: aiData?.model || model, usage: aiData.usage });
     let result;
     try {
         result = JSON.parse(aiData.choices[0].message.content);

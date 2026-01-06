@@ -48,7 +48,18 @@ module.exports = async function (context, req) {
 
         const conversationHistory = req.body.history || [];
         const email = getAuthEmail(req);
-        const userIdForBilling = email || req.body?.userId || req.query?.userId || 'guest';
+            const userIdForBilling = getAuthEmail(req) || req.body?.userId || req.query?.userId || 'guest';
+            const requestedModel = req.body?.model || req.body?.aiModel || null;
+            const resolveModel = (m) => {
+                const r = String(m || '').trim();
+                if (!r) return 'llama-3.3-70b-versatile';
+                try {
+                    const pricing = JSON.parse(String(process.env.AI_PRICING_JSON || '') || '{}');
+                    if (pricing && typeof pricing === 'object' && Object.prototype.hasOwnProperty.call(pricing, r)) return r;
+                } catch (_) {}
+                return 'llama-3.3-70b-versatile';
+            };
+            const resolvedModel = resolveModel(requestedModel);
 
         // 1. 🎯 DÉTECTION DES FONCTIONS NÉCESSAIRES
         const neededFunctions = detectFunctions(userMessage);
@@ -112,7 +123,7 @@ module.exports = async function (context, req) {
             messages.push({ role: "user", content: userMessage });
 
             // Crédit prépayé (EUR)
-            await precheckCredit({ userId: userIdForBilling, model: 'llama-3.3-70b-versatile', messages, maxTokens: 4000 });
+                await precheckCredit({ userId: userIdForBilling, model: resolvedModel, messages, maxTokens: 4000 });
 
             // Appel Groq
             const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
@@ -122,7 +133,7 @@ module.exports = async function (context, req) {
                     'Authorization': `Bearer ${groqKey}` 
                 },
                 body: JSON.stringify({ 
-                    model: 'llama-3.3-70b-versatile', 
+                        model: resolvedModel, 
                     messages: messages, 
                     max_tokens: 4000, 
                     temperature: 0.7 
@@ -139,7 +150,7 @@ module.exports = async function (context, req) {
 
         // Débit du crédit sur le coût réel
         try {
-            await debitAfterUsage({ userId: userIdForBilling, model: groqResponse?.model || 'llama-3.3-70b-versatile', usage: groqResponse?.usage });
+                await debitAfterUsage({ userId: userIdForBilling, model: groqResponse?.model || resolvedModel, usage: groqResponse?.usage });
         } catch (_) {}
 
         const aiResponse = groqResponse.choices[0].message.content;

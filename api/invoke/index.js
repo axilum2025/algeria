@@ -95,6 +95,7 @@ module.exports = async function (context, req) {
     try {
         const userMessage = req.body.message;
         const userQuery = extractUserQueryFromMessage(userMessage);
+        const requestedModel = req.body?.model || req.body?.aiModel || null;
 
         const userAsksForSourcesForWesh = (q) => {
             const s = String(q || '').toLowerCase().replace(/[’]/g, "'").trim();
@@ -221,7 +222,8 @@ module.exports = async function (context, req) {
                 toolsContext,
                 analyzeHallucination,
                 logger: context.log,
-                userId: (getAuthEmail(req) || req.body?.userId || req.query?.userId || 'guest')
+                userId: (getAuthEmail(req) || req.body?.userId || req.query?.userId || 'guest'),
+                model: requestedModel
             });
 
             if (!orchestrated.ok) {
@@ -444,7 +446,8 @@ module.exports = async function (context, req) {
                     question: userQuery,
                     recentHistory,
                     logger: context.log,
-                    userId: userIdForBilling
+                    userId: userIdForBilling,
+                    model: requestedModel
                 });
             } catch (e) {
                 context.log.warn('⚠️ Boost interne indisponible (Axilum), continue sans:', e?.message || e);
@@ -624,7 +627,7 @@ Ne mentionne pas tes capacités ou fonctionnalités à moins que l'utilisateur n
 
         let data;
         try {
-            data = await callGroqChatCompletion(groqKey, messages, { max_tokens: 4000, temperature: 0.7, userId: userIdForBilling });
+            data = await callGroqChatCompletion(groqKey, messages, { max_tokens: 4000, temperature: 0.7, userId: userIdForBilling, model: requestedModel });
         } catch (e) {
             context.res = {
                 status: 200,
@@ -694,7 +697,7 @@ Ne mentionne pas tes capacités ou fonctionnalités à moins que l'utilisateur n
                     { role: 'user', content: `Question: ${userMessage}\n\nRéponse initiale à corriger:\n${aiResponse}` }
                 ];
 
-                const correctedData = await callGroqChatCompletion(groqKey, correctionMessages, { max_tokens: 2500, temperature: 0.2, userId: userIdForBilling });
+                const correctedData = await callGroqChatCompletion(groqKey, correctionMessages, { max_tokens: 2500, temperature: 0.2, userId: userIdForBilling, model: requestedModel });
                 autoCorrectionUsage = correctedData?.usage || null;
                 const corrected = correctedData?.choices?.[0]?.message?.content;
                 if (typeof corrected === 'string' && corrected.trim()) {

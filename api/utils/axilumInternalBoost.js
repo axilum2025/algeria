@@ -103,7 +103,7 @@ function compactHistoryFromMessages(recentHistory, { maxTurns = 6, maxCharsPerLi
     : '';
 }
 
-async function buildAxilumInternalBoostContext({ groqKey, question, recentHistory, logger, userId } = {}) {
+async function buildAxilumInternalBoostContext({ groqKey, question, recentHistory, logger, userId, model } = {}) {
   const q = String(question || '').trim();
   if (!groqKey || !q) return '';
 
@@ -136,7 +136,7 @@ async function buildAxilumInternalBoostContext({ groqKey, question, recentHistor
       }
     ];
 
-    const workerData = await callGroqChatCompletion(groqKey, workerMessages, { max_tokens: 900, temperature: 0.35, userId: userId || 'guest' });
+    const workerData = await callGroqChatCompletion(groqKey, workerMessages, { max_tokens: 900, temperature: 0.35, userId: userId || 'guest', model });
     const workerText = workerData?.choices?.[0]?.message?.content || '';
     if (workerText) expertNotes.push(workerText);
   }
@@ -164,7 +164,7 @@ async function buildAxilumInternalBoostContext({ groqKey, question, recentHistor
 
   let synthText = '';
   try {
-    const synthData = await callGroqChatCompletion(groqKey, synthMessages, { max_tokens: 800, temperature: 0.25, userId: userId || 'guest' });
+    const synthData = await callGroqChatCompletion(groqKey, synthMessages, { max_tokens: 800, temperature: 0.25, userId: userId || 'guest', model });
     synthText = synthData?.choices?.[0]?.message?.content || '';
   } catch (e) {
     if (logger?.warn) logger.warn('Internal boost synth failed, using raw notes:', e?.message || e);
