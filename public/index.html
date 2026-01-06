@@ -171,6 +171,7 @@
             font-size: 12px;
             font-weight: 600;
             white-space: nowrap;
+            cursor: pointer;
         }
 
         .quota-indicator svg {
@@ -3609,6 +3610,39 @@
         </div>
     </div>
 
+    <!-- Usage Dashboard Modal (clic sur le compteur quota) -->
+    <div class="modal" id="usageDashboardModal" style="display:none;">
+        <div class="modal-content" style="max-width: 760px;">
+            <div class="modal-header">
+                <div class="modal-title">Consommation</div>
+                <button class="close-modal" onclick="closeUsageDashboardModal()">×</button>
+            </div>
+            <div style="padding: 20px;">
+                <div id="usageDashboardMeta" style="color: var(--text-secondary); font-size: 13px; margin-bottom: 12px;"></div>
+
+                <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; margin-bottom: 14px;">
+                    <div style="background: var(--bg-secondary); padding: 12px; border-radius: 10px; border: 1px solid var(--border-color);">
+                        <div style="color: var(--text-secondary); font-size: 12px;">Crédit restant</div>
+                        <div id="usageDashboardBalance" style="color: var(--text-primary); font-size: 18px; font-weight: 700; margin-top: 4px;">—</div>
+                    </div>
+                    <div style="background: var(--bg-secondary); padding: 12px; border-radius: 10px; border: 1px solid var(--border-color);">
+                        <div style="color: var(--text-secondary); font-size: 12px;">Coût (mois)</div>
+                        <div id="usageDashboardMonthCost" style="color: var(--text-primary); font-size: 18px; font-weight: 700; margin-top: 4px;">—</div>
+                    </div>
+                    <div style="background: var(--bg-secondary); padding: 12px; border-radius: 10px; border: 1px solid var(--border-color);">
+                        <div style="color: var(--text-secondary); font-size: 12px;">Appels &amp; tokens</div>
+                        <div id="usageDashboardMonthTokens" style="color: var(--text-primary); font-size: 14px; font-weight: 700; margin-top: 6px;">—</div>
+                    </div>
+                </div>
+
+                <div style="background: var(--bg-secondary); border-radius: 10px; border: 1px solid var(--border-color); overflow: hidden;">
+                    <div style="padding: 12px; border-bottom: 1px solid var(--border-color); color: var(--text-primary); font-weight: 700;">Derniers appels</div>
+                    <div id="usageDashboardBody" style="padding: 12px; color: var(--text-secondary); font-size: 13px;">Chargement…</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Overlay pour panneaux -->
     <div id="panelOverlay" style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,0.5); z-index:1050;" onclick="closeAllPanels()"></div>
 
@@ -5956,6 +5990,134 @@ ${persona}
             refreshQuotaFromServer(plan);
         }
 
+        function closeUsageDashboardModal() {
+            const el = document.getElementById('usageDashboardModal');
+            if (el) el.style.display = 'none';
+        }
+
+        function formatMoney(amount, currency) {
+            const n = Number(amount);
+            if (!Number.isFinite(n)) return '—';
+            const c = String(currency || '').trim().toUpperCase() || 'EUR';
+            try {
+                return new Intl.NumberFormat('fr-FR', { style: 'currency', currency: c, minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(n);
+            } catch (_) {
+                return `${n.toFixed(2)} ${c}`;
+            }
+        }
+
+        function safeText(s) {
+            return String(s == null ? '' : s);
+        }
+
+        async function openUsageDashboardModal() {
+            const modal = document.getElementById('usageDashboardModal');
+            const meta = document.getElementById('usageDashboardMeta');
+            const balanceEl = document.getElementById('usageDashboardBalance');
+            const monthCostEl = document.getElementById('usageDashboardMonthCost');
+            const monthTokensEl = document.getElementById('usageDashboardMonthTokens');
+            const body = document.getElementById('usageDashboardBody');
+            if (!modal || !body) return;
+
+            modal.style.display = 'flex';
+            if (meta) meta.textContent = '';
+            if (balanceEl) balanceEl.textContent = '…';
+            if (monthCostEl) monthCostEl.textContent = '…';
+            if (monthTokensEl) monthTokensEl.textContent = '…';
+            body.textContent = 'Chargement…';
+
+            const headers = {};
+            try {
+                const token = (typeof getAuthToken === 'function') ? getAuthToken() : null;
+                if (token) headers['Authorization'] = `Bearer ${token}`;
+            } catch (_) {}
+
+            let u = 'guest';
+            try {
+                u = (typeof currentUser !== 'undefined' && currentUser)
+                    ? (currentUser.email || currentUser.id)
+                    : (typeof getTodoUserId === 'function' ? getTodoUserId() : 'guest');
+            } catch (_) {}
+
+            try {
+                const qs = new URLSearchParams();
+                if (u) qs.set('userId', String(u));
+                const res = await fetch(`/api/me/usage?${qs.toString()}`, { method: 'GET', headers });
+                const data = await res.json().catch(() => null);
+                if (!res.ok || !data || !data.ok) throw new Error((data && data.error) ? String(data.error) : 'bad_response');
+
+                const month = safeText(data.month || '');
+                const credit = data.credit || {};
+                const totals = data.totals || {};
+                const items = Array.isArray(data.items) ? data.items : [];
+
+                if (meta) meta.textContent = month ? `Période: ${month}` : '';
+
+                if (balanceEl) {
+                    const bal = (typeof credit.balanceEur === 'number') ? credit.balanceEur : (Number(credit.balanceCents || 0) / 100);
+                    balanceEl.textContent = formatMoney(bal, credit.currency || 'EUR');
+                }
+
+                if (monthCostEl) {
+                    monthCostEl.textContent = formatMoney(Number(totals.totalCost || 0), totals.currency || credit.currency || 'EUR');
+                }
+
+                if (monthTokensEl) {
+                    const calls = Number(totals.totalCalls || 0);
+                    const toks = Number(totals.totalTokens || 0);
+                    monthTokensEl.textContent = `${calls.toLocaleString('fr-FR')} appels • ${toks.toLocaleString('fr-FR')} tokens`;
+                }
+
+                if (!items.length) {
+                    body.textContent = 'Aucun usage enregistré pour cette période.';
+                    return;
+                }
+
+                const rows = items.map(it => {
+                    const when = it.createdAt ? new Date(it.createdAt) : null;
+                    const dateLabel = when && !Number.isNaN(when.getTime()) ? when.toLocaleString('fr-FR') : '—';
+                    const route = it.route ? String(it.route) : '—';
+                    const model = it.model ? String(it.model) : '—';
+                    const tokens = Number(it.totalTokens || 0);
+                    const cost = it.cost == null ? null : Number(it.cost);
+                    const costLabel = (cost == null || !Number.isFinite(cost)) ? '—' : formatMoney(cost, it.currency || totals.currency || credit.currency || 'EUR');
+                    return `
+                        <tr>
+                            <td style="padding: 10px; border-top: 1px solid var(--border-color); white-space: nowrap;">${safeText(dateLabel)}</td>
+                            <td style="padding: 10px; border-top: 1px solid var(--border-color);">${safeText(route)}</td>
+                            <td style="padding: 10px; border-top: 1px solid var(--border-color);">${safeText(model)}</td>
+                            <td style="padding: 10px; border-top: 1px solid var(--border-color); text-align: right; white-space: nowrap;">${tokens.toLocaleString('fr-FR')}</td>
+                            <td style="padding: 10px; border-top: 1px solid var(--border-color); text-align: right; white-space: nowrap;">${safeText(costLabel)}</td>
+                        </tr>
+                    `;
+                }).join('');
+
+                body.innerHTML = `
+                    <div style="overflow-x: auto;">
+                        <table style="width: 100%; border-collapse: collapse;">
+                            <thead>
+                                <tr style="color: var(--text-secondary); font-size: 12px;">
+                                    <th style="text-align: left; padding: 8px 10px;">Date</th>
+                                    <th style="text-align: left; padding: 8px 10px;">Module</th>
+                                    <th style="text-align: left; padding: 8px 10px;">Modèle</th>
+                                    <th style="text-align: right; padding: 8px 10px;">Tokens</th>
+                                    <th style="text-align: right; padding: 8px 10px;">Coût</th>
+                                </tr>
+                            </thead>
+                            <tbody style="color: var(--text-primary); font-size: 13px;">
+                                ${rows}
+                            </tbody>
+                        </table>
+                    </div>
+                `;
+            } catch (e) {
+                body.textContent = 'Impossible de charger la consommation.';
+                try {
+                    if (meta) meta.textContent = safeText(e && e.message ? e.message : 'Erreur');
+                } catch (_) {}
+            }
+        }
+
         function updateEnterpriseBadgeUI(plan) {
             const badge = document.getElementById('enterpriseActiveBadge');
             if (!badge) return;
@@ -6038,6 +6200,18 @@ ${persona}
             if (menuBtn) menuBtn.addEventListener('click', toggleSidebar);
             if (freeBadge) freeBadge.addEventListener('click', () => switchToPlan('free'));
             if (proBadge) proBadge.addEventListener('click', () => switchToPlan('pro'));
+
+            // Dashboard consommation (clic sur le compteur quota)
+            try {
+                const quotaIndicator = document.getElementById('quotaIndicator');
+                if (quotaIndicator && quotaIndicator.dataset && quotaIndicator.dataset.usageClickInstalled !== '1') {
+                    quotaIndicator.dataset.usageClickInstalled = '1';
+                    quotaIndicator.addEventListener('click', (e) => {
+                        try { if (e) e.preventDefault(); } catch (_) {}
+                        openUsageDashboardModal();
+                    });
+                }
+            } catch (_) {}
             
             switchToPlan(currentPlan);
 

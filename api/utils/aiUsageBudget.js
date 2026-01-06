@@ -6,7 +6,8 @@ const MONTHLY_TABLE = 'AiUsageMonthly';
 
 // In-memory fallback (dev/local) when Azure Table is not configured.
 const memory = {
-  monthly: Object.create(null) // { [monthKey]: { totalCost, totalTokens, totalCalls, currency } }
+  monthly: Object.create(null), // { [monthKey]: { totalCost, totalTokens, totalCalls, currency } } (TOTAL)
+  userMonthly: Object.create(null) // { [monthKey]: { [userRowKey]: { totalCost, totalTokens, totalCalls, currency } } }
 };
 
 let usageClient = null;
@@ -228,6 +229,36 @@ async function getMonthlyTotals(monthKey) {
   }
 }
 
+async function getUserMonthlyTotals(userId, monthKey) {
+  const mk = String(monthKey || monthKeyFromDate());
+  const uid = safeKeyPart(userId || 'anonymous');
+  const userRowKey = `u_${uid}`;
+  const { monthlyClient: client } = await ensureInit();
+
+  if (!client) {
+    const bucket = memory.userMonthly[mk] && memory.userMonthly[mk][userRowKey];
+    if (!bucket) return { totalCost: 0, totalTokens: 0, totalCalls: 0, currency: null };
+    return {
+      totalCost: Number(bucket.totalCost || 0),
+      totalTokens: Number(bucket.totalTokens || 0),
+      totalCalls: Number(bucket.totalCalls || 0),
+      currency: bucket.currency || null
+    };
+  }
+
+  try {
+    const entity = await client.getEntity(`m_${mk}`, userRowKey);
+    return {
+      totalCost: Number(entity.totalCost || 0),
+      totalTokens: Number(entity.totalTokens || 0),
+      totalCalls: Number(entity.totalCalls || 0),
+      currency: entity.currency ? String(entity.currency) : null
+    };
+  } catch (_) {
+    return { totalCost: 0, totalTokens: 0, totalCalls: 0, currency: null };
+  }
+}
+
 async function assertWithinBudget({ provider = 'Groq', route = '', userId = '' } = {}) {
   const { budget, currency } = getBudgetConfig();
   if (!budget || budget <= 0) return { ok: true, enforced: false };
@@ -274,33 +305,46 @@ function computeCostFromUsage({ model, usage }) {
   return convertAmount(total, pricingCurrency, costCurrency);
 }
 
-async function incrementMonthlyTotals({ monthKey, addCost, addTokens, addCalls, currency }) {
+async function incrementMonthlyTotals({ monthKey, rowKey = 'TOTAL', addCost, addTokens, addCalls, currency }) {
   const mk = String(monthKey || monthKeyFromDate());
   const { monthlyClient: client } = await ensureInit();
 
+  const rk = String(rowKey || 'TOTAL');
+
   if (!client) {
-    const existing = memory.monthly[mk] || { totalCost: 0, totalTokens: 0, totalCalls: 0, currency: currency || null };
+    if (rk === 'TOTAL') {
+      const existing = memory.monthly[mk] || { totalCost: 0, totalTokens: 0, totalCalls: 0, currency: currency || null };
+      existing.totalCost = Number(existing.totalCost || 0) + Number(addCost || 0);
+      existing.totalTokens = Number(existing.totalTokens || 0) + Number(addTokens || 0);
+      existing.totalCalls = Number(existing.totalCalls || 0) + Number(addCalls || 0);
+      if (currency) existing.currency = currency;
+      memory.monthly[mk] = existing;
+      return;
+    }
+
+    const m = (memory.userMonthly[mk] = memory.userMonthly[mk] || Object.create(null));
+    const existing = m[rk] || { totalCost: 0, totalTokens: 0, totalCalls: 0, currency: currency || null };
     existing.totalCost = Number(existing.totalCost || 0) + Number(addCost || 0);
     existing.totalTokens = Number(existing.totalTokens || 0) + Number(addTokens || 0);
     existing.totalCalls = Number(existing.totalCalls || 0) + Number(addCalls || 0);
     if (currency) existing.currency = currency;
-    memory.monthly[mk] = existing;
+    m[rk] = existing;
     return;
   }
 
   const partitionKey = `m_${mk}`;
-  const rowKey = 'TOTAL';
+  const rowKeySafe = rk;
 
   // Optimistic concurrency to avoid lost updates.
   for (let attempt = 0; attempt < 3; attempt++) {
     try {
       let entity;
       try {
-        entity = await client.getEntity(partitionKey, rowKey);
+        entity = await client.getEntity(partitionKey, rowKeySafe);
       } catch (_) {
         entity = {
           partitionKey,
-          rowKey,
+          rowKey: rowKeySafe,
           totalCost: 0,
           totalTokens: 0,
           totalCalls: 0,
@@ -308,12 +352,12 @@ async function incrementMonthlyTotals({ monthKey, addCost, addTokens, addCalls, 
           updatedAt: new Date().toISOString()
         };
         await client.upsertEntity(entity);
-        entity = await client.getEntity(partitionKey, rowKey);
+        entity = await client.getEntity(partitionKey, rowKeySafe);
       }
 
       const next = {
         partitionKey,
-        rowKey,
+        rowKey: rowKeySafe,
         totalCost: Number(entity.totalCost || 0) + Number(addCost || 0),
         totalTokens: Number(entity.totalTokens || 0) + Number(addTokens || 0),
         totalCalls: Number(entity.totalCalls || 0) + Number(addCalls || 0),
@@ -382,6 +426,22 @@ async function recordUsage({
     try {
       await incrementMonthlyTotals({
         monthKey: mk,
+        rowKey: 'TOTAL',
+        addCost: cost == null ? 0 : cost,
+        addTokens: totalTokens,
+        addCalls: 1,
+        currency: storedCurrency
+      });
+    } catch (_) {
+      // ignore
+    }
+
+    // 3) Update per-user aggregates (enables user dashboard)
+    try {
+      const userRowKey = `u_${safeKeyPart(userId || 'anonymous')}`;
+      await incrementMonthlyTotals({
+        monthKey: mk,
+        rowKey: userRowKey,
         addCost: cost == null ? 0 : cost,
         addTokens: totalTokens,
         addCalls: 1,
@@ -412,5 +472,6 @@ module.exports = {
   computeCostFromUsage,
   recordUsage,
   getMonthlyTotals,
+  getUserMonthlyTotals,
   monthKeyFromDate
 };
