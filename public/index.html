@@ -6060,7 +6060,7 @@ ${persona}
                     const cres = await fetch(`/api/me/credit?${creditQs.toString()}`, { method: 'GET', headers });
                     const cdata = await cres.json().catch(() => null);
                     if (cres.ok && cdata) {
-                        const cur = (cdata.currency || 'USD').toUpperCase();
+                        const cur = 'USD';
                         const balance = (() => {
                             if (Number.isFinite(cdata.balanceAmount)) return Number(cdata.balanceAmount);
                             if (Number.isFinite(cdata.balance)) return Number(cdata.balance);
@@ -6127,9 +6127,9 @@ ${persona}
             if (!Number.isFinite(n)) return '—';
             const c = String(currency || '').trim().toUpperCase() || 'USD';
             try {
-                return new Intl.NumberFormat('fr-FR', { style: 'currency', currency: c, minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(n);
+                return new Intl.NumberFormat('en-US', { style: 'currency', currency: c, minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(n);
             } catch (_) {
-                return `${n.toFixed(2)} ${c}`;
+                return `${c} ${n.toFixed(2)}`;
             }
         }
 
@@ -6177,13 +6177,13 @@ ${persona}
                 const credit = data.credit || {};
                 const totals = data.totals || {};
                 const items = Array.isArray(data.items) ? data.items : [];
-                const displayCurrency = (credit.currency || totals.currency || 'USD').toUpperCase();
+                const displayCurrency = 'USD';
                 const balanceValue = (Number.isFinite(credit.balanceAmount) ? Number(credit.balanceAmount)
                     : Number.isFinite(credit.balanceEur) ? Number(credit.balanceEur)
                     : Number.isFinite(credit.balance) ? Number(credit.balance)
                     : Number.isFinite(credit.balanceCents) ? Number(credit.balanceCents) / 100
                     : null);
-                const totalsCurrency = (totals.currency || displayCurrency).toUpperCase();
+                const totalsCurrency = 'USD';
 
                 if (meta) meta.textContent = month ? `Période: ${month}` : '';
 
@@ -6214,7 +6214,7 @@ ${persona}
                     const model = it.model ? String(it.model) : '—';
                     const tokens = Number(it.totalTokens || 0);
                     const cost = it.cost == null ? null : Number(it.cost);
-                    const itemCurrency = it.currency || totalsCurrency || displayCurrency;
+                    const itemCurrency = 'USD';
                     const costLabel = (cost == null || !Number.isFinite(cost)) ? '—' : formatMoney(cost, itemCurrency);
                     return `
                         <tr>
