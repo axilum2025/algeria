@@ -1,6 +1,7 @@
 const { TableClient } = require('@azure/data-tables');
 
 const TABLE_NAME = 'UserCredits';
+const DEFAULT_CURRENCY = String(process.env.AI_COST_CURRENCY || 'USD').trim().toUpperCase() || 'USD';
 
 // In-memory fallback when Azure Table is not configured
 const memory = Object.create(null); // { [partitionKey]: { balanceCents, currency } }
@@ -30,7 +31,7 @@ function makeEntity(userId, balanceCents, currency) {
     partitionKey: makePartitionKey(userId),
     rowKey: 'BALANCE',
     balanceCents: Number(balanceCents || 0),
-    currency: String(currency || 'EUR'),
+    currency: String(currency || DEFAULT_CURRENCY).toUpperCase(),
     updatedAt: new Date().toISOString()
   };
 }
@@ -68,11 +69,11 @@ class InsufficientCreditError extends Error {
     this.code = 'INSUFFICIENT_CREDIT';
     this.status = 402;
     this.remainingCents = Number(remainingCents || 0);
-    this.currency = String(currency || 'EUR');
+    this.currency = String(currency || DEFAULT_CURRENCY).toUpperCase();
   }
 }
 
-async function getCredit(userId, { currency = 'EUR' } = {}) {
+async function getCredit(userId, { currency = DEFAULT_CURRENCY } = {}) {
   const uid = String(userId || '').trim();
   if (!uid) return { balanceCents: 0, currency };
 
@@ -98,7 +99,7 @@ async function getCredit(userId, { currency = 'EUR' } = {}) {
   }
 }
 
-async function setCredit(userId, balanceCents, { currency = 'EUR' } = {}) {
+async function setCredit(userId, balanceCents, { currency = DEFAULT_CURRENCY } = {}) {
   const uid = String(userId || '').trim();
   if (!uid) return null;
 
@@ -114,7 +115,7 @@ async function setCredit(userId, balanceCents, { currency = 'EUR' } = {}) {
   return { balanceCents: Number(entity.balanceCents || 0), currency: entity.currency };
 }
 
-async function debitCredit(userId, amountCents, { currency = 'EUR', allowPartial = false } = {}) {
+async function debitCredit(userId, amountCents, { currency = DEFAULT_CURRENCY, allowPartial = false } = {}) {
   const uid = String(userId || '').trim();
   if (!uid) throw new InsufficientCreditError({ remainingCents: 0, currency });
 

@@ -39,12 +39,12 @@ function parsePricing() {
 }
 
 function getPricingCurrency() {
-  return String(process.env.AI_PRICING_CURRENCY || '').trim().toUpperCase() || 'EUR';
+  return String(process.env.AI_PRICING_CURRENCY || '').trim().toUpperCase() || 'USD';
 }
 
 function getCostCurrency() {
-  // Currency in which we compute/bill costs (credit/budget). Defaults to EUR.
-  return String(process.env.AI_COST_CURRENCY || process.env.AI_BUDGET_CURRENCY || '').trim().toUpperCase() || 'EUR';
+  // Currency in which we compute/bill costs (credit/budget). Defaults to USD.
+  return String(process.env.AI_COST_CURRENCY || process.env.AI_BUDGET_CURRENCY || '').trim().toUpperCase() || 'USD';
 }
 
 function getUsdToEurRate() {

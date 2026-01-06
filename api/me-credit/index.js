@@ -18,6 +18,9 @@ module.exports = async function (context, req) {
     const userId = email || String((req.query && (req.query.userId || req.query.uid)) || '').trim();
 
     const credit = await getCredit(userId || 'guest', { currency });
+    const responseCurrency = currency;
+    const balanceCents = Number(credit.balanceCents || 0);
+    const balanceAmount = Number((balanceCents / 100).toFixed(2));
 
     context.res = {
       status: 200,
@@ -25,9 +28,11 @@ module.exports = async function (context, req) {
       body: {
         authenticated: !!email,
         userId: email || (userId || null),
-        currency: credit.currency || currency,
-        balanceCents: Number(credit.balanceCents || 0),
-        balanceEur: Number((Number(credit.balanceCents || 0) / 100).toFixed(2))
+        currency: responseCurrency,
+        rawCurrency: credit.currency || null,
+        balanceCents,
+        balanceAmount,
+        balanceEur: balanceAmount
       }
     };
   } catch (e) {

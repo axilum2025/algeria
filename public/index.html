@@ -6050,7 +6050,7 @@ ${persona}
             } catch (_) {}
 
             try {
-                // 1) Crédit prépayé (EUR) - priorité
+                // 1) Crédit prépayé (devise serveur) - priorité
                 try {
                     const u = (typeof currentUser !== 'undefined' && currentUser)
                         ? (currentUser.email || currentUser.id)
@@ -6059,13 +6059,24 @@ ${persona}
                     if (u) creditQs.set('userId', String(u));
                     const cres = await fetch(`/api/me/credit?${creditQs.toString()}`, { method: 'GET', headers });
                     const cdata = await cres.json().catch(() => null);
-                    if (cres.ok && cdata && typeof cdata.balanceEur === 'number') {
-                        const remainingEur = Number(cdata.balanceEur).toFixed(2);
-                        quotaValue.textContent = `${remainingEur}€`;
-                        if (quotaIndicator) {
-                            quotaIndicator.title = `Crédit: ${remainingEur}€`;
+                    if (cres.ok && cdata) {
+                        const cur = (cdata.currency || 'USD').toUpperCase();
+                        const balance = (() => {
+                            if (Number.isFinite(cdata.balanceAmount)) return Number(cdata.balanceAmount);
+                            if (Number.isFinite(cdata.balance)) return Number(cdata.balance);
+                            if (Number.isFinite(cdata.balanceEur)) return Number(cdata.balanceEur);
+                            if (Number.isFinite(cdata.balanceCents)) return Number(cdata.balanceCents) / 100;
+                            return null;
+                        })();
+
+                        if (Number.isFinite(balance)) {
+                            const formatted = formatMoney(balance, cur);
+                            quotaValue.textContent = formatted;
+                            if (quotaIndicator) {
+                                quotaIndicator.title = `Crédit: ${formatted}`;
+                            }
+                            return;
                         }
-                        return;
                     }
                 } catch (_) {}
 
@@ -6166,16 +6177,23 @@ ${persona}
                 const credit = data.credit || {};
                 const totals = data.totals || {};
                 const items = Array.isArray(data.items) ? data.items : [];
+                const displayCurrency = (credit.currency || totals.currency || 'USD').toUpperCase();
+                const balanceValue = (Number.isFinite(credit.balanceAmount) ? Number(credit.balanceAmount)
+                    : Number.isFinite(credit.balanceEur) ? Number(credit.balanceEur)
+                    : Number.isFinite(credit.balance) ? Number(credit.balance)
+                    : Number.isFinite(credit.balanceCents) ? Number(credit.balanceCents) / 100
+                    : null);
+                const totalsCurrency = (totals.currency || displayCurrency).toUpperCase();
 
                 if (meta) meta.textContent = month ? `Période: ${month}` : '';
 
                 if (balanceEl) {
-                    const bal = (typeof credit.balanceEur === 'number') ? credit.balanceEur : (Number(credit.balanceCents || 0) / 100);
-                    balanceEl.textContent = formatMoney(bal, credit.currency || 'EUR');
+                    const bal = Number.isFinite(balanceValue) ? balanceValue : 0;
+                    balanceEl.textContent = formatMoney(bal, displayCurrency);
                 }
 
                 if (monthCostEl) {
-                    monthCostEl.textContent = formatMoney(Number(totals.totalCost || 0), totals.currency || credit.currency || 'EUR');
+                    monthCostEl.textContent = formatMoney(Number(totals.totalCost || 0), totalsCurrency);
                 }
 
                 if (monthTokensEl) {
@@ -6196,7 +6214,8 @@ ${persona}
                     const model = it.model ? String(it.model) : '—';
                     const tokens = Number(it.totalTokens || 0);
                     const cost = it.cost == null ? null : Number(it.cost);
-                    const costLabel = (cost == null || !Number.isFinite(cost)) ? '—' : formatMoney(cost, it.currency || totals.currency || credit.currency || 'EUR');
+                    const itemCurrency = it.currency || totalsCurrency || displayCurrency;
+                    const costLabel = (cost == null || !Number.isFinite(cost)) ? '—' : formatMoney(cost, itemCurrency);
                     return `
                         <tr>
                             <td style="padding: 10px; border-top: 1px solid var(--border-color); white-space: nowrap;">${safeText(dateLabel)}</td>
@@ -7108,6 +7127,9 @@ ${persona}
                 }
 
                 const data = await response.json();
+                if (!data.model && selectedModel) {
+                    data.model = selectedModel;
+                }
                 const requestTime = Date.now() - requestStart;
                 hideTyping();
 

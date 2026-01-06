@@ -46,13 +46,15 @@ module.exports = async function (context, req) {
     const month = String((req.query && (req.query.month || req.query.monthKey)) || '').trim() || monthKeyFromDate();
     const defaultCurrency = String(process.env.AI_COST_CURRENCY || 'USD').trim().toUpperCase() || 'USD';
     const currency = String((req.query && req.query.currency) || defaultCurrency).trim().toUpperCase() || defaultCurrency;
+    const responseCurrency = currency;
     const limit = normalizeLimit(req.query && (req.query.limit || req.query.n), 25, 1, 100);
 
     const credit = await getCredit(userId, { currency }).catch(() => ({ balanceCents: 0, currency }));
     const balanceCents = Number(credit?.balanceCents || 0);
-    const balanceAmount = Math.round(balanceCents) / 100;
+    const balanceAmount = Number((balanceCents / 100).toFixed(2));
 
     const totals = await getUserMonthlyTotals(userId, month);
+    const totalsCurrency = responseCurrency;
 
     const conn = getConnectionString();
     let items = [];
@@ -91,7 +93,7 @@ module.exports = async function (context, req) {
           completionTokens: Number(e.completionTokens || 0),
           totalTokens: Number(e.totalTokens || 0),
           cost,
-          currency: e.currency ? String(e.currency) : null,
+          currency: responseCurrency,
           latencyMs: e.latencyMs === '' || e.latencyMs == null ? null : Number(e.latencyMs),
           ok: String(e.ok || '') === '1'
         };
@@ -106,12 +108,13 @@ module.exports = async function (context, req) {
         month,
         userId: email || (fallbackUserId || null),
         credit: {
-          currency,
           balanceCents,
+          currency: responseCurrency,
+          balanceAmount,
           balanceEur: balanceAmount
         },
         totals: {
-          currency: totals.currency || null,
+          currency: totalsCurrency,
           totalCost: Number(totals.totalCost || 0),
           totalTokens: Number(totals.totalTokens || 0),
           totalCalls: Number(totals.totalCalls || 0)
