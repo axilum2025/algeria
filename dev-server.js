@@ -29,7 +29,17 @@ if (!loadedAnyEnv) {
 const app = express();
 const PORT = process.env.PORT || 8080;
 
-app.use(cors());
+const corsOptions = {
+  origin: '*',
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  exposedHeaders: ['Retry-After'],
+  optionsSuccessStatus: 204
+};
+
+app.use(cors(corsOptions));
+// S'assurer que les preflight OPTIONS incluent Authorization (Express-cors peut court-circuiter avant les handlers).
+app.options('*', cors(corsOptions));
 // Upload CV: le front envoie le fichier en base64 dans du JSON (≈ +33%).
 // 10 MB côté client peut dépasser 5 MB côté serveur -> augmenter la limite.
 app.use(express.json({ limit: '20mb' }));
@@ -126,7 +136,8 @@ if (fs.existsSync(apiRoot)) {
               // Always set CORS headers
               res.set('Access-Control-Allow-Origin', '*');
               res.set('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-              res.set('Access-Control-Allow-Headers', 'Content-Type');
+              res.set('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+              res.set('Access-Control-Expose-Headers', 'Retry-After');
               
               if (typeof context.res.body === 'object') {
                 return res.status(status).json(context.res.body);

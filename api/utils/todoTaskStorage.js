@@ -9,6 +9,22 @@ const TABLE_NAME = 'TodoTasks';
 const memory = Object.create(null);
 
 let tableClient = null;
+let tableInitPromise = null;
+
+function isTableNotFound(err) {
+  const code = String(err?.code || err?.details?.errorCode || '').toLowerCase();
+  const msg = String(err?.message || '').toLowerCase();
+  const status = Number(err?.statusCode || err?.status || 0);
+  return status === 404 || code === 'tablenotfound' || msg.includes('tablenotfound');
+}
+
+async function ensureTable(client) {
+  if (!client) return;
+  if (!tableInitPromise) {
+    tableInitPromise = client.createTable().catch(() => {});
+  }
+  await tableInitPromise;
+}
 
 function getConnectionString() {
   return String(
@@ -38,12 +54,15 @@ function parseRowKey(rowKey) {
   return String(rowKey || '');
 }
 
-function getClient() {
-  if (tableClient) return tableClient;
+async function getClient() {
+  if (tableClient) {
+    await ensureTable(tableClient);
+    return tableClient;
+  }
   const conn = getConnectionString();
   if (!conn) return null;
   tableClient = TableClient.fromConnectionString(conn, TABLE_NAME);
-  tableClient.createTable().catch(() => {});
+  await ensureTable(tableClient);
   return tableClient;
 }
 
@@ -75,7 +94,7 @@ function entityToTask(entity) {
 }
 
 async function listTasks(userId) {
-  const client = getClient();
+  const client = await getClient();
   const partitionKey = makePartitionKey(userId);
 
   if (!client) {
@@ -86,24 +105,36 @@ async function listTasks(userId) {
       .filter(Boolean);
   }
 
-  const tasks = [];
-  const entities = client.listEntities({
-    queryOptions: {
-      filter: `PartitionKey eq '${partitionKey}'`,
-      select: ['taskJson', 'updatedAt', 'rowKey']
-    }
-  });
+  async function run() {
+    const tasks = [];
+    const entities = client.listEntities({
+      queryOptions: {
+        filter: `PartitionKey eq '${partitionKey}'`,
+        select: ['taskJson', 'updatedAt', 'rowKey']
+      }
+    });
 
-  for await (const entity of entities) {
-    const t = entityToTask(entity);
-    if (t) tasks.push(t);
+    for await (const entity of entities) {
+      const t = entityToTask(entity);
+      if (t) tasks.push(t);
+    }
+
+    return tasks;
   }
 
-  return tasks;
+  try {
+    return await run();
+  } catch (err) {
+    if (isTableNotFound(err)) {
+      await ensureTable(client);
+      return await run();
+    }
+    throw err;
+  }
 }
 
 async function upsertTask(userId, task) {
-  const client = getClient();
+  const client = await getClient();
   const entity = toEntity(userId, task);
 
   if (!client) {
@@ -113,12 +144,21 @@ async function upsertTask(userId, task) {
     return true;
   }
 
-  await client.upsertEntity(entity, 'Replace');
+  try {
+    await client.upsertEntity(entity, 'Replace');
+  } catch (err) {
+    if (isTableNotFound(err)) {
+      await ensureTable(client);
+      await client.upsertEntity(entity, 'Replace');
+    } else {
+      throw err;
+    }
+  }
   return true;
 }
 
 async function deleteTask(userId, taskId) {
-  const client = getClient();
+  const client = await getClient();
   const partitionKey = makePartitionKey(userId);
   const rowKey = makeRowKey(String(taskId || ''));
 
@@ -130,14 +170,21 @@ async function deleteTask(userId, taskId) {
 
   try {
     await client.deleteEntity(partitionKey, rowKey);
-  } catch (_) {
+  } catch (err) {
+    if (isTableNotFound(err)) {
+      await ensureTable(client);
+      try {
+        await client.deleteEntity(partitionKey, rowKey);
+      } catch (_) {}
+      return true;
+    }
     // If it doesn't exist, behave like idempotent delete.
   }
   return true;
 }
 
 async function replaceAllTasks(userId, tasks) {
-  const client = getClient();
+  const client = await getClient();
   const partitionKey = makePartitionKey(userId);
 
   if (!client) {
@@ -150,24 +197,36 @@ async function replaceAllTasks(userId, tasks) {
     return true;
   }
 
-  // Delete existing
-  const existing = client.listEntities({
-    queryOptions: { filter: `PartitionKey eq '${partitionKey}'`, select: ['partitionKey', 'rowKey'] }
-  });
-  for await (const e of existing) {
-    try {
-      await client.deleteEntity(e.partitionKey, e.rowKey);
-    } catch (_) {}
+  async function run() {
+    // Delete existing
+    const existing = client.listEntities({
+      queryOptions: { filter: `PartitionKey eq '${partitionKey}'`, select: ['partitionKey', 'rowKey'] }
+    });
+    for await (const e of existing) {
+      try {
+        await client.deleteEntity(e.partitionKey, e.rowKey);
+      } catch (_) {}
+    }
+
+    // Insert new
+    const arr = Array.isArray(tasks) ? tasks : [];
+    for (const t of arr) {
+      const entity = toEntity(userId, t);
+      await client.upsertEntity(entity, 'Replace');
+    }
+
+    return true;
   }
 
-  // Insert new
-  const arr = Array.isArray(tasks) ? tasks : [];
-  for (const t of arr) {
-    const entity = toEntity(userId, t);
-    await client.upsertEntity(entity, 'Replace');
+  try {
+    return await run();
+  } catch (err) {
+    if (isTableNotFound(err)) {
+      await ensureTable(client);
+      return await run();
+    }
+    throw err;
   }
-
-  return true;
 }
 
 module.exports = {
