@@ -4237,7 +4237,8 @@ RÈGLES IMPORTANTES:
         let users = JSON.parse(localStorage.getItem('users') || '[]');
         
         // 📅 Système To Do - Tâches et Calendrier
-        let userTasks = JSON.parse(localStorage.getItem('userTasks') || '[]');
+        // NOTE: stockage local scoped par utilisateur (fallback legacy: "userTasks")
+        let userTasks = readTodoTasksFromStorage();
         let userEvents = JSON.parse(localStorage.getItem('userEvents') || '[]');
         let userProjects = JSON.parse(localStorage.getItem('userProjects') || '[]');
         let notificationSettings = JSON.parse(localStorage.getItem('notificationSettings') || '{"enabled": false, "reminderMinutes": 15}');
@@ -4260,7 +4261,7 @@ RÈGLES IMPORTANTES:
         });
         // Sauvegarder les tâches normalisées
         if (userTasks.length > 0) {
-            localStorage.setItem('userTasks', JSON.stringify(userTasks));
+            localStorage.setItem(getTodoTasksStorageKey(), JSON.stringify(userTasks));
         }
         
         // Email Verification
@@ -5231,7 +5232,7 @@ ${topSaved}
         }
 
         function getTodoModuleDataFromStorage() {
-            const tasks = safeJsonParse(localStorage.getItem('userTasks') || '[]', []);
+            const tasks = safeJsonParse(localStorage.getItem(getTodoTasksStorageKey()) || localStorage.getItem('userTasks') || '[]', []);
             const events = safeJsonParse(localStorage.getItem('userEvents') || '[]', []);
             const projects = safeJsonParse(localStorage.getItem('userProjects') || '[]', []);
             const notificationSettings = safeJsonParse(localStorage.getItem('notificationSettings') || '{"enabled": false, "reminderMinutes": 15}', { enabled: false, reminderMinutes: 15 });
@@ -7928,7 +7929,29 @@ ${persona}
         // 📅 SYSTÈME TO DO - Gestion des tâches et événements
         
         function saveTasks() {
-            localStorage.setItem('userTasks', JSON.stringify(userTasks));
+            saveTasksInternal(false);
+        }
+
+        let todoTasksSyncTimer = null;
+
+        function isTodoOverlayOpen() {
+            return Boolean(document.getElementById('officeProOverlay'));
+        }
+
+        function saveTasksInternal(skipSync) {
+            try {
+                localStorage.setItem(getTodoTasksStorageKey(), JSON.stringify(userTasks));
+            } catch (e) {
+                console.warn('⚠️ Sauvegarde tâches échouée:', e);
+            }
+
+            // Sync serveur debouncée pour éviter les écrasements (et éviter trop d'appels)
+            if (!skipSync && isTodoOverlayOpen()) {
+                if (todoTasksSyncTimer) clearTimeout(todoTasksSyncTimer);
+                todoTasksSyncTimer = setTimeout(() => {
+                    syncTasksToServer();
+                }, 800);
+            }
         }
 
         function normalizeTodoId(value) {
@@ -9573,6 +9596,32 @@ ${persona}
             }
         }
 
+        function getTodoTasksStorageKey(userId = null) {
+            const uid = userId != null ? String(userId) : getTodoUserId();
+            return `userTasks:${uid}`;
+        }
+
+        function readTodoTasksFromStorage(userId = null) {
+            const key = getTodoTasksStorageKey(userId);
+            try {
+                const rawScoped = localStorage.getItem(key);
+                if (rawScoped) {
+                    const parsed = JSON.parse(rawScoped);
+                    return Array.isArray(parsed) ? parsed : [];
+                }
+            } catch (_) {
+                // ignore
+            }
+
+            // Fallback legacy
+            try {
+                const legacy = JSON.parse(localStorage.getItem('userTasks') || '[]');
+                return Array.isArray(legacy) ? legacy : [];
+            } catch (_) {
+                return [];
+            }
+        }
+
         function escapeHtml(value) {
             return String(value ?? '')
                 .replace(/&/g, '&amp;')
@@ -9624,8 +9673,7 @@ ${persona}
                 const data = await response.json();
                 
                 if (data.tasks && data.tasks.length > 0) {
-                    // Serveur a des tâches - les charger
-                    userTasks = data.tasks.map(serverTask => ({
+                    const toLocal = (serverTask) => ({
                         id: serverTask && serverTask.id != null ? String(serverTask.id) : (Date.now().toString() + Math.random().toString(36).substr(2, 9)),
                         title: serverTask.title,
                         description: serverTask.description || '',
@@ -9639,10 +9687,60 @@ ${persona}
                         createdAt: serverTask.createdAt || new Date().toISOString(),
                         updatedAt: serverTask.updatedAt || new Date().toISOString(),
                         notificationEnabled: true
-                    }));
+                    });
 
-                    localStorage.setItem('userTasks', JSON.stringify(userTasks));
-                    console.log('✅ Tâches synchronisées depuis serveur:', userTasks.length, 'tâches');
+                    // Serveur a des tâches - MERGE non destructif avec le local
+                    const serverTasks = data.tasks.map(toLocal);
+                    const byId = new Map();
+                    for (const t of (Array.isArray(userTasks) ? userTasks : [])) {
+                        if (!t) continue;
+                        byId.set(String(t.id), t);
+                    }
+
+                    const parseTs = (v) => {
+                        const dt = new Date(String(v || ''));
+                        const ms = dt.getTime();
+                        return Number.isFinite(ms) ? ms : 0;
+                    };
+
+                    let shouldPush = false;
+
+                    for (const st of serverTasks) {
+                        const id = String(st.id);
+                        const lt = byId.get(id);
+                        if (!lt) {
+                            byId.set(id, st);
+                            continue;
+                        }
+
+                        const lts = parseTs(lt.updatedAt || lt.createdAt);
+                        const sts = parseTs(st.updatedAt || st.createdAt);
+
+                        if (lts > sts) {
+                            // Local plus récent -> conserver local, et pousser ensuite
+                            shouldPush = true;
+                        } else if (sts > lts) {
+                            // Serveur plus récent
+                            byId.set(id, { ...lt, ...st });
+                        }
+                    }
+
+                    // Local-only tâches -> pousser au serveur pour éviter “disparition”
+                    for (const [id] of byId) {
+                        const existsOnServer = serverTasks.some(t => String(t.id) === id);
+                        if (!existsOnServer) {
+                            shouldPush = true;
+                            break;
+                        }
+                    }
+
+                    userTasks = Array.from(byId.values());
+                    saveTasksInternal(true);
+                    console.log('✅ Tâches synchronisées (merge) depuis serveur:', userTasks.length, 'tâches');
+
+                    if (shouldPush) {
+                        await syncTasksToServer();
+                    }
                 } else {
                     // Serveur vide - envoyer les tâches locales au serveur
                     if (userTasks.length > 0) {
@@ -10484,12 +10582,12 @@ ${persona}
                     notifyEnabledApres: task.notifyEnabled
                 });
                 
-                // Sauvegarder immédiatement dans localStorage
-                localStorage.setItem('userTasks', JSON.stringify(userTasks));
+                // Sauvegarder immédiatement
+                saveTasks();
                 console.log('💾 Sauvegardé dans localStorage');
                 
                 // Vérifier la sauvegarde
-                const saved = JSON.parse(localStorage.getItem('userTasks'));
+                const saved = JSON.parse(localStorage.getItem(getTodoTasksStorageKey()) || '[]');
                 const savedTask = saved.find(t => t.id === id);
                 console.log('✓ Vérification localStorage:', savedTask ? {
                     id: savedTask.id,
@@ -10554,7 +10652,7 @@ ${persona}
                 });
                 
                 // Sauvegarder immédiatement
-                localStorage.setItem('userTasks', JSON.stringify(userTasks));
+                saveTasks();
                 console.log('💾 Sauvegardé dans localStorage');
                 
                 // Mettre à jour selectedTask
@@ -10591,7 +10689,7 @@ ${persona}
             
             if (task) {
                 task.notifyMinutes = minutes;
-                localStorage.setItem('userTasks', JSON.stringify(userTasks));
+                saveTasks();
                 
                 // Mettre à jour selectedTask
                 if (selectedTask && (selectedTask.id === taskId || String(selectedTask.id) === String(taskId))) {
@@ -10805,6 +10903,19 @@ ${persona}
             return Math.min(Math.max(value, min), max);
         }
 
+        function normalizeProfileNumber(raw, { min = 0, max = 120, allowFloat = false } = {}) {
+            const s = String(raw ?? '').trim();
+            if (!s) return '';
+
+            // Garder uniquement chiffres + séparateurs décimaux éventuels
+            const cleaned = s.replace(/[^0-9.,-]/g, '').replace(',', '.');
+            if (!cleaned) return '';
+
+            const n = allowFloat ? parseFloat(cleaned) : parseInt(cleaned, 10);
+            if (!Number.isFinite(n)) return '';
+            return String(clampNumber(n, min, max));
+        }
+
         function getPersonalProfileStorageKey(userId) {
             return `aiTaskPersonalProfile:${String(userId || 'anonymous')}`;
         }
@@ -10843,9 +10954,9 @@ ${persona}
             const ageRaw = document.getElementById('profileAgeInput')?.value ?? '';
             const sexRaw = document.getElementById('profileSexInput')?.value ?? '';
             const focusRaw = document.getElementById('profileFocusHoursInput')?.value ?? '';
-            const age = String(ageRaw).trim();
+            const age = normalizeProfileNumber(ageRaw, { min: 0, max: 120, allowFloat: false });
             const sex = String(sexRaw).trim();
-            const focusHours = String(focusRaw).trim();
+            const focusHours = normalizeProfileNumber(focusRaw, { min: 0, max: 24, allowFloat: true });
 
             savePersonalProfile(userId, { age, sex, focusHours });
             closePersonalProfileModal();
@@ -10901,7 +11012,7 @@ ${persona}
                     <div style="margin-top: 14px; display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
                         <div>
                             <div style="font-size: 12px; color: var(--text-secondary); font-weight: 700; margin-bottom: 6px;">Âge</div>
-                            <input id="profileAgeInput" inputmode="numeric" placeholder="ex: 32" value="${String(current.age ?? '')}" style="width: 100%; padding: 10px 12px; border-radius: 10px; border: 1px solid var(--border-color); background: var(--bg-secondary); color: var(--text-primary);" />
+                            <input id="profileAgeInput" type="number" inputmode="numeric" min="0" max="120" placeholder="ex: 32" value="${String(current.age ?? '')}" style="width: 100%; padding: 10px 12px; border-radius: 10px; border: 1px solid var(--border-color); background: var(--bg-secondary); color: var(--text-primary);" />
                         </div>
                         <div>
                             <div style="font-size: 12px; color: var(--text-secondary); font-weight: 700; margin-bottom: 6px;">Sexe</div>
@@ -10916,7 +11027,7 @@ ${persona}
 
                     <div style="margin-top: 10px;">
                         <div style="font-size: 12px; color: var(--text-secondary); font-weight: 700; margin-bottom: 6px;">Capacité (heures focus / jour)</div>
-                        <input id="profileFocusHoursInput" inputmode="decimal" placeholder="ex: 6" value="${String(current.focusHours ?? '')}" style="width: 100%; padding: 10px 12px; border-radius: 10px; border: 1px solid var(--border-color); background: var(--bg-secondary); color: var(--text-primary);" />
+                        <input id="profileFocusHoursInput" type="number" inputmode="decimal" min="0" max="24" step="0.5" placeholder="ex: 6" value="${String(current.focusHours ?? '')}" style="width: 100%; padding: 10px 12px; border-radius: 10px; border: 1px solid var(--border-color); background: var(--bg-secondary); color: var(--text-primary);" />
                         <div style="margin-top: 6px; font-size: 12px; color: var(--text-secondary);">Aide à interpréter la surcharge (prochaines 24h).</div>
                     </div>
 
@@ -11508,7 +11619,7 @@ ${persona}
                     };
                     
                     userTasks.push(newTask);
-                    localStorage.setItem('userTasks', JSON.stringify(userTasks));
+                    saveTasks();
                     
                     // Programmer la notification si une date d'échéance est définie
                     if (dueDate) {
@@ -11546,7 +11657,7 @@ ${persona}
                 if (task.completed) {
                     task.completedAt = new Date().toISOString();
                 }
-                localStorage.setItem('userTasks', JSON.stringify(userTasks));
+                saveTasks();
                 showToast(task.completed ? '✅ Tâche terminée !' : '🔄 Tâche réactivée', 'success');
                 renderTodoFilters();
                 renderTodoCategories();
@@ -11736,7 +11847,7 @@ ${persona}
                 if (taskIndex !== -1) {
                     // Mettre à jour avec les données de selectedTask
                     userTasks[taskIndex] = { ...userTasks[taskIndex], ...selectedTask };
-                    localStorage.setItem('userTasks', JSON.stringify(userTasks));
+                    saveTasks();
                 }
             }
             

@@ -166,10 +166,13 @@ let todoFilter = 'today'; // Affiche aujourd'hui
 **Solution** :
 ```javascript
 // Console développeur
-console.log(JSON.parse(localStorage.getItem('userTasks')));
+const userId = (JSON.parse(localStorage.getItem('currentUser') || 'null')?.email) || 'guest';
+console.log(JSON.parse(localStorage.getItem(`userTasks:${userId}`) || '[]'));
 
 // Reset complet
-localStorage.removeItem('userTasks');
+localStorage.removeItem(`userTasks:${userId}`);
+// (Optionnel) legacy
+// localStorage.removeItem('userTasks');
 location.reload();
 ```
 

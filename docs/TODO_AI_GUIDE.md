@@ -376,10 +376,13 @@ const cleanDesc = DOMPurify.sanitize(task.description);
 **Solution** :
 ```javascript
 // Console
-console.log(JSON.parse(localStorage.getItem('userTasks')));
+const userId = (JSON.parse(localStorage.getItem('currentUser') || 'null')?.email) || 'guest';
+console.log(JSON.parse(localStorage.getItem(`userTasks:${userId}`) || '[]'));
 
 // Reset
-localStorage.removeItem('userTasks');
+localStorage.removeItem(`userTasks:${userId}`);
+// (Optionnel) legacy
+// localStorage.removeItem('userTasks');
 location.reload();
 ```
 
