@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Vision PRO - Azure Intelligence</title>
+    <title>AI Vision PRO - AI Vision</title>
     <style>
         * {
             margin: 0;
@@ -825,7 +825,7 @@
         <div class="sidebar" id="sidebar">
             <div class="sidebar-header">
                 <div class="logo">AI Vision PRO</div>
-                <div class="subtitle">Azure Intelligence</div>
+                <div class="subtitle">Avec Agent Eve</div>
 
                 <button class="close-sidebar-btn" id="closeSidebar" type="button" title="Fermer">
                     <svg class="svg-icon" viewBox="0 0 24 24">
@@ -908,11 +908,11 @@
                 
                 <div class="status-indicator">
                     <div class="status-dot"></div>
-                    <span id="statusText">Azure Vision Active</span>
+                    <span id="statusText">AI Vision Active</span>
                 </div>
 
                 <button class="toggle-sidebar" id="domainBtn" title="Choisir un domaine" style="margin-left: 12px; width: auto; padding: 0 12px; gap: 8px;">
-                    <span style="font-size: 13px; color: var(--text);">Domaine d'expertise</span>
+                    <span style="font-size: 13px; color: var(--text);">Domaine</span>
                 </button>
 
                 <button class="toggle-sidebar" onclick="returnToMainChat()" title="Retour à AI Axilum" style="margin-left: auto;">
@@ -935,7 +935,7 @@
             <div class="chat-container">
                 <div class="chat-messages" id="chatMessages">
                     <div class="message system">
-                        Bonjour ! Je suis Agent Eve, votre experte Azure Vision. Sélectionnez une fonction dans le menu latéral et uploadez une image pour commencer l'analyse, ou posez-moi vos questions sur Azure Vision.
+                        Bonjour ! Je suis Agent Eve. Sélectionnez une fonction dans le menu latéral et uploadez une image pour commencer l'analyse.
                     </div>
                 </div>
 
@@ -1032,7 +1032,7 @@
         async function toAzureCompatibleJpegDataUrl(inputDataUrl) {
             const img = await loadImageElement(inputDataUrl);
 
-            // Azure Computer Vision v3.2 n'accepte pas tous les formats (ex: HEIC). On envoie du JPEG.
+            // Computer Vision n'accepte pas tous les formats (ex: HEIC). On envoie du JPEG.
             const maxDim = 2048;
             const w = img.naturalWidth || img.width;
             const h = img.naturalHeight || img.height;
@@ -1166,7 +1166,7 @@
 
         function renderDomainButton() {
             if (!domainBtn) return;
-            domainBtn.innerHTML = `<span style="font-size: 13px; color: var(--text);">Domaine d'expertise</span>`;
+            domainBtn.innerHTML = `<span style="font-size: 13px; color: var(--text);">Domaine</span>`;
         }
 
         function closeDomainMenu() {
@@ -1271,7 +1271,7 @@
             reader.onload = async (event) => {
                 const originalDataUrl = event.target.result;
 
-                // Convertir en JPEG compatible Azure (évite InvalidImageFormat sur HEIC/WebP/etc.)
+                // Convertir en JPEG compatible (évite InvalidImageFormat sur HEIC/WebP/etc.)
                 let azureDataUrl = originalDataUrl;
                 try {
                     azureDataUrl = await toAzureCompatibleJpegDataUrl(originalDataUrl);
@@ -1304,9 +1304,9 @@
 
         async function callAgentEve(userMessage) {
             const endpoint = '/api/agents/axilum/invoke';
-            const systemPrompt = `Tu es Agent Eve, experte en Azure Vision et spécialiste de l'analyse d'images.
+            const systemPrompt = `Tu es Agent Eve, experte en AI Vision et spécialiste de l'analyse d'images.
 
-Tu es l'assistante dédiée à Azure Vision avec une expertise complète sur toutes les capacités de Computer Vision.
+Tu es l'assistante dédiée à AI Vision avec une expertise complète sur toutes les capacités de Computer Vision.
 
 TON RÔLE :
 - Expliquer les capacités et limites de chaque fonction
@@ -1350,12 +1350,12 @@ Contexte produit (SaaS PME): adapte tes exemples et tes propositions d'actions a
 
                 const data = await response.json().catch(() => ({}));
                 hideTyping();
-                statusText.textContent = 'Azure Vision Active';
+                statusText.textContent = 'AI Vision Active';
 
                 if (response.ok) {
                     displayResults(data, 'analyze');
 
-                    // Demander à Eve une description basée sur les signaux Azure Vision
+                    // Demander à Eve une description basée sur les signaux de vision
                     showTyping();
                     const desc = data && data.description ? String(data.description) : '';
                     const tags = Array.isArray(data.tags) ? data.tags.slice(0, 12) : [];
@@ -1365,7 +1365,7 @@ Contexte produit (SaaS PME): adapte tes exemples et tes propositions d'actions a
                     const prompt = `Décris cette image en 3 à 6 lignes, en français, en restant factuel.
 Contexte domaine: ${selectedDomain}
 
-Signaux Azure Vision:
+Signaux AI Vision:
 - Description: ${desc || 'N/A'}
 - Tags: ${tags.length ? tags.join(', ') : 'N/A'}
 - Objets: ${objects.length ? objects.join(', ') : 'N/A'}
@@ -1402,7 +1402,7 @@ Signaux Azure Vision:
             addMessage(message, 'user');
             messageInput.value = '';
             
-            // Agent Eve - IA conversationnelle pour Azure Vision
+            // Agent Eve - IA conversationnelle pour AI Vision
             showTyping();
             
             try {
@@ -1442,9 +1442,9 @@ Signaux Azure Vision:
                     hideTyping();
                     statusText.textContent = 'Erreur';
                     
-                    // Si c'est du HTML, c'est probablement une page d'erreur Azure
+                    // Si c'est du HTML, c'est probablement une page d'erreur
                     if (textResponse.includes('<!DOCTYPE') || textResponse.includes('<html')) {
-                        addMessage(`L'API vision-${currentFunction} n'est pas encore déployée sur Azure. Mode démo activé.`, 'bot');
+                        addMessage(`L'API vision-${currentFunction} n'est pas encore disponible. Mode démo activé.`, 'bot');
                         // Utiliser des données de démonstration
                         displayMockResults(currentFunction);
                     } else {
@@ -1455,7 +1455,7 @@ Signaux Azure Vision:
 
                 const data = await response.json();
                 hideTyping();
-                statusText.textContent = 'Azure Vision Active';
+                statusText.textContent = 'AI Vision Active';
 
                 if (response.ok) {
                     displayResults(data, currentFunction);
@@ -1488,7 +1488,7 @@ Signaux Azure Vision:
                     objects: [{object: 'demo', confidence: 0.95}]
                 },
                 ocr: {
-                    text: 'Texte de démonstration\nLes APIs Azure Vision doivent être configurées.'
+                    text: 'Texte de démonstration\nLes APIs AI Vision doivent être configurées.'
                 },
                 face: {
                     faces: [{age: 30, gender: 'Male'}]
