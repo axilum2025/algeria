@@ -44,6 +44,7 @@ module.exports = async function (context, req) {
         }
 
         let imageBase64 = body && body.imageBase64;
+        const query = body && typeof body.query === 'string' ? body.query.trim() : '';
         if (typeof imageBase64 === 'string') {
             if (imageBase64.includes(',')) {
                 imageBase64 = imageBase64.split(',').pop();
@@ -143,8 +144,32 @@ module.exports = async function (context, req) {
 
         const imageUrl = `${blockBlobClient.url}?${sas}`;
 
-        // Recherche Google Custom Search avec l'URL de l'image
-        const searchUrl = `https://www.googleapis.com/customsearch/v1?key=${encodeURIComponent(apiKey)}&cx=${encodeURIComponent(cx)}&searchType=image&imgUrl=${encodeURIComponent(imageUrl)}&num=10`;
+        // IMPORTANT:
+        // L'API Google Custom Search ne propose pas de "reverse image search" (recherche par image) via un paramètre imgUrl.
+        // En l'absence de requête textuelle, on renvoie des liens (Google Images/Lens/Bing) basés sur l'URL SAS.
+        if (!query) {
+            // Nettoyer le blob temporaire après (fire and forget)
+            blockBlobClient.delete().catch(e => context.log.warn('Failed to delete temp blob:', e.message));
+
+            context.res = {
+                status: 200,
+                headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
+                body: {
+                    mode: 'links',
+                    warning: 'Google Custom Search API does not support reverse image search by URL. Returning links instead.',
+                    imageUrl,
+                    links: {
+                        googleImages: `https://www.google.com/searchbyimage?image_url=${encodeURIComponent(imageUrl)}`,
+                        googleLens: `https://lens.google.com/uploadbyurl?url=${encodeURIComponent(imageUrl)}`,
+                        bingVisualSearch: 'https://www.bing.com/visualsearch'
+                    }
+                }
+            };
+            return;
+        }
+
+        // Recherche d'images standard (par texte)
+        const searchUrl = `https://www.googleapis.com/customsearch/v1?key=${encodeURIComponent(apiKey)}&cx=${encodeURIComponent(cx)}&searchType=image&q=${encodeURIComponent(query)}&num=10`;
 
         const response = await fetch(searchUrl);
         const text = await response.text();
@@ -210,6 +235,8 @@ module.exports = async function (context, req) {
             status: 200,
             headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
             body: {
+                mode: 'search',
+                query,
                 resultCount: results.length,
                 results,
                 raw: {
