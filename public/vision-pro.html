@@ -53,12 +53,13 @@
                 linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px),
                 linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px);
             background-size: 50px 50px;
+            background-position: 0 0;
             animation: gridMove 20s linear infinite;
         }
 
         @keyframes gridMove {
-            0% { transform: translate(0, 0); }
-            100% { transform: translate(50px, 50px); }
+            0% { background-position: 0 0; }
+            100% { background-position: 50px 50px; }
         }
 
         /* Layout */
