@@ -273,27 +273,6 @@
             background: rgba(0, 212, 255, 0.1);
         }
 
-        .status-indicator {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            font-size: 14px;
-            margin-left: 12px;
-        }
-
-        .status-dot {
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-            background: var(--primary);
-            animation: pulse 2s infinite;
-        }
-
-        @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.5; }
-        }
-
         /* Chat Area */
         .chat-container {
             flex: 1;
@@ -900,11 +879,6 @@
                     </svg>
                 </button>
                 
-                <div class="status-indicator">
-                    <div class="status-dot"></div>
-                    <span id="statusText">Active</span>
-                </div>
-
                 <button class="toggle-sidebar" id="domainBtn" title="Choisir un domaine" style="margin-left: 12px; width: auto; padding: 0 12px; gap: 8px;">
                     <span style="font-size: 13px; color: var(--text);">Domaine</span>
                 </button>
@@ -1166,6 +1140,11 @@
         const sendBtn = document.getElementById('sendBtn');
         const fileInput = document.getElementById('fileInput');
         const statusText = document.getElementById('statusText');
+
+        function setStatus(text) {
+            if (!statusText) return;
+            statusText.textContent = text;
+        }
         const functionItems = document.querySelectorAll('.function-item');
         const domainBtn = document.getElementById('domainBtn');
         const domainMenu = document.getElementById('domainMenu');
@@ -1370,7 +1349,7 @@ ${onboardingBlock}`;
             }
 
             showTyping();
-            statusText.textContent = 'Description en cours...';
+            setStatus('Description en cours...');
 
             try {
                 const response = await fetch('/api/vision-analyze', {
@@ -1381,7 +1360,7 @@ ${onboardingBlock}`;
 
                 const data = await response.json().catch(() => ({}));
                 hideTyping();
-                statusText.textContent = 'Active';
+                setStatus('');
 
                 if (response.ok) {
                     displayResults(data, 'analyze');
@@ -1412,7 +1391,7 @@ Signaux AI Vision:
                 }
             } catch (error) {
                 hideTyping();
-                statusText.textContent = 'Erreur';
+                setStatus('');
                 addMessage(`Erreur réseau pendant la description: ${error.message}`, 'bot');
             }
         }
@@ -1454,7 +1433,7 @@ Signaux AI Vision:
             }
 
             showTyping();
-            statusText.textContent = 'Analyse en cours...';
+            setStatus('Analyse en cours...');
 
             try {
                 const response = await fetch(`/api/vision-${currentFunction}`, {
@@ -1471,7 +1450,7 @@ Signaux AI Vision:
                 if (!contentType || !contentType.includes('application/json')) {
                     const textResponse = await response.text();
                     hideTyping();
-                    statusText.textContent = 'Erreur';
+                    setStatus('');
                     
                     // Si c'est du HTML, c'est probablement une page d'erreur
                     if (textResponse.includes('<!DOCTYPE') || textResponse.includes('<html')) {
@@ -1486,7 +1465,7 @@ Signaux AI Vision:
 
                 const data = await response.json();
                 hideTyping();
-                statusText.textContent = 'Active';
+                setStatus('');
 
                 if (response.ok) {
                     displayResults(data, currentFunction);
@@ -1505,7 +1484,7 @@ Signaux AI Vision:
                 }
             } catch (error) {
                 hideTyping();
-                statusText.textContent = 'Erreur';
+                setStatus('');
                 addMessage(`Erreur réseau : ${error.message}. Affichage des résultats de démonstration.`, 'bot');
                 displayMockResults(currentFunction);
             }
