@@ -73,10 +73,12 @@ module.exports = async function (context, req) {
         // Use Face API v1.0 si disponible
         // NOTE: Azure a déprécié les attributs age, gender, emotion, smile, facial hair, hair, makeup
         // Voir: https://aka.ms/facerecognition
+        // IMPORTANT: returnFaceId requiert une approbation Microsoft pour Identification/Verification
+        // On utilise returnFaceId: false pour éviter les erreurs de permission
         let analyzeUrl;
         if (useFaceApi) {
             const params = new URLSearchParams({
-                returnFaceId: 'true',
+                returnFaceId: 'false',  // ⚠️ Sans approbation Microsoft pour Identification
                 returnFaceLandmarks: 'false'
                 // Les attributs suivants sont dépréciés: age, gender, emotion, smile, etc.
             });

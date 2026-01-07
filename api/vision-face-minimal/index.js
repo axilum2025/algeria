@@ -66,8 +66,8 @@ module.exports = async function (context, req) {
         // Azure Face API v1.0 - détection uniquement (sans attributs dépréciés)
         const detectUrl = `${normalizedEndpoint}/face/v1.0/detect`;
         const params = new URLSearchParams({
-            returnFaceId: 'true',
-            returnFaceLandmarks: 'true'
+            returnFaceId: 'false',  // Sans approbation pour Identification/Verification
+            returnFaceLandmarks: 'false'
             // IMPORTANT: Les attributs suivants ont été dépréciés par Azure:
             // - age, gender, emotion, smile
             // - facial hair, hair, makeup, glasses
@@ -121,11 +121,10 @@ module.exports = async function (context, req) {
         
         // Format face data - Localisation et géométrie uniquement
         const formattedFaces = (Array.isArray(faces) ? faces : []).map((face, index) => ({
-            faceId: face.faceId,
+            // Note: faceId retiré car returnFaceId: false (restriction Microsoft)
             faceRectangle: face.faceRectangle,
-            faceLandmarks: face.faceLandmarks,
-            // Attributs dépréciés depuis 2024 - Azure ne les retourne plus
-            note: 'Attributs (âge, genre, émotions) dépréciés - utiliser alternative'
+            // faceLandmarks retiré car returnFaceLandmarks: false
+            note: 'Attributs (âge, genre, émotions, landmarks) dépréciés ou nécessitent approbation'
         }));
 
         const result = {
@@ -133,14 +132,12 @@ module.exports = async function (context, req) {
             faces: formattedFaces,
             apiUsed: 'Azure Face API v1.0',
             deprecationNotice: {
-                status: 'DEPRECATED',
-                message: 'Les attributs age, gender, emotion, smile, facial hair, etc. ont été dépréciés par Azure',
-                affectedAttributes: ['age', 'gender', 'emotion', 'smile', 'facialHair', 'hair', 'makeup', 'glasses', 'accessories', 'blur', 'exposure', 'noise'],
+                status: 'RESTRICTED',
+                message: 'Identification/Verification nécessite approbation Microsoft',
+                restrictedFeatures: ['returnFaceId', 'Identification', 'Verification'],
+                deprecatedAttributes: ['age', 'gender', 'emotion', 'smile', 'facialHair', 'hair', 'makeup', 'glasses', 'accessories', 'blur', 'exposure', 'noise'],
                 documentation: 'https://aka.ms/facerecognition',
-                alternatives: {
-                    azure: 'Utiliser Azure Computer Vision avec modèles customs',
-                    external: 'Amazon Rekognition, Google Cloud Vision, ou services locaux'
-                }
+                supportedOnly: ['faceRectangle (localisation uniquement)']
             }
         };
 
