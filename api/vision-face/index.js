@@ -14,7 +14,24 @@ module.exports = async function (context, req) {
     }
 
     try {
-        const { imageBase64 } = req.body;
+        let body = req.body;
+        if (typeof body === 'string') {
+            try {
+                body = JSON.parse(body);
+            } catch (_) {
+                body = null;
+            }
+        }
+
+        let imageBase64 = body && body.imageBase64;
+        if (typeof imageBase64 === 'string') {
+            // Supporte un éventuel data URL complet
+            if (imageBase64.includes(',')) {
+                imageBase64 = imageBase64.split(',').pop();
+            }
+            // Supprimer les retours à la ligne / espaces
+            imageBase64 = imageBase64.replace(/\s+/g, '');
+        }
         
         if (!imageBase64) {
             context.res = {

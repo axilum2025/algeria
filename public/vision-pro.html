@@ -955,6 +955,45 @@
             return img;
         }
 
+        function dataUrlToBase64(dataUrl) {
+            if (!dataUrl) return null;
+            const commaIdx = dataUrl.indexOf(',');
+            if (commaIdx === -1) return null;
+            return dataUrl.slice(commaIdx + 1);
+        }
+
+        async function toAzureCompatibleJpegDataUrl(inputDataUrl) {
+            const img = await loadImageElement(inputDataUrl);
+
+            // Azure Computer Vision v3.2 n'accepte pas tous les formats (ex: HEIC). On envoie du JPEG.
+            const maxDim = 2048;
+            const w = img.naturalWidth || img.width;
+            const h = img.naturalHeight || img.height;
+
+            const scale = Math.min(1, maxDim / Math.max(w, h));
+            const outW = Math.max(1, Math.round(w * scale));
+            const outH = Math.max(1, Math.round(h * scale));
+
+            const canvas = document.createElement('canvas');
+            canvas.width = outW;
+            canvas.height = outH;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(img, 0, 0, outW, outH);
+
+            // Qualité par défaut: bon compromis taille/qualité.
+            let quality = 0.9;
+            let jpegUrl = canvas.toDataURL('image/jpeg', quality);
+
+            // Si c'est encore trop gros, réduire un peu.
+            const approxBytes = Math.floor((jpegUrl.length - jpegUrl.indexOf(',') - 1) * 0.75);
+            if (approxBytes > 4_000_000) {
+                quality = 0.82;
+                jpegUrl = canvas.toDataURL('image/jpeg', quality);
+            }
+
+            return jpegUrl;
+        }
+
         function clamp(n, min, max) {
             return Math.max(min, Math.min(max, n));
         }
@@ -1076,8 +1115,19 @@
 
             const reader = new FileReader();
             reader.onload = async (event) => {
-                currentImageBase64 = event.target.result.split(',')[1];
-                currentImage = event.target.result;
+                const originalDataUrl = event.target.result;
+
+                // Convertir en JPEG compatible Azure (évite InvalidImageFormat sur HEIC/WebP/etc.)
+                let azureDataUrl = originalDataUrl;
+                try {
+                    azureDataUrl = await toAzureCompatibleJpegDataUrl(originalDataUrl);
+                } catch (_) {
+                    // Fallback: envoyer l'original si la conversion échoue
+                    azureDataUrl = originalDataUrl;
+                }
+
+                currentImage = azureDataUrl;
+                currentImageBase64 = dataUrlToBase64(azureDataUrl);
 
                 try {
                     currentImageElement = await loadImageElement(currentImage);
