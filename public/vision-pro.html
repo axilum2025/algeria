@@ -917,7 +917,7 @@
 
                 <div class="domain-menu" id="domainMenu" aria-hidden="true">
                     <div class="result-label" style="margin-bottom:8px;">Domaine cible</div>
-                    <button type="button" class="domain-option active" data-domain="BTP / Construction">BTP / Construction</button>
+                    <button type="button" class="domain-option" data-domain="BTP / Construction">BTP / Construction</button>
                     <button type="button" class="domain-option" data-domain="Immobilier & Facilities">Immobilier & Facilities</button>
                     <button type="button" class="domain-option" data-domain="Transport & Assurance">Transport & Assurance</button>
                     <button type="button" class="domain-option" data-domain="Commerce / Retail">Commerce / Retail</button>
@@ -996,7 +996,19 @@
         let currentImageBase64 = null;
         let currentImageElement = null;
         let currentImageFileName = null;
-        let selectedDomain = 'BTP / Construction';
+        let selectedDomain = '';
+        let eveOnboardingShown = false;
+
+        function getDomainContextLabel() {
+            return (selectedDomain && String(selectedDomain).trim()) ? String(selectedDomain).trim() : 'Général';
+        }
+
+        function getAvailableDomains() {
+            if (!domainMenu) return [];
+            return Array.from(domainMenu.querySelectorAll('button[data-domain]'))
+                .map((b) => b.getAttribute('data-domain'))
+                .filter(Boolean);
+        }
 
         async function loadImageElement(dataUrl) {
             const img = new Image();
@@ -1298,9 +1310,31 @@
 
         async function callAgentEve(userMessage) {
             const endpoint = '/api/agents/axilum/invoke';
+            const domainLabel = getDomainContextLabel();
+            const availableDomains = getAvailableDomains();
+            const actions = ['Analyse', 'OCR Extract', 'Detection', 'Etat Général', 'Expertise', 'Rapport'];
+
+            const onboardingBlock = (!selectedDomain && !eveOnboardingShown)
+                ? `
+
+IMPORTANT (DÉMARRAGE - aucun domaine sélectionné) :
+- Commence ta réponse en indiquant que tu peux répondre en mode général.
+- Ensuite, liste uniquement les domaines disponibles dans l'UI (sans en inventer d'autres) : ${availableDomains.join(', ')}.
+- Liste ensuite les actions que tu peux faire : ${actions.join(', ')}.
+- Puis répond à la question de l'utilisateur de façon générale.
+`
+                : '';
+
             const systemPrompt = `Tu es Agent Eve, experte en AI Vision et spécialiste de l'analyse d'images.
 
 Tu es l'assistante dédiée à AI Vision avec une expertise complète sur toutes les capacités de Computer Vision.
+
+RÈGLES DOMAINE :
+- Domaine sélectionné (si vide => répondre en général) : ${domainLabel}
+- Domaines disponibles (ne jamais en proposer d'autres) : ${availableDomains.join(', ') || 'N/A'}
+- Si l'utilisateur demande un domaine différent (non listé ci-dessus), réponds en mode général.
+
+CAPACITÉS DU MODULE (selon le domaine quand il est sélectionné) : ${actions.join(', ')}
 
 TON RÔLE :
 - Expliquer les capacités et limites de chaque fonction
@@ -1309,7 +1343,11 @@ TON RÔLE :
 
 Sois concise, précise et pédagogue.
 
-Contexte produit (SaaS PME): adapte tes exemples et tes propositions d'actions au domaine suivant : ${selectedDomain}.`;
+Contexte produit (SaaS PME): adapte tes exemples et tes propositions d'actions au domaine suivant : ${domainLabel}.`;
+
+${onboardingBlock}`;
+
+            if (!selectedDomain) eveOnboardingShown = true;
 
             const response = await fetch(endpoint, {
                 method: 'POST',
@@ -1357,7 +1395,7 @@ Contexte produit (SaaS PME): adapte tes exemples et tes propositions d'actions a
                     const brands = Array.isArray(data.brands) ? data.brands.slice(0, 6).map(b => b && b.name).filter(Boolean) : [];
 
                     const prompt = `Décris cette image en 3 à 6 lignes, en français, en restant factuel.
-Contexte domaine: ${selectedDomain}
+Contexte domaine: ${getDomainContextLabel()}
 
 Signaux AI Vision:
 - Description: ${desc || 'N/A'}
