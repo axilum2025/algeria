@@ -409,8 +409,8 @@
         }
 
         .file-upload-btn {
-            width: 48px;
-            height: 48px;
+            width: 40px;
+            height: 40px;
             border: 1px solid var(--glass-border);
             border-radius: 12px;
             background: var(--glass);
@@ -457,8 +457,8 @@
         }
 
         .send-btn {
-            width: 48px;
-            height: 48px;
+            width: 40px;
+            height: 40px;
             border: 1px solid var(--glass-border);
             border-radius: 12px;
             background: var(--glass);
@@ -902,7 +902,7 @@
                 
                 <div class="status-indicator">
                     <div class="status-dot"></div>
-                    <span id="statusText">AI Vision Active</span>
+                    <span id="statusText">Active</span>
                 </div>
 
                 <button class="toggle-sidebar" id="domainBtn" title="Choisir un domaine" style="margin-left: 12px; width: auto; padding: 0 12px; gap: 8px;">
@@ -1344,7 +1344,7 @@ Contexte produit (SaaS PME): adapte tes exemples et tes propositions d'actions a
 
                 const data = await response.json().catch(() => ({}));
                 hideTyping();
-                statusText.textContent = 'AI Vision Active';
+                statusText.textContent = 'Active';
 
                 if (response.ok) {
                     displayResults(data, 'analyze');
@@ -1449,7 +1449,7 @@ Signaux AI Vision:
 
                 const data = await response.json();
                 hideTyping();
-                statusText.textContent = 'AI Vision Active';
+                statusText.textContent = 'Active';
 
                 if (response.ok) {
                     displayResults(data, currentFunction);
