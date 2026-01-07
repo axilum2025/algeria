@@ -1133,11 +1133,6 @@
 
             currentImageFileName = file.name || null;
 
-            if (!currentFunction) {
-                addMessage('Veuillez d\'abord sélectionner une fonction d\'analyse.', 'system');
-                return;
-            }
-
             const reader = new FileReader();
             reader.onload = async (event) => {
                 const originalDataUrl = event.target.result;
@@ -1161,12 +1156,98 @@
                 }
                 
                 addMessage('', 'user', currentImage);
-                
-                // Auto-analyze
-                await performAnalysis();
+
+                // Si une fonction est sélectionnée -> analyser.
+                // Sinon -> faire une description automatique (Analyze) + réponse Agent Eve.
+                if (currentFunction) {
+                    await performAnalysis();
+                } else {
+                    await autoDescribeWithEve();
+                }
             };
             reader.readAsDataURL(file);
         });
+
+        async function callAgentEve(userMessage) {
+            const endpoint = '/api/agents/axilum/invoke';
+            const systemPrompt = `Tu es Agent Eve, experte en Azure Vision et spécialiste de l'analyse d'images.
+
+Tu es l'assistante dédiée à Azure Vision avec une expertise complète sur toutes les capacités de Computer Vision.
+
+TON RÔLE :
+- Expliquer les capacités et limites de chaque fonction
+- Donner des conseils sur la qualité d'image optimale
+- Aider à interpréter les résultats d'analyse
+
+Sois concise, précise et pédagogue.`;
+
+            const response = await fetch(endpoint, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    message: `${systemPrompt}\n\nQuestion utilisateur: ${userMessage}`,
+                    conversationId: 'vision-eve',
+                    history: [],
+                    useV2: false
+                })
+            });
+
+            const data = await response.json();
+            return data.response || data.bot || "Je suis désolée, je n'ai pas pu traiter votre demande.";
+        }
+
+        async function autoDescribeWithEve() {
+            if (!currentImageBase64) {
+                addMessage('Image manquante.', 'system');
+                return;
+            }
+
+            showTyping();
+            statusText.textContent = 'Description en cours...';
+
+            try {
+                const response = await fetch('/api/vision-analyze', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ imageBase64: currentImageBase64 })
+                });
+
+                const data = await response.json().catch(() => ({}));
+                hideTyping();
+                statusText.textContent = 'Azure Vision Active';
+
+                if (response.ok) {
+                    displayResults(data, 'analyze');
+
+                    // Demander à Eve une description basée sur les signaux Azure Vision
+                    showTyping();
+                    const desc = data && data.description ? String(data.description) : '';
+                    const tags = Array.isArray(data.tags) ? data.tags.slice(0, 12) : [];
+                    const objects = Array.isArray(data.objects) ? data.objects.slice(0, 8).map(o => o && o.object).filter(Boolean) : [];
+                    const brands = Array.isArray(data.brands) ? data.brands.slice(0, 6).map(b => b && b.name).filter(Boolean) : [];
+
+                    const prompt = `Décris cette image en 3 à 6 lignes, en français, en restant factuel.
+
+Signaux Azure Vision:
+- Description: ${desc || 'N/A'}
+- Tags: ${tags.length ? tags.join(', ') : 'N/A'}
+- Objets: ${objects.length ? objects.join(', ') : 'N/A'}
+- Marques: ${brands.length ? brands.join(', ') : 'N/A'}`;
+
+                    const answer = await callAgentEve(prompt);
+                    hideTyping();
+                    addMessage(answer, 'bot');
+                } else {
+                    const main = data.error || 'Erreur inconnue';
+                    const details = data.details ? (typeof data.details === 'string' ? data.details.slice(0, 500) : JSON.stringify(data.details).slice(0, 500)) : '';
+                    addMessage(`Impossible d'analyser automatiquement l'image: ${main}${details ? `\n${details}` : ''}`, 'bot');
+                }
+            } catch (error) {
+                hideTyping();
+                statusText.textContent = 'Erreur';
+                addMessage(`Erreur réseau pendant la description: ${error.message}`, 'bot');
+            }
+        }
 
         // Send Message
         sendBtn.addEventListener('click', sendMessage);
@@ -1188,52 +1269,7 @@
             showTyping();
             
             try {
-                const endpoint = '/api/agents/axilum/invoke';
-                const systemPrompt = `Tu es Agent Eve, experte en Azure Vision et spécialiste de l'analyse d'images.
-
-Tu es l'assistante dédiée à Azure Vision avec une expertise complète sur toutes les capacités de Computer Vision :
-
-FONCTIONNALITÉS ACTUELLES :
-- OCR (Optical Character Recognition) : Extraction de texte dans les images
-- Détection d'objets : Identification et localisation d'objets dans l'image
-- Reconnaissance de visages : Détection et analyse de visages
-- Description d'image : Génération de descriptions détaillées
-- Tags : Identification automatique de tags pertinents
-- Détection de marques : Reconnaissance de logos et marques
-- Détection de contenu pour adultes : Analyse de contenu sensible
-- Détection de couleurs : Analyse des couleurs dominantes
-
-CAPACITÉS FUTURES D'AZURE VISION (à mentionner si pertinent) :
-- Analyse de vidéos en temps réel
-- Détection d'émotions avancée
-- Reconnaissance de célébrités
-- Lecture de documents complexes (factures, formulaires)
-- Analyse de scènes et contexte spatial
-- Détection d'anomalies visuelles
-
-TON RÔLE :
-- Guider les utilisateurs dans le choix de la fonction appropriée
-- Expliquer les capacités et limites de chaque fonction
-- Donner des conseils sur la qualité d'image optimale
-- Aider à interpréter les résultats d'analyse
-- Proposer des cas d'usage et applications pratiques
-
-Sois concise, précise et pédagogue. Utilise des exemples concrets quand c'est pertinent.`;
-
-                const response = await fetch(endpoint, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        message: `${systemPrompt}\n\nQuestion utilisateur: ${message}`,
-                        conversationId: 'vision-eve',
-                        history: [],
-                        useV2: false
-                    })
-                });
-
-                const data = await response.json();
-                const answer = data.response || data.bot || "Je suis désolée, je n'ai pas pu traiter votre demande. Pouvez-vous reformuler ?";
-                
+                const answer = await callAgentEve(message);
                 hideTyping();
                 addMessage(answer, 'bot');
             } catch (error) {
