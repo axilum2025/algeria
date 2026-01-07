@@ -870,9 +870,29 @@
                         <svg class="svg-icon" viewBox="0 0 24 24">
                             <path d="M21.41 11.58l-9-9C12.05 2.22 11.55 2 11 2H4c-1.1 0-2 .9-2 2v7c0 .55.22 1.05.59 1.42l9 9c.36.36.86.58 1.41.58.55 0 1.05-.22 1.41-.59l7-7c.37-.36.59-.86.59-1.41 0-.55-.23-1.06-.59-1.42zM5.5 7C4.67 7 4 6.33 4 5.5S4.67 4 5.5 4 7 4.67 7 5.5 6.33 7 5.5 7z"/>
                         </svg>
-                        Brand Detection
+                        État Général
                     </div>
-                    <div class="function-desc">Identification de marques et logos commerciaux</div>
+                    <div class="function-desc">Vue synthèse et état global (à préciser)</div>
+                </div>
+
+                <div class="function-item" data-function="expertise">
+                    <div class="function-title">
+                        <svg class="svg-icon" viewBox="0 0 24 24">
+                            <path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm1 15h-2v-2h2zm2.07-7.75-.9.92A3 3 0 0 0 13 12h-2v-.5a4 4 0 0 1 1.17-2.83l1.24-1.26A1.8 1.8 0 0 0 12 4.5 2 2 0 0 0 10 6H8a4 4 0 0 1 8 0 3.1 3.1 0 0 1-.93 2.25z"/>
+                        </svg>
+                        Expertise
+                    </div>
+                    <div class="function-desc">Mode expertise (à configurer)</div>
+                </div>
+
+                <div class="function-item" data-function="final-report">
+                    <div class="function-title">
+                        <svg class="svg-icon" viewBox="0 0 24 24">
+                            <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM7 7h10v2H7V7zm0 4h10v2H7v-2zm0 4h7v2H7v-2z"/>
+                        </svg>
+                        Rapport Final
+                    </div>
+                    <div class="function-desc">Générer un rapport consolidé (à configurer)</div>
                 </div>
             </div>
         </div>
@@ -1229,10 +1249,16 @@
             item.addEventListener('click', () => {
                 functionItems.forEach(i => i.classList.remove('active'));
                 item.classList.add('active');
-                currentFunction = item.getAttribute('data-function');
+                const fn = item.getAttribute('data-function');
+                const supported = new Set(['analyze', 'ocr', 'detect', 'brand']);
+                currentFunction = supported.has(fn) ? fn : null;
                 
                 const functionName = item.querySelector('.function-title').textContent.trim();
-                addMessage(`Fonction sélectionnée : ${functionName}. Uploadez une image pour l'analyser.`, 'system');
+                if (currentFunction) {
+                    addMessage(`Fonction sélectionnée : ${functionName}. Uploadez une image pour l'analyser.`, 'system');
+                } else {
+                    addMessage(`Option sélectionnée : ${functionName}. (Configuration à venir)`, 'system');
+                }
             });
         });
 
