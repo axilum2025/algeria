@@ -3558,6 +3558,36 @@
                     </div>
                 </div>
 
+                <!-- Voix & Audio -->
+                <div class="about-section">
+                    <h3>
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19V6l12-2v13"/>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8v11"/>
+                        </svg>
+                        Voix &amp; TTS
+                    </h3>
+                    <div style="background: var(--bg-secondary); padding: 15px; border-radius: 10px; border: 1px solid var(--border-color); display: flex; flex-direction: column; gap: 12px;">
+                        <div style="display:flex; gap:12px; align-items:center; flex-wrap:wrap;">
+                            <label style="min-width:180px; color: var(--text-secondary); font-size: 13px;">Voix haute qualité (Azure)</label>
+                            <label class="switch" style="margin: 0;">
+                                <input type="checkbox" id="ttsHighQualityToggle" onchange="onTtsHighQualityToggle()">
+                                <span class="slider round"></span>
+                            </label>
+                            <span style="font-size:12px; color: var(--text-secondary);">Plan PRO/ENTERPRISE uniquement</span>
+                        </div>
+                        <div style="display:flex; gap:12px; align-items:center; flex-wrap:wrap;">
+                            <label for="ttsVoiceSelect" style="min-width:180px; color: var(--text-secondary); font-size: 13px;">Voix Azure</label>
+                            <select id="ttsVoiceSelect" onchange="onTtsVoiceChanged()" style="flex:1; min-width:220px; padding:10px; border:1px solid var(--border-color); border-radius:10px; background:var(--bg-primary); color:var(--text-primary);">
+                                <option value="fr-FR-DeniseNeural">fr-FR-DeniseNeural (douce)</option>
+                                <option value="fr-FR-HenriNeural">fr-FR-HenriNeural (neutre)</option>
+                                <option value="en-US-JennyNeural">en-US-JennyNeural</option>
+                            </select>
+                        </div>
+                        <p id="ttsHighQualityInfo" style="margin:0; color: var(--text-secondary); font-size: 12px; line-height: 1.5;"></p>
+                    </div>
+                </div>
+
                 <!-- Données -->
                 <div class="about-section">
                     <h3>
@@ -4936,6 +4966,73 @@ RÈGLES IMPORTANTES:
 
         // 🆓💎 Plan Management
         let currentPlan = localStorage.getItem('axilum_plan') || 'pro'; // Default to pro
+
+        // 🔊 TTS haute qualité (Azure) : préférences utilisateur
+        let ttsHighQualityEnabled = localStorage.getItem('axilum_tts_high_quality') === '1';
+        let ttsPreferredVoice = localStorage.getItem('axilum_tts_voice') || 'fr-FR-DeniseNeural';
+        let activeTtsAudio = null;
+
+        function isProPlan(plan = currentPlan) {
+            const p = String(plan || '').toLowerCase();
+            return p === 'pro' || p === 'enterprise';
+        }
+
+        function shouldUseAzureTts() {
+            return ttsHighQualityEnabled && isProPlan();
+        }
+
+        function setHighQualityTtsEnabled(enabled) {
+            ttsHighQualityEnabled = !!enabled;
+            localStorage.setItem('axilum_tts_high_quality', enabled ? '1' : '0');
+            refreshTtsSettingsUI();
+        }
+
+        function setPreferredTtsVoice(voice) {
+            const v = String(voice || '').trim();
+            if (!v) return;
+            ttsPreferredVoice = v;
+            localStorage.setItem('axilum_tts_voice', v);
+        }
+
+        function refreshTtsSettingsUI() {
+            const toggle = document.getElementById('ttsHighQualityToggle');
+            const voiceSelect = document.getElementById('ttsVoiceSelect');
+            const info = document.getElementById('ttsHighQualityInfo');
+            const pro = isProPlan();
+            if (toggle) {
+                toggle.checked = ttsHighQualityEnabled && pro;
+                toggle.disabled = !pro;
+            }
+            if (voiceSelect) {
+                voiceSelect.disabled = !pro;
+                voiceSelect.value = ttsPreferredVoice;
+            }
+            if (info) {
+                info.textContent = pro
+                    ? 'Azure TTS haute qualité (facturation au caractère). Décocher pour revenir à la voix navigateur gratuite.'
+                    : 'Disponible uniquement pour le plan PRO/ENTERPRISE. Le mode actuel reste la voix navigateur (gratuite).';
+            }
+        }
+
+        function onTtsHighQualityToggle() {
+            const toggle = document.getElementById('ttsHighQualityToggle');
+            const next = !!(toggle && toggle.checked);
+            if (!isProPlan()) {
+                if (toggle) toggle.checked = false;
+                setHighQualityTtsEnabled(false);
+                showToast('Option réservée aux plans PRO/ENTERPRISE', 'warning');
+                return;
+            }
+            setHighQualityTtsEnabled(next);
+            showToast(next ? 'Voix Azure activée' : 'Voix navigateur (gratuite)', 'info');
+        }
+
+        function onTtsVoiceChanged() {
+            const sel = document.getElementById('ttsVoiceSelect');
+            if (!sel) return;
+            setPreferredTtsVoice(sel.value);
+            showToast(`Voix Azure: ${sel.options[sel.selectedIndex]?.text || sel.value}`, 'info');
+        }
 
         // ☁️🗄️ Mode de stockage (choix utilisateur)
         // - 'ask'   : demander à chaque upload
@@ -32897,124 +32994,190 @@ Réponds UNIQUEMENT dans ce format JSON:
         // 🔊 Variable globale pour tracker le bouton TTS actif
         let activeTTSButton = null;
 
+        function resetAllTtsButtons() {
+            document.querySelectorAll('.tts-button, .tts-button-inline').forEach(btn => {
+                btn.dataset.speaking = 'false';
+                const svgSize = btn.classList.contains('tts-button-inline') ? '12' : '18';
+                btn.innerHTML = `
+                    <svg width="${svgSize}" height="${svgSize}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/>
+                        <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"/>
+                    </svg>
+                `;
+                btn.title = 'Écouter ce message';
+                btn.style.background = 'var(--bg-secondary)';
+                btn.style.color = 'var(--text-secondary)';
+            });
+            activeTTSButton = null;
+        }
+
+        function stopAllTtsPlayback() {
+            try { window.speechSynthesis.cancel(); } catch (_) {}
+            try {
+                if (activeTtsAudio) {
+                    activeTtsAudio.pause();
+                    activeTtsAudio.currentTime = 0;
+                }
+            } catch (_) {}
+            if (activeTtsObjectUrl) {
+                try { URL.revokeObjectURL(activeTtsObjectUrl); } catch (_) {}
+                activeTtsObjectUrl = null;
+            }
+            activeTtsAudio = null;
+            resetAllTtsButtons();
+        }
+
         // 🔊 Fonction pour basculer entre lecture et arrêt
         function toggleTTS(button) {
             try {
-                const isSpeaking = window.speechSynthesis.speaking;
-                
+                const isSpeaking = (window.speechSynthesis && window.speechSynthesis.speaking) || (activeTtsAudio && !activeTtsAudio.paused);
                 if (isSpeaking) {
-                    // Arrêter la lecture
-                    window.speechSynthesis.cancel();
-                    
-                    // Réinitialiser tous les boutons TTS (anciennes et nouvelles versions)
-                    document.querySelectorAll('.tts-button, .tts-button-inline').forEach(btn => {
-                        btn.dataset.speaking = 'false';
-                        const svgSize = btn.classList.contains('tts-button-inline') ? '12' : '18';
-                        btn.innerHTML = `
-                            <svg width="${svgSize}" height="${svgSize}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/>
-                                <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"/>
-                            </svg>
-                        `;
-                        btn.title = 'Écouter ce message';
-                    });
-                    
-                    activeTTSButton = null;
+                    stopAllTtsPlayback();
                     return;
                 }
-                
-                // Lancer la lecture
+
                 const text = button.dataset.text;
                 if (!text || text.length === 0) {
                     showToast('Aucun texte à lire', 'warning');
                     return;
                 }
-                
-                speakText(text, button);
+
+                playTextWithPreferredTts(text, button);
             } catch (e) {
                 console.error('Erreur toggleTTS:', e);
             }
         }
 
-        // 🔊 Fonction pour lire un texte à voix haute
-        function speakText(text, button = null) {
+        function applyTtsButtonState(button, isPlaying) {
+            if (!button) return;
+            button.dataset.speaking = isPlaying ? 'true' : 'false';
+            const svgSize = button.classList.contains('tts-button-inline') ? '12' : '18';
+            if (isPlaying) {
+                button.innerHTML = `
+                    <svg width="${svgSize}" height="${svgSize}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="6" y="4" width="4" height="16"/>
+                        <rect x="14" y="4" width="4" height="16"/>
+                    </svg>
+                `;
+                button.title = 'Arrêter la lecture';
+                button.style.background = '#EF4444';
+                button.style.color = 'white';
+                activeTTSButton = button;
+            } else {
+                button.innerHTML = `
+                    <svg width="${svgSize}" height="${svgSize}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/>
+                        <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"/>
+                    </svg>
+                `;
+                button.title = 'Écouter ce message';
+                button.style.background = 'var(--bg-secondary)';
+                button.style.color = 'var(--text-secondary)';
+                activeTTSButton = null;
+            }
+        }
+
+        function playTextWithPreferredTts(text, button = null) {
+            if (shouldUseAzureTts()) {
+                playAzureTts(text, button).catch((err) => {
+                    console.error('Azure TTS error, fallback to navigateur:', err);
+                    showToast('Voix Azure indisponible, retour à la voix navigateur', 'warning');
+                    playBrowserTts(text, button);
+                });
+            } else {
+                playBrowserTts(text, button);
+            }
+        }
+
+        function playBrowserTts(text, button = null) {
             try {
-                if (!text || text.length === 0) {
+                if (!text || text.length === 0) return;
+
+                stopAllTtsPlayback();
+                if (!window.speechSynthesis) {
+                    showToast('Synthèse vocale navigateur non disponible', 'error');
                     return;
                 }
-                
-                // Arrêter toute lecture en cours
-                window.speechSynthesis.cancel();
-                
-                // Créer et configurer la synthèse vocale
+
                 const utterance = new SpeechSynthesisUtterance(text);
                 utterance.lang = 'fr-FR';
                 utterance.rate = 1.0;
                 utterance.pitch = 1.0;
                 utterance.volume = 1.0;
-                
-                // Événements
-                utterance.onstart = () => {
-                    if (button) {
-                        button.dataset.speaking = 'true';
-                        const svgSize = button.classList.contains('tts-button-inline') ? '12' : '18';
-                        button.innerHTML = `
-                            <svg width="${svgSize}" height="${svgSize}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <rect x="6" y="4" width="4" height="16"/>
-                                <rect x="14" y="4" width="4" height="16"/>
-                            </svg>
-                        `;
-                        button.title = 'Arrêter la lecture';
-                        button.style.background = '#EF4444';
-                        button.style.color = 'white';
-                        activeTTSButton = button;
-                    }
-                };
-                
-                utterance.onend = () => {
-                    if (button) {
-                        button.dataset.speaking = 'false';
-                        const svgSize = button.classList.contains('tts-button-inline') ? '12' : '18';
-                        button.innerHTML = `
-                            <svg width="${svgSize}" height="${svgSize}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/>
-                                <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"/>
-                            </svg>
-                        `;
-                        button.title = 'Écouter ce message';
-                        button.style.background = 'var(--bg-secondary)';
-                        button.style.color = 'var(--text-secondary)';
-                    }
-                    activeTTSButton = null;
-                };
-                
+
+                utterance.onstart = () => applyTtsButtonState(button, true);
+                utterance.onend = () => { applyTtsButtonState(button, false); resetAllTtsButtons(); };
                 utterance.onerror = (e) => {
-                    // Ne pas afficher d'erreur si c'est une interruption (cancel)
                     if (e.error !== 'interrupted' && e.error !== 'canceled') {
-                        console.error('Erreur TTS:', e);
+                        console.error('Erreur TTS navigateur:', e);
                     }
-                    
-                    if (button) {
-                        button.dataset.speaking = 'false';
-                        const svgSize = button.classList.contains('tts-button-inline') ? '12' : '18';
-                        button.innerHTML = `
-                            <svg width="${svgSize}" height="${svgSize}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/>
-                                <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"/>
-                            </svg>
-                        `;
-                        button.title = 'Écouter ce message';
-                        button.style.background = 'var(--bg-secondary)';
-                        button.style.color = 'var(--text-secondary)';
-                    }
-                    activeTTSButton = null;
+                    applyTtsButtonState(button, false);
                 };
-                
-                // Lancer la synthèse vocale
+
                 window.speechSynthesis.speak(utterance);
             } catch (e) {
                 console.error('Erreur TTS:', e);
             }
+        }
+
+        async function playAzureTts(text, button = null) {
+            if (!text || text.length === 0) return;
+            stopAllTtsPlayback();
+
+            const payload = {
+                text,
+                voice: ttsPreferredVoice,
+                quality: 'azure',
+                plan: currentPlan || 'free'
+            };
+
+            const res = await fetch('/api/tts', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+
+            const data = await res.json().catch(() => null);
+            if (!res.ok || !data || !data.audioBase64) {
+                const msg = (data && data.error) ? String(data.error) : 'TTS Azure indisponible';
+                throw new Error(msg);
+            }
+
+            const blob = base64ToBlob(data.audioBase64, data.contentType || 'audio/mpeg');
+            const url = URL.createObjectURL(blob);
+            activeTtsObjectUrl = url;
+            const audio = new Audio(url);
+            activeTtsAudio = audio;
+
+            return new Promise((resolve, reject) => {
+                applyTtsButtonState(button, true);
+                audio.onended = () => {
+                    stopAllTtsPlayback();
+                    resolve();
+                };
+                audio.onerror = (e) => {
+                    stopAllTtsPlayback();
+                    reject(new Error('Lecture audio échouée'));
+                };
+                audio.play().catch((err) => {
+                    stopAllTtsPlayback();
+                    reject(err);
+                });
+            });
+        }
+
+        function base64ToBlob(base64, mime = 'application/octet-stream') {
+            const byteChars = atob(base64);
+            const byteNumbers = new Array(byteChars.length);
+            for (let i = 0; i < byteChars.length; i++) {
+                byteNumbers[i] = byteChars.charCodeAt(i);
+            }
+            return new Blob([new Uint8Array(byteNumbers)], { type: mime });
+        }
+
+        // Alias: l’API historique appelle speakText
+        function speakText(text, button = null) {
+            playTextWithPreferredTts(text, button);
         }
 
         // Panneaux latéraux Fonctions/Outils
