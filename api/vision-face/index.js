@@ -70,17 +70,19 @@ module.exports = async function (context, req) {
 
         const normalizedEndpoint = String(azureEndpoint || '').replace(/\/+$/, '');
 
-        // Use Face API v1.0 si disponible (retourne âge/genre)
+        // Use Face API v1.0 si disponible
+        // NOTE: Azure a déprécié les attributs age, gender, emotion, smile, facial hair, hair, makeup
+        // Voir: https://aka.ms/facerecognition
         let analyzeUrl;
         if (useFaceApi) {
             const params = new URLSearchParams({
                 returnFaceId: 'true',
-                returnFaceLandmarks: 'false',
-                returnFaceAttributes: 'age,gender,smile,emotion,glasses'
+                returnFaceLandmarks: 'false'
+                // Les attributs suivants sont dépréciés: age, gender, emotion, smile, etc.
             });
             analyzeUrl = `${normalizedEndpoint}/face/v1.0/detect?${params}`;
         } else {
-            // Fallback Computer Vision (âge/genre retourneront N/A)
+            // Fallback Computer Vision v3.2 (aussi déprécié pour age/gender)
             analyzeUrl = `${normalizedEndpoint}/vision/v3.2/analyze?visualFeatures=Faces`;
         }
         
@@ -132,19 +134,17 @@ module.exports = async function (context, req) {
         // Format face data selon l'API utilisée
         let faces;
         if (useFaceApi) {
-            // Azure Face API v1.0 retourne un tableau direct
+            // Azure Face API v1.0 - attributs dépréciés depuis 2024
+            // Uniquement faceId et faceRectangle sont encore supportés
             faces = (Array.isArray(data) ? data : []).map(face => ({
-                age: face.faceAttributes?.age || 'N/A',
-                gender: face.faceAttributes?.gender || 'N/A',
-                faceRectangle: face.faceRectangle,
-                smile: face.faceAttributes?.smile,
-                emotion: face.faceAttributes?.emotion,
-                glasses: face.faceAttributes?.glasses
+                faceId: face.faceId,
+                faceRectangle: face.faceRectangle
             }));
         } else {
             // Computer Vision v3.2 retourne { faces: [...] }
-            // Note: âge/genre seront N/A depuis 2020
+            // Note: âge/genre seront N/A (dépréciés depuis 2020)
             faces = data.faces?.map(face => ({
+                faceId: face.faceId || null,
                 age: face.age || 'N/A',
                 gender: face.gender || 'N/A',
                 faceRectangle: face.faceRectangle
@@ -154,7 +154,8 @@ module.exports = async function (context, req) {
         const result = {
             faceCount: faces.length,
             faces: faces,
-            apiUsed: useFaceApi ? 'Azure Face API v1.0' : 'Computer Vision v3.2 (age/gender deprecated)'
+            apiUsed: useFaceApi ? 'Azure Face API v1.0 (attributs limités)' : 'Computer Vision v3.2 (deprecated)',
+            warning: 'Attributs (âge, genre, émotions) ont été dépréciés par Azure. Voir https://aka.ms/facerecognition'
         };
 
         context.res = {
