@@ -1,5 +1,5 @@
 module.exports = async function (context, req) {
-    context.log('Azure Vision - Face Detection');
+    context.log('Azure Face API - Enhanced Face Detection with Age & Gender');
 
     if (req.method === 'OPTIONS') {
         context.res = {
@@ -25,11 +25,9 @@ module.exports = async function (context, req) {
 
         let imageBase64 = body && body.imageBase64;
         if (typeof imageBase64 === 'string') {
-            // Supporte un éventuel data URL complet
             if (imageBase64.includes(',')) {
                 imageBase64 = imageBase64.split(',').pop();
             }
-            // Supprimer les retours à la ligne / espaces
             imageBase64 = imageBase64.replace(/\s+/g, '');
         }
         
@@ -37,57 +35,43 @@ module.exports = async function (context, req) {
             context.res = {
                 status: 400,
                 headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
-                body: { error: 'Image is required' }
+                body: { error: 'Image is required (imageBase64)' }
             };
             return;
         }
 
-        // Essayer d'abord Azure Face API (retourne âge/genre)
+        // Azure Face API credentials (distinct de Computer Vision)
         const faceKey = process.env.APPSETTING_AZURE_FACE_KEY || process.env.AZURE_FACE_KEY;
         const faceEndpoint = process.env.APPSETTING_AZURE_FACE_ENDPOINT || process.env.AZURE_FACE_ENDPOINT;
-        
-        // Fallback sur Computer Vision (mais ne retourne plus âge/genre depuis 2020)
-        const visionKey = process.env.APPSETTING_AZURE_VISION_KEY || process.env.AZURE_VISION_KEY;
-        const visionEndpoint = process.env.APPSETTING_AZURE_VISION_ENDPOINT || process.env.AZURE_VISION_ENDPOINT;
 
-        const useFaceApi = faceKey && faceEndpoint;
-        const azureKey = useFaceApi ? faceKey : visionKey;
-        const azureEndpoint = useFaceApi ? faceEndpoint : visionEndpoint;
-
-        if (!azureKey || !azureEndpoint) {
+        if (!faceKey || !faceEndpoint) {
             context.res = {
                 status: 500,
                 headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
                 body: { 
-                    error: 'Azure Face API or Computer Vision credentials not configured',
-                    hint: 'Set AZURE_FACE_KEY/AZURE_FACE_ENDPOINT for age/gender detection'
+                    error: 'Azure Face API credentials not configured',
+                    hint: 'Set AZURE_FACE_KEY and AZURE_FACE_ENDPOINT in .env',
+                    documentation: 'https://learn.microsoft.com/en-us/azure/ai-services/computer-vision/overview-identity'
                 }
             };
             return;
         }
 
         const imageBuffer = Buffer.from(imageBase64, 'base64');
+        const normalizedEndpoint = String(faceEndpoint || '').replace(/\/+$/, '');
 
-        const normalizedEndpoint = String(azureEndpoint || '').replace(/\/+$/, '');
-
-        // Use Face API v1.0 si disponible (retourne âge/genre)
-        let analyzeUrl;
-        if (useFaceApi) {
-            const params = new URLSearchParams({
-                returnFaceId: 'true',
-                returnFaceLandmarks: 'false',
-                returnFaceAttributes: 'age,gender,smile,emotion,glasses'
-            });
-            analyzeUrl = `${normalizedEndpoint}/face/v1.0/detect?${params}`;
-        } else {
-            // Fallback Computer Vision (âge/genre retourneront N/A)
-            analyzeUrl = `${normalizedEndpoint}/vision/v3.2/analyze?visualFeatures=Faces`;
-        }
+        // Azure Face API v1.0 - detect avec age, gender, headPose, smile, etc.
+        const detectUrl = `${normalizedEndpoint}/face/v1.0/detect`;
+        const params = new URLSearchParams({
+            returnFaceId: 'true',
+            returnFaceLandmarks: 'false',
+            returnFaceAttributes: 'age,gender,headPose,smile,facialHair,glasses,emotion,hair,makeup,accessories,blur,exposure,noise'
+        });
         
-        const response = await fetch(analyzeUrl, {
+        const response = await fetch(`${detectUrl}?${params}`, {
             method: 'POST',
             headers: {
-                'Ocp-Apim-Subscription-Key': azureKey,
+                'Ocp-Apim-Subscription-Key': faceKey,
                 'Content-Type': 'application/octet-stream'
             },
             body: imageBuffer
@@ -101,7 +85,6 @@ module.exports = async function (context, req) {
 
             try {
                 const parsed = JSON.parse(errorText);
-                // Azure Computer Vision errors are typically: { error: { code, message } }
                 if (parsed && parsed.error) {
                     azureErrorCode = parsed.error.code || null;
                     azureErrorMessage = parsed.error.message || null;
@@ -113,12 +96,12 @@ module.exports = async function (context, req) {
                 // keep plain text
             }
 
-            context.log.error('Azure Vision Face error:', errorText);
+            context.log.error('Azure Face API error:', errorText);
             context.res = {
                 status: response.status,
                 headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
                 body: {
-                    error: `Azure Vision Face Error: ${response.status}`,
+                    error: `Azure Face API Error: ${response.status}`,
                     azureErrorCode,
                     azureErrorMessage,
                     details
@@ -127,34 +110,32 @@ module.exports = async function (context, req) {
             return;
         }
 
-        const data = await response.json();
+        const faces = await response.json();
         
-        // Format face data selon l'API utilisée
-        let faces;
-        if (useFaceApi) {
-            // Azure Face API v1.0 retourne un tableau direct
-            faces = (Array.isArray(data) ? data : []).map(face => ({
+        // Format face data avec toutes les informations disponibles
+        const formattedFaces = faces.map(face => ({
+            faceId: face.faceId,
+            faceRectangle: face.faceRectangle,
+            faceAttributes: {
                 age: face.faceAttributes?.age || 'N/A',
                 gender: face.faceAttributes?.gender || 'N/A',
-                faceRectangle: face.faceRectangle,
-                smile: face.faceAttributes?.smile,
-                emotion: face.faceAttributes?.emotion,
-                glasses: face.faceAttributes?.glasses
-            }));
-        } else {
-            // Computer Vision v3.2 retourne { faces: [...] }
-            // Note: âge/genre seront N/A depuis 2020
-            faces = data.faces?.map(face => ({
-                age: face.age || 'N/A',
-                gender: face.gender || 'N/A',
-                faceRectangle: face.faceRectangle
-            })) || [];
-        }
+                smile: face.faceAttributes?.smile || 0,
+                emotion: face.faceAttributes?.emotion || {},
+                glasses: face.faceAttributes?.glasses || 'NoGlasses',
+                headPose: face.faceAttributes?.headPose || {},
+                facialHair: face.faceAttributes?.facialHair || {},
+                hair: face.faceAttributes?.hair || {},
+                makeup: face.faceAttributes?.makeup || {},
+                accessories: face.faceAttributes?.accessories || [],
+                blur: face.faceAttributes?.blur || {},
+                exposure: face.faceAttributes?.exposure || {},
+                noise: face.faceAttributes?.noise || {}
+            }
+        }));
 
         const result = {
-            faceCount: faces.length,
-            faces: faces,
-            apiUsed: useFaceApi ? 'Azure Face API v1.0' : 'Computer Vision v3.2 (age/gender deprecated)'
+            faceCount: formattedFaces.length,
+            faces: formattedFaces
         };
 
         context.res = {
