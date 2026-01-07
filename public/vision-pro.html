@@ -1486,6 +1486,19 @@ Sois concise, précise et pédagogue. Utilise des exemples concrets quand c'est 
                                 const l = payload.links.googleLens;
                                 const b = payload.links.bingVisualSearch;
                                 let html = `<div class="result-label">Recherche par image</div>`;
+                                // Ouvrir automatiquement Google Images (si possible) sur l'action utilisateur
+                                if (g) {
+                                    try {
+                                        const opened = window.open(g, '_blank', 'noopener,noreferrer');
+                                        if (!opened) {
+                                            html += `<div style="margin-top:6px;opacity:.8;">Popup bloquée: cliquez sur le lien ci-dessous.</div>`;
+                                        } else {
+                                            html += `<div style="margin-top:6px;opacity:.8;">Ouverture automatique: Google Images</div>`;
+                                        }
+                                    } catch (e) {
+                                        html += `<div style="margin-top:6px;opacity:.8;">Impossible d'ouvrir automatiquement: ${escapeHtml(e.message)}</div>`;
+                                    }
+                                }
                                 if (g) html += `<div style="margin-top:6px;"><a href="${g}" target="_blank" rel="noopener noreferrer" style="color:var(--primary);text-decoration:none;">Ouvrir Google Images (par URL)</a></div>`;
                                 if (l) html += `<div style="margin-top:6px;"><a href="${l}" target="_blank" rel="noopener noreferrer" style="color:var(--primary);text-decoration:none;">Ouvrir Google Lens (par URL)</a></div>`;
                                 if (b) html += `<div style="margin-top:6px;"><a href="${b}" target="_blank" rel="noopener noreferrer" style="color:var(--primary);text-decoration:none;">Ouvrir Bing Visual Search</a></div>`;
@@ -1559,6 +1572,19 @@ Sois concise, précise et pédagogue. Utilise des exemples concrets quand c'est 
                                     const l = payload.links.googleLens;
                                     const b = payload.links.bingVisualSearch;
                                     let html = `<div class="result-item"><div class="result-label">Recherche par image</div>`;
+                                    // Ouvrir automatiquement Google Images (si possible) sur l'action utilisateur
+                                    if (g) {
+                                        try {
+                                            const opened = window.open(g, '_blank', 'noopener,noreferrer');
+                                            if (!opened) {
+                                                html += `<div style="margin-top:6px;opacity:.8;">Popup bloquée: cliquez sur le lien ci-dessous.</div>`;
+                                            } else {
+                                                html += `<div style="margin-top:6px;opacity:.8;">Ouverture automatique: Google Images</div>`;
+                                            }
+                                        } catch (e) {
+                                            html += `<div style="margin-top:6px;opacity:.8;">Impossible d'ouvrir automatiquement: ${escapeHtml(e.message)}</div>`;
+                                        }
+                                    }
                                     if (g) html += `<div style="margin-top:6px;"><a href="${g}" target="_blank" rel="noopener noreferrer" style="color:var(--primary);text-decoration:none;">Ouvrir Google Images (par URL)</a></div>`;
                                     if (l) html += `<div style="margin-top:6px;"><a href="${l}" target="_blank" rel="noopener noreferrer" style="color:var(--primary);text-decoration:none;">Ouvrir Google Lens (par URL)</a></div>`;
                                     if (b) html += `<div style="margin-top:6px;"><a href="${b}" target="_blank" rel="noopener noreferrer" style="color:var(--primary);text-decoration:none;">Ouvrir Bing Visual Search</a></div>`;
