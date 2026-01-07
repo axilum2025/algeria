@@ -1212,7 +1212,17 @@ Sois concise, précise et pédagogue. Utilise des exemples concrets quand c'est 
                 if (response.ok) {
                     displayResults(data, currentFunction);
                 } else {
-                    addMessage(`Erreur d'analyse : ${data.error || 'Erreur inconnue'}`, 'bot');
+                    const main = data.error || 'Erreur inconnue';
+                    const azureMsg = data.azureErrorMessage ? `\n${data.azureErrorMessage}` : '';
+                    let details = '';
+                    if (data.details) {
+                        try {
+                            details = `\n\nDétails :\n${JSON.stringify(data.details, null, 2)}`;
+                        } catch (_) {
+                            details = `\n\nDétails :\n${String(data.details).slice(0, 2000)}`;
+                        }
+                    }
+                    addMessage(`Erreur d'analyse : ${main}${azureMsg}${details}`, 'bot');
                 }
             } catch (error) {
                 hideTyping();

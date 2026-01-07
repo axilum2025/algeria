@@ -39,8 +39,10 @@ module.exports = async function (context, req) {
 
         const imageBuffer = Buffer.from(imageBase64, 'base64');
 
+        const normalizedEndpoint = String(azureEndpoint || '').replace(/\/+$/, '');
+
         // Use Analyze API with Faces feature
-        const analyzeUrl = `${azureEndpoint}/vision/v3.2/analyze?visualFeatures=Faces`;
+        const analyzeUrl = `${normalizedEndpoint}/vision/v3.2/analyze?visualFeatures=Faces`;
         
         const response = await fetch(analyzeUrl, {
             method: 'POST',
@@ -53,11 +55,34 @@ module.exports = async function (context, req) {
 
         if (!response.ok) {
             const errorText = await response.text();
+            let details = errorText;
+            let azureErrorCode = null;
+            let azureErrorMessage = null;
+
+            try {
+                const parsed = JSON.parse(errorText);
+                // Azure Computer Vision errors are typically: { error: { code, message } }
+                if (parsed && parsed.error) {
+                    azureErrorCode = parsed.error.code || null;
+                    azureErrorMessage = parsed.error.message || null;
+                    details = parsed;
+                } else {
+                    details = parsed;
+                }
+            } catch (_) {
+                // keep plain text
+            }
+
             context.log.error('Azure Vision Face error:', errorText);
             context.res = {
                 status: response.status,
                 headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
-                body: { error: `Azure Vision Face Error: ${response.status}`, details: errorText }
+                body: {
+                    error: `Azure Vision Face Error: ${response.status}`,
+                    azureErrorCode,
+                    azureErrorMessage,
+                    details
+                }
             };
             return;
         }
