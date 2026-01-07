@@ -1368,7 +1368,7 @@ Sois concise, précise et pédagogue. Utilise des exemples concrets quand c'est 
                         if (hasAnyCrop) {
                             const linkStyle = `display:inline-block;margin-left:8px;padding:6px 10px;border:1px solid var(--glass-border);border-radius:10px;background:transparent;color:var(--text);cursor:pointer;font-size:12px;text-decoration:none;`;
                             resultHTML += `<div class="result-item"><div class="result-label">Recherche inversée</div>`;
-                            resultHTML += `Bing peut être lancé directement via l'API (si configurée). Google Lens reste en lien (pas d'API officielle).`;
+                            resultHTML += `Google Custom Search peut être lancé directement (si configurée). Bing et Lens restent en liens manuels.`;
                             resultHTML += `<div style="margin-top:8px;">`;
                             resultHTML += `<a href="https://lens.google.com/upload" target="_blank" rel="noopener noreferrer" style="${linkStyle}">Ouvrir Google Lens</a>`;
                             resultHTML += `<a href="https://www.bing.com/visualsearch" target="_blank" rel="noopener noreferrer" style="${linkStyle}">Ouvrir Bing (manuel)</a>`;
@@ -1387,13 +1387,13 @@ Sois concise, précise et pédagogue. Utilise des exemples concrets quand c'est 
                             resultHTML += `Visage ${i + 1} : ${age}, ${gender}${rect ? ` (${rect})` : ''}`;
                             if (canCrop) {
                                 resultHTML += `<button type="button" data-action="download-face" data-face-index="${i}" style="${btnStyle}">Télécharger le visage</button>`;
-                                resultHTML += `<button type="button" data-action="bing-face" data-face-index="${i}" style="${btnStyle}">Rechercher sur Bing</button>`;
+                                resultHTML += `<button type="button" data-action="google-face" data-face-index="${i}" style="${btnStyle}">Rechercher sur Google</button>`;
                                 resultHTML += `<a href="https://lens.google.com/upload" target="_blank" rel="noopener noreferrer" style="${linkStyle}">Lens</a>`;
                             }
                             resultHTML += `</div>`;
 
                             if (canCrop) {
-                                resultHTML += `<div class="result-item" id="bing-results-face-${i}" style="display:none;"></div>`;
+                                resultHTML += `<div class="result-item" id="google-results-face-${i}" style="display:none;"></div>`;
                             }
                         });
                     } else {
@@ -1438,24 +1438,24 @@ Sois concise, précise et pédagogue. Utilise des exemples concrets quand c'est 
                     });
                 });
 
-                const bingButtons = messageEl.querySelectorAll('button[data-action="bing-face"]');
-                bingButtons.forEach((btn) => {
+                const googleButtons = messageEl.querySelectorAll('button[data-action="google-face"]');
+                googleButtons.forEach((btn) => {
                     btn.addEventListener('click', async () => {
                         const idx = Number(btn.getAttribute('data-face-index'));
                         const face = (data.faces && data.faces[idx]) ? data.faces[idx] : null;
                         if (!face || !face.faceRectangle) return;
 
-                        const out = messageEl.querySelector(`#bing-results-face-${idx}`);
+                        const out = messageEl.querySelector(`#google-results-face-${idx}`);
                         if (out) {
                             out.style.display = 'block';
-                            out.innerHTML = `<div class="result-label">Bing (recherche en cours)</div>`;
+                            out.innerHTML = `<div class="result-label">Google (recherche en cours)</div>`;
                         }
 
                         try {
                             const cropDataUrl = getFaceCropDataUrl(face.faceRectangle);
                             const base64 = dataUrlToBase64(cropDataUrl);
 
-                            const resp = await fetch('/api/vision-reverse-bing', {
+                            const resp = await fetch('/api/vision-reverse-google', {
                                 method: 'POST',
                                 headers: { 'Content-Type': 'application/json' },
                                 body: JSON.stringify({ imageBase64: base64 })
@@ -1463,27 +1463,28 @@ Sois concise, précise et pédagogue. Utilise des exemples concrets quand c'est 
 
                             const payload = await resp.json();
                             if (!resp.ok) {
-                                const msg = payload && (payload.bingErrorMessage || payload.error) ? (payload.bingErrorMessage || payload.error) : 'Erreur Bing';
-                                if (out) out.innerHTML = `<div class="result-label">Bing</div>${msg}`;
+                                const msg = payload && (payload.googleErrorMessage || payload.error) ? (payload.googleErrorMessage || payload.error) : 'Erreur Google';
+                                const hint = payload.hint ? `<br><small>${payload.hint}</small>` : '';
+                                if (out) out.innerHTML = `<div class="result-label">Google</div>${msg}${hint}`;
                                 return;
                             }
 
                             const results = Array.isArray(payload.results) ? payload.results : [];
                             if (!results.length) {
-                                if (out) out.innerHTML = `<div class="result-label">Bing</div>Aucun résultat.`;
+                                if (out) out.innerHTML = `<div class="result-label">Google</div>Aucun résultat.`;
                                 return;
                             }
 
-                            let html = `<div class="result-label">Bing (pages similaires)</div>`;
+                            let html = `<div class="result-label">Google (images similaires)</div>`;
                             results.slice(0, 5).forEach((r) => {
-                                const title = (r.name || r.url || 'Résultat').toString();
+                                const title = (r.title || r.url || 'Résultat').toString();
                                 const url = r.url;
                                 if (!url) return;
                                 html += `<div style="margin-top:6px;"><a href="${url}" target="_blank" rel="noopener noreferrer" style="color:var(--primary);text-decoration:none;">${title}</a></div>`;
                             });
                             if (out) out.innerHTML = html;
                         } catch (e) {
-                            if (out) out.innerHTML = `<div class="result-label">Bing</div>Erreur: ${e.message}`;
+                            if (out) out.innerHTML = `<div class="result-label">Google</div>Erreur: ${e.message}`;
                         }
                     });
                 });
