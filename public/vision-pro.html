@@ -1048,6 +1048,32 @@
             }
         }
 
+        function getFaceCropDataUrl(faceRectangle) {
+            if (!currentImageElement || !faceRectangle) return null;
+
+            const img = currentImageElement;
+            const paddingRatio = 0.18;
+
+            const padX = Math.round(faceRectangle.width * paddingRatio);
+            const padY = Math.round(faceRectangle.height * paddingRatio);
+
+            const sx = clamp(faceRectangle.left - padX, 0, img.naturalWidth - 1);
+            const sy = clamp(faceRectangle.top - padY, 0, img.naturalHeight - 1);
+            const ex = clamp(faceRectangle.left + faceRectangle.width + padX, 1, img.naturalWidth);
+            const ey = clamp(faceRectangle.top + faceRectangle.height + padY, 1, img.naturalHeight);
+
+            const sw = Math.max(1, ex - sx);
+            const sh = Math.max(1, ey - sy);
+
+            const canvas = document.createElement('canvas');
+            canvas.width = sw;
+            canvas.height = sh;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(img, sx, sy, sw, sh, 0, 0, sw, sh);
+
+            return canvas.toDataURL('image/jpeg', 0.9);
+        }
+
         // DOM Elements
         const sidebar = document.getElementById('sidebar');
         const toggleSidebarBtn = document.getElementById('toggleSidebar');
@@ -1342,10 +1368,10 @@ Sois concise, précise et pédagogue. Utilise des exemples concrets quand c'est 
                         if (hasAnyCrop) {
                             const linkStyle = `display:inline-block;margin-left:8px;padding:6px 10px;border:1px solid var(--glass-border);border-radius:10px;background:transparent;color:var(--text);cursor:pointer;font-size:12px;text-decoration:none;`;
                             resultHTML += `<div class="result-item"><div class="result-label">Recherche inversée</div>`;
-                            resultHTML += `Astuce : téléchargez un visage, puis uploadez-le dans Lens/Bing pour retrouver la source.`;
+                            resultHTML += `Bing peut être lancé directement via l'API (si configurée). Google Lens reste en lien (pas d'API officielle).`;
                             resultHTML += `<div style="margin-top:8px;">`;
                             resultHTML += `<a href="https://lens.google.com/upload" target="_blank" rel="noopener noreferrer" style="${linkStyle}">Ouvrir Google Lens</a>`;
-                            resultHTML += `<a href="https://www.bing.com/visualsearch" target="_blank" rel="noopener noreferrer" style="${linkStyle}">Ouvrir Bing Visual Search</a>`;
+                            resultHTML += `<a href="https://www.bing.com/visualsearch" target="_blank" rel="noopener noreferrer" style="${linkStyle}">Ouvrir Bing (manuel)</a>`;
                             resultHTML += `</div></div>`;
                         }
 
@@ -1355,13 +1381,20 @@ Sois concise, précise et pédagogue. Utilise des exemples concrets quand c'est 
                             const rect = face.faceRectangle ? `rect=${face.faceRectangle.left},${face.faceRectangle.top},${face.faceRectangle.width}x${face.faceRectangle.height}` : '';
                             const canCrop = !!face.faceRectangle;
                             const btnStyle = `display:inline-block;margin-left:8px;padding:6px 10px;border:1px solid var(--glass-border);border-radius:10px;background:var(--glass);color:var(--text);cursor:pointer;font-size:12px;text-decoration:none;`;
+                            const linkStyle = `display:inline-block;margin-left:8px;padding:6px 10px;border:1px solid var(--glass-border);border-radius:10px;background:transparent;color:var(--text);cursor:pointer;font-size:12px;text-decoration:none;`;
 
                             resultHTML += `<div class="result-item">`;
                             resultHTML += `Visage ${i + 1} : ${age}, ${gender}${rect ? ` (${rect})` : ''}`;
                             if (canCrop) {
                                 resultHTML += `<button type="button" data-action="download-face" data-face-index="${i}" style="${btnStyle}">Télécharger le visage</button>`;
+                                resultHTML += `<button type="button" data-action="bing-face" data-face-index="${i}" style="${btnStyle}">Rechercher sur Bing</button>`;
+                                resultHTML += `<a href="https://lens.google.com/upload" target="_blank" rel="noopener noreferrer" style="${linkStyle}">Lens</a>`;
                             }
                             resultHTML += `</div>`;
+
+                            if (canCrop) {
+                                resultHTML += `<div class="result-item" id="bing-results-face-${i}" style="display:none;"></div>`;
+                            }
                         });
                     } else {
                         resultHTML += `<div class="result-item">Aucun visage détecté</div>`;
@@ -1402,6 +1435,56 @@ Sois concise, précise et pédagogue. Utilise des exemples concrets quand c'est 
                         const face = (data.faces && data.faces[idx]) ? data.faces[idx] : null;
                         if (!face || !face.faceRectangle) return;
                         await downloadFaceCrop(face.faceRectangle, idx);
+                    });
+                });
+
+                const bingButtons = messageEl.querySelectorAll('button[data-action="bing-face"]');
+                bingButtons.forEach((btn) => {
+                    btn.addEventListener('click', async () => {
+                        const idx = Number(btn.getAttribute('data-face-index'));
+                        const face = (data.faces && data.faces[idx]) ? data.faces[idx] : null;
+                        if (!face || !face.faceRectangle) return;
+
+                        const out = messageEl.querySelector(`#bing-results-face-${idx}`);
+                        if (out) {
+                            out.style.display = 'block';
+                            out.innerHTML = `<div class="result-label">Bing (recherche en cours)</div>`;
+                        }
+
+                        try {
+                            const cropDataUrl = getFaceCropDataUrl(face.faceRectangle);
+                            const base64 = dataUrlToBase64(cropDataUrl);
+
+                            const resp = await fetch('/api/vision-reverse-bing', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ imageBase64: base64 })
+                            });
+
+                            const payload = await resp.json();
+                            if (!resp.ok) {
+                                const msg = payload && (payload.bingErrorMessage || payload.error) ? (payload.bingErrorMessage || payload.error) : 'Erreur Bing';
+                                if (out) out.innerHTML = `<div class="result-label">Bing</div>${msg}`;
+                                return;
+                            }
+
+                            const results = Array.isArray(payload.results) ? payload.results : [];
+                            if (!results.length) {
+                                if (out) out.innerHTML = `<div class="result-label">Bing</div>Aucun résultat.`;
+                                return;
+                            }
+
+                            let html = `<div class="result-label">Bing (pages similaires)</div>`;
+                            results.slice(0, 5).forEach((r) => {
+                                const title = (r.name || r.url || 'Résultat').toString();
+                                const url = r.url;
+                                if (!url) return;
+                                html += `<div style="margin-top:6px;"><a href="${url}" target="_blank" rel="noopener noreferrer" style="color:var(--primary);text-decoration:none;">${title}</a></div>`;
+                            });
+                            if (out) out.innerHTML = html;
+                        } catch (e) {
+                            if (out) out.innerHTML = `<div class="result-label">Bing</div>Erreur: ${e.message}`;
+                        }
                     });
                 });
             }
