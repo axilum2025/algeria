@@ -1367,11 +1367,12 @@ Sois concise, précise et pédagogue. Utilise des exemples concrets quand c'est 
                         const hasAnyCrop = Array.isArray(data.faces) && data.faces.some(f => !!(f && f.faceRectangle));
                         if (hasAnyCrop) {
                             const linkStyle = `display:inline-block;margin-left:8px;padding:6px 10px;border:1px solid var(--glass-border);border-radius:10px;background:transparent;color:var(--text);cursor:pointer;font-size:12px;text-decoration:none;`;
-                            resultHTML += `<div class="result-item"><div class="result-label">Recherche inversée</div>`;
-                            resultHTML += `Google Custom Search peut être lancé directement (si configurée). Bing et Lens restent en liens manuels.`;
-                            resultHTML += `<div style="margin-top:8px;">`;
-                            resultHTML += `<a href="https://lens.google.com/upload" target="_blank" rel="noopener noreferrer" style="${linkStyle}">Ouvrir Google Lens</a>`;
-                            resultHTML += `<a href="https://www.bing.com/visualsearch" target="_blank" rel="noopener noreferrer" style="${linkStyle}">Ouvrir Bing (manuel)</a>`;
+                                const btnStyle = `display:inline-block;margin-left:8px;padding:6px 10px;border:1px solid var(--glass-border);border-radius:10px;background:var(--glass);color:var(--text);cursor:pointer;font-size:12px;text-decoration:none;`;
+                                resultHTML += `<div class="result-item"><div class="result-label">Recherche inversée</div>`;
+                                resultHTML += `<div style="margin-top:8px;">`;
+                                resultHTML += `<button type="button" data-action="google-search-all" style="${btnStyle}">Recherche Google (Custom Search)</button>`;
+                                resultHTML += `<a href="https://lens.google.com/upload" target="_blank" rel="noopener noreferrer" style="${linkStyle}">Ouvrir Google Lens</a>`;
+                                resultHTML += `<a href="https://www.bing.com/visualsearch" target="_blank" rel="noopener noreferrer" style="${linkStyle}">Ouvrir Bing (manuel)</a>`;
                             resultHTML += `</div></div>`;
                         }
 
@@ -1488,6 +1489,66 @@ Sois concise, précise et pédagogue. Utilise des exemples concrets quand c'est 
                         }
                     });
                 });
+                
+                    // Gestionnaire pour le bouton "Recherche Google Custom Search" global
+                    const googleSearchAllBtn = messageEl.querySelector('button[data-action="google-search-all"]');
+                    if (googleSearchAllBtn) {
+                        googleSearchAllBtn.addEventListener('click', async () => {
+                            // Lancer la recherche sur le premier visage détecté
+                            const firstFace = (data.faces && data.faces.length > 0) ? data.faces[0] : null;
+                            if (!firstFace || !firstFace.faceRectangle) {
+                                alert('Aucun visage à rechercher');
+                                return;
+                            }
+
+                            // Créer un conteneur pour afficher les résultats
+                            let resultContainer = messageEl.querySelector('#google-search-all-results');
+                            if (!resultContainer) {
+                                resultContainer = document.createElement('div');
+                                resultContainer.id = 'google-search-all-results';
+                                messageEl.appendChild(resultContainer);
+                            }
+                            resultContainer.style.display = 'block';
+                            resultContainer.innerHTML = `<div class="result-item"><div class="result-label">Recherche Google (en cours...)</div></div>`;
+
+                            try {
+                                const cropDataUrl = getFaceCropDataUrl(firstFace.faceRectangle);
+                                const base64 = dataUrlToBase64(cropDataUrl);
+
+                                const resp = await fetch('/api/vision-reverse-google', {
+                                    method: 'POST',
+                                    headers: { 'Content-Type': 'application/json' },
+                                    body: JSON.stringify({ imageBase64: base64 })
+                                });
+
+                                const payload = await resp.json();
+                                if (!resp.ok) {
+                                    const msg = payload && (payload.googleErrorMessage || payload.error) ? (payload.googleErrorMessage || payload.error) : 'Erreur Google';
+                                    const hint = payload.hint ? `<br><small>${payload.hint}</small>` : '';
+                                    resultContainer.innerHTML = `<div class="result-item"><div class="result-label">Recherche Google</div>${msg}${hint}</div>`;
+                                    return;
+                                }
+
+                                const results = Array.isArray(payload.results) ? payload.results : [];
+                                if (!results.length) {
+                                    resultContainer.innerHTML = `<div class="result-item"><div class="result-label">Recherche Google</div>Aucun résultat similaire trouvé.</div>`;
+                                    return;
+                                }
+
+                                let html = `<div class="result-item"><div class="result-label">Recherche Google (${results.length} résultat(s))</div>`;
+                                results.slice(0, 10).forEach((r) => {
+                                    const title = (r.title || r.url || 'Résultat').toString();
+                                    const url = r.url;
+                                    if (!url) return;
+                                    html += `<div style="margin-top:6px;"><a href="${url}" target="_blank" rel="noopener noreferrer" style="color:var(--primary);text-decoration:none;">${title}</a></div>`;
+                                });
+                                html += `</div>`;
+                                resultContainer.innerHTML = html;
+                            } catch (e) {
+                                resultContainer.innerHTML = `<div class="result-item"><div class="result-label">Recherche Google</div>Erreur: ${e.message}</div>`;
+                            }
+                        });
+                    }
             }
         }
 
