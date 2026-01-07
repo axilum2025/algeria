@@ -1234,17 +1234,227 @@
                 functionItems.forEach(i => i.classList.remove('active'));
                 item.classList.add('active');
                 const fn = item.getAttribute('data-function');
-                const supported = new Set(['analyze', 'ocr', 'detect', 'brand']);
-                currentFunction = supported.has(fn) ? fn : null;
+                const supportedApi = new Set(['analyze', 'ocr', 'detect', 'brand']);
+                const supportedUi = new Set(['analyze', 'ocr', 'detect', 'brand', 'expertise', 'final-report']);
+                currentFunction = supportedUi.has(fn) ? fn : null;
                 
                 const functionName = item.querySelector('.function-title').textContent.trim();
-                if (currentFunction) {
+                if (!currentFunction) {
+                    addMessage(`Option sélectionnée : ${functionName}.`, 'system');
+                    return;
+                }
+
+                if (supportedApi.has(currentFunction)) {
                     addMessage(`Fonction sélectionnée : ${functionName}. Uploadez une image pour l'analyser.`, 'system');
-                } else {
-                    addMessage(`Option sélectionnée : ${functionName}. (Configuration à venir)`, 'system');
+                } else if (currentFunction === 'expertise') {
+                    addMessage(`Mode sélectionné : ${functionName}. Uploadez une image pour une analyse approfondie selon le domaine.`, 'system');
+                } else if (currentFunction === 'final-report') {
+                    addMessage(`Mode sélectionné : ${functionName}. Uploadez une image pour générer un rapport selon le domaine.`, 'system');
                 }
             });
         });
+
+        const lastVisionResults = {
+            analyze: null,
+            ocr: null,
+            detect: null,
+            brand: null
+        };
+
+        async function fetchVision(functionType) {
+            const response = await fetch(`/api/vision-${functionType}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ imageBase64: currentImageBase64 })
+            });
+
+            const contentType = response.headers.get('content-type');
+            if (!contentType || !contentType.includes('application/json')) {
+                const textResponse = await response.text().catch(() => '');
+                return {
+                    ok: false,
+                    status: response.status,
+                    data: null,
+                    error: textResponse ? textResponse.substring(0, 400) : 'Réponse non-JSON'
+                };
+            }
+
+            const data = await response.json().catch(() => ({}));
+            if (!response.ok) {
+                return {
+                    ok: false,
+                    status: response.status,
+                    data,
+                    error: data && (data.error || data.message) ? String(data.error || data.message) : 'Erreur'
+                };
+            }
+
+            return { ok: true, status: response.status, data, error: null };
+        }
+
+        function summarizeForEve(functionType, data) {
+            if (!data || typeof data !== 'object') return 'Aucun résultat disponible.';
+
+            if (functionType === 'analyze') {
+                const desc = data.description ? String(data.description) : '';
+                const tags = Array.isArray(data.tags) ? data.tags.slice(0, 18).map(String) : [];
+                const cats = Array.isArray(data.categories) ? data.categories.slice(0, 10).map(String) : [];
+                const objects = Array.isArray(data.objects) ? data.objects.slice(0, 16).map(o => o && o.object).filter(Boolean) : [];
+                const brands = Array.isArray(data.brands) ? data.brands.slice(0, 10).map(b => b && b.name).filter(Boolean) : [];
+                return [
+                    `Description: ${desc || 'N/A'}`,
+                    `Tags: ${tags.length ? tags.join(', ') : 'N/A'}`,
+                    `Catégories: ${cats.length ? cats.join(', ') : 'N/A'}`,
+                    `Objets: ${objects.length ? objects.join(', ') : 'N/A'}`,
+                    `Marques: ${brands.length ? brands.join(', ') : 'N/A'}`
+                ].join('\n');
+            }
+
+            if (functionType === 'ocr') {
+                const text = (typeof data.text === 'string') ? data.text.trim() : '';
+                const clipped = text.length > 1200 ? `${text.slice(0, 1200)}\n…` : text;
+                const language = (typeof data.language === 'string') ? data.language : null;
+                const linesCount = Array.isArray(data.lines) ? data.lines.length : null;
+                return [
+                    `Langue: ${language || 'N/A'}`,
+                    `Lignes: ${typeof linesCount === 'number' ? linesCount : 'N/A'}`,
+                    `Texte extrait:\n${clipped || 'N/A'}`
+                ].join('\n');
+            }
+
+            if (functionType === 'detect') {
+                const objects = Array.isArray(data.objects) ? data.objects.slice(0, 24) : [];
+                if (!objects.length) return 'Objets: N/A';
+                const list = objects
+                    .map((o) => {
+                        const name = o && o.object ? String(o.object) : 'Objet';
+                        const conf = (o && typeof o.confidence === 'number') ? ` (${(o.confidence * 100).toFixed(1)}%)` : '';
+                        return `- ${name}${conf}`;
+                    })
+                    .join('\n');
+                return `Objets détectés:\n${list}`;
+            }
+
+            if (functionType === 'brand') {
+                const brands = Array.isArray(data.brands) ? data.brands.slice(0, 16) : [];
+                if (!brands.length) return 'Marques: Aucune';
+                const list = brands
+                    .map((b) => {
+                        const name = b && b.name ? String(b.name) : 'Marque';
+                        const conf = (b && typeof b.confidence === 'number') ? ` (${(b.confidence * 100).toFixed(1)}%)` : '';
+                        return `- ${name}${conf}`;
+                    })
+                    .join('\n');
+                return `Marques détectées:\n${list}`;
+            }
+
+            return `Résultat (${functionType}): ${JSON.stringify(data).slice(0, 1500)}`;
+        }
+
+        async function askEveForAction(functionType, data) {
+            const domain = getDomainContextLabel();
+            const actionLabelMap = {
+                analyze: 'Analyse',
+                ocr: 'OCR Extract',
+                detect: 'Detection',
+                brand: 'Etat Général'
+            };
+
+            const label = actionLabelMap[functionType] || functionType;
+            const signals = summarizeForEve(functionType, data);
+
+            const prompt = `Tu dois fournir une réponse spécialisée selon le domaine.
+Domaine: ${domain}
+Action: ${label}
+
+Consignes:
+- Réponds en français.
+- Sois concise et orientée métier.
+- Ne propose pas d'autres domaines.
+- Si le domaine est "Général", réponds en général.
+
+Donne:
+1) Synthèse métier (3-6 lignes)
+2) Points importants / anomalies (si applicable)
+3) Recommandations concrètes (2-5)
+4) Questions utiles à poser (optionnel, 2 max)
+
+Signaux AI Vision:
+${signals}`;
+
+            showTyping();
+            try {
+                const answer = await callAgentEve(prompt);
+                hideTyping();
+                addMessage(answer, 'bot');
+            } catch (e) {
+                hideTyping();
+                addMessage(`Erreur Agent Eve: ${e.message}`, 'bot');
+            }
+        }
+
+        async function runExpertiseOrReport(mode) {
+            if (!currentImageBase64) {
+                addMessage('Image manquante.', 'system');
+                return;
+            }
+
+            showTyping();
+            try {
+                const a = await fetchVision('analyze');
+                if (a.ok) lastVisionResults.analyze = a.data;
+                const d = await fetchVision('detect');
+                if (d.ok) lastVisionResults.detect = d.data;
+                const o = await fetchVision('ocr');
+                if (o.ok) lastVisionResults.ocr = o.data;
+                const b = await fetchVision('brand');
+                if (b.ok) lastVisionResults.brand = b.data;
+
+                hideTyping();
+
+                // Afficher un minimum: l'analyse brute (si dispo)
+                if (a.ok) displayResults(a.data, 'analyze');
+                if (o.ok) displayResults(o.data, 'ocr');
+                if (d.ok) displayResults(d.data, 'detect');
+                if (b.ok) displayResults(b.data, 'brand');
+
+                const domain = getDomainContextLabel();
+                const title = (mode === 'expertise') ? 'Expertise' : 'Rapport';
+                const signals = [
+                    `--- ANALYSE ---\n${summarizeForEve('analyze', lastVisionResults.analyze)}`,
+                    `--- OCR ---\n${summarizeForEve('ocr', lastVisionResults.ocr)}`,
+                    `--- DETECTION ---\n${summarizeForEve('detect', lastVisionResults.detect)}`,
+                    `--- ETAT GENERAL ---\n${summarizeForEve('brand', lastVisionResults.brand)}`
+                ].join('\n\n');
+
+                const prompt = `Tu dois produire une sortie spécialisée selon le domaine.
+Domaine: ${domain}
+Livrable: ${title}
+
+Règles:
+- Réponds en français.
+- Ne propose pas d'autres domaines.
+- Si le domaine est "Général", fais une analyse générale.
+- Ne mentionne pas de métriques internes (tokens, fiabilité, etc.).
+
+Si Livrable=Expertise:
+- Diagnostic approfondi, hypothèses raisonnables, risques, recommandations.
+
+Si Livrable=Rapport:
+- Rapport structuré avec: Contexte, Constatations, Preuves (à partir des signaux), Risques/Impacts, Recommandations, Prochaines étapes.
+
+Signaux AI Vision:
+${signals}`;
+
+                showTyping();
+                const answer = await callAgentEve(prompt);
+                hideTyping();
+                addMessage(answer, 'bot');
+            } catch (e) {
+                hideTyping();
+                addMessage(`Erreur pendant ${mode}: ${e.message}`, 'bot');
+            }
+        }
 
         // File Upload
         fileInput.addEventListener('change', async (e) => {
@@ -1472,6 +1682,15 @@ Signaux AI Vision:
                 return;
             }
 
+            if (currentFunction === 'expertise') {
+                await runExpertiseOrReport('expertise');
+                return;
+            }
+            if (currentFunction === 'final-report') {
+                await runExpertiseOrReport('final-report');
+                return;
+            }
+
             showTyping();
             setStatus('Analyse en cours...');
 
@@ -1508,7 +1727,11 @@ Signaux AI Vision:
                 setStatus('');
 
                 if (response.ok) {
+                    if (currentFunction && (currentFunction in lastVisionResults)) {
+                        lastVisionResults[currentFunction] = data;
+                    }
                     displayResults(data, currentFunction);
+                    await askEveForAction(currentFunction, data);
                 } else {
                     const main = data.error || 'Erreur inconnue';
                     const azureMsg = data.azureErrorMessage ? `\n${data.azureErrorMessage}` : '';
