@@ -1465,8 +1465,10 @@ Sois concise, précise et pédagogue. Utilise des exemples concrets quand c'est 
                             const payload = await resp.json();
                             if (!resp.ok) {
                                 const msg = payload && (payload.googleErrorMessage || payload.error) ? (payload.googleErrorMessage || payload.error) : 'Erreur Google';
-                                const hint = payload.hint ? `<br><small>${payload.hint}</small>` : '';
-                                if (out) out.innerHTML = `<div class="result-label">Google</div>${msg}${hint}`;
+                                const hint = payload && payload.hint ? `<br><small>${payload.hint}</small>` : '';
+                                const details = payload && (payload.details || (payload.error && payload.error.details)) ? (payload.details || payload.error.details) : null;
+                                const detailsHtml = details ? `<br><small>${String(details)}</small>` : '';
+                                if (out) out.innerHTML = `<div class="result-label">Google</div>${msg}${hint}${detailsHtml}`;
                                 return;
                             }
 
@@ -1524,8 +1526,10 @@ Sois concise, précise et pédagogue. Utilise des exemples concrets quand c'est 
                                 const payload = await resp.json();
                                 if (!resp.ok) {
                                     const msg = payload && (payload.googleErrorMessage || payload.error) ? (payload.googleErrorMessage || payload.error) : 'Erreur Google';
-                                    const hint = payload.hint ? `<br><small>${payload.hint}</small>` : '';
-                                    resultContainer.innerHTML = `<div class="result-item"><div class="result-label">Recherche Google</div>${msg}${hint}</div>`;
+                                    const hint = payload && payload.hint ? `<br><small>${payload.hint}</small>` : '';
+                                    const details = payload && (payload.details || (payload.error && payload.error.details)) ? (payload.details || payload.error.details) : null;
+                                    const detailsHtml = details ? `<br><small>${String(details)}</small>` : '';
+                                    resultContainer.innerHTML = `<div class="result-item"><div class="result-label">Recherche Google</div>${msg}${hint}${detailsHtml}</div>`;
                                     return;
                                 }
 

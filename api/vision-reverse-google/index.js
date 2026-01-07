@@ -1,4 +1,22 @@
-const { BlobServiceClient } = require('@azure/storage-blob');
+const {
+    BlobServiceClient,
+    StorageSharedKeyCredential,
+    generateBlobSASQueryParameters,
+    BlobSASPermissions
+} = require('@azure/storage-blob');
+
+function parseAzureStorageConnectionString(connectionString) {
+    const parts = {};
+    for (const segment of String(connectionString).split(';')) {
+        const [rawKey, ...rest] = segment.split('=');
+        const key = (rawKey || '').trim();
+        if (!key) continue;
+        parts[key] = rest.join('=');
+    }
+    const accountName = parts.AccountName;
+    const accountKey = parts.AccountKey;
+    return { accountName, accountKey };
+}
 
 module.exports = async function (context, req) {
     context.log('Google Custom Search - Reverse Image Search');
@@ -66,7 +84,7 @@ module.exports = async function (context, req) {
             return;
         }
 
-        // Upload temporairement l'image sur Azure Blob pour avoir une URL publique
+        // Upload temporairement l'image sur Azure Blob et générer une URL SAS (évite l'accès public)
         const connectionString = process.env.AZURE_STORAGE_CONNECTION_STRING;
         if (!connectionString) {
             context.res = {
@@ -77,13 +95,26 @@ module.exports = async function (context, req) {
             return;
         }
 
+        const { accountName, accountKey } = parseAzureStorageConnectionString(connectionString);
+        if (!accountName || !accountKey) {
+            context.res = {
+                status: 500,
+                headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
+                body: {
+                    error: 'Azure Storage connection string invalid (missing AccountName/AccountKey)'
+                }
+            };
+            return;
+        }
+
         const blobServiceClient = BlobServiceClient.fromConnectionString(connectionString);
         const containerName = 'temp-reverse-search';
         const containerClient = blobServiceClient.getContainerClient(containerName);
 
         // Créer le container s'il n'existe pas
         try {
-            await containerClient.createIfNotExists({ access: 'blob' });
+            // Ne pas forcer l'accès public (souvent interdit sur les Storage Accounts modernes)
+            await containerClient.createIfNotExists();
         } catch (e) {
             context.log.warn('Container already exists or error:', e.message);
         }
@@ -96,7 +127,21 @@ module.exports = async function (context, req) {
             blobHTTPHeaders: { blobContentType: 'image/jpeg' }
         });
 
-        const imageUrl = blockBlobClient.url;
+        // URL SAS courte durée pour permettre à Google de lire le blob
+        const sharedKeyCredential = new StorageSharedKeyCredential(accountName, accountKey);
+        const sas = generateBlobSASQueryParameters(
+            {
+                containerName,
+                blobName,
+                permissions: BlobSASPermissions.parse('r'),
+                startsOn: new Date(Date.now() - 2 * 60 * 1000),
+                expiresOn: new Date(Date.now() + 10 * 60 * 1000),
+                protocol: 'https'
+            },
+            sharedKeyCredential
+        ).toString();
+
+        const imageUrl = `${blockBlobClient.url}?${sas}`;
 
         // Recherche Google Custom Search avec l'URL de l'image
         const searchUrl = `https://www.googleapis.com/customsearch/v1?key=${encodeURIComponent(apiKey)}&cx=${encodeURIComponent(cx)}&searchType=image&imgUrl=${encodeURIComponent(imageUrl)}&num=10`;
