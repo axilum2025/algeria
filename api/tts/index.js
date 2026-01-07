@@ -76,7 +76,8 @@ module.exports = async function (context, req) {
       headers: {
         'Content-Type': 'application/ssml+xml',
         'X-Microsoft-OutputFormat': AZURE_OUTPUT_FORMAT,
-        'Ocp-Apim-Subscription-Key': speechKey
+        'Ocp-Apim-Subscription-Key': speechKey,
+        'Ocp-Apim-Subscription-Region': speechRegion
       },
       responseType: 'arraybuffer',
       timeout: 15000
