@@ -1389,8 +1389,46 @@ Sois concise, précise et pédagogue. Utilise des exemples concrets quand c'est 
                     break;
 
                 case 'ocr':
-                    if (data.text) {
-                        resultHTML += `<div class="result-item"><div class="result-label">Texte extrait</div><pre style="white-space: pre-wrap;">${data.text}</pre></div>`;
+                    {
+                        const text = (data && typeof data.text === 'string') ? data.text : '';
+                        const language = (data && typeof data.language === 'string') ? data.language : null;
+                        const pageCount = (data && typeof data.pageCount === 'number') ? data.pageCount : null;
+                        const linesArr = (data && Array.isArray(data.lines)) ? data.lines : [];
+
+                        const metaParts = [];
+                        if (language) metaParts.push(`Langue: ${escapeHtml(language)}`);
+                        if (typeof pageCount === 'number') metaParts.push(`Pages: ${pageCount}`);
+                        if (Array.isArray(linesArr) && linesArr.length) metaParts.push(`Lignes: ${linesArr.length}`);
+                        if (metaParts.length) {
+                            resultHTML += `<div class="result-item"><div class="result-label">OCR</div>${metaParts.join(' • ')}</div>`;
+                        }
+
+                        const btnStyle = `display:inline-block;margin-left:8px;padding:6px 10px;border:1px solid var(--glass-border);border-radius:10px;background:var(--glass);color:var(--text);cursor:pointer;font-size:12px;text-decoration:none;`;
+                        resultHTML += `<div class="result-item"><div class="result-label">Actions</div>`;
+                        resultHTML += `<div style="margin-top:8px;">`;
+                        resultHTML += `<button type="button" data-action="ocr-copy" style="${btnStyle}">Copier le texte</button>`;
+                        resultHTML += `<button type="button" data-action="ocr-download" style="${btnStyle}">Télécharger (.txt)</button>`;
+                        resultHTML += `</div></div>`;
+
+                        if (text) {
+                            resultHTML += `<div class="result-item"><div class="result-label">Texte extrait</div><pre style="white-space: pre-wrap;">${escapeHtml(text)}</pre></div>`;
+                        } else {
+                            resultHTML += `<div class="result-item">Aucun texte détecté</div>`;
+                        }
+
+                        if (linesArr && linesArr.length) {
+                            const preview = linesArr.slice(0, 12);
+                            resultHTML += `<div class="result-item"><div class="result-label">Aperçu des lignes</div></div>`;
+                            preview.forEach((ln) => {
+                                const t = ln && ln.text ? escapeHtml(String(ln.text)) : '';
+                                const bb = ln && ln.boundingBox ? escapeHtml(JSON.stringify(ln.boundingBox)) : '';
+                                const extra = bb ? ` <small style="opacity:.75;">${bb}</small>` : '';
+                                resultHTML += `<div class="result-item" style="opacity:.92;">- ${t}${extra}</div>`;
+                            });
+                            if (linesArr.length > 12) {
+                                resultHTML += `<div class="result-item" style="opacity:.75;">… +${linesArr.length - 12} autre(s)</div>`;
+                            }
+                        }
                     }
                     break;
 
@@ -1470,6 +1508,60 @@ Sois concise, précise et pédagogue. Utilise des exemples concrets quand c'est 
             resultHTML += '</div>';
 
             const messageEl = addMessage('Résultats de l\'analyse :', 'bot', null, resultHTML);
+
+            if (functionType === 'ocr' && messageEl) {
+                const copyBtn = messageEl.querySelector('button[data-action="ocr-copy"]');
+                const downloadBtn = messageEl.querySelector('button[data-action="ocr-download"]');
+                const text = (data && typeof data.text === 'string') ? data.text : '';
+
+                if (copyBtn) {
+                    copyBtn.addEventListener('click', async () => {
+                        if (!text) {
+                            alert('Aucun texte à copier');
+                            return;
+                        }
+                        try {
+                            if (navigator.clipboard && navigator.clipboard.writeText) {
+                                await navigator.clipboard.writeText(text);
+                            } else {
+                                const ta = document.createElement('textarea');
+                                ta.value = text;
+                                ta.style.position = 'fixed';
+                                ta.style.left = '-9999px';
+                                document.body.appendChild(ta);
+                                ta.select();
+                                document.execCommand('copy');
+                                ta.remove();
+                            }
+                            copyBtn.textContent = 'Copié ✓';
+                            setTimeout(() => { copyBtn.textContent = 'Copier le texte'; }, 1200);
+                        } catch (e) {
+                            alert(`Copie impossible: ${e.message}`);
+                        }
+                    });
+                }
+
+                if (downloadBtn) {
+                    downloadBtn.addEventListener('click', () => {
+                        if (!text) {
+                            alert('Aucun texte à télécharger');
+                            return;
+                        }
+                        const baseName = (currentImageFileName || 'ocr').replace(/\.[^.]+$/, '');
+                        const fileName = `${baseName}-ocr.txt`;
+                        const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
+                        const url = URL.createObjectURL(blob);
+                        const a = document.createElement('a');
+                        a.href = url;
+                        a.download = fileName;
+                        document.body.appendChild(a);
+                        a.click();
+                        a.remove();
+                        setTimeout(() => URL.revokeObjectURL(url), 15_000);
+                    });
+                }
+            }
+
             if (functionType === 'face' && messageEl) {
                 const buttons = messageEl.querySelectorAll('button[data-action="download-face"]');
                 buttons.forEach((btn) => {
