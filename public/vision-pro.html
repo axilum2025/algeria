@@ -220,8 +220,8 @@
             right: 24px;
             width: 320px;
             max-width: calc(100vw - 48px);
-            background: var(--glass);
-            backdrop-filter: blur(20px);
+            background: var(--dark);
+            backdrop-filter: blur(24px);
             border: 1px solid var(--glass-border);
             border-radius: 12px;
             padding: 12px;
@@ -923,14 +923,12 @@
 
                 <div class="domain-menu" id="domainMenu" aria-hidden="true">
                     <div class="result-label" style="margin-bottom:8px;">Domaine cible</div>
-                    <button type="button" class="domain-option active" data-domain="Général">Général (PME)</button>
-                    <button type="button" class="domain-option" data-domain="BTP / Construction">BTP / Construction</button>
+                    <button type="button" class="domain-option active" data-domain="BTP / Construction">BTP / Construction</button>
                     <button type="button" class="domain-option" data-domain="Immobilier & Facilities">Immobilier & Facilities</button>
                     <button type="button" class="domain-option" data-domain="Transport & Assurance">Transport & Assurance</button>
                     <button type="button" class="domain-option" data-domain="Commerce / Retail">Commerce / Retail</button>
                     <button type="button" class="domain-option" data-domain="Industrie & Production">Industrie & Production</button>
                     <button type="button" class="domain-option" data-domain="Logistique & Entrepôts">Logistique & Entrepôts</button>
-                    <button type="button" class="domain-option" data-domain="Finance & Administratif">Finance & Administratif</button>
                 </div>
             </div>
 
@@ -1004,7 +1002,7 @@
         let currentImageBase64 = null;
         let currentImageElement = null;
         let currentImageFileName = null;
-        let selectedDomain = 'Général';
+        let selectedDomain = 'BTP / Construction';
 
         async function loadImageElement(dataUrl) {
             const img = new Image();
@@ -1168,7 +1166,7 @@
 
         function renderDomainButton() {
             if (!domainBtn) return;
-            domainBtn.innerHTML = `<span style="font-size: 13px; color: var(--text);">Domaine: ${escapeHtml(selectedDomain)}</span>`;
+            domainBtn.innerHTML = `<span style="font-size: 13px; color: var(--text);">Domaine d'expertise</span>`;
         }
 
         function closeDomainMenu() {
