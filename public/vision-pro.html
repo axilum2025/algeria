@@ -1343,13 +1343,48 @@ Sois concise, précise et pédagogue. Utilise des exemples concrets quand c'est 
             switch (functionType) {
                 case 'analyze':
                     if (data.description) {
-                        resultHTML += `<div class="result-item"><div class="result-label">Description</div>${data.description}</div>`;
+                        const conf = (typeof data.confidence === 'number') ? ` <small style="opacity:.8;">(${(data.confidence * 100).toFixed(1)}%)</small>` : '';
+                        resultHTML += `<div class="result-item"><div class="result-label">Description</div>${escapeHtml(String(data.description))}${conf}</div>`;
                     }
                     if (data.tags && data.tags.length > 0) {
-                        resultHTML += `<div class="result-item"><div class="result-label">Tags</div>${data.tags.join(', ')}</div>`;
+                        const tags = data.tags.map(t => escapeHtml(String(t))).join(', ');
+                        resultHTML += `<div class="result-item"><div class="result-label">Tags</div>${tags}</div>`;
+                    }
+                    if (data.categories && data.categories.length > 0) {
+                        const cats = data.categories.map(c => escapeHtml(String(c))).join(', ');
+                        resultHTML += `<div class="result-item"><div class="result-label">Catégories</div>${cats}</div>`;
+                    }
+                    if (data.colors) {
+                        const dom = Array.isArray(data.colors.dominant) ? data.colors.dominant.map(c => escapeHtml(String(c))).join(', ') : '';
+                        const accent = data.colors.accent ? escapeHtml(String(data.colors.accent)) : '';
+                        const bw = (data.colors.isBW === true) ? 'Oui' : (data.colors.isBW === false ? 'Non' : '');
+                        const parts = [];
+                        if (dom) parts.push(`Dominantes: ${dom}`);
+                        if (accent) parts.push(`Accent: ${accent}`);
+                        if (bw) parts.push(`Noir & blanc: ${bw}`);
+                        if (parts.length) {
+                            resultHTML += `<div class="result-item"><div class="result-label">Couleurs</div>${parts.join(' • ')}</div>`;
+                        }
                     }
                     if (data.objects && data.objects.length > 0) {
-                        resultHTML += `<div class="result-item"><div class="result-label">Objets détectés</div>${data.objects.length} objets</div>`;
+                        resultHTML += `<div class="result-item"><div class="result-label">Objets détectés</div>${data.objects.length} objet(s)</div>`;
+                        const top = data.objects.slice(0, 8);
+                        top.forEach(obj => {
+                            const name = obj.object ? escapeHtml(String(obj.object)) : 'Objet';
+                            const conf = (typeof obj.confidence === 'number') ? `${(obj.confidence * 100).toFixed(1)}%` : '';
+                            resultHTML += `<div class="result-item" style="opacity:.92;">- ${name}${conf ? ` <small style="opacity:.8;">(${conf})</small>` : ''}</div>`;
+                        });
+                        if (data.objects.length > 8) {
+                            resultHTML += `<div class="result-item" style="opacity:.75;">… +${data.objects.length - 8} autre(s)</div>`;
+                        }
+                    }
+                    if (data.brands && data.brands.length > 0) {
+                        resultHTML += `<div class="result-item"><div class="result-label">Marques</div>${data.brands.length} marque(s)</div>`;
+                        data.brands.slice(0, 6).forEach(b => {
+                            const name = b.name ? escapeHtml(String(b.name)) : 'Marque';
+                            const conf = (typeof b.confidence === 'number') ? `${(b.confidence * 100).toFixed(1)}%` : '';
+                            resultHTML += `<div class="result-item" style="opacity:.92;">- ${name}${conf ? ` <small style="opacity:.8;">(${conf})</small>` : ''}</div>`;
+                        });
                     }
                     break;
 
@@ -1403,21 +1438,29 @@ Sois concise, précise et pédagogue. Utilise des exemples concrets quand c'est 
 
                 case 'detect':
                     if (data.objects && data.objects.length > 0) {
-                        resultHTML += `<div class="result-item"><div class="result-label">Objets</div>`;
-                        data.objects.forEach(obj => {
-                            resultHTML += `${obj.object} (${(obj.confidence * 100).toFixed(1)}%), `;
+                        resultHTML += `<div class="result-item"><div class="result-label">Objets</div>${data.objects.length} objet(s)</div>`;
+                        data.objects.slice(0, 12).forEach(obj => {
+                            const name = obj.object ? escapeHtml(String(obj.object)) : 'Objet';
+                            const conf = (typeof obj.confidence === 'number') ? `${(obj.confidence * 100).toFixed(1)}%` : '';
+                            resultHTML += `<div class="result-item" style="opacity:.92;">- ${name}${conf ? ` <small style="opacity:.8;">(${conf})</small>` : ''}</div>`;
                         });
-                        resultHTML += `</div>`;
+                        if (data.objects.length > 12) {
+                            resultHTML += `<div class="result-item" style="opacity:.75;">… +${data.objects.length - 12} autre(s)</div>`;
+                        }
                     }
                     break;
 
                 case 'brand':
                     if (data.brands && data.brands.length > 0) {
-                        resultHTML += `<div class="result-item"><div class="result-label">Marques détectées</div>`;
-                        data.brands.forEach(brand => {
-                            resultHTML += `${brand.name} (${(brand.confidence * 100).toFixed(1)}%), `;
+                        resultHTML += `<div class="result-item"><div class="result-label">Marques détectées</div>${data.brands.length} marque(s)</div>`;
+                        data.brands.slice(0, 12).forEach(brand => {
+                            const name = brand.name ? escapeHtml(String(brand.name)) : 'Marque';
+                            const conf = (typeof brand.confidence === 'number') ? `${(brand.confidence * 100).toFixed(1)}%` : '';
+                            resultHTML += `<div class="result-item" style="opacity:.92;">- ${name}${conf ? ` <small style="opacity:.8;">(${conf})</small>` : ''}</div>`;
                         });
-                        resultHTML += `</div>`;
+                        if (data.brands.length > 12) {
+                            resultHTML += `<div class="result-item" style="opacity:.75;">… +${data.brands.length - 12} autre(s)</div>`;
+                        }
                     } else {
                         resultHTML += `<div class="result-item">Aucune marque détectée</div>`;
                     }
