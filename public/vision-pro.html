@@ -211,6 +211,48 @@
             align-items: center;
             justify-content: space-between;
             padding: 0 24px;
+            position: relative;
+        }
+
+        .domain-menu {
+            position: absolute;
+            top: 64px;
+            right: 24px;
+            width: 320px;
+            max-width: calc(100vw - 48px);
+            background: var(--glass);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            padding: 12px;
+            display: none;
+            z-index: 50;
+        }
+
+        .domain-menu.show {
+            display: block;
+        }
+
+        .domain-option {
+            width: 100%;
+            text-align: left;
+            padding: 10px 10px;
+            border-radius: 10px;
+            border: 1px solid transparent;
+            background: transparent;
+            color: var(--text);
+            cursor: pointer;
+            font-size: 13px;
+        }
+
+        .domain-option:hover {
+            border-color: var(--glass-border);
+            background: rgba(255, 255, 255, 0.06);
+        }
+
+        .domain-option.active {
+            border-color: var(--primary);
+            background: rgba(0, 212, 255, 0.08);
         }
 
         .toggle-sidebar {
@@ -849,11 +891,27 @@
                     <span id="statusText">Azure Vision Active</span>
                 </div>
 
+                <button class="toggle-sidebar" id="domainBtn" title="Choisir un domaine" style="margin-left: 12px; width: auto; padding: 0 12px; gap: 8px;">
+                    <span style="font-size: 13px; color: var(--text);">Domaine d'expertise</span>
+                </button>
+
                 <button class="toggle-sidebar" onclick="returnToMainChat()" title="Retour à AI Axilum" style="margin-left: auto;">
                     <svg class="svg-icon" viewBox="0 0 24 24">
                         <path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/>
                     </svg>
                 </button>
+
+                <div class="domain-menu" id="domainMenu" aria-hidden="true">
+                    <div class="result-label" style="margin-bottom:8px;">Domaine cible</div>
+                    <button type="button" class="domain-option active" data-domain="Général">Général (PME)</button>
+                    <button type="button" class="domain-option" data-domain="BTP / Construction">BTP / Construction</button>
+                    <button type="button" class="domain-option" data-domain="Immobilier & Facilities">Immobilier & Facilities</button>
+                    <button type="button" class="domain-option" data-domain="Transport & Assurance">Transport & Assurance</button>
+                    <button type="button" class="domain-option" data-domain="Commerce / Retail">Commerce / Retail</button>
+                    <button type="button" class="domain-option" data-domain="Industrie & Production">Industrie & Production</button>
+                    <button type="button" class="domain-option" data-domain="Logistique & Entrepôts">Logistique & Entrepôts</button>
+                    <button type="button" class="domain-option" data-domain="Finance & Administratif">Finance & Administratif</button>
+                </div>
             </div>
 
             <div class="chat-container">
@@ -926,6 +984,7 @@
         let currentImageBase64 = null;
         let currentImageElement = null;
         let currentImageFileName = null;
+        let selectedDomain = 'Général';
 
         async function loadImageElement(dataUrl) {
             const img = new Image();
@@ -1084,6 +1143,57 @@
         const fileInput = document.getElementById('fileInput');
         const statusText = document.getElementById('statusText');
         const functionItems = document.querySelectorAll('.function-item');
+        const domainBtn = document.getElementById('domainBtn');
+        const domainMenu = document.getElementById('domainMenu');
+
+        function renderDomainButton() {
+            if (!domainBtn) return;
+            domainBtn.innerHTML = `<span style="font-size: 13px; color: var(--text);">Domaine: ${escapeHtml(selectedDomain)}</span>`;
+        }
+
+        function closeDomainMenu() {
+            if (!domainMenu) return;
+            domainMenu.classList.remove('show');
+            domainMenu.setAttribute('aria-hidden', 'true');
+        }
+
+        function toggleDomainMenu() {
+            if (!domainMenu) return;
+            const willShow = !domainMenu.classList.contains('show');
+            if (willShow) {
+                domainMenu.classList.add('show');
+                domainMenu.setAttribute('aria-hidden', 'false');
+            } else {
+                closeDomainMenu();
+            }
+        }
+
+        if (domainBtn && domainMenu) {
+            renderDomainButton();
+            domainBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                toggleDomainMenu();
+            });
+
+            domainMenu.addEventListener('click', (e) => {
+                const btn = e.target && e.target.closest ? e.target.closest('button[data-domain]') : null;
+                if (!btn) return;
+                const domain = btn.getAttribute('data-domain');
+                if (!domain) return;
+                selectedDomain = domain;
+                domainMenu.querySelectorAll('button[data-domain]').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                renderDomainButton();
+                closeDomainMenu();
+                addMessage(`Domaine sélectionné : ${selectedDomain}.`, 'system');
+            });
+
+            document.addEventListener('click', () => closeDomainMenu());
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape') closeDomainMenu();
+            });
+        }
 
         // Toggle Sidebar
         toggleSidebarBtn.addEventListener('click', () => {
@@ -1179,7 +1289,9 @@ TON RÔLE :
 - Donner des conseils sur la qualité d'image optimale
 - Aider à interpréter les résultats d'analyse
 
-Sois concise, précise et pédagogue.`;
+Sois concise, précise et pédagogue.
+
+Contexte produit (SaaS PME): adapte tes exemples et tes propositions d'actions au domaine suivant : ${selectedDomain}.`;
 
             const response = await fetch(endpoint, {
                 method: 'POST',
@@ -1227,6 +1339,7 @@ Sois concise, précise et pédagogue.`;
                     const brands = Array.isArray(data.brands) ? data.brands.slice(0, 6).map(b => b && b.name).filter(Boolean) : [];
 
                     const prompt = `Décris cette image en 3 à 6 lignes, en français, en restant factuel.
+Contexte domaine: ${selectedDomain}
 
 Signaux Azure Vision:
 - Description: ${desc || 'N/A'}
