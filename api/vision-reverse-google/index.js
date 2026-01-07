@@ -136,7 +136,8 @@ module.exports = async function (context, req) {
                 blobName,
                 permissions: BlobSASPermissions.parse('r'),
                 startsOn: new Date(Date.now() - 2 * 60 * 1000),
-                expiresOn: new Date(Date.now() + 10 * 60 * 1000),
+                // Laisser le temps à Google/Lens de récupérer l'image depuis l'URL
+                expiresOn: new Date(Date.now() + 60 * 60 * 1000),
                 protocol: 'https'
             },
             sharedKeyCredential
@@ -148,9 +149,6 @@ module.exports = async function (context, req) {
         // L'API Google Custom Search ne propose pas de "reverse image search" (recherche par image) via un paramètre imgUrl.
         // En l'absence de requête textuelle, on renvoie des liens (Google Images/Lens/Bing) basés sur l'URL SAS.
         if (!query) {
-            // Nettoyer le blob temporaire après (fire and forget)
-            blockBlobClient.delete().catch(e => context.log.warn('Failed to delete temp blob:', e.message));
-
             context.res = {
                 status: 200,
                 headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
@@ -158,6 +156,7 @@ module.exports = async function (context, req) {
                     mode: 'links',
                     warning: 'Google Custom Search API does not support reverse image search by URL. Returning links instead.',
                     imageUrl,
+                    expiresAt: new Date(Date.now() + 60 * 60 * 1000).toISOString(),
                     links: {
                         googleImages: `https://www.google.com/searchbyimage?image_url=${encodeURIComponent(imageUrl)}`,
                         googleLens: `https://lens.google.com/uploadbyurl?url=${encodeURIComponent(imageUrl)}`,
