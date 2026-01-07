@@ -1287,6 +1287,44 @@
             reader.readAsDataURL(file);
         });
 
+        function stripEveMeta(text) {
+            if (text === undefined || text === null) return '';
+            const raw = String(text);
+            const lines = raw.replace(/\r\n/g, '\n').replace(/\r/g, '\n').split('\n');
+
+            const isReliabilityLine = (line) => /^\s*(fiabilit[eé]|reliabilit[y]|confidence)\s*[:：]/i.test(line);
+            const isTokensLine = (line) => /^\s*(tokens?|usage\s*tokens?)\b.*[:：]/i.test(line) || /^\s*tokens?\s+utilis[eé]s\b/i.test(line);
+            const isPlanHeading = (line) => /^\s*(\*\*\s*)?(plan|plan d'action|plan d\s*action)\s*(\*\*\s*)?\s*[:：]?\s*$/i.test(line) || /^\s*(plan|plan d'action|plan d\s*action)\s*[:：]\s*.+/i.test(line);
+            const isListLike = (line) => /^\s*(?:[-*•]|\d+[.)])\s+/.test(line) || /^\s{2,}\S+/.test(line);
+
+            const out = [];
+            let skipPlan = false;
+
+            for (const line of lines) {
+                if (skipPlan) {
+                    if (!line.trim()) {
+                        skipPlan = false;
+                        continue;
+                    }
+                    if (isListLike(line)) continue;
+                    // Une ligne non-liste => on reprend l'affichage
+                    skipPlan = false;
+                }
+
+                if (isPlanHeading(line)) {
+                    skipPlan = true;
+                    continue;
+                }
+
+                if (isReliabilityLine(line)) continue;
+                if (isTokensLine(line)) continue;
+
+                out.push(line);
+            }
+
+            return out.join('\n').trim();
+        }
+
         async function callAgentEve(userMessage) {
             const endpoint = '/api/agents/axilum/invoke';
             const domainLabel = getDomainContextLabel();
@@ -1339,7 +1377,8 @@ ${onboardingBlock}`;
             });
 
             const data = await response.json();
-            return data.response || data.bot || "Je suis désolée, je n'ai pas pu traiter votre demande.";
+            const answer = data.response || data.bot || "Je suis désolée, je n'ai pas pu traiter votre demande.";
+            return stripEveMeta(answer);
         }
 
         async function autoDescribeWithEve() {
