@@ -7894,6 +7894,7 @@ ${persona}
                         ttsButton.dataset.speaking = 'false';
                         ttsButton.dataset.text = displayText;
                         ttsButton.title = 'Écouter ce message';
+                        ttsButton.setAttribute('aria-label', 'Écouter ce message');
                         ttsButton.style.cssText = `
                             display: inline-flex;
                             align-items: center;
@@ -7901,11 +7902,11 @@ ${persona}
                             width: 20px;
                             height: 20px;
                             margin-left: 4px;
-                            border-radius: 50%;
-                            background: var(--bg-secondary);
                             border: none;
+                            padding: 0;
+                            background: transparent;
                             cursor: pointer;
-                            transition: all 0.3s ease;
+                            transition: transform 0.2s ease, opacity 0.2s ease, color 0.2s ease;
                             color: var(--text-secondary);
                             opacity: 0.6;
                             vertical-align: text-bottom;
@@ -7921,14 +7922,12 @@ ${persona}
                         ttsButton.addEventListener('mouseenter', function() {
                             this.style.opacity = '1';
                             this.style.transform = 'scale(1.15)';
-                            this.style.background = 'var(--accent)';
-                            this.style.color = 'white';
+                            this.style.color = 'var(--accent)';
                         });
                         
                         ttsButton.addEventListener('mouseleave', function() {
                             this.style.opacity = '0.6';
                             this.style.transform = 'scale(1)';
-                            this.style.background = 'var(--bg-secondary)';
                             this.style.color = 'var(--text-secondary)';
                         });
                         
