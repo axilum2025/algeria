@@ -2925,8 +2925,8 @@
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
                             </svg>
                             <div class="prompt-text">
-                                <h3>Vision AI</h3>
-                                <p>Analyse d'images</p>
+                                <h3 id="welcomeVisionTitle">Vision AI</h3>
+                                <p id="welcomeVisionDesc">Analyse d'images</p>
                             </div>
                         </div>
                         
@@ -2935,8 +2935,8 @@
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/>
                             </svg>
                             <div class="prompt-text">
-                                <h3>Gestion tâches</h3>
-                                <p>Organisation et planning</p>
+                                <h3 id="welcomeTasksTitle">Gestion tâches</h3>
+                                <p id="welcomeTasksDesc">Organisation et planning</p>
                             </div>
                         </div>
                     </div>
@@ -2946,12 +2946,12 @@
 
         <div class="input-container">
             <div class="input-wrapper">
-                <button class="input-icon-btn" onclick="attachFile()" title="Joindre un fichier">
+                <button class="input-icon-btn" id="attachFileBtn" onclick="attachFile()" title="Joindre un fichier">
                     <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"/>
                     </svg>
                 </button>
-                <button class="input-icon-btn" onclick="startVoiceInput()" title="Saisie vocale">
+                <button class="input-icon-btn" id="voiceInputBtn" onclick="startVoiceInput()" title="Saisie vocale">
                     <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"/>
                     </svg>
@@ -9445,6 +9445,17 @@ ${persona}
                 'ui.languageSection': 'Langue',
                 'ui.languageLabel': 'Langue',
                 'ui.languageHelp': 'Appliqué à l’interface et à la voix.',
+                'ui.attachFileTitle': 'Joindre un fichier',
+                'ui.voiceInputTitle': 'Saisie vocale',
+                'ui.chooseAgentTitle': 'Choisir un agent',
+                'welcome.visionTitle': 'Vision AI',
+                'welcome.visionDesc': "Analyse d'images",
+                'welcome.tasksTitle': 'Gestion tâches',
+                'welcome.tasksDesc': 'Organisation et planning',
+                'rnd.applyActionsConfirm': 'Appliquer {count} action(s) au dashboard R&D ?',
+                'rnd.clearChatConfirm': '⚠️ Êtes-vous sûr de vouloir effacer tout l\'historique des conversations avec Agent dev?\n\nCette action est irréversible.',
+                'chat.historyCleared': '🗑️ Historique du chat effacé avec succès',
+                'mkt.clearChatConfirm': '⚠️ Êtes-vous sûr de vouloir effacer tout l\'historique des conversations avec Agent mark?\n\nCette action est irréversible.',
                 'auth.noAccount': 'Pas encore de compte ?',
                 'auth.createAccount': 'Créer un compte',
                 'auth.signup.title': 'Créer un compte',
@@ -9519,6 +9530,17 @@ ${persona}
                 'ui.languageSection': 'Language',
                 'ui.languageLabel': 'Language',
                 'ui.languageHelp': 'Applies to the UI and voice.',
+                'ui.attachFileTitle': 'Attach a file',
+                'ui.voiceInputTitle': 'Voice input',
+                'ui.chooseAgentTitle': 'Choose an agent',
+                'welcome.visionTitle': 'Vision AI',
+                'welcome.visionDesc': 'Image analysis',
+                'welcome.tasksTitle': 'Task management',
+                'welcome.tasksDesc': 'Organization and planning',
+                'rnd.applyActionsConfirm': 'Apply {count} action(s) to the R&D dashboard?',
+                'rnd.clearChatConfirm': '⚠️ Are you sure you want to clear the entire chat history with Agent dev?\n\nThis action is irreversible.',
+                'chat.historyCleared': '🗑️ Chat history cleared successfully',
+                'mkt.clearChatConfirm': '⚠️ Are you sure you want to clear the entire chat history with Agent mark?\n\nThis action is irreversible.',
                 'auth.noAccount': "Don't have an account?",
                 'auth.createAccount': 'Create an account',
                 'auth.signup.title': 'Create an account',
@@ -9797,6 +9819,27 @@ ${persona}
 
                 const userInput = document.getElementById('userInput');
                 if (userInput) userInput.placeholder = t('ui.inputPlaceholder');
+
+                const attachFileBtn = document.getElementById('attachFileBtn');
+                if (attachFileBtn) attachFileBtn.setAttribute('title', t('ui.attachFileTitle'));
+
+                const voiceInputBtn = document.getElementById('voiceInputBtn');
+                if (voiceInputBtn) voiceInputBtn.setAttribute('title', t('ui.voiceInputTitle'));
+
+                const agentBtn = document.getElementById('agentBtn');
+                if (agentBtn) agentBtn.setAttribute('title', t('ui.chooseAgentTitle'));
+
+                const welcomeVisionTitle = document.getElementById('welcomeVisionTitle');
+                if (welcomeVisionTitle) welcomeVisionTitle.textContent = t('welcome.visionTitle');
+
+                const welcomeVisionDesc = document.getElementById('welcomeVisionDesc');
+                if (welcomeVisionDesc) welcomeVisionDesc.textContent = t('welcome.visionDesc');
+
+                const welcomeTasksTitle = document.getElementById('welcomeTasksTitle');
+                if (welcomeTasksTitle) welcomeTasksTitle.textContent = t('welcome.tasksTitle');
+
+                const welcomeTasksDesc = document.getElementById('welcomeTasksDesc');
+                if (welcomeTasksDesc) welcomeTasksDesc.textContent = t('welcome.tasksDesc');
 
                 const voiceStatusText = document.getElementById('voiceStatusText');
                 if (voiceStatusText && (!voiceStatusText.textContent || voiceStatusText.textContent.trim().length === 0 || voiceStatusText.textContent === 'Je vous écoute...')) {
@@ -17862,7 +17905,8 @@ ${persona}
             if (!batch || batch.applied || batch.discarded) return;
             if (!Array.isArray(batch.actions) || batch.actions.length === 0) return;
 
-            const ok = confirm(`Appliquer ${batch.actions.length} action(s) au dashboard R&D ?`);
+            const template = (typeof t === 'function') ? t('rnd.applyActionsConfirm') : 'Appliquer {count} action(s) au dashboard R&D ?';
+            const ok = confirm(String(template).replace('{count}', String(batch.actions.length)));
             if (!ok) return;
 
             const result = rndApplyAgentActions(batch.actions);
@@ -18244,7 +18288,8 @@ ${persona}
         }
         
         function clearRnDChatHistory() {
-            if (!confirm('⚠️ Êtes-vous sûr de vouloir effacer tout l\'historique des conversations avec Agent dev?\n\nCette action est irréversible.')) return;
+            const confirmMsg = (typeof t === 'function') ? t('rnd.clearChatConfirm') : '⚠️ Êtes-vous sûr de vouloir effacer tout l\'historique des conversations avec Agent dev?\n\nCette action est irréversible.';
+            if (!confirm(confirmMsg)) return;
             
             // Effacer l'historique
             rndChatHistory = [];
@@ -18271,7 +18316,7 @@ ${persona}
                     z-index: 10003;
                     animation: slideIn 0.3s ease;
                 `;
-                toast.textContent = '🗑️ Historique du chat effacé avec succès';
+                toast.textContent = (typeof t === 'function') ? t('chat.historyCleared') : '🗑️ Historique du chat effacé avec succès';
                 overlay.appendChild(toast);
                 
                 setTimeout(() => {
@@ -20816,7 +20861,8 @@ function showAddProjectModal() {
         }
 
         function clearMarketingChatHistory() {
-            if (!confirm('⚠️ Êtes-vous sûr de vouloir effacer tout l\'historique des conversations avec Agent mark?\n\nCette action est irréversible.')) return;
+            const confirmMsg = (typeof t === 'function') ? t('mkt.clearChatConfirm') : '⚠️ Êtes-vous sûr de vouloir effacer tout l\'historique des conversations avec Agent mark?\n\nCette action est irréversible.';
+            if (!confirm(confirmMsg)) return;
 
             marketingAgentHistory = [];
             try { localStorage.setItem(MKT_CHAT_HISTORY_KEY, '[]'); } catch (_) {}
@@ -20840,7 +20886,7 @@ function showAddProjectModal() {
                     z-index: 10003;
                     animation: slideIn 0.3s ease;
                 `;
-                toast.textContent = '🗑️ Historique du chat effacé avec succès';
+                toast.textContent = (typeof t === 'function') ? t('chat.historyCleared') : '🗑️ Historique du chat effacé avec succès';
                 overlay.appendChild(toast);
                 setTimeout(() => {
                     toast.style.animation = 'fadeOut 0.3s ease';
