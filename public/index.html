@@ -262,36 +262,30 @@
         .new-chat-btn {
             width: 100%;
             padding: 12px 14px;
-            background: linear-gradient(180deg,
-                color-mix(in srgb, var(--accent) 92%, var(--bg-sidebar)),
-                color-mix(in srgb, var(--accent) 82%, var(--bg-sidebar))
-            );
-            color: #fff;
-            border: 1px solid color-mix(in srgb, var(--accent) 45%, var(--border-color));
+            background: var(--bg-sidebar);
+            color: var(--text-primary);
+            border: 1px solid var(--border-color);
             border-radius: 12px;
             cursor: pointer;
             font-weight: 700;
             letter-spacing: -0.1px;
-            transition: transform 0.16s ease, box-shadow 0.16s ease, filter 0.16s ease;
+            transition: background 0.16s ease, transform 0.16s ease, box-shadow 0.16s ease;
             font-size: 14px;
-            box-shadow: 0 10px 24px color-mix(in srgb, var(--accent) 22%, transparent);
+            box-shadow: none;
         }
 
         .new-chat-btn:hover {
             transform: translateY(-1px);
-            filter: brightness(1.02);
-            box-shadow: 0 14px 32px color-mix(in srgb, var(--accent) 28%, transparent);
+            background: var(--bg-secondary);
         }
 
         .new-chat-btn:active {
             transform: translateY(0);
-            filter: brightness(0.99);
         }
 
         .new-chat-btn:focus-visible {
             outline: none;
             box-shadow:
-                0 14px 32px color-mix(in srgb, var(--accent) 28%, transparent),
                 0 0 0 3px color-mix(in srgb, var(--accent) 35%, transparent);
         }
 
