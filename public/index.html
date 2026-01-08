@@ -20,6 +20,13 @@
             --accent: #3B82F6;
             --shadow: rgba(0, 0, 0, 0.08);
             --chat-max-width: 800px;
+            --bubble-max-width: 680px;
+            --bubble-max-percent: 80%;
+            --bubble-padding-y: 14px;
+            --bubble-padding-x: 16px;
+            --bubble-radius: 18px;
+            --bubble-tail-radius: 4px;
+            --bubble-shadow: 0 1px 3px var(--shadow);
             --hi-low: #10B981;
             --hi-med: #F59E0B;
             --hi-high: #EF4444;
@@ -638,7 +645,7 @@
         }
 
         .message-wrapper {
-            margin-bottom: 16px;
+            margin-bottom: 14px;
             animation: fadeIn 0.3s ease-out;
             display: flex;
             flex-direction: column;
@@ -702,7 +709,7 @@
         }
 
         .message-content {
-            padding: 16px;
+            padding: var(--bubble-padding-y) var(--bubble-padding-x);
             border-radius: 12px;
             line-height: 1.6;
             font-size: 15px;
@@ -715,8 +722,9 @@
             color: white;
             margin-left: auto;
             margin-right: 0;
-            max-width: 80%;
-            border-radius: 18px 18px 4px 18px;
+            max-width: min(var(--bubble-max-percent), var(--bubble-max-width));
+            border-radius: var(--bubble-radius) var(--bubble-radius) var(--bubble-tail-radius) var(--bubble-radius);
+            box-shadow: var(--bubble-shadow);
         }
 
         /* Images uploadées dans le chat : pas de "cadre" (bulle bleue) autour de la photo */
@@ -750,10 +758,10 @@
             color: var(--text-primary);
             margin-left: 0;
             margin-right: auto;
-            max-width: 80%;
+            max-width: min(var(--bubble-max-percent), var(--bubble-max-width));
             border: 1px solid var(--border-color);
-            box-shadow: 0 1px 3px var(--shadow);
-            border-radius: 18px 18px 18px 4px;
+            box-shadow: var(--bubble-shadow);
+            border-radius: var(--bubble-radius) var(--bubble-radius) var(--bubble-radius) var(--bubble-tail-radius);
         }
 
         .message-wrapper.error .message-content {
