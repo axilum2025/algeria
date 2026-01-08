@@ -1,6 +1,6 @@
 name: Deploy Axilum
 
-on:
+"on":
   push:
     branches: [ main ]
   workflow_dispatch:
@@ -37,39 +37,34 @@ jobs:
                "node_modules/*"
 
       - name: Deploy (publish profile)
-        if: >
-          ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
+        if: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
         uses: azure/webapps-deploy@v3
         with:
           app-name: ${{ env.APP_NAME }}
-          publish-profile: >
-            ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
+          publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
           package: deploy.zip
 
-      - name: Fail if secrets missing
-        if: >
-          ${{ !secrets.AZURE_WEBAPP_PUBLISH_PROFILE &&
-              !secrets.AZURE_CREDENTIALS }}
+      - name: Check creds (fallback)
+        if: ${{ !secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
+        env:
+          AZURE_CREDENTIALS: ${{ secrets.AZURE_CREDENTIALS }}
         run: |
-          echo "Missing Azure secrets." >&2
-          echo "Set ONE of:" >&2
-          echo "- AZURE_WEBAPP_PUBLISH_PROFILE" >&2
-          echo "- AZURE_CREDENTIALS" >&2
-          exit 1
+          if [ -z "$AZURE_CREDENTIALS" ]; then
+            echo "Missing Azure secrets." >&2
+            echo "Set ONE of:" >&2
+            echo "- AZURE_WEBAPP_PUBLISH_PROFILE" >&2
+            echo "- AZURE_CREDENTIALS" >&2
+            exit 1
+          fi
 
       - name: Azure login (sp json)
-        if: >
-          ${{ !secrets.AZURE_WEBAPP_PUBLISH_PROFILE &&
-              secrets.AZURE_CREDENTIALS }}
+        if: ${{ !secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
         uses: azure/login@v2
         with:
-          creds: >
-            ${{ secrets.AZURE_CREDENTIALS }}
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
 
       - name: Deploy (az cli)
-        if: >
-          ${{ !secrets.AZURE_WEBAPP_PUBLISH_PROFILE &&
-              secrets.AZURE_CREDENTIALS }}
+        if: ${{ !secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
         run: |
           az webapp deployment source config-zip \
             --resource-group "${{ env.APP_RG }}" \
