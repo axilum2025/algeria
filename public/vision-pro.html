@@ -1451,6 +1451,15 @@
         }
 
         async function askEveForAction(functionType, data) {
+            const getAppLanguage = () => {
+                try {
+                    const stored = localStorage.getItem('appLanguage');
+                    if (stored && String(stored).toLowerCase().startsWith('en')) return 'en';
+                } catch (_) {}
+                return (navigator && navigator.language && String(navigator.language).toLowerCase().startsWith('en')) ? 'en' : 'fr';
+            };
+            const responseLanguageRule = (getAppLanguage() === 'en') ? 'Respond in English.' : 'Réponds en français.';
+
             const domain = getDomainContextLabel();
             const actionLabelMap = {
                 analyze: 'Analyse',
@@ -1467,7 +1476,7 @@ Domaine: ${domain}
 Action: ${label}
 
 Consignes:
-- Réponds en français.
+- ${responseLanguageRule}
 - Sois concise et orientée métier.
 - Ne propose pas d'autres domaines.
 - Si le domaine est "Général", réponds en général.
@@ -1531,7 +1540,7 @@ Domaine: ${domain}
 Livrable: ${title}
 
 Règles:
-- Réponds en français.
+- ${(function(){ try { const s = localStorage.getItem('appLanguage'); if (s && String(s).toLowerCase().startsWith('en')) return 'Respond in English.'; } catch(_) {} return (navigator && navigator.language && String(navigator.language).toLowerCase().startsWith('en')) ? 'Respond in English.' : 'Réponds en français.'; })()}
 - Ne propose pas d'autres domaines.
 - Si le domaine est "Général", fais une analyse générale.
 - Ne mentionne pas de métriques internes (tokens, fiabilité, etc.).

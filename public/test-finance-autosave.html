@@ -165,7 +165,7 @@
         // Tests
         function log(outputId, message, type = 'info') {
             const output = document.getElementById(outputId);
-            const timestamp = new Date().toLocaleTimeString('fr-FR');
+            const timestamp = new Date().toLocaleTimeString();
             const color = type === 'success' ? 'success' : type === 'error' ? 'error' : 'info';
             output.innerHTML += `<span class="${color}">[${timestamp}] ${message}</span>\n`;
         }
@@ -236,7 +236,7 @@
                 log('output2', `${index + 1}. ${conv.name}`, 'success');
                 log('output2', `   ID: ${conv.id}`, 'info');
                 log('output2', `   Messages: ${conv.messageCount}`, 'info');
-                log('output2', `   Dernière MAJ: ${new Date(conv.lastUpdated).toLocaleString('fr-FR')}\n`, 'info');
+                log('output2', `   Dernière MAJ: ${new Date(conv.lastUpdated).toLocaleString()}\n`, 'info');
             });
         }
 

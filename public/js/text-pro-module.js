@@ -38,7 +38,7 @@
     // Variables pour la traduction vocale instantanée
     let isTranslating = false;
     let translationRecognition = null;
-    let sourceLang = 'fr-FR';
+    let sourceLang = getSpeechLocale();
     let targetLang = 'en';
     
     // Variables pour les modes de traduction

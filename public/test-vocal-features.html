@@ -247,7 +247,14 @@
                 }
                 
                 recognition = new SpeechRecognition();
-                recognition.lang = 'fr-FR';
+                const speechLocale = (function() {
+                    try {
+                        const stored = localStorage.getItem('appLanguage');
+                        if (stored && String(stored).toLowerCase().startsWith('en')) return 'en-US';
+                    } catch (_) {}
+                    return (navigator && navigator.language && String(navigator.language).toLowerCase().startsWith('en')) ? 'en-US' : 'fr-FR';
+                })();
+                recognition.lang = speechLocale;
                 recognition.continuous = false;
                 recognition.interimResults = false;
                 
@@ -315,7 +322,14 @@
             
             try {
                 currentUtterance = new SpeechSynthesisUtterance(text);
-                currentUtterance.lang = 'fr-FR';
+                const speechLocale = (function() {
+                    try {
+                        const stored = localStorage.getItem('appLanguage');
+                        if (stored && String(stored).toLowerCase().startsWith('en')) return 'en-US';
+                    } catch (_) {}
+                    return (navigator && navigator.language && String(navigator.language).toLowerCase().startsWith('en')) ? 'en-US' : 'fr-FR';
+                })();
+                currentUtterance.lang = speechLocale;
                 currentUtterance.rate = speechRate;
                 currentUtterance.pitch = 1.0;
                 currentUtterance.volume = 1.0;
