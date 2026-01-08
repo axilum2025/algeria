@@ -16,7 +16,7 @@
             --secondary: #7b2ff7;
             --dark: #0a0e27;
             --darker: #050814;
-            --glass: rgba(255, 255, 255, 0.05);
+            --glass: rgba(255, 255, 255, 0.035);
             --glass-border: rgba(255, 255, 255, 0.1);
             --text: #e4e4e7;
             --text-dim: #a1a1aa;
@@ -289,6 +289,7 @@
             display: flex;
             flex-direction: column;
             gap: 16px;
+            scroll-behavior: smooth;
         }
 
         .message {
@@ -1167,6 +1168,7 @@
         const functionItems = document.querySelectorAll('.function-item');
         const domainBtn = document.getElementById('domainBtn');
         const domainMenu = document.getElementById('domainMenu');
+        const topbar = document.querySelector('.topbar');
 
         function renderDomainButton() {
             if (!domainBtn) return;
@@ -1228,6 +1230,45 @@
             sidebar.dataset.userToggled = '1';
             sidebar.classList.add('collapsed');
         });
+
+        // Fermer le sidebar si clic en dehors
+        document.addEventListener('click', (e) => {
+            if (!sidebar || sidebar.classList.contains('collapsed')) return;
+            const target = e.target;
+            if (!target) return;
+
+            // Ne pas fermer sur les zones qui pilotent/ouvrent des menus
+            if (toggleSidebarBtn && toggleSidebarBtn.contains(target)) return;
+            if (domainBtn && domainBtn.contains(target)) return;
+            if (domainMenu && domainMenu.contains(target)) return;
+
+            // Ne pas fermer si clic dans le sidebar
+            if (sidebar.contains(target)) return;
+
+            sidebar.dataset.userToggled = '1';
+            sidebar.classList.add('collapsed');
+        });
+
+        // Scroll: clic sur la topbar (hors boutons) => remonter en haut
+        if (topbar && chatMessages) {
+            topbar.addEventListener('click', (e) => {
+                const target = e.target;
+                if (!target) return;
+                if (toggleSidebarBtn && toggleSidebarBtn.contains(target)) return;
+                if (domainBtn && domainBtn.contains(target)) return;
+                if (domainMenu && domainMenu.contains(target)) return;
+                if (target.closest && target.closest('button')) return;
+
+                chatMessages.scrollTo({ top: 0, behavior: 'smooth' });
+            });
+        }
+
+        // Scroll: double-clic dans la zone messages => remonter en haut
+        if (chatMessages) {
+            chatMessages.addEventListener('dblclick', () => {
+                chatMessages.scrollTo({ top: 0, behavior: 'smooth' });
+            });
+        }
 
         // Sur mobile/tablette, le sidebar doit être fermé par défaut sinon il recouvre la page.
         function syncSidebarForViewport() {
