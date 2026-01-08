@@ -17,7 +17,7 @@ async function testCodeStorage() {
         await codeStorage.storeCode(testEmail, code, expiresAt);
         console.log(`   ✅ Code stocké: ${code}`);
         console.log(`   📧 Pour: ${testEmail}`);
-        console.log(`   ⏰ Expire: ${expiresAt.toLocaleString('fr-FR')}`);
+        console.log(`   ⏰ Expire: ${expiresAt.toLocaleString()}`);
         
         // 2. Récupérer le code
         console.log('\n2️⃣  Récupération du code...');
@@ -26,7 +26,7 @@ async function testCodeStorage() {
         
         if (retrievedCode) {
             console.log(`   📝 Code: ${retrievedCode.code}`);
-            console.log(`   ⏰ Expiration: ${new Date(retrievedCode.expiresAt).toLocaleString('fr-FR')}`);
+            console.log(`   ⏰ Expiration: ${new Date(retrievedCode.expiresAt).toLocaleString()}`);
         }
         
         // 3. Vérifier que les données correspondent
