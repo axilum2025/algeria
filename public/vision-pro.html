@@ -307,6 +307,13 @@
             scroll-behavior: smooth;
             overscroll-behavior: contain;
             min-height: 0;
+            scrollbar-width: none; /* Firefox */
+            -ms-overflow-style: none; /* IE/Edge legacy */
+        }
+
+        .chat-messages::-webkit-scrollbar {
+            width: 0;
+            height: 0;
         }
 
         .message {
