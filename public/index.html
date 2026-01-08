@@ -2693,14 +2693,12 @@
     <!-- Sidebar -->
     <div class="sidebar" id="sidebar">
         <div class="sidebar-header">
-            <button class="new-chat-btn" onclick="newConversation()">
-                Nouvelle Conversation
-            </button>
+            <button class="new-chat-btn" id="newChatBtn" onclick="newConversation()">Nouvelle Conversation</button>
             <button class="sessions-toggle-btn" id="sessionsToggleBtn" onclick="toggleSessions()">
                 <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
                 </svg>
-                Sessions
+                <span id="sessionsLabel">Sessions</span>
                 <svg style="margin-left: auto;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
                 </svg>
@@ -3518,10 +3516,30 @@
     <div class="modal" id="settingsModal">
         <div class="modal-content" style="max-width: 600px;">
             <div class="modal-header">
-                <div class="modal-title">Paramètres</div>
+                <div class="modal-title" id="settingsModalTitle">Paramètres</div>
                 <button class="close-modal" onclick="closeSettingsModal()">×</button>
             </div>
             <div style="padding: 20px;">
+                <!-- Langue -->
+                <div class="about-section" id="languageSettingsSection">
+                    <h3>
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 4h6m-6 4h6m-6 4h6m7-8a7 7 0 01-7 7m7-7a7 7 0 00-7-7m7 7H14m0 0a7 7 0 01-7 7m7-7a7 7 0 00-7-7m7 14h6"/>
+                        </svg>
+                        <span id="languageSectionTitle">Langue</span>
+                    </h3>
+                    <div style="background: var(--bg-secondary); padding: 15px; border-radius: 10px; border: 1px solid var(--border-color);">
+                        <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
+                            <label for="languageSelect" id="languageLabel" style="min-width:140px; color: var(--text-secondary); font-size: 13px;">Langue</label>
+                            <select id="languageSelect" onchange="onLanguageChanged()" style="flex:1; min-width:240px; padding:10px; border:1px solid var(--border-color); border-radius:10px; background:var(--bg-primary); color:var(--text-primary);">
+                                <option value="fr">Français</option>
+                                <option value="en">English</option>
+                            </select>
+                        </div>
+                        <div id="languageHelp" style="margin-top:10px; color: var(--text-secondary); font-size: 13px; line-height: 1.4;">Appliqué à l’interface et à la voix.</div>
+                    </div>
+                </div>
+
                 <!-- Apparence -->
                 <div class="about-section">
                     <h3>
@@ -4631,6 +4649,9 @@ RÈGLES IMPORTANTES:
             // Log version pour débogage déploiement
             console.log('🚀 AXILUM AI v1.4-DEPLOY-TEST - ' + new Date().toISOString());
             console.log('📦 Build timestamp: ' + Date.now());
+
+            // Langue: appliquer au chargement
+            try { applyLanguageToUI(); } catch (_) {}
             
             // Animation du logo
             const logoEl = document.getElementById('logo');
@@ -4785,7 +4806,7 @@ RÈGLES IMPORTANTES:
             if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
                 const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
                 recognition = new SpeechRecognition();
-                recognition.lang = 'fr-FR';
+                recognition.lang = getSpeechLocale();
                 recognition.continuous = false;
                 recognition.interimResults = false;
                 
@@ -4793,11 +4814,11 @@ RÈGLES IMPORTANTES:
                     const transcript = event.results[0][0].transcript;
                     document.getElementById('userInput').value = transcript;
                     adjustTextareaHeight();
-                    showToast('✅ Transcription terminée', 'success');
+                    showToast(t('toast.transcriptionDone'), 'success');
                 };
                 
                 recognition.onerror = (event) => {
-                    showToast('❌ Erreur de reconnaissance vocale', 'error');
+                    showToast(t('toast.voiceError'), 'error');
                     isRecording = false;
                 };
                 
@@ -7607,7 +7628,7 @@ ${persona}
             }
 
             const now = new Date();
-            const time = now.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+            const time = now.toLocaleTimeString(getLocale(), { hour: '2-digit', minute: '2-digit' });
 
             let avatarEmoji = type === 'user' ? '👤' : '🤖';
             let senderName = type === 'user' ? 'Vous' : 'Axilum AI';
@@ -8210,7 +8231,7 @@ ${persona}
                         messageWrapper.className = 'message-wrapper user image-message';
                         
                         const now = new Date();
-                        const time = now.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+                        const time = now.toLocaleTimeString(getLocale(), { hour: '2-digit', minute: '2-digit' });
                         
                         messageWrapper.innerHTML = `
                             <div class="message-header">
@@ -9441,6 +9462,139 @@ ${persona}
             localStorage.setItem('messageStats', JSON.stringify(messageStats));
         }
 
+        // ========== I18N (FR/EN) ==========
+        const I18N_STRINGS = {
+            fr: {
+                'ui.newConversation': 'Nouvelle Conversation',
+                'ui.sessions': 'Sessions',
+                'ui.settings': 'Paramètres',
+                'ui.languageSection': 'Langue',
+                'ui.languageLabel': 'Langue',
+                'ui.languageHelp': 'Appliqué à l’interface et à la voix.',
+                'ui.inputPlaceholder': 'Écrivez votre message...',
+                'tts.listen': 'Écouter ce message',
+                'tts.stop': 'Arrêter la lecture',
+                'toast.transcriptionDone': '✅ Transcription terminée',
+                'toast.voiceError': '❌ Erreur de reconnaissance vocale',
+                'toast.noTextToRead': 'Aucun texte à lire',
+                'voice.listening': 'Je vous écoute...',
+                'voice.thinking': 'Je réfléchis...',
+                'voice.speaking': 'Je vous réponds...',
+                'voice.paused': 'En pause - Cliquez pour reprendre'
+            },
+            en: {
+                'ui.newConversation': 'New Conversation',
+                'ui.sessions': 'Sessions',
+                'ui.settings': 'Settings',
+                'ui.languageSection': 'Language',
+                'ui.languageLabel': 'Language',
+                'ui.languageHelp': 'Applies to the UI and voice.',
+                'ui.inputPlaceholder': 'Type your message...',
+                'tts.listen': 'Listen to this message',
+                'tts.stop': 'Stop playback',
+                'toast.transcriptionDone': '✅ Transcription complete',
+                'toast.voiceError': '❌ Voice recognition error',
+                'toast.noTextToRead': 'No text to read',
+                'voice.listening': "I'm listening...",
+                'voice.thinking': "Thinking...",
+                'voice.speaking': "Speaking...",
+                'voice.paused': 'Paused — click to resume'
+            }
+        };
+
+        function normalizeAppLanguage(lang) {
+            const raw = String(lang || '').toLowerCase();
+            if (raw.startsWith('en')) return 'en';
+            return 'fr';
+        }
+
+        function getAppLanguage() {
+            try {
+                const stored = localStorage.getItem('appLanguage');
+                if (stored) return normalizeAppLanguage(stored);
+            } catch (_) {}
+            return normalizeAppLanguage((navigator && navigator.language) ? navigator.language : 'fr');
+        }
+
+        function setAppLanguage(lang) {
+            const normalized = normalizeAppLanguage(lang);
+            try { localStorage.setItem('appLanguage', normalized); } catch (_) {}
+            return normalized;
+        }
+
+        function t(key) {
+            const lang = getAppLanguage();
+            const dict = I18N_STRINGS[lang] || I18N_STRINGS.fr;
+            return dict[key] || (I18N_STRINGS.fr && I18N_STRINGS.fr[key]) || key;
+        }
+
+        function getLocale() {
+            const lang = getAppLanguage();
+            return lang === 'en' ? 'en-US' : 'fr-FR';
+        }
+
+        function getSpeechLocale() {
+            return getLocale();
+        }
+
+        function applyLanguageToUI() {
+            try {
+                const lang = getAppLanguage();
+                document.documentElement.lang = lang;
+            } catch (_) {}
+
+            try {
+                const newChatBtn = document.getElementById('newChatBtn');
+                if (newChatBtn) newChatBtn.textContent = t('ui.newConversation');
+
+                const sessionsLabel = document.getElementById('sessionsLabel');
+                if (sessionsLabel) sessionsLabel.textContent = t('ui.sessions');
+
+                const settingsTitle = document.getElementById('settingsModalTitle');
+                if (settingsTitle) settingsTitle.textContent = t('ui.settings');
+
+                const languageSectionTitle = document.getElementById('languageSectionTitle');
+                if (languageSectionTitle) languageSectionTitle.textContent = t('ui.languageSection');
+
+                const languageLabel = document.getElementById('languageLabel');
+                if (languageLabel) languageLabel.textContent = t('ui.languageLabel');
+
+                const languageHelp = document.getElementById('languageHelp');
+                if (languageHelp) languageHelp.textContent = t('ui.languageHelp');
+
+                const userInput = document.getElementById('userInput');
+                if (userInput) userInput.placeholder = t('ui.inputPlaceholder');
+
+                const voiceStatusText = document.getElementById('voiceStatusText');
+                if (voiceStatusText && (!voiceStatusText.textContent || voiceStatusText.textContent.trim().length === 0 || voiceStatusText.textContent === 'Je vous écoute...')) {
+                    voiceStatusText.textContent = t('voice.listening');
+                }
+            } catch (_) {}
+
+            try {
+                // Mettre à jour la langue de la reco vocale simple
+                if (typeof recognition !== 'undefined' && recognition) {
+                    recognition.lang = getSpeechLocale();
+                }
+            } catch (_) {}
+
+            try {
+                // Mettre à jour la langue du mode vocal
+                if (typeof voiceRecognition !== 'undefined' && voiceRecognition) {
+                    voiceRecognition.lang = getSpeechLocale();
+                }
+            } catch (_) {}
+        }
+
+        function onLanguageChanged() {
+            try {
+                const sel = document.getElementById('languageSelect');
+                if (!sel) return;
+                setAppLanguage(sel.value);
+                applyLanguageToUI();
+            } catch (_) {}
+        }
+
         function showAbout() {
             document.getElementById('aboutModal').style.display = 'flex';
         }
@@ -9451,6 +9605,11 @@ ${persona}
 
         function showSettings() {
             document.getElementById('settingsModal').style.display = 'flex';
+            try {
+                const sel = document.getElementById('languageSelect');
+                if (sel) sel.value = getAppLanguage();
+                applyLanguageToUI();
+            } catch (_) {}
             refreshStorageModeUI();
             try { refreshAiModelSelect(); } catch (_) {}
         }
@@ -33072,7 +33231,7 @@ Réponds UNIQUEMENT dans ce format JSON:
                                 <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"/>
                             </svg>
                         `;
-                        btn.title = 'Écouter ce message';
+                        btn.title = t('tts.listen');
                     });
                     
                     activeTTSButton = null;
@@ -33082,7 +33241,7 @@ Réponds UNIQUEMENT dans ce format JSON:
                 // Lancer la lecture
                 const text = button.dataset.text;
                 if (!text || text.length === 0) {
-                    showToast('Aucun texte à lire', 'warning');
+                    showToast(t('toast.noTextToRead'), 'warning');
                     return;
                 }
                 
@@ -33104,7 +33263,7 @@ Réponds UNIQUEMENT dans ce format JSON:
                 
                 // Créer et configurer la synthèse vocale
                 const utterance = new SpeechSynthesisUtterance(text);
-                utterance.lang = 'fr-FR';
+                utterance.lang = getSpeechLocale();
                 utterance.rate = 1.0;
                 utterance.pitch = 1.0;
                 utterance.volume = 1.0;
@@ -33120,7 +33279,7 @@ Réponds UNIQUEMENT dans ce format JSON:
                                 <rect x="14" y="4" width="4" height="16"/>
                             </svg>
                         `;
-                        button.title = 'Arrêter la lecture';
+                        button.title = t('tts.stop');
                         if (button.classList.contains('tts-button-inline')) {
                             button.style.background = 'transparent';
                             button.style.color = '#EF4444';
@@ -33142,7 +33301,7 @@ Réponds UNIQUEMENT dans ce format JSON:
                                 <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"/>
                             </svg>
                         `;
-                        button.title = 'Écouter ce message';
+                        button.title = t('tts.listen');
                         if (button.classList.contains('tts-button-inline')) {
                             button.style.background = 'transparent';
                             button.style.color = 'var(--text-secondary)';
@@ -33169,7 +33328,7 @@ Réponds UNIQUEMENT dans ce format JSON:
                                 <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"/>
                             </svg>
                         `;
-                        button.title = 'Écouter ce message';
+                        button.title = t('tts.listen');
                         if (button.classList.contains('tts-button-inline')) {
                             button.style.background = 'transparent';
                             button.style.color = 'var(--text-secondary)';
@@ -33264,7 +33423,7 @@ Réponds UNIQUEMENT dans ce format JSON:
                 voiceRecognition = new SpeechRecognition();
                 voiceRecognition.continuous = false; // DÉSACTIVER le mode continu pour éviter accumulation
                 voiceRecognition.interimResults = true;
-                voiceRecognition.lang = 'fr-FR';
+                voiceRecognition.lang = getSpeechLocale();
 
                 voiceRecognition.onresult = (event) => {
                     // NE PAS traiter si l'IA est en train de parler
@@ -33314,7 +33473,7 @@ Réponds UNIQUEMENT dans ce format JSON:
                             }
                             voiceState = 'idle';
                             updateVoiceOrbState('idle');
-                            updateVoiceStatus('En pause - Cliquez pour reprendre');
+                            updateVoiceStatus(t('voice.paused'));
                             return;
                         }
                         
@@ -33417,7 +33576,7 @@ Réponds UNIQUEMENT dans ce format JSON:
             
             voiceState = 'listening';
             updateVoiceOrbState('listening');
-            updateVoiceStatus('Je vous écoute...');
+            updateVoiceStatus(t('voice.listening'));
             
             try {
                 voiceRecognition.start();
@@ -33450,7 +33609,7 @@ Réponds UNIQUEMENT dans ce format JSON:
             // État: réflexion
             voiceState = 'thinking';
             updateVoiceOrbState('thinking');
-            updateVoiceStatus('Je réfléchis...');
+            updateVoiceStatus(t('voice.thinking'));
 
             // Envoyer le message
             const userInput = document.getElementById('userInput');
@@ -33464,13 +33623,13 @@ Réponds UNIQUEMENT dans ce format JSON:
                 if (messages.length > 0) {
                     const lastMessage = messages[messages.length - 1];
                     const botText = lastMessage.textContent || lastMessage.innerText;
-                    speakText(botText);
+                    speakVoiceText(botText);
                 }
             }, 1000);
         }
 
         // Lire le texte à voix haute
-        function speakText(text) {
+        function speakVoiceText(text) {
             // ARRÊTER COMPLÈTEMENT la reconnaissance vocale pendant que l'IA parle
             stopVoiceListening();
 
@@ -33486,7 +33645,7 @@ Réponds UNIQUEMENT dans ce format JSON:
             }
 
             currentUtterance = new SpeechSynthesisUtterance(cleanText);
-            currentUtterance.lang = 'fr-FR';
+            currentUtterance.lang = getSpeechLocale();
             currentUtterance.rate = 1.0;
             currentUtterance.pitch = 1.0;
             currentUtterance.volume = 1.0;
@@ -33494,7 +33653,7 @@ Réponds UNIQUEMENT dans ce format JSON:
             // État: parle
             voiceState = 'speaking';
             updateVoiceOrbState('speaking');
-            updateVoiceStatus('Je vous réponds...');
+            updateVoiceStatus(t('voice.speaking'));
 
             currentUtterance.onend = () => {
                 console.log('✅ Fin de la synthèse vocale');
