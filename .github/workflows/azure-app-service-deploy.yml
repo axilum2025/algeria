@@ -1,66 +1,80 @@
-name: Deploy to Azure App Service - Axilum
+name: Deploy Axilum
 
 on:
   push:
-    branches:
-      - main
+    branches: [ main ]
   workflow_dispatch:
 
 env:
-  AZURE_WEBAPP_NAME: Axilum
-  AZURE_RESOURCE_GROUP: AxilumRessources
-  NODE_VERSION: '20'
+  APP_NAME: Axilum
+  APP_RG: AxilumRessources
+  NODE_VERSION: "20"
 
 jobs:
-  build-and-deploy:
+  deploy:
     runs-on: ubuntu-latest
-    
+
     steps:
-      - name: Checkout code
+      - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup Node.js
+      - name: Setup Node
         uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
-          cache: 'npm'
+          cache: npm
 
-      - name: Install dependencies
+      - name: Install
         run: npm ci
 
-      - name: Create deployment package
+      - name: Package
         run: |
-          zip -r deploy.zip . -x "*.git*" ".github/*" "docs/*" "scripts/*" "node_modules/*"
+          zip -r deploy.zip . \
+            -x "*.git*" \
+               ".github/*" \
+               "docs/*" \
+               "scripts/*" \
+               "node_modules/*"
 
-      - name: Deploy (Publish Profile)
-        if: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
+      - name: Deploy (publish profile)
+        if: >
+          ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
         uses: azure/webapps-deploy@v3
         with:
-          app-name: ${{ env.AZURE_WEBAPP_NAME }}
-          publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
+          app-name: ${{ env.APP_NAME }}
+          publish-profile: >
+            ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
           package: deploy.zip
 
-      - name: Fail if Azure secrets missing
-        if: ${{ !secrets.AZURE_WEBAPP_PUBLISH_PROFILE && !secrets.AZURE_CREDENTIALS }}
+      - name: Fail if secrets missing
+        if: >
+          ${{ !secrets.AZURE_WEBAPP_PUBLISH_PROFILE &&
+              !secrets.AZURE_CREDENTIALS }}
         run: |
-          echo "Missing Azure deployment secrets. Configure ONE of:" >&2
-          echo "- AZURE_WEBAPP_PUBLISH_PROFILE (recommended, easiest)" >&2
-          echo "- AZURE_CREDENTIALS (JSON service principal)" >&2
+          echo "Missing Azure secrets." >&2
+          echo "Set ONE of:" >&2
+          echo "- AZURE_WEBAPP_PUBLISH_PROFILE" >&2
+          echo "- AZURE_CREDENTIALS" >&2
           exit 1
 
-      - name: Azure Login (Service Principal JSON)
-        if: ${{ !secrets.AZURE_WEBAPP_PUBLISH_PROFILE && secrets.AZURE_CREDENTIALS }}
+      - name: Azure login (sp json)
+        if: >
+          ${{ !secrets.AZURE_WEBAPP_PUBLISH_PROFILE &&
+              secrets.AZURE_CREDENTIALS }}
         uses: azure/login@v2
         with:
-          creds: ${{ secrets.AZURE_CREDENTIALS }}
+          creds: >
+            ${{ secrets.AZURE_CREDENTIALS }}
 
-      - name: Deploy to Azure Web App (az cli)
-        if: ${{ !secrets.AZURE_WEBAPP_PUBLISH_PROFILE && secrets.AZURE_CREDENTIALS }}
+      - name: Deploy (az cli)
+        if: >
+          ${{ !secrets.AZURE_WEBAPP_PUBLISH_PROFILE &&
+              secrets.AZURE_CREDENTIALS }}
         run: |
           az webapp deployment source config-zip \
-            --resource-group ${{ env.AZURE_RESOURCE_GROUP }} \
-            --name ${{ env.AZURE_WEBAPP_NAME }} \
+            --resource-group "${{ env.APP_RG }}" \
+            --name "${{ env.APP_NAME }}" \
             --src deploy.zip
 
-      - name: Deployment successful ✅
-        run: echo "Déploiement réussi sur Axilum!"
+      - name: Done
+        run: echo "Deploy ok"
