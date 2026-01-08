@@ -213,33 +213,90 @@
 </head>
 <body>
     <div class="header">
-        <h1>⚙️ Fonctions</h1>
-        <a href="/" class="back-btn">← Retour</a>
+        <h1 id="pageTitle">⚙️ Fonctions</h1>
+        <a href="/" class="back-btn" id="backBtn">← Retour</a>
     </div>
 
     <div class="grid">
         <div class="column">
-            <h2>FREE</h2>
+            <h2 id="freeColTitle">FREE</h2>
             <div class="function-item disabled">
-                <div class="function-title">📄 Résumé Document</div>
-                <div class="function-desc">Résumé automatique de vos documents (à venir)</div>
+                <div class="function-title" id="fnDocSummaryTitle">📄 Résumé Document</div>
+                <div class="function-desc" id="fnDocSummaryDesc">Résumé automatique de vos documents (à venir)</div>
             </div>
         </div>
 
         <div class="column">
-            <h2>PRO</h2>
+            <h2 id="proColTitle">PRO</h2>
             <div class="function-item" onclick="window.location.href='/?action=vision'">
-                <div class="function-title">👁️ Analyse Vision</div>
-                <div class="function-desc">Analyse d'images avec Azure Computer Vision</div>
+                <div class="function-title" id="fnVisionTitle">👁️ Analyse Vision</div>
+                <div class="function-desc" id="fnVisionDesc">Analyse d'images avec Azure Computer Vision</div>
             </div>
             <div class="function-item disabled">
-                <div class="function-title">📄 Résumé Document PRO</div>
-                <div class="function-desc">Résumé avancé avec GPT-4o (à venir)</div>
+                <div class="function-title" id="fnDocSummaryProTitle">📄 Résumé Document PRO</div>
+                <div class="function-desc" id="fnDocSummaryProDesc">Résumé avancé avec GPT-4o (à venir)</div>
             </div>
         </div>
     </div>
 
     <script>
+        (function applyLanguage() {
+            function normalizeAppLanguage(lang) {
+                const raw = String(lang || '').toLowerCase();
+                return raw.startsWith('en') ? 'en' : 'fr';
+            }
+            function getAppLanguage() {
+                try {
+                    const stored = localStorage.getItem('appLanguage');
+                    if (stored) return normalizeAppLanguage(stored);
+                } catch (_) {}
+                return normalizeAppLanguage((navigator && navigator.language) ? navigator.language : 'fr');
+            }
+
+            const lang = getAppLanguage();
+            document.documentElement.lang = lang;
+
+            const dict = {
+                fr: {
+                    title: 'Fonctions - Axilum AI',
+                    pageTitle: '⚙️ Fonctions',
+                    back: '← Retour',
+                    fnDocSummaryTitle: '📄 Résumé Document',
+                    fnDocSummaryDesc: 'Résumé automatique de vos documents (à venir)',
+                    fnVisionTitle: '👁️ Analyse Vision',
+                    fnVisionDesc: "Analyse d'images avec Azure Computer Vision",
+                    fnDocSummaryProTitle: '📄 Résumé Document PRO',
+                    fnDocSummaryProDesc: 'Résumé avancé avec GPT-4o (à venir)'
+                },
+                en: {
+                    title: 'Features - Axilum AI',
+                    pageTitle: '⚙️ Features',
+                    back: '← Back',
+                    fnDocSummaryTitle: '📄 Document Summary',
+                    fnDocSummaryDesc: 'Automatic summary of your documents (coming soon)',
+                    fnVisionTitle: '👁️ Vision Analysis',
+                    fnVisionDesc: 'Image analysis with Azure Computer Vision',
+                    fnDocSummaryProTitle: '📄 Document Summary PRO',
+                    fnDocSummaryProDesc: 'Advanced summary with GPT-4o (coming soon)'
+                }
+            };
+
+            const d = dict[lang] || dict.fr;
+            try { document.title = d.title; } catch (_) {}
+            const setText = (id, value) => {
+                const el = document.getElementById(id);
+                if (el) el.textContent = value;
+            };
+            setText('pageTitle', d.pageTitle);
+            setText('backBtn', d.back);
+            setText('fnDocSummaryTitle', d.fnDocSummaryTitle);
+            setText('fnDocSummaryDesc', d.fnDocSummaryDesc);
+            setText('fnVisionTitle', d.fnVisionTitle);
+            setText('fnVisionDesc', d.fnVisionDesc);
+            setText('fnDocSummaryProTitle', d.fnDocSummaryProTitle);
+            setText('fnDocSummaryProDesc', d.fnDocSummaryProDesc);
+        })();
+
         // Sync theme with main app
         const theme = localStorage.getItem('theme') || 'light';
         document.body.setAttribute('data-theme', theme);

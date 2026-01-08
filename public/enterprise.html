@@ -138,8 +138,8 @@
 <body>
   <header class="page-header">
     <div class="page-header-inner">
-      <button class="btn" type="button" onclick="goBackToApp()">← Retour</button>
-      <h1 class="title">Offre Entreprise</h1>
+      <button class="btn" id="backBtn" type="button" onclick="goBackToApp()">← Retour</button>
+      <h1 class="title" id="pageTitle">Offre Entreprise</h1>
       <div style="width: 90px;"></div>
     </div>
   </header>
@@ -147,42 +147,143 @@
   <main class="container">
     <div class="card">
       <div class="row">
-        <span class="pill">Sécurité</span>
-        <span class="pill">Audit</span>
-        <span class="pill">Intégrations</span>
-        <span class="pill">Support</span>
+        <span class="pill" id="pillSecurity">Sécurité</span>
+        <span class="pill" id="pillAudit">Audit</span>
+        <span class="pill" id="pillIntegrations">Intégrations</span>
+        <span class="pill" id="pillSupport">Support</span>
       </div>
 
-      <h2>Objectif</h2>
-      <p>
+      <h2 id="hObjective">Objectif</h2>
+      <p id="pObjective">
         L’offre Entreprise est conçue pour les organisations qui veulent déployer Axilum AI à grande échelle,
         avec des contrôles de sécurité renforcés, de l’audit, et des intégrations.
       </p>
 
-      <h2>Ce qui est prévu</h2>
+      <h2 id="hPlanned">Ce qui est prévu</h2>
       <ul>
-        <li>Contrôles d’accès et permissions (rôles, entitlements, quotas)</li>
-        <li>Audit & traçabilité des actions (journalisation)</li>
-        <li>Intégrations (Microsoft 365 / Power Automate) selon les modules</li>
-        <li>Options de déploiement et isolation selon besoins</li>
+        <li id="liPlanned1">Contrôles d’accès et permissions (rôles, entitlements, quotas)</li>
+        <li id="liPlanned2">Audit & traçabilité des actions (journalisation)</li>
+        <li id="liPlanned3">Intégrations (Microsoft 365 / Power Automate) selon les modules</li>
+        <li id="liPlanned4">Options de déploiement et isolation selon besoins</li>
       </ul>
 
-      <h2>Tarifs</h2>
-      <p><strong>Les prix finaux seront définis à la fin du développement.</strong></p>
+      <h2 id="hPricing">Tarifs</h2>
+      <p><strong id="pricingNote">Les prix finaux seront définis à la fin du développement.</strong></p>
 
-      <h2>Demander une démo</h2>
-      <p>
+      <h2 id="hDemo">Demander une démo</h2>
+      <p id="pDemo">
         Dites-nous votre contexte (taille équipe, modules, intégrations souhaitées) et on vous propose un cadrage.
       </p>
 
       <div class="row">
-        <a class="btn" href="mailto:contact@axilum.ai?subject=Demande%20Offre%20Entreprise%20Axilum%20AI">Contacter</a>
-        <a class="btn" href="/">Ouvrir l’app</a>
+        <a class="btn" id="contactBtn" href="mailto:contact@axilum.ai?subject=Demande%20Offre%20Entreprise%20Axilum%20AI">Contacter</a>
+        <a class="btn" id="openAppBtn" href="/">Ouvrir l’app</a>
       </div>
     </div>
   </main>
 
   <script>
+    (function applyLanguage() {
+      function normalizeAppLanguage(lang) {
+        const raw = String(lang || '').toLowerCase();
+        return raw.startsWith('en') ? 'en' : 'fr';
+      }
+
+      function getAppLanguage() {
+        try {
+          const stored = localStorage.getItem('appLanguage');
+          if (stored) return normalizeAppLanguage(stored);
+        } catch (_) {}
+        return normalizeAppLanguage((navigator && navigator.language) ? navigator.language : 'fr');
+      }
+
+      const lang = getAppLanguage();
+      document.documentElement.lang = lang;
+
+      const dict = {
+        fr: {
+          pageTitle: 'Offre Entreprise',
+          documentTitle: 'Axilum AI — Offre Entreprise',
+          back: '← Retour',
+          pillSecurity: 'Sécurité',
+          pillAudit: 'Audit',
+          pillIntegrations: 'Intégrations',
+          pillSupport: 'Support',
+          hObjective: 'Objectif',
+          pObjective: "L’offre Entreprise est conçue pour les organisations qui veulent déployer Axilum AI à grande échelle, avec des contrôles de sécurité renforcés, de l’audit, et des intégrations.",
+          hPlanned: 'Ce qui est prévu',
+          liPlanned1: 'Contrôles d’accès et permissions (rôles, entitlements, quotas)',
+          liPlanned2: 'Audit & traçabilité des actions (journalisation)',
+          liPlanned3: 'Intégrations (Microsoft 365 / Power Automate) selon les modules',
+          liPlanned4: 'Options de déploiement et isolation selon besoins',
+          hPricing: 'Tarifs',
+          pricingNote: 'Les prix finaux seront définis à la fin du développement.',
+          hDemo: 'Demander une démo',
+          pDemo: 'Dites-nous votre contexte (taille équipe, modules, intégrations souhaitées) et on vous propose un cadrage.',
+          contact: 'Contacter',
+          openApp: 'Ouvrir l’app',
+          mailSubject: 'Demande Offre Entreprise Axilum AI'
+        },
+        en: {
+          pageTitle: 'Enterprise Offer',
+          documentTitle: 'Axilum AI — Enterprise Offer',
+          back: '← Back',
+          pillSecurity: 'Security',
+          pillAudit: 'Audit',
+          pillIntegrations: 'Integrations',
+          pillSupport: 'Support',
+          hObjective: 'Goal',
+          pObjective: 'The Enterprise offer is designed for organizations that want to deploy Axilum AI at scale, with stronger security controls, auditability, and integrations.',
+          hPlanned: 'What’s planned',
+          liPlanned1: 'Access controls & permissions (roles, entitlements, quotas)',
+          liPlanned2: 'Audit & action traceability (logging)',
+          liPlanned3: 'Integrations (Microsoft 365 / Power Automate) depending on modules',
+          liPlanned4: 'Deployment options and isolation based on needs',
+          hPricing: 'Pricing',
+          pricingNote: 'Final pricing will be defined at the end of development.',
+          hDemo: 'Request a demo',
+          pDemo: 'Tell us your context (team size, modules, desired integrations) and we will propose a scope.',
+          contact: 'Contact',
+          openApp: 'Open the app',
+          mailSubject: 'Axilum AI Enterprise Offer Request'
+        }
+      };
+
+      const d = dict[lang] || dict.fr;
+      try { document.title = d.documentTitle; } catch (_) {}
+
+      const setText = (id, value) => {
+        const el = document.getElementById(id);
+        if (el) el.textContent = value;
+      };
+
+      setText('backBtn', d.back);
+      setText('pageTitle', d.pageTitle);
+      setText('pillSecurity', d.pillSecurity);
+      setText('pillAudit', d.pillAudit);
+      setText('pillIntegrations', d.pillIntegrations);
+      setText('pillSupport', d.pillSupport);
+      setText('hObjective', d.hObjective);
+      setText('pObjective', d.pObjective);
+      setText('hPlanned', d.hPlanned);
+      setText('liPlanned1', d.liPlanned1);
+      setText('liPlanned2', d.liPlanned2);
+      setText('liPlanned3', d.liPlanned3);
+      setText('liPlanned4', d.liPlanned4);
+      setText('hPricing', d.hPricing);
+      setText('pricingNote', d.pricingNote);
+      setText('hDemo', d.hDemo);
+      setText('pDemo', d.pDemo);
+      setText('contactBtn', d.contact);
+      setText('openAppBtn', d.openApp);
+
+      const contactLink = document.getElementById('contactBtn');
+      if (contactLink) {
+        const subject = encodeURIComponent(d.mailSubject || '');
+        contactLink.setAttribute('href', `mailto:contact@axilum.ai?subject=${subject}`);
+      }
+    })();
+
     (function initTheme() {
       try {
         const theme = localStorage.getItem('theme') || localStorage.getItem('axilum_theme') || 'light';

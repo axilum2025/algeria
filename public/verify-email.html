@@ -126,7 +126,7 @@
         
         <div id="loader">
             <div class="spinner"></div>
-            <p class="loader-text">Patientez quelques secondes...</p>
+            <p class="loader-text" id="loaderText">Patientez quelques secondes...</p>
         </div>
         
         <div id="result"></div>
@@ -141,6 +141,75 @@
     </div>
     
     <script>
+        function normalizeAppLanguage(lang) {
+            const raw = String(lang || '').toLowerCase();
+            return raw.startsWith('en') ? 'en' : 'fr';
+        }
+
+        function getAppLanguage() {
+            try {
+                const stored = localStorage.getItem('appLanguage');
+                if (stored) return normalizeAppLanguage(stored);
+            } catch (_) {}
+            return normalizeAppLanguage((navigator && navigator.language) ? navigator.language : 'fr');
+        }
+
+        const APP_LANG = getAppLanguage();
+        document.documentElement.lang = APP_LANG;
+
+        const I18N = {
+            fr: {
+                pageTitle: 'Vérification Email - Axilum AI',
+                verifyingTitle: 'Vérification en cours...',
+                verifyingMsg: 'Nous vérifions votre adresse email',
+                pleaseWait: 'Patientez quelques secondes...',
+                emailVerifiedTitle: 'Email vérifié !',
+                emailVerifiedMsg: 'Votre adresse email a été vérifiée avec succès.',
+                goToApp: "Accéder à l'app →",
+                backToApp: "Retour à l'app →",
+                noTokenTitle: 'Aucun token fourni',
+                noTokenMsg: 'Le lien de vérification est invalide',
+                verificationFailedTitle: 'Vérification échouée',
+                genericError: 'Une erreur est survenue',
+                networkErrorTitle: 'Erreur réseau',
+                networkErrorMsg: 'Impossible de vérifier votre email. Vérifiez votre connexion.',
+                errorLabel: 'Erreur'
+            },
+            en: {
+                pageTitle: 'Email Verification - Axilum AI',
+                verifyingTitle: 'Verifying...',
+                verifyingMsg: 'We are verifying your email address',
+                pleaseWait: 'Please wait a few seconds...',
+                emailVerifiedTitle: 'Email verified!',
+                emailVerifiedMsg: 'Your email address has been verified successfully.',
+                goToApp: 'Go to the app →',
+                backToApp: 'Back to the app →',
+                noTokenTitle: 'Missing token',
+                noTokenMsg: 'The verification link is invalid',
+                verificationFailedTitle: 'Verification failed',
+                genericError: 'An error occurred',
+                networkErrorTitle: 'Network error',
+                networkErrorMsg: 'Unable to verify your email. Please check your connection.',
+                errorLabel: 'Error'
+            }
+        };
+
+        function t(key) {
+            return (I18N[APP_LANG] && I18N[APP_LANG][key]) || (I18N.fr && I18N.fr[key]) || key;
+        }
+
+        (function applyStaticText() {
+            try { document.title = t('pageTitle'); } catch (_) {}
+            const setText = (id, value) => {
+                const el = document.getElementById(id);
+                if (el) el.textContent = value;
+            };
+            setText('title', t('verifyingTitle'));
+            setText('message', t('verifyingMsg'));
+            setText('loaderText', t('pleaseWait'));
+            setText('continueBtn', t('goToApp'));
+        })();
+
         async function verifyEmail() {
             try {
                 // Récupérer le token de l'URL
@@ -148,7 +217,7 @@
                 const token = params.get('token');
                 
                 if (!token) {
-                    showError('Aucun token fourni', 'Le lien de vérification est invalide');
+                    showError(t('noTokenTitle'), t('noTokenMsg'));
                     return;
                 }
                 
@@ -163,24 +232,25 @@
                 if (response.ok && data.success) {
                     // Succès
                     document.getElementById('icon').textContent = '✅';
-                    document.getElementById('title').textContent = 'Email vérifié !';
-                    document.getElementById('message').textContent = 'Votre adresse email a été vérifiée avec succès.';
+                    document.getElementById('title').textContent = t('emailVerifiedTitle');
+                    document.getElementById('message').textContent = t('emailVerifiedMsg');
                     
                     document.getElementById('email-section').style.display = 'block';
                     document.getElementById('email-display').textContent = data.email;
                     
                     document.getElementById('loader').style.display = 'none';
                     document.getElementById('continueBtn').style.display = 'block';
+                    document.getElementById('continueBtn').textContent = t('goToApp');
                     
                     // Stocker le statut
                     localStorage.setItem('emailVerified_' + data.email, 'true');
                     
                 } else {
-                    showError('Vérification échouée', data.error || 'Une erreur est survenue');
+                    showError(t('verificationFailedTitle'), data.error || t('genericError'));
                 }
             } catch (error) {
                 console.error('Erreur:', error);
-                showError('Erreur réseau', 'Impossible de vérifier votre email. Vérifiez votre connexion.');
+                showError(t('networkErrorTitle'), t('networkErrorMsg'));
             }
         }
         
@@ -192,11 +262,11 @@
             
             const result = document.getElementById('result');
             result.className = 'status error';
-            result.innerHTML = '<strong>Erreur</strong>';
+            result.innerHTML = '<strong>' + t('errorLabel') + '</strong>';
             result.style.display = 'block';
             
             document.getElementById('continueBtn').style.display = 'block';
-            document.getElementById('continueBtn').textContent = 'Retour à l\'app →';
+            document.getElementById('continueBtn').textContent = t('backToApp');
         }
         
         function continueToApp() {

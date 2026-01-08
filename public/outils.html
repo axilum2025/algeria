@@ -213,37 +213,100 @@
 </head>
 <body>
     <div class="header">
-        <h1>🛠️ Outils</h1>
-        <a href="/" class="back-btn">← Retour</a>
+        <h1 id="pageTitle">🛠️ Outils</h1>
+        <a href="/" class="back-btn" id="backBtn">← Retour</a>
     </div>
 
     <div class="grid">
         <div class="column">
-            <h2>FREE</h2>
+            <h2 id="freeColTitle">FREE</h2>
             <div class="tool-item" onclick="window.location.href='/?action=translate&plan=free'">
-                <div class="tool-title">🌐 Traduction</div>
-                <div class="tool-desc">Traduction rapide avec Groq Llama 3.3</div>
+                <div class="tool-title" id="toolTranslateTitle">🌐 Traduction</div>
+                <div class="tool-desc" id="toolTranslateDesc">Traduction rapide avec Groq Llama 3.3</div>
             </div>
             <div class="tool-item" onclick="window.location.href='/?action=tts'">
-                <div class="tool-title">🔊 Synthèse vocale</div>
-                <div class="tool-desc">Lecture de texte à voix haute (TTS local)</div>
+                <div class="tool-title" id="toolTtsTitle">🔊 Synthèse vocale</div>
+                <div class="tool-desc" id="toolTtsDesc">Lecture de texte à voix haute (TTS local)</div>
             </div>
         </div>
 
         <div class="column">
-            <h2>PRO</h2>
+            <h2 id="proColTitle">PRO</h2>
             <div class="tool-item" onclick="window.location.href='/?action=translate&plan=pro'">
-                <div class="tool-title">🌐 Traduction PRO</div>
-                <div class="tool-desc">Traduction premium avec GPT-4o</div>
+                <div class="tool-title" id="toolTranslateProTitle">🌐 Traduction PRO</div>
+                <div class="tool-desc" id="toolTranslateProDesc">Traduction premium avec GPT-4o</div>
             </div>
             <div class="tool-item disabled">
-                <div class="tool-title">🏷️ Extraction Entités</div>
-                <div class="tool-desc">Extraction d'entités et données structurées (à venir)</div>
+                <div class="tool-title" id="toolEntitiesTitle">🏷️ Extraction Entités</div>
+                <div class="tool-desc" id="toolEntitiesDesc">Extraction d'entités et données structurées (à venir)</div>
             </div>
         </div>
     </div>
 
     <script>
+        (function applyLanguage() {
+            function normalizeAppLanguage(lang) {
+                const raw = String(lang || '').toLowerCase();
+                return raw.startsWith('en') ? 'en' : 'fr';
+            }
+            function getAppLanguage() {
+                try {
+                    const stored = localStorage.getItem('appLanguage');
+                    if (stored) return normalizeAppLanguage(stored);
+                } catch (_) {}
+                return normalizeAppLanguage((navigator && navigator.language) ? navigator.language : 'fr');
+            }
+
+            const lang = getAppLanguage();
+            document.documentElement.lang = lang;
+
+            const dict = {
+                fr: {
+                    title: 'Outils - Axilum AI',
+                    pageTitle: '🛠️ Outils',
+                    back: '← Retour',
+                    toolTranslateTitle: '🌐 Traduction',
+                    toolTranslateDesc: 'Traduction rapide avec Groq Llama 3.3',
+                    toolTtsTitle: '🔊 Synthèse vocale',
+                    toolTtsDesc: 'Lecture de texte à voix haute (TTS local)',
+                    toolTranslateProTitle: '🌐 Traduction PRO',
+                    toolTranslateProDesc: 'Traduction premium avec GPT-4o',
+                    toolEntitiesTitle: '🏷️ Extraction Entités',
+                    toolEntitiesDesc: "Extraction d'entités et données structurées (à venir)"
+                },
+                en: {
+                    title: 'Tools - Axilum AI',
+                    pageTitle: '🛠️ Tools',
+                    back: '← Back',
+                    toolTranslateTitle: '🌐 Translation',
+                    toolTranslateDesc: 'Fast translation with Groq Llama 3.3',
+                    toolTtsTitle: '🔊 Text-to-speech',
+                    toolTtsDesc: 'Read text aloud (local TTS)',
+                    toolTranslateProTitle: '🌐 Translation PRO',
+                    toolTranslateProDesc: 'Premium translation with GPT-4o',
+                    toolEntitiesTitle: '🏷️ Entity Extraction',
+                    toolEntitiesDesc: 'Entity extraction and structured data (coming soon)'
+                }
+            };
+
+            const d = dict[lang] || dict.fr;
+            try { document.title = d.title; } catch (_) {}
+            const setText = (id, value) => {
+                const el = document.getElementById(id);
+                if (el) el.textContent = value;
+            };
+            setText('pageTitle', d.pageTitle);
+            setText('backBtn', d.back);
+            setText('toolTranslateTitle', d.toolTranslateTitle);
+            setText('toolTranslateDesc', d.toolTranslateDesc);
+            setText('toolTtsTitle', d.toolTtsTitle);
+            setText('toolTtsDesc', d.toolTtsDesc);
+            setText('toolTranslateProTitle', d.toolTranslateProTitle);
+            setText('toolTranslateProDesc', d.toolTranslateProDesc);
+            setText('toolEntitiesTitle', d.toolEntitiesTitle);
+            setText('toolEntitiesDesc', d.toolEntitiesDesc);
+        })();
+
         // Sync theme with main app
         const theme = localStorage.getItem('theme') || 'light';
         document.body.setAttribute('data-theme', theme);

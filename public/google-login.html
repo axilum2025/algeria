@@ -1,11 +1,11 @@
 <!doctype html>
-<html>
+<html lang="fr">
 <head>
   <meta charset="utf-8" />
   <title>Connexion Google - Axilum</title>
 </head>
 <body>
-  <h1>Se connecter avec Google</h1>
+  <h1 id="title">Se connecter avec Google</h1>
   <p>
     <a id="loginBtn" href="/.auth/login/google?post_login_redirect_uri=/google-login.html">Se connecter avec Google</a>
   </p>
@@ -14,6 +14,43 @@
   <button id="mapBtn" style="display:none">Map user on backend</button>
 
   <script>
+    function normalizeAppLanguage(lang) {
+      const raw = String(lang || '').toLowerCase();
+      return raw.startsWith('en') ? 'en' : 'fr';
+    }
+    function getAppLanguage() {
+      try {
+        const stored = localStorage.getItem('appLanguage');
+        if (stored) return normalizeAppLanguage(stored);
+      } catch (_) {}
+      return normalizeAppLanguage((navigator && navigator.language) ? navigator.language : 'fr');
+    }
+    const lang = getAppLanguage();
+    document.documentElement.lang = lang;
+
+    const I18N = {
+      fr: {
+        pageTitle: 'Connexion Google - Axilum',
+        h1: 'Se connecter avec Google',
+        login: 'Se connecter avec Google',
+        map: 'Mapper l’utilisateur côté backend',
+        notLoggedIn: 'Non connecté.'
+      },
+      en: {
+        pageTitle: 'Google Login - Axilum',
+        h1: 'Sign in with Google',
+        login: 'Sign in with Google',
+        map: 'Map user on backend',
+        notLoggedIn: 'Not logged in.'
+      }
+    };
+    const t = (key) => (I18N[lang] && I18N[lang][key]) || (I18N.fr && I18N.fr[key]) || key;
+
+    try { document.title = t('pageTitle'); } catch (_) {}
+    try { document.getElementById('title').textContent = t('h1'); } catch (_) {}
+    try { document.getElementById('loginBtn').textContent = t('login'); } catch (_) {}
+    try { document.getElementById('mapBtn').textContent = t('map'); } catch (_) {}
+
     async function loadPrincipal() {
       try {
         const r = await fetch('/.auth/me');
@@ -22,7 +59,7 @@
         document.getElementById('me').textContent = JSON.stringify(data, null, 2);
         document.getElementById('mapBtn').style.display = 'inline-block';
       } catch (e) {
-        document.getElementById('me').textContent = 'Not logged in.';
+        document.getElementById('me').textContent = t('notLoggedIn');
       }
     }
 
