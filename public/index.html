@@ -247,6 +247,20 @@
             overflow: hidden;
         }
 
+        /* Sidebar: masquer l'indicateur de scroll tout en gardant le scroll */
+        .sidebar,
+        .conversations {
+            scrollbar-width: none; /* Firefox */
+            -ms-overflow-style: none; /* IE/Edge legacy */
+        }
+
+        .sidebar::-webkit-scrollbar,
+        .conversations::-webkit-scrollbar {
+            width: 0;
+            height: 0;
+            display: none;
+        }
+
         .sidebar.open {
             left: 0;
         }
@@ -1559,6 +1573,18 @@
             width: 90%;
             max-height: 80vh;
             overflow-y: auto;
+        }
+
+        /* Modals: masquer l'indicateur de scroll tout en gardant le scroll */
+        .modal-content {
+            scrollbar-width: none; /* Firefox */
+            -ms-overflow-style: none; /* IE/Edge legacy */
+        }
+
+        .modal-content::-webkit-scrollbar {
+            width: 0;
+            height: 0;
+            display: none;
         }
 
         .modal-header {
