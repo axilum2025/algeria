@@ -7956,9 +7956,9 @@ ${persona}
                             display: inline-flex;
                             align-items: center;
                             justify-content: center;
-                            width: 20px;
-                            height: 20px;
-                            margin-left: 4px;
+                            width: 24px;
+                            height: 24px;
+                            margin-left: 6px;
                             border: none;
                             padding: 0;
                             background: transparent;
@@ -7969,7 +7969,7 @@ ${persona}
                             vertical-align: text-bottom;
                         `;
                         ttsButton.innerHTML = `
-                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                 <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/>
                                 <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"/>
                             </svg>
@@ -33065,7 +33065,7 @@ Réponds UNIQUEMENT dans ce format JSON:
                     // Réinitialiser tous les boutons TTS (anciennes et nouvelles versions)
                     document.querySelectorAll('.tts-button, .tts-button-inline').forEach(btn => {
                         btn.dataset.speaking = 'false';
-                        const svgSize = btn.classList.contains('tts-button-inline') ? '12' : '18';
+                        const svgSize = btn.classList.contains('tts-button-inline') ? '20' : '18';
                         btn.innerHTML = `
                             <svg width="${svgSize}" height="${svgSize}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                 <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/>
@@ -33113,7 +33113,7 @@ Réponds UNIQUEMENT dans ce format JSON:
                 utterance.onstart = () => {
                     if (button) {
                         button.dataset.speaking = 'true';
-                        const svgSize = button.classList.contains('tts-button-inline') ? '12' : '18';
+                        const svgSize = button.classList.contains('tts-button-inline') ? '20' : '18';
                         button.innerHTML = `
                             <svg width="${svgSize}" height="${svgSize}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                 <rect x="6" y="4" width="4" height="16"/>
@@ -33121,8 +33121,13 @@ Réponds UNIQUEMENT dans ce format JSON:
                             </svg>
                         `;
                         button.title = 'Arrêter la lecture';
-                        button.style.background = '#EF4444';
-                        button.style.color = 'white';
+                        if (button.classList.contains('tts-button-inline')) {
+                            button.style.background = 'transparent';
+                            button.style.color = '#EF4444';
+                        } else {
+                            button.style.background = '#EF4444';
+                            button.style.color = 'white';
+                        }
                         activeTTSButton = button;
                     }
                 };
@@ -33130,7 +33135,7 @@ Réponds UNIQUEMENT dans ce format JSON:
                 utterance.onend = () => {
                     if (button) {
                         button.dataset.speaking = 'false';
-                        const svgSize = button.classList.contains('tts-button-inline') ? '12' : '18';
+                        const svgSize = button.classList.contains('tts-button-inline') ? '20' : '18';
                         button.innerHTML = `
                             <svg width="${svgSize}" height="${svgSize}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                 <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/>
@@ -33138,8 +33143,13 @@ Réponds UNIQUEMENT dans ce format JSON:
                             </svg>
                         `;
                         button.title = 'Écouter ce message';
-                        button.style.background = 'var(--bg-secondary)';
-                        button.style.color = 'var(--text-secondary)';
+                        if (button.classList.contains('tts-button-inline')) {
+                            button.style.background = 'transparent';
+                            button.style.color = 'var(--text-secondary)';
+                        } else {
+                            button.style.background = 'var(--bg-secondary)';
+                            button.style.color = 'var(--text-secondary)';
+                        }
                     }
                     activeTTSButton = null;
                 };
@@ -33152,7 +33162,7 @@ Réponds UNIQUEMENT dans ce format JSON:
                     
                     if (button) {
                         button.dataset.speaking = 'false';
-                        const svgSize = button.classList.contains('tts-button-inline') ? '12' : '18';
+                        const svgSize = button.classList.contains('tts-button-inline') ? '20' : '18';
                         button.innerHTML = `
                             <svg width="${svgSize}" height="${svgSize}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                 <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/>
@@ -33160,8 +33170,13 @@ Réponds UNIQUEMENT dans ce format JSON:
                             </svg>
                         `;
                         button.title = 'Écouter ce message';
-                        button.style.background = 'var(--bg-secondary)';
-                        button.style.color = 'var(--text-secondary)';
+                        if (button.classList.contains('tts-button-inline')) {
+                            button.style.background = 'transparent';
+                            button.style.color = 'var(--text-secondary)';
+                        } else {
+                            button.style.background = 'var(--bg-secondary)';
+                            button.style.color = 'var(--text-secondary)';
+                        }
                     }
                     activeTTSButton = null;
                 };
