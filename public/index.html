@@ -3659,7 +3659,7 @@
     </div>
 
     <!-- File Input -->
-    <input type="file" id="fileInput" accept=".txt,.pdf,.doc,.docx,.jpg,.jpeg,.png,.gif,.webp,image/*" onchange="handleFileUpload(event)">
+    <input type="file" id="fileInput" accept=".txt,.pdf,.doc,.docx,.xlsx,.xls,.csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel,text/csv,.jpg,.jpeg,.png,.gif,.webp,image/*" onchange="handleFileUpload(event)">
 
     <script>
         // Configuration
@@ -8007,6 +8007,12 @@ ${persona}
             const isImage = fileType.startsWith('image/');
             const isText = fileType === 'text/plain';
             const isPDF = fileType === 'application/pdf';
+            const lowerName = String(file.name || '').toLowerCase();
+            const isCSV = fileType === 'text/csv' || lowerName.endsWith('.csv');
+            const isExcel = fileType === 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+                || fileType === 'application/vnd.ms-excel'
+                || lowerName.endsWith('.xlsx')
+                || lowerName.endsWith('.xls');
             
             showToast(`📎 Fichier reçu: ${file.name}`, 'info');
             
@@ -8205,6 +8211,49 @@ ${persona}
                         const input = document.getElementById('userInput');
                         input.value = `J'ai uploadé un PDF : ${file.name}. Peux-tu m'aider à l'analyser ?`;
                         showToast('❌ Échec extraction PDF - Aperçu non disponible', 'error');
+                    }
+                } else if (isCSV || isExcel) {
+                    showToast(isCSV ? '📊 CSV détecté - préparation...' : '📊 Excel détecté - lecture du contenu...', 'info');
+                    try {
+                        const input = document.getElementById('userInput');
+                        if (!input) throw new Error('Zone de saisie introuvable');
+
+                        if (isCSV) {
+                            const text = await file.text();
+                            const preview = String(text || '').trim().substring(0, 5000);
+                            input.value = `Contenu du CSV ${file.name} (aperçu):\n\n${preview}${text.length > 5000 ? '\n\n...' : ''}`;
+                            showToast('✅ CSV chargé', 'success');
+                            return;
+                        }
+
+                        // Charger SheetJS via CDN si nécessaire
+                        if (!window.XLSX) {
+                            const script = document.createElement('script');
+                            script.src = 'https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js';
+                            script.crossOrigin = 'anonymous';
+                            document.body.appendChild(script);
+                            await new Promise(resolve => { script.onload = resolve; });
+                        }
+                        if (!window.XLSX) throw new Error('Bibliothèque Excel (XLSX) indisponible');
+
+                        const buffer = await file.arrayBuffer();
+                        const wb = window.XLSX.read(buffer, { type: 'array' });
+                        const firstSheetName = (wb && wb.SheetNames && wb.SheetNames[0]) ? wb.SheetNames[0] : null;
+                        if (!firstSheetName) throw new Error('Aucune feuille détectée dans ce fichier');
+
+                        const sheet = wb.Sheets[firstSheetName];
+                        const csv = window.XLSX.utils.sheet_to_csv(sheet);
+                        const preview = String(csv || '').trim().substring(0, 5000);
+
+                        input.value = `Contenu Excel ${file.name} — Feuille: ${firstSheetName} (aperçu CSV):\n\n${preview}${csv.length > 5000 ? '\n\n...' : ''}`;
+                        showToast('✅ Excel chargé (aperçu prêt)', 'success');
+                    } catch (e) {
+                        console.error('Excel/CSV import error:', e);
+                        const input = document.getElementById('userInput');
+                        if (input) {
+                            input.value = `J'ai uploadé un fichier ${file.name}. Peux-tu l'analyser ?`;
+                        }
+                        showToast('❌ Échec lecture Excel/CSV', 'error');
                     }
                 } else {
                     showToast('❌ Type de fichier non supporté', 'error');
