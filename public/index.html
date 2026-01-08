@@ -6026,7 +6026,7 @@ STYLE DE RÉPONSE :
 
                 const nextMilestones = upcomingMilestones.slice(0, 3).map(m => {
                     const project = projects.find(p => p && p.id === m.projectId);
-                    const dateStr = m.date ? new Date(m.date).toLocaleDateString('fr-FR') : 'N/A';
+                    const dateStr = m.date ? new Date(m.date).toLocaleDateString(getLocale()) : 'N/A';
                     return `- ${m.titre || 'Sans titre'} (${dateStr}) - Projet: ${project?.titre || 'N/A'}`;
                 }).join('\n') || 'Aucun jalon à venir';
 
@@ -6064,14 +6064,14 @@ ${activeProjects.length > 0 ? activeProjects.map(p => {
     const budgetDevise = p?.budget?.devise || '';
     const equipe = Array.isArray(p?.equipe) ? p.equipe.join(', ') : '';
     const techs = Array.isArray(p?.technologies) ? p.technologies.join(', ') : '';
-    const created = p?.created ? new Date(p.created).toLocaleDateString('fr-FR') : 'N/A';
-    return `\n- Projet "${p.titre}" (ID: ${p.id})\n  Domaine: ${p.domaine}\n  Phase: ${p.phase} (${p.avancement}%)\n  Budget: ${budgetPrevu.toLocaleString()} ${budgetDevise}\n  Équipe: ${equipe || 'Non définie'}\n  Technologies: ${techs || 'Aucune'}\n  Durée prévue: ${p.duree} mois\n  Problème: ${p.probleme}\n  Créé le: ${created}\n`;
+    const created = p?.created ? new Date(p.created).toLocaleDateString(getLocale()) : 'N/A';
+    return `\n- Projet "${p.titre}" (ID: ${p.id})\n  Domaine: ${p.domaine}\n  Phase: ${p.phase} (${p.avancement}%)\n  Budget: ${budgetPrevu.toLocaleString(getLocale())} ${budgetDevise}\n  Équipe: ${equipe || 'Non définie'}\n  Technologies: ${techs || 'Aucune'}\n  Durée prévue: ${p.duree} mois\n  Problème: ${p.probleme}\n  Créé le: ${created}\n`;
 }).join('\n') : 'Aucun projet actif'}
 
 JALONS À VENIR (${upcomingMilestones.length}) :
 ${upcomingMilestones.length > 0 ? upcomingMilestones.map(m => {
     const project = projects.find(p => p && p.id === m.projectId);
-    return `- ${m.titre} (${new Date(m.date).toLocaleDateString('fr-FR')}) - Projet: ${project?.titre || 'N/A'}`;
+    return `- ${m.titre} (${new Date(m.date).toLocaleDateString(getLocale())}) - Projet: ${project?.titre || 'N/A'}`;
 }).join('\n') : 'Aucun jalon à venir'}
 
 DOCUMENTS (${documents.length}) :
@@ -6266,7 +6266,7 @@ ${persona}
                 if (monthTokensEl) {
                     const calls = Number(totals.totalCalls || 0);
                     const toks = Number(totals.totalTokens || 0);
-                    monthTokensEl.textContent = `${calls.toLocaleString('fr-FR')} appels • ${toks.toLocaleString('fr-FR')} tokens`;
+                    monthTokensEl.textContent = `${calls.toLocaleString(getLocale())} appels • ${toks.toLocaleString(getLocale())} tokens`;
                 }
 
                 if (!items.length) {
@@ -6276,7 +6276,7 @@ ${persona}
 
                 const rows = items.map(it => {
                     const when = it.createdAt ? new Date(it.createdAt) : null;
-                    const dateLabel = when && !Number.isNaN(when.getTime()) ? when.toLocaleString('fr-FR') : '—';
+                    const dateLabel = when && !Number.isNaN(when.getTime()) ? when.toLocaleString(getLocale()) : '—';
                     const model = it.model ? String(it.model) : '—';
                     const tokens = Number(it.totalTokens || 0);
                     const cost = it.cost == null ? null : Number(it.cost);
@@ -6286,7 +6286,7 @@ ${persona}
                         <tr>
                             <td style="padding: 10px; border-top: 1px solid var(--border-color); white-space: nowrap;">${safeText(dateLabel)}</td>
                             <td style="padding: 10px; border-top: 1px solid var(--border-color);">${safeText(model)}</td>
-                            <td style="padding: 10px; border-top: 1px solid var(--border-color); text-align: right; white-space: nowrap;">${tokens.toLocaleString('fr-FR')}</td>
+                            <td style="padding: 10px; border-top: 1px solid var(--border-color); text-align: right; white-space: nowrap;">${tokens.toLocaleString(getLocale())}</td>
                             <td style="padding: 10px; border-top: 1px solid var(--border-color); text-align: right; white-space: nowrap;">${safeText(costLabel)}</td>
                         </tr>
                     `;
@@ -8846,7 +8846,7 @@ ${persona}
                     response += `${index + 1}. ${priority} ${categoryIcon} ${task.title}`;
                     if (task.dueDate) {
                         const dueDate = new Date(task.dueDate);
-                        response += ` (📅 ${dueDate.toLocaleDateString('fr-FR')})`;
+                        response += ` (📅 ${dueDate.toLocaleDateString(getLocale())})`;
                     }
                     if (task.progress > 0) {
                         response += ` [${task.progress}%]`;
@@ -8909,7 +8909,7 @@ ${persona}
                 }
                 
                 const event = addEvent(eventTitle, startDate.toISOString());
-                const dateStr = new Date(event.startDate).toLocaleString('fr-FR');
+                const dateStr = new Date(event.startDate).toLocaleString(getLocale());
                 
                 return { 
                     handled: true, 
@@ -8927,7 +8927,7 @@ ${persona}
                 if (todayEvents.length > 0) {
                     response += `📅 **Aujourd'hui** (${todayEvents.length}):\n\n`;
                     todayEvents.forEach(event => {
-                        const time = new Date(event.startDate).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+                        const time = new Date(event.startDate).toLocaleTimeString(getLocale(), { hour: '2-digit', minute: '2-digit' });
                         response += `🕐 ${time} - ${event.title}\n`;
                     });
                     response += "\n";
@@ -8936,8 +8936,8 @@ ${persona}
                 if (weekEvents.length > todayEvents.length) {
                     response += `📆 **Cette semaine** (${weekEvents.length} événements):\n\n`;
                     weekEvents.forEach(event => {
-                        const date = new Date(event.startDate).toLocaleDateString('fr-FR');
-                        const time = new Date(event.startDate).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+                        const date = new Date(event.startDate).toLocaleDateString(getLocale());
+                        const time = new Date(event.startDate).toLocaleTimeString(getLocale(), { hour: '2-digit', minute: '2-digit' });
                         response += `• ${date} à ${time} - ${event.title}\n`;
                     });
                 }
@@ -8998,7 +8998,7 @@ ${persona}
                 } else {
                     let response = `📅 ${dayName.charAt(0).toUpperCase() + dayName.slice(1)}, vous avez ${dayEvents.length} événement(s):\n\n`;
                     dayEvents.forEach(event => {
-                        const time = new Date(event.startDate).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+                        const time = new Date(event.startDate).toLocaleTimeString(getLocale(), { hour: '2-digit', minute: '2-digit' });
                         response += `🕐 ${time} - ${event.title}\n`;
                     });
                     return { handled: true, response };
@@ -9022,7 +9022,7 @@ ${persona}
                     });
                     
                     if (dayEvents.length === 0) {
-                        const dayName = checkDate.toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' });
+                        const dayName = checkDate.toLocaleDateString(getLocale(), { weekday: 'long', day: 'numeric', month: 'long' });
                         slots.push(`✅ ${dayName} - Libre toute la journée`);
                     }
                 }
@@ -9048,8 +9048,8 @@ ${persona}
                 if (weekEvents.length > 0) {
                     response += "📅 **Événements programmés:**\n";
                     weekEvents.forEach(event => {
-                        const date = new Date(event.startDate).toLocaleDateString('fr-FR', { weekday: 'short', day: 'numeric' });
-                        const time = new Date(event.startDate).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+                        const date = new Date(event.startDate).toLocaleDateString(getLocale(), { weekday: 'short', day: 'numeric' });
+                        const time = new Date(event.startDate).toLocaleTimeString(getLocale(), { hour: '2-digit', minute: '2-digit' });
                         response += `• ${date} ${time} - ${event.title}\n`;
                     });
                     response += "\n";
@@ -11002,7 +11002,7 @@ ${persona}
                     if (isPrioritize) {
                         const top = Array.isArray(data.prioritized) ? data.prioritized.slice(0, 7) : [];
                         const lines = top.map((t, i) => {
-                            const due = t.deadline ? ` (échéance: ${new Date(t.deadline).toLocaleString('fr-FR')})` : '';
+                            const due = t.deadline ? ` (échéance: ${new Date(t.deadline).toLocaleString(getLocale())})` : '';
                             return `${i + 1}. ${t.title}${due}`;
                         });
                         const extra = data.insights?.overload ? `\n\n⚠️ Surcharge possible dans 24h (~${data.insights.next24Hours}h).` : '';
@@ -11010,8 +11010,8 @@ ${persona}
                     } else if (isSchedule) {
                         const blocks = Array.isArray(data.schedule) ? data.schedule.slice(0, 8) : [];
                         const lines = blocks.map(b => {
-                            const s = new Date(b.start).toLocaleString('fr-FR');
-                            const e = new Date(b.end).toLocaleTimeString('fr-FR');
+                            const s = new Date(b.start).toLocaleString(getLocale());
+                            const e = new Date(b.end).toLocaleTimeString(getLocale());
                             return `- ${s} → ${e} : ${b.title}`;
                         });
                         text = blocks.length
@@ -11403,7 +11403,7 @@ ${persona}
             if (!('Notification' in window) || Notification.permission !== 'granted') return;
             
             const priorityEmoji = task.priority === 'high' ? '🔴' : task.priority === 'medium' ? '🟡' : '🔵';
-            const timeStr = new Date(task.dueDate).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+            const timeStr = new Date(task.dueDate).toLocaleTimeString(getLocale(), { hour: '2-digit', minute: '2-digit' });
             
             const notification = new Notification(`${priorityEmoji} Tâche à venir`, {
                 body: `${task.title}\n⏰ Dans 15 minutes (${timeStr})`,
@@ -11946,7 +11946,7 @@ ${persona}
             const priorityColor = task.priority === 'high' ? '#EF4444' : task.priority === 'medium' ? '#F59E0B' : '#3B82F6';
             const priorityBg = task.priority === 'high' ? 'rgba(239, 68, 68, 0.1)' : task.priority === 'medium' ? 'rgba(245, 158, 11, 0.1)' : 'rgba(59, 130, 246, 0.1)';
             const priorityLabel = task.priority === 'high' ? 'Urgent' : task.priority === 'medium' ? 'Normal' : 'Basse';
-            const dueStr = task.dueDate ? new Date(task.dueDate).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' }) : '';
+            const dueStr = task.dueDate ? new Date(task.dueDate).toLocaleDateString(getLocale(), { day: 'numeric', month: 'short' }) : '';
             
             return `
                 <div onclick="showTaskDetails('${task.id}')" style="padding: 14px 16px; background: var(--bg-secondary); border-radius: 10px; border-left: 3px solid ${priorityColor}; cursor: pointer; transition: all 0.2s; margin-bottom: 10px; border: 1px solid var(--border-color);" 
@@ -12071,7 +12071,7 @@ ${persona}
                                 <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/>
                                 <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
                             </svg>
-                            Aujourd'hui - ${new Date().toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' })}
+                            Aujourd'hui - ${new Date().toLocaleDateString(getLocale(), { weekday: 'long', day: 'numeric', month: 'long' })}
                         </h3>
                         ${events.length === 0 ? '<p style="color: var(--text-secondary); margin: 0; font-size: 14px;">Aucun événement aujourd\'hui</p>' : events.map(e => `
                             <div style="padding: 12px; background: rgba(59, 130, 246, 0.1); border-radius: 8px; margin-bottom: 8px; border-left: 3px solid #3B82F6; border: 1px solid rgba(59, 130, 246, 0.2);">
@@ -12081,7 +12081,7 @@ ${persona}
                                         <circle cx="12" cy="12" r="10"/>
                                         <polyline points="12 6 12 12 16 14"/>
                                     </svg>
-                                    ${new Date(e.startDate).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}
+                                    ${new Date(e.startDate).toLocaleTimeString(getLocale(), { hour: '2-digit', minute: '2-digit' })}
                                 </div>
                             </div>
                         `).join('')}
@@ -12285,7 +12285,7 @@ ${persona}
                     
                     // Message avec priorité si urgente
                     const priorityEmoji = priority === 'high' ? '🔴 ' : '';
-                    showToast(`✅ Tâche créée ! ${priorityEmoji}${dueDate ? '📅 ' + new Date(dueDate).toLocaleDateString('fr-FR') : ''}`, 'success');
+                    showToast(`✅ Tâche créée ! ${priorityEmoji}${dueDate ? '📅 ' + new Date(dueDate).toLocaleDateString(getLocale()) : ''}`, 'success');
                     renderTodoFilters();
                     renderTodoCategories();
                     renderTodoMainView();
@@ -12363,7 +12363,7 @@ ${persona}
             }
             backdrop.style.cssText = 'position: absolute; inset: 0; background: rgba(0, 0, 0, 0.4); z-index: 99; transition: opacity 0.3s; opacity: 1;';
 
-            const dueStr = selectedTask.dueDate ? new Date(selectedTask.dueDate).toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }) : 'Non définie';
+            const dueStr = selectedTask.dueDate ? new Date(selectedTask.dueDate).toLocaleDateString(getLocale(), { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }) : 'Non définie';
             const priorityLabel = selectedTask.priority === 'high' ? 'Urgente' : selectedTask.priority === 'medium' ? 'Normale' : 'Basse';
             const priorityColor = selectedTask.priority === 'high' ? '#EF4444' : selectedTask.priority === 'medium' ? '#F59E0B' : '#3B82F6';
             const priorityBg = selectedTask.priority === 'high' ? 'rgba(239, 68, 68, 0.1)' : selectedTask.priority === 'medium' ? 'rgba(245, 158, 11, 0.1)' : 'rgba(59, 130, 246, 0.1)';
@@ -17095,7 +17095,7 @@ ${persona}
                                 ${milestone.statut === 'complété' ? '✓ Complété' : isPast ? '⚠ Retard' : '⏳ À venir'}
                             </span>
                             <div style="margin-top: 8px; font-size: 14px; color: rgba(255, 255, 255, 0.9); font-weight: 600;">
-                                ${new Date(milestone.date).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })}
+                                ${new Date(milestone.date).toLocaleDateString(getLocale(), { day: 'numeric', month: 'long', year: 'numeric' })}
                             </div>
                         </div>
                     </div>
@@ -17159,7 +17159,7 @@ ${persona}
                             </div>
                             <p style="margin: 0 0 8px; color: rgba(255, 255, 255, 0.7); font-size: 14px;">${doc.description}</p>
                             <div style="display: flex; gap: 16px; align-items: center; font-size: 12px; color: rgba(255, 255, 255, 0.5);">
-                                <span>Ajouté le ${new Date(doc.created).toLocaleDateString('fr-FR')}</span>
+                                <span>Ajouté le ${new Date(doc.created).toLocaleDateString(getLocale())}</span>
                                 ${doc.url ? `<a href="${doc.url}" target="_blank" style="color: rgba(99, 102, 241, 0.9); text-decoration: none;">🔗 Voir le document</a>` : ''}
                             </div>
                         </div>
@@ -17279,7 +17279,7 @@ ${persona}
                         </div>
                         <div style="text-align: right;">
                             <div style="font-size: 12px; color: rgba(255, 255, 255, 0.5);">Budget</div>
-                            <div style="font-size: 16px; color: #6ee7b7; font-weight: 600;">${project.budget.prevu.toLocaleString()} ${project.budget.devise}</div>
+                            <div style="font-size: 16px; color: #6ee7b7; font-weight: 600;">${project.budget.prevu.toLocaleString(getLocale())} ${project.budget.devise}</div>
                         </div>
                     </div>
                     <div style="margin-bottom: 8px;">
@@ -17292,7 +17292,7 @@ ${persona}
                         </div>
                     </div>
                     <div style="font-size: 12px; color: rgba(255, 255, 255, 0.5);">
-                        Créé le ${new Date(project.created).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })}
+                        Créé le ${new Date(project.created).toLocaleDateString(getLocale(), { day: 'numeric', month: 'long', year: 'numeric' })}
                     </div>
                 </div>
             `).join('');
@@ -19971,13 +19971,13 @@ function showAddProjectModal() {
             const amount = mktToNumber(value, 0);
             const currency = mktGetAppCurrency();
             try {
-                return new Intl.NumberFormat('fr-FR', {
+                return new Intl.NumberFormat(getLocale(), {
                     style: 'currency',
                     currency,
                     maximumFractionDigits
                 }).format(amount);
             } catch (_) {
-                return `${Math.round(amount).toLocaleString('fr-FR')} ${currency}`;
+                return `${Math.round(amount).toLocaleString(getLocale())} ${currency}`;
             }
         }
 
@@ -22077,7 +22077,7 @@ N'inclus des actions QUE si l'utilisateur demande explicitement de modifier/ajou
                                 </div>
                                 <div>
                                     <div style="font-size: 12px; color: rgba(255, 255, 255, 0.5); margin-bottom: 4px;">Date de naissance</div>
-                                    <div style="font-size: 15px; color: white; font-weight: 500;">${employee.birthDate ? new Date(employee.birthDate).toLocaleDateString('fr-FR') : 'Non renseignée'}</div>
+                                    <div style="font-size: 15px; color: white; font-weight: 500;">${employee.birthDate ? new Date(employee.birthDate).toLocaleDateString(getLocale()) : 'Non renseignée'}</div>
                                 </div>
                                 <div>
                                     <div style="font-size: 12px; color: rgba(255, 255, 255, 0.5); margin-bottom: 4px;">Adresse</div>
@@ -22104,7 +22104,7 @@ N'inclus des actions QUE si l'utilisateur demande explicitement de modifier/ajou
                                 </div>
                                 <div>
                                     <div style="font-size: 12px; color: rgba(255, 255, 255, 0.5); margin-bottom: 4px;">Date d'embauche</div>
-                                    <div style="font-size: 15px; color: white; font-weight: 500;">${new Date(employee.hireDate).toLocaleDateString('fr-FR')}</div>
+                                    <div style="font-size: 15px; color: white; font-weight: 500;">${new Date(employee.hireDate).toLocaleDateString(getLocale())}</div>
                                 </div>
                                 <div>
                                     <div style="font-size: 12px; color: rgba(255, 255, 255, 0.5); margin-bottom: 4px;">Ancienneté</div>
@@ -22193,8 +22193,8 @@ N'inclus des actions QUE si l'utilisateur demande explicitement de modifier/ajou
                 nif: companySettings.taxId || 'NIF N° XXXXXXXXX'
             };
             
-            const today = new Date().toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' });
-            const hireDate = new Date(employee.hireDate).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' });
+            const today = new Date().toLocaleDateString(getLocale(), { day: 'numeric', month: 'long', year: 'numeric' });
+            const hireDate = new Date(employee.hireDate).toLocaleDateString(getLocale(), { day: 'numeric', month: 'long', year: 'numeric' });
             const seniority = calculateSeniority(employee.hireDate);
             
             // Create PDF content
@@ -22286,7 +22286,7 @@ N'inclus des actions QUE si l'utilisateur demande explicitement de modifier/ajou
         
         <div class="info-box">
             <strong>Monsieur/Madame ${employee.firstName} ${employee.lastName}</strong><br>
-            Né(e) le : ${employee.birthDate ? new Date(employee.birthDate).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' }) : '[Date de naissance à compléter]'}<br>
+            Né(e) le : ${employee.birthDate ? new Date(employee.birthDate).toLocaleDateString(getLocale(), { day: 'numeric', month: 'long', year: 'numeric' }) : '[Date de naissance à compléter]'}<br>
             Résidant à : ${employee.address || '[Adresse à compléter]'}
         </div>
 
@@ -23872,8 +23872,8 @@ ${recruitmentInfo}
                             </div>
                         </td>
                         <td style="padding: 16px; color: rgba(255,255,255,0.9);">${leaveTypes[leave.type] || leave.type}</td>
-                        <td style="padding: 16px; color: rgba(255,255,255,0.9);">${new Date(leave.startDate).toLocaleDateString('fr-FR')}</td>
-                        <td style="padding: 16px; color: rgba(255,255,255,0.9);">${new Date(leave.endDate).toLocaleDateString('fr-FR')}</td>
+                        <td style="padding: 16px; color: rgba(255,255,255,0.9);">${new Date(leave.startDate).toLocaleDateString(getLocale())}</td>
+                        <td style="padding: 16px; color: rgba(255,255,255,0.9);">${new Date(leave.endDate).toLocaleDateString(getLocale())}</td>
                         <td style="padding: 16px; color: white; font-weight: 600;">${days} jour${days > 1 ? 's' : ''}</td>
                         <td style="padding: 16px;">
                             <span style="padding: 4px 12px; background: ${statusStyle.color}20; color: ${statusStyle.color}; border-radius: 12px; font-size: 12px; font-weight: 600;">
@@ -24315,7 +24315,7 @@ ${recruitmentInfo}
                     <div style="background: #FEF3C7; border-left: 4px solid #F59E0B; padding: 12px 16px; border-radius: 8px; margin-bottom: 8px;">
                         <div style="display: flex; align-items: center; gap: 8px;">
                             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#F59E0B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
-                            <strong style="color: #92400E; font-size: 14px;">⚠️ Chevauchement critique le ${new Date(w.date).toLocaleDateString('fr-FR')}</strong>
+                            <strong style="color: #92400E; font-size: 14px;">⚠️ Chevauchement critique le ${new Date(w.date).toLocaleDateString(getLocale())}</strong>
                         </div>
                         <p style="margin: 4px 0 0 26px; font-size: 13px; color: #78350F;">${w.count} personnes du département ${w.dept} absentes simultanément</p>
                     </div>
@@ -25963,7 +25963,7 @@ ${recruitmentInfo}
                         </div>
                         <div style="text-align: right;">
                             <div style="font-size: 12px; color: rgba(255,255,255,0.65); margin-bottom: 2px;">Date</div>
-                            <div style="font-size: 14px; font-weight: 800; color: white;">${new Date(review.date).toLocaleDateString('fr-FR')}</div>
+                                <div style="font-size: 14px; font-weight: 800; color: white;">${new Date(review.date).toLocaleDateString(getLocale())}</div>
                         </div>
                     </div>
                 </div>
@@ -26716,7 +26716,7 @@ ${recruitmentInfo}
                     
                     <div style="background: #f9fafb; border-radius: 12px; padding: 16px; margin-bottom: 24px; border: 1px solid #e5e7eb;">
                         <p style="margin: 0; font-size: 11px; color: #6b7280; line-height: 1.6;">
-                            ${getTurnoverIcon('calendar', { size: 12, stroke: '#6b7280' })} Analyse effectuée le ${new Date(analysis.analyzedAt).toLocaleString('fr-FR')}<br>
+                            ${getTurnoverIcon('calendar', { size: 12, stroke: '#6b7280' })} Analyse effectuée le ${new Date(analysis.analyzedAt).toLocaleString(getLocale())}<br>
                             ${analysis.dataCoverage ? `${getTurnoverIcon('chart', { size: 12, stroke: '#6b7280' })} Données utilisées (${analysis.dataCoverage.windowMonths} mois): ${analysis.dataCoverage.payrollCount} paie(s), ${analysis.dataCoverage.reviewCount} évaluation(s), ${analysis.dataCoverage.approvedLeavesCount} congé(s) approuvé(s) (${analysis.dataCoverage.approvedAbsenceDays} jours)<br>` : ''}
                             ${getTurnoverIcon('lock', { size: 12, stroke: '#6b7280' })} Ces données sont confidentielles et accessibles uniquement aux RH autorisés<br>
                             ${getTurnoverIcon('scale', { size: 12, stroke: '#6b7280' })} Conformité RGPD: Base légale = Intérêt légitime de l'employeur (gestion RH)
@@ -26980,7 +26980,7 @@ ${recruitmentInfo}
 
             doc.setFontSize(10);
             doc.setTextColor(90);
-            addLine(`Généré le ${new Date(data.exportDate).toLocaleString('fr-FR')}`, 14);
+            addLine(`Généré le ${new Date(data.exportDate).toLocaleString(getLocale())}`, 14);
 
             doc.setFontSize(12);
             doc.setTextColor(0);
@@ -28238,7 +28238,7 @@ ${recruitmentInfo}
                 const conversations = JSON.parse(localStorage.getItem('financeConversations') || '{}');
                 conversations[financeConversationId] = {
                     id: financeConversationId,
-                    name: currentConversationName || `Conversation ${new Date().toLocaleDateString('fr-FR')}`,
+                    name: currentConversationName || `Conversation ${new Date().toLocaleDateString(getLocale())}`,
                     history: financeChatHistory,
                     context: financeContext,
                     lastUpdated: new Date().toISOString(),
@@ -28569,7 +28569,7 @@ ${recruitmentInfo}
                     <div class="history-info">
                         <div class="history-name">${conv.name} ${duplicateBadge}</div>
                         <div class="history-meta">
-                            ${conv.messageCount} messages • ${new Date(conv.lastUpdated).toLocaleDateString('fr-FR')}
+                            ${conv.messageCount} messages • ${new Date(conv.lastUpdated).toLocaleDateString(getLocale())}
                         </div>
                     </div>
                     <div class="history-actions">
@@ -29958,7 +29958,7 @@ ${recruitmentInfo}
                 confirmMsg += `• Montant: ${origInvoice.amount} ${origInvoice.currency || ''}\n`;
                 confirmMsg += `• Date: ${origInvoice.date || 'N/A'}\n`;
                 if (origInvoice.invoiceNumber) confirmMsg += `• N°: ${origInvoice.invoiceNumber}\n`;
-                if (origInvoice.extractedAt) confirmMsg += `• Enregistrée le: ${new Date(origInvoice.extractedAt).toLocaleDateString('fr-FR')}\n`;
+                if (origInvoice.extractedAt) confirmMsg += `• Enregistrée le: ${new Date(origInvoice.extractedAt).toLocaleDateString(getLocale())}\n`;
                 confirmMsg += `\n⚠️ Veuillez vérifier si c'est une erreur!\n\n`;
             }
             
@@ -33785,13 +33785,13 @@ Réponds UNIQUEMENT dans ce format JSON:
             }
 
             let content = `Axilum AI - Export Complet\n`;
-            content += `Date: ${new Date().toLocaleString('fr-FR')}\n`;
+            content += `Date: ${new Date().toLocaleString(getLocale())}\n`;
             content += `Total conversations: ${conversations.length}\n`;
             content += `\n${'='.repeat(80)}\n\n`;
 
             conversations.forEach((conv, index) => {
                 content += `CONVERSATION ${index + 1}: ${conv.title}\n`;
-                content += `Date: ${new Date(conv.timestamp).toLocaleString('fr-FR')}\n`;
+                content += `Date: ${new Date(conv.timestamp).toLocaleString(getLocale())}\n`;
                 content += `Messages: ${conv.messages.length}\n`;
                 content += `\n${'-'.repeat(80)}\n\n`;
 

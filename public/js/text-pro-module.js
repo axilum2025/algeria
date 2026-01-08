@@ -5,6 +5,25 @@
 
 (function() {
     'use strict';
+
+    function normalizeAppLanguage(lang) {
+        const raw = String(lang || '').toLowerCase();
+        if (raw.startsWith('en')) return 'en';
+        return 'fr';
+    }
+
+    function getAppLanguage() {
+        try {
+            const stored = localStorage.getItem('appLanguage');
+            if (stored) return normalizeAppLanguage(stored);
+        } catch (_) {}
+        return normalizeAppLanguage((navigator && navigator.language) ? navigator.language : 'fr');
+    }
+
+    function getSpeechLocale() {
+        const lang = getAppLanguage();
+        return lang === 'en' ? 'en-US' : 'fr-FR';
+    }
     
     // Variables du module
     let textProChatHistory = [];
@@ -2032,7 +2051,7 @@ Pour commencer, sélectionnez vos langues dans le panneau latéral et saisissez 
                 if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
                     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
                     recognition = new SpeechRecognition();
-                    recognition.lang = 'fr-FR';
+                    recognition.lang = getSpeechLocale();
                     recognition.continuous = false;
                     recognition.interimResults = false;
                     
@@ -2341,7 +2360,7 @@ Pour commencer, sélectionnez vos langues dans le panneau latéral et saisissez 
         
         // Créer une nouvelle lecture
         currentUtterance = new SpeechSynthesisUtterance(text);
-        currentUtterance.lang = 'fr-FR';
+        currentUtterance.lang = getSpeechLocale();
         currentUtterance.rate = 1.0;
         currentUtterance.pitch = 1.0;
         currentUtterance.volume = 1.0;
