@@ -1,4 +1,5 @@
 const PDFDocument = require('pdfkit');
+const { getLangFromReq, getLocaleFromLang } = require('../utils/lang');
 const { uploadBuffer, buildBlobUrl } = require('../utils/storage');
 
 module.exports = async function (context, req) {
@@ -37,6 +38,8 @@ module.exports = async function (context, req) {
   }
 
   try {
+    const lang = getLangFromReq(req);
+    const locale = getLocaleFromLang(lang);
     const body = req.body || {};
     const period = body.period || 'periode-courante';
     const format = body.format || 'pdf';
@@ -369,7 +372,7 @@ async function generatePDFReport(reportType, analysis, period, companyInfo = {})
     }
     
     doc.fontSize(12).font('Helvetica').text(`Période: ${period}`, { align: 'center' });
-    doc.text(`Date de génération: ${new Date().toLocaleDateString('fr-FR')}`, { align: 'center' });
+    doc.text(`Date de génération: ${new Date().toLocaleDateString(locale)}`, { align: 'center' });
     doc.text(`Type de rapport: ${reportType}`, { align: 'center' });
     doc.moveDown(2);
 
@@ -378,17 +381,17 @@ async function generatePDFReport(reportType, analysis, period, companyInfo = {})
     doc.moveDown(0.5);
     doc.fontSize(12).font('Helvetica');
     
-    doc.text(`Revenus totaux: ${analysis.summary.totalRevenue.toLocaleString('fr-FR')} €`, { continued: false });
-    doc.text(`Dépenses totales: ${analysis.summary.totalExpenses.toLocaleString('fr-FR')} €`);
+    doc.text(`Revenus totaux: ${analysis.summary.totalRevenue.toLocaleString(locale)} €`, { continued: false });
+    doc.text(`Dépenses totales: ${analysis.summary.totalExpenses.toLocaleString(locale)} €`);
     
     // Résultat net avec couleur
     const netIncome = analysis.summary.netIncome;
     doc.fillColor(netIncome >= 0 ? 'green' : 'red')
-       .text(`Résultat net: ${netIncome.toLocaleString('fr-FR')} €`);
+       .text(`Résultat net: ${netIncome.toLocaleString(locale)} €`);
     doc.fillColor('black');
     
     doc.text(`Marge: ${analysis.summary.margin}`);
-    doc.text(`TVA collectée/déductible: ${analysis.summary.totalVAT.toLocaleString('fr-FR')} €`);
+    doc.text(`TVA collectée/déductible: ${analysis.summary.totalVAT.toLocaleString(locale)} €`);
     doc.text(`Nombre de factures: ${analysis.summary.invoiceCount} (${analysis.summary.incomeCount} revenus, ${analysis.summary.expenseCount} dépenses)`);
     doc.moveDown(2);
 
@@ -402,16 +405,16 @@ async function generatePDFReport(reportType, analysis, period, companyInfo = {})
       doc.text(`Ratio dépenses/total: ${analysis.kpis.expenseRatio}`);
       doc.text(`Ratio revenus/total: ${analysis.kpis.revenueRatio}`);
     } else {
-      doc.text(`Total dépenses: ${analysis.summary.totalExpenses.toLocaleString('fr-FR')} €`);
+      doc.text(`Total dépenses: ${analysis.summary.totalExpenses.toLocaleString(locale)} €`);
       doc.fillColor('gray').text(`(Aucun revenu pour calculer des ratios)`).fillColor('black');
     }
     doc.text(`Ratio TVA/total: ${analysis.kpis.vatRatio}`);
-    doc.text(`Montant moyen par facture: ${analysis.summary.averageInvoice.toLocaleString('fr-FR')} €`);
+    doc.text(`Montant moyen par facture: ${analysis.summary.averageInvoice.toLocaleString(locale)} €`);
     if (analysis.summary.expenseCount > 0) {
-      doc.text(`Dépense moyenne: ${analysis.kpis.averageExpense.toLocaleString('fr-FR')} €`);
+      doc.text(`Dépense moyenne: ${analysis.kpis.averageExpense.toLocaleString(locale)} €`);
     }
     if (analysis.summary.incomeCount > 0) {
-      doc.text(`Revenu moyen: ${analysis.kpis.averageRevenue.toLocaleString('fr-FR')} €`);
+      doc.text(`Revenu moyen: ${analysis.kpis.averageRevenue.toLocaleString(locale)} €`);
     }
     doc.font('Helvetica-Bold');
     doc.fillColor(analysis.kpis.profitability === 'Rentable' ? 'green' : 'red')
@@ -432,9 +435,9 @@ async function generatePDFReport(reportType, analysis, period, companyInfo = {})
     doc.moveDown(0.5);
     doc.fontSize(11).font('Helvetica');
     
-    doc.text(`Flux de trésorerie net: ${analysis.summary.cashFlow.toLocaleString('fr-FR')} €`);
-    doc.text(`Total encaissements (revenus): ${analysis.summary.totalRevenue.toLocaleString('fr-FR')} €`);
-    doc.text(`Total décaissements (dépenses): ${analysis.summary.totalExpenses.toLocaleString('fr-FR')} €`);
+    doc.text(`Flux de trésorerie net: ${analysis.summary.cashFlow.toLocaleString(locale)} €`);
+    doc.text(`Total encaissements (revenus): ${analysis.summary.totalRevenue.toLocaleString(locale)} €`);
+    doc.text(`Total décaissements (dépenses): ${analysis.summary.totalExpenses.toLocaleString(locale)} €`);
     
     const cashPosition = analysis.summary.cashFlow >= 0 ? 'Positive' : 'Négative';
     const cashColor = analysis.summary.cashFlow >= 0 ? 'green' : 'red';
@@ -455,7 +458,7 @@ async function generatePDFReport(reportType, analysis, period, companyInfo = {})
     doc.fontSize(10).font('Helvetica');
     
     analysis.topVendors.forEach((v, idx) => {
-      doc.text(`${idx + 1}. ${v.vendor} [${v.type}]: ${v.total.toLocaleString('fr-FR')} € (${v.count} facture${v.count > 1 ? 's' : ''})`);
+      doc.text(`${idx + 1}. ${v.vendor} [${v.type}]: ${v.total.toLocaleString(locale)} € (${v.count} facture${v.count > 1 ? 's' : ''})`);
     });
     doc.moveDown(2);
 
@@ -466,9 +469,9 @@ async function generatePDFReport(reportType, analysis, period, companyInfo = {})
     
     analysis.categoryBreakdown.forEach(cat => {
       const details = cat.income > 0 && cat.expenses > 0 
-        ? ` (Revenus: ${cat.income.toLocaleString('fr-FR')}€, Dépenses: ${cat.expenses.toLocaleString('fr-FR')}€)`
+        ? ` (Revenus: ${cat.income.toLocaleString(locale)}€, Dépenses: ${cat.expenses.toLocaleString(locale)}€)`
         : cat.income > 0 ? ' (Revenus)' : ' (Dépenses)';
-      doc.text(`${cat.category}: ${cat.total.toLocaleString('fr-FR')} € ${details} - ${cat.percentage}`);
+      doc.text(`${cat.category}: ${cat.total.toLocaleString(locale)} € ${details} - ${cat.percentage}`);
     });
     doc.moveDown(2);
 
@@ -480,7 +483,7 @@ async function generatePDFReport(reportType, analysis, period, companyInfo = {})
       doc.fontSize(10).font('Helvetica');
       
       analysis.monthlyTrend.forEach(m => {
-        doc.text(`${m.month}: Revenus ${m.income.toLocaleString('fr-FR')} € | Dépenses ${m.expenses.toLocaleString('fr-FR')} € | Net ${m.net.toLocaleString('fr-FR')} €`);
+        doc.text(`${m.month}: Revenus ${m.income.toLocaleString(locale)} € | Dépenses ${m.expenses.toLocaleString(locale)} € | Net ${m.net.toLocaleString(locale)} €`);
       });
     }
 
@@ -513,7 +516,7 @@ async function generatePDFReport(reportType, analysis, period, companyInfo = {})
         // Détails
         doc.fontSize(9).font('Helvetica');
         doc.text(`   Numéro: ${inv.number}`);
-        doc.text(`   Date: ${inv.date ? new Date(inv.date).toLocaleDateString('fr-FR') : 'N/A'}`);
+        doc.text(`   Date: ${inv.date ? new Date(inv.date).toLocaleDateString(locale) : 'N/A'}`);
         doc.text(`   Catégorie: ${inv.category}`);
         
         // Montants détaillés
@@ -522,14 +525,14 @@ async function generatePDFReport(reportType, analysis, period, companyInfo = {})
         const total = parseFloat(inv.total) || amount;
         const htAmount = vat > 0 ? total - vat : amount;
         
-        doc.text(`   Montant HT: ${htAmount.toLocaleString('fr-FR')} €`);
+        doc.text(`   Montant HT: ${htAmount.toLocaleString(locale)} €`);
         if (vat > 0) {
           const vatRate = htAmount > 0 ? ((vat / htAmount) * 100).toFixed(1) : '0';
-          doc.text(`   TVA/IVA (${vatRate}%): ${vat.toLocaleString('fr-FR')} €`);
+          doc.text(`   TVA/IVA (${vatRate}%): ${vat.toLocaleString(locale)} €`);
         } else {
           doc.text(`   TVA/IVA: Non détectée`);
         }
-        doc.font('Helvetica-Bold').text(`   Total TTC: ${total.toLocaleString('fr-FR')} €`);
+        doc.font('Helvetica-Bold').text(`   Total TTC: ${total.toLocaleString(locale)} €`);
         
         doc.moveDown(0.8);
         doc.font('Helvetica');
@@ -556,7 +559,7 @@ async function generatePDFReport(reportType, analysis, period, companyInfo = {})
         type: 'Alerte',
         color: 'red',
         icon: '⚠️',
-        text: `Résultat net négatif de ${Math.abs(analysis.summary.netIncome).toLocaleString('fr-FR')} €. Réduisez vos dépenses ou augmentez vos revenus.`
+        text: `Résultat net négatif de ${Math.abs(analysis.summary.netIncome).toLocaleString(locale)} €. Réduisez vos dépenses ou augmentez vos revenus.`
       });
     }
     

@@ -4,6 +4,7 @@
 const { assertWithinBudget, recordUsage, BudgetExceededError } = require('../utils/aiUsageBudget');
 const { getAuthEmail } = require('../utils/auth');
 const { precheckCredit, debitAfterUsage } = require('../utils/aiCreditGuard');
+const { getLangFromReq, normalizeLang } = require('../utils/lang');
 
 const DEFAULT_GROQ_MODEL = 'llama-3.3-70b-versatile';
 
@@ -43,6 +44,7 @@ module.exports = async function (context, req) {
 
     try {
         const { text, targetLang, sourceLang, preserveFormatting, includeAlternatives, userId: bodyUserId } = req.body;
+        const lang = getLangFromReq(req);
         const requestedModel = req.body?.model || req.body?.aiModel || null;
         const resolvedModel = resolveRequestedGroqModel(requestedModel);
         const authEmail = getAuthEmail(req);
@@ -131,7 +133,7 @@ module.exports = async function (context, req) {
         // Détection automatique de la langue source si non fournie
         let detectedSourceLang = sourceLang;
         if (!sourceLang) {
-            detectedSourceLang = await detectLanguage(text, groqKey, resolvedModel);
+            detectedSourceLang = await detectLanguage(text, groqKey, resolvedModel, lang);
         }
 
         // Construire le prompt de traduction
@@ -254,9 +256,13 @@ ${includeAlternatives ? `
 /**
  * Détecte la langue du texte source
  */
-async function detectLanguage(text, groqKey, model) {
+async function detectLanguage(text, groqKey, model, lang) {
     try {
         const resolvedModel = resolveRequestedGroqModel(model);
+        const uiLang = normalizeLang(lang);
+        const systemContent = uiLang === 'en'
+            ? 'Detect the language of the provided text. Reply ONLY with the language name in English (e.g., French, English, Spanish, German, etc.)'
+            : 'Détecte la langue du texte fourni. Réponds UNIQUEMENT avec le nom de la langue en français (ex: français, anglais, espagnol, allemand, etc.)';
         const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
             method: 'POST',
             headers: {
@@ -268,7 +274,7 @@ async function detectLanguage(text, groqKey, model) {
                 messages: [
                     {
                         role: "system",
-                        content: "Détecte la langue du texte fourni. Réponds UNIQUEMENT avec le nom de la langue en français (ex: français, anglais, espagnol, allemand, etc.)"
+                        content: systemContent
                     },
                     {
                         role: "user",

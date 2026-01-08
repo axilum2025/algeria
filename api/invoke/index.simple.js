@@ -38,6 +38,9 @@ module.exports = async function (context, req) {
     try {
         const userMessage = req.body.message;
         const userQuery = extractUserQueryFromMessage(userMessage);
+        const { getLangFromReq, getSearchLang, getResponseLanguageInstruction } = require('../utils/lang');
+        const lang = getLangFromReq(req);
+        const searchLang = getSearchLang(lang);
 
         if (!userMessage) {
             context.res = {
@@ -167,7 +170,7 @@ module.exports = async function (context, req) {
 
                 if (!isGreeting) {
                     const wiki = (wikiEnabled && wikiLimit > 0)
-                        ? await searchWikipedia(userQuery, { lang: 'fr', limit: wikiLimit, timeoutMs: 5000 })
+                        ? await searchWikipedia(userQuery, { lang: searchLang, limit: wikiLimit, timeoutMs: 5000 })
                         : [];
 
                     const semantic = (semanticEnabled && semanticLimit > 0)
@@ -175,7 +178,7 @@ module.exports = async function (context, req) {
                         : [];
 
                     const news = (newsEnabled && newsApiKey && newsLimit > 0)
-                        ? await searchNewsApi(userQuery, { apiKey: newsApiKey, language: 'fr', pageSize: newsLimit, timeoutMs: 5000 })
+                        ? await searchNewsApi(userQuery, { apiKey: newsApiKey, language: searchLang, pageSize: newsLimit, timeoutMs: 5000 })
                         : [];
 
                     contextFromSearch = appendEvidenceContext(contextFromSearch, [...wiki, ...semantic, ...news]);
@@ -194,7 +197,7 @@ Objectif: aider l'utilisateur à concevoir, implémenter, déboguer et livrer de
 
 Règles:
 
-Réponds en français, clairement et professionnellement.`
+${getResponseLanguageInstruction(lang, { tone: 'clairement et professionnellement' })}`
                     : (chatType === 'hr-management')
                         ? `Tu es Agent RH, un assistant RH.
 
@@ -202,21 +205,21 @@ Tu aides sur: politique RH, congés, paie (conceptuellement), recrutement, onboa
 
 Règles:
 
-Réponds en français, clair et actionnable.`
+${getResponseLanguageInstruction(lang, { tone: 'clair et actionnable' })}`
                         : (chatType === 'marketing-agent')
                             ? `Tu es Agent Marketing.
 
 Tu aides sur: positionnement, contenu, SEO, ads, emails, funnels, analytics, go-to-market.
 
-Réponds en français, clair et orienté résultats.`
+${getResponseLanguageInstruction(lang, { tone: 'clair et orienté résultats' })}`
                             : (chatType === 'web-search' || chatType === 'rnd-web-search')
-                                ? buildSystemPromptForAgent('web-search', contextFromSearch)
+                                ? buildSystemPromptForAgent('web-search', contextFromSearch, { lang })
                                 : (chatType === 'excel-expert' || chatType === 'excel-ai-expert')
                                     ? `Tu es Agent Excel.
 
 Tu aides sur formules, TCD, Power Query, nettoyage et bonnes pratiques.
 
-Réponds en français, pédagogique et précis.`
+${getResponseLanguageInstruction(lang, { tone: 'pédagogique et précis' })}`
                                     : (chatType === 'agent-todo')
                                         ? `Tu es Agent ToDo (gestion de tâches).
 
@@ -224,22 +227,22 @@ Objectif: clarifier un objectif, découper en tâches, prioriser, et proposer un
 
 Règles:
 
-Réponds en français, concret.`
+${getResponseLanguageInstruction(lang, { tone: 'concret' })}`
                                         : (chatType === 'agent-alex')
                                             ? `Tu es Agent Alex (assistant stratégie/produit SaaS).
 
 Règles:
 
-Réponds en français, clair et structuré.`
+${getResponseLanguageInstruction(lang, { tone: 'clair et structuré' })}`
                                             : (chatType === 'agent-tony')
                                                 ? `Tu es Agent Tony (assistant vente/ops SaaS).
 
 Règles:
 
-Réponds en français, direct et actionnable.`
+${getResponseLanguageInstruction(lang, { tone: 'direct et actionnable' })}`
                     : `Tu es Axilum AI, un assistant intelligent et serviable.
 
-Réponds de manière claire, précise et professionnelle en français.`
+${getResponseLanguageInstruction(lang, { tone: 'de manière claire, précise et professionnelle' })}`
             }
         ];
 

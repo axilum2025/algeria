@@ -1,4 +1,5 @@
 const PDFDocument = require('pdfkit');
+const { getLangFromReq, getLocaleFromLang } = require('../utils/lang');
 
 module.exports = async function (context, req) {
   const setCors = () => {
@@ -20,6 +21,9 @@ module.exports = async function (context, req) {
   try {
     setCors();
 
+    const lang = getLangFromReq(req);
+    const locale = getLocaleFromLang(lang);
+
     const body = req.body || {};
     const exportDate = body.exportDate || new Date().toISOString();
     const jobs = Array.isArray(body.jobs) ? body.jobs : [];
@@ -37,7 +41,7 @@ module.exports = async function (context, req) {
 
       doc.font('Helvetica-Bold').fontSize(18).fillColor('#064e3b').text('RECRUTEMENT — SAUVEGARDE', { align: 'center' });
       doc.moveDown(0.5);
-      doc.font('Helvetica').fontSize(10).fillColor('gray').text(`Généré: ${new Date(exportDate).toLocaleString('fr-FR')}`, { align: 'center' });
+      doc.font('Helvetica').fontSize(10).fillColor('gray').text(`Généré: ${new Date(exportDate).toLocaleString(locale)}`, { align: 'center' });
       doc.moveDown(1);
       doc.fillColor('black');
 

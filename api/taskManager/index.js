@@ -8,6 +8,7 @@ const { checkAndConsume } = require('../utils/planQuota');
 const { getUserPlan, getPlanPriority } = require('../utils/entitlements');
 const { appendAuditEvent } = require('../utils/auditStorage');
 const { precheckCredit, debitAfterUsage } = require('../utils/aiCreditGuard');
+const { getLangFromReq, getResponseLanguageInstruction } = require('../utils/lang');
 
 const DEFAULT_GROQ_MODEL = 'llama-3.3-70b-versatile';
 
@@ -76,6 +77,8 @@ async function auditSafe({ email, action, status, plan, meta }) {
 
 module.exports = async function (context, req) {
     context.log('✅ Task Manager Request:', req.method, req.params.action);
+
+    const lang = getLangFromReq(req);
 
     if (req.method === 'OPTIONS') {
         context.res = {
@@ -799,7 +802,7 @@ async function coachAdvice(context, req, userId) {
                 const systemPrompt = `Tu es "AI Coach" pour Agent ToDo. Objectif: aider l'utilisateur à avancer aujourd'hui.
 
 Contraintes:
-- Réponds en français.
+ - ${getResponseLanguageInstruction(lang, { tone: '' })}
 - Ton: conversationnel, bienveillant, direct (style ChatGPT), sans te présenter.
 - Utilise le contexte (métriques, top tâches, historique court) pour personnaliser.
 - Propose 3 actions concrètes max (priorisées), et 1 micro-action (≤ 5 min) si utile.
