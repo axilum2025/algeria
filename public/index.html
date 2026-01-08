@@ -1350,27 +1350,26 @@
             position: absolute;
             bottom: 8px;
             right: 8px;
-            width: 32px;
-            height: 32px;
-            border-radius: 50%;
-            background: var(--bg-secondary);
-            display: flex;
+            width: 24px;
+            height: 24px;
+            padding: 0;
+            border: none;
+            background: transparent;
+            display: inline-flex;
             align-items: center;
             justify-content: center;
             cursor: pointer;
-            transition: all 0.2s ease;
+            transition: transform 0.2s ease, opacity 0.2s ease, color 0.2s ease;
             color: var(--text-secondary);
             opacity: 0.7;
             z-index: 10;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            box-shadow: none;
         }
         
         .metrics-icon:hover {
             opacity: 1;
             transform: scale(1.1);
-            background: var(--accent);
-            color: white;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+            color: var(--accent);
         }
         
         .metrics-icon:active {
@@ -1380,8 +1379,8 @@
         /* Desktop: légèrement plus grand et visible */
         @media (min-width: 769px) {
             .metrics-icon {
-                width: 34px;
-                height: 34px;
+                width: 26px;
+                height: 26px;
                 opacity: 0.75;
             }
         }
@@ -7843,8 +7842,11 @@ ${persona}
                             ragMetricsIcon.style.opacity = '1'; // Rendre visible
                         } else {
                             // Sinon, créer le bouton en haut à droite comme avant
-                            const metricsIcon = document.createElement('div');
+                            const metricsIcon = document.createElement('button');
+                            metricsIcon.type = 'button';
                             metricsIcon.className = 'metrics-icon';
+                            metricsIcon.title = 'Métriques de réponse';
+                            metricsIcon.setAttribute('aria-label', 'Métriques de réponse');
                             metricsIcon.innerHTML = `
                                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                     <circle cx="12" cy="12" r="10"/>
