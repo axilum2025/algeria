@@ -30,14 +30,32 @@ jobs:
 
       - name: Create deployment package
         run: |
-          zip -r deploy.zip . -x "*.git*" "*.github/*" "docs/*" "scripts/*"
+          zip -r deploy.zip . -x "*.git*" "*.github/*" "docs/*" "scripts/*" "node_modules/*"
 
-      - name: Azure Login
-        uses: azure/login@v1
+      - name: Deploy (Publish Profile)
+        if: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE != '' }}
+        uses: azure/webapps-deploy@v3
+        with:
+          app-name: ${{ env.AZURE_WEBAPP_NAME }}
+          publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
+          package: deploy.zip
+
+      - name: Fail if Azure secrets missing
+        if: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE == '' && secrets.AZURE_CREDENTIALS == '' }}
+        run: |
+          echo "Missing Azure deployment secrets. Configure ONE of:" >&2
+          echo "- AZURE_WEBAPP_PUBLISH_PROFILE (recommended, easiest)" >&2
+          echo "- AZURE_CREDENTIALS (JSON service principal)" >&2
+          exit 1
+
+      - name: Azure Login (Service Principal JSON)
+        if: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE == '' && secrets.AZURE_CREDENTIALS != '' }}
+        uses: azure/login@v2
         with:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
 
-      - name: Deploy to Azure Web App
+      - name: Deploy to Azure Web App (az cli)
+        if: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE == '' && secrets.AZURE_CREDENTIALS != '' }}
         run: |
           az webapp deployment source config-zip \
             --resource-group ${{ env.AZURE_RESOURCE_GROUP }} \
