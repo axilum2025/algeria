@@ -883,22 +883,11 @@
             transition: all 0.3s ease-out;
         }
 
-        /* Réduction input quand sidebar ouverte - tous appareils */
+        /* Quand le sidebar est ouvert, cacher la zone d’écriture (mobile + desktop) */
         .input-container.sidebar-open {
-            width: 50%;
-            max-width: 400px;
-            transform: translateX(-50%) scale(0.85);
-            bottom: calc(16px + env(safe-area-inset-bottom, 0px));
-        }
-
-        /* Bureau avec sidebar */
-        @media (min-width: 800px) {
-            .input-container.sidebar-open {
-                width: 60%;
-                max-width: 500px;
-                transform: translateX(-50%) scale(0.9);
-                bottom: calc(20px + env(safe-area-inset-bottom, 0px));
-            }
+            opacity: 0;
+            pointer-events: none;
+            transform: translateX(-50%) translateY(140%);
         }
 
         .input-wrapper {
