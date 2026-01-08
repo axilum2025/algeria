@@ -190,11 +190,31 @@
       } catch (_) {}
     })();
 
+    // Empêche le bouton Retour (navigateur/mobile) de revenir à une page précédente
+    // (ex: Excel Expert) et force un retour propre vers l'app principale.
+    (function hijackBackButton() {
+      try {
+        const st = (history && history.state && typeof history.state === 'object') ? history.state : {};
+        if (!st || !st.__axilumEnterprise) {
+          history.replaceState(Object.assign({}, st, { __axilumEnterprise: true }), '', window.location.href);
+          history.pushState(Object.assign({}, st, { __axilumEnterprise: true, __axilumEnterpriseTrap: true }), '', window.location.href);
+        }
+      } catch (_) {}
+
+      window.addEventListener('popstate', () => {
+        // Retour navigateur -> retour app (sans restauration d'un état précédent)
+        goBackToApp();
+      });
+    })();
+
     function goBackToApp() {
       try {
-        window.location.assign('/');
+        // replace() évite de garder "enterprise.html" dans l'historique
+        // et réduit les effets de restauration (bfcache) vers un module précédent.
+        window.location.replace('/');
       } catch (_) {
-        history.back();
+        // fallback best-effort
+        window.location.href = '/';
       }
     }
   </script>
