@@ -4669,6 +4669,53 @@ RÈGLES IMPORTANTES:
             document.getElementById('userInput').addEventListener('focus', () => {
                 closeSidebar();
             });
+
+            // Sessions: éviter la fermeture lors d'un scroll (mobile/touch)
+            try {
+                const conversationsList = document.getElementById('conversationsList');
+                if (conversationsList && conversationsList.dataset && conversationsList.dataset.scrollGuardInstalled !== '1') {
+                    conversationsList.dataset.scrollGuardInstalled = '1';
+
+                    window.__axilum_sessionsDrag = { armed: false, moved: false, x: 0, y: 0 };
+
+                    conversationsList.addEventListener('pointerdown', (e) => {
+                        try {
+                            window.__axilum_sessionsDrag.armed = true;
+                            window.__axilum_sessionsDrag.moved = false;
+                            window.__axilum_sessionsDrag.x = e.clientX || 0;
+                            window.__axilum_sessionsDrag.y = e.clientY || 0;
+                        } catch (_) {}
+                    }, { passive: true });
+
+                    conversationsList.addEventListener('pointermove', (e) => {
+                        try {
+                            const d = window.__axilum_sessionsDrag;
+                            if (!d || !d.armed) return;
+                            const dx = Math.abs((e.clientX || 0) - d.x);
+                            const dy = Math.abs((e.clientY || 0) - d.y);
+                            if (dx + dy > 8) d.moved = true;
+                        } catch (_) {}
+                    }, { passive: true });
+
+                    conversationsList.addEventListener('scroll', () => {
+                        try {
+                            const d = window.__axilum_sessionsDrag;
+                            if (d) d.moved = true;
+                        } catch (_) {}
+                    }, { passive: true });
+
+                    conversationsList.addEventListener('pointerup', () => {
+                        try {
+                            const d = window.__axilum_sessionsDrag;
+                            if (d) d.armed = false;
+                            // Laisser passer l'event click puis reset
+                            setTimeout(() => {
+                                try { if (window.__axilum_sessionsDrag) window.__axilum_sessionsDrag.moved = false; } catch (_) {}
+                            }, 0);
+                        } catch (_) {}
+                    }, { passive: true });
+                }
+            } catch (_) {}
             
             // 🔔 Vérifier les notifications au démarrage
             if (notificationSettings.enabled) {
@@ -9169,6 +9216,11 @@ ${persona}
 
             // Clic sur un item de conversation -> fermer
             if (e.target.closest('.conv-item')) {
+                try {
+                    if (window.__axilum_sessionsDrag && window.__axilum_sessionsDrag.moved) {
+                        return;
+                    }
+                } catch (_) {}
                 closeSessionsList();
                 return;
             }
