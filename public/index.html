@@ -3394,7 +3394,7 @@
                         </div>
                         <div class="feature-card">
                             <h4>Agents spécialisés</h4>
-                            <p>dev, xcel, todo, rh, mark, web, alex, tony, eve — chacun correspond à un module/usage (R&amp;D, Excel, tâches, RH, marketing, recherche web, finance, texte, vision).</p>
+                            <p>dev, todo, rh, mark, web, alex — chacun correspond à un module/usage (R&amp;D, tâches, RH, marketing, recherche web, finance).</p>
                         </div>
                     </div>
                 </div>
@@ -3944,13 +3944,12 @@
             },
             { label: 'Axilum Ai', arg: 'axilum', hint: '/agent axilum' },
             { label: 'Agent Dev', arg: 'dev', hint: '/agent dev' },
-            { label: 'Agent Xcel', arg: 'xcel', hint: '/agent xcel' },
             { label: 'Agent ToDo', arg: 'todo', hint: '/agent todo' },
             { label: 'Agent RH', arg: 'rh', hint: '/agent rh' },
             { label: 'Agent Mark', arg: 'mark', hint: '/agent mark' },
             { label: 'Agent Wesh', arg: 'web', hint: '/agent web' },
             { label: 'Agent Alex', arg: 'alex', hint: '/agent alex' },
-            { label: 'Agent Tony', arg: 'tony', hint: '/agent tony' }
+            
         ];
 
         function activateTeamAutoMode() {
@@ -6618,7 +6617,7 @@ ${persona}
 
                 const teamAgents = Array.from(new Set(requestedAgents)).slice(0, 3);
                 if (teamAgents.length === 0) {
-                    addMessage('⚠️ Aucun agent valide. Essayez: dev, marketing, rh, excel, todo, web, alex, tony, axilum', 'bot');
+                    addMessage('⚠️ Aucun agent valide. Essayez: dev, mark, rh, todo, web, alex, axilum', 'bot');
                     return;
                 }
 
@@ -6683,13 +6682,11 @@ ${persona}
                         '🔁 Changement d\'agent disponible :',
                         '- `/agent axilum` : Axilum Ai',
                         '- `/agent dev` : Agent Dev',
-                        '- `/agent xcel` : Agent Xcel',
                         '- `/agent todo` : Agent ToDo',
                         '- `/agent rh` : Agent RH',
                         '- `/agent mark` : Agent Mark',
                         '- `/agent alex` : Agent Alex (Finance & Comptabilité)',
                         '- `/agent web` : Agent Wesh',
-                        '- `/agent tony` : Agent Tony',
                         '',
                         'Note: les agents partagent le même historique de conversation.'
                     ].join('\n');
@@ -12639,8 +12636,17 @@ ${persona}
                 } catch (_) {}
             }, 1200);
         }
+
+        // Feature flag: outils reportés (Excel / Text Pro / Vision)
+        // On garde le code, mais on empêche l'ouverture depuis l'app.
+        const AXILUM_DEFERRED_TOOLS_DISABLED = true;
         
         function loadTextProModule() {
+            if (typeof AXILUM_DEFERRED_TOOLS_DISABLED !== 'undefined' && AXILUM_DEFERRED_TOOLS_DISABLED) {
+                try { showToast('Ce module est désactivé pour le moment.', 'error'); } catch (_) {}
+                return;
+            }
+
             // 🎯 Tracking: Utilisateur ouvre Text Pro
             AxilumContext.updateActivity('AI Text Pro', 'Agent Tony', 'Ouverture du module');
             
@@ -12674,6 +12680,11 @@ ${persona}
         
         // Ancienne fonction openTextPro (conservée comme fallback)
         function openTextPro() {
+            if (typeof AXILUM_DEFERRED_TOOLS_DISABLED !== 'undefined' && AXILUM_DEFERRED_TOOLS_DISABLED) {
+                try { showToast('Ce module est désactivé pour le moment.', 'error'); } catch (_) {}
+                return;
+            }
+
             // Fermer tout overlay existant
             const existingOverlay = document.getElementById('textProOverlay');
             if (existingOverlay) {
@@ -19327,6 +19338,11 @@ function showAddProjectModal() {
         };
         
         function openVisionPro() {
+            if (typeof AXILUM_DEFERRED_TOOLS_DISABLED !== 'undefined' && AXILUM_DEFERRED_TOOLS_DISABLED) {
+                try { showToast('Ce module est désactivé pour le moment.', 'error'); } catch (_) {}
+                return;
+            }
+
             // Vérifier si l'utilisateur est en mode PRO
             const currentPlan = localStorage.getItem('selectedPlan') || 'FREE';
             
@@ -33127,6 +33143,11 @@ Réponds UNIQUEMENT dans ce format JSON:
         let excelAiModuleLoaded = false;
         
         function openExcelPro() {
+            if (typeof AXILUM_DEFERRED_TOOLS_DISABLED !== 'undefined' && AXILUM_DEFERRED_TOOLS_DISABLED) {
+                try { showToast('Ce module est désactivé pour le moment.', 'error'); } catch (_) {}
+                return;
+            }
+
             // Option 1: Redirection vers page dédiée (actuelle - stable)
             window.location.href = '/excel-ai-expert.html';
             
@@ -33136,6 +33157,11 @@ Réponds UNIQUEMENT dans ce format JSON:
         
         // Fonction pour charger Excel AI en module (préparée pour migration future)
         function loadExcelAiModule() {
+            if (typeof AXILUM_DEFERRED_TOOLS_DISABLED !== 'undefined' && AXILUM_DEFERRED_TOOLS_DISABLED) {
+                try { showToast('Ce module est désactivé pour le moment.', 'error'); } catch (_) {}
+                return;
+            }
+
             // 🎯 Tracking: Utilisateur ouvre Excel AI Expert
             AxilumContext.updateActivity('Excel AI Expert', 'Agent xcel', 'Ouverture du module');
             
