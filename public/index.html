@@ -6324,6 +6324,39 @@ ${persona}
 
             const selectedModel = (typeof getSelectedAiModel === 'function') ? getSelectedAiModel() : null;
 
+            // ⚡ Fast path (local) pour salutations / petit talk
+            // Objectif: éviter un appel IA long sur des messages simples.
+            const lowerMsg = message.toLowerCase().trim();
+            const isGreeting = /^(bonjour|bonsoir|salut|coucou|hello|hi)\b/.test(lowerMsg);
+            const isJustChat = /\b(seulement\s+discuter|juste\s+discuter|on\s+discute|discuter\s+seulement)\b/.test(lowerMsg);
+
+            if (isGreeting || isJustChat) {
+                input.value = '';
+                try { adjustTextareaHeight(); } catch (_) {}
+
+                addMessage(message, 'user');
+
+                const quickReply = isJustChat
+                    ? "D'accord. De quoi aimeriez-vous parler ?"
+                    : "Bonjour ! Comment puis-je vous aider aujourd'hui ?";
+
+                const botData = {
+                    response: quickReply,
+                    hallucinationIndex: 0,
+                    contextHistoryRatio: 0,
+                    responseTime: 0.01,
+                    processingTime: 0.01,
+                    cached: true,
+                    usage: { total_tokens: 0, prompt_tokens: 0, completion_tokens: 0 },
+                    model: 'local',
+                    provider: 'local'
+                };
+
+                addMessage(quickReply, 'bot', botData);
+                try { await saveMessage(message, botData); } catch (_) {}
+                return;
+            }
+
             // Ne pas "voler" le focus après la réponse : si l'utilisateur clique ailleurs pendant l'attente,
             // on évite de remettre automatiquement le focus dans le champ du chat.
             let allowAutoRefocus = false;
