@@ -5,6 +5,8 @@ const {
   buildSystemPromptForAgent
 } = require('./agentRegistry');
 
+const { normalizeLang, getResponseLanguageInstruction } = require('./lang');
+
 const { assertWithinBudget, recordUsage } = require('./aiUsageBudget');
 const { precheckCredit, debitAfterUsage } = require('./aiCreditGuard');
 
@@ -168,12 +170,15 @@ async function orchestrateMultiAgents({
   logger,
   maxAgents = 3,
   userId = 'guest',
-  model
+  model,
+  lang
 }) {
   const question = String(teamQuestion || '').trim();
   if (!question) {
     return { ok: false, error: 'Question vide. Utilisez: /team dev marketing -- votre question' };
   }
+
+  const responseLang = normalizeLang(lang);
 
   const askedAgents = Array.isArray(teamAgentsRaw) ? teamAgentsRaw : [];
   const askedNormalized = askedAgents.map(normalizeAgentId).filter(Boolean);
@@ -238,7 +243,7 @@ async function orchestrateMultiAgents({
 
   for (const agent of teamAgents) {
     const workerMessages = [
-      { role: 'system', content: buildSystemPromptForAgent(agent, combinedContext) },
+      { role: 'system', content: buildSystemPromptForAgent(agent, combinedContext, { lang: responseLang }) },
       {
         role: 'user',
         content: `Tu es consulté comme expert (${agent}).\nRéponds de façon concise et actionnable.\n\nQuestion: ${question}${compactHistory}${toolsCtx ? `\n\nRésultats d'outils disponibles:\n${toolsCtx}` : ''}`
@@ -254,7 +259,7 @@ async function orchestrateMultiAgents({
   const synthMessages = [
     {
       role: 'system',
-      content: `Tu es un Orchestrateur multi-agents.\n\nObjectif: produire UNE réponse finale à l'utilisateur, en te basant sur les analyses de plusieurs experts.\n\nRègles:\n- Ne mentionne pas les noms/ids des agents ni le fait qu'ils existent.\n- Fusionne, déduplique, et tranche quand il y a des divergences (explique brièvement le compromis).\n- Donne un plan d'action clair et priorisé.\n- Si une info manque, pose 1-3 questions courtes en fin.\n\nRéponds en français, clairement et professionnellement.`
+      content: `Tu es un Orchestrateur multi-agents.\n\nObjectif: produire UNE réponse finale à l'utilisateur, en te basant sur les analyses de plusieurs experts.\n\nRègles:\n- Ne mentionne pas les noms/ids des agents ni le fait qu'ils existent.\n- Fusionne, déduplique, et tranche quand il y a des divergences (explique brièvement le compromis).\n- Donne un plan d'action clair et priorisé.\n- Si une info manque, pose 1-3 questions courtes en fin.\n\n${getResponseLanguageInstruction(responseLang, { tone: 'clairement et professionnellement' })}`
     },
     {
       role: 'user',

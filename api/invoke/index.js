@@ -9,6 +9,7 @@ const { detectFunctions, orchestrateFunctions, summarizeResults } = require('../
 const { buildWebEvidenceContext } = require('../utils/webEvidence');
 const { appendEvidenceContext, searchWikipedia, searchNewsApi, searchSemanticScholar } = require('../utils/sourceProviders');
 const { looksTimeSensitiveForHR, looksTimeSensitiveForMarketing, looksTimeSensitiveForDev, looksTimeSensitiveForExcel, looksTimeSensitiveForAlex, looksTimeSensitiveForTony, looksTimeSensitiveForTodo, looksTimeSensitiveForAIManagement, buildSilentWebContext } = require('../utils/silentWebRefresh');
+const { getLangFromReq, getSearchLang, getResponseLanguageInstruction } = require('../utils/lang');
 
 // Fonction RAG - Recherche Brave
 async function searchBrave(query, apiKey) {
@@ -96,6 +97,9 @@ module.exports = async function (context, req) {
         const userMessage = req.body.message;
         const userQuery = extractUserQueryFromMessage(userMessage);
         const requestedModel = req.body?.model || req.body?.aiModel || null;
+        const lang = getLangFromReq(req);
+        const searchLang = getSearchLang(lang);
+        const defaultToneLine = getResponseLanguageInstruction(lang, { tone: 'de manière naturelle, claire et professionnelle' });
 
         const userAsksForSourcesForWesh = (q) => {
             const s = String(q || '').toLowerCase().replace(/[’]/g, "'").trim();
@@ -223,7 +227,8 @@ module.exports = async function (context, req) {
                 analyzeHallucination,
                 logger: context.log,
                 userId: (getAuthEmail(req) || req.body?.userId || req.query?.userId || 'guest'),
-                model: requestedModel
+                model: requestedModel,
+                lang
             });
 
             if (!orchestrated.ok) {
@@ -400,11 +405,11 @@ module.exports = async function (context, req) {
 
                 if (!isGreeting) {
                     const wiki = (wikiEnabled && wikiLimit > 0)
-                        ? await searchWikipedia(userQuery, { lang: 'fr', limit: wikiLimit, timeoutMs: 5000 })
+                        ? await searchWikipedia(userQuery, { lang: searchLang, limit: wikiLimit, timeoutMs: 5000 })
                         : [];
 
                     const news = (newsEnabled && newsApiKey && newsLimit > 0)
-                        ? await searchNewsApi(userQuery, { apiKey: newsApiKey, language: 'fr', pageSize: newsLimit, timeoutMs: 5000 })
+                        ? await searchNewsApi(userQuery, { apiKey: newsApiKey, language: searchLang, pageSize: newsLimit, timeoutMs: 5000 })
                         : [];
 
                     const semantic = (semanticEnabled && semanticLimit > 0)
@@ -563,28 +568,28 @@ Réponds de manière naturelle, claire et professionnelle en français.
 Pense étape par étape avant de répondre.${contextFromSearch}`
             : isAgentDev ?
                         // 🧑‍💻 PROMPT AGENT DEV (développement)
-                        buildSystemPromptForAgent('agent-dev', contextFromSearch)
+                        buildSystemPromptForAgent('agent-dev', contextFromSearch, { lang })
             : isHR ?
             // 👥 PROMPT AGENT RH
-            buildSystemPromptForAgent('hr-management', contextFromSearch)
+            buildSystemPromptForAgent('hr-management', contextFromSearch, { lang })
             : isMarketing ?
             // 📣 PROMPT AGENT MARKETING
-            buildSystemPromptForAgent('marketing-agent', contextFromSearch)
+            buildSystemPromptForAgent('marketing-agent', contextFromSearch, { lang })
             : isWebSearch ?
             // 🌐 PROMPT AGENT WEB SEARCH (toujours Wesh, même sans [S#])
-            buildSystemPromptForAgent('web-search', contextFromSearch)
+            buildSystemPromptForAgent('web-search', contextFromSearch, { lang })
             : isExcel ?
             // 📊 PROMPT AGENT EXCEL
-            buildSystemPromptForAgent('excel-expert', contextFromSearch)
+            buildSystemPromptForAgent('excel-expert', contextFromSearch, { lang })
             : isTodo ?
             // ✅ PROMPT AGENT TODO
-            buildSystemPromptForAgent('agent-todo', contextFromSearch)
+            buildSystemPromptForAgent('agent-todo', contextFromSearch, { lang })
             : isAlex ?
             // 🧭 PROMPT AGENT ALEX
-            buildSystemPromptForAgent('agent-alex', contextFromSearch)
+            buildSystemPromptForAgent('agent-alex', contextFromSearch, { lang })
             : isTony ?
             // 🤝 PROMPT AGENT TONY
-            buildSystemPromptForAgent('agent-tony', contextFromSearch)
+            buildSystemPromptForAgent('agent-tony', contextFromSearch, { lang })
                         : 
             // 🏠 PROMPT AXILUM AI (détection hallucinations)
             `Tu es Axilum AI, un assistant intelligent et serviable.
@@ -606,7 +611,7 @@ IMPORTANT (reconnaissance du rapport):
 - Dans ce cas, explique ce que signifient les sections (Score, HI, CHR, Claims, Faits vérifiés, Points non confirmés, Sources recommandées) et donne des actions concrètes pour vérifier.
 - Ne dis pas que ce rapport "n'existe pas" ou "n'est pas mentionné" : traite-le comme un artefact du système.
 
-Réponds de manière naturelle, claire et professionnelle en français.
+${defaultToneLine}
 Pense étape par étape avant de répondre.
 Ne mentionne pas tes capacités ou fonctionnalités à moins que l'utilisateur ne le demande explicitement.${contextFromSearch}${internalBoostContext}`
         }];
@@ -681,7 +686,7 @@ Ne mentionne pas tes capacités ou fonctionnalités à moins que l'utilisateur n
         if (shouldAutoCorrect) {
             try {
                 const correctionMessages = [
-                    { role: 'system', content: buildSystemPromptForAgent('web-search', contextFromSearch) },
+                    { role: 'system', content: buildSystemPromptForAgent('web-search', contextFromSearch, { lang }) },
                     {
                         role: 'system',
                         content: [

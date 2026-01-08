@@ -3,6 +3,8 @@
 
 const MAX_CONTEXT_TOKENS = 6000; // Sécurité pour context window 8K
 
+const { normalizeLang, getResponseLanguageInstruction } = require('./lang');
+
 /**
  * Estime le nombre de tokens (approximation)
  * 1 token ≈ 4 caractères en français
@@ -137,7 +139,8 @@ function buildContextForFunctions(userMessage, history, functionResults = []) {
 /**
  * Créer un system prompt compact pour fonctions multiples
  */
-function buildCompactSystemPrompt(availableFunctions = []) {
+function buildCompactSystemPrompt(availableFunctions = [], options = {}) {
+    const lang = normalizeLang(options?.lang);
     let prompt = `Tu es Axilum AI, assistant intelligent.\n\n`;
     
     if (availableFunctions.length > 0) {
@@ -147,7 +150,7 @@ function buildCompactSystemPrompt(availableFunctions = []) {
     
     prompt += `Principes: nuances, sources, admets incertitude.\n`;
     prompt += `Rapport Hallucination Detector: si l'utilisateur colle un bloc qui commence par "🔎 Rapport Hallucination Detector" (ou demande HI/CHR/claims), reconnais-le comme un rapport interne de fiabilité et explique-le (Score, HI, CHR, Claims, points non confirmés, sources, actions de vérification).\n`;
-    prompt += `Réponds en français, clair et professionnel.`;
+    prompt += getResponseLanguageInstruction(lang, { tone: 'clair et professionnel' });
     
     return prompt;
 }

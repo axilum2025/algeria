@@ -11,6 +11,7 @@ const { buildWebEvidenceContext } = require('../utils/webEvidence');
 const { appendEvidenceContext, searchWikipedia, searchNewsApi, searchSemanticScholar } = require('../utils/sourceProviders');
 const { shouldUseInternalBoost, buildAxilumInternalBoostContext } = require('../utils/axilumInternalBoost');
 const { looksTimeSensitiveForHR, looksTimeSensitiveForMarketing, looksTimeSensitiveForDev, looksTimeSensitiveForExcel, looksTimeSensitiveForAlex, looksTimeSensitiveForTony, looksTimeSensitiveForTodo, looksTimeSensitiveForAIManagement, buildSilentWebContext } = require('../utils/silentWebRefresh');
+const { getLangFromReq, getSearchLang } = require('../utils/lang');
 
 // Fonction RAG - Recherche Brave
 async function searchBrave(query, apiKey) {
@@ -94,6 +95,8 @@ module.exports = async function (context, req) {
         const userMessage = req.body.message;
         const userQuery = extractUserQueryFromMessage(userMessage);
         const requestedModel = req.body?.model || req.body?.aiModel || null;
+        const lang = getLangFromReq(req);
+        const searchLang = getSearchLang(lang);
 
         const userAsksForSourcesForWesh = (q) => {
             const s = String(q || '').toLowerCase().replace(/[’]/g, "'").trim();
@@ -226,7 +229,8 @@ module.exports = async function (context, req) {
                 analyzeHallucination,
                 logger: context.log,
                 model: requestedModel,
-                userId: (req.body?.userId || req.query?.userId || 'guest')
+                userId: (req.body?.userId || req.query?.userId || 'guest'),
+                lang
             });
 
             if (!orchestrated.ok) {
@@ -371,11 +375,11 @@ module.exports = async function (context, req) {
 
                 if (!isGreeting) {
                     const wiki = (wikiEnabled && wikiLimit > 0)
-                        ? await searchWikipedia(userQuery, { lang: 'fr', limit: wikiLimit, timeoutMs: 5000 })
+                        ? await searchWikipedia(userQuery, { lang: searchLang, limit: wikiLimit, timeoutMs: 5000 })
                         : [];
 
                     const news = (newsEnabled && newsApiKey && newsLimit > 0)
-                        ? await searchNewsApi(userQuery, { apiKey: newsApiKey, language: 'fr', pageSize: newsLimit, timeoutMs: 5000 })
+                        ? await searchNewsApi(userQuery, { apiKey: newsApiKey, language: searchLang, pageSize: newsLimit, timeoutMs: 5000 })
                         : [];
 
                     const semantic = (semanticEnabled && semanticLimit > 0)
@@ -414,7 +418,7 @@ module.exports = async function (context, req) {
         const messages = [
             {
                 role: "system",
-                content: buildSystemPromptForAgent(agentId, contextWithBoost)
+                content: buildSystemPromptForAgent(agentId, contextWithBoost, { lang })
             }
         ];
 
@@ -525,7 +529,7 @@ module.exports = async function (context, req) {
         if (shouldAutoCorrect) {
             try {
                 const correctionMessages = [
-                    { role: 'system', content: buildSystemPromptForAgent('web-search', contextFromSearch) },
+                    { role: 'system', content: buildSystemPromptForAgent('web-search', contextFromSearch, { lang }) },
                     {
                         role: 'system',
                         content: [

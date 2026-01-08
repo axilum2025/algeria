@@ -1,6 +1,8 @@
 // Central registry for agent ids, aliases, and system prompts.
 // Keep this file dependency-free so it can be used by multiple Azure Function handlers.
 
+const { normalizeLang, getResponseLanguageInstruction } = require('./lang');
+
 const ALLOWED_AGENT_IDS = [
   'agent-dev',
   'marketing-agent',
@@ -51,8 +53,9 @@ function pickTeamAgents(rawAgents, { maxAgents = 3 } = {}) {
   return Array.from(new Set(normalized)).slice(0, maxAgents);
 }
 
-function buildSystemPromptForAgent(agentId, contextFromSearch = '') {
+function buildSystemPromptForAgent(agentId, contextFromSearch = '', options = {}) {
   const c = contextFromSearch || '';
+  const lang = normalizeLang(options?.lang);
   switch (agentId) {
     case 'agent-dev':
       return `Tu es Agent Dev, un assistant spécialisé en développement logiciel.
@@ -65,7 +68,7 @@ Règles:
 - Ne mentionne pas d'autres agents, modules ou outils de l'application sauf si l'utilisateur le demande explicitement.
 - Si l'utilisateur colle un "🔎 Rapport Hallucination Detector", reconnais-le et explique-le.
 
-Réponds en français, clairement et professionnellement.${c}`;
+${getResponseLanguageInstruction(lang, { tone: 'clairement et professionnellement' })}${c}`;
 
     case 'marketing-agent':
       return `Tu es Agent Marketing.
@@ -76,7 +79,7 @@ Règles:
 - Propose des plans concrets (étapes, livrables, KPI) adaptés à un SaaS.
 - Ne mentionne pas d'autres agents, modules ou outils de l'application sauf si l'utilisateur le demande explicitement.
 
-Réponds en français, clair et orienté résultats.${c}`;
+${getResponseLanguageInstruction(lang, { tone: 'clair et orienté résultats' })}${c}`;
 
     case 'hr-management':
       return `Tu es Agent RH, un assistant RH.
@@ -87,7 +90,7 @@ Règles:
 - Si des données RH internes ne sont pas fournies, dis-le et demande les infos nécessaires.
 - Ne mentionne pas d'autres agents, modules ou outils de l'application sauf si l'utilisateur le demande explicitement.
 
-Réponds en français, clair, professionnel et actionnable.${c}`;
+${getResponseLanguageInstruction(lang, { tone: 'clair, professionnel et actionnable' })}${c}`;
 
     case 'excel-expert':
       return `Tu es Agent Excel.
@@ -99,7 +102,7 @@ Règles:
 - Ne prétends pas modifier un fichier: propose des étapes et, si on te le demande, des commandes (si disponibles dans l'app).
 - Ne mentionne pas d'autres agents, modules ou outils de l'application sauf si l'utilisateur le demande explicitement.
 
-Réponds en français, pédagogique et précis.${c}`;
+${getResponseLanguageInstruction(lang, { tone: 'pédagogique et précis' })}${c}`;
 
     case 'agent-todo':
       return `Tu es Agent ToDo (gestion de tâches).
@@ -111,7 +114,7 @@ Règles:
 - Ne prétends pas exécuter des actions automatiquement.
 - Ne mentionne pas d'autres agents, modules ou outils de l'application sauf si l'utilisateur le demande explicitement.
 
-Réponds en français, très concret.${c}`;
+${getResponseLanguageInstruction(lang, { tone: 'très concret' })}${c}`;
 
     case 'web-search':
       return `Tu es Agent Wesh.
@@ -131,7 +134,7 @@ Règles:
 - Si tu ajoutes des citations dans le corps de la réponse, termine par une section "Sources" listant 2-5 sources: [S#] Titre — URL.
 - Si le contexte est vide, tu peux proposer une reformulation de requête.
 
-Réponds en français, clairement.
+${getResponseLanguageInstruction(lang, { tone: 'clairement' })}
 - N'ajoute des citations [S#] et une section "Sources" que si tu t'es réellement appuyé sur des preuves présentes dans le contexte.
 - Sinon, n'ajoute aucune section "Sources" et ne mentionne pas de sources.${c}`;
 
@@ -146,7 +149,7 @@ Règles:
 - Si des informations manquent (devise, période, type charge/revenu), pose 1-3 questions ciblées.
 - Ne mentionne pas d'autres agents, modules ou outils de l'application sauf si l'utilisateur le demande explicitement.
 
-Réponds en français, clair et structuré.${c}`;
+${getResponseLanguageInstruction(lang, { tone: 'clair et structuré' })}${c}`;
 
     case 'agent-alex':
       return `Tu es Agent Alex.
@@ -159,7 +162,7 @@ Réponds en français, clair et structuré.${c}`;
     - Si des informations manquent (devise, période, type charge/revenu), pose 1-3 questions ciblées.
     - Ne mentionne pas d'autres agents, modules ou outils de l'application sauf si l'utilisateur le demande explicitement.
 
-    Réponds en français, clair et structuré.${c}`;
+    ${getResponseLanguageInstruction(lang, { tone: 'clair et structuré' })}${c}`;
 
     case 'agent-tony':
       return `Tu es Agent Tony.
@@ -170,7 +173,7 @@ Règles:
 - Propose des scripts, templates et KPI.
 - Ne mentionne pas d'autres agents, modules ou outils de l'application sauf si l'utilisateur le demande explicitement.
 
-Réponds en français, direct et actionnable.${c}`;
+${getResponseLanguageInstruction(lang, { tone: 'direct et actionnable' })}${c}`;
 
     case 'axilum':
     default:
@@ -190,7 +193,7 @@ Principes de réponse:
 ❌ Évite les affirmations absolues sans fondement
 ❌ N'invente pas de faits que tu ne peux pas vérifier
 
-Réponds de manière naturelle, claire et professionnelle en français.${c}`;
+${getResponseLanguageInstruction(lang, { tone: 'de manière naturelle, claire et professionnelle' })}${c}`;
   }
 }
 

@@ -14,6 +14,7 @@ const { getUserPlan, hasFeature, getPlanPriority } = require('../utils/entitleme
 const { checkAndConsume } = require('../utils/planQuota');
 const { appendAuditEvent } = require('../utils/auditStorage');
 const { precheckCredit, debitAfterUsage } = require('../utils/aiCreditGuard');
+const { getLangFromReq, getSearchLang, getResponseLanguageInstruction, getResponseLanguageShort } = require('../utils/lang');
 
 const DEFAULT_GROQ_MODEL = 'llama-3.3-70b-versatile';
 
@@ -111,6 +112,16 @@ module.exports = async function (context, req) {
     try {
         const userMessage = req.body.message;
         const userQuery = extractUserQueryFromMessage(userMessage);
+        const lang = getLangFromReq(req);
+        const searchLang = getSearchLang(lang);
+        const langShort = getResponseLanguageShort(lang);
+        const langPro = getResponseLanguageInstruction(lang, { tone: 'clairement et professionnellement' });
+        const langActionable = getResponseLanguageInstruction(lang, { tone: 'clair et actionnable' });
+        const langResults = getResponseLanguageInstruction(lang, { tone: 'clair et orienté résultats' });
+        const langConcrete = getResponseLanguageInstruction(lang, { tone: 'concret' });
+        const langStructured = getResponseLanguageInstruction(lang, { tone: 'clair et structuré' });
+        const langDirect = getResponseLanguageInstruction(lang, { tone: 'direct et actionnable' });
+        const langCompact = getResponseLanguageInstruction(lang, { tone: 'clair et professionnel' });
         if (!userMessage) {
             context.res = { 
                 status: 400, 
@@ -348,11 +359,11 @@ module.exports = async function (context, req) {
 
                 if (!isGreeting) {
                     const wiki = (wikiEnabled && wikiLimit > 0)
-                        ? await searchWikipedia(userQuery, { lang: 'fr', limit: wikiLimit, timeoutMs: 5000 })
+                        ? await searchWikipedia(userQuery, { lang: searchLang, limit: wikiLimit, timeoutMs: 5000 })
                         : [];
 
                     const news = (newsEnabled && newsApiKey && newsLimit > 0)
-                        ? await searchNewsApi(userQuery, { apiKey: newsApiKey, language: 'fr', pageSize: newsLimit, timeoutMs: 5000 })
+                        ? await searchNewsApi(userQuery, { apiKey: newsApiKey, language: searchLang, pageSize: newsLimit, timeoutMs: 5000 })
                         : [];
 
                     const semantic = (semanticEnabled && semanticLimit > 0)
@@ -475,7 +486,7 @@ Seulement si l'utilisateur demande explicitement de modifier, ajouter, calculer 
 - Tu peux alors utiliser des commandes JSON si approprié
 
 **Important :**
-- Réponds en français
+- ${langShort}
 - Ne montre jamais d'instructions techniques internes
 - Sois précis sur les noms de fonctions Excel
 - Propose toujours des alternatives quand possible
@@ -492,7 +503,7 @@ Règles:
 - Ne mentionne pas d'autres agents, modules ou outils de l'application sauf si l'utilisateur le demande explicitement.
 - Si l'utilisateur colle un "🔎 Rapport Hallucination Detector", reconnais-le et explique-le.
 
-Réponds en français, clairement et professionnellement.`;
+${langPro}`;
             } else if (chatType === 'hr-management') {
                 systemPrompt = `Tu es Agent RH, un assistant RH.
 
@@ -502,7 +513,7 @@ Règles:
 - Si des données RH internes ne sont pas fournies, demande les infos nécessaires.
 - Ne mentionne pas d'autres agents, modules ou outils de l'application sauf si l'utilisateur le demande explicitement.
 
-Réponds en français, clair et actionnable.`;
+${langActionable}`;
             } else if (chatType === 'marketing-agent') {
                 systemPrompt = `Tu es Agent Marketing.
 
@@ -512,11 +523,11 @@ Règles:
 - Propose des plans concrets (étapes, livrables, KPI) adaptés à un SaaS.
 - Ne mentionne pas d'autres agents, modules ou outils de l'application sauf si l'utilisateur le demande explicitement.
 
-Réponds en français, clair et orienté résultats.`;
+${langResults}`;
             } else if (chatType === 'web-search' || chatType === 'rnd-web-search') {
                 systemPrompt = /\[S\d+\]/.test(String(contextFromSearch || ''))
-                    ? buildSystemPromptForAgent('web-search', contextFromSearch)
-                    : buildSystemPromptForAgent('axilum', '');
+                    ? buildSystemPromptForAgent('web-search', contextFromSearch, { lang })
+                    : buildSystemPromptForAgent('axilum', '', { lang });
             } else if (chatType === 'agent-todo') {
                 systemPrompt = `Tu es Agent ToDo (gestion de tâches).
 
@@ -527,7 +538,7 @@ Règles:
 - Ne prétends pas exécuter des actions automatiquement.
 - Ne mentionne pas d'autres agents, modules ou outils de l'application sauf si l'utilisateur le demande explicitement.
 
-Réponds en français, concret.`;
+${langConcrete}`;
             } else if (chatType === 'agent-alex') {
                 systemPrompt = `Tu es Agent Alex (assistant stratégie/produit SaaS).
 
@@ -535,7 +546,7 @@ Règles:
 - Propose options + avantages/inconvénients + next step.
 - Ne mentionne pas d'autres agents, modules ou outils de l'application sauf si l'utilisateur le demande explicitement.
 
-Réponds en français, clair et structuré.`;
+${langStructured}`;
             } else if (chatType === 'agent-tony') {
                 systemPrompt = `Tu es Agent Tony (assistant vente/ops SaaS).
 
@@ -543,9 +554,9 @@ Règles:
 - Propose scripts, templates et KPI.
 - Ne mentionne pas d'autres agents, modules ou outils de l'application sauf si l'utilisateur le demande explicitement.
 
-Réponds en français, direct et actionnable.`;
+${langDirect}`;
             } else {
-                systemPrompt = buildCompactSystemPrompt(neededFunctions) + contextFromSearch;
+                systemPrompt = buildCompactSystemPrompt(neededFunctions, { lang }) + contextFromSearch;
             }
 
             const messages = [
@@ -650,7 +661,7 @@ Réponds en français, direct et actionnable.`;
         if (shouldAutoCorrect) {
             try {
                 const correctionMessages = [
-                    { role: 'system', content: buildSystemPromptForAgent('web-search', contextFromSearch) },
+                    { role: 'system', content: buildSystemPromptForAgent('web-search', contextFromSearch, { lang }) },
                     {
                         role: 'system',
                         content: [
@@ -661,7 +672,7 @@ Réponds en français, direct et actionnable.`;
                             '- Si une info n\'est pas dans les extraits, dis clairement que tu ne peux pas confirmer.',
                             '- Conserve le style Wesh: citations [S#] uniquement si elles correspondent à de vraies sources du contexte.',
                             '- Ne crée pas de nouvelles sources; ne cite pas de [S#] si le contexte n\'en contient pas.',
-                            '- Réponds en français, de façon concise et actionnable.'
+                            getResponseLanguageInstruction(lang, { tone: 'de façon concise et actionnable' })
                         ].join('\n')
                     },
                     {
