@@ -34409,6 +34409,96 @@ Réponds UNIQUEMENT dans ce format JSON:
         }
 
         // ========== AUTHENTICATION & USER MGMT ==========
+
+        // Gestion de l'historique pour les modals d'auth (évite que le bouton "Retour" mobile/navigateur
+        // renvoie vers une autre page, ex: Excel Expert, au lieu de fermer le modal).
+        if (!window.__axilumModalHistoryInit) {
+            window.__axilumModalHistoryInit = true;
+
+            const AXILUM_MODAL_STATE_KEY = 'axilumModal';
+            let __axilumIgnorePopstate = false;
+
+            const axilumAuthModalIds = ['signupModal', 'signinModal', 'forgotPasswordModal', 'verificationModal'];
+
+            function axilumGetOpenAuthModalId() {
+                for (const id of axilumAuthModalIds) {
+                    const el = document.getElementById(id);
+                    if (el && el.classList && el.classList.contains('show')) return id;
+                }
+                return '';
+            }
+
+            function axilumGetModalState() {
+                const st = history && history.state;
+                return (st && typeof st === 'object') ? st : {};
+            }
+
+            function axilumStateModalId() {
+                const st = axilumGetModalState();
+                const v = st[AXILUM_MODAL_STATE_KEY];
+                return v ? String(v) : '';
+            }
+
+            function axilumSetModalState(modalId, { replace = false } = {}) {
+                try {
+                    const st = axilumGetModalState();
+                    const next = Object.assign({}, st, { [AXILUM_MODAL_STATE_KEY]: modalId });
+                    if (replace) history.replaceState(next, '', window.location.href);
+                    else history.pushState(next, '', window.location.href);
+                } catch (_) {
+                    // best-effort
+                }
+            }
+
+            function axilumClearModalState(modalId) {
+                try {
+                    if (axilumStateModalId() !== String(modalId || '')) return;
+                    __axilumIgnorePopstate = true;
+                    history.back();
+                    setTimeout(() => { __axilumIgnorePopstate = false; }, 0);
+                } catch (_) {
+                    __axilumIgnorePopstate = false;
+                }
+            }
+
+            window.__axilumModalHistory = {
+                getStateModalId: axilumStateModalId,
+                setModalState: axilumSetModalState,
+                clearModalState: axilumClearModalState,
+                getOpenAuthModalId: axilumGetOpenAuthModalId
+            };
+
+            window.addEventListener('popstate', () => {
+                if (__axilumIgnorePopstate) return;
+                const openId = axilumGetOpenAuthModalId();
+                if (!openId) return;
+
+                // Fermer le modal sans toucher à l'historique (on est déjà dans un popstate).
+                try {
+                    const el = document.getElementById(openId);
+                    if (el) el.classList.remove('show');
+
+                    if (openId === 'signupModal') {
+                        const f = document.getElementById('signupForm');
+                        if (f && typeof f.reset === 'function') f.reset();
+                    }
+                    if (openId === 'signinModal') {
+                        const f = document.getElementById('signinForm');
+                        if (f && typeof f.reset === 'function') f.reset();
+                    }
+                    if (openId === 'forgotPasswordModal') {
+                        const f = document.getElementById('forgotPasswordForm');
+                        if (f && typeof f.reset === 'function') f.reset();
+                    }
+                    if (openId === 'verificationModal') {
+                        const f = document.getElementById('verificationForm');
+                        if (f && typeof f.reset === 'function') f.reset();
+                    }
+                } catch (_) {
+                    // best-effort
+                }
+            });
+        }
         
         function showAccountMenu() {
             // Mobile: fermer la sidebar pour éviter que le menu/modal soit masqué
@@ -34429,9 +34519,17 @@ Réponds UNIQUEMENT dans ce format JSON:
         }
 
         function showSignup() {
-            closeSigninModal();
+            closeSigninModal({ skipHistory: true });
             const modal = document.getElementById('signupModal');
             modal.classList.add('show');
+
+            try {
+                const prev = window.__axilumModalHistory && window.__axilumModalHistory.getStateModalId
+                    ? window.__axilumModalHistory.getStateModalId()
+                    : '';
+                const replace = Boolean(prev);
+                window.__axilumModalHistory?.setModalState?.('signupModal', { replace });
+            } catch (_) {}
             
             // Focus sur le premier champ
             setTimeout(() => {
@@ -34439,16 +34537,28 @@ Réponds UNIQUEMENT dans ce format JSON:
             }, 100);
         }
 
-        function closeSignupModal() {
+        function closeSignupModal({ skipHistory = false } = {}) {
             const modal = document.getElementById('signupModal');
             modal.classList.remove('show');
             document.getElementById('signupForm').reset();
+
+            if (!skipHistory) {
+                try { window.__axilumModalHistory?.clearModalState?.('signupModal'); } catch (_) {}
+            }
         }
 
         function showSignin() {
-            closeSignupModal();
+            closeSignupModal({ skipHistory: true });
             const modal = document.getElementById('signinModal');
             modal.classList.add('show');
+
+            try {
+                const prev = window.__axilumModalHistory && window.__axilumModalHistory.getStateModalId
+                    ? window.__axilumModalHistory.getStateModalId()
+                    : '';
+                const replace = Boolean(prev);
+                window.__axilumModalHistory?.setModalState?.('signinModal', { replace });
+            } catch (_) {}
             
             // Focus sur le premier champ
             setTimeout(() => {
@@ -34456,10 +34566,14 @@ Réponds UNIQUEMENT dans ce format JSON:
             }, 100);
         }
 
-        function closeSigninModal() {
+        function closeSigninModal({ skipHistory = false } = {}) {
             const modal = document.getElementById('signinModal');
             modal.classList.remove('show');
             document.getElementById('signinForm').reset();
+
+            if (!skipHistory) {
+                try { window.__axilumModalHistory?.clearModalState?.('signinModal'); } catch (_) {}
+            }
         }
 
         async function handleSignup(event) {
@@ -34675,6 +34789,14 @@ Réponds UNIQUEMENT dans ce format JSON:
             displayCodeContainer.style.display = 'none';
             
             modal.classList.add('show');
+
+            try {
+                const prev = window.__axilumModalHistory && window.__axilumModalHistory.getStateModalId
+                    ? window.__axilumModalHistory.getStateModalId()
+                    : '';
+                const replace = Boolean(prev);
+                window.__axilumModalHistory?.setModalState?.('verificationModal', { replace });
+            } catch (_) {}
             
             // Focus sur le champ de code
             setTimeout(() => {
@@ -34686,6 +34808,8 @@ Réponds UNIQUEMENT dans ce format JSON:
             const modal = document.getElementById('verificationModal');
             modal.classList.remove('show');
             document.getElementById('verificationForm').reset();
+
+            try { window.__axilumModalHistory?.clearModalState?.('verificationModal'); } catch (_) {}
         }
         
         async function handleVerification(event) {
