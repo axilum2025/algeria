@@ -974,6 +974,24 @@
         let selectedDomain = '';
         let eveOnboardingShown = false;
 
+        let isRunningAction = false;
+
+        // Séquençage multi-photos (sans mélange)
+        let currentPhotoId = null;
+        let currentPhotoIndex = 0;
+        let lastPhotoSummary = null;
+
+        let currentTopicIndex = 1;
+        let currentTopicTitle = '';
+
+        function getEveConversationId() {
+            return `vision-eve-topic-${currentTopicIndex}`;
+        }
+
+        function newPhotoId() {
+            return `${Date.now()}-${Math.random().toString(16).slice(2)}`;
+        }
+
         function getDomainContextLabel() {
             return (selectedDomain && String(selectedDomain).trim()) ? String(selectedDomain).trim() : 'Général';
         }
@@ -1251,6 +1269,11 @@
                 } else if (currentFunction === 'final-report') {
                     addMessage(`Mode sélectionné : ${functionName}. Uploadez une image pour générer un rapport selon le domaine.`, 'system');
                 }
+
+                // Si une image est déjà chargée, permettre l'exécution successive d'actions sans ré-upload.
+                if (currentFunction && currentImageBase64 && !isRunningAction) {
+                    performAnalysis();
+                }
             });
         });
 
@@ -1456,6 +1479,66 @@ ${signals}`;
             }
         }
 
+        async function routeTopicOnNewPhoto(newAnalyzeData) {
+            // Si pas de photo précédente, on reste sur le topic courant.
+            const newSummary = summarizeForEve('analyze', newAnalyzeData);
+
+            if (!lastPhotoSummary) {
+                lastPhotoSummary = newSummary;
+                currentTopicTitle = '';
+                return;
+            }
+
+            try {
+                // Utiliser une conversation séparée pour le routage (évite de polluer le chat principal)
+                const endpoint = '/api/agents/axilum/invoke';
+                const payload = {
+                    message: `Tu es un routeur. Tu dois décider si la nouvelle photo est liée au même sujet que la photo précédente.
+
+Réponds STRICTEMENT en JSON sur une seule ligne, sans texte autour.
+Format: {"related":true|false,"title":"..."}
+
+Règles:
+- related=true si c'est le même lieu/objet/incident/projet/série logique.
+- related=false si c'est un sujet différent.
+- title: un titre très court (2 à 6 mots) pour le sujet courant.
+
+Photo précédente (résumé):\n${lastPhotoSummary}\n\nNouvelle photo (résumé):\n${newSummary}`,
+                    conversationId: 'vision-eve-router',
+                    history: [],
+                    useV2: false
+                };
+
+                const resp = await fetch(endpoint, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                const data = await resp.json().catch(() => ({}));
+                const raw = (data.response || data.bot || '').trim();
+                const jsonText = raw.startsWith('{') ? raw : (raw.match(/\{[\s\S]*\}/) ? raw.match(/\{[\s\S]*\}/)[0] : '');
+                const parsed = jsonText ? JSON.parse(jsonText) : null;
+
+                const related = !!(parsed && parsed.related);
+                const title = (parsed && parsed.title) ? String(parsed.title).slice(0, 60) : '';
+
+                if (!related) {
+                    currentTopicIndex += 1;
+                    currentTopicTitle = title;
+                    addMessage(`Nouveau sujet détecté${title ? ` : ${title}` : ''}.`, 'system');
+                } else {
+                    currentTopicTitle = title;
+                    addMessage(`Sujet continu${title ? ` : ${title}` : ''}.`, 'system');
+                }
+
+                lastPhotoSummary = newSummary;
+            } catch (_) {
+                // En cas d'échec, ne pas bloquer : on garde le topic et on met juste à jour le résumé.
+                lastPhotoSummary = newSummary;
+            }
+        }
+
         // File Upload
         fileInput.addEventListener('change', async (e) => {
             const file = e.target.files[0];
@@ -1479,6 +1562,10 @@ ${signals}`;
                 currentImage = azureDataUrl;
                 currentImageBase64 = dataUrlToBase64(azureDataUrl);
 
+                // Nouvelle photo => nouvelle séquence (dans le même chat UI)
+                currentPhotoId = newPhotoId();
+                currentPhotoIndex += 1;
+
                 try {
                     currentImageElement = await loadImageElement(currentImage);
                 } catch (e) {
@@ -1486,6 +1573,18 @@ ${signals}`;
                 }
                 
                 addMessage('', 'user', currentImage);
+
+                // Routage sujet: on fait une analyse rapide pour comparer à la photo précédente.
+                // (Sans UI en plus, juste une info système pour l'utilisateur.)
+                try {
+                    const base = await fetchVision('analyze');
+                    if (base && base.ok) {
+                        lastVisionResults.analyze = base.data;
+                        await routeTopicOnNewPhoto(base.data);
+                    }
+                } catch (_) {
+                    // ignore
+                }
 
                 // Si une fonction est sélectionnée -> analyser.
                 // Sinon -> faire une description automatique (Analyze) + réponse Agent Eve.
@@ -1581,7 +1680,7 @@ ${onboardingBlock}`;
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     message: `${systemPrompt}\n\nQuestion utilisateur: ${userMessage}`,
-                    conversationId: 'vision-eve',
+                    conversationId: getEveConversationId(),
                     history: [],
                     useV2: false
                 })
@@ -1682,6 +1781,9 @@ Signaux AI Vision:
                 return;
             }
 
+            if (isRunningAction) return;
+            isRunningAction = true;
+
             if (currentFunction === 'expertise') {
                 await runExpertiseOrReport('expertise');
                 return;
@@ -1719,6 +1821,7 @@ Signaux AI Vision:
                     } else {
                         addMessage(`Erreur serveur : ${textResponse.substring(0, 200)}`, 'bot');
                     }
+                    isRunningAction = false;
                     return;
                 }
 
@@ -1732,6 +1835,7 @@ Signaux AI Vision:
                     }
                     displayResults(data, currentFunction);
                     await askEveForAction(currentFunction, data);
+                    isRunningAction = false;
                 } else {
                     const main = data.error || 'Erreur inconnue';
                     const azureMsg = data.azureErrorMessage ? `\n${data.azureErrorMessage}` : '';
@@ -1744,12 +1848,14 @@ Signaux AI Vision:
                         }
                     }
                     addMessage(`Erreur d'analyse : ${main}${azureMsg}${details}`, 'bot');
+                    isRunningAction = false;
                 }
             } catch (error) {
                 hideTyping();
                 setStatus('');
                 addMessage(`Erreur réseau : ${error.message}. Affichage des résultats de démonstration.`, 'bot');
                 displayMockResults(currentFunction);
+                isRunningAction = false;
             }
         }
 
