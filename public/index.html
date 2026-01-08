@@ -241,7 +241,7 @@
             border-right: 1px solid var(--border-color);
             transition: left 0.3s ease-out;
             z-index: 120;
-            box-shadow: 2px 0 20px var(--shadow);
+            box-shadow: none;
             display: flex;
             flex-direction: column;
             overflow: hidden;
@@ -252,8 +252,8 @@
         }
 
         .sidebar-header {
-            padding: 20px;
-            border-bottom: 1px solid transparent;
+            padding: 14px;
+            border-bottom: 1px solid var(--border-color);
             flex-shrink: 0;
             position: relative;
             z-index: 1;
@@ -265,22 +265,21 @@
             background: var(--bg-sidebar);
             color: var(--text-primary);
             border: 1px solid var(--border-color);
-            border-radius: 12px;
+            border-radius: 10px;
             cursor: pointer;
-            font-weight: 700;
+            font-weight: 600;
             letter-spacing: -0.1px;
-            transition: background 0.16s ease, transform 0.16s ease, box-shadow 0.16s ease;
+            transition: background 0.16s ease, box-shadow 0.16s ease;
             font-size: 14px;
             box-shadow: none;
         }
 
         .new-chat-btn:hover {
-            transform: translateY(-1px);
             background: var(--bg-secondary);
         }
 
         .new-chat-btn:active {
-            transform: translateY(0);
+            background: var(--bg-secondary);
         }
 
         .new-chat-btn:focus-visible {
@@ -294,11 +293,11 @@
             padding: 12px;
             background: transparent;
             color: var(--text-primary);
-            border: 1px solid transparent;
+            border: 1px solid var(--border-color);
             border-radius: 10px;
             cursor: pointer;
             font-weight: 600;
-            transition: all 0.2s;
+            transition: background 0.2s, color 0.2s;
             font-size: 14px;
             margin-top: 10px;
             display: flex;
@@ -309,13 +308,11 @@
 
         .sessions-toggle-btn:hover {
             background: var(--bg-secondary);
-            border-color: transparent;
         }
 
         .sessions-toggle-btn.active {
             background: var(--bg-secondary);
-            border-color: transparent;
-            color: var(--accent);
+            color: var(--text-primary);
         }
 
         .sessions-toggle-btn svg {
@@ -2436,7 +2433,7 @@
             border-radius: 10px;
             cursor: pointer;
             touch-action: manipulation;
-            transition: all 0.2s;
+            transition: background 0.2s, color 0.2s;
             font-size: 14px;
             font-weight: 500;
             width: 100%;
@@ -2445,8 +2442,7 @@
 
         .menu-item:hover {
             background: var(--bg-secondary);
-            color: var(--accent);
-            transform: translateX(3px);
+            color: var(--text-primary);
         }
 
         .menu-item svg {
