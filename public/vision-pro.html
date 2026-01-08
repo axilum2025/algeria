@@ -1653,8 +1653,10 @@ Photo précédente (résumé):\n${lastPhotoSummary}\n\nNouvelle photo (résumé)
             const lines = raw.replace(/\r\n/g, '\n').replace(/\r/g, '\n').split('\n');
 
             const isReliabilityLine = (line) => /^\s*(fiabilit[eé]|reliabilit[y]|confidence)\s*[:：]/i.test(line);
-            const isTokensLine = (line) => /^\s*(tokens?|usage\s*tokens?)\b.*[:：]/i.test(line) || /^\s*tokens?\s+utilis[eé]s\b/i.test(line);
+            const isTokensLine = (line) => /^\s*(tokens?|usage\s*tokens?)\b.*[:：]/i.test(line) || /\btokens?\s+utilis[eé]s\b/i.test(line);
             const isPlanHeading = (line) => /^\s*(\*\*\s*)?(plan|plan d'action|plan d\s*action)\s*(\*\*\s*)?\s*[:：]?\s*$/i.test(line) || /^\s*(plan|plan d'action|plan d\s*action)\s*[:：]\s*.+/i.test(line);
+            const isReliabilityMetricsLine = (line) => /m[ée]triques\s+de\s+fiabilit[eé]/i.test(line) || /\bHI\s*:\s*/i.test(line) || /\bCHR\s*:\s*/i.test(line);
+            const isPlanProInline = (line) => /\bplan\s*pro\b/i.test(line);
             const isListLike = (line) => /^\s*(?:[-*•]|\d+[.)])\s+/.test(line) || /^\s{2,}\S+/.test(line);
 
             const out = [];
@@ -1677,6 +1679,8 @@ Photo précédente (résumé):\n${lastPhotoSummary}\n\nNouvelle photo (résumé)
                 }
 
                 if (isReliabilityLine(line)) continue;
+                if (isReliabilityMetricsLine(line)) continue;
+                if (isPlanProInline(line)) continue;
                 if (isTokensLine(line)) continue;
 
                 out.push(line);
