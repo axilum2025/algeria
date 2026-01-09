@@ -987,6 +987,12 @@ function generateRecommendation(score, braveEnabled, hallucinationCount, suspici
     }
 
     if (score >= 60) {
+        // Si aucun point n'est marqué comme "unverified", éviter un message trompeur.
+        if (suspiciousCount === 0) {
+            return isEn
+                ? '⚠️ Medium reliability. Review the sources before use.'
+                : '⚠️ Fiabilité moyenne. Consultez les sources avant utilisation.';
+        }
         return isEn
             ? '⚠️ Medium reliability. Verify unconfirmed points before use.'
             : '⚠️ Fiabilité moyenne. Vérifiez les points non confirmés avant utilisation.';
