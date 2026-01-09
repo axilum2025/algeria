@@ -146,6 +146,10 @@ module.exports = async function (context, req) {
                 });
 
                 if (Array.isArray(evidenceAnalysis?.claims) && evidenceAnalysis.claims.length > 0) {
+                    const s = (evidenceAnalysis && typeof evidenceAnalysis.score === 'object') ? evidenceAnalysis.score : null;
+                    const contradictionRisk = (s && typeof s.contradictionRisk === 'number') ? (s.contradictionRisk / 100) : null;
+                    const evidenceCoverage = (s && typeof s.evidenceCoverage === 'number') ? (s.evidenceCoverage / 100) : null;
+
                     effectiveAnalysis = {
                         ...effectiveAnalysis,
                         method: 'evidence',
@@ -153,12 +157,29 @@ module.exports = async function (context, req) {
                         counts: evidenceAnalysis.counts,
                         hi: evidenceAnalysis.hi,
                         chr: evidenceAnalysis.chr,
-                        score: (evidenceAnalysis && typeof evidenceAnalysis.score === 'object') ? evidenceAnalysis.score : undefined,
-                        warning: (evidenceAnalysis.hi >= 0.3 || evidenceAnalysis.chr >= 0.3)
-                            ? (normalizeLang(lang) === 'en'
-                                ? '⚠️ Evidence-based risk detected — verify the sources'
-                                : '⚠️ Risque (preuves) détecté — vérifiez les sources')
-                            : null
+                        score: s || undefined,
+                        // IMPORTANT: en evidence-based, HI/CHR proviennent des classes et peuvent sur-interpréter NOT_SUPPORTED.
+                        // Le warning est donc basé sur le risque de contradiction + la couverture de preuve.
+                        warning: (typeof contradictionRisk === 'number' && typeof evidenceCoverage === 'number')
+                            ? (
+                                (evidenceCoverage < 0.2)
+                                    ? (normalizeLang(lang) === 'en'
+                                        ? 'ℹ️ Insufficient evidence retrieved — result is inconclusive'
+                                        : 'ℹ️ Preuves insuffisantes récupérées — résultat non concluant')
+                                    : (contradictionRisk >= 0.3
+                                        ? (normalizeLang(lang) === 'en'
+                                            ? '⚠️ Evidence-based contradiction risk detected — verify the sources'
+                                            : '⚠️ Risque de contradiction (preuves) détecté — vérifiez les sources')
+                                        : (normalizeLang(lang) === 'en'
+                                            ? 'ℹ️ Evidence-based check completed — review sources'
+                                            : 'ℹ️ Vérification par preuves terminée — consultez les sources')
+                                      )
+                              )
+                            : ((evidenceAnalysis.hi >= 0.3 || evidenceAnalysis.chr >= 0.3)
+                                ? (normalizeLang(lang) === 'en'
+                                    ? '⚠️ Evidence-based risk detected — verify the sources'
+                                    : '⚠️ Risque (preuves) détecté — vérifiez les sources')
+                                : null)
                     };
                 }
             } catch (err) {
@@ -228,9 +249,20 @@ module.exports = async function (context, req) {
         const analysisSupported = analysisCounts && typeof analysisCounts.supported === 'number' ? analysisCounts.supported : 0;
 
         const totalFacts = verifiedFacts.length + suspiciousFacts.length + hallucinations.length;
-        const reliabilityScore = analysisTotal > 0
+        let reliabilityScore = analysisTotal > 0
             ? Math.round((analysisSupported / analysisTotal) * 100)
             : (totalFacts > 0 ? Math.round((verifiedFacts.length / totalFacts) * 100) : null);
+
+        // Si on a un score evidence-based, on évite de déduire une fiabilité de "SUPPORTED ratio" (trompeur quand NOT_SUPPORTED).
+        if (effectiveAnalysis && effectiveAnalysis.method === 'evidence' && effectiveAnalysis.score && typeof effectiveAnalysis.score === 'object') {
+            const riskPct = (typeof effectiveAnalysis.score.contradictionRisk === 'number') ? effectiveAnalysis.score.contradictionRisk : null;
+            const covPct = (typeof effectiveAnalysis.score.evidenceCoverage === 'number') ? effectiveAnalysis.score.evidenceCoverage : null;
+            if (typeof covPct === 'number' && covPct < 20) {
+                reliabilityScore = null;
+            } else if (typeof riskPct === 'number') {
+                reliabilityScore = Math.max(0, Math.min(100, Math.round((1 - (riskPct / 100)) * 100)));
+            }
+        }
 
         // 6. Générer warnings de sécurité
         const securityWarnings = detectSecurityIssues(text, lang);

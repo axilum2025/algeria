@@ -180,7 +180,17 @@ function adjustProbabilitiesByEvidenceQuality(probabilities, evidenceQuality) {
   return normalizeProbabilities({ p_supported, p_not_supported, p_contradictory });
 }
 
-function computeEvidenceCoverage(results, threshold = 0.6) {
+function computeEvidenceCoverageMean(results) {
+  const arr = Array.isArray(results) ? results : [];
+  if (!arr.length) return 0;
+  let sum = 0;
+  for (const r of arr) {
+    sum += clamp01(r?.evidenceQuality);
+  }
+  return clamp01(sum / arr.length);
+}
+
+function computeSufficientEvidenceShare(results, threshold = 0.4) {
   const arr = Array.isArray(results) ? results : [];
   if (!arr.length) return 0;
   let ok = 0;
@@ -572,7 +582,8 @@ async function verifyClaimsWithEvidence({ claims, evidenceByClaim, lang, userId 
   // Seuil de "preuve suffisante" (heuristique). 0.6 était trop strict en pratique avec des snippets courts.
   // On utilise 0.4 pour refléter "preuves présentes et pertinentes" sans exiger une diversité parfaite.
   const evidenceCoverageThreshold = 0.4;
-  const evidenceCoverage = computeEvidenceCoverage(results, evidenceCoverageThreshold);
+  const evidenceCoverage = computeEvidenceCoverageMean(results);
+  const sufficientEvidenceShare = computeSufficientEvidenceShare(results, evidenceCoverageThreshold);
   const ci90 = bootstrapRiskCI90(results, 200);
 
   return {
@@ -587,6 +598,7 @@ async function verifyClaimsWithEvidence({ claims, evidenceByClaim, lang, userId 
       contradictionRisk: Math.round(contradictionRisk * 1000) / 10,
       evidenceCoverage: Math.round(evidenceCoverage * 1000) / 10,
       evidenceCoverageThreshold,
+      sufficientEvidenceShare: Math.round(sufficientEvidenceShare * 1000) / 10,
       uncertainty: {
         ci90: [Math.round(ci90.low * 1000) / 10, Math.round(ci90.high * 1000) / 10],
         plusMinus: Math.round(((ci90.high - ci90.low) * 0.5) * 1000) / 10
