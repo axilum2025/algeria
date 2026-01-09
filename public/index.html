@@ -9507,6 +9507,8 @@ ${persona}
                 'stats.conversations': 'Conversations',
                 'stats.avgHI': 'HI moyen',
                 'stats.avgCHR': 'CHR moyen',
+                'tooltip.hi': "<strong>Hallucination Index (HI)</strong><br>Mesure le risque qu'une réponse contienne des informations inventées ou non vérifiées.<br><br>• &lt;15% : Très fiable<br>• 15-30% : Fiable<br>• 30-60% : Prudence<br>• &gt;60% : Incertitude",
+                'tooltip.chr': "<strong>Composite Hallucination Risk (CHR)</strong><br>Indicateur global combinant la confiance de l'IA, l'incertitude et les contradictions détectées.<br><br>Plus le CHR est bas, plus la réponse est sûre et cohérente.",
                 'userMenu.close': 'Fermer',
                 'userMenu.avatarTitle': 'Cliquez pour changer la photo',
                 'userMenu.profilePhoto': 'Photo de profil',
@@ -9600,6 +9602,8 @@ ${persona}
                 'stats.conversations': 'Conversations',
                 'stats.avgHI': 'Average HI',
                 'stats.avgCHR': 'Average CHR',
+                'tooltip.hi': '<strong>Hallucination Index (HI)</strong><br>Measures the risk that a response contains fabricated or unverified information.<br><br>• &lt;15%: Very reliable<br>• 15-30%: Reliable<br>• 30-60%: Cautious<br>• &gt;60%: Uncertain',
+                'tooltip.chr': '<strong>Composite Hallucination Risk (CHR)</strong><br>Overall indicator combining AI confidence, uncertainty, and detected contradictions.<br><br>The lower the CHR, the safer and more coherent the response.',
                 'userMenu.close': 'Close',
                 'userMenu.avatarTitle': 'Click to change photo',
                 'userMenu.profilePhoto': 'Profile photo',
@@ -34368,12 +34372,9 @@ Réponds UNIQUEMENT dans ce format JSON:
             event.stopPropagation();
             const tooltip = document.getElementById('tooltip');
             
-            const explanations = {
-                hi: "<strong>Hallucination Index (HI)</strong><br>Mesure le risque qu'une réponse contienne des informations inventées ou non vérifiées.<br><br>• <15% : Très fiable<br>• 15-30% : Fiable<br>• 30-60% : Prudence<br>• >60% : Incertitude",
-                chr: "<strong>Composite Hallucination Risk (CHR)</strong><br>Indicateur global combinant la confiance de l'IA, l'incertitude et les contradictions détectées.<br><br>Plus le CHR est bas, plus la réponse est sûre et cohérente."
-            };
-            
-            tooltip.innerHTML = explanations[type];
+            const key = type === 'hi' ? 'tooltip.hi' : type === 'chr' ? 'tooltip.chr' : null;
+            const html = key && (typeof t === 'function') ? t(key) : '';
+            tooltip.innerHTML = html || '';
             tooltip.classList.add('show');
             
             // Position le tooltip près du curseur
