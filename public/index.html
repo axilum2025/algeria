@@ -3655,7 +3655,7 @@
     <div class="modal" id="usageDashboardModal" style="display:none;">
         <div class="modal-content" style="max-width: 760px;">
             <div class="modal-header">
-                <div class="modal-title">Consommation</div>
+                <div class="modal-title" id="usageDashboardTitle">Consommation</div>
                 <button class="close-modal" onclick="closeUsageDashboardModal()">×</button>
             </div>
             <div style="padding: 20px;">
@@ -3663,21 +3663,21 @@
 
                 <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; margin-bottom: 14px;">
                     <div style="background: var(--bg-secondary); padding: 12px; border-radius: 10px; border: 1px solid var(--border-color);">
-                        <div style="color: var(--text-secondary); font-size: 12px;">Crédit restant</div>
+                        <div id="usageDashboardBalanceLabel" style="color: var(--text-secondary); font-size: 12px;">Crédit restant</div>
                         <div id="usageDashboardBalance" style="color: var(--text-primary); font-size: 18px; font-weight: 700; margin-top: 4px;">—</div>
                     </div>
                     <div style="background: var(--bg-secondary); padding: 12px; border-radius: 10px; border: 1px solid var(--border-color);">
-                        <div style="color: var(--text-secondary); font-size: 12px;">Coût (mois)</div>
+                        <div id="usageDashboardMonthCostLabel" style="color: var(--text-secondary); font-size: 12px;">Coût (mois)</div>
                         <div id="usageDashboardMonthCost" style="color: var(--text-primary); font-size: 18px; font-weight: 700; margin-top: 4px;">—</div>
                     </div>
                     <div style="background: var(--bg-secondary); padding: 12px; border-radius: 10px; border: 1px solid var(--border-color);">
-                        <div style="color: var(--text-secondary); font-size: 12px;">Appels &amp; tokens</div>
+                        <div id="usageDashboardMonthTokensLabel" style="color: var(--text-secondary); font-size: 12px;">Appels &amp; tokens</div>
                         <div id="usageDashboardMonthTokens" style="color: var(--text-primary); font-size: 14px; font-weight: 700; margin-top: 6px;">—</div>
                     </div>
                 </div>
 
                 <div style="background: var(--bg-secondary); border-radius: 10px; border: 1px solid var(--border-color); overflow: hidden;">
-                    <div style="padding: 12px; border-bottom: 1px solid var(--border-color); color: var(--text-primary); font-weight: 700;">Derniers appels</div>
+                    <div id="usageDashboardLatestTitle" style="padding: 12px; border-bottom: 1px solid var(--border-color); color: var(--text-primary); font-weight: 700;">Derniers appels</div>
                     <div id="usageDashboardBody" style="padding: 12px; color: var(--text-secondary); font-size: 13px;">Chargement…</div>
                 </div>
             </div>
@@ -3823,7 +3823,7 @@
             if (!sel) return;
             const next = String(sel.value || '').trim();
             setSelectedAiModel(next);
-            try { showToast('Modèle IA mis à jour', 'success'); } catch (_) {}
+            try { showToast(t('ai.toast.modelUpdated'), 'success'); } catch (_) {}
             try { updateAiModelHelp(); } catch (_) {}
         }
 
@@ -3833,7 +3833,7 @@
             const next = String(sel.value || '').trim() || DEFAULT_AI_MODEL;
             setSelectedAiModel(next);
             updateAiModelHelp();
-            try { showToast(`Modèle ${next} validé`, 'success'); } catch (_) {}
+            try { showToast(t('ai.toast.modelValidated').replace('{model}', next), 'success'); } catch (_) {}
         }
 
         function updateAiModelHelp(models) {
@@ -3846,11 +3846,11 @@
             const cur = m ? (String(m.pricingCurrency || '').toUpperCase() || '') : '';
             const inRate = hasPricing && m.in != null && Number.isFinite(Number(m.in)) ? Number(m.in) : null;
             const outRate = hasPricing && m.out != null && Number.isFinite(Number(m.out)) ? Number(m.out) : null;
-            const inTxt = inRate == null ? 'N/A' : `${inRate} ${cur}/1M tokens (entrée)`;
-            const outTxt = outRate == null ? 'N/A' : `${outRate} ${cur}/1M tokens (sortie)`;
+            const inTxt = inRate == null ? 'N/A' : `${inRate} ${cur}/1M tokens (${t('ai.help.inSuffix')})`;
+            const outTxt = outRate == null ? 'N/A' : `${outRate} ${cur}/1M tokens (${t('ai.help.outSuffix')})`;
             const cat = m && m.category ? ` • ${m.category}` : '';
             const desc = m && m.description ? ` • ${m.description}` : '';
-            help.textContent = `Modèle actif: ${current}${cat}. Prix: ${inTxt}, ${outTxt}.${desc ? ` ${desc}` : ''}`;
+            help.textContent = `${t('ai.help.activePrefix')} ${current}${cat}. ${t('ai.help.pricePrefix')} ${inTxt}, ${outTxt}.${desc ? ` ${desc}` : ''}`;
         }
 
         async function refreshAiModelSelect() {
@@ -6194,7 +6194,7 @@ ${persona}
             if (!Number.isFinite(n)) return '—';
             const c = String(currency || '').trim().toUpperCase() || 'USD';
             try {
-                return new Intl.NumberFormat('en-US', { style: 'currency', currency: c, minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(n);
+                return new Intl.NumberFormat(getLocale(), { style: 'currency', currency: c, minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(n);
             } catch (_) {
                 return `${c} ${n.toFixed(2)}`;
             }
@@ -6218,7 +6218,7 @@ ${persona}
             if (balanceEl) balanceEl.textContent = '…';
             if (monthCostEl) monthCostEl.textContent = '…';
             if (monthTokensEl) monthTokensEl.textContent = '…';
-            body.textContent = 'Chargement…';
+            body.textContent = t('usage.loading');
 
             const headers = {};
             try {
@@ -6252,7 +6252,7 @@ ${persona}
                     : null);
                 const totalsCurrency = 'USD';
 
-                if (meta) meta.textContent = month ? `Période: ${month}` : '';
+                if (meta) meta.textContent = month ? `${t('usage.periodPrefix')} ${month}` : '';
 
                 if (balanceEl) {
                     const bal = Number.isFinite(balanceValue) ? balanceValue : 0;
@@ -6266,11 +6266,11 @@ ${persona}
                 if (monthTokensEl) {
                     const calls = Number(totals.totalCalls || 0);
                     const toks = Number(totals.totalTokens || 0);
-                    monthTokensEl.textContent = `${calls.toLocaleString(getLocale())} appels • ${toks.toLocaleString(getLocale())} tokens`;
+                    monthTokensEl.textContent = `${calls.toLocaleString(getLocale())} ${t('usage.calls')} • ${toks.toLocaleString(getLocale())} ${t('usage.tokens')}`;
                 }
 
                 if (!items.length) {
-                    body.textContent = 'Aucun usage enregistré pour cette période.';
+                    body.textContent = t('usage.noUsage');
                     return;
                 }
 
@@ -6297,10 +6297,10 @@ ${persona}
                         <table style="width: 100%; border-collapse: collapse;">
                             <thead>
                                 <tr style="color: var(--text-secondary); font-size: 12px;">
-                                    <th style="text-align: left; padding: 8px 10px;">Date</th>
-                                    <th style="text-align: left; padding: 8px 10px;">Modèle</th>
-                                    <th style="text-align: right; padding: 8px 10px;">Tokens</th>
-                                    <th style="text-align: right; padding: 8px 10px;">Coût</th>
+                                    <th style="text-align: left; padding: 8px 10px;">${safeText(t('usage.table.date'))}</th>
+                                    <th style="text-align: left; padding: 8px 10px;">${safeText(t('usage.table.model'))}</th>
+                                    <th style="text-align: right; padding: 8px 10px;">${safeText(t('usage.table.tokens'))}</th>
+                                    <th style="text-align: right; padding: 8px 10px;">${safeText(t('usage.table.cost'))}</th>
                                 </tr>
                             </thead>
                             <tbody style="color: var(--text-primary); font-size: 13px;">
@@ -6310,7 +6310,7 @@ ${persona}
                     </div>
                 `;
             } catch (e) {
-                body.textContent = 'Impossible de charger la consommation.';
+                body.textContent = t('usage.errorLoading');
                 try {
                     if (meta) meta.textContent = safeText(e && e.message ? e.message : 'Erreur');
                 } catch (_) {}
@@ -9577,7 +9577,30 @@ ${persona}
                 'settings.pricing.p2': '<strong>Où voir le solde ?</strong> Le compteur en haut affiche votre crédit restant. <strong>Pour voir le détail</strong> (période, coût IA, etc.), cliquez directement sur ce compteur.',
                 'settings.pricing.p3': '<strong>Devise :</strong> la facturation est en $ (USD). Si besoin d’autres devises, configurez le taux côté serveur.',
                 'settings.infoTitle': 'Informations',
-                'settings.infoContent': '<strong>Version :</strong> 1.0.0<br><strong>Dernière mise à jour :</strong> Décembre 2025<br><strong>Build :</strong> Production'
+                'settings.infoContent': '<strong>Version :</strong> 1.0.0<br><strong>Dernière mise à jour :</strong> Décembre 2025<br><strong>Build :</strong> Production',
+
+                'usage.title': 'Consommation',
+                'usage.balanceLabel': 'Crédit restant',
+                'usage.monthCostLabel': 'Coût (mois)',
+                'usage.monthTokensLabel': 'Appels &amp; tokens',
+                'usage.latestTitle': 'Derniers appels',
+                'usage.loading': 'Chargement…',
+                'usage.errorLoading': 'Impossible de charger la consommation.',
+                'usage.noUsage': 'Aucun usage enregistré pour cette période.',
+                'usage.periodPrefix': 'Période:',
+                'usage.calls': 'appels',
+                'usage.tokens': 'tokens',
+                'usage.table.date': 'Date',
+                'usage.table.model': 'Modèle',
+                'usage.table.tokens': 'Tokens',
+                'usage.table.cost': 'Coût',
+
+                'ai.toast.modelUpdated': 'Modèle IA mis à jour',
+                'ai.toast.modelValidated': 'Modèle {model} validé',
+                'ai.help.activePrefix': 'Modèle actif:',
+                'ai.help.pricePrefix': 'Prix:',
+                'ai.help.inSuffix': 'entrée',
+                'ai.help.outSuffix': 'sortie'
             },
             en: {
                 'ui.newConversation': 'New Conversation',
@@ -9711,7 +9734,30 @@ ${persona}
                 'settings.pricing.p2': '<strong>Where to see your balance?</strong> The counter at the top shows your remaining credit. <strong>To see details</strong> (period, AI cost, etc.), click directly on that counter.',
                 'settings.pricing.p3': '<strong>Currency:</strong> billing is in $ (USD). If you need other currencies, configure the exchange rate server-side.',
                 'settings.infoTitle': 'Information',
-                'settings.infoContent': '<strong>Version:</strong> 1.0.0<br><strong>Last update:</strong> December 2025<br><strong>Build:</strong> Production'
+                'settings.infoContent': '<strong>Version:</strong> 1.0.0<br><strong>Last update:</strong> December 2025<br><strong>Build:</strong> Production',
+
+                'usage.title': 'Usage',
+                'usage.balanceLabel': 'Remaining credit',
+                'usage.monthCostLabel': 'Cost (month)',
+                'usage.monthTokensLabel': 'Calls &amp; tokens',
+                'usage.latestTitle': 'Latest calls',
+                'usage.loading': 'Loading…',
+                'usage.errorLoading': 'Unable to load usage.',
+                'usage.noUsage': 'No usage recorded for this period.',
+                'usage.periodPrefix': 'Period:',
+                'usage.calls': 'calls',
+                'usage.tokens': 'tokens',
+                'usage.table.date': 'Date',
+                'usage.table.model': 'Model',
+                'usage.table.tokens': 'Tokens',
+                'usage.table.cost': 'Cost',
+
+                'ai.toast.modelUpdated': 'AI model updated',
+                'ai.toast.modelValidated': 'Model {model} validated',
+                'ai.help.activePrefix': 'Active model:',
+                'ai.help.pricePrefix': 'Pricing:',
+                'ai.help.inSuffix': 'input',
+                'ai.help.outSuffix': 'output'
             }
         };
 
@@ -10036,6 +10082,21 @@ ${persona}
 
                 const infoContent = document.getElementById('infoContent');
                 if (infoContent) infoContent.innerHTML = t('settings.infoContent');
+
+                const usageDashboardTitle = document.getElementById('usageDashboardTitle');
+                if (usageDashboardTitle) usageDashboardTitle.textContent = t('usage.title');
+
+                const usageDashboardBalanceLabel = document.getElementById('usageDashboardBalanceLabel');
+                if (usageDashboardBalanceLabel) usageDashboardBalanceLabel.textContent = t('usage.balanceLabel');
+
+                const usageDashboardMonthCostLabel = document.getElementById('usageDashboardMonthCostLabel');
+                if (usageDashboardMonthCostLabel) usageDashboardMonthCostLabel.textContent = t('usage.monthCostLabel');
+
+                const usageDashboardMonthTokensLabel = document.getElementById('usageDashboardMonthTokensLabel');
+                if (usageDashboardMonthTokensLabel) usageDashboardMonthTokensLabel.innerHTML = t('usage.monthTokensLabel');
+
+                const usageDashboardLatestTitle = document.getElementById('usageDashboardLatestTitle');
+                if (usageDashboardLatestTitle) usageDashboardLatestTitle.textContent = t('usage.latestTitle');
 
                 const signinNoAccountText = document.getElementById('signinNoAccountText');
                 if (signinNoAccountText) signinNoAccountText.textContent = t('auth.noAccount');
