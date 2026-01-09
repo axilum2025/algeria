@@ -4183,6 +4183,162 @@
             }, true);
         });
 
+        // ================================
+        // 🌍 Langue (client-side, sans appel API)
+        // Objectif: pour les réponses instantanées (salutations / petits messages)
+        // ================================
+        function normalizeLangClient(input) {
+            const raw = String(input || '').trim().toLowerCase();
+            if (!raw) return 'fr';
+            const base = raw.split('-')[0].split('_')[0];
+            const supported = new Set(['fr','en','es','de','it','pt','ar','zh','ja','ko','ru','tr','nl','hi','th','he','el','id','vi']);
+            if (supported.has(base)) return base;
+            if (raw.includes('english') || raw.includes('anglais')) return 'en';
+            if (raw.includes('french') || raw.includes('français') || raw.includes('francais')) return 'fr';
+            if (raw.includes('spanish') || raw.includes('espagnol') || raw.includes('español') || raw.includes('espanol')) return 'es';
+            if (raw.includes('german') || raw.includes('allemand') || raw.includes('deutsch')) return 'de';
+            if (raw.includes('italian') || raw.includes('italien') || raw.includes('italiano')) return 'it';
+            if (raw.includes('portuguese') || raw.includes('portugais') || raw.includes('português') || raw.includes('portugues')) return 'pt';
+            if (raw.includes('arabic') || raw.includes('arabe') || raw.includes('العربية')) return 'ar';
+            if (raw.includes('chinese') || raw.includes('chinois') || raw.includes('中文') || raw.includes('mandarin')) return 'zh';
+            if (raw.includes('japanese') || raw.includes('japonais') || raw.includes('日本語')) return 'ja';
+            if (raw.includes('korean') || raw.includes('coréen') || raw.includes('coreen') || raw.includes('한국어')) return 'ko';
+            if (raw.includes('russian') || raw.includes('russe') || raw.includes('русский')) return 'ru';
+            if (raw.includes('turkish') || raw.includes('turc') || raw.includes('türkçe') || raw.includes('turkce')) return 'tr';
+            return 'fr';
+        }
+
+        function detectLangByScriptClient(text) {
+            const s = String(text || '');
+            if (!s) return '';
+            if (/[\u0600-\u06FF\u0750-\u077F\u08A0-\u08FF]/.test(s)) return 'ar';
+            if (/[\u3040-\u30FF]/.test(s)) return 'ja';
+            if (/[\u4E00-\u9FFF]/.test(s)) return 'zh';
+            if (/[\uAC00-\uD7AF]/.test(s)) return 'ko';
+            if (/[\u0400-\u04FF]/.test(s)) return 'ru';
+            if (/[\u0900-\u097F]/.test(s)) return 'hi';
+            if (/[\u0E00-\u0E7F]/.test(s)) return 'th';
+            if (/[\u0590-\u05FF]/.test(s)) return 'he';
+            if (/[\u0370-\u03FF]/.test(s)) return 'el';
+            return '';
+        }
+
+        function detectLangFromTextClient(text, fallback) {
+            const fb = normalizeLangClient(fallback || (navigator.language || 'fr'));
+            const raw = String(text || '').trim();
+            if (!raw) return fb;
+            const byScript = detectLangByScriptClient(raw);
+            if (byScript) return normalizeLangClient(byScript);
+
+            const lower = ` ${raw.toLowerCase().replace(/[^\p{L}\p{N}\s]+/gu, ' ').replace(/\s+/g, ' ').trim()} `;
+            const score = { fr:0,en:0,es:0,de:0,it:0,pt:0,nl:0,tr:0,id:0,vi:0 };
+            const hit = (k, arr, w=1) => arr.forEach(x => { if (lower.includes(` ${x} `)) score[k] += w; });
+            hit('en', ['the','and','you','your','please','thanks','what','why','how','hello','hi'], 2);
+            hit('fr', ['le','la','les','des','est','vous','merci','bonjour','pourquoi','comment','avec','salut'], 2);
+            hit('es', ['hola','gracias','por','para','como','qué','que','usted','buenos','buenas'], 2);
+            hit('de', ['und','der','die','das','bitte','danke','warum','wie','hallo'], 2);
+            hit('it', ['ciao','grazie','perché','perche','come','che','buongiorno'], 2);
+            hit('pt', ['olá','ola','obrigado','obrigada','porquê','porque','como','você','voce'], 2);
+            hit('nl', ['hallo','dank','alstublieft','waarom','hoe','jij','u'], 2);
+            hit('tr', ['merhaba','teşekkür','tesekkur','lütfen','lutfen','neden','nasıl','nasil'], 2);
+            hit('id', ['halo','terima','kasih','kenapa','bagaimana','anda'], 2);
+            hit('vi', ['xin','chào','chao','cảm','cam','ơn','on','tại','sao','bạn','ban'], 2);
+
+            if (/[¿¡ñ]/.test(raw)) score.es += 3;
+            if (/[çœæ]/i.test(raw)) score.fr += 2;
+            if (/[ßäöü]/i.test(raw)) score.de += 3;
+            if (/[ãõ]/i.test(raw)) score.pt += 2;
+            if (/[ğışçöü]/i.test(raw)) score.tr += 3;
+            if (/[ăâđêôơư]/i.test(raw)) score.vi += 3;
+
+            let best = fb;
+            let bestScore = 0;
+            Object.keys(score).forEach(k => {
+                if (score[k] > bestScore) { best = k; bestScore = score[k]; }
+            });
+            if (bestScore < 2) return fb;
+            return normalizeLangClient(best);
+        }
+
+        function getStoredUserLang() {
+            try {
+                const v = localStorage.getItem('axilum_user_lang');
+                if (v) return normalizeLangClient(v);
+            } catch (_) {}
+            return normalizeLangClient(navigator.language || 'fr');
+        }
+
+        function setStoredUserLang(lang) {
+            const l = normalizeLangClient(lang);
+            try { localStorage.setItem('axilum_user_lang', l); } catch (_) {}
+            return l;
+        }
+
+        function tLocal(key, lang) {
+            const l = normalizeLangClient(lang);
+            const dict = {
+                quick_chat_prompt: {
+                    fr: "D'accord. De quoi aimeriez-vous parler ?",
+                    en: "Sure. What would you like to talk about?",
+                    es: "De acuerdo. ¿De qué te gustaría hablar?",
+                    de: "Alles klar. Worüber möchtest du sprechen?",
+                    it: "Va bene. Di cosa ti piacerebbe parlare?",
+                    pt: "Tudo bem. Sobre o que você gostaria de conversar?",
+                    ar: "حسنًا. عمّاذا تودّ أن نتحدث؟",
+                    ru: "Хорошо. О чём вы хотите поговорить?",
+                    tr: "Tamam. Ne hakkında konuşmak istersin?",
+                    zh: "好的。你想聊什么？",
+                    ja: "いいですよ。何について話したいですか？",
+                    ko: "좋아요. 무엇에 대해 이야기하고 싶나요?"
+                },
+                quick_greeting: {
+                    fr: "Bonjour ! Comment puis-je vous aider aujourd'hui ?",
+                    en: "Hello! How can I help you today?",
+                    es: "¡Hola! ¿En qué puedo ayudarte hoy?",
+                    de: "Hallo! Wie kann ich dir heute helfen?",
+                    it: "Ciao! Come posso aiutarti oggi?",
+                    pt: "Olá! Como posso ajudar você hoje?",
+                    ar: "مرحبًا! كيف يمكنني مساعدتك اليوم؟",
+                    ru: "Привет! Чем я могу помочь сегодня?",
+                    tr: "Merhaba! Bugün sana nasıl yardımcı olabilirim?",
+                    zh: "你好！我今天能帮你什么？",
+                    ja: "こんにちは！今日はどうお手伝いできますか？",
+                    ko: "안녕하세요! 오늘 무엇을 도와드릴까요?"
+                },
+                agent_welcome: {
+                    fr: "👋 Bonjour, je suis {agent}. Comment puis-je vous aider ?",
+                    en: "👋 Hi, I'm {agent}. How can I help you?",
+                    es: "👋 Hola, soy {agent}. ¿En qué puedo ayudarte?",
+                    de: "👋 Hallo, ich bin {agent}. Wie kann ich helfen?",
+                    it: "👋 Ciao, sono {agent}. Come posso aiutarti?",
+                    pt: "👋 Olá, eu sou {agent}. Como posso ajudar?",
+                    ar: "👋 مرحبًا، أنا {agent}. كيف يمكنني مساعدتك؟",
+                    ru: "👋 Привет, я {agent}. Чем могу помочь?",
+                    tr: "👋 Merhaba, ben {agent}. Nasıl yardımcı olabilirim?",
+                    zh: "👋 你好，我是 {agent}。我能帮你什么？",
+                    ja: "👋 こんにちは、{agent} です。どうお手伝いできますか？",
+                    ko: "👋 안녕하세요, 저는 {agent}입니다. 무엇을 도와드릴까요?"
+                },
+                team_auto: {
+                    fr: "🤝 Team Auto activé. Donnez-moi votre question.",
+                    en: "🤝 Team Auto enabled. What's your question?",
+                    es: "🤝 Team Auto activado. ¿Cuál es tu pregunta?",
+                    de: "🤝 Team Auto aktiviert. Was ist deine Frage?",
+                    it: "🤝 Team Auto attivato. Qual è la tua domanda?",
+                    pt: "🤝 Team Auto ativado. Qual é a sua pergunta?",
+                    ar: "🤝 تم تفعيل Team Auto. ما سؤالك؟",
+                    ru: "🤝 Team Auto включён. В чём ваш вопрос?",
+                    tr: "🤝 Team Auto etkin. Sorun nedir?",
+                    zh: "🤝 Team Auto 已开启。你的问题是什么？",
+                    ja: "🤝 Team Auto を有効化しました。ご質問は？",
+                    ko: "🤝 Team Auto가 활성화되었습니다. 질문이 무엇인가요?"
+                }
+            };
+
+            const entry = dict[key] || {};
+            return entry[l] || entry.fr || '';
+        }
+
         // ===================================
         // 🗄️ IndexedDB Storage (Conversations + Images)
         // ===================================
@@ -6476,6 +6632,13 @@ ${persona}
             const message = input.value.trim();
             if (!message) return;
 
+            const isCommandTop = /^\s*\//.test(message);
+            // Mémoriser la langue utilisateur (pour /agent et autres réponses instantanées)
+            if (!isCommandTop) {
+                const detected = detectLangFromTextClient(message, getStoredUserLang());
+                setStoredUserLang(detected);
+            }
+
             // Hide welcome screen on first message (do this early to cover all early-returns).
             const welcomeScreen = document.getElementById('welcomeScreen');
             if (welcomeScreen) {
@@ -6487,8 +6650,8 @@ ${persona}
             // ⚡ Fast path (local) pour salutations / petit talk
             // Objectif: éviter un appel IA long sur des messages simples.
             const lowerMsg = message.toLowerCase().trim();
-            const isGreeting = /^(bonjour|bonsoir|salut|coucou|hello|hi)\b/.test(lowerMsg);
-            const isJustChat = /\b(seulement\s+discuter|juste\s+discuter|on\s+discute|discuter\s+seulement)\b/.test(lowerMsg);
+            const isGreeting = /^(bonjour|bonsoir|salut|coucou|hello|hi|hey|hola|buenas|buenos|hallo|ciao|ola|olá|merhaba|привет|こんにちは|你好|مرحبا)\b/i.test(lowerMsg);
+            const isJustChat = /\b(seulement\s+discuter|juste\s+discuter|on\s+discute|discuter\s+seulement|just\s+chat|just\s+talking|only\s+chat|let\s*'?s\s+chat)\b/i.test(lowerMsg);
 
             if (isGreeting || isJustChat) {
                 input.value = '';
@@ -6496,9 +6659,11 @@ ${persona}
 
                 addMessage(message, 'user');
 
+                const localLang = detectLangFromTextClient(message, getStoredUserLang());
+                setStoredUserLang(localLang);
                 const quickReply = isJustChat
-                    ? "D'accord. De quoi aimeriez-vous parler ?"
-                    : "Bonjour ! Comment puis-je vous aider aujourd'hui ?";
+                    ? tLocal('quick_chat_prompt', localLang)
+                    : tLocal('quick_greeting', localLang);
 
                 const botData = {
                     response: quickReply,
@@ -6737,26 +6902,29 @@ ${persona}
 
                 const chosen = setChatType(arg);
 
+                const uiLang = getStoredUserLang();
+                const mkWelcome = (agentLabel) => tLocal('agent_welcome', uiLang).replace('{agent}', agentLabel);
+
                 // Afficher uniquement un message d'accueil (sans citer d'autres modules/agents).
                 const welcome = chosen === 'agent-dev'
-                    ? '👋 Bonjour, je suis Agent Dev, spécialisé en R&D et innovation multi-domaines. Comment puis-je vous aider ?'
+                    ? mkWelcome('Agent Dev')
                     : chosen === 'excel-expert'
-                        ? '👋 Hi, je suis Agent Xcel. Comment puis-je vous aider ?'
+                        ? mkWelcome('Agent Xcel')
                         : chosen === 'agent-todo'
-                            ? '👋 Hi, je suis Agent ToDo. Comment puis-je vous aider ?'
+                            ? mkWelcome('Agent ToDo')
                             : chosen === 'hr-management'
-                                ? '👋 Hi, je suis Agent RH. Comment puis-je vous aider ?'
+                                ? mkWelcome('Agent RH')
                                 : chosen === 'marketing-agent'
-                                    ? '👋 Hi, je suis Agent Mark. Comment puis-je vous aider ?'
+                                    ? mkWelcome('Agent Mark')
                                     : chosen === 'web-search'
-                                        ? '👋 Hi, je suis Agent Wesh. Comment puis-je vous aider ?'
+                                        ? mkWelcome('Agent Wesh')
                                         : chosen === 'agent-alex'
-                                            ? '👋 Hi, je suis Agent Alex. Comment puis-je vous aider ?'
+                                            ? mkWelcome('Agent Alex')
                                             : chosen === 'agent-tony'
-                                                ? '👋 Hi, je suis Agent Tony. Comment puis-je vous aider ?'
-                                                                            : chosen === 'team-auto'
-                                                                                ? '🤝 Team Auto activé. Donnez-moi votre question.'
-                                                : '👋 Hi, je suis Axilum Ai. Comment puis-je vous aider ?';
+                                                ? mkWelcome('Agent Tony')
+                                                : chosen === 'team-auto'
+                                                    ? tLocal('team_auto', uiLang)
+                                                    : mkWelcome('Axilum AI');
 
                 addMessage(welcome, 'bot');
                 return;
