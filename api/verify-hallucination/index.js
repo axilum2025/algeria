@@ -1,6 +1,7 @@
 const https = require('https');
 const { analyzeHallucination } = require('../utils/hallucinationDetector');
 const { verifyClaimsWithEvidence } = require('../utils/evidenceClaimVerifier');
+const { generateSearchQueries } = require('../utils/claimSearchQueryGenerator');
 
 module.exports = async function (context, req) {
     context.log('🔍 Verify Hallucination API appelée');
@@ -260,7 +261,11 @@ module.exports = async function (context, req) {
             if (typeof covPct === 'number' && covPct < 20) {
                 reliabilityScore = null;
             } else if (typeof riskPct === 'number') {
-                reliabilityScore = Math.max(0, Math.min(100, Math.round((1 - (riskPct / 100)) * 100)));
+                const cov = (typeof covPct === 'number') ? Math.max(0, Math.min(1, covPct / 100)) : 0;
+                const risk = Math.max(0, Math.min(1, riskPct / 100));
+                // reliability = (1 - risk) * (0.3 + 0.7*coverage)
+                const factor = 0.3 + 0.7 * cov;
+                reliabilityScore = Math.max(0, Math.min(100, Math.round((1 - risk) * factor * 100)));
             }
         }
 
@@ -587,6 +592,36 @@ async function verifyClaimEvidenceWithBrave(claimText, apiKey, context, lang) {
         }
         const maxMerged = looksLikeSunBlack ? 10 : (looksNumericOrTemporal ? 10 : 6);
         if (merged.length >= maxMerged) break;
+    }
+
+    // Fallback IA (optionnel): si la preuve est insuffisante, demander à Groq/Gemini des requêtes plus efficaces.
+    const maxMerged = looksLikeSunBlack ? 10 : (looksNumericOrTemporal ? 10 : 6);
+    const aiKeyAvailable = Boolean(
+        process.env.APPSETTING_GROQ_API_KEY || process.env.GROQ_API_KEY ||
+        process.env.APPSETTING_GEMINI_API_KEY || process.env.GEMINI_API_KEY
+    );
+
+    if (aiKeyAvailable && merged.length < 2) {
+        try {
+            const qg = await generateSearchQueries({
+                claimText: String(claimText || ''),
+                lang,
+                userId: 'guest'
+            });
+            const extraQueries = Array.isArray(qg?.queries) ? qg.queries : [];
+            for (const q of extraQueries.slice(0, 3)) {
+                const results = await braveSearch(q, apiKey, context, perQueryCount);
+                for (const r of results) {
+                    const key = String(r.url || '').trim();
+                    if (!key || seen.has(key)) continue;
+                    seen.add(key);
+                    merged.push(r);
+                }
+                if (merged.length >= maxMerged) break;
+            }
+        } catch (_) {
+            // best-effort
+        }
     }
 
     return {
