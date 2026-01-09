@@ -39,6 +39,8 @@ module.exports = async function (context, req) {
         const userMessage = req.body.message;
         const userQuery = extractUserQueryFromMessage(userMessage);
         const { getLangFromReq, getSearchLang, getResponseLanguageInstruction } = require('../utils/lang');
+        const { OUTPUT_FORMAT_RULES_BULLET } = require('../utils/outputFormatRules');
+        const { sanitizeAssistantOutput } = require('../utils/sanitizeAssistantOutput');
         const lang = getLangFromReq(req);
         const searchLang = getSearchLang(lang);
 
@@ -242,7 +244,7 @@ Règles:
 ${getResponseLanguageInstruction(lang, { tone: 'direct et actionnable' })}`
                     : `Tu es Axilum AI, un assistant intelligent et serviable.
 
-${getResponseLanguageInstruction(lang, { tone: 'de manière claire, précise et professionnelle' })}`
+${getResponseLanguageInstruction(lang, { tone: 'de manière claire, précise et professionnelle' })}${OUTPUT_FORMAT_RULES_BULLET}`
             }
         ];
 
@@ -309,7 +311,8 @@ ${getResponseLanguageInstruction(lang, { tone: 'de manière claire, précise et 
         }
 
         const data = await response.json();
-        const aiResponse = data.choices[0].message.content;
+        const aiResponseRaw = data.choices?.[0]?.message?.content;
+        const aiResponse = sanitizeAssistantOutput(aiResponseRaw) || 'Pas de réponse générée.';
         const responseTime = Date.now() - startTime;
 
         context.log(`✅ Response generated in ${responseTime}ms`);
