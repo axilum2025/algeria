@@ -169,7 +169,8 @@ module.exports = async function (context, req) {
         // 3ter. Harmoniser les sections "facts" affichées (verified/unverified/hallucinations)
         // avec les verdicts evidence-based quand ils existent.
         // Sinon, on se retrouve avec une claim CONTRADICTORY affichée à la fois comme "Unconfirmed" et "Contradictory".
-        if (evidenceCheckEnabled && Array.isArray(evidenceAnalysis?.claims) && evidenceAnalysis.claims.length > 0) {
+        const factsFromEvidence = evidenceCheckEnabled && Array.isArray(evidenceAnalysis?.claims) && evidenceAnalysis.claims.length > 0;
+        if (factsFromEvidence) {
             verifiedFacts.length = 0;
             suspiciousFacts.length = 0;
             hallucinations.length = 0;
@@ -248,7 +249,7 @@ module.exports = async function (context, req) {
 
         // Harmonisation: si Brave n'est pas configuré (ou n'a rien renvoyé), on expose quand même
         // les points non confirmés via les claims NOT_SUPPORTED.
-        if (notSupportedClaims.length > 0 && suspiciousFacts.length === 0) {
+        if (!factsFromEvidence && notSupportedClaims.length > 0 && suspiciousFacts.length === 0) {
             notSupportedClaims.slice(0, 8).forEach((c) => {
                 if (c && c.text) {
                     suspiciousFacts.push({
@@ -264,7 +265,7 @@ module.exports = async function (context, req) {
         }
 
         // Harmonisation: une claim CONTRADICTORY doit compter comme hallucination probable.
-        if (contradictoryClaims.length > 0) {
+        if (!factsFromEvidence && contradictoryClaims.length > 0) {
             contradictoryClaims.slice(0, 12).forEach((c) => {
                 if (c && c.text) {
                     hallucinations.push({

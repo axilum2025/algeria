@@ -569,7 +569,10 @@ async function verifyClaimsWithEvidence({ claims, evidenceByClaim, lang, userId 
   const hi = computeHiFromCounts(counts);
 
   const contradictionRisk = computeContradictionRisk(results);
-  const evidenceCoverage = computeEvidenceCoverage(results, 0.6);
+  // Seuil de "preuve suffisante" (heuristique). 0.6 était trop strict en pratique avec des snippets courts.
+  // On utilise 0.4 pour refléter "preuves présentes et pertinentes" sans exiger une diversité parfaite.
+  const evidenceCoverageThreshold = 0.4;
+  const evidenceCoverage = computeEvidenceCoverage(results, evidenceCoverageThreshold);
   const ci90 = bootstrapRiskCI90(results, 200);
 
   return {
@@ -583,6 +586,7 @@ async function verifyClaimsWithEvidence({ claims, evidenceByClaim, lang, userId 
     score: {
       contradictionRisk: Math.round(contradictionRisk * 1000) / 10,
       evidenceCoverage: Math.round(evidenceCoverage * 1000) / 10,
+      evidenceCoverageThreshold,
       uncertainty: {
         ci90: [Math.round(ci90.low * 1000) / 10, Math.round(ci90.high * 1000) / 10],
         plusMinus: Math.round(((ci90.high - ci90.low) * 0.5) * 1000) / 10
