@@ -419,7 +419,37 @@ function sanitizeRecommendedSources(sources, lang) {
         .filter(Boolean)
         .filter(s => !/\b(chatgpt|gpt-?\d|openai|other ai)\b/i.test(s));
 
-    if (cleaned.length > 0) return cleaned.slice(0, 5);
+    // Garder uniquement des sources "auditables" (domaines connus) quand une URL est présente.
+    const allowedHosts = new Set([
+        'www.nasa.gov', 'nasa.gov',
+        'www.esa.int', 'esa.int',
+        'www.britannica.com', 'britannica.com',
+        'en.wikipedia.org', 'fr.wikipedia.org', 'wikipedia.org',
+        'www.larousse.fr', 'larousse.fr',
+        'nso.edu', 'www.nso.edu',
+        'who.int', 'www.who.int',
+        'cdc.gov', 'www.cdc.gov',
+        'nih.gov', 'www.nih.gov'
+    ]);
+
+    const filtered = cleaned.filter((s) => {
+        const urlMatch = s.match(/https?:\/\/[^\s)]+/i);
+        if (!urlMatch) return true; // pas d'URL => on ne peut pas filtrer, on garde
+        try {
+            const u = new URL(urlMatch[0]);
+            const host = String(u.hostname || '').toLowerCase();
+            if (allowedHosts.has(host)) return true;
+            for (const h of allowedHosts) {
+                if (h.startsWith('www.')) continue;
+                if (host.endsWith(`.${h}`)) return true;
+            }
+            return false;
+        } catch (_) {
+            return false;
+        }
+    });
+
+    if (filtered.length > 0) return filtered.slice(0, 5);
 
     // Fallback générique (auditables) si le modèle propose des "sources" non pertinentes.
     return isEn
@@ -534,8 +564,18 @@ async function verifyClaimEvidenceWithBrave(claimText, apiKey, context, lang) {
     // Par défaut on limite les variantes pour éviter trop de requêtes.
     // Certains cas (ex: "sun is black") ont besoin de requêtes plus ciblées.
     const looksLikeSunBlack = /\b(soleil|sun)\b/i.test(String(claimText || '')) && /\b(noir|black)\b/i.test(String(claimText || ''));
-    const maxVariants = looksLikeSunBlack ? 6 : (variants.some(v => /\bsite:(nasa\.gov|britannica\.com)\b/i.test(String(v))) ? 4 : 3);
-    const perQueryCount = looksLikeSunBlack ? 5 : 3;
+    const looksNumericOrTemporal = /\b(19|20)\d{2}\b/.test(String(claimText || '')) || /\b\d+([,.]\d+)?\b/.test(String(claimText || ''));
+    const hasAuthorityFilter = variants.some(v => /\bsite:(nasa\.gov|britannica\.com|wikipedia\.org|fr\.wikipedia\.org|larousse\.fr|nso\.edu)\b/i.test(String(v)));
+
+    const maxVariants = looksLikeSunBlack
+        ? 6
+        : (looksNumericOrTemporal
+            ? (hasAuthorityFilter ? 6 : 5)
+            : (hasAuthorityFilter ? 4 : 3));
+
+    const perQueryCount = looksLikeSunBlack
+        ? 5
+        : (looksNumericOrTemporal ? 5 : 3);
 
     for (const q of variants.slice(0, maxVariants)) {
         const results = await braveSearch(q, apiKey, context, perQueryCount);
@@ -545,7 +585,8 @@ async function verifyClaimEvidenceWithBrave(claimText, apiKey, context, lang) {
             seen.add(key);
             merged.push(r);
         }
-        if (merged.length >= (looksLikeSunBlack ? 10 : 6)) break;
+        const maxMerged = looksLikeSunBlack ? 10 : (looksNumericOrTemporal ? 10 : 6);
+        if (merged.length >= maxMerged) break;
     }
 
     return {
@@ -562,6 +603,44 @@ function buildQueryVariantsForClaim(claimText, lang) {
     const normalized = normalizeLang(lang);
     const cleaned = sanitizeBraveQuery(claimText);
     const variants = [cleaned];
+
+    const lc = cleaned.toLowerCase();
+
+    // Physique: E=mc^2 / équivalence masse-énergie / Einstein 1905
+    if (/\be\s*=\s*m\s*c\b/i.test(cleaned) || lc.includes('e=mc') || lc.includes('e = mc')) {
+        if (normalized === 'en') {
+            variants.push('E=mc^2 Einstein 1905 mass energy equivalence');
+            variants.push('site:wikipedia.org mass–energy equivalence Einstein 1905');
+            variants.push('special relativity mass-energy equivalence');
+        } else {
+            variants.push('E=mc^2 Einstein 1905 équivalence masse énergie');
+            variants.push('site:fr.wikipedia.org équivalence masse-énergie Einstein 1905');
+            variants.push('relativité restreinte équivalence masse énergie');
+            variants.push('site:larousse.fr E=mc2');
+        }
+    }
+
+    // Constante: vitesse de la lumière (c) - variantes km/s et m/s
+    if ((lc.includes('vitesse') && lc.includes('lumi')) || lc.includes('speed of light')) {
+        if (normalized === 'en') {
+            variants.push('speed of light in vacuum 299792458 m/s');
+            variants.push('speed of light 300000 km/s');
+            variants.push('site:wikipedia.org speed of light 299,792,458');
+        } else {
+            variants.push('vitesse de la lumière dans le vide 299792458 m/s');
+            variants.push('vitesse de la lumière 300 000 km/s');
+            variants.push('site:fr.wikipedia.org vitesse de la lumière 299 792 458');
+        }
+    }
+
+    // Claims temporelles (année) : ajouter Wikipedia pour preuve rapide.
+    if (/\b(19|20)\d{2}\b/.test(cleaned)) {
+        if (normalized === 'en') {
+            variants.push(`site:wikipedia.org ${cleaned}`);
+        } else {
+            variants.push(`site:fr.wikipedia.org ${cleaned}`);
+        }
+    }
 
     // Cas courant: "Le soleil est noir" / "The sun is black" -> requêtes plus probantes.
     if (/\b(soleil|sun)\b/i.test(cleaned) && /\b(noir|black)\b/i.test(cleaned)) {
@@ -837,6 +916,12 @@ function generateRecommendation(score, braveEnabled, hallucinationCount, suspici
 
     if (score === null) {
         if (braveEnabled) {
+            // Si on a des points non confirmés, le problème est souvent "preuves insuffisantes", pas "aucun fait".
+            if (suspiciousCount > 0) {
+                return isEn
+                    ? 'ℹ️ Insufficient evidence retrieved to score reliably. Add sources or try again.'
+                    : 'ℹ️ Preuves insuffisantes pour calculer un score fiable. Ajoutez des sources ou réessayez.';
+            }
             return isEn
                 ? 'ℹ️ Score unavailable (no actionable facts detected). Add verifiable details or sources.'
                 : 'ℹ️ Score indisponible (aucun fait exploitable détecté). Ajoutez des détails vérifiables ou des sources.';
