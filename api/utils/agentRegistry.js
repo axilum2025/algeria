@@ -2,6 +2,7 @@
 // Keep this file dependency-free so it can be used by multiple Azure Function handlers.
 
 const { normalizeLang, getResponseLanguageInstruction } = require('./lang');
+const { OUTPUT_FORMAT_RULES_BULLET: OUTPUT_FORMAT_RULES } = require('./outputFormatRules');
 
 const ALLOWED_AGENT_IDS = [
   'agent-dev',
@@ -68,7 +69,7 @@ Règles:
 - Ne mentionne pas d'autres agents, modules ou outils de l'application sauf si l'utilisateur le demande explicitement.
 - Si l'utilisateur colle un "🔎 Rapport Hallucination Detector", reconnais-le et explique-le.
 
-${getResponseLanguageInstruction(lang, { tone: 'clairement et professionnellement' })}${c}`;
+${getResponseLanguageInstruction(lang, { tone: 'clairement et professionnellement' })}${OUTPUT_FORMAT_RULES}${c}`;
 
     case 'marketing-agent':
       return `Tu es Agent Marketing.
@@ -79,7 +80,7 @@ Règles:
 - Propose des plans concrets (étapes, livrables, KPI) adaptés à un SaaS.
 - Ne mentionne pas d'autres agents, modules ou outils de l'application sauf si l'utilisateur le demande explicitement.
 
-${getResponseLanguageInstruction(lang, { tone: 'clair et orienté résultats' })}${c}`;
+${getResponseLanguageInstruction(lang, { tone: 'clair et orienté résultats' })}${OUTPUT_FORMAT_RULES}${c}`;
 
     case 'hr-management':
       return `Tu es Agent RH, un assistant RH.
@@ -90,7 +91,7 @@ Règles:
 - Si des données RH internes ne sont pas fournies, dis-le et demande les infos nécessaires.
 - Ne mentionne pas d'autres agents, modules ou outils de l'application sauf si l'utilisateur le demande explicitement.
 
-${getResponseLanguageInstruction(lang, { tone: 'clair, professionnel et actionnable' })}${c}`;
+${getResponseLanguageInstruction(lang, { tone: 'clair, professionnel et actionnable' })}${OUTPUT_FORMAT_RULES}${c}`;
 
     case 'excel-expert':
       return `Tu es Agent Excel.
@@ -102,7 +103,7 @@ Règles:
 - Ne prétends pas modifier un fichier: propose des étapes et, si on te le demande, des commandes (si disponibles dans l'app).
 - Ne mentionne pas d'autres agents, modules ou outils de l'application sauf si l'utilisateur le demande explicitement.
 
-${getResponseLanguageInstruction(lang, { tone: 'pédagogique et précis' })}${c}`;
+${getResponseLanguageInstruction(lang, { tone: 'pédagogique et précis' })}${OUTPUT_FORMAT_RULES}${c}`;
 
     case 'agent-todo':
       return `Tu es Agent ToDo (gestion de tâches).
@@ -114,7 +115,7 @@ Règles:
 - Ne prétends pas exécuter des actions automatiquement.
 - Ne mentionne pas d'autres agents, modules ou outils de l'application sauf si l'utilisateur le demande explicitement.
 
-${getResponseLanguageInstruction(lang, { tone: 'très concret' })}${c}`;
+${getResponseLanguageInstruction(lang, { tone: 'très concret' })}${OUTPUT_FORMAT_RULES}${c}`;
 
     case 'web-search':
       return `Tu es Agent Wesh.
@@ -149,7 +150,7 @@ Règles:
 - Si des informations manquent (devise, période, type charge/revenu), pose 1-3 questions ciblées.
 - Ne mentionne pas d'autres agents, modules ou outils de l'application sauf si l'utilisateur le demande explicitement.
 
-${getResponseLanguageInstruction(lang, { tone: 'clair et structuré' })}${c}`;
+${getResponseLanguageInstruction(lang, { tone: 'clair et structuré' })}${OUTPUT_FORMAT_RULES}${c}`;
 
     case 'agent-alex':
       return `Tu es Agent Alex.
@@ -162,7 +163,7 @@ ${getResponseLanguageInstruction(lang, { tone: 'clair et structuré' })}${c}`;
     - Si des informations manquent (devise, période, type charge/revenu), pose 1-3 questions ciblées.
     - Ne mentionne pas d'autres agents, modules ou outils de l'application sauf si l'utilisateur le demande explicitement.
 
-    ${getResponseLanguageInstruction(lang, { tone: 'clair et structuré' })}${c}`;
+    ${getResponseLanguageInstruction(lang, { tone: 'clair et structuré' })}${OUTPUT_FORMAT_RULES}${c}`;
 
     case 'agent-tony':
       return `Tu es Agent Tony.
@@ -173,7 +174,7 @@ Règles:
 - Propose des scripts, templates et KPI.
 - Ne mentionne pas d'autres agents, modules ou outils de l'application sauf si l'utilisateur le demande explicitement.
 
-${getResponseLanguageInstruction(lang, { tone: 'direct et actionnable' })}${c}`;
+${getResponseLanguageInstruction(lang, { tone: 'direct et actionnable' })}${OUTPUT_FORMAT_RULES}${c}`;
 
     case 'axilum':
     default:
@@ -193,7 +194,7 @@ Principes de réponse:
 ❌ Évite les affirmations absolues sans fondement
 ❌ N'invente pas de faits que tu ne peux pas vérifier
 
-${getResponseLanguageInstruction(lang, { tone: 'de manière naturelle, claire et professionnelle' })}${c}`;
+${getResponseLanguageInstruction(lang, { tone: 'de manière naturelle, claire et professionnelle' })}${OUTPUT_FORMAT_RULES}${c}`;
   }
 }
 

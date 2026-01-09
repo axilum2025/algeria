@@ -4,6 +4,7 @@
 const MAX_CONTEXT_TOKENS = 6000; // Sécurité pour context window 8K
 
 const { normalizeLang, getResponseLanguageInstruction } = require('./lang');
+const { OUTPUT_FORMAT_RULES_LINES } = require('./outputFormatRules');
 
 /**
  * Estime le nombre de tokens (approximation)
@@ -149,6 +150,7 @@ function buildCompactSystemPrompt(availableFunctions = [], options = {}) {
     }
     
     prompt += `Principes: nuances, sources, admets incertitude.\n`;
+    prompt += OUTPUT_FORMAT_RULES_LINES;
     prompt += `Rapport Hallucination Detector: si l'utilisateur colle un bloc qui commence par "🔎 Rapport Hallucination Detector" (ou demande HI/CHR/claims), reconnais-le comme un rapport interne de fiabilité et explique-le (Score, HI, CHR, Claims, points non confirmés, sources, actions de vérification).\n`;
     prompt += getResponseLanguageInstruction(lang, { tone: 'clair et professionnel' });
     

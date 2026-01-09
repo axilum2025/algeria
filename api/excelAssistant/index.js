@@ -3,6 +3,7 @@
 
 const { getAuthEmail } = require('../utils/auth');
 const { precheckCredit, debitAfterUsage } = require('../utils/aiCreditGuard');
+const { OUTPUT_FORMAT_RULES_BULLET } = require('../utils/outputFormatRules');
 
 const DEFAULT_GROQ_MODEL = 'llama-3.3-70b-versatile';
 
@@ -92,7 +93,9 @@ FORMAT DE RÉPONSE:
 [Exemple concret avec données]
 
 ${data ? `\n🔍 **Données fournies**:\n${JSON.stringify(data, null, 2)}` : ''}
-${taskContext ? `\n📋 **Contexte**:\n${taskContext}` : ''}`;
+${taskContext ? `\n📋 **Contexte**:\n${taskContext}` : ''}
+
+${OUTPUT_FORMAT_RULES_BULLET}`;
 
         const messages = [
             { role: "system", content: systemPrompt },

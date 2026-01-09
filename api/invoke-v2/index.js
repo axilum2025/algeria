@@ -7,6 +7,7 @@ const { detectFunctions, orchestrateFunctions, summarizeResults } = require('../
 const { callGroqWithRateLimit, globalRateLimiter } = require('../utils/rateLimiter');
 const { buildWebEvidenceContext } = require('../utils/webEvidence');
 const { buildSystemPromptForAgent } = require('../utils/agentRegistry');
+const { OUTPUT_FORMAT_RULES_BULLET } = require('../utils/outputFormatRules');
 const { appendEvidenceContext, searchWikipedia, searchNewsApi, searchSemanticScholar } = require('../utils/sourceProviders');
 const { looksTimeSensitiveForHR, looksTimeSensitiveForMarketing, looksTimeSensitiveForDev, looksTimeSensitiveForExcel, looksTimeSensitiveForAlex, looksTimeSensitiveForTony, looksTimeSensitiveForTodo, looksTimeSensitiveForAIManagement, buildSilentWebContext } = require('../utils/silentWebRefresh');
 const { getAuthEmail } = require('../utils/auth');
@@ -491,7 +492,9 @@ Seulement si l'utilisateur demande explicitement de modifier, ajouter, calculer 
 - Sois précis sur les noms de fonctions Excel
 - Propose toujours des alternatives quand possible
 
-Si l'utilisateur a chargé des données Excel, utilise-les pour donner des conseils personnalisés.`;
+Si l'utilisateur a chargé des données Excel, utilise-les pour donner des conseils personnalisés.
+
+${OUTPUT_FORMAT_RULES_BULLET}`;
                         } else if (chatType === 'agent-dev') {
                                 systemPrompt = `Tu es Agent Dev, un assistant spécialisé en développement logiciel.
 
@@ -503,7 +506,7 @@ Règles:
 - Ne mentionne pas d'autres agents, modules ou outils de l'application sauf si l'utilisateur le demande explicitement.
 - Si l'utilisateur colle un "🔎 Rapport Hallucination Detector", reconnais-le et explique-le.
 
-${langPro}`;
+${langPro}${OUTPUT_FORMAT_RULES_BULLET}`;
             } else if (chatType === 'hr-management') {
                 systemPrompt = `Tu es Agent RH, un assistant RH.
 
@@ -513,7 +516,7 @@ Règles:
 - Si des données RH internes ne sont pas fournies, demande les infos nécessaires.
 - Ne mentionne pas d'autres agents, modules ou outils de l'application sauf si l'utilisateur le demande explicitement.
 
-${langActionable}`;
+${langActionable}${OUTPUT_FORMAT_RULES_BULLET}`;
             } else if (chatType === 'marketing-agent') {
                 systemPrompt = `Tu es Agent Marketing.
 
@@ -523,7 +526,7 @@ Règles:
 - Propose des plans concrets (étapes, livrables, KPI) adaptés à un SaaS.
 - Ne mentionne pas d'autres agents, modules ou outils de l'application sauf si l'utilisateur le demande explicitement.
 
-${langResults}`;
+${langResults}${OUTPUT_FORMAT_RULES_BULLET}`;
             } else if (chatType === 'web-search' || chatType === 'rnd-web-search') {
                 systemPrompt = /\[S\d+\]/.test(String(contextFromSearch || ''))
                     ? buildSystemPromptForAgent('web-search', contextFromSearch, { lang })
@@ -538,7 +541,7 @@ Règles:
 - Ne prétends pas exécuter des actions automatiquement.
 - Ne mentionne pas d'autres agents, modules ou outils de l'application sauf si l'utilisateur le demande explicitement.
 
-${langConcrete}`;
+${langConcrete}${OUTPUT_FORMAT_RULES_BULLET}`;
             } else if (chatType === 'agent-alex') {
                 systemPrompt = `Tu es Agent Alex (assistant stratégie/produit SaaS).
 
@@ -546,7 +549,7 @@ Règles:
 - Propose options + avantages/inconvénients + next step.
 - Ne mentionne pas d'autres agents, modules ou outils de l'application sauf si l'utilisateur le demande explicitement.
 
-${langStructured}`;
+${langStructured}${OUTPUT_FORMAT_RULES_BULLET}`;
             } else if (chatType === 'agent-tony') {
                 systemPrompt = `Tu es Agent Tony (assistant vente/ops SaaS).
 
@@ -554,7 +557,7 @@ Règles:
 - Propose scripts, templates et KPI.
 - Ne mentionne pas d'autres agents, modules ou outils de l'application sauf si l'utilisateur le demande explicitement.
 
-${langDirect}`;
+${langDirect}${OUTPUT_FORMAT_RULES_BULLET}`;
             } else {
                 systemPrompt = buildCompactSystemPrompt(neededFunctions, { lang }) + contextFromSearch;
             }
