@@ -166,6 +166,53 @@ module.exports = async function (context, req) {
             }
         }
 
+        // 3ter. Harmoniser les sections "facts" affichées (verified/unverified/hallucinations)
+        // avec les verdicts evidence-based quand ils existent.
+        // Sinon, on se retrouve avec une claim CONTRADICTORY affichée à la fois comme "Unconfirmed" et "Contradictory".
+        if (evidenceCheckEnabled && Array.isArray(evidenceAnalysis?.claims) && evidenceAnalysis.claims.length > 0) {
+            verifiedFacts.length = 0;
+            suspiciousFacts.length = 0;
+            hallucinations.length = 0;
+
+            for (const c of evidenceAnalysis.claims) {
+                const claimText = c && c.text ? String(c.text) : '';
+                if (!claimText) continue;
+                const ev = (evidenceByClaim && evidenceByClaim[claimText]) ? evidenceByClaim[claimText] : (Array.isArray(c?.evidence) ? c.evidence : []);
+                const firstUrl = Array.isArray(ev) && ev[0] && ev[0].url ? ev[0].url : null;
+                const cls = String(c?.classification || 'NOT_SUPPORTED');
+
+                if (cls === 'SUPPORTED') {
+                    verifiedFacts.push({
+                        fact: claimText,
+                        source: firstUrl,
+                        evidence: Array.isArray(ev) ? ev : undefined,
+                        confidence: 'high',
+                        origin: 'evidence'
+                    });
+                } else if (cls === 'CONTRADICTORY') {
+                    hallucinations.push({
+                        fact: claimText,
+                        reason: (normalizeLang(lang) === 'en')
+                            ? 'Evidence-based check classified this claim as CONTRADICTORY (likely false)'
+                            : 'La vérification par preuves a classé ce point comme CONTRADICTORY (probablement faux)',
+                        evidence: Array.isArray(ev) ? ev : undefined,
+                        confidence: 'high',
+                        origin: 'evidence'
+                    });
+                } else {
+                    suspiciousFacts.push({
+                        fact: claimText,
+                        reason: (normalizeLang(lang) === 'en')
+                            ? 'Evidence-based check could not support this claim (inconclusive)'
+                            : 'La vérification par preuves ne confirme pas ce point (non concluant)',
+                        evidence: Array.isArray(ev) ? ev : undefined,
+                        confidence: 'unknown',
+                        origin: 'evidence'
+                    });
+                }
+            }
+        }
+
         // 4. Détecter contradictions internes
         const contradictions = detectContradictions(text);
 
