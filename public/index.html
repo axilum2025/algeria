@@ -9274,6 +9274,11 @@ ${persona}
 
         function loadConversations() {
             const list = document.getElementById('conversationsList');
+            const groupTitles = {
+                today: (typeof t === 'function') ? t('sessions.group.today') : "Aujourd'hui",
+                yesterday: (typeof t === 'function') ? t('sessions.group.yesterday') : 'Hier',
+                older: (typeof t === 'function') ? t('sessions.group.older') : 'Plus ancien'
+            };
             
             const today = [];
             const yesterday = [];
@@ -9306,7 +9311,7 @@ ${persona}
             list.innerHTML = '';
 
             if (today.length) {
-                list.innerHTML += `<div class="conv-group-title">Aujourd'hui</div>`;
+                list.innerHTML += `<div class="conv-group-title">${groupTitles.today}</div>`;
                 today.forEach(conv => {
                     const dotClass = getHIStatusDot(conv);
                     list.innerHTML += `<div class="conv-item ${conv.id === currentConversationId ? 'active' : ''}" onclick="loadConversation('${conv.id}')">
@@ -9317,7 +9322,7 @@ ${persona}
             }
 
             if (yesterday.length) {
-                list.innerHTML += `<div class="conv-group-title">Hier</div>`;
+                list.innerHTML += `<div class="conv-group-title">${groupTitles.yesterday}</div>`;
                 yesterday.forEach(conv => {
                     const dotClass = getHIStatusDot(conv);
                     list.innerHTML += `<div class="conv-item ${conv.id === currentConversationId ? 'active' : ''}" onclick="loadConversation('${conv.id}')">
@@ -9328,7 +9333,7 @@ ${persona}
             }
 
             if (older.length) {
-                list.innerHTML += `<div class="conv-group-title">Plus ancien</div>`;
+                list.innerHTML += `<div class="conv-group-title">${groupTitles.older}</div>`;
                 older.forEach(conv => {
                     const dotClass = getHIStatusDot(conv);
                     list.innerHTML += `<div class="conv-item ${conv.id === currentConversationId ? 'active' : ''}" onclick="loadConversation('${conv.id}')">
@@ -9494,6 +9499,14 @@ ${persona}
                 'sidebar.settings': 'Paramètres',
                 'sidebar.about': 'À propos',
                 'sidebar.enterprise': 'Entreprise',
+                'sidebar.enterpriseBadge': 'Actif',
+                'sessions.group.today': "Aujourd'hui",
+                'sessions.group.yesterday': 'Hier',
+                'sessions.group.older': 'Plus ancien',
+                'stats.messagesExchanged': 'Messages échangés',
+                'stats.conversations': 'Conversations',
+                'stats.avgHI': 'HI moyen',
+                'stats.avgCHR': 'CHR moyen',
                 'userMenu.close': 'Fermer',
                 'userMenu.avatarTitle': 'Cliquez pour changer la photo',
                 'userMenu.profilePhoto': 'Photo de profil',
@@ -9579,6 +9592,14 @@ ${persona}
                 'sidebar.settings': 'Settings',
                 'sidebar.about': 'About',
                 'sidebar.enterprise': 'Enterprise',
+                'sidebar.enterpriseBadge': 'Active',
+                'sessions.group.today': 'Today',
+                'sessions.group.yesterday': 'Yesterday',
+                'sessions.group.older': 'Older',
+                'stats.messagesExchanged': 'Messages exchanged',
+                'stats.conversations': 'Conversations',
+                'stats.avgHI': 'Average HI',
+                'stats.avgCHR': 'Average CHR',
                 'userMenu.close': 'Close',
                 'userMenu.avatarTitle': 'Click to change photo',
                 'userMenu.profilePhoto': 'Profile photo',
@@ -34157,25 +34178,32 @@ Réponds UNIQUEMENT dans ce format JSON:
                 ? (messageStats.chrHistory.reduce((a, b) => a + b, 0) / messageStats.chrHistory.length).toFixed(1)
                 : 'N/A';
 
+            const statsLabels = {
+                messages: (typeof t === 'function') ? t('stats.messagesExchanged') : 'Messages échangés',
+                conversations: (typeof t === 'function') ? t('stats.conversations') : 'Conversations',
+                avgHI: (typeof t === 'function') ? t('stats.avgHI') : 'HI moyen',
+                avgCHR: (typeof t === 'function') ? t('stats.avgCHR') : 'CHR moyen'
+            };
+
             content.innerHTML = `
                 <div class="stat-item">
-                    <span>Messages échangés</span>
+                    <span>${statsLabels.messages}</span>
                     <strong>${conversations.reduce((sum, c) => sum + c.messages.length, 0)}</strong>
                 </div>
                 <div class="stat-item">
-                    <span>Conversations</span>
+                    <span>${statsLabels.conversations}</span>
                     <strong>${conversations.length}</strong>
                 </div>
                 <div class="stat-item">
                     <div class="stat-label">
-                        <span>HI moyen</span>
+                        <span>${statsLabels.avgHI}</span>
                         <span class="info-icon" onclick="showTooltip(event, 'hi')">i</span>
                     </div>
                     <strong>${avgHI}%</strong>
                 </div>
                 <div class="stat-item">
                     <div class="stat-label">
-                        <span>CHR moyen</span>
+                        <span>${statsLabels.avgCHR}</span>
                         <span class="info-icon" onclick="showTooltip(event, 'chr')">i</span>
                     </div>
                     <strong>${avgCHR}%</strong>
