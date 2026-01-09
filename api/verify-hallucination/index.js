@@ -452,17 +452,19 @@ async function verifyClaimEvidenceWithBrave(claimText, apiKey, context, lang) {
 
     // Par défaut on limite les variantes pour éviter trop de requêtes.
     // Certains cas (ex: "sun is black") ont besoin de requêtes plus ciblées.
-    const maxVariants = variants.some(v => /\bsite:(nasa\.gov|britannica\.com)\b/i.test(String(v))) ? 4 : 3;
+    const looksLikeSunBlack = /\b(soleil|sun)\b/i.test(String(claimText || '')) && /\b(noir|black)\b/i.test(String(claimText || ''));
+    const maxVariants = looksLikeSunBlack ? 6 : (variants.some(v => /\bsite:(nasa\.gov|britannica\.com)\b/i.test(String(v))) ? 4 : 3);
+    const perQueryCount = looksLikeSunBlack ? 5 : 3;
 
     for (const q of variants.slice(0, maxVariants)) {
-        const results = await braveSearch(q, apiKey, context, 3);
+        const results = await braveSearch(q, apiKey, context, perQueryCount);
         for (const r of results) {
             const key = String(r.url || '').trim();
             if (!key || seen.has(key)) continue;
             seen.add(key);
             merged.push(r);
         }
-        if (merged.length >= 6) break;
+        if (merged.length >= (looksLikeSunBlack ? 10 : 6)) break;
     }
 
     return {
@@ -488,11 +490,19 @@ function buildQueryVariantsForClaim(claimText, lang) {
             variants.push('site:nasa.gov Sun emits visible light');
             variants.push('site:britannica.com color of the Sun');
             variants.push('Sun emits light visible spectrum');
+            variants.push('site:nso.edu color of the Sun');
+            variants.push('National Solar Observatory what color is the Sun');
+            variants.push('site:wikipedia.org Sun appears white');
+            variants.push('Sun is bright emits light not black');
         } else {
             variants.push('couleur du Soleil');
             variants.push('site:nasa.gov le Soleil émet de la lumière visible');
             variants.push('site:britannica.com couleur du Soleil');
             variants.push('spectre visible Soleil lumière');
+            variants.push('site:nso.edu couleur du Soleil');
+            variants.push('Observatoire solaire national couleur du Soleil');
+            variants.push('site:wikipedia.org Soleil apparaît blanc');
+            variants.push('le Soleil est lumineux émet de la lumière pas noir');
         }
     }
 

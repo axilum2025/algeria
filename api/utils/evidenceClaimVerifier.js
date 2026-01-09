@@ -287,7 +287,7 @@ You MUST decide the classification using ONLY the evidence snippets below. If th
 
 Important: treat clear logical implications as valid *only if they are grounded in the evidence*.
 Examples:
-- If evidence states the Sun emits visible light / is bright / appears white-yellow, that contradicts a claim that "the Sun is black" (as an apparent color claim).
+- If evidence states the Sun emits visible light, produces light, is bright, or appears white/yellow, that contradicts a claim that "the Sun is black" (as an apparent color claim).
 - If evidence states the opposite explicitly, classify accordingly.
 
 CLASSIFICATIONS:
@@ -297,6 +297,7 @@ CLASSIFICATIONS:
 
 OUTPUT RULES:
 - Reply ONLY valid JSON.
+- Probabilities must sum to 1.0 (approximately) and match your classification.
 - Include rationale that references evidence ids (E1, E2...).
 - Do not use prior knowledge.
 
@@ -322,7 +323,7 @@ Tu DOIS décider la classification en utilisant UNIQUEMENT les extraits ci-desso
 
 Important : tu peux utiliser des implications logiques claires uniquement si elles sont ancrées dans les extraits.
 Exemples :
-- Si un extrait indique que le Soleil émet de la lumière visible / est lumineux / apparaît blanc-jaune, cela contredit une claim disant que « le Soleil est noir » (couleur apparente).
+- Si un extrait indique que le Soleil émet/produit de la lumière, est lumineux, ou apparaît blanc/jaune, cela contredit une claim disant que « le Soleil est noir » (couleur apparente).
 - Si un extrait indique explicitement l'inverse, classe en conséquence.
 
 CLASSIFICATIONS:
@@ -332,6 +333,7 @@ CLASSIFICATIONS:
 
 RÈGLES:
 - Réponds UNIQUEMENT en JSON valide.
+- Les probabilités doivent sommer à 1.0 (approximativement) et correspondre à ta classification.
 - Fournis une justification courte qui cite des ids de preuves (E1, E2...).
 - N'utilise pas de connaissances externes.
 
