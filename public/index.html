@@ -3230,7 +3230,7 @@
                 <div class="modal-title" id="aboutModalTitle">À propos d'Axilum AI</div>
                 <button class="close-modal" onclick="closeAboutModal()">×</button>
             </div>
-            <div style="padding: 20px;">
+            <div id="aboutModalBody" style="padding: 20px;">
                 <!-- Introduction -->
                 <div class="about-intro">
                     <p>
@@ -9661,6 +9661,196 @@ ${persona}
             return dict[key] || (I18N_STRINGS.fr && I18N_STRINGS.fr[key]) || key;
         }
 
+        // About modal content (FR HTML is the source-of-truth in DOM; EN is injected on demand)
+        let ABOUT_BODY_FR_HTML = null;
+        const ABOUT_BODY_EN_HTML = `
+            <!-- Introduction -->
+            <div class="about-intro">
+                <p>
+                    <strong>Axilum AI</strong> is a unified professional assistant platform that combines a <strong>central chat</strong> and <strong>business modules</strong>.
+                    The experience is organized around <strong>specialized agents</strong> and <strong>intelligent routing</strong>: you ask questions in chat, then (when needed) switch to a dedicated module (Finance, HR, R&amp;D, Marketing, Excel, Vision, Text Pro, Tasks…) to access the right UI and actions.
+                </p>
+                <p>
+                    The goal: speed up your workflows (analysis, writing, organization, reporting, documents) while keeping navigation simple and preserving context continuity between the chat and the modules.
+                </p>
+            </div>
+
+            <!-- Office™ Modules -->
+            <div class="about-section">
+                <h3>
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5a2 2 0 104 0 2 2 0 10-4 0zM5 11a2 2 0 102 2h2a2 2 0 102-2v-2a2 2 0 10-2-2H9a2 2 0 10-4 2v2zM13 13a2 2 0 112 2v2a2 2 0 11-2 2h-2a2 2 0 11-2-2v-2a2 2 0 112-2h2z"/>
+                    </svg>
+                    Office™ Modules (business)
+                </h3>
+                <div class="about-features">
+                    <div class="feature-card">
+                        <h4>Finance &amp; Accounting — Agent Alex</h4>
+                        <p>Finance chat + dedicated interface to ask questions, upload invoices, and generate/view reports and lists (depending on Finance module configuration).</p>
+                    </div>
+                    <div class="feature-card">
+                        <h4>HR Management Hub — Agent RH</h4>
+                        <p>HR management with dedicated screens (employees, leave, payroll, recruiting) and automations (depending on HR configuration).</p>
+                    </div>
+                    <div class="feature-card">
+                        <h4>Research &amp; Development — Agent Dev</h4>
+                        <p>R&amp;D space to support innovation, structure ideas, write/iterate, and organize work items.</p>
+                    </div>
+                    <div class="feature-card">
+                        <h4>Marketing &amp; Business — Agent Mark</h4>
+                        <p>Marketing module for analysis, strategy, positioning, and content production (depending on your use).</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tools -->
+            <div class="about-section">
+                <h3>
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                    </svg>
+                    Tools (productivity)
+                </h3>
+                <div class="about-features">
+                    <div class="feature-card">
+                        <h4>Excel AI Expert — in development</h4>
+                        <p>Dedicated page for Excel questions (formulas, tables, analysis, charts) and assistance with your files/sheets depending on your usage.</p>
+                    </div>
+                    <div class="feature-card">
+                        <h4>AI Task — Agent ToDo</h4>
+                        <p>Task/organization management (to-do, planning). Data can be stored locally and/or synchronized depending on the enabled mode.</p>
+                    </div>
+                    <div class="feature-card">
+                        <h4>Text Pro — in development</h4>
+                        <p>Text processing (writing, correction, translation) with upload (TXT/PDF/DOC/DOCX) and export (PDF/TXT + simplified DOCX).</p>
+                    </div>
+                    <div class="feature-card">
+                        <h4>AI Vision PRO — in development</h4>
+                        <p>Dedicated Vision interface (Azure Vision) for image analysis (status/access depends on plan). The “Back” button returns to the main chat.</p>
+                    </div>
+                    <div class="feature-card">
+                        <h4>Hallucination Detector</h4>
+                        <p>Verification mode: paste an external answer and Axilum AI helps you spot uncertain areas (via HI/CHR and guidance).</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Reliability Metrics -->
+            <div class="about-section">
+                <h3>
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+                    </svg>
+                    Reliability Metrics
+                </h3>
+                <div class="about-features">
+                    <div class="feature-card">
+                        <h4>HI - Hallucination Index</h4>
+                        <p>Measures uncertainty in the response. The lower, the better!</p>
+                    </div>
+                    <div class="feature-card">
+                        <h4>CHR - Coherence Rate</h4>
+                        <p>Evaluates the internal consistency and logic of the generated response.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Session indicators -->
+            <div class="about-section">
+                <h3>
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
+                    Session Indicators
+                </h3>
+                <p>Each session shows an animated colored dot indicating its quality in real time:</p>
+                <div class="dot-legend">
+                    <div class="dot-item">
+                        <span class="dot-example green"></span>
+                        <div class="dot-item-content">
+                            <strong>Green - Reliable</strong>
+                            <span>Average HI &lt; 40%</span>
+                        </div>
+                    </div>
+                    <div class="dot-item">
+                        <span class="dot-example orange"></span>
+                        <div class="dot-item-content">
+                            <strong>Orange - Caution</strong>
+                            <span>Average HI 40-59%</span>
+                        </div>
+                    </div>
+                    <div class="dot-item">
+                        <span class="dot-example red"></span>
+                        <div class="dot-item-content">
+                            <strong>Red - Risk</strong>
+                            <span>Average HI ≥ 60%</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tech -->
+            <div class="about-section">
+                <h3>
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"/>
+                    </svg>
+                    Tech Stack
+                </h3>
+                <div class="tech-badges">
+                    <span class="tech-badge">Azure OpenAI</span>
+                    <span class="tech-badge">Azure Functions</span>
+                    <span class="tech-badge">Azure Storage (Table/Blob)</span>
+                    <span class="tech-badge">IndexedDB</span>
+                    <span class="tech-badge">LocalStorage</span>
+                    <span class="tech-badge">Web Speech API (voice)</span>
+                    <span class="tech-badge">PDF/Exports</span>
+                </div>
+            </div>
+
+            <!-- Data -->
+            <div class="about-section">
+                <h3>
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4m0 5c0 2.21-3.582 4-8 4s-8-1.79-8-4"/>
+                    </svg>
+                    Data, storage &amp; export
+                </h3>
+                <p>
+                    Axilum AI manages data (conversations, tasks, events, settings) with <strong>local storage</strong> (IndexedDB/LocalStorage) and optional <strong>cloud sync</strong> depending on the selected mode. You can export your conversations and consult the Privacy page for details.
+                </p>
+            </div>
+
+            <!-- Company -->
+            <div class="company-info">
+                <h4>
+                    <svg style="width: 22px; height: 22px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
+                    </svg>
+                    Developed by AI Solutions Hub®
+                </h4>
+                <p><strong>AI Solutions Hub®</strong> - An innovative company specialized in building trusted and ethical artificial intelligence solutions.</p>
+                <p style="margin-top: 15px;">
+                    <svg style="width: 18px; height: 18px; display: inline-block; vertical-align: middle; margin-right: 6px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+                    </svg>
+                    <strong>Support:</strong> <a href="mailto:support@solutionshub.uk">support@solutionshub.uk</a>
+                </p>
+                <p style="margin-top: 10px; font-size: 13px; opacity: 0.9;">
+                    © 2025 AI Solutions Hub®. All rights reserved.
+                </p>
+            </div>
+        `;
+
+        function applyAboutLanguage() {
+            const body = document.getElementById('aboutModalBody');
+            if (!body) return;
+            if (ABOUT_BODY_FR_HTML === null) ABOUT_BODY_FR_HTML = body.innerHTML;
+            const lang = getAppLanguage();
+            body.innerHTML = (lang === 'en') ? ABOUT_BODY_EN_HTML : ABOUT_BODY_FR_HTML;
+        }
+
         function getLocale() {
             const lang = getAppLanguage();
             return lang === 'en' ? 'en-US' : 'fr-FR';
@@ -9842,6 +10032,9 @@ ${persona}
                 const aboutModalTitle = document.getElementById('aboutModalTitle');
                 if (aboutModalTitle) aboutModalTitle.textContent = t('modal.aboutTitle');
 
+                // About modal content is mostly static HTML; swap content for EN when needed.
+                applyAboutLanguage();
+
                 const userInput = document.getElementById('userInput');
                 if (userInput) userInput.placeholder = t('ui.inputPlaceholder');
 
@@ -9910,6 +10103,7 @@ ${persona}
         }
 
         function showAbout() {
+            try { applyAboutLanguage(); } catch (_) {}
             document.getElementById('aboutModal').style.display = 'flex';
         }
 
