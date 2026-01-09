@@ -153,6 +153,7 @@ module.exports = async function (context, req) {
                         counts: evidenceAnalysis.counts,
                         hi: evidenceAnalysis.hi,
                         chr: evidenceAnalysis.chr,
+                        score: (evidenceAnalysis && typeof evidenceAnalysis.score === 'object') ? evidenceAnalysis.score : undefined,
                         warning: (evidenceAnalysis.hi >= 0.3 || evidenceAnalysis.chr >= 0.3)
                             ? (normalizeLang(lang) === 'en'
                                 ? '⚠️ Evidence-based risk detected — verify the sources'
@@ -246,6 +247,9 @@ module.exports = async function (context, req) {
             hallucinations,
             contradictions,
             reliabilityScore,
+            // Nouveau score (evidence-based) : risque de contradiction, couverture de preuve, incertitude.
+            // Présent uniquement si l'evidence-check a produit des claims.
+            score: (effectiveAnalysis && typeof effectiveAnalysis.score === 'object') ? effectiveAnalysis.score : null,
             hi,
             chr,
             hiPercent,
@@ -262,7 +266,9 @@ module.exports = async function (context, req) {
                 version: 'hd-report-v1.2',
                 lang,
                 analysisMethod: String(effectiveAnalysis?.method || 'unknown'),
-                scoring: analysisTotal > 0 ? 'supported_claims_ratio' : (totalFacts > 0 ? 'brave_ratio' : 'unavailable'),
+                scoring: (effectiveAnalysis && effectiveAnalysis.method === 'evidence' && effectiveAnalysis.score)
+                    ? 'evidence_contradictionRisk_and_coverage'
+                    : (analysisTotal > 0 ? 'supported_claims_ratio' : (totalFacts > 0 ? 'brave_ratio' : 'unavailable')),
                 notes: (normalizeLang(lang) === 'en')
                     ? 'Counts are normalized and contradictory claims are reported as hallucinations for consistency.'
                     : 'Les compteurs sont normalisés et les claims contradictoires sont reportées comme hallucinations pour cohérence.'
