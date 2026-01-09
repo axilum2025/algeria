@@ -16,6 +16,7 @@ const { checkAndConsume } = require('../utils/planQuota');
 const { appendAuditEvent } = require('../utils/auditStorage');
 const { precheckCredit, debitAfterUsage } = require('../utils/aiCreditGuard');
 const { getLangFromReq, getSearchLang, getResponseLanguageInstruction, getResponseLanguageShort } = require('../utils/lang');
+const { stripModelReasoning } = require('../utils/stripModelReasoning');
 
 const DEFAULT_GROQ_MODEL = 'llama-3.3-70b-versatile';
 
@@ -624,7 +625,8 @@ ${langDirect}${OUTPUT_FORMAT_RULES_BULLET}`;
             await debitAfterUsage({ userId: userIdForBilling, model: groqResponse?.model || resolvedModel, usage: groqResponse?.usage });
         } catch (_) {}
 
-        const aiResponse = groqResponse.choices[0].message.content;
+        const aiResponseRaw = groqResponse.choices[0].message.content;
+        const aiResponse = stripModelReasoning(aiResponseRaw) || '';
         const responseTime = Date.now() - startTime;
 
         // 5. 🛡️ ANALYSE ANTI-HALLUCINATION
@@ -707,7 +709,8 @@ ${langDirect}${OUTPUT_FORMAT_RULES_BULLET}`;
                         await debitAfterUsage({ userId: userIdForBilling, model: correctionData?.model || resolvedModel, usage: correctionData?.usage });
                     } catch (_) {}
 
-                    const corrected = correctionData?.choices?.[0]?.message?.content;
+                    const correctedRaw = correctionData?.choices?.[0]?.message?.content;
+                    const corrected = stripModelReasoning(correctedRaw);
                     if (typeof corrected === 'string' && corrected.trim()) {
                         finalAiResponse = corrected.trim();
                         autoCorrectionApplied = true;

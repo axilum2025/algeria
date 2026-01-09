@@ -10,6 +10,7 @@ const { buildWebEvidenceContext } = require('../utils/webEvidence');
 const { appendEvidenceContext, searchWikipedia, searchNewsApi, searchSemanticScholar } = require('../utils/sourceProviders');
 const { looksTimeSensitiveForHR, looksTimeSensitiveForMarketing, looksTimeSensitiveForDev, looksTimeSensitiveForExcel, looksTimeSensitiveForAlex, looksTimeSensitiveForTony, looksTimeSensitiveForTodo, looksTimeSensitiveForAIManagement, buildSilentWebContext } = require('../utils/silentWebRefresh');
 const { getLangFromReq, getSearchLang, getResponseLanguageInstruction } = require('../utils/lang');
+const { stripModelReasoning } = require('../utils/stripModelReasoning');
 
 // Fonction RAG - Recherche Brave
 async function searchBrave(query, apiKey) {
@@ -565,7 +566,8 @@ Principes de réponse:
 ❌ N'invente pas de faits que tu ne peux pas vérifier
 
 Réponds de manière naturelle, claire et professionnelle en français.
-Pense étape par étape avant de répondre.${contextFromSearch}`
+Réfléchis en interne, mais ne révèle jamais ton raisonnement.
+Donne uniquement la réponse finale (pas de balises <think>/<analysis>).${contextFromSearch}`
             : isAgentDev ?
                         // 🧑‍💻 PROMPT AGENT DEV (développement)
                         buildSystemPromptForAgent('agent-dev', contextFromSearch, { lang })
@@ -612,7 +614,8 @@ IMPORTANT (reconnaissance du rapport):
 - Ne dis pas que ce rapport "n'existe pas" ou "n'est pas mentionné" : traite-le comme un artefact du système.
 
 ${defaultToneLine}
-Pense étape par étape avant de répondre.
+Réfléchis en interne, mais ne révèle jamais ton raisonnement.
+Donne uniquement la réponse finale (pas de balises <think>/<analysis>).
 Ne mentionne pas tes capacités ou fonctionnalités à moins que l'utilisateur ne le demande explicitement.${contextFromSearch}${internalBoostContext}`
         }];
 
@@ -641,7 +644,8 @@ Ne mentionne pas tes capacités ou fonctionnalités à moins que l'utilisateur n
             };
             return;
         }
-        const aiResponse = data.choices[0].message.content;
+        const aiResponseRaw = data.choices[0].message.content;
+        const aiResponse = stripModelReasoning(aiResponseRaw) || '';
         const responseTime = Date.now() - startTime;
 
         // 🛡️ Analyse anti-hallucination avec modèles GRATUITS (Groq/Gemini)
@@ -704,7 +708,8 @@ Ne mentionne pas tes capacités ou fonctionnalités à moins que l'utilisateur n
 
                 const correctedData = await callGroqChatCompletion(groqKey, correctionMessages, { max_tokens: 2500, temperature: 0.2, userId: userIdForBilling, model: requestedModel });
                 autoCorrectionUsage = correctedData?.usage || null;
-                const corrected = correctedData?.choices?.[0]?.message?.content;
+                const correctedRaw = correctedData?.choices?.[0]?.message?.content;
+                const corrected = stripModelReasoning(correctedRaw);
                 if (typeof corrected === 'string' && corrected.trim()) {
                     finalAiResponse = corrected.trim();
                     autoCorrectionApplied = true;

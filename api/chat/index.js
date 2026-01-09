@@ -2,6 +2,7 @@ const axios = require('axios');
 const { assertWithinBudget, recordUsage, BudgetExceededError } = require('../utils/aiUsageBudget');
 const { getAuthEmail } = require('../utils/auth');
 const { precheckCredit, debitAfterUsage } = require('../utils/aiCreditGuard');
+const { stripModelReasoning } = require('../utils/stripModelReasoning');
 
 const DEFAULT_GROQ_MODEL = 'llama-3.3-70b-versatile';
 
@@ -207,7 +208,8 @@ module.exports = async function (context, req) {
       // best-effort
     }
 
-    const assistantMessage = groqResponse.data.choices?.[0]?.message?.content || 'Pas de réponse générée.';
+    const assistantMessageRaw = groqResponse.data.choices?.[0]?.message?.content || 'Pas de réponse générée.';
+    const assistantMessage = stripModelReasoning(assistantMessageRaw) || 'Pas de réponse générée.';
 
     // Détecter si on doit proposer le téléchargement
     const shouldOfferDownload = detectDownloadOffer(messages, assistantMessage);
