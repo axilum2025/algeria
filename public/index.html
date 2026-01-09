@@ -3529,16 +3529,16 @@
                         <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01"/>
                         </svg>
-                        Apparence
+                        <span id="appearanceSectionTitle">Apparence</span>
                     </h3>
                     <div class="feature-card" style="cursor: pointer;" onclick="toggleTheme()">
                         <h4>
                             <svg style="width: 18px; height: 18px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/>
                             </svg>
-                            Thème Sombre / Clair
+                            <span id="themeToggleTitle">Thème Sombre / Clair</span>
                         </h4>
-                        <p>Basculer entre le mode clair et sombre</p>
+                        <p id="themeToggleDesc">Basculer entre le mode clair et sombre</p>
                     </div>
                 </div>
 
@@ -3548,15 +3548,15 @@
                         <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 3a.75.75 0 00-.75.75V6h6V3.75a.75.75 0 00-.75-.75h-4.5zM6 6h12v3H6V6zm0 5h12v9a1 1 0 01-1 1H7a1 1 0 01-1-1v-9z"/>
                         </svg>
-                        IA
+                        <span id="aiSectionTitle">IA</span>
                     </h3>
                     <div style="background: var(--bg-secondary); padding: 15px; border-radius: 10px; border: 1px solid var(--border-color);">
                         <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
-                            <label for="aiModelSelect" style="min-width:140px; color: var(--text-secondary); font-size: 13px;">Modèle (Groq)</label>
+                            <label for="aiModelSelect" id="aiModelLabel" style="min-width:140px; color: var(--text-secondary); font-size: 13px;">Modèle (Groq)</label>
                             <select id="aiModelSelect" onchange="onAiModelChanged()" style="flex:1; min-width:240px; padding:10px; border:1px solid var(--border-color); border-radius:10px; background:var(--bg-primary); color:var(--text-primary);">
                                 <option value="">Chargement…</option>
                             </select>
-                            <button type="button" onclick="validateAiModelSelection()" style="padding:10px 14px; border:1px solid var(--border-color); border-radius:10px; background:var(--bg-secondary); color:var(--text-primary); cursor:pointer;">Valider ce modèle</button>
+                            <button type="button" id="aiModelValidateBtn" onclick="validateAiModelSelection()" style="padding:10px 14px; border:1px solid var(--border-color); border-radius:10px; background:var(--bg-secondary); color:var(--text-primary); cursor:pointer;">Valider ce modèle</button>
                         </div>
                         <div id="aiModelHelp" style="margin-top:10px; color: var(--text-secondary); font-size: 13px; line-height: 1.4;"></div>
                     </div>
@@ -3568,13 +3568,13 @@
                         <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a6 6 0 100 12m0-12a6 6 0 010 12m0 0v2m0-2a6 6 0 110-12"/>
                         </svg>
-                        Mode
+                        <span id="modeSectionTitle">Mode</span>
                     </h3>
-                    <div class="settings-plan-toggle" aria-label="Sélecteur de mode">
+                    <div class="settings-plan-toggle" id="settingsPlanToggle" aria-label="Sélecteur de mode">
                         <button type="button" class="settings-plan-btn" id="settingsPlanFree" title="Mode FREE">FREE</button>
                         <button type="button" class="settings-plan-btn" id="settingsPlanPro" title="Mode PRO">PRO</button>
                     </div>
-                    <p style="margin-top:10px; color: var(--text-secondary); font-size: 13px; line-height: 1.5;">
+                    <p id="modeHelp" style="margin-top:10px; color: var(--text-secondary); font-size: 13px; line-height: 1.5;">
                         Choisissez votre mode de fonctionnement. Certaines fonctionnalités peuvent être limitées selon le mode.
                     </p>
                 </div>
@@ -3585,24 +3585,24 @@
                         <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4m0 5c0 2.21-3.582 4-8 4s-8-1.79-8-4"/>
                         </svg>
-                        Gestion des Données
+                        <span id="dataSectionTitle">Gestion des Données</span>
                     </h3>
                     <div class="about-features">
                         <div class="feature-card" style="cursor: pointer;" onclick="window.location.href='/privacy.html'">
-                            <h4>Confidentialité</h4>
-                            <p>Local vs Cloud, sécurité et conservation</p>
+                            <h4 id="dataPrivacyTitle">Confidentialité</h4>
+                            <p id="dataPrivacyDesc">Local vs Cloud, sécurité et conservation</p>
                         </div>
                         <div class="feature-card" style="cursor: pointer;" onclick="exportAllConversations()">
-                            <h4>Exporter Tout</h4>
-                            <p>Télécharger toutes vos conversations</p>
+                            <h4 id="dataExportTitle">Exporter Tout</h4>
+                            <p id="dataExportDesc">Télécharger toutes vos conversations</p>
                         </div>
                         <div class="feature-card" style="cursor: pointer;" onclick="confirmClearData()">
-                            <h4>Effacer Données</h4>
-                            <p>Supprimer toutes les conversations</p>
+                            <h4 id="dataClearTitle">Effacer Données</h4>
+                            <p id="dataClearDesc">Supprimer toutes les conversations</p>
                         </div>
                         <div class="feature-card" style="cursor: pointer;" onclick="cycleStorageMode()">
-                            <h4>Mode de stockage</h4>
-                            <p>Choix actuel : <strong id="storageModeValue">Demander à chaque upload</strong></p>
+                            <h4 id="storageModeTitle">Mode de stockage</h4>
+                            <p><span id="storageModePrefix">Choix actuel :</span> <strong id="storageModeValue">Demander à chaque upload</strong></p>
                         </div>
                     </div>
                 </div>
@@ -3613,18 +3613,18 @@
                         <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 1.343-3 3v2a3 3 0 003 3m0-11c1.657 0 3 1.343 3 3v.5M12 5v1m0 12v1m8-7a8 8 0 11-16 0 8 8 0 0116 0z"/>
                         </svg>
-                        Tarification &amp; consommation
+                        <span id="pricingSectionTitle">Tarification &amp; consommation</span>
                     </h3>
                     <div style="background: var(--bg-secondary); padding: 15px; border-radius: 10px; border: 1px solid var(--border-color);">
-                        <p style="margin: 0; color: var(--text-secondary); font-size: 13px; line-height: 1.5;">
+                        <p id="pricingP1" style="margin: 0; color: var(--text-secondary); font-size: 13px; line-height: 1.5;">
                             <strong>Axilum AI fonctionne en prépayé :</strong> vous chargez un crédit (en $) et vous pouvez utiliser tous les modules tant que ce crédit n’est pas épuisé.
                             La consommation est calculée côté serveur à partir des usages réels (tokens, appels IA) et déduite automatiquement.
                         </p>
-                        <p style="margin: 10px 0 0; color: var(--text-secondary); font-size: 13px; line-height: 1.5;">
+                        <p id="pricingP2" style="margin: 10px 0 0; color: var(--text-secondary); font-size: 13px; line-height: 1.5;">
                             <strong>Où voir le solde ?</strong> Le compteur en haut affiche votre crédit restant.
                             <strong>Pour voir le détail</strong> (période, coût IA, etc.), cliquez directement sur ce compteur.
                         </p>
-                        <p style="margin: 10px 0 0; color: var(--text-secondary); font-size: 13px; line-height: 1.5;">
+                        <p id="pricingP3" style="margin: 10px 0 0; color: var(--text-secondary); font-size: 13px; line-height: 1.5;">
                             <strong>Devise :</strong> la facturation est en $ (USD).
                             Si besoin d’autres devises, configurez le taux côté serveur.
                         </p>
@@ -3637,10 +3637,10 @@
                         <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
                         </svg>
-                        Informations
+                        <span id="infoSectionTitle">Informations</span>
                     </h3>
                     <div style="background: var(--bg-secondary); padding: 15px; border-radius: 10px; border: 1px solid var(--border-color);">
-                        <p style="margin: 0; color: var(--text-secondary); font-size: 13px;">
+                        <p id="infoContent" style="margin: 0; color: var(--text-secondary); font-size: 13px;">
                             <strong>Version :</strong> 1.0.0<br>
                             <strong>Dernière mise à jour :</strong> Décembre 2025<br>
                             <strong>Build :</strong> Production
@@ -5016,9 +5016,9 @@ RÈGLES IMPORTANTES:
 
         function storageModeLabel(mode) {
             switch ((mode || '').toLowerCase()) {
-                case 'cloud': return 'Cloud sécurisé';
-                case 'local': return 'Local (cet appareil)';
-                default: return 'Demander à chaque upload';
+                case 'cloud': return t('settings.storage.cloud');
+                case 'local': return t('settings.storage.local');
+                default: return t('settings.storage.ask');
             }
         }
 
@@ -5033,7 +5033,7 @@ RÈGLES IMPORTANTES:
             const finalMode = (m === 'cloud' || m === 'local' || m === 'ask') ? m : 'ask';
             localStorage.setItem('axilum_storage_mode', finalMode);
             refreshStorageModeUI();
-            showToast(`🗄️ Stockage: ${storageModeLabel(finalMode)}`, 'info');
+            showToast(`${t('toast.storagePrefix')} ${storageModeLabel(finalMode)}`, 'info');
         }
 
         function cycleStorageMode() {
@@ -9548,7 +9548,36 @@ ${persona}
                 'metrics.label.prompt': 'Prompt',
                 'metrics.label.provider': 'Fournisseur',
                 'metrics.label.model': 'Modèle',
-                'metrics.label.arch': 'Archi'
+                'metrics.label.arch': 'Archi',
+
+                'settings.appearance': 'Apparence',
+                'settings.themeToggleTitle': 'Thème Sombre / Clair',
+                'settings.themeToggleDesc': 'Basculer entre le mode clair et sombre',
+                'settings.aiTitle': 'IA',
+                'settings.aiModelLabel': 'Modèle (Groq)',
+                'settings.aiValidateModel': 'Valider ce modèle',
+                'settings.modeTitle': 'Mode',
+                'settings.modeAria': 'Sélecteur de mode',
+                'settings.modeHelp': 'Choisissez votre mode de fonctionnement. Certaines fonctionnalités peuvent être limitées selon le mode.',
+                'settings.dataTitle': 'Gestion des Données',
+                'settings.dataPrivacyTitle': 'Confidentialité',
+                'settings.dataPrivacyDesc': 'Local vs Cloud, sécurité et conservation',
+                'settings.dataExportTitle': 'Exporter Tout',
+                'settings.dataExportDesc': 'Télécharger toutes vos conversations',
+                'settings.dataClearTitle': 'Effacer Données',
+                'settings.dataClearDesc': 'Supprimer toutes les conversations',
+                'settings.storageTitle': 'Mode de stockage',
+                'settings.storagePrefix': 'Choix actuel :',
+                'settings.storage.ask': 'Demander à chaque upload',
+                'settings.storage.local': 'Local (cet appareil)',
+                'settings.storage.cloud': 'Cloud sécurisé',
+                'toast.storagePrefix': '🗄️ Stockage:',
+                'settings.pricingTitle': 'Tarification &amp; consommation',
+                'settings.pricing.p1': '<strong>Axilum AI fonctionne en prépayé :</strong> vous chargez un crédit (en $) et vous pouvez utiliser tous les modules tant que ce crédit n’est pas épuisé. La consommation est calculée côté serveur à partir des usages réels (tokens, appels IA) et déduite automatiquement.',
+                'settings.pricing.p2': '<strong>Où voir le solde ?</strong> Le compteur en haut affiche votre crédit restant. <strong>Pour voir le détail</strong> (période, coût IA, etc.), cliquez directement sur ce compteur.',
+                'settings.pricing.p3': '<strong>Devise :</strong> la facturation est en $ (USD). Si besoin d’autres devises, configurez le taux côté serveur.',
+                'settings.infoTitle': 'Informations',
+                'settings.infoContent': '<strong>Version :</strong> 1.0.0<br><strong>Dernière mise à jour :</strong> Décembre 2025<br><strong>Build :</strong> Production'
             },
             en: {
                 'ui.newConversation': 'New Conversation',
@@ -9653,7 +9682,36 @@ ${persona}
                 'metrics.label.prompt': 'Prompt',
                 'metrics.label.provider': 'Provider',
                 'metrics.label.model': 'Model',
-                'metrics.label.arch': 'Arch'
+                'metrics.label.arch': 'Arch',
+
+                'settings.appearance': 'Appearance',
+                'settings.themeToggleTitle': 'Dark / Light theme',
+                'settings.themeToggleDesc': 'Toggle between light and dark mode',
+                'settings.aiTitle': 'AI',
+                'settings.aiModelLabel': 'Model (Groq)',
+                'settings.aiValidateModel': 'Validate this model',
+                'settings.modeTitle': 'Mode',
+                'settings.modeAria': 'Mode selector',
+                'settings.modeHelp': 'Choose your operating mode. Some features may be limited depending on the selected mode.',
+                'settings.dataTitle': 'Data management',
+                'settings.dataPrivacyTitle': 'Privacy',
+                'settings.dataPrivacyDesc': 'Local vs Cloud, security and retention',
+                'settings.dataExportTitle': 'Export all',
+                'settings.dataExportDesc': 'Download all your conversations',
+                'settings.dataClearTitle': 'Clear data',
+                'settings.dataClearDesc': 'Delete all conversations',
+                'settings.storageTitle': 'Storage mode',
+                'settings.storagePrefix': 'Current choice:',
+                'settings.storage.ask': 'Ask on each upload',
+                'settings.storage.local': 'Local (this device)',
+                'settings.storage.cloud': 'Secure cloud',
+                'toast.storagePrefix': '🗄️ Storage:',
+                'settings.pricingTitle': 'Pricing &amp; usage',
+                'settings.pricing.p1': '<strong>Axilum AI runs on prepaid credit:</strong> you top up a balance (in $) and can use all modules as long as your credit is not depleted. Usage is computed server-side from real consumption (tokens, AI calls) and deducted automatically.',
+                'settings.pricing.p2': '<strong>Where to see your balance?</strong> The counter at the top shows your remaining credit. <strong>To see details</strong> (period, AI cost, etc.), click directly on that counter.',
+                'settings.pricing.p3': '<strong>Currency:</strong> billing is in $ (USD). If you need other currencies, configure the exchange rate server-side.',
+                'settings.infoTitle': 'Information',
+                'settings.infoContent': '<strong>Version:</strong> 1.0.0<br><strong>Last update:</strong> December 2025<br><strong>Build:</strong> Production'
             }
         };
 
@@ -9907,6 +9965,78 @@ ${persona}
                 const languageHelp = document.getElementById('languageHelp');
                 if (languageHelp) languageHelp.textContent = t('ui.languageHelp');
 
+                const appearanceSectionTitle = document.getElementById('appearanceSectionTitle');
+                if (appearanceSectionTitle) appearanceSectionTitle.textContent = t('settings.appearance');
+
+                const themeToggleTitle = document.getElementById('themeToggleTitle');
+                if (themeToggleTitle) themeToggleTitle.textContent = t('settings.themeToggleTitle');
+
+                const themeToggleDesc = document.getElementById('themeToggleDesc');
+                if (themeToggleDesc) themeToggleDesc.textContent = t('settings.themeToggleDesc');
+
+                const aiSectionTitle = document.getElementById('aiSectionTitle');
+                if (aiSectionTitle) aiSectionTitle.textContent = t('settings.aiTitle');
+
+                const aiModelLabel = document.getElementById('aiModelLabel');
+                if (aiModelLabel) aiModelLabel.textContent = t('settings.aiModelLabel');
+
+                const aiModelValidateBtn = document.getElementById('aiModelValidateBtn');
+                if (aiModelValidateBtn) aiModelValidateBtn.textContent = t('settings.aiValidateModel');
+
+                const modeSectionTitle = document.getElementById('modeSectionTitle');
+                if (modeSectionTitle) modeSectionTitle.textContent = t('settings.modeTitle');
+
+                const settingsPlanToggle = document.getElementById('settingsPlanToggle');
+                if (settingsPlanToggle) settingsPlanToggle.setAttribute('aria-label', t('settings.modeAria'));
+
+                const modeHelp = document.getElementById('modeHelp');
+                if (modeHelp) modeHelp.textContent = t('settings.modeHelp');
+
+                const dataSectionTitle = document.getElementById('dataSectionTitle');
+                if (dataSectionTitle) dataSectionTitle.textContent = t('settings.dataTitle');
+
+                const dataPrivacyTitle = document.getElementById('dataPrivacyTitle');
+                if (dataPrivacyTitle) dataPrivacyTitle.textContent = t('settings.dataPrivacyTitle');
+
+                const dataPrivacyDesc = document.getElementById('dataPrivacyDesc');
+                if (dataPrivacyDesc) dataPrivacyDesc.textContent = t('settings.dataPrivacyDesc');
+
+                const dataExportTitle = document.getElementById('dataExportTitle');
+                if (dataExportTitle) dataExportTitle.textContent = t('settings.dataExportTitle');
+
+                const dataExportDesc = document.getElementById('dataExportDesc');
+                if (dataExportDesc) dataExportDesc.textContent = t('settings.dataExportDesc');
+
+                const dataClearTitle = document.getElementById('dataClearTitle');
+                if (dataClearTitle) dataClearTitle.textContent = t('settings.dataClearTitle');
+
+                const dataClearDesc = document.getElementById('dataClearDesc');
+                if (dataClearDesc) dataClearDesc.textContent = t('settings.dataClearDesc');
+
+                const storageModeTitle = document.getElementById('storageModeTitle');
+                if (storageModeTitle) storageModeTitle.textContent = t('settings.storageTitle');
+
+                const storageModePrefix = document.getElementById('storageModePrefix');
+                if (storageModePrefix) storageModePrefix.textContent = t('settings.storagePrefix');
+
+                const pricingSectionTitle = document.getElementById('pricingSectionTitle');
+                if (pricingSectionTitle) pricingSectionTitle.innerHTML = t('settings.pricingTitle');
+
+                const pricingP1 = document.getElementById('pricingP1');
+                if (pricingP1) pricingP1.innerHTML = t('settings.pricing.p1');
+
+                const pricingP2 = document.getElementById('pricingP2');
+                if (pricingP2) pricingP2.innerHTML = t('settings.pricing.p2');
+
+                const pricingP3 = document.getElementById('pricingP3');
+                if (pricingP3) pricingP3.innerHTML = t('settings.pricing.p3');
+
+                const infoSectionTitle = document.getElementById('infoSectionTitle');
+                if (infoSectionTitle) infoSectionTitle.textContent = t('settings.infoTitle');
+
+                const infoContent = document.getElementById('infoContent');
+                if (infoContent) infoContent.innerHTML = t('settings.infoContent');
+
                 const signinNoAccountText = document.getElementById('signinNoAccountText');
                 if (signinNoAccountText) signinNoAccountText.textContent = t('auth.noAccount');
 
@@ -10085,6 +10215,11 @@ ${persona}
                 if (voiceStatusText && (!voiceStatusText.textContent || voiceStatusText.textContent.trim().length === 0 || voiceStatusText.textContent === 'Je vous écoute...')) {
                     voiceStatusText.textContent = t('voice.listening');
                 }
+            } catch (_) {}
+
+            try {
+                // Dépend de la langue (ask/local/cloud)
+                refreshStorageModeUI();
             } catch (_) {}
 
             try {
