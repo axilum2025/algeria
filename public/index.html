@@ -2752,7 +2752,7 @@
                 <span class="menu-item-text" id="sidebarAboutLabel">À propos</span>
             </button>
 
-            <button class="menu-item" id="enterpriseMenuBtn" onclick="window.location.assign('/enterprise.html')">
+            <button class="menu-item" id="enterpriseMenuBtn" onclick="openEnterpriseOfferModal(event); return false;">
                 <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 21h18M6 21V5a2 2 0 012-2h8a2 2 0 012 2v16M9 7h6M9 11h6M9 15h6M9 19h6"/>
                 </svg>
@@ -3219,6 +3219,24 @@
             </div>
             <div id="statsContent">
                 <!-- Dynamically loaded -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Enterprise Offer Modal -->
+    <div class="modal" id="enterpriseOfferModal" style="display:none;">
+        <div class="modal-content" style="max-width: 980px; width: calc(100% - 32px); height: min(760px, calc(100vh - 48px)); padding: 0; overflow: hidden;">
+            <div class="modal-header" style="padding: 14px 18px;">
+                <div class="modal-title" id="enterpriseOfferModalTitle">Offre Entreprise</div>
+                <button class="close-modal" type="button" onclick="closeEnterpriseOfferModal(event); return false;">×</button>
+            </div>
+            <div style="height: calc(100% - 54px); background: var(--bg-primary);">
+                <iframe
+                    id="enterpriseOfferFrame"
+                    title="Offre Entreprise"
+                    src="/enterprise.html?embed=1"
+                    style="width: 100%; height: 100%; border: 0; display: block; background: var(--bg-primary);"
+                ></iframe>
             </div>
         </div>
     </div>
@@ -10562,6 +10580,52 @@ ${persona}
         function closeSettingsModal() {
             document.getElementById('settingsModal').style.display = 'none';
         }
+
+        function openEnterpriseOfferModal(e) {
+            try { if (e) { e.preventDefault(); e.stopPropagation(); } } catch (_) {}
+            const modal = document.getElementById('enterpriseOfferModal');
+            if (modal) modal.style.display = 'flex';
+        }
+
+        function closeEnterpriseOfferModal(e) {
+            try { if (e) { e.preventDefault(); e.stopPropagation(); } } catch (_) {}
+            const modal = document.getElementById('enterpriseOfferModal');
+            if (modal) modal.style.display = 'none';
+        }
+
+        (function initEnterpriseOfferModal() {
+            try {
+                if (window.__axilumEnterpriseOfferModalInit) return;
+                window.__axilumEnterpriseOfferModalInit = true;
+
+                window.addEventListener('message', function (ev) {
+                    try {
+                        if (!ev || !ev.data) return;
+                        if (ev.origin && ev.origin !== window.location.origin) return;
+                        if (ev.data && ev.data.type === 'axilum:enterprise-offer:close') {
+                            closeEnterpriseOfferModal();
+                        }
+                    } catch (_) {}
+                });
+
+                document.addEventListener('keydown', function (ev) {
+                    try {
+                        if (!ev || ev.key !== 'Escape') return;
+                        const modal = document.getElementById('enterpriseOfferModal');
+                        if (modal && modal.style.display === 'flex') closeEnterpriseOfferModal(ev);
+                    } catch (_) {}
+                });
+
+                const modal = document.getElementById('enterpriseOfferModal');
+                if (modal) {
+                    modal.addEventListener('click', function (ev) {
+                        try {
+                            if (ev && ev.target === modal) closeEnterpriseOfferModal(ev);
+                        } catch (_) {}
+                    });
+                }
+            } catch (_) {}
+        })();
 
         function showFunctions() {
             const panel = document.getElementById('functionsPanel');

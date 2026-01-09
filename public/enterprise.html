@@ -291,32 +291,28 @@
       } catch (_) {}
     })();
 
-    // Empêche le bouton Retour (navigateur/mobile) de revenir à une page précédente
-    // (ex: Excel Expert) et force un retour propre vers l'app principale.
-    (function hijackBackButton() {
+    function goBackToApp() {
+      // 1) Si la page est ouverte dans un modal/iframe, demander au parent de fermer le modal
       try {
-        const st = (history && history.state && typeof history.state === 'object') ? history.state : {};
-        if (!st || !st.__axilumEnterprise) {
-          history.replaceState(Object.assign({}, st, { __axilumEnterprise: true }), '', window.location.href);
-          history.pushState(Object.assign({}, st, { __axilumEnterprise: true, __axilumEnterpriseTrap: true }), '', window.location.href);
+        if (window.parent && window.parent !== window) {
+          window.parent.postMessage({ type: 'axilum:enterprise-offer:close' }, '*');
+          return;
         }
       } catch (_) {}
 
-      window.addEventListener('popstate', () => {
-        // Retour navigateur -> retour app (sans restauration d'un état précédent)
-        goBackToApp();
-      });
-    })();
-
-    function goBackToApp() {
+      // 2) Sinon, revenir à la page précédente (évite de recharger le menu principal)
       try {
-        // replace() évite de garder "enterprise.html" dans l'historique
-        // et réduit les effets de restauration (bfcache) vers un module précédent.
-        window.location.replace('/');
-      } catch (_) {
-        // fallback best-effort
+        const ref = document.referrer ? new URL(document.referrer) : null;
+        if (ref && ref.origin === window.location.origin) {
+          history.back();
+          return;
+        }
+      } catch (_) {}
+
+      // 3) Fallback: retour app
+      try {
         window.location.href = '/';
-      }
+      } catch (_) {}
     }
   </script>
 </body>
