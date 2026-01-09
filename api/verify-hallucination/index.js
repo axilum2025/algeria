@@ -36,10 +36,14 @@ module.exports = async function (context, req) {
         context.log('📝 Texte à analyser:', text.substring(0, 100) + '...');
         context.log('🤖 Source IA:', source || L.sourceUnspecifiedShort);
 
+        // Normalisation: retirer les préfixes "méta" (ex: "ChatGPT says that …") pour analyser la claim réelle.
+        // On conserve néanmoins le texte original dans le report.
+        const textForAnalysis = normalizeTextForHallucinationAnalysis(text);
+
         // 1. Analyser avec le détecteur d'hallucinations existant
         // IMPORTANT: analyzeHallucination attend un texte (question) en 2e paramètre, pas l'objet Azure `context`.
         const hallucinationAnalysis = await analyzeHallucination(
-            text,
+            textForAnalysis,
             `${L.verifyContextPrefix} (${L.reportSourceLabel}: ${source || L.sourceUnspecifiedLong})`,
             null,
             { lang }
@@ -567,7 +571,7 @@ function sanitizeBraveQuery(input) {
 function pickClaimsForEvidenceCheck(hallucinationAnalysis, rawText) {
     const claims = Array.isArray(hallucinationAnalysis?.claims) ? hallucinationAnalysis.claims : [];
     const fromDetector = claims
-        .map(c => (c && c.text ? String(c.text).trim() : ''))
+        .map(c => (c && c.text ? stripMetaPrefix(String(c.text).trim()) : ''))
         .filter(Boolean);
 
     if (fromDetector.length > 0) {
@@ -594,6 +598,17 @@ function pickClaimsForEvidenceCheck(hallucinationAnalysis, rawText) {
         .map(x => x.text);
 
     return [...new Set(scored)].slice(0, 6);
+}
+
+function normalizeTextForHallucinationAnalysis(rawText) {
+    const text = String(rawText || '');
+    // Traitement ligne par ligne: on enlève les préfixes méta là où ils apparaissent.
+    // Exemple: "ChatGPT says that the sun is black" => "the sun is black".
+    return text
+        .split(/\n/)
+        .map(line => stripMetaPrefix(line))
+        .join('\n')
+        .trim();
 }
 
 function pickFactsForBrave(hallucinationAnalysis, rawText) {
