@@ -6542,7 +6542,7 @@ ${persona}
                     if (!response.ok) throw new Error(`Erreur ${response.status}`);
                     const data = await response.json();
                     hideTyping();
-                    addMessage(data.response || 'Erreur de réponse', 'bot', data.hallucinationIndex, data.contextHistoryRatio);
+                    addMessage(data.response || 'Erreur de réponse', 'bot', data);
                 } catch (err) {
                     hideTyping();
                     addMessage('❌ Erreur orchestration: ' + (err.message || String(err)), 'bot');
@@ -6653,7 +6653,7 @@ ${persona}
                     if (!response.ok) throw new Error(`Erreur ${response.status}`);
                     const data = await response.json();
                     hideTyping();
-                    addMessage(data.response || 'Erreur de réponse', 'bot', data.hallucinationIndex, data.contextHistoryRatio);
+                    addMessage(data.response || 'Erreur de réponse', 'bot', data);
                 } catch (err) {
                     hideTyping();
                     addMessage('❌ Erreur orchestration: ' + (err.message || String(err)), 'bot');
@@ -7736,7 +7736,7 @@ ${persona}
                 if (data.cached === true) {
                     metrics.performance.push({
                         icon: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>', 
-                        label: 'Cache', 
+                        label: (typeof t === 'function' ? t('metrics.label.cache') : 'Cache'), 
                         value: `${data.responseTime}ms`, 
                         color: '#10B981'
                     });
@@ -7744,14 +7744,14 @@ ${persona}
                     const timeInSec = (data.responseTime / 1000).toFixed(2);
                     metrics.performance.push({
                         icon: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>', 
-                        label: 'Temps', 
+                        label: (typeof t === 'function' ? t('metrics.label.time') : 'Temps'), 
                         value: `${timeInSec}s`, 
                         color: '#3B82F6'
                     });
                 } else if (data.processingTime) {
                     metrics.performance.push({
                         icon: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>', 
-                        label: 'Temps', 
+                        label: (typeof t === 'function' ? t('metrics.label.time') : 'Temps'), 
                         value: data.processingTime, 
                         color: '#3B82F6'
                     });
@@ -7761,7 +7761,7 @@ ${persona}
                     const tokens = data.tokensUsed || data.usage.total_tokens;
                     metrics.performance.push({
                         icon: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 2v20M2 12h20"/></svg>', 
-                        label: 'Tokens', 
+                        label: (typeof t === 'function' ? t('metrics.label.tokens') : 'Tokens'), 
                         value: tokens, 
                         color: '#8B5CF6'
                     });
@@ -7771,7 +7771,7 @@ ${persona}
                 if (data.promptTokens) {
                     metrics.performance.push({
                         icon: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>', 
-                        label: 'Prompt', 
+                        label: (typeof t === 'function' ? t('metrics.label.prompt') : 'Prompt'), 
                         value: data.promptTokens, 
                         color: '#3B82F6'
                     });
@@ -7781,7 +7781,7 @@ ${persona}
                 if (data.provider) {
                     metrics.performance.push({
                         icon: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5M2 12l10 5 10-5"/></svg>', 
-                        label: 'Provider', 
+                        label: (typeof t === 'function' ? t('metrics.label.provider') : 'Provider'), 
                         value: data.provider, 
                         color: '#F59E0B'
                     });
@@ -7790,7 +7790,7 @@ ${persona}
                 if (data.model) {
                     metrics.performance.push({
                         icon: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 1v6m0 6v6m5.196-13.196l-4.242 4.242m-5.908 5.908l-4.242 4.242m18.384-.001l-4.242-4.242m-5.908-5.908l-4.242-4.242"/></svg>', 
-                        label: 'Modèle', 
+                        label: (typeof t === 'function' ? t('metrics.label.model') : 'Modèle'), 
                         value: data.model, 
                         color: '#8B5CF6'
                     });
@@ -7800,7 +7800,7 @@ ${persona}
                 if (data.functionsUsed !== undefined || data.contextTokensEstimated !== undefined) {
                     metrics.performance.push({
                         icon: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>', 
-                        label: 'Archi', 
+                        label: (typeof t === 'function' ? t('metrics.label.arch') : 'Archi'), 
                         value: 'V2 🚀', 
                         color: '#10B981'
                     });
@@ -7895,8 +7895,8 @@ ${persona}
                             const metricsIcon = document.createElement('button');
                             metricsIcon.type = 'button';
                             metricsIcon.className = 'metrics-icon';
-                            metricsIcon.title = 'Métriques de réponse';
-                            metricsIcon.setAttribute('aria-label', 'Métriques de réponse');
+                            metricsIcon.title = (typeof t === 'function' ? t('metrics.title') : 'Métriques de réponse');
+                            metricsIcon.setAttribute('aria-label', (typeof t === 'function' ? t('metrics.title') : 'Métriques de réponse'));
                             metricsIcon.innerHTML = `
                                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                     <circle cx="12" cy="12" r="10"/>
@@ -8014,7 +8014,8 @@ ${persona}
             
             let performanceHTML = '';
             if (metrics.performance.length > 0) {
-                performanceHTML = '<div style="margin-bottom: 16px;"><h4 style="margin: 0 0 12px 0; color: var(--text-primary); font-size: 14px; font-weight: 600; display: flex; align-items: center; gap: 8px;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>Performance</h4>';
+                const perfTitle = (typeof t === 'function' ? t('metrics.section.performance') : 'Performance');
+                performanceHTML = `<div style="margin-bottom: 16px;"><h4 style="margin: 0 0 12px 0; color: var(--text-primary); font-size: 14px; font-weight: 600; display: flex; align-items: center; gap: 8px;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>${perfTitle}</h4>`;
                 metrics.performance.forEach(m => {
                     performanceHTML += `
                         <div style="display: flex; align-items: center; justify-content: space-between; padding: 10px 14px; background: var(--bg-secondary); border-radius: 8px; margin-bottom: 6px; transition: all 0.2s;">
@@ -8031,7 +8032,8 @@ ${persona}
             
             let qualityHTML = '';
             if (metrics.quality.length > 0) {
-                qualityHTML = '<div><h4 style="margin: 0 0 12px 0; color: var(--text-primary); font-size: 14px; font-weight: 600; display: flex; align-items: center; gap: 8px;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>Qualité</h4>';
+                const qualityTitle = (typeof t === 'function' ? t('metrics.section.quality') : 'Qualité');
+                qualityHTML = `<div><h4 style="margin: 0 0 12px 0; color: var(--text-primary); font-size: 14px; font-weight: 600; display: flex; align-items: center; gap: 8px;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>${qualityTitle}</h4>`;
                 metrics.quality.forEach(m => {
                     qualityHTML += `
                         <div style="display: flex; ${m.details ? 'flex-direction: column; align-items: flex-start;' : 'align-items: center; justify-content: space-between;'} padding: 10px 14px; background: var(--bg-secondary); border-radius: 8px; margin-bottom: 6px; transition: all 0.2s;">
@@ -8063,7 +8065,7 @@ ${persona}
                                 <path d="M13 17V5"/>
                                 <path d="M8 17v-3"/>
                             </svg>
-                            Métriques de réponse
+                            ${(typeof t === 'function' ? t('metrics.title') : 'Métriques de réponse')}
                         </h3>
                         <button onclick="document.getElementById('metricsModal').remove()" style="background: none; border: none; cursor: pointer; color: var(--text-secondary); padding: 0; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; border-radius: 8px; transition: all 0.2s;">
                             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -9536,7 +9538,17 @@ ${persona}
                 'voice.listening': 'Je vous écoute...',
                 'voice.thinking': 'Je réfléchis...',
                 'voice.speaking': 'Je vous réponds...',
-                'voice.paused': 'En pause - Cliquez pour reprendre'
+                'voice.paused': 'En pause - Cliquez pour reprendre',
+                'metrics.title': 'Métriques de réponse',
+                'metrics.section.performance': 'Performance',
+                'metrics.section.quality': 'Qualité',
+                'metrics.label.cache': 'Cache',
+                'metrics.label.time': 'Temps',
+                'metrics.label.tokens': 'Tokens',
+                'metrics.label.prompt': 'Prompt',
+                'metrics.label.provider': 'Fournisseur',
+                'metrics.label.model': 'Modèle',
+                'metrics.label.arch': 'Archi'
             },
             en: {
                 'ui.newConversation': 'New Conversation',
@@ -9631,7 +9643,17 @@ ${persona}
                 'voice.listening': "I'm listening...",
                 'voice.thinking': "Thinking...",
                 'voice.speaking': "Speaking...",
-                'voice.paused': 'Paused — click to resume'
+                'voice.paused': 'Paused — click to resume',
+                'metrics.title': 'Response metrics',
+                'metrics.section.performance': 'Performance',
+                'metrics.section.quality': 'Quality',
+                'metrics.label.cache': 'Cache',
+                'metrics.label.time': 'Time',
+                'metrics.label.tokens': 'Tokens',
+                'metrics.label.prompt': 'Prompt',
+                'metrics.label.provider': 'Provider',
+                'metrics.label.model': 'Model',
+                'metrics.label.arch': 'Arch'
             }
         };
 
