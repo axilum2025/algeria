@@ -23,6 +23,21 @@ const MODEL_META = {
   'whisper-large-v3-turbo': { category: 'Speech to text', description: 'Whisper Large v3 Turbo STT' }
 };
 
+function inferModelKind(modelId, meta) {
+  const id = String(modelId || '').toLowerCase();
+  const cat = String(meta?.category || '').toLowerCase();
+
+  // Speech models
+  if (id.startsWith('whisper') || cat.includes('speech to text') || cat.includes('speech-to-text')) return 'stt';
+  if (id.startsWith('canopylabs/orpheus') || cat.includes('text to speech') || cat.includes('text-to-speech')) return 'tts';
+
+  // Safety/guard models
+  if (cat.includes('safety')) return 'safety';
+  if (id.includes('guard') || id.includes('prompt-guard')) return 'safety';
+
+  return 'chat';
+}
+
 function safeJsonParse(value) {
   try {
     return JSON.parse(value);
@@ -42,6 +57,7 @@ module.exports = async function (context, req) {
   const pricingRaw = String(process.env.AI_PRICING_JSON || '').trim();
   const pricing = pricingRaw ? safeJsonParse(pricingRaw) : null;
   const pricingCurrency = String(process.env.AI_PRICING_CURRENCY || 'EUR').trim().toUpperCase() || 'EUR';
+  const purpose = String(req.query?.purpose || '').trim().toLowerCase();
 
   const models = [];
   if (pricing && typeof pricing === 'object') {
@@ -50,11 +66,17 @@ module.exports = async function (context, req) {
       const cleanId = String(id || '').trim();
       if (!cleanId) return;
       const meta = MODEL_META[cleanId] || {};
+
+      const kind = inferModelKind(cleanId, meta);
+      // For the chat model dropdown, hide non-chat models.
+      if (purpose === 'chat' && kind !== 'chat') return;
+
       models.push({
         id: cleanId,
         pricingCurrency,
         in: row.in != null ? Number(row.in) : null,
         out: row.out != null ? Number(row.out) : null,
+        kind,
         category: meta.category || null,
         description: meta.description || null
       });

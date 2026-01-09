@@ -3860,7 +3860,7 @@
             sel.innerHTML = '<option value="">Chargement…</option>';
 
             try {
-                const res = await fetch('/api/ai/models', { method: 'GET' });
+                const res = await fetch('/api/ai/models?purpose=chat', { method: 'GET' });
                 const data = await res.json().catch(() => null);
                 const models = (res.ok && data && Array.isArray(data.models)) ? data.models : [];
 
