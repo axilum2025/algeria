@@ -36,11 +36,7 @@ module.exports = async function (context, req) {
         context.log('📝 Texte à analyser:', text.substring(0, 100) + '...');
         context.log('🤖 Source IA:', source || L.sourceUnspecifiedShort);
 
-        // 1. Extraire les faits du texte
-        const facts = await extractFacts(text);
-        context.log(`📊 ${facts.length} faits extraits`);
-
-        // 2. Analyser avec le détecteur d'hallucinations existant
+        // 1. Analyser avec le détecteur d'hallucinations existant
         // IMPORTANT: analyzeHallucination attend un texte (question) en 2e paramètre, pas l'objet Azure `context`.
         const hallucinationAnalysis = await analyzeHallucination(
             text,
@@ -52,6 +48,11 @@ module.exports = async function (context, req) {
 
         // "effectiveAnalysis" peut être remplacée par une analyse evidence-based si Brave + modèle sont disponibles.
         let effectiveAnalysis = hallucinationAnalysis;
+
+        // 2. Extraire les faits du texte
+        // Important: privilégier les claims du détecteur (évite de vérifier des phrases méta "ChatGPT said...").
+        const facts = pickFactsForBrave(hallucinationAnalysis, text);
+        context.log(`📊 ${facts.length} faits extraits`);
 
         // 3. Vérifier les faits avec Brave Search
         const braveApiKey = process.env.APPSETTING_BRAVE_API_KEY || process.env.BRAVE_API_KEY;
@@ -504,7 +505,6 @@ function braveSearch(queryText, apiKey, context, count = 3) {
             method: 'GET',
             headers: {
                 'Accept': 'application/json',
-                'Accept-Encoding': 'gzip',
                 'X-Subscription-Token': apiKey
             }
         };
@@ -594,6 +594,49 @@ function pickClaimsForEvidenceCheck(hallucinationAnalysis, rawText) {
         .map(x => x.text);
 
     return [...new Set(scored)].slice(0, 6);
+}
+
+function pickFactsForBrave(hallucinationAnalysis, rawText) {
+    const claims = Array.isArray(hallucinationAnalysis?.claims) ? hallucinationAnalysis.claims : [];
+    const fromClaims = claims
+        .map(c => (c && c.text ? String(c.text).trim() : ''))
+        .map(stripMetaPrefix)
+        .filter(Boolean);
+
+    if (fromClaims.length > 0) {
+        return [...new Set(fromClaims)].slice(0, 8);
+    }
+
+    // Fallback: extraction simple (sync) si le détecteur ne fournit pas de claims.
+    const text = String(rawText || '');
+    const sentences = text
+        .split(/[.!?\n\r]+/)
+        .map(s => s.trim())
+        .filter(Boolean)
+        .filter(s => s.length >= 8 && s.length <= 220)
+        .map(stripMetaPrefix)
+        .filter(Boolean);
+
+    return [...new Set(sentences)].slice(0, 8);
+}
+
+function stripMetaPrefix(s) {
+    const t = String(s || '').trim();
+    if (!t) return '';
+
+    // Retirer les formulations "meta" qui polluent la recherche.
+    // Ex: "Chat gpt say that the sun is black" => "the sun is black"
+    const metaPatterns = [
+        /^chat\s*gpt\s*(said|says|say)\s+that\s+/i,
+        /^chatgpt\s*(said|says)\s+that\s+/i,
+        /^gpt\s*[- ]?\d+\s*(said|says)\s+that\s+/i,
+        /^(l['’]?ia|le\s+chatgpt|chat\s*gpt)\s*(a\s+dit|dit|disait)\s+que\s+/i
+    ];
+    let out = t;
+    for (const rx of metaPatterns) {
+        out = out.replace(rx, '');
+    }
+    return out.trim();
 }
 
 // Détecter contradictions internes
