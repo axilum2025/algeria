@@ -11,7 +11,7 @@ const { buildWebEvidenceContext } = require('../utils/webEvidence');
 const { appendEvidenceContext, searchWikipedia, searchNewsApi, searchSemanticScholar } = require('../utils/sourceProviders');
 const { shouldUseInternalBoost, buildAxilumInternalBoostContext } = require('../utils/axilumInternalBoost');
 const { looksTimeSensitiveForHR, looksTimeSensitiveForMarketing, looksTimeSensitiveForDev, looksTimeSensitiveForExcel, looksTimeSensitiveForAlex, looksTimeSensitiveForTony, looksTimeSensitiveForTodo, looksTimeSensitiveForAIManagement, buildSilentWebContext } = require('../utils/silentWebRefresh');
-const { getLangFromReq, getSearchLang } = require('../utils/lang');
+const { getLangFromReq, getSearchLang, normalizeLang, detectLangFromText } = require('../utils/lang');
 
 // Fonction RAG - Recherche Brave
 async function searchBrave(query, apiKey) {
@@ -95,7 +95,9 @@ module.exports = async function (context, req) {
         const userMessage = req.body.message;
         const userQuery = extractUserQueryFromMessage(userMessage);
         const requestedModel = req.body?.model || req.body?.aiModel || null;
-        const lang = getLangFromReq(req);
+        const explicitLang = req.body?.lang || req.body?.language || req.body?.locale || req.query?.lang || req.headers?.['x-language'] || req.headers?.['x-lang'];
+        const fallbackLang = getLangFromReq(req, { fallback: 'fr' });
+        const lang = explicitLang ? normalizeLang(explicitLang) : detectLangFromText(userQuery, { fallback: fallbackLang });
         const searchLang = getSearchLang(lang);
 
         const userAsksForSourcesForWesh = (q) => {
@@ -149,16 +151,26 @@ module.exports = async function (context, req) {
             
             // Réponses prédéfinies pour les cas communs
             const lowerMessage = userQuery.toLowerCase();
-            let fallbackResponse = "Bonjour ! Je suis Axilum AI.";
-            
+            const isEnglish = normalizeLang(lang) === 'en';
+
+            let fallbackResponse = isEnglish ? "Hello! I'm Axilum AI." : "Bonjour ! Je suis Axilum AI.";
+
             if (lowerMessage.includes('bonjour') || lowerMessage.includes('salut') || lowerMessage.includes('hello')) {
-                fallbackResponse = "Bonjour ! Je suis Axilum AI, votre assistant intelligent. Comment puis-je vous aider aujourd'hui ?";
-            } else if (lowerMessage.includes('qui es-tu') || lowerMessage.includes('présente') || lowerMessage.includes('qui es tu')) {
-                fallbackResponse = "Je suis Axilum AI, un assistant conversationnel intelligent propulsé par Llama 3.3 70B.";
+                fallbackResponse = isEnglish
+                    ? "Hello! I'm Axilum AI, your smart assistant. How can I help you today?"
+                    : "Bonjour ! Je suis Axilum AI, votre assistant intelligent. Comment puis-je vous aider aujourd'hui ?";
+            } else if (lowerMessage.includes('qui es-tu') || lowerMessage.includes('présente') || lowerMessage.includes('qui es tu') || lowerMessage.includes('who are you')) {
+                fallbackResponse = isEnglish
+                    ? "I'm Axilum AI, an intelligent conversational assistant powered by Llama 3.3 70B."
+                    : "Je suis Axilum AI, un assistant conversationnel intelligent propulsé par Llama 3.3 70B.";
             } else if (lowerMessage.includes('aide') || lowerMessage.includes('help')) {
-                fallbackResponse = "Je peux vous aider avec diverses questions ! Pour activer toutes mes capacités (Llama 3.2), l'administrateur doit configurer la clé API Groq. En attendant, n'hésitez pas à poser vos questions !";
+                fallbackResponse = isEnglish
+                    ? "I can help with many questions. To enable full capabilities, an admin must configure the Groq API key. In the meantime, feel free to ask anything!"
+                    : "Je peux vous aider avec diverses questions ! Pour activer toutes mes capacités, l'administrateur doit configurer la clé API Groq. En attendant, n'hésitez pas à poser vos questions !";
             } else {
-                fallbackResponse = `Votre question : "${userQuery}"\n\nJe suis actuellement en mode configuration limitée. Pour profiter pleinement du mode gratuit avec Llama 3.2, veuillez configurer GROQ_API_KEY dans Azure.\n\nEn attendant, essayez le mode PRO pour une expérience complète avec GPT-4o !`;
+                fallbackResponse = isEnglish
+                    ? `Your question: "${userQuery}"\n\nI'm currently in limited configuration mode. To fully enable the free plan, please configure GROQ_API_KEY in Azure.\n\nIn the meantime, try the PRO plan for a full experience!`
+                    : `Votre question : "${userQuery}"\n\nJe suis actuellement en mode configuration limitée. Pour profiter pleinement du mode gratuit, veuillez configurer GROQ_API_KEY dans Azure.\n\nEn attendant, essayez le mode PRO pour une expérience complète !`;
             }
             
             context.res = {

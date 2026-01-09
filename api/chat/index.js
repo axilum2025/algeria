@@ -3,6 +3,7 @@ const { assertWithinBudget, recordUsage, BudgetExceededError } = require('../uti
 const { getAuthEmail } = require('../utils/auth');
 const { precheckCredit, debitAfterUsage } = require('../utils/aiCreditGuard');
 const { stripModelReasoning } = require('../utils/stripModelReasoning');
+const { normalizeLang, detectLangFromText, getLangFromReq, getLanguageNameFr, getResponseLanguageInstruction } = require('../utils/lang');
 
 const DEFAULT_GROQ_MODEL = 'llama-3.3-70b-versatile';
 
@@ -67,6 +68,41 @@ function detectDownloadOffer(messages, assistantMessage) {
   // 1. L'assistant a produit un contenu substantiel ET
   // 2. (L'assistant utilise des mots de complétion OU l'utilisateur a demandé une tâche)
   return hasSubstantialContent && (hasCompletionWords || userRequestedTask);
+}
+
+function looksLikeTranslationFlow(messages) {
+  if (!Array.isArray(messages) || messages.length === 0) return false;
+  const joinedSystem = messages
+    .filter(m => m && m.role === 'system' && typeof m.content === 'string')
+    .map(m => m.content.toLowerCase())
+    .join('\n');
+
+  // Text Pro / translator prompts typically include these.
+  if (joinedSystem.includes('ne fournis que la traduction')) return true;
+  if (joinedSystem.includes('tu es un traducteur')) return true;
+  if (joinedSystem.includes('traduis le texte')) return true;
+  if (joinedSystem.includes('translate the text')) return true;
+  if (joinedSystem.includes('translation only')) return true;
+
+  return false;
+}
+
+function pickLanguageFromMessages(messages, fallbackLang) {
+  const fb = normalizeLang(fallbackLang || 'fr');
+  if (!Array.isArray(messages) || messages.length === 0) return fb;
+
+  // Prefer the FIRST meaningful user message (stable across the whole conversation)
+  const firstUser = messages.find(m => m && m.role === 'user' && typeof m.content === 'string' && m.content.trim());
+  const firstText = firstUser?.content || '';
+
+  // If the first message is too short (e.g., "ok"), use last user message instead.
+  const normalized = String(firstText || '').replace(/\s+/g, ' ').trim();
+  const isTooShort = normalized.length < 6;
+  if (!isTooShort) return detectLangFromText(normalized, { fallback: fb });
+
+  const lastUser = [...messages].reverse().find(m => m && m.role === 'user' && typeof m.content === 'string' && m.content.trim());
+  const lastText = String(lastUser?.content || '').replace(/\s+/g, ' ').trim();
+  return detectLangFromText(lastText, { fallback: fb });
 }
 
 module.exports = async function (context, req) {
@@ -168,13 +204,35 @@ module.exports = async function (context, req) {
       throw e;
     }
 
+    // --- Langue auto: répondre dans la langue de l'utilisateur ---
+    // 1) langue explicitement fournie par le client (si présent)
+    // 2) sinon détection depuis le 1er message user (stable)
+    // 3) fallback: Accept-Language
+    const explicitLang = req.body?.lang || req.body?.language || req.body?.locale || req.query?.lang || req.headers?.['x-language'] || req.headers?.['x-lang'];
+    const fallbackLang = getLangFromReq(req, { fallback: 'fr' });
+    const detectedLang = explicitLang ? normalizeLang(explicitLang) : pickLanguageFromMessages(messages, fallbackLang);
+
+    const shouldEnforceLanguage = !looksLikeTranslationFlow(messages);
+    const languageSystemMessage = shouldEnforceLanguage
+      ? {
+          role: 'system',
+          content: [
+            `Langue utilisateur détectée: ${getLanguageNameFr(detectedLang)} (${detectedLang}).`,
+            getResponseLanguageInstruction(detectedLang, { tone: 'même si le reste du contexte est dans une autre langue' }),
+            'Règle: conserve cette langue tout au long de la conversation, sauf si l’utilisateur demande explicitement une traduction ou change volontairement de langue.'
+          ].join('\n')
+        }
+      : null;
+
+    const finalMessages = languageSystemMessage ? [languageSystemMessage, ...messages] : messages;
+
     // Call Groq API
     const startedAt = Date.now();
     const groqResponse = await axios.post(
       'https://api.groq.com/openai/v1/chat/completions',
       {
         model: resolvedModel,
-        messages: messages,
+        messages: finalMessages,
         temperature: 0.7,
         max_tokens: 2000
       },
