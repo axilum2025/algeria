@@ -444,7 +444,11 @@ async function verifyClaimEvidenceWithBrave(claimText, apiKey, context, lang) {
     const seen = new Set();
     const merged = [];
 
-    for (const q of variants.slice(0, 3)) {
+    // Par défaut on limite les variantes pour éviter trop de requêtes.
+    // Certains cas (ex: "sun is black") ont besoin de requêtes plus ciblées.
+    const maxVariants = variants.some(v => /\bsite:(nasa\.gov|britannica\.com)\b/i.test(String(v))) ? 4 : 3;
+
+    for (const q of variants.slice(0, maxVariants)) {
         const results = await braveSearch(q, apiKey, context, 3);
         for (const r of results) {
             const key = String(r.url || '').trim();
@@ -473,15 +477,16 @@ function buildQueryVariantsForClaim(claimText, lang) {
     // Cas courant: "Le soleil est noir" / "The sun is black" -> requêtes plus probantes.
     if (/\b(soleil|sun)\b/i.test(cleaned) && /\b(noir|black)\b/i.test(cleaned)) {
         if (normalized === 'en') {
-            variants.push('is the sun black');
-            variants.push('what color is the sun');
-            variants.push('sun emits visible light');
-            variants.push('sun appears white yellow');
+            // Requêtes plus "factuelles" + sources autoritatives
+            variants.push('what color is the Sun');
+            variants.push('site:nasa.gov Sun emits visible light');
+            variants.push('site:britannica.com color of the Sun');
+            variants.push('Sun emits light visible spectrum');
         } else {
-            variants.push('le soleil est-il noir');
-            variants.push('couleur du soleil');
-            variants.push('le soleil émet de la lumière visible');
-            variants.push('le soleil apparaît blanc jaune');
+            variants.push('couleur du Soleil');
+            variants.push('site:nasa.gov le Soleil émet de la lumière visible');
+            variants.push('site:britannica.com couleur du Soleil');
+            variants.push('spectre visible Soleil lumière');
         }
     }
 
