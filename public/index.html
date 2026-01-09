@@ -38,17 +38,17 @@
         [data-theme="dark"] {
             --bg-primary: #111827;
             --bg-secondary: #1F2937;
-                        <span data-i18n="about.agents.title">Agents &amp; Routage</span>
+            --bg-sidebar: #0F172A;
             --text-primary: #F9FAFB;
-                    <p data-i18n="about.agents.description" data-i18n-html="true">Axilum AI peut fonctionner en <strong>mode général</strong> ou en <strong>mode agent</strong>. Vous pouvez changer d’agent via la commande <strong>/agent</strong> (ou le sélecteur d’agents) pour router vos messages vers une spécialité.</p>
+            --text-secondary: #9CA3AF;
             --border-color: #374151;
             --user-msg: #3B82F6;
-                            <h4 data-i18n="about.agents.chatTitle">Chat général</h4>
-                            <p data-i18n="about.agents.chatDesc" data-i18n-html="true"><strong>Axilum AI</strong> (par défaut) pour les demandes transverses et l’orientation vers les bons modules.</p>
+            --bot-msg: #1F2937;
+            --shadow: rgba(0, 0, 0, 0.4);
         }
 
-                            <h4 data-i18n="about.agents.specialTitle">Agents spécialisés</h4>
-                            <p data-i18n="about.agents.specialDesc">dev, todo, rh, mark, web, alex — chacun correspond à un module/usage (R&amp;D, tâches, RH, marketing, recherche web, finance).</p>
+        * {
+            margin: 0;
             padding: 0;
             box-sizing: border-box;
         }
@@ -59,20 +59,20 @@
             color: var(--text-primary);
             overflow: hidden;
             transition: background 0.3s, color 0.3s;
-                        <span data-i18n="about.orchestration.title">Orchestration &amp; Team System</span>
+        }
 
         /* Header */
         .header {
-                            <h4 data-i18n="about.orchestration.systemTitle">Orchestrateur système</h4>
-                            <p data-i18n="about.orchestration.systemDesc">Coordonne les capacités de la plateforme (agents, modules, outils) pour transformer une demande en étapes actionnables, et router vers la spécialité la plus pertinente.</p>
+            position: fixed;
+            top: 0;
             left: 0;
             right: 0;
-                            <h4 data-i18n="about.orchestration.teamTitle">Team System (Team Auto)</h4>
-                            <p data-i18n="about.orchestration.teamDesc">Mode multi-agents pour les demandes complexes : planification, délégation et synthèse, avec un résultat plus structuré (selon la configuration et le contexte).</p>
+            height: 60px;
+            background: var(--bg-primary);
             border-bottom: none;
             display: flex;
-                            <h4 data-i18n="about.orchestration.contextTitle">Contexte &amp; fiabilité</h4>
-                            <p data-i18n="about.orchestration.contextDesc">Gestion du contexte conversationnel, indicateurs HI/CHR, et outils d’aide à la vérification pour garder des réponses plus cohérentes et plus traçables.</p>
+            align-items: center;
+            justify-content: space-between;
             padding: 0 20px;
             z-index: 100;
             transition: all 0.3s;
@@ -83,32 +83,32 @@
             align-items: center;
             gap: 15px;
         }
-                        <span data-i18n="about.capabilities.title">Capacités transverses</span>
+
         .menu-btn {
             background: none;
             border: none;
-                            <h4 data-i18n="about.capabilities.filesTitle">Fichiers &amp; documents</h4>
-                            <p data-i18n="about.capabilities.filesDesc">Upload (selon modules), extraction et traitement (ex: OCR/vision), et exports (PDF/TXT/DOCX simplifié) pour vos contenus.</p>
+            font-size: 24px;
+            cursor: pointer;
             color: var(--text-primary);
             padding: 8px;
-                            <h4 data-i18n="about.capabilities.voiceTitle">Vocal</h4>
-                            <p data-i18n="about.capabilities.voiceDesc">Saisie vocale et lecture (Web Speech API), pratique pour dicter, reformuler et gagner du temps.</p>
+            border-radius: 8px;
+            transition: background 0.2s;
         }
 
-                            <h4 data-i18n="about.capabilities.webTitle">Recherche web</h4>
-                            <p data-i18n="about.capabilities.webDesc">Agent web (Brave Search) pour obtenir du contexte externe quand c’est nécessaire, puis synthèse et intégration dans la réponse.</p>
+        .menu-btn:hover {
+            background: var(--bg-secondary);
         }
 
-                            <h4 data-i18n="about.capabilities.imagesTitle">Images</h4>
-                            <p data-i18n="about.capabilities.imagesDesc">Analyse d’images (Vision/OCR) et génération d’images (selon le mode/les options activés).</p>
+        .logo {
+            font-size: 22px;
             font-weight: 700;
             color: var(--text-primary);
-                            <h4 data-i18n="about.capabilities.securityTitle">Comptes &amp; sécurité</h4>
-                            <p data-i18n="about.capabilities.securityDesc">Authentification, vérification email et gestion d’accès (selon déploiement), avec options de stockage local et/ou synchronisé.</p>
+            letter-spacing: -0.5px;
+            position: relative;
             display: flex;
             align-items: center;
-                            <h4 data-i18n="about.capabilities.integrationsTitle">Intégrations</h4>
-                            <p data-i18n="about.capabilities.integrationsDesc">Services Azure (OpenAI/Functions/Storage/Vision) et connecteurs optionnels (ex: calendrier) selon votre configuration.</p>
+        }
+
         .logo .letter {
             display: inline-block;
             transition: opacity 0.3s ease;
@@ -119,11 +119,11 @@
         }
 
         @keyframes fadeOutIn {
-                        <span data-i18n="about.data.title">Données, stockage &amp; export</span>
+            0% { opacity: 1; }
             50% { opacity: 0; }
-                    <p data-i18n="about.data.description" data-i18n-html="true">
-                        Axilum AI gère des données (conversations, tâches, événements, paramètres) avec un <strong>stockage local</strong> (IndexedDB/LocalStorage) et des options de <strong>synchro cloud</strong> selon le mode choisi. Vous pouvez exporter vos conversations et consulter la page Confidentialité pour le détail.
-                    </p>
+            100% { opacity: 1; }
+        }
+
 
 
         .header-right {
@@ -3233,18 +3233,18 @@
             <div style="padding: 20px;">
                 <!-- Introduction -->
                 <div class="about-intro">
-                    <p data-i18n="about.intro.p1" data-i18n-html="true">
+                    <p>
                         <strong>Axilum AI</strong> est une plateforme d’assistance professionnelle unifiée qui combine un <strong>chat central</strong> et des <strong>modules métier</strong>.
                         L’expérience est organisée autour d’<strong>agents spécialisés</strong> et d’un <strong>routage intelligent</strong> : vous posez vos questions dans le chat, puis vous passez (si besoin) sur un module dédié (Finance, RH, R&amp;D, Marketing, Excel, Vision, Text Pro, Tâches…) pour bénéficier d’une interface et d’actions adaptées.
                     </p>
-                    <p data-i18n="about.intro.p2">
+                    <p>
                         L’objectif : accélérer vos workflows (analyse, rédaction, organisation, reporting, documents) tout en gardant une navigation simple et une continuité de contexte entre le chat et les modules.
                     </p>
                 </div>
 
                 <!-- Modules Office™ -->
                 <div class="about-section">
-                    <h3 data-i18n="about.office.title">
+                    <h3>
                         <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5a2 2 0 104 0 2 2 0 10-4 0zM5 11a2 2 0 102 2h2a2 2 0 102-2v-2a2 2 0 10-2-2H9a2 2 0 10-4 2v2zM13 13a2 2 0 112 2v2a2 2 0 11-2 2h-2a2 2 0 11-2-2v-2a2 2 0 112-2h2z"/>
                         </svg>
@@ -3252,27 +3252,27 @@
                     </h3>
                     <div class="about-features">
                         <div class="feature-card">
-                            <h4 data-i18n="about.office.financeTitle">Finance &amp; Compta — Agent Alex</h4>
-                            <p data-i18n="about.office.financeDesc">Chat financier + interface dédiée pour poser des questions, uploader des factures, et générer/consulter des rapports et listes (selon configuration du module Finance).</p>
+                            <h4>Finance &amp; Compta — Agent Alex</h4>
+                            <p>Chat financier + interface dédiée pour poser des questions, uploader des factures, et générer/consulter des rapports et listes (selon configuration du module Finance).</p>
                         </div>
                         <div class="feature-card">
-                            <h4 data-i18n="about.office.hrTitle">HR Management Hub — Agent RH</h4>
-                            <p data-i18n="about.office.hrDesc">Gestion RH avec écrans dédiés (employés, congés, paie, recrutement) et automatisations (selon configuration RH).</p>
+                            <h4>HR Management Hub — Agent RH</h4>
+                            <p>Gestion RH avec écrans dédiés (employés, congés, paie, recrutement) et automatisations (selon configuration RH).</p>
                         </div>
                         <div class="feature-card">
-                            <h4 data-i18n="about.office.rndTitle">Research &amp; Development — Agent Dev</h4>
-                            <p data-i18n="about.office.rndDesc">Espace R&amp;D pour assister l’innovation, structurer des idées, rédiger/itérer et organiser des éléments de travail.</p>
+                            <h4>Research &amp; Development — Agent Dev</h4>
+                            <p>Espace R&amp;D pour assister l’innovation, structurer des idées, rédiger/itérer et organiser des éléments de travail.</p>
                         </div>
                         <div class="feature-card">
-                            <h4 data-i18n="about.office.marketingTitle">Marketing &amp; Business — Agent Mark</h4>
-                            <p data-i18n="about.office.marketingDesc">Module marketing pour analyses, stratégie, positionnement et production de contenus (selon votre usage).</p>
+                            <h4>Marketing &amp; Business — Agent Mark</h4>
+                            <p>Module marketing pour analyses, stratégie, positionnement et production de contenus (selon votre usage).</p>
                         </div>
                     </div>
                 </div>
 
                 <!-- Outils -->
                 <div class="about-section">
-                    <h3 data-i18n="about.tools.title">
+                    <h3>
                         <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
@@ -3281,24 +3281,24 @@
                     </h3>
                     <div class="about-features">
                         <div class="feature-card">
-                            <h4 data-i18n="about.tools.excelTitle">Excel AI Expert — en développement</h4>
-                            <p data-i18n="about.tools.excelDesc">Page dédiée pour questions Excel (formules, tableaux, analyse, graphiques) et assistance sur vos fichiers/feuilles selon votre usage.</p>
+                            <h4>Excel AI Expert — en développement</h4>
+                            <p>Page dédiée pour questions Excel (formules, tableaux, analyse, graphiques) et assistance sur vos fichiers/feuilles selon votre usage.</p>
                         </div>
                         <div class="feature-card">
-                            <h4 data-i18n="about.tools.taskTitle">AI Task — Agent ToDo</h4>
-                            <p data-i18n="about.tools.taskDesc">Gestion de tâches/organisation (to-do, planning). Les données peuvent être stockées localement et/ou synchronisées selon le mode activé.</p>
+                            <h4>AI Task — Agent ToDo</h4>
+                            <p>Gestion de tâches/organisation (to-do, planning). Les données peuvent être stockées localement et/ou synchronisées selon le mode activé.</p>
                         </div>
                         <div class="feature-card">
-                            <h4 data-i18n="about.tools.textProTitle">Text Pro — en développement</h4>
-                            <p data-i18n="about.tools.textProDesc">Traitement de texte (rédaction, correction, traduction) avec upload (TXT/PDF/DOC/DOCX) et export (PDF/TXT + DOCX simplifié).</p>
+                            <h4>Text Pro — en développement</h4>
+                            <p>Traitement de texte (rédaction, correction, traduction) avec upload (TXT/PDF/DOC/DOCX) et export (PDF/TXT + DOCX simplifié).</p>
                         </div>
                         <div class="feature-card">
-                            <h4 data-i18n="about.tools.visionTitle">AI Vision PRO — en développement</h4>
-                            <p data-i18n="about.tools.visionDesc">Interface Vision dédiée (Azure Vision) pour l’analyse d’images (statut/accès selon plan). Le bouton “Retour” vous ramène au chat principal.</p>
+                            <h4>AI Vision PRO — en développement</h4>
+                            <p>Interface Vision dédiée (Azure Vision) pour l’analyse d’images (statut/accès selon plan). Le bouton “Retour” vous ramène au chat principal.</p>
                         </div>
                         <div class="feature-card">
-                            <h4 data-i18n="about.tools.hallucinationTitle">Hallucination Detector</h4>
-                            <p data-i18n="about.tools.hallucinationDesc">Mode de vérification: collez une réponse externe et Axilum AI vous aide à repérer les zones incertaines (via HI/CHR et guidage).</p>
+                            <h4>Hallucination Detector</h4>
+                            <p>Mode de vérification: collez une réponse externe et Axilum AI vous aide à repérer les zones incertaines (via HI/CHR et guidage).</p>
                         </div>
                     </div>
                 </div>
@@ -3309,16 +3309,16 @@
                         <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
                         </svg>
-                        <span data-i18n="about.metrics.title">Métriques de Fiabilité</span>
+                        Métriques de Fiabilité
                     </h3>
                     <div class="about-features">
                         <div class="feature-card">
-                            <h4 data-i18n="about.metrics.hiTitle">HI - Hallucination Index</h4>
-                            <p data-i18n="about.metrics.hiDesc">Mesure le taux d'incertitude dans la réponse. Plus c'est bas, mieux c'est !</p>
+                            <h4>HI - Hallucination Index</h4>
+                            <p>Mesure le taux d'incertitude dans la réponse. Plus c'est bas, mieux c'est !</p>
                         </div>
                         <div class="feature-card">
-                            <h4 data-i18n="about.metrics.chrTitle">CHR - Coherence Rate</h4>
-                            <p data-i18n="about.metrics.chrDesc">Évalue la cohérence et la logique interne de la réponse générée.</p>
+                            <h4>CHR - Coherence Rate</h4>
+                            <p>Évalue la cohérence et la logique interne de la réponse générée.</p>
                         </div>
                     </div>
                 </div>
@@ -3329,29 +3329,29 @@
                         <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
                         </svg>
-                        <span data-i18n="about.dots.title">Indicateurs de Session</span>
+                        Indicateurs de Session
                     </h3>
-                    <p data-i18n="about.dots.description">Chaque session affiche un point coloré animé indiquant sa qualité en temps réel :</p>
+                    <p>Chaque session affiche un point coloré animé indiquant sa qualité en temps réel :</p>
                     <div class="dot-legend">
                         <div class="dot-item">
                             <span class="dot-example green"></span>
                             <div class="dot-item-content">
-                                <strong data-i18n="about.dots.greenLabel">Vert - Fiable</strong>
-                                <span data-i18n="about.dots.greenDesc">HI moyen &lt; 40%</span>
+                                <strong>Vert - Fiable</strong>
+                                <span>HI moyen &lt; 40%</span>
                             </div>
                         </div>
                         <div class="dot-item">
                             <span class="dot-example orange"></span>
                             <div class="dot-item-content">
-                                <strong data-i18n="about.dots.orangeLabel">Orange - Attention</strong>
-                                <span data-i18n="about.dots.orangeDesc">HI moyen 40-59%</span>
+                                <strong>Orange - Attention</strong>
+                                <span>HI moyen 40-59%</span>
                             </div>
                         </div>
                         <div class="dot-item">
                             <span class="dot-example red"></span>
                             <div class="dot-item-content">
-                                <strong data-i18n="about.dots.redLabel">Rouge - Risque</strong>
-                                <span data-i18n="about.dots.redDesc">HI moyen ≥ 60%</span>
+                                <strong>Rouge - Risque</strong>
+                                <span>HI moyen ≥ 60%</span>
                             </div>
                         </div>
                     </div>
@@ -3363,7 +3363,7 @@
                         <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"/>
                         </svg>
-                        <span data-i18n="about.stack.title">Stack Technique</span>
+                        Stack Technique
                     </h3>
                     <div class="tech-badges">
                         <span class="tech-badge">Azure OpenAI</span>
@@ -3425,7 +3425,7 @@
 
                 <!-- Fonctions transverses -->
                 <div class="about-section">
-                    <h3 data-i18n="about.capabilities.title">
+                    <h3>
                         <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6 2v-2m0 2a2 2 0 100-4m0 4a2 2 0 110-4m0-4V4"/>
                         </svg>
@@ -3433,28 +3433,28 @@
                     </h3>
                     <div class="about-features">
                         <div class="feature-card">
-                            <h4 data-i18n="about.capabilities.filesTitle">Fichiers &amp; documents</h4>
-                            <p data-i18n="about.capabilities.filesDesc">Upload (selon modules), extraction et traitement (ex: OCR/vision), et exports (PDF/TXT/DOCX simplifié) pour vos contenus.</p>
+                            <h4>Fichiers &amp; documents</h4>
+                            <p>Upload (selon modules), extraction et traitement (ex: OCR/vision), et exports (PDF/TXT/DOCX simplifié) pour vos contenus.</p>
                         </div>
                         <div class="feature-card">
-                            <h4 data-i18n="about.capabilities.voiceTitle">Vocal</h4>
-                            <p data-i18n="about.capabilities.voiceDesc">Saisie vocale et lecture (Web Speech API), pratique pour dicter, reformuler et gagner du temps.</p>
+                            <h4>Vocal</h4>
+                            <p>Saisie vocale et lecture (Web Speech API), pratique pour dicter, reformuler et gagner du temps.</p>
                         </div>
                         <div class="feature-card">
-                            <h4 data-i18n="about.capabilities.webTitle">Recherche web</h4>
-                            <p data-i18n="about.capabilities.webDesc">Agent web (Brave Search) pour obtenir du contexte externe quand c’est nécessaire, puis synthèse et intégration dans la réponse.</p>
+                            <h4>Recherche web</h4>
+                            <p>Agent web (Brave Search) pour obtenir du contexte externe quand c’est nécessaire, puis synthèse et intégration dans la réponse.</p>
                         </div>
                         <div class="feature-card">
-                            <h4 data-i18n="about.capabilities.imagesTitle">Images</h4>
-                            <p data-i18n="about.capabilities.imagesDesc">Analyse d’images (Vision/OCR) et génération d’images (selon le mode/les options activés).</p>
+                            <h4>Images</h4>
+                            <p>Analyse d’images (Vision/OCR) et génération d’images (selon le mode/les options activés).</p>
                         </div>
                         <div class="feature-card">
-                            <h4 data-i18n="about.capabilities.securityTitle">Comptes &amp; sécurité</h4>
-                            <p data-i18n="about.capabilities.securityDesc">Authentification, vérification email et gestion d’accès (selon déploiement), avec options de stockage local et/ou synchronisé.</p>
+                            <h4>Comptes &amp; sécurité</h4>
+                            <p>Authentification, vérification email et gestion d’accès (selon déploiement), avec options de stockage local et/ou synchronisé.</p>
                         </div>
                         <div class="feature-card">
-                            <h4 data-i18n="about.capabilities.integrationsTitle">Intégrations</h4>
-                            <p data-i18n="about.capabilities.integrationsDesc">Services Azure (OpenAI/Functions/Storage/Vision) et connecteurs optionnels (ex: calendrier) selon votre configuration.</p>
+                            <h4>Intégrations</h4>
+                            <p>Services Azure (OpenAI/Functions/Storage/Vision) et connecteurs optionnels (ex: calendrier) selon votre configuration.</p>
                         </div>
                     </div>
                 </div>
@@ -9507,8 +9507,6 @@ ${persona}
                 'stats.conversations': 'Conversations',
                 'stats.avgHI': 'HI moyen',
                 'stats.avgCHR': 'CHR moyen',
-                'stats.tooltip.hi': "<strong>Hallucination Index (HI)</strong><br>Mesure le risque qu'une réponse contienne des informations inventées ou non vérifiées.<br><br>• &lt;15% : Très fiable<br>• 15-30% : Fiable<br>• 30-60% : Prudence<br>• &gt;60% : Incertitude",
-                'stats.tooltip.chr': "<strong>Composite Hallucination Risk (CHR)</strong><br>Indicateur global combinant la confiance de l'IA, l'incertitude et les contradictions détectées.<br><br>Plus le CHR est bas, plus la réponse est sûre et cohérente.",
                 'userMenu.close': 'Fermer',
                 'userMenu.avatarTitle': 'Cliquez pour changer la photo',
                 'userMenu.profilePhoto': 'Photo de profil',
@@ -9517,74 +9515,6 @@ ${persona}
                 'userMenu.logout': 'Se déconnecter',
                 'modal.statsTitle': 'Statistiques',
                 'modal.aboutTitle': "À propos d'Axilum AI",
-                'about.intro.p1': "<strong>Axilum AI</strong> est une plateforme d’assistance professionnelle unifiée qui combine un <strong>chat central</strong> et des <strong>modules métier</strong>. L’expérience est organisée autour d’<strong>agents spécialisés</strong> et d’un <strong>routage intelligent</strong> : vous posez vos questions dans le chat, puis vous passez (si besoin) sur un module dédié (Finance, RH, R&D, Marketing, Excel, Vision, Text Pro, Tâches…) pour bénéficier d’une interface et d’actions adaptées.",
-                'about.intro.p2': "L’objectif : accélérer vos workflows (analyse, rédaction, organisation, reporting, documents) tout en gardant une navigation simple et une continuité de contexte entre le chat et les modules.",
-                'about.office.title': 'Modules Office™ (métiers)',
-                'about.office.financeTitle': 'Finance &amp; Compta — Agent Alex',
-                'about.office.financeDesc': 'Chat financier + interface dédiée pour poser des questions, uploader des factures, et générer/consulter des rapports et listes (selon configuration du module Finance).',
-                'about.office.hrTitle': 'HR Management Hub — Agent RH',
-                'about.office.hrDesc': 'Gestion RH avec écrans dédiés (employés, congés, paie, recrutement) et automatisations (selon configuration RH).',
-                'about.office.rndTitle': 'Research &amp; Development — Agent Dev',
-                'about.office.rndDesc': 'Espace R&D pour assister l’innovation, structurer des idées, rédiger/itérer et organiser des éléments de travail.',
-                'about.office.marketingTitle': 'Marketing &amp; Business — Agent Mark',
-                'about.office.marketingDesc': 'Module marketing pour analyses, stratégie, positionnement et production de contenus (selon votre usage).',
-                'about.tools.title': 'Outils (productivité)',
-                'about.tools.excelTitle': 'Excel AI Expert — en développement',
-                'about.tools.excelDesc': 'Page dédiée pour questions Excel (formules, tableaux, analyse, graphiques) et assistance sur vos fichiers/feuilles selon votre usage.',
-                'about.tools.taskTitle': 'AI Task — Agent ToDo',
-                'about.tools.taskDesc': 'Gestion de tâches/organisation (to-do, planning). Les données peuvent être stockées localement et/ou synchronisées selon le mode activé.',
-                'about.tools.textProTitle': 'Text Pro — en développement',
-                'about.tools.textProDesc': 'Traitement de texte (rédaction, correction, traduction) avec upload (TXT/PDF/DOC/DOCX) et export (PDF/TXT + DOCX simplifié).',
-                'about.tools.visionTitle': 'AI Vision PRO — en développement',
-                'about.tools.visionDesc': 'Interface Vision dédiée (Azure Vision) pour l’analyse d’images (statut/accès selon plan). Le bouton “Retour” vous ramène au chat principal.',
-                'about.tools.hallucinationTitle': 'Hallucination Detector',
-                'about.tools.hallucinationDesc': 'Mode de vérification: collez une réponse externe et Axilum AI vous aide à repérer les zones incertaines (via HI/CHR et guidage).',
-                'about.metrics.title': 'Métriques de Fiabilité',
-                'about.metrics.hiTitle': 'HI - Hallucination Index',
-                'about.metrics.hiDesc': "Mesure le taux d'incertitude dans la réponse. Plus c'est bas, mieux c'est !",
-                'about.metrics.chrTitle': 'CHR - Coherence Rate',
-                'about.metrics.chrDesc': 'Évalue la cohérence et la logique interne de la réponse générée.',
-                'about.dots.title': 'Indicateurs de Session',
-                'about.dots.description': 'Chaque session affiche un point coloré animé indiquant sa qualité en temps réel :',
-                'about.dots.greenLabel': 'Vert - Fiable',
-                'about.dots.greenDesc': 'HI moyen &lt; 40%',
-                'about.dots.orangeLabel': 'Orange - Attention',
-                'about.dots.orangeDesc': 'HI moyen 40-59%',
-                'about.dots.redLabel': 'Rouge - Risque',
-                'about.dots.redDesc': 'HI moyen ≥ 60%',
-                'about.stack.title': 'Stack Technique',
-                'about.agents.title': 'Agents &amp; Routage',
-                'about.agents.description': 'Axilum AI peut fonctionner en <strong>mode général</strong> ou en <strong>mode agent</strong>. Vous pouvez changer d’agent via la commande <strong>/agent</strong> (ou le sélecteur d’agents) pour router vos messages vers une spécialité.',
-                'about.agents.chatTitle': 'Chat général',
-                'about.agents.chatDesc': '<strong>Axilum AI</strong> (par défaut) pour les demandes transverses et l’orientation vers les bons modules.',
-                'about.agents.specialTitle': 'Agents spécialisés',
-                'about.agents.specialDesc': 'dev, todo, rh, mark, web, alex — chacun correspond à un module/usage (R&amp;D, tâches, RH, marketing, recherche web, finance).',
-                'about.orchestration.title': 'Orchestration &amp; Team System',
-                'about.orchestration.systemTitle': 'Orchestrateur système',
-                'about.orchestration.systemDesc': 'Coordonne les capacités de la plateforme (agents, modules, outils) pour transformer une demande en étapes actionnables, et router vers la spécialité la plus pertinente.',
-                'about.orchestration.teamTitle': 'Team System (Team Auto)',
-                'about.orchestration.teamDesc': 'Mode multi-agents pour les demandes complexes : planification, délégation et synthèse, avec un résultat plus structuré (selon la configuration et le contexte).',
-                'about.orchestration.contextTitle': 'Contexte &amp; fiabilité',
-                'about.orchestration.contextDesc': 'Gestion du contexte conversationnel, indicateurs HI/CHR, et outils d’aide à la vérification pour garder des réponses plus cohérentes et plus traçables.',
-                'about.capabilities.title': 'Capacités transverses',
-                'about.capabilities.filesTitle': 'Fichiers &amp; documents',
-                'about.capabilities.filesDesc': 'Upload (selon modules), extraction et traitement (ex: OCR/vision), et exports (PDF/TXT/DOCX simplifié) pour vos contenus.',
-                'about.capabilities.voiceTitle': 'Vocal',
-                'about.capabilities.voiceDesc': 'Saisie vocale et lecture (Web Speech API), pratique pour dicter, reformuler et gagner du temps.',
-                'about.capabilities.webTitle': 'Recherche web',
-                'about.capabilities.webDesc': 'Agent web (Brave Search) pour obtenir du contexte externe quand c’est nécessaire, puis synthèse et intégration dans la réponse.',
-                'about.capabilities.imagesTitle': 'Images',
-                'about.capabilities.imagesDesc': 'Analyse d’images (Vision/OCR) et génération d’images (selon le mode/les options activés).',
-                'about.capabilities.securityTitle': 'Comptes &amp; sécurité',
-                'about.capabilities.securityDesc': 'Authentification, vérification email et gestion d’accès (selon déploiement), avec options de stockage local et/ou synchronisé.',
-                'about.capabilities.integrationsTitle': 'Intégrations',
-                'about.capabilities.integrationsDesc': 'Services Azure (OpenAI/Functions/Storage/Vision) et connecteurs optionnels (ex: calendrier) selon votre configuration.',
-                'about.data.title': 'Données, stockage &amp; export',
-                'about.data.description': 'Axilum AI gère des données (conversations, tâches, événements, paramètres) avec un <strong>stockage local</strong> (IndexedDB/LocalStorage) et des options de <strong>synchro cloud</strong> selon le mode choisi. Vous pouvez exporter vos conversations et consulter la page Confidentialité pour le détail.',
-                'about.company.title': 'Développé par AI Solutions Hub®',
-                'about.company.description': "<strong>AI Solutions Hub®</strong> - Entreprise innovante spécialisée dans le développement de solutions d'intelligence artificielle de confiance et éthique.",
-                'about.company.support': '<strong>Support :</strong> <a href="mailto:support@solutionshub.uk">support@solutionshub.uk</a>',
-                'about.company.rights': '© 2025 AI Solutions Hub®. Tous droits réservés.',
                 'auth.logoutConfirm': 'Êtes-vous sûr de vouloir vous déconnecter ?',
                 'auth.goodbye': '👋 À bientôt !',
                 'auth.selectImage': '❌ Veuillez sélectionner une image',
@@ -9678,74 +9608,6 @@ ${persona}
                 'userMenu.logout': 'Sign out',
                 'modal.statsTitle': 'Stats',
                 'modal.aboutTitle': 'About Axilum AI',
-                'about.intro.p1': '<strong>Axilum AI</strong> is a unified professional assistance platform that combines a <strong>central chat</strong> with <strong>business modules</strong>. The experience is organized around <strong>specialized agents</strong> and <strong>intelligent routing</strong>: ask questions in chat, then jump (when needed) into a dedicated module (Finance, HR, R&D, Marketing, Excel, Vision, Text Pro, Tasks…) to get tailored interfaces and actions.',
-                'about.intro.p2': 'The goal: accelerate workflows (analysis, writing, planning, reporting, documents) while keeping navigation simple and maintaining context continuity between chat and modules.',
-                'about.office.title': 'Office™ Modules (business)',
-                'about.office.financeTitle': 'Finance &amp; Accounting — Agent Alex',
-                'about.office.financeDesc': 'Finance chat plus a dedicated UI to ask questions, upload invoices, and generate/review reports or lists (depending on your Finance module setup).',
-                'about.office.hrTitle': 'HR Management Hub — Agent RH',
-                'about.office.hrDesc': 'HR management with dedicated screens (employees, leave, payroll, recruiting) and automations (based on your HR configuration).',
-                'about.office.rndTitle': 'Research &amp; Development — Agent Dev',
-                'about.office.rndDesc': 'R&D workspace to support innovation, structure ideas, iterate on drafts, and organize work items.',
-                'about.office.marketingTitle': 'Marketing &amp; Business — Agent Mark',
-                'about.office.marketingDesc': 'Marketing module for analysis, strategy, positioning, and content production (according to your use cases).',
-                'about.tools.title': 'Productivity tools',
-                'about.tools.excelTitle': 'Excel AI Expert — in progress',
-                'about.tools.excelDesc': 'Dedicated page for Excel questions (formulas, tables, analysis, charts) plus assistance on your files/sheets.',
-                'about.tools.taskTitle': 'AI Task — Agent ToDo',
-                'about.tools.taskDesc': 'Task and planning manager. Data can be stored locally and/or synced depending on the active mode.',
-                'about.tools.textProTitle': 'Text Pro — in progress',
-                'about.tools.textProDesc': 'Text processing (writing, correction, translation) with uploads (TXT/PDF/DOC/DOCX) and exports (PDF/TXT + simplified DOCX).',
-                'about.tools.visionTitle': 'AI Vision PRO — in progress',
-                'about.tools.visionDesc': 'Dedicated Vision interface (Azure Vision) for image analysis (availability depends on plan). The “Back” button returns to the main chat.',
-                'about.tools.hallucinationTitle': 'Hallucination Detector',
-                'about.tools.hallucinationDesc': 'Verification mode: paste an external answer and Axilum AI highlights uncertain areas (via HI/CHR guidance).',
-                'about.metrics.title': 'Reliability Metrics',
-                'about.metrics.hiTitle': 'HI - Hallucination Index',
-                'about.metrics.hiDesc': 'Measures the uncertainty level in the response. The lower, the better!',
-                'about.metrics.chrTitle': 'CHR - Coherence Rate',
-                'about.metrics.chrDesc': 'Evaluates the internal logic and coherence of the generated response.',
-                'about.dots.title': 'Session Indicators',
-                'about.dots.description': 'Each session displays an animated colored dot that reflects its live quality:',
-                'about.dots.greenLabel': 'Green - Reliable',
-                'about.dots.greenDesc': 'Average HI &lt; 40%',
-                'about.dots.orangeLabel': 'Orange - Watch',
-                'about.dots.orangeDesc': 'Average HI 40-59%',
-                'about.dots.redLabel': 'Red - Risk',
-                'about.dots.redDesc': 'Average HI ≥ 60%',
-                'about.stack.title': 'Tech Stack',
-                'about.agents.title': 'Agents &amp; Routing',
-                'about.agents.description': 'Axilum AI can run in a <strong>general chat mode</strong> or <strong>agent mode</strong>. Use the <strong>/agent</strong> command (or the agent selector) to route messages to a specialty.',
-                'about.agents.chatTitle': 'General chat',
-                'about.agents.chatDesc': '<strong>Axilum AI</strong> (default) for transversal requests and guidance toward the right modules.',
-                'about.agents.specialTitle': 'Specialized agents',
-                'about.agents.specialDesc': 'dev, todo, rh, mark, web, alex — each maps to a module/use case (R&D, tasks, HR, marketing, web search, finance).',
-                'about.orchestration.title': 'Orchestration &amp; Team System',
-                'about.orchestration.systemTitle': 'System orchestrator',
-                'about.orchestration.systemDesc': 'Coordinates platform capabilities (agents, modules, tools) to break down a request into actionable steps and route it to the best specialty.',
-                'about.orchestration.teamTitle': 'Team System (Team Auto)',
-                'about.orchestration.teamDesc': 'Multi-agent mode for complex needs: planning, delegation, and synthesis for structured outcomes (depending on configuration and context).',
-                'about.orchestration.contextTitle': 'Context &amp; reliability',
-                'about.orchestration.contextDesc': 'Manages conversational context, HI/CHR indicators, and verification helpers to keep answers coherent and traceable.',
-                'about.capabilities.title': 'Cross-cutting capabilities',
-                'about.capabilities.filesTitle': 'Files &amp; documents',
-                'about.capabilities.filesDesc': 'Uploads (module-dependent), extraction/processing (e.g., OCR/vision), and exports (PDF/TXT/simplified DOCX) for your content.',
-                'about.capabilities.voiceTitle': 'Voice',
-                'about.capabilities.voiceDesc': 'Voice input and playback (Web Speech API) to dictate, rephrase, and save time.',
-                'about.capabilities.webTitle': 'Web search',
-                'about.capabilities.webDesc': 'Web agent (Brave Search) to fetch external context when needed, then synthesize and inject it into the reply.',
-                'about.capabilities.imagesTitle': 'Images',
-                'about.capabilities.imagesDesc': 'Image analysis (Vision/OCR) and image generation (based on enabled modes/options).',
-                'about.capabilities.securityTitle': 'Accounts &amp; security',
-                'about.capabilities.securityDesc': 'Authentication, email verification, and access control (depending on deployment), with local and/or synced storage options.',
-                'about.capabilities.integrationsTitle': 'Integrations',
-                'about.capabilities.integrationsDesc': 'Azure services (OpenAI/Functions/Storage/Vision) plus optional connectors (e.g., calendar) per your setup.',
-                'about.data.title': 'Data, storage &amp; export',
-                'about.data.description': 'Axilum AI manages data (conversations, tasks, events, settings) with <strong>local storage</strong> (IndexedDB/LocalStorage) and optional <strong>cloud sync</strong> depending on the mode. You can export conversations and review the Privacy page for details.',
-                'about.company.title': 'Built by AI Solutions Hub®',
-                'about.company.description': '<strong>AI Solutions Hub®</strong> — Innovative company crafting trustworthy, ethical AI solutions.',
-                'about.company.support': '<strong>Support:</strong> <a href="mailto:support@solutionshub.uk">support@solutionshub.uk</a>',
-                'about.company.rights': '© 2025 AI Solutions Hub®. All rights reserved.',
                 'auth.logoutConfirm': 'Are you sure you want to sign out?',
                 'auth.goodbye': '👋 See you soon!',
                 'auth.selectImage': '❌ Please select an image',
@@ -34499,15 +34361,11 @@ Réponds UNIQUEMENT dans ce format JSON:
             const tooltip = document.getElementById('tooltip');
             
             const explanations = {
-                hi: (typeof t === 'function')
-                    ? t('stats.tooltip.hi')
-                    : "<strong>Hallucination Index (HI)</strong><br>Mesure le risque qu'une réponse contienne des informations inventées ou non vérifiées.<br><br>• &lt;15% : Très fiable<br>• 15-30% : Fiable<br>• 30-60% : Prudence<br>• &gt;60% : Incertitude",
-                chr: (typeof t === 'function')
-                    ? t('stats.tooltip.chr')
-                    : "<strong>Composite Hallucination Risk (CHR)</strong><br>Indicateur global combinant la confiance de l'IA, l'incertitude et les contradictions détectées.<br><br>Plus le CHR est bas, plus la réponse est sûre et cohérente."
+                hi: "<strong>Hallucination Index (HI)</strong><br>Mesure le risque qu'une réponse contienne des informations inventées ou non vérifiées.<br><br>• <15% : Très fiable<br>• 15-30% : Fiable<br>• 30-60% : Prudence<br>• >60% : Incertitude",
+                chr: "<strong>Composite Hallucination Risk (CHR)</strong><br>Indicateur global combinant la confiance de l'IA, l'incertitude et les contradictions détectées.<br><br>Plus le CHR est bas, plus la réponse est sûre et cohérente."
             };
             
-            tooltip.innerHTML = explanations[type] || '';
+            tooltip.innerHTML = explanations[type];
             tooltip.classList.add('show');
             
             // Position le tooltip près du curseur
@@ -35587,22 +35445,6 @@ Réponds UNIQUEMENT dans ce format JSON:
             }, 2000);
             
             console.log('💡 Système de déblocage activé. Utilisez Ctrl+Shift+U ou "unblockInterface()" pour débloquer.');
-        }
-        
-        // Lancer l'initialisation au chargement DOM complet
-        if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', initUnblockSystem);
-        } else {
-            // DOM déjà chargé
-            initUnblockSystem();
-        }
-    </script>
-    
-    <!-- Forgot Password Functions -->
-    <script src="forgot-password-functions.js"></script>
-
-</body>
-</html>
         }
         
         // Lancer l'initialisation au chargement DOM complet
