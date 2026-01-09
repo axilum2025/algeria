@@ -38,6 +38,16 @@ function inferModelKind(modelId, meta) {
   return 'chat';
 }
 
+const CHAT_MODEL_DENYLIST = new Set([
+  // Llama 4 entries: not intended for chat/tools in this app's UI
+  'meta-llama/llama-4-scout-17b-16e-instruct',
+  'meta-llama/llama-4-maverick-17b-128e-instruct',
+
+  // Compound systems: not intended for the standard chat dropdown
+  'groq/compound',
+  'groq/compound-mini'
+]);
+
 function safeJsonParse(value) {
   try {
     return JSON.parse(value);
@@ -70,6 +80,7 @@ module.exports = async function (context, req) {
       const kind = inferModelKind(cleanId, meta);
       // For the chat model dropdown, hide non-chat models.
       if (purpose === 'chat' && kind !== 'chat') return;
+      if (purpose === 'chat' && CHAT_MODEL_DENYLIST.has(cleanId)) return;
 
       models.push({
         id: cleanId,
