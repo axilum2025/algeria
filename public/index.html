@@ -7011,6 +7011,7 @@ ${persona}
                         const suspiciousCount = Array.isArray(report.suspiciousFacts) ? report.suspiciousFacts.length : 0;
                         const securityCount = Array.isArray(report.securityWarnings) ? report.securityWarnings.length : 0;
                         const detectorCounts = (report && report.counts && typeof report.counts === 'object') ? report.counts : null;
+                        const evidenceScore = (report && report.score && typeof report.score === 'object') ? report.score : null;
                         const notSupportedClaims = Array.isArray(report.notSupportedClaims) ? report.notSupportedClaims : [];
                         const contradictoryClaims = Array.isArray(report.contradictoryClaims) ? report.contradictoryClaims : [];
 
@@ -7019,6 +7020,15 @@ ${persona}
                         if (reliabilityScore !== null) out += `${t('hd.report.reliability')}: ${reliabilityScore}%\n`;
                         if (hiPercent !== null || chrPercent !== null) {
                             out += `HI: ${hiPercent !== null ? hiPercent + '%' : 'N/A'} | CHR: ${chrPercent !== null ? chrPercent + '%' : 'N/A'}\n`;
+                        }
+
+                        if (evidenceScore && (typeof evidenceScore.contradictionRisk === 'number' || typeof evidenceScore.evidenceCoverage === 'number')) {
+                            const risk = (typeof evidenceScore.contradictionRisk === 'number') ? `${evidenceScore.contradictionRisk}%` : 'N/A';
+                            const cov = (typeof evidenceScore.evidenceCoverage === 'number') ? `${evidenceScore.evidenceCoverage}%` : 'N/A';
+                            const ci = (evidenceScore.uncertainty && Array.isArray(evidenceScore.uncertainty.ci90) && evidenceScore.uncertainty.ci90.length === 2)
+                                ? `[${evidenceScore.uncertainty.ci90[0]}%, ${evidenceScore.uncertainty.ci90[1]}%]`
+                                : 'N/A';
+                            out += `${t('hd.report.contradictionRisk')}: ${risk} | ${t('hd.report.evidenceCoverage')}: ${cov} | ${t('hd.report.uncertainty')}: ${ci}\n`;
                         }
 
                         if (detectorCounts && typeof detectorCounts.total === 'number') {
@@ -9783,6 +9793,9 @@ ${persona}
                 'hd.report.title': '🔎 Rapport Hallucination Detector',
                 'hd.report.source': 'Source',
                 'hd.report.reliability': 'Score de fiabilité',
+                'hd.report.contradictionRisk': 'Risque de contradiction',
+                'hd.report.evidenceCoverage': 'Couverture de preuve',
+                'hd.report.uncertainty': 'Incertitude (IC90)',
                 'hd.report.claimsDetector': 'Claims (détecteur)',
                 'hd.report.facts': 'Faits',
                 'hd.report.unverified': 'non confirmés',
@@ -9962,6 +9975,9 @@ ${persona}
                 'hd.report.title': '🔎 Hallucination Detector Report',
                 'hd.report.source': 'Source',
                 'hd.report.reliability': 'Reliability score',
+                'hd.report.contradictionRisk': 'Contradiction risk',
+                'hd.report.evidenceCoverage': 'Evidence coverage',
+                'hd.report.uncertainty': 'Uncertainty (CI90)',
                 'hd.report.claimsDetector': 'Claims (detector)',
                 'hd.report.facts': 'Facts',
                 'hd.report.unverified': 'unverified',

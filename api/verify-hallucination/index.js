@@ -80,7 +80,7 @@ module.exports = async function (context, req) {
             
             for (const fact of facts.slice(0, 5)) { // Limiter à 5 faits pour performance
                 try {
-                    const verification = await verifyFactWithBrave(fact, braveApiKey, context);
+                    const verification = await verifyFactWithBrave(fact, braveApiKey, context, lang);
 
                     evidence.push({
                         fact,
@@ -429,20 +429,21 @@ async function extractFacts(text) {
 }
 
 // Vérifier un fait avec Brave Search
-async function verifyFactWithBrave(fact, apiKey, context) {
-    const cleaned = sanitizeBraveQuery(fact);
-    const results = await braveSearch(cleaned, apiKey, context, 3);
-    if (results.length > 0) {
+async function verifyFactWithBrave(fact, apiKey, context, lang) {
+    // Réutiliser la même logique que l'evidence-check (multi-variantes)
+    // pour éviter "partial match" quand une seule requête échoue.
+    const v = await verifyClaimEvidenceWithBrave(fact, apiKey, context, lang);
+    if (v && Array.isArray(v.results) && v.results.length > 0) {
         return {
             verified: false,
             partialMatch: true,
-            source: results[0].url,
-            title: results[0].title,
-            query: cleaned,
-            results
+            source: v.results[0].url,
+            title: v.results[0].title,
+            query: v.query,
+            results: v.results
         };
     }
-    return { verified: false, partialMatch: false, query: cleaned, results: [] };
+    return { verified: false, partialMatch: false, query: sanitizeBraveQuery(fact), results: [] };
 }
 
 async function verifyClaimEvidenceWithBrave(claimText, apiKey, context, lang) {

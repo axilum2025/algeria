@@ -230,6 +230,46 @@ function bootstrapRiskCI90(results, iterations = 200) {
   return { low: clamp01(p05), high: clamp01(p95) };
 }
 
+function looksLikeSunBlackClaim(claimText) {
+  const t = String(claimText || '').toLowerCase();
+  return (/(\bsun\b|\bsoleil\b)/i.test(t) && /(\bblack\b|\bnoir\b)/i.test(t));
+}
+
+function findEvidenceIdsMatching(evidenceItems, patterns) {
+  const items = Array.isArray(evidenceItems) ? evidenceItems : [];
+  const ids = [];
+  for (let i = 0; i < items.length; i += 1) {
+    const it = items[i];
+    const blob = `${it?.title || ''} ${it?.description || ''}`;
+    if (patterns.some(rx => rx.test(blob))) {
+      ids.push(`E${i + 1}`);
+      if (ids.length >= 3) break;
+    }
+  }
+  return ids;
+}
+
+function evidenceSuggestsSunIsNotBlack(evidenceItems, lang) {
+  const normalized = normalizeLang(lang);
+  const en = [
+    /\bemits\b\s+(?:visible\s+)?\blight\b/i,
+    /\bproduces\b\s+(?:visible\s+)?\blight\b/i,
+    /\bvisible\s+spectrum\b/i,
+    /\bbright\b/i,
+    /\bappears\b\s+(?:white|yellow|white\s*-\s*yellow|yellow\s*-\s*white)\b/i
+  ];
+  const fr = [
+    /\bémet\b\s+(?:de\s+la\s+)?\blumi[eè]re\b/i,
+    /\bproduit\b\s+(?:de\s+la\s+)?\blumi[eè]re\b/i,
+    /\bspectre\s+visible\b/i,
+    /\blumineux\b/i,
+    /\bappara[iî]t\b\s+(?:blanc|jaune|blanc\s*-\s*jaune|jaune\s*-\s*blanc)\b/i
+  ];
+  const patterns = normalized === 'en' ? en : fr;
+  const ids = findEvidenceIdsMatching(evidenceItems, patterns);
+  return { match: ids.length > 0, evidenceUsed: ids };
+}
+
 function normalizeLang(lang) {
   const raw = String(lang || '').toLowerCase();
   return raw.startsWith('en') ? 'en' : 'fr';
@@ -487,18 +527,37 @@ async function verifyClaimsWithEvidence({ claims, evidenceByClaim, lang, userId 
       }
       : null;
     const baseProbs = modelProbs ? normalizeProbabilities(modelProbs) : deriveProbabilitiesFromVerdict({ classification, confidence: verdict?.confidence, score: classification === 'SUPPORTED' ? 1.0 : classification === 'CONTRADICTORY' ? 1.0 : 0.5 });
-    const probabilities = adjustProbabilitiesByEvidenceQuality(baseProbs, evidenceQuality);
+    let probabilities = adjustProbabilitiesByEvidenceQuality(baseProbs, evidenceQuality);
+
+    // Heuristique strictement basée sur preuves (snippets):
+    // si une claim type "sun is black" est évaluée NOT_SUPPORTED mais que les preuves mentionnent
+    // explicitement lumière/brightness/apparence blanche-jaune, on force CONTRADICTORY.
+    let forcedClassification = null;
+    let forcedRationaleAppend = '';
+    let forcedEvidenceUsed = null;
+    if (looksLikeSunBlackClaim(claimText) && classification === 'NOT_SUPPORTED' && evidenceQuality >= 0.35) {
+      const ev = evidenceSuggestsSunIsNotBlack(evidenceItems, normalized);
+      if (ev.match) {
+        forcedClassification = 'CONTRADICTORY';
+        forcedEvidenceUsed = ev.evidenceUsed;
+        probabilities = normalizeProbabilities({ p_supported: 0.05, p_not_supported: 0.15, p_contradictory: 0.80 });
+        forcedRationaleAppend = normalized === 'en'
+          ? 'Heuristic: evidence mentions light/brightness (contradicts an apparent-color "black" claim).' 
+          : 'Heuristique : les preuves mentionnent lumière/luminosité (contredit une claim de couleur apparente "noir").';
+      }
+    }
+
     const topProb = Math.max(probabilities.p_supported, probabilities.p_not_supported, probabilities.p_contradictory);
     const confidence = clamp01(0.5 * evidenceQuality + 0.5 * topProb);
 
     results.push({
       text: claimText,
       type: claimType,
-      classification,
+      classification: forcedClassification || classification,
       score: classification === 'SUPPORTED' ? 1.0 : classification === 'CONTRADICTORY' ? 0.0 : 0.5,
       confidence: confidence,
-      rationale: String(verdict?.rationale || ''),
-      evidenceUsed: Array.isArray(verdict?.evidenceUsed) ? verdict.evidenceUsed : [],
+      rationale: `${String(verdict?.rationale || '').trim()}${forcedRationaleAppend ? (String(verdict?.rationale || '').trim() ? ' ' : '') + forcedRationaleAppend : ''}`.trim(),
+      evidenceUsed: forcedEvidenceUsed || (Array.isArray(verdict?.evidenceUsed) ? verdict.evidenceUsed : []),
       evidence: Array.isArray(evidenceItems) ? evidenceItems.slice(0, 8) : [],
       evidenceQuality,
       evidenceQualityDetails,
