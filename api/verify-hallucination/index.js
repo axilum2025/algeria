@@ -125,7 +125,7 @@ module.exports = async function (context, req) {
 
             for (const claimText of claimTexts) {
                 try {
-                    const v = await verifyFactWithBrave(claimText, braveApiKey, context);
+                    const v = await verifyClaimEvidenceWithBrave(claimText, braveApiKey, context, lang);
                     evidenceByClaim[claimText] = Array.isArray(v.results) ? v.results : [];
                 } catch (_) {
                     evidenceByClaim[claimText] = [];
@@ -419,12 +419,84 @@ async function extractFacts(text) {
 
 // Vérifier un fait avec Brave Search
 async function verifyFactWithBrave(fact, apiKey, context) {
+    const cleaned = sanitizeBraveQuery(fact);
+    const results = await braveSearch(cleaned, apiKey, context, 3);
+    if (results.length > 0) {
+        return {
+            verified: false,
+            partialMatch: true,
+            source: results[0].url,
+            title: results[0].title,
+            query: cleaned,
+            results
+        };
+    }
+    return { verified: false, partialMatch: false, query: cleaned, results: [] };
+}
+
+async function verifyClaimEvidenceWithBrave(claimText, apiKey, context, lang) {
+    const variants = buildQueryVariantsForClaim(claimText, lang);
+    const seen = new Set();
+    const merged = [];
+
+    for (const q of variants.slice(0, 3)) {
+        const results = await braveSearch(q, apiKey, context, 3);
+        for (const r of results) {
+            const key = String(r.url || '').trim();
+            if (!key || seen.has(key)) continue;
+            seen.add(key);
+            merged.push(r);
+        }
+        if (merged.length >= 6) break;
+    }
+
+    return {
+        verified: false,
+        partialMatch: merged.length > 0,
+        source: merged[0]?.url || null,
+        title: merged[0]?.title || null,
+        query: variants[0] || sanitizeBraveQuery(claimText),
+        results: merged.slice(0, 8)
+    };
+}
+
+function buildQueryVariantsForClaim(claimText, lang) {
+    const normalized = normalizeLang(lang);
+    const cleaned = sanitizeBraveQuery(claimText);
+    const variants = [cleaned];
+
+    // Cas courant: "Le soleil est noir" / "The sun is black" -> requêtes plus probantes.
+    if (/\b(soleil|sun)\b/i.test(cleaned) && /\b(noir|black)\b/i.test(cleaned)) {
+        if (normalized === 'en') {
+            variants.push('is the sun black');
+            variants.push('what color is the sun');
+        } else {
+            variants.push('le soleil est-il noir');
+            variants.push('couleur du soleil');
+        }
+    }
+
+    // Cas "terre plate" / "earth is flat"
+    if (/\b(terre|earth)\b/i.test(cleaned) && /\b(platte|plate|flat)\b/i.test(cleaned)) {
+        if (normalized === 'en') {
+            variants.push('is the earth flat');
+            variants.push('evidence earth is round');
+        } else {
+            variants.push('la terre est-elle plate');
+            variants.push('preuves terre ronde');
+        }
+    }
+
+    return [...new Set(variants)].filter(Boolean);
+}
+
+function braveSearch(queryText, apiKey, context, count = 3) {
     return new Promise((resolve) => {
-        const cleaned = sanitizeBraveQuery(fact);
+        const cleaned = sanitizeBraveQuery(queryText);
         const query = encodeURIComponent(cleaned);
         const options = {
             hostname: 'api.search.brave.com',
-            path: `/res/v1/web/search?q=${query}&count=3`,
+            path: `/res/v1/web/search?q=${query}&count=${Math.max(1, Math.min(10, Number(count) || 3))}`,
             method: 'GET',
             headers: {
                 'Accept': 'application/json',
@@ -442,43 +514,29 @@ async function verifyFactWithBrave(fact, apiKey, context) {
                     const hasResults = result.web?.results?.length > 0;
 
                     const results = hasResults
-                        ? result.web.results.slice(0, 3).map(r => ({
+                        ? result.web.results.slice(0, 8).map(r => ({
                             title: r.title,
                             url: r.url,
                             description: r.description || r.snippet || ''
                         }))
                         : [];
-                    
-                    if (hasResults) {
-                        const topResult = result.web.results[0];
-                        resolve({
-                            // Présence de résultats ≠ preuve que l'affirmation est vraie.
-                            // On marque donc comme "partialMatch" (source potentielle à lire), pas comme vérifié.
-                            verified: false,
-                            partialMatch: true,
-                            source: topResult.url,
-                            title: topResult.title,
-                            query: cleaned,
-                            results
-                        });
-                    } else {
-                        resolve({ verified: false, partialMatch: false, query: cleaned, results: [] });
-                    }
+
+                    resolve(results);
                 } catch (err) {
-                    context.log.error('Erreur parsing Brave:', err);
-                    resolve({ verified: false, partialMatch: false, query: null, results: [] });
+                    context?.log?.error?.('Erreur parsing Brave:', err);
+                    resolve([]);
                 }
             });
         });
 
         req.on('error', (err) => {
-            context.log.error('Erreur requête Brave:', err);
-            resolve({ verified: false, partialMatch: false, query: null, results: [] });
+            context?.log?.error?.('Erreur requête Brave:', err);
+            resolve([]);
         });
 
         req.setTimeout(5000, () => {
             req.destroy();
-            resolve({ verified: false, partialMatch: false, query: null, results: [] });
+            resolve([]);
         });
 
         req.end();
