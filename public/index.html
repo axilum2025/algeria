@@ -9886,6 +9886,14 @@ ${persona}
                 // Certains éléments sont injectés dynamiquement (innerHTML), ex: bouton compte.
                 if (typeof updateUIForAuth === 'function') updateUIForAuth();
             } catch (_) {}
+
+            try {
+                // Si le modal Stats est ouvert, re-rendre son contenu pour appliquer les libellés traduits (Average HI/CHR).
+                const statsModal = document.getElementById('statsModal');
+                if (statsModal && statsModal.classList.contains('show') && typeof showStats === 'function') {
+                    showStats();
+                }
+            } catch (_) {}
         }
 
         function onLanguageChanged() {
