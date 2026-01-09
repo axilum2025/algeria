@@ -399,7 +399,7 @@ async function extractFacts(text) {
         .filter(Boolean)
         .filter(s => s.length >= 8 && s.length <= 180);
 
-    const simpleCopulaRegex = /\b(est|sont|était|étaient|sera|seront|serait|seraient)\b/i;
+    const simpleCopulaRegex = /\b(est|sont|était|étaient|sera|seront|serait|seraient|is|are|was|were|will\s+be|would\s+be)\b/i;
     for (const s of sentenceCandidates) {
         if (simpleCopulaRegex.test(s)) {
             facts.push(s);
@@ -470,9 +470,13 @@ function buildQueryVariantsForClaim(claimText, lang) {
         if (normalized === 'en') {
             variants.push('is the sun black');
             variants.push('what color is the sun');
+            variants.push('sun emits visible light');
+            variants.push('sun appears white yellow');
         } else {
             variants.push('le soleil est-il noir');
             variants.push('couleur du soleil');
+            variants.push('le soleil émet de la lumière visible');
+            variants.push('le soleil apparaît blanc jaune');
         }
     }
 

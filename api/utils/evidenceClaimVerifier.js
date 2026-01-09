@@ -61,7 +61,10 @@ function buildPrompt({ lang, claimText, evidenceItems }) {
 
 You MUST decide the classification using ONLY the evidence snippets below. If the evidence does not directly support or contradict the claim, answer NOT_SUPPORTED.
 
-Important: treat clear logical implications as valid *only if they are grounded in the evidence*. Example: if evidence says an object emits visible light / is bright, that contradicts a claim that it is "black" (in the sense of not emitting visible light).
+Important: treat clear logical implications as valid *only if they are grounded in the evidence*.
+Examples:
+- If evidence states the Sun emits visible light / is bright / appears white-yellow, that contradicts a claim that "the Sun is black" (as an apparent color claim).
+- If evidence states the opposite explicitly, classify accordingly.
 
 CLASSIFICATIONS:
 - SUPPORTED: evidence directly supports the claim
@@ -92,7 +95,10 @@ EXPECTED JSON:
 
 Tu DOIS décider la classification en utilisant UNIQUEMENT les extraits ci-dessous. Si les preuves ne confirment ni ne contredisent directement, réponds NOT_SUPPORTED.
 
-Important : tu peux utiliser des implications logiques claires uniquement si elles sont ancrées dans les extraits. Exemple : si un extrait indique qu'un objet émet de la lumière visible / est lumineux, cela contredit une claim disant qu'il est "noir" (au sens d'absence de lumière visible).
+Important : tu peux utiliser des implications logiques claires uniquement si elles sont ancrées dans les extraits.
+Exemples :
+- Si un extrait indique que le Soleil émet de la lumière visible / est lumineux / apparaît blanc-jaune, cela contredit une claim disant que « le Soleil est noir » (couleur apparente).
+- Si un extrait indique explicitement l'inverse, classe en conséquence.
 
 CLASSIFICATIONS:
 - SUPPORTED : les preuves confirment directement
