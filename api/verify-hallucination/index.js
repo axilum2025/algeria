@@ -1,5 +1,6 @@
 const https = require('https');
 const { analyzeHallucination } = require('../utils/hallucinationDetector');
+const { verifyClaimsWithEvidence } = require('../utils/evidenceClaimVerifier');
 
 module.exports = async function (context, req) {
     context.log('🔍 Verify Hallucination API appelée');
@@ -24,6 +25,7 @@ module.exports = async function (context, req) {
         const { text, source } = body;
         const lang = normalizeLang(body.lang);
         const L = getHdApiStrings(lang);
+        const enableEvidenceCheck = body.evidenceCheck !== false; // default true
 
         if (!text || text.trim().length === 0) {
             context.res.status = 400;
@@ -48,13 +50,25 @@ module.exports = async function (context, req) {
         );
         context.log('🔍 Analyse hallucination:', hallucinationAnalysis);
 
+        // "effectiveAnalysis" peut être remplacée par une analyse evidence-based si Brave + modèle sont disponibles.
+        let effectiveAnalysis = hallucinationAnalysis;
+
         // 3. Vérifier les faits avec Brave Search
         const braveApiKey = process.env.APPSETTING_BRAVE_API_KEY || process.env.BRAVE_API_KEY;
         const verifiedFacts = [];
         const suspiciousFacts = [];
+        // Note: le score "hallucinations" dans l'UI doit refléter au minimum les claims CONTRADICTORY.
+        // Les hallucinations basées sur preuve externe (Brave) peuvent s'y ajouter plus tard.
         const hallucinations = [];
 
+        // Audit: conserver les requêtes + résultats Brave pour traçabilité.
+        const evidence = [];
+
         const braveVerificationEnabled = Boolean(braveApiKey) && facts.length > 0;
+
+        // Evidence-based claim checking requires Brave.
+        const evidenceCheckEnabled = Boolean(enableEvidenceCheck) && Boolean(braveApiKey);
+        const evidenceByClaim = Object.create(null);
 
         if (braveVerificationEnabled) {
             context.log('🌐 Vérification avec Brave Search...');
@@ -62,17 +76,25 @@ module.exports = async function (context, req) {
             for (const fact of facts.slice(0, 5)) { // Limiter à 5 faits pour performance
                 try {
                     const verification = await verifyFactWithBrave(fact, braveApiKey, context);
+
+                    evidence.push({
+                        fact,
+                        query: verification.query || null,
+                        results: Array.isArray(verification.results) ? verification.results : []
+                    });
                     
                     if (verification.verified) {
                         verifiedFacts.push({
                             fact: fact,
                             source: verification.source,
+                            evidence: Array.isArray(verification.results) ? verification.results : undefined,
                             confidence: 'high'
                         });
                     } else if (verification.partialMatch) {
                         suspiciousFacts.push({
                             fact: fact,
                             reason: L.reasonPartialMatch,
+                            evidence: Array.isArray(verification.results) ? verification.results : undefined,
                             confidence: 'low'
                         });
                     } else {
@@ -81,6 +103,7 @@ module.exports = async function (context, req) {
                         suspiciousFacts.push({
                             fact: fact,
                             reason: L.reasonNoSourceFound,
+                            evidence: Array.isArray(verification.results) ? verification.results : undefined,
                             confidence: 'unknown'
                         });
                     }
@@ -95,13 +118,58 @@ module.exports = async function (context, req) {
             }
         }
 
+        // 3bis. Evidence-based checking (auditable): claims -> preuves Brave -> verdict sur preuves (Groq/Gemini)
+        let evidenceAnalysis = null;
+        if (evidenceCheckEnabled) {
+            const claimTexts = pickClaimsForEvidenceCheck(hallucinationAnalysis, text);
+
+            for (const claimText of claimTexts) {
+                try {
+                    const v = await verifyFactWithBrave(claimText, braveApiKey, context);
+                    evidenceByClaim[claimText] = Array.isArray(v.results) ? v.results : [];
+                } catch (_) {
+                    evidenceByClaim[claimText] = [];
+                }
+            }
+
+            try {
+                evidenceAnalysis = await verifyClaimsWithEvidence({
+                    claims: claimTexts,
+                    evidenceByClaim,
+                    lang,
+                    userId: body.userId || 'guest'
+                });
+
+                if (Array.isArray(evidenceAnalysis?.claims) && evidenceAnalysis.claims.length > 0) {
+                    effectiveAnalysis = {
+                        ...effectiveAnalysis,
+                        method: 'evidence',
+                        claims: evidenceAnalysis.claims,
+                        counts: evidenceAnalysis.counts,
+                        hi: evidenceAnalysis.hi,
+                        chr: evidenceAnalysis.chr,
+                        warning: (evidenceAnalysis.hi >= 0.3 || evidenceAnalysis.chr >= 0.3)
+                            ? (normalizeLang(lang) === 'en'
+                                ? '⚠️ Evidence-based risk detected — verify the sources'
+                                : '⚠️ Risque (preuves) détecté — vérifiez les sources')
+                            : null
+                    };
+                }
+            } catch (err) {
+                context.log('⚠️ Evidence-based check failed:', err.message);
+            }
+        }
+
         // 4. Détecter contradictions internes
         const contradictions = detectContradictions(text);
+
+        // Claims/counts effectifs (peuvent venir de l'evidence-check)
+        const analysisClaims = Array.isArray(effectiveAnalysis?.claims) ? effectiveAnalysis.claims : [];
+        const analysisCounts = normalizeCounts(effectiveAnalysis?.counts, analysisClaims);
 
         // 5. Calculer score de fiabilité
         // Priorité: utiliser l'analyse du détecteur (claims SUPPORTED/NOT_SUPPORTED/CONTRADICTORY)
         // Fallback: si aucune claim exploitable, utiliser le score basé sur les vérifications Brave.
-        const analysisCounts = (hallucinationAnalysis && hallucinationAnalysis.counts) ? hallucinationAnalysis.counts : null;
         const analysisTotal = analysisCounts && typeof analysisCounts.total === 'number' ? analysisCounts.total : 0;
         const analysisSupported = analysisCounts && typeof analysisCounts.supported === 'number' ? analysisCounts.supported : 0;
 
@@ -114,18 +182,54 @@ module.exports = async function (context, req) {
         const securityWarnings = detectSecurityIssues(text, lang);
 
         // 7. Construire le rapport
-        const hi = typeof hallucinationAnalysis?.hi === 'number' ? hallucinationAnalysis.hi : 0;
-        const chr = typeof hallucinationAnalysis?.chr === 'number' ? hallucinationAnalysis.chr : 0;
+        const hi = typeof effectiveAnalysis?.hi === 'number' ? effectiveAnalysis.hi : 0;
+        const chr = typeof effectiveAnalysis?.chr === 'number' ? effectiveAnalysis.chr : 0;
         const hiPercent = Math.round(hi * 1000) / 10;
         const chrPercent = Math.round(chr * 1000) / 10;
-
-        const analysisClaims = Array.isArray(hallucinationAnalysis?.claims) ? hallucinationAnalysis.claims : [];
         const notSupportedClaims = analysisClaims
             .filter(c => c && c.classification === 'NOT_SUPPORTED')
             .map(c => ({ text: c.text, score: c.score }));
         const contradictoryClaims = analysisClaims
             .filter(c => c && c.classification === 'CONTRADICTORY')
             .map(c => ({ text: c.text, score: c.score }));
+
+        // Harmonisation: si Brave n'est pas configuré (ou n'a rien renvoyé), on expose quand même
+        // les points non confirmés via les claims NOT_SUPPORTED.
+        if (notSupportedClaims.length > 0 && suspiciousFacts.length === 0) {
+            notSupportedClaims.slice(0, 8).forEach((c) => {
+                if (c && c.text) {
+                    suspiciousFacts.push({
+                        fact: String(c.text),
+                        reason: (normalizeLang(lang) === 'en')
+                            ? 'Detector marked this claim as NOT_SUPPORTED (unverified)'
+                            : 'Le détecteur a classé ce point comme NOT_SUPPORTED (non vérifié)',
+                        confidence: 'unknown',
+                        origin: 'detector'
+                    });
+                }
+            });
+        }
+
+        // Harmonisation: une claim CONTRADICTORY doit compter comme hallucination probable.
+        if (contradictoryClaims.length > 0) {
+            contradictoryClaims.slice(0, 12).forEach((c) => {
+                if (c && c.text) {
+                    hallucinations.push({
+                        fact: String(c.text),
+                        reason: (normalizeLang(lang) === 'en')
+                            ? 'Detector marked this claim as CONTRADICTORY (likely false)'
+                            : 'Le détecteur a classé ce point comme CONTRADICTORY (probablement faux)',
+                        confidence: 'high',
+                        origin: 'detector'
+                    });
+                }
+            });
+        }
+
+        const recommendedSources = sanitizeRecommendedSources(
+            Array.isArray(hallucinationAnalysis?.sources) ? hallucinationAnalysis.sources : [],
+            lang
+        );
 
         const report = {
             source: source || L.sourceUnspecifiedLong,
@@ -141,14 +245,36 @@ module.exports = async function (context, req) {
             chr,
             hiPercent,
             chrPercent,
-            warning: hallucinationAnalysis?.warning || null,
-            recommendedSources: Array.isArray(hallucinationAnalysis?.sources) ? hallucinationAnalysis.sources : [],
+            warning: effectiveAnalysis?.warning || null,
+            recommendedSources,
             counts: analysisCounts || null,
             claims: analysisClaims,
             notSupportedClaims,
             contradictoryClaims,
             securityWarnings,
-            recommendation: generateRecommendation(reliabilityScore, braveVerificationEnabled, hallucinations.length, suspiciousFacts.length, securityWarnings.length, lang)
+            recommendation: generateRecommendation(reliabilityScore, braveVerificationEnabled, hallucinations.length, suspiciousFacts.length, securityWarnings.length, lang),
+            audit: {
+                version: 'hd-report-v1.2',
+                lang,
+                analysisMethod: String(effectiveAnalysis?.method || 'unknown'),
+                scoring: analysisTotal > 0 ? 'supported_claims_ratio' : (totalFacts > 0 ? 'brave_ratio' : 'unavailable'),
+                notes: (normalizeLang(lang) === 'en')
+                    ? 'Counts are normalized and contradictory claims are reported as hallucinations for consistency.'
+                    : 'Les compteurs sont normalisés et les claims contradictoires sont reportées comme hallucinations pour cohérence.'
+            },
+            evidence,
+            evidenceCheck: {
+                enabled: evidenceCheckEnabled,
+                claimCount: Array.isArray(evidenceAnalysis?.claims) ? evidenceAnalysis.claims.length : 0,
+                method: String(evidenceAnalysis?.method || ''),
+                note: evidenceCheckEnabled
+                    ? (normalizeLang(lang) === 'en'
+                        ? 'Claims were evaluated using Brave snippets only (auditable).'
+                        : 'Les claims ont été évaluées uniquement avec des extraits Brave (auditables).')
+                    : (normalizeLang(lang) === 'en'
+                        ? 'Evidence-based checking disabled or Brave not configured.'
+                        : 'Vérification par preuves désactivée ou Brave non configuré.')
+            }
         };
 
         context.res.status = 200;
@@ -163,6 +289,60 @@ module.exports = async function (context, req) {
         };
     }
 };
+
+function normalizeCounts(counts, claims) {
+    const safeCounts = (counts && typeof counts === 'object') ? counts : null;
+    const supported = safeCounts && typeof safeCounts.supported === 'number' ? safeCounts.supported : null;
+    const notSupported = safeCounts && typeof safeCounts.not_supported === 'number' ? safeCounts.not_supported : null;
+    const contradictory = safeCounts && typeof safeCounts.contradictory === 'number' ? safeCounts.contradictory : null;
+    const total = safeCounts && typeof safeCounts.total === 'number' ? safeCounts.total : null;
+
+    if ([supported, notSupported, contradictory, total].every(v => typeof v === 'number')) {
+        return {
+            supported,
+            not_supported: notSupported,
+            contradictory,
+            total
+        };
+    }
+
+    if (Array.isArray(claims) && claims.length > 0) {
+        const derived = { supported: 0, not_supported: 0, contradictory: 0, total: 0 };
+        for (const c of claims) {
+            if (!c || !c.classification) continue;
+            derived.total += 1;
+            if (c.classification === 'SUPPORTED') derived.supported += 1;
+            else if (c.classification === 'NOT_SUPPORTED') derived.not_supported += 1;
+            else if (c.classification === 'CONTRADICTORY') derived.contradictory += 1;
+        }
+        return derived;
+    }
+
+    return safeCounts;
+}
+
+function sanitizeRecommendedSources(sources, lang) {
+    const isEn = normalizeLang(lang) === 'en';
+    const cleaned = (Array.isArray(sources) ? sources : [])
+        .map(s => String(s || '').trim())
+        .filter(Boolean)
+        .filter(s => !/\b(chatgpt|gpt-?\d|openai|other ai)\b/i.test(s));
+
+    if (cleaned.length > 0) return cleaned.slice(0, 5);
+
+    // Fallback générique (auditables) si le modèle propose des "sources" non pertinentes.
+    return isEn
+        ? [
+            'NASA (official) — https://www.nasa.gov/',
+            'Encyclopaedia Britannica — https://www.britannica.com/',
+            'Wikipedia (as a starting point) — https://en.wikipedia.org/'
+        ]
+        : [
+            'NASA (officiel) — https://www.nasa.gov/',
+            'Encyclopædia Britannica — https://www.britannica.com/',
+            'Wikipédia (point de départ) — https://fr.wikipedia.org/'
+        ];
+}
 
 function normalizeLang(lang) {
     const raw = String(lang || '').toLowerCase();
@@ -240,7 +420,8 @@ async function extractFacts(text) {
 // Vérifier un fait avec Brave Search
 async function verifyFactWithBrave(fact, apiKey, context) {
     return new Promise((resolve) => {
-        const query = encodeURIComponent(sanitizeBraveQuery(fact));
+        const cleaned = sanitizeBraveQuery(fact);
+        const query = encodeURIComponent(cleaned);
         const options = {
             hostname: 'api.search.brave.com',
             path: `/res/v1/web/search?q=${query}&count=3`,
@@ -259,6 +440,14 @@ async function verifyFactWithBrave(fact, apiKey, context) {
                 try {
                     const result = JSON.parse(data);
                     const hasResults = result.web?.results?.length > 0;
+
+                    const results = hasResults
+                        ? result.web.results.slice(0, 3).map(r => ({
+                            title: r.title,
+                            url: r.url,
+                            description: r.description || r.snippet || ''
+                        }))
+                        : [];
                     
                     if (hasResults) {
                         const topResult = result.web.results[0];
@@ -268,26 +457,28 @@ async function verifyFactWithBrave(fact, apiKey, context) {
                             verified: false,
                             partialMatch: true,
                             source: topResult.url,
-                            title: topResult.title
+                            title: topResult.title,
+                            query: cleaned,
+                            results
                         });
                     } else {
-                        resolve({ verified: false, partialMatch: false });
+                        resolve({ verified: false, partialMatch: false, query: cleaned, results: [] });
                     }
                 } catch (err) {
                     context.log.error('Erreur parsing Brave:', err);
-                    resolve({ verified: false, partialMatch: false });
+                    resolve({ verified: false, partialMatch: false, query: null, results: [] });
                 }
             });
         });
 
         req.on('error', (err) => {
             context.log.error('Erreur requête Brave:', err);
-            resolve({ verified: false, partialMatch: false });
+            resolve({ verified: false, partialMatch: false, query: null, results: [] });
         });
 
         req.setTimeout(5000, () => {
             req.destroy();
-            resolve({ verified: false, partialMatch: false });
+            resolve({ verified: false, partialMatch: false, query: null, results: [] });
         });
 
         req.end();
@@ -309,6 +500,38 @@ function sanitizeBraveQuery(input) {
 
     // Éviter les requêtes trop longues
     return simplified.length > 180 ? simplified.slice(0, 180) : simplified;
+}
+
+function pickClaimsForEvidenceCheck(hallucinationAnalysis, rawText) {
+    const claims = Array.isArray(hallucinationAnalysis?.claims) ? hallucinationAnalysis.claims : [];
+    const fromDetector = claims
+        .map(c => (c && c.text ? String(c.text).trim() : ''))
+        .filter(Boolean);
+
+    if (fromDetector.length > 0) {
+        return [...new Set(fromDetector)].slice(0, 6);
+    }
+
+    // Fallback: extraire des phrases "vérifiables" basiques
+    const text = String(rawText || '');
+    const sentenceCandidates = text
+        .split(/[.!?\n\r]+/)
+        .map(s => s.trim())
+        .filter(Boolean)
+        .filter(s => s.length >= 8 && s.length <= 220);
+
+    // Prioriser les phrases type "X est Y" / chiffres
+    const copula = /\b(est|sont|était|étaient|sera|seront|serait|seraient|is|are|was|were|will\s+be)\b/i;
+    const hasNumber = /\b\d+([,.]\d+)?%?\b/;
+    const scored = sentenceCandidates
+        .map(s => ({
+            text: s,
+            score: (copula.test(s) ? 2 : 0) + (hasNumber.test(s) ? 1 : 0) + Math.min(1, s.length / 120)
+        }))
+        .sort((a, b) => b.score - a.score)
+        .map(x => x.text);
+
+    return [...new Set(scored)].slice(0, 6);
 }
 
 // Détecter contradictions internes
@@ -407,13 +630,27 @@ function generateRecommendation(score, braveEnabled, hallucinationCount, suspici
             : '✅ Fiabilité élevée. Cette réponse semble factuelle et bien sourcée.';
     }
 
-    if (score >= 60 && hallucinationCount <= 2) {
+    // Si des hallucinations probables sont détectées, on signale des erreurs factuelles.
+    if (hallucinationCount > 0) {
+        return isEn
+            ? '❌ Low reliability. Likely factual errors detected. Verification recommended.'
+            : '❌ Fiabilité faible. Erreurs factuelles probables détectées. Vérification recommandée.';
+    }
+
+    // Si on a surtout des points non confirmés, rester prudent: ce n'est pas une preuve d'erreur.
+    if (suspiciousCount > 0) {
+        return isEn
+            ? '⚠️ Caution: unverified points detected. Verify sources before using this response.'
+            : '⚠️ Prudence : des points non vérifiés ont été détectés. Vérifiez des sources avant utilisation.';
+    }
+
+    if (score >= 60) {
         return isEn
             ? '⚠️ Medium reliability. Verify unconfirmed points before use.'
             : '⚠️ Fiabilité moyenne. Vérifiez les points non confirmés avant utilisation.';
     }
 
     return isEn
-        ? '❌ Low reliability. This response contains factual errors. Verification recommended.'
-        : '❌ Fiabilité faible. Cette réponse contient des erreurs factuelles. Vérification recommandée.';
+        ? '⚠️ Low reliability (insufficient evidence). Add sources or enable web verification.'
+        : '⚠️ Fiabilité faible (preuves insuffisantes). Ajoutez des sources ou activez la vérification web.';
 }

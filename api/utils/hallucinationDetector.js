@@ -41,11 +41,13 @@ TÂCHES:
    - Analyse les nuances (mots comme "probablement", "généralement" = bon)
    - CHR = combinaison de HI + analyse linguistique
 
-5. Liste 2-3 sources fiables pertinentes pour vérifier les informations
+5. Liste 2-3 sources fiables pertinentes pour vérifier les informations (idéalement avec URL)
 
 RÈGLES STRICTES:
 - HI et CHR doivent être entre 0.0 et 1.0
 - Si HI ≥ 0.3 ou CHR ≥ 0.3, ajoute un warning
+- Les "sources" doivent être des références externes auditables (sites officiels, institutions, encyclopédies reconnues).
+- INTERDIT: citer "ChatGPT", "OpenAI", "un autre modèle" comme source de vérification.
 - Réponds UNIQUEMENT en JSON valide, rien d'autre
 
 FORMAT JSON ATTENDU:
@@ -65,7 +67,7 @@ FORMAT JSON ATTENDU:
     "contradictory": 1,
     "total": 8
   },
-  "sources": ["Source fiable 1", "Source fiable 2"],
+    "sources": ["Nom — https://exemple.org", "Nom — https://exemple2.org"],
   "warning": "⚠️ Message si HI ou CHR ≥ 0.3, null sinon"
 }`;
 
@@ -86,11 +88,13 @@ TASKS:
      - Analyze nuance (words like "probably", "generally" are good)
      - CHR = combination of HI + linguistic analysis
 
-5. List 2-3 relevant reliable sources to verify the information
+5. List 2-3 relevant reliable sources to verify the information (ideally with URLs)
 
 STRICT RULES:
 - HI and CHR must be between 0.0 and 1.0
 - If HI ≥ 0.3 or CHR ≥ 0.3, add a warning
+- "sources" must be external auditable references (official sites, institutions, reputable encyclopedias).
+- FORBIDDEN: citing "ChatGPT", "OpenAI", or "another model" as a verification source.
 - Reply ONLY with valid JSON, nothing else
 
 EXPECTED JSON FORMAT:
@@ -110,7 +114,7 @@ EXPECTED JSON FORMAT:
         "contradictory": 1,
         "total": 8
     },
-    "sources": ["Reliable source 1", "Reliable source 2"],
+    "sources": ["Name — https://example.org", "Name — https://example2.org"],
     "warning": "⚠️ Message if HI or CHR ≥ 0.3, otherwise null"
 }`;
 
@@ -313,14 +317,33 @@ function analyzeLocal(text, lang) {
     const nuanceRatio = (nuanceCount / wordCount) * 100;
     const sourceRatio = (sourceCount / wordCount) * 100;
     
-    // HI: Indice d'Hallucination (0-1)
-    let hi = (absoluteRatio * 10 - nuanceRatio * 5 - sourceRatio * 3) / 100;
+    // Extraire des claims simples localement (fallback)
+    const extractedClaims = extractLocalClaims(text, lang);
+    const counts = extractedClaims.reduce(
+        (acc, c) => {
+            acc.total += 1;
+            if (c.classification === 'SUPPORTED') acc.supported += 1;
+            else if (c.classification === 'NOT_SUPPORTED') acc.not_supported += 1;
+            else if (c.classification === 'CONTRADICTORY') acc.contradictory += 1;
+            return acc;
+        },
+        { supported: 0, not_supported: 0, contradictory: 0, total: 0 }
+    );
+
+    // HI: basé sur les counts (même formule que le prompt)
+    let hi = 0;
+    if (counts.total > 0) {
+        hi = (0.5 * counts.not_supported + 1.0 * counts.contradictory) / counts.total;
+    } else {
+        // Fallback ultime si aucun claim exploitable
+        hi = (absoluteRatio * 10 - nuanceRatio * 5 - sourceRatio * 3) / 100;
+    }
     hi = Math.max(0, Math.min(1, hi));
-    
-    // CHR: Context History Ratio (0-1)
-    let chr = 1 - ((nuanceRatio + sourceRatio) * 5 / 100);
-    chr = Math.max(0, Math.min(1, chr));
-    
+
+    // CHR: combine HI + risque linguistique (certitude absolue)
+    const languageRisk = Math.max(0, Math.min(1, (absoluteRatio * 6 - nuanceRatio * 3 - sourceRatio * 2) / 100));
+    let chr = Math.max(0, Math.min(1, hi + 0.35 * languageRisk));
+
     const warning = (hi >= 0.3 || chr >= 0.3)
         ? (normalizeLang(lang) === 'en'
             ? '⚠️ Uncertainty detected — verify the information'
@@ -330,12 +353,89 @@ function analyzeLocal(text, lang) {
     return {
         hi: parseFloat(hi.toFixed(2)),
         chr: parseFloat(chr.toFixed(2)),
-        claims: [], // Analyse locale ne génère pas de claims détaillés
-        counts: { supported: 0, not_supported: 0, contradictory: 0, total: 0 },
-        sources: [],
+        claims: extractedClaims,
+        counts,
+        sources: extractLocalSources(text, lang),
         warning: warning,
         method: 'local' // Indiquer la méthode utilisée
     };
+}
+
+function extractLocalClaims(text, lang) {
+    const normalized = normalizeLang(lang);
+    const isEn = normalized === 'en';
+
+    const sentences = text
+        .split(/[\n\r]+|(?<=[.!?])\s+/)
+        .map(s => s.trim())
+        .filter(Boolean)
+        .filter(s => s.length >= 8);
+
+    // Heuristique conservative: on marque la plupart des claims comme NOT_SUPPORTED
+    // sauf contradictions "évidentes" (liste courte) et quelques faits très généraux.
+    const obviousContradictions = [
+        /\b(le\s+soleil|sun)\b[^.!?]*\b(est|is)\b[^.!?]*\b(noir|black)\b/i,
+        /\b(la\s+terre|earth)\b[^.!?]*\b(est|is)\b[^.!?]*\b(platte|plate|flat)\b/i,
+        /\b(2\s*\+\s*2)\s*(=|equals)\s*5\b/i
+    ];
+
+    const veryGeneralSupported = [
+        /\b(le\s+soleil|sun)\b[^.!?]*\b(est|is)\b[^.!?]*\b(une\s+étoile|a\s+star)\b/i,
+        /\b(la\s+terre|earth)\b[^.!?]*\b(tourne|orbits|revolves)\b[^.!?]*\b(autour\s+du\s+soleil|the\s+sun)\b/i,
+        /\b(le\s+soleil|sun)\b[^.!?]*\b(produit|emits|produces)\b[^.!?]*\b(lumière|light)\b/i,
+        /\b(le\s+soleil|sun)\b[^.!?]*\b(chaleur|heat)\b/i,
+        /\b(fusion\s+nucléaire|nuclear\s+fusion)\b/i,
+        /\b(planètes|planets)\b[^.!?]*\b(tournent|orbit|orbits|revolve|revolves)\b[^.!?]*\b(autour\s+du\s+soleil|the\s+sun|de\s+lui)\b/i
+    ];
+
+    const hasUrl = (s) => /https?:\/\//i.test(s);
+    const hasAttribution = (s) => (isEn ? /\baccording\s+to\b|\bsource\b|\bstudy\b/i : /\bselon\b|\bd['’]après\b|\bsource\b|\bétude\b/i).test(s);
+
+    const claims = [];
+    for (const s of sentences.slice(0, 12)) {
+        let classification = 'NOT_SUPPORTED';
+        let score = 0.5;
+
+        if (obviousContradictions.some(rx => rx.test(s))) {
+            classification = 'CONTRADICTORY';
+            score = 0.0;
+        } else if (veryGeneralSupported.some(rx => rx.test(s))) {
+            classification = 'SUPPORTED';
+            score = 1.0;
+        } else if (hasUrl(s) || hasAttribution(s)) {
+            // La présence d'une attribution n'est pas une preuve, mais réduit le risque perçu.
+            classification = 'NOT_SUPPORTED';
+            score = 0.6;
+        }
+
+        claims.push({ text: s, classification, score });
+    }
+
+    return claims;
+}
+
+function extractLocalSources(text, lang) {
+    const normalized = normalizeLang(lang);
+    const isEn = normalized === 'en';
+
+    const urls = (text.match(/https?:\/\/[^\s)\]}>"]+/gi) || [])
+        .map(u => u.trim())
+        .filter(Boolean)
+        .slice(0, 5);
+
+    if (urls.length > 0) {
+        return urls;
+    }
+
+    return isEn
+        ? [
+            'NASA (official) — https://www.nasa.gov/',
+            'Encyclopaedia Britannica — https://www.britannica.com/'
+        ]
+        : [
+            'NASA (officiel) — https://www.nasa.gov/',
+            'Encyclopædia Britannica — https://www.britannica.com/'
+        ];
 }
 
 /**
