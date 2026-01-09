@@ -20,16 +20,19 @@ module.exports = async function (context, req) {
     }
 
     try {
-        const { text, source } = req.body;
+        const body = (req && req.body && typeof req.body === 'object') ? req.body : {};
+        const { text, source } = body;
+        const lang = normalizeLang(body.lang);
+        const L = getHdApiStrings(lang);
 
         if (!text || text.trim().length === 0) {
             context.res.status = 400;
-            context.res.body = { error: 'Texte à vérifier requis' };
+            context.res.body = { error: L.missingTextError };
             return;
         }
 
         context.log('📝 Texte à analyser:', text.substring(0, 100) + '...');
-        context.log('🤖 Source IA:', source || 'Non spécifiée');
+        context.log('🤖 Source IA:', source || L.sourceUnspecifiedShort);
 
         // 1. Extraire les faits du texte
         const facts = await extractFacts(text);
@@ -39,7 +42,9 @@ module.exports = async function (context, req) {
         // IMPORTANT: analyzeHallucination attend un texte (question) en 2e paramètre, pas l'objet Azure `context`.
         const hallucinationAnalysis = await analyzeHallucination(
             text,
-            `Texte à vérifier (source: ${source || 'IA non spécifiée'})`
+            `${L.verifyContextPrefix} (${L.reportSourceLabel}: ${source || L.sourceUnspecifiedLong})`,
+            null,
+            { lang }
         );
         context.log('🔍 Analyse hallucination:', hallucinationAnalysis);
 
@@ -67,7 +72,7 @@ module.exports = async function (context, req) {
                     } else if (verification.partialMatch) {
                         suspiciousFacts.push({
                             fact: fact,
-                            reason: 'Source non claire ou partielle',
+                            reason: L.reasonPartialMatch,
                             confidence: 'low'
                         });
                     } else {
@@ -75,7 +80,7 @@ module.exports = async function (context, req) {
                         // On classe donc comme "suspect / non confirmé automatiquement".
                         suspiciousFacts.push({
                             fact: fact,
-                            reason: 'Aucune source trouvée via Brave (non concluant)',
+                            reason: L.reasonNoSourceFound,
                             confidence: 'unknown'
                         });
                     }
@@ -83,7 +88,7 @@ module.exports = async function (context, req) {
                     context.log.error('Erreur vérification fait:', err);
                     suspiciousFacts.push({
                         fact: fact,
-                        reason: 'Erreur de vérification',
+                        reason: L.reasonVerificationError,
                         confidence: 'unknown'
                     });
                 }
@@ -106,7 +111,7 @@ module.exports = async function (context, req) {
             : (totalFacts > 0 ? Math.round((verifiedFacts.length / totalFacts) * 100) : null);
 
         // 6. Générer warnings de sécurité
-        const securityWarnings = detectSecurityIssues(text);
+        const securityWarnings = detectSecurityIssues(text, lang);
 
         // 7. Construire le rapport
         const hi = typeof hallucinationAnalysis?.hi === 'number' ? hallucinationAnalysis.hi : 0;
@@ -123,7 +128,7 @@ module.exports = async function (context, req) {
             .map(c => ({ text: c.text, score: c.score }));
 
         const report = {
-            source: source || 'IA non spécifiée',
+            source: source || L.sourceUnspecifiedLong,
             textLength: text.length,
             analysisTime: Date.now(),
             braveVerificationEnabled,
@@ -143,7 +148,7 @@ module.exports = async function (context, req) {
             notSupportedClaims,
             contradictoryClaims,
             securityWarnings,
-            recommendation: generateRecommendation(reliabilityScore, braveVerificationEnabled, hallucinations.length, suspiciousFacts.length, securityWarnings.length)
+            recommendation: generateRecommendation(reliabilityScore, braveVerificationEnabled, hallucinations.length, suspiciousFacts.length, securityWarnings.length, lang)
         };
 
         context.res.status = 200;
@@ -153,11 +158,30 @@ module.exports = async function (context, req) {
         context.log.error('❌ Erreur verify-hallucination:', error);
         context.res.status = 500;
         context.res.body = { 
-            error: 'Erreur lors de l\'analyse',
+            error: (normalizeLang((req && req.body && req.body.lang) ? req.body.lang : null) === 'en') ? 'Error during analysis' : 'Erreur lors de l\'analyse',
             details: error.message 
         };
     }
 };
+
+function normalizeLang(lang) {
+    const raw = String(lang || '').toLowerCase();
+    return raw.startsWith('en') ? 'en' : 'fr';
+}
+
+function getHdApiStrings(lang) {
+    const isEn = normalizeLang(lang) === 'en';
+    return {
+        missingTextError: isEn ? 'Text to verify is required' : 'Texte à vérifier requis',
+        sourceUnspecifiedShort: isEn ? 'Unspecified' : 'Non spécifiée',
+        sourceUnspecifiedLong: isEn ? 'Unspecified AI' : 'IA non spécifiée',
+        verifyContextPrefix: isEn ? 'Text to verify' : 'Texte à vérifier',
+        reportSourceLabel: isEn ? 'Source' : 'Source',
+        reasonPartialMatch: isEn ? 'Unclear or partial source match' : 'Source non claire ou partielle',
+        reasonNoSourceFound: isEn ? 'No source found via Brave (inconclusive)' : 'Aucune source trouvée via Brave (non concluant)',
+        reasonVerificationError: isEn ? 'Verification error' : 'Erreur de vérification'
+    };
+}
 
 // Extraire les faits vérifiables du texte
 async function extractFacts(text) {
@@ -319,9 +343,10 @@ function detectContradictions(text) {
 }
 
 // Détecter problèmes de sécurité
-function detectSecurityIssues(text) {
+function detectSecurityIssues(text, lang) {
     const warnings = [];
     const lowerText = text.toLowerCase();
+    const isEn = normalizeLang(lang) === 'en';
     
     // Conseils médicaux non sourcés
     const medicalKeywords = ['diagnostic', 'traitement', 'médicament', 'maladie', 'symptôme', 'thérapie'];
@@ -332,7 +357,9 @@ function detectSecurityIssues(text) {
         warnings.push({
             type: 'medical',
             severity: 'high',
-            message: '⚠️ Contient des informations médicales sans sources fiables'
+            message: isEn
+                ? '⚠️ Contains medical information without reliable sources'
+                : '⚠️ Contient des informations médicales sans sources fiables'
         });
     }
     
@@ -344,7 +371,9 @@ function detectSecurityIssues(text) {
         warnings.push({
             type: 'legal',
             severity: 'high',
-            message: '⚠️ Contient des informations juridiques sans références précises'
+            message: isEn
+                ? '⚠️ Contains legal information without precise references'
+                : '⚠️ Contient des informations juridiques sans références précises'
         });
     }
     
@@ -352,24 +381,39 @@ function detectSecurityIssues(text) {
 }
 
 // Générer recommandation
-function generateRecommendation(score, braveEnabled, hallucinationCount, suspiciousCount, warningCount) {
+function generateRecommendation(score, braveEnabled, hallucinationCount, suspiciousCount, warningCount, lang) {
+    const isEn = normalizeLang(lang) === 'en';
+
     if (warningCount > 0) {
-        return '🚨 ALERTE : Cette réponse contient des informations sensibles sans sources. Vérification obligatoire avant utilisation.';
+        return isEn
+            ? '🚨 ALERT: This response contains sensitive information without sources. Verification is required before use.'
+            : '🚨 ALERTE : Cette réponse contient des informations sensibles sans sources. Vérification obligatoire avant utilisation.';
     }
 
     if (score === null) {
-        return braveEnabled
-            ? 'ℹ️ Score indisponible (aucun fait exploitable détecté). Ajoutez des détails vérifiables ou des sources.'
+        if (braveEnabled) {
+            return isEn
+                ? 'ℹ️ Score unavailable (no actionable facts detected). Add verifiable details or sources.'
+                : 'ℹ️ Score indisponible (aucun fait exploitable détecté). Ajoutez des détails vérifiables ou des sources.';
+        }
+        return isEn
+            ? 'ℹ️ Automatic verification unavailable (Brave API not configured). Add sources (e.g., NASA, ESA, Wikipedia) or enable verification.'
             : 'ℹ️ Vérification automatique indisponible (Brave API non configurée). Ajoutez des sources (ex: NASA, ESA, Wikipedia) ou activez la vérification.';
     }
-    
+
     if (score >= 80 && hallucinationCount === 0 && suspiciousCount === 0) {
-        return '✅ Fiabilité élevée. Cette réponse semble factuelle et bien sourcée.';
+        return isEn
+            ? '✅ High reliability. This response looks factual and well-sourced.'
+            : '✅ Fiabilité élevée. Cette réponse semble factuelle et bien sourcée.';
     }
-    
+
     if (score >= 60 && hallucinationCount <= 2) {
-        return '⚠️ Fiabilité moyenne. Vérifiez les points non confirmés avant utilisation.';
+        return isEn
+            ? '⚠️ Medium reliability. Verify unconfirmed points before use.'
+            : '⚠️ Fiabilité moyenne. Vérifiez les points non confirmés avant utilisation.';
     }
-    
-    return '❌ Fiabilité faible. Cette réponse contient des erreurs factuelles. Vérification recommandée.';
+
+    return isEn
+        ? '❌ Low reliability. This response contains factual errors. Verification recommended.'
+        : '❌ Fiabilité faible. Cette réponse contient des erreurs factuelles. Vérification recommandée.';
 }

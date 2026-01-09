@@ -6982,7 +6982,7 @@ ${persona}
                 try {
                     // Limite simple pour éviter timeouts/coups de mémoire
                     if (message.length > 50000) {
-                        throw new Error('Texte trop long. Merci de réduire (≈ 50k caractères max).');
+                        throw new Error(t('hd.error.tooLong'));
                     }
 
                     const res = await fetch('/api/verify-hallucination', {
@@ -6990,7 +6990,8 @@ ${persona}
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({
                             text: message,
-                            source: hallucinationVerifyMode.source || 'Autre IA'
+                            source: hallucinationVerifyMode.source || t('hd.source.otherAi'),
+                            lang: getAppLanguage()
                         })
                     });
 
@@ -6999,7 +7000,7 @@ ${persona}
 
                     if (!res.ok || !report) {
                         const details = report && (report.details || report.error) ? ` (${report.details || report.error})` : '';
-                        addMessage(`❌ Analyse impossible${details}`, 'bot', { detectorReport: true });
+                        addMessage(`❌ ${t('hd.error.unavailable')}${details}`, 'bot', { detectorReport: true });
                     } else {
                         const reliabilityScore = typeof report.reliabilityScore === 'number' ? report.reliabilityScore : null;
                         const hiPercent = typeof report.hiPercent === 'number' ? report.hiPercent : null;
@@ -7013,9 +7014,9 @@ ${persona}
                         const notSupportedClaims = Array.isArray(report.notSupportedClaims) ? report.notSupportedClaims : [];
                         const contradictoryClaims = Array.isArray(report.contradictoryClaims) ? report.contradictoryClaims : [];
 
-                        let out = `🔎 Rapport Hallucination Detector\n`;
-                        if (report.source) out += `Source: ${report.source}\n`;
-                        if (reliabilityScore !== null) out += `Score de fiabilité: ${reliabilityScore}%\n`;
+                        let out = `${t('hd.report.title')}\n`;
+                        if (report.source) out += `${t('hd.report.source')}: ${report.source}\n`;
+                        if (reliabilityScore !== null) out += `${t('hd.report.reliability')}: ${reliabilityScore}%\n`;
                         if (hiPercent !== null || chrPercent !== null) {
                             out += `HI: ${hiPercent !== null ? hiPercent + '%' : 'N/A'} | CHR: ${chrPercent !== null ? chrPercent + '%' : 'N/A'}\n`;
                         }
@@ -7025,19 +7026,19 @@ ${persona}
                             const supported = typeof detectorCounts.supported === 'number' ? detectorCounts.supported : 0;
                             const notSupported = typeof detectorCounts.not_supported === 'number' ? detectorCounts.not_supported : 0;
                             const contradictory = typeof detectorCounts.contradictory === 'number' ? detectorCounts.contradictory : 0;
-                            out += `Claims (détecteur): total ${total} | ✅ ${supported} | ❌ ${notSupported} | ⚡ ${contradictory}\n`;
+                            out += `${t('hd.report.claimsDetector')}: total ${total} | ✅ ${supported} | ❌ ${notSupported} | ⚡ ${contradictory}\n`;
                         }
 
-                        out += `Faits: ✅ ${verifiedCount} | ⚠️ non confirmés: ${suspiciousCount} | ❌ hallucinations: ${hallucinationsCount}\n`;
-                        if (contradictionsCount > 0) out += `Contradictions internes détectées: ${contradictionsCount}\n`;
-                        if (securityCount > 0) out += `⚠️ Avertissements sécurité: ${securityCount}\n`;
+                        out += `${t('hd.report.facts')}: ✅ ${verifiedCount} | ⚠️ ${t('hd.report.unverified')}: ${suspiciousCount} | ❌ hallucinations: ${hallucinationsCount}\n`;
+                        if (contradictionsCount > 0) out += `${t('hd.report.internalContradictions')}: ${contradictionsCount}\n`;
+                        if (securityCount > 0) out += `${t('hd.report.securityWarnings')}: ${securityCount}\n`;
 
                         if (typeof report.warning === 'string' && report.warning.trim()) {
                             out += `\n${report.warning.trim()}\n`;
                         }
 
                         if (Array.isArray(report.suspiciousFacts) && report.suspiciousFacts.length > 0) {
-                            out += `\n⚠️ Points non confirmés automatiquement (extraits):\n`;
+                            out += `\n${t('hd.section.unconfirmed')}\n`;
                             report.suspiciousFacts.slice(0, 5).forEach((s, idx) => {
                                 const fact = (s && s.fact) ? String(s.fact) : '';
                                 const reason = (s && s.reason) ? ` — ${s.reason}` : '';
@@ -7046,7 +7047,7 @@ ${persona}
                         }
 
                         if (Array.isArray(report.hallucinations) && report.hallucinations.length > 0) {
-                            out += `\n❌ Points probablement faux / non supportés (extraits):\n`;
+                            out += `\n${t('hd.section.probablyFalse')}\n`;
                             report.hallucinations.slice(0, 5).forEach((h, idx) => {
                                 const fact = (h && h.fact) ? String(h.fact) : '';
                                 const reason = (h && h.reason) ? ` — ${h.reason}` : '';
@@ -7055,7 +7056,7 @@ ${persona}
                         }
 
                         if (notSupportedClaims.length > 0) {
-                            out += `\n❌ Claims non supportées (extraits):\n`;
+                            out += `\n${t('hd.section.notSupportedClaims')}\n`;
                             notSupportedClaims.slice(0, 5).forEach((c, idx) => {
                                 const txt = (c && c.text) ? String(c.text) : '';
                                 if (txt) out += `${idx + 1}. ${txt}\n`;
@@ -7063,7 +7064,7 @@ ${persona}
                         }
 
                         if (contradictoryClaims.length > 0) {
-                            out += `\n⚡ Claims contradictoires (extraits):\n`;
+                            out += `\n${t('hd.section.contradictoryClaims')}\n`;
                             contradictoryClaims.slice(0, 5).forEach((c, idx) => {
                                 const txt = (c && c.text) ? String(c.text) : '';
                                 if (txt) out += `${idx + 1}. ${txt}\n`;
@@ -7071,7 +7072,7 @@ ${persona}
                         }
 
                         if (Array.isArray(report.verifiedFacts) && report.verifiedFacts.length > 0) {
-                            out += `\n✅ Faits trouvant une source (extraits):\n`;
+                            out += `\n${t('hd.section.verifiedFacts')}\n`;
                             report.verifiedFacts.slice(0, 5).forEach((v, idx) => {
                                 const fact = (v && v.fact) ? String(v.fact) : '';
                                 const src = (v && v.source) ? ` (${v.source})` : '';
@@ -7080,7 +7081,7 @@ ${persona}
                         }
 
                         if (Array.isArray(report.recommendedSources) && report.recommendedSources.length > 0) {
-                            out += `\n📚 Sources recommandées (à vérifier):\n`;
+                            out += `\n${t('hd.section.recommendedSources')}\n`;
                             report.recommendedSources.slice(0, 5).forEach((s, idx) => {
                                 const src = s ? String(s) : '';
                                 if (src) out += `${idx + 1}. ${src}\n`;
@@ -7088,7 +7089,7 @@ ${persona}
                         }
 
                         if (typeof report.recommendation === 'string' && report.recommendation.trim()) {
-                            out += `\nRecommandation: ${report.recommendation.trim()}\n`;
+                            out += `\n${t('hd.report.recommendation')}: ${report.recommendation.trim()}\n`;
                         }
 
                         addMessage(out.trim(), 'bot', { detectorReport: true });
@@ -7096,7 +7097,7 @@ ${persona}
                     }
                 } catch (err) {
                     hideTyping();
-                    addMessage(`❌ Erreur analyse: ${err.message}`, 'bot', { detectorReport: true });
+                    addMessage(`${t('hd.error.analysisPrefix')} ${err.message}`, 'bot', { detectorReport: true });
                 } finally {
                     try {
                         document.removeEventListener('pointerdown', markInteractionOutside, true);
@@ -9772,6 +9773,28 @@ ${persona}
                 'voice.thinking': 'Je réfléchis...',
                 'voice.speaking': 'Je vous réponds...',
                 'voice.paused': 'En pause - Cliquez pour reprendre',
+
+                'hd.source.otherAi': 'Autre IA',
+                'hd.mode.placeholder': "Collez ici le texte à vérifier (réponse d'une autre IA), puis cliquez sur Envoyer…",
+                'hd.mode.toast': '🔍 Collez le texte à vérifier puis Envoyer',
+                'hd.error.tooLong': 'Texte trop long. Merci de réduire (≈ 50k caractères max).',
+                'hd.error.unavailable': 'Analyse impossible',
+                'hd.error.analysisPrefix': '❌ Erreur analyse:',
+                'hd.report.title': '🔎 Rapport Hallucination Detector',
+                'hd.report.source': 'Source',
+                'hd.report.reliability': 'Score de fiabilité',
+                'hd.report.claimsDetector': 'Claims (détecteur)',
+                'hd.report.facts': 'Faits',
+                'hd.report.unverified': 'non confirmés',
+                'hd.report.internalContradictions': 'Contradictions internes détectées',
+                'hd.report.securityWarnings': '⚠️ Avertissements sécurité',
+                'hd.section.unconfirmed': '⚠️ Points non confirmés automatiquement (extraits):',
+                'hd.section.probablyFalse': '❌ Points probablement faux / non supportés (extraits):',
+                'hd.section.notSupportedClaims': '❌ Claims non supportées (extraits):',
+                'hd.section.contradictoryClaims': '⚡ Claims contradictoires (extraits):',
+                'hd.section.verifiedFacts': '✅ Faits trouvant une source (extraits):',
+                'hd.section.recommendedSources': '📚 Sources recommandées (à vérifier):',
+                'hd.report.recommendation': 'Recommandation',
                 'metrics.title': 'Métriques de réponse',
                 'metrics.section.performance': 'Performance',
                 'metrics.section.quality': 'Qualité',
@@ -9929,6 +9952,28 @@ ${persona}
                 'voice.thinking': "Thinking...",
                 'voice.speaking': "Speaking...",
                 'voice.paused': 'Paused — click to resume',
+
+                'hd.source.otherAi': 'Other AI',
+                'hd.mode.placeholder': 'Paste the text to verify (another AI response), then click Send…',
+                'hd.mode.toast': '🔍 Paste the text to verify, then Send',
+                'hd.error.tooLong': 'Text is too long. Please shorten it (≈ 50k chars max).',
+                'hd.error.unavailable': 'Analysis failed',
+                'hd.error.analysisPrefix': '❌ Analysis error:',
+                'hd.report.title': '🔎 Hallucination Detector Report',
+                'hd.report.source': 'Source',
+                'hd.report.reliability': 'Reliability score',
+                'hd.report.claimsDetector': 'Claims (detector)',
+                'hd.report.facts': 'Facts',
+                'hd.report.unverified': 'unverified',
+                'hd.report.internalContradictions': 'Internal contradictions detected',
+                'hd.report.securityWarnings': '⚠️ Security warnings',
+                'hd.section.unconfirmed': '⚠️ Unconfirmed points (snippets):',
+                'hd.section.probablyFalse': '❌ Likely false / unsupported points (snippets):',
+                'hd.section.notSupportedClaims': '❌ Unsupported claims (snippets):',
+                'hd.section.contradictoryClaims': '⚡ Contradictory claims (snippets):',
+                'hd.section.verifiedFacts': '✅ Facts with sources (snippets):',
+                'hd.section.recommendedSources': '📚 Recommended sources (to verify):',
+                'hd.report.recommendation': 'Recommendation',
                 'metrics.title': 'Response metrics',
                 'metrics.section.performance': 'Performance',
                 'metrics.section.quality': 'Quality',
@@ -20364,7 +20409,7 @@ function showAddProjectModal() {
         // Mode vérification d'hallucinations (analyse d'un texte externe)
         const hallucinationVerifyMode = {
             active: false,
-            source: 'Autre IA',
+            source: null,
             prevPlaceholder: null
         };
         
@@ -20391,6 +20436,7 @@ function showAddProjectModal() {
         
         function loadHallucinationModule() {
             hallucinationVerifyMode.active = true;
+            hallucinationVerifyMode.source = t('hd.source.otherAi');
 
             const userInput = document.getElementById('userInput');
             if (userInput) {
@@ -20401,12 +20447,12 @@ function showAddProjectModal() {
 
                 // Nettoyer l'input et guider l'utilisateur
                 userInput.value = '';
-                userInput.setAttribute('placeholder', "Collez ici le texte à vérifier (réponse d'une autre IA), puis cliquez sur Envoyer…");
+                userInput.setAttribute('placeholder', t('hd.mode.placeholder'));
                 try { userInput.focus(); } catch (_) {}
                 try { adjustTextareaHeight(); } catch (_) {}
             }
 
-            showToast('🔍 Collez le texte à vérifier puis Envoyer', 'success');
+            showToast(t('hd.mode.toast'), 'success');
         }
         
         function openMarketing() {

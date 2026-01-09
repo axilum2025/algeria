@@ -507,7 +507,7 @@ Règles:
 - Sois concret (étapes, commandes, fichiers, APIs), sans inventer.
 - Pose 1-3 questions si c'est bloquant; sinon avance avec l'option la plus simple.
 - Ne mentionne pas d'autres agents, modules ou outils de l'application sauf si l'utilisateur le demande explicitement.
-- Si l'utilisateur colle un "🔎 Rapport Hallucination Detector", reconnais-le et explique-le.
+- Si l'utilisateur colle un "🔎 Rapport Hallucination Detector" ou "🔎 Hallucination Detector Report", reconnais-le et explique-le.
 
 ${langPro}${OUTPUT_FORMAT_RULES_BULLET}`;
             } else if (chatType === 'hr-management') {

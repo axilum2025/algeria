@@ -18,8 +18,13 @@ const FREE_MODELS = {
     }
 };
 
-// Prompt optimisé pour la détection d'hallucinations
-const ANALYSIS_PROMPT = `Tu es un expert en fact-checking et détection d'hallucinations IA.
+function normalizeLang(lang) {
+    const raw = String(lang || '').toLowerCase();
+    return raw.startsWith('en') ? 'en' : 'fr';
+}
+
+// Prompts optimisés pour la détection d'hallucinations
+const ANALYSIS_PROMPT_FR = `Tu es un expert en fact-checking et détection d'hallucinations IA.
 
 TÂCHES:
 1. Segmente la réponse en claims atomiques vérifiables (phrases factuelles distinctes)
@@ -64,10 +69,59 @@ FORMAT JSON ATTENDU:
   "warning": "⚠️ Message si HI ou CHR ≥ 0.3, null sinon"
 }`;
 
+const ANALYSIS_PROMPT_EN = `You are an expert in fact-checking and AI hallucination detection.
+
+TASKS:
+1. Segment the response into atomic, verifiable claims (distinct factual statements)
+2. For each claim, classify it:
+     - SUPPORTED: confirmed by general knowledge or sources
+     - NOT_SUPPORTED: unverifiable or uncertain information
+     - CONTRADICTORY: clearly false or contradictory
+
+3. Compute the Hallucination Index (HI):
+     HI = (0.5 × count_not_supported + 1.0 × count_contradictory) / total_claims
+
+4. Compute the Composite Hallucination Risk (CHR):
+     - Analyze certainty language (words like "always", "never" increase risk)
+     - Analyze nuance (words like "probably", "generally" are good)
+     - CHR = combination of HI + linguistic analysis
+
+5. List 2-3 relevant reliable sources to verify the information
+
+STRICT RULES:
+- HI and CHR must be between 0.0 and 1.0
+- If HI ≥ 0.3 or CHR ≥ 0.3, add a warning
+- Reply ONLY with valid JSON, nothing else
+
+EXPECTED JSON FORMAT:
+{
+    "hi": 0.27,
+    "chr": 0.42,
+    "claims": [
+        {
+            "text": "The exact claim extracted from the response",
+            "classification": "SUPPORTED",
+            "score": 1.0
+        }
+    ],
+    "counts": {
+        "supported": 5,
+        "not_supported": 2,
+        "contradictory": 1,
+        "total": 8
+    },
+    "sources": ["Reliable source 1", "Reliable source 2"],
+    "warning": "⚠️ Message if HI or CHR ≥ 0.3, otherwise null"
+}`;
+
+function getAnalysisPrompt(lang) {
+        return normalizeLang(lang) === 'en' ? ANALYSIS_PROMPT_EN : ANALYSIS_PROMPT_FR;
+}
+
 /**
  * Analyse avec Groq (priorité - gratuit et ultra-rapide)
  */
-async function analyzeWithGroq(response, originalQuestion, { userId } = {}) {
+async function analyzeWithGroq(response, originalQuestion, { userId, lang } = {}) {
     const groqKey = process.env.APPSETTING_GROQ_API_KEY || process.env.GROQ_API_KEY;
     
     if (!groqKey) {
@@ -77,11 +131,15 @@ async function analyzeWithGroq(response, originalQuestion, { userId } = {}) {
     // Bloquer si le budget mensuel est dépassé
     await assertWithinBudget({ provider: 'Groq', route: 'hallucinationDetector' });
 
+    const prompt = getAnalysisPrompt(lang);
+
     const messages = [
-        { role: 'system', content: ANALYSIS_PROMPT },
+        { role: 'system', content: prompt },
         {
             role: 'user',
-            content: `Question originale: ${originalQuestion}\n\nRéponse à analyser:\n${response}`
+            content: (normalizeLang(lang) === 'en')
+                ? `Original question: ${originalQuestion}\n\nResponse to analyze:\n${response}`
+                : `Question originale: ${originalQuestion}\n\nRéponse à analyser:\n${response}`
         }
     ];
 
@@ -141,12 +199,17 @@ async function analyzeWithGroq(response, originalQuestion, { userId } = {}) {
 /**
  * Analyse avec Gemini Flash (fallback gratuit)
  */
-async function analyzeWithGemini(response, originalQuestion) {
+async function analyzeWithGemini(response, originalQuestion, lang) {
     const geminiKey = process.env.APPSETTING_GEMINI_API_KEY || process.env.GEMINI_API_KEY;
     
     if (!geminiKey) {
         throw new Error('GEMINI_API_KEY non configurée');
     }
+
+    const normalized = normalizeLang(lang);
+    const prompt = getAnalysisPrompt(normalized);
+    const userLabelQ = (normalized === 'en') ? 'Original question' : 'Question originale';
+    const userLabelA = (normalized === 'en') ? 'Response to analyze' : 'Réponse à analyser';
 
     const apiResponse = await fetch(
         `${FREE_MODELS.gemini.url}?key=${geminiKey}`,
@@ -156,7 +219,7 @@ async function analyzeWithGemini(response, originalQuestion) {
             body: JSON.stringify({
                 contents: [{
                     parts: [{
-                        text: `${ANALYSIS_PROMPT}\n\nQuestion originale: ${originalQuestion}\n\nRéponse à analyser:\n${response}`
+                        text: `${prompt}\n\n${userLabelQ}: ${originalQuestion}\n\n${userLabelA}:\n${response}`
                     }]
                 }],
                 generationConfig: {
@@ -189,7 +252,7 @@ async function analyzeWithGemini(response, originalQuestion) {
  * Analyse locale simple (fallback si APIs indisponibles)
  * Utilise l'ancienne méthode basée sur mots-clés
  */
-function analyzeLocal(text) {
+function analyzeLocal(text, lang) {
     if (!text || text.length === 0) {
         return {
             hi: 0,
@@ -258,8 +321,10 @@ function analyzeLocal(text) {
     let chr = 1 - ((nuanceRatio + sourceRatio) * 5 / 100);
     chr = Math.max(0, Math.min(1, chr));
     
-    const warning = (hi >= 0.3 || chr >= 0.3) 
-        ? '⚠️ Incertitude détectée - vérifiez les informations' 
+    const warning = (hi >= 0.3 || chr >= 0.3)
+        ? (normalizeLang(lang) === 'en'
+            ? '⚠️ Uncertainty detected — verify the information'
+            : '⚠️ Incertitude détectée - vérifiez les informations')
         : null;
     
     return {
@@ -292,7 +357,8 @@ async function analyzeHallucination(response, question = '', sources = null, opt
     // 2e essai : Gemini Flash (gratuit, backup)
     try {
         console.log('🔍 Analyse hallucinations avec Gemini Flash...');
-        const result = await analyzeWithGemini(response, question);
+        const lang = (options && typeof options === 'object') ? options.lang : null;
+        const result = await analyzeWithGemini(response, question, lang);
         result.method = 'gemini';
         console.log('✅ Analyse Gemini réussie - HI:', result.hi, 'CHR:', result.chr);
         return result;
@@ -302,7 +368,8 @@ async function analyzeHallucination(response, question = '', sources = null, opt
 
     // 3e essai : Analyse locale (toujours disponible)
     console.log('🔍 Analyse hallucinations en local (fallback)...');
-    const result = analyzeLocal(response);
+    const lang = (options && typeof options === 'object') ? options.lang : null;
+    const result = analyzeLocal(response, lang);
     console.log('✅ Analyse locale - HI:', result.hi, 'CHR:', result.chr);
     return result;
 }
