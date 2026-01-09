@@ -3227,7 +3227,14 @@
     <div class="modal" id="aboutModal">
         <div class="modal-content" style="max-width: 700px;">
             <div class="modal-header">
-                <div class="modal-title" id="aboutModalTitle">À propos d'Axilum AI</div>
+                <div class="modal-title" style="display:flex; align-items:center; gap:10px;">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" style="width:20px; height:20px; flex:0 0 auto;">
+                        <circle cx="12" cy="12" r="10" stroke-width="2" />
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 16v-4" />
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8h.01" />
+                    </svg>
+                    <span id="aboutModalTitle">À propos d'Axilum AI</span>
+                </div>
                 <button class="close-modal" onclick="closeAboutModal()">×</button>
             </div>
             <div id="aboutModalBody" style="padding: 20px;">
@@ -3246,7 +3253,10 @@
                 <div class="about-section">
                     <h3>
                         <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5a2 2 0 104 0 2 2 0 10-4 0zM5 11a2 2 0 102 2h2a2 2 0 102-2v-2a2 2 0 10-2-2H9a2 2 0 10-4 2v2zM13 13a2 2 0 112 2v2a2 2 0 11-2 2h-2a2 2 0 11-2-2v-2a2 2 0 112-2h2z"/>
+                            <rect x="3" y="3" width="7" height="7" rx="1" stroke-width="2" />
+                            <rect x="14" y="3" width="7" height="7" rx="1" stroke-width="2" />
+                            <rect x="3" y="14" width="7" height="7" rx="1" stroke-width="2" />
+                            <rect x="14" y="14" width="7" height="7" rx="1" stroke-width="2" />
                         </svg>
                         Modules Office™ (métiers)
                     </h3>
@@ -3274,8 +3284,9 @@
                 <div class="about-section">
                     <h3>
                         <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7h16" />
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 7v10a2 2 0 002 2h8a2 2 0 002-2V7" />
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7V5a1 1 0 011-1h4a1 1 0 011 1v2" />
                         </svg>
                         Outils (productivité)
                     </h3>
@@ -3380,7 +3391,10 @@
                 <div class="about-section">
                     <h3>
                         <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 21v-2a4 4 0 00-4-4H6a4 4 0 00-4 4v2" />
+                            <circle cx="9" cy="7" r="3" stroke-width="2" />
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M24 21v-2a4 4 0 00-3-3.87" />
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 3.13a3 3 0 010 5.74" />
                         </svg>
                         Agents &amp; Routage
                     </h3>
@@ -3681,7 +3695,14 @@
     <div class="modal" id="usageDashboardModal" style="display:none;">
         <div class="modal-content" style="max-width: 760px;">
             <div class="modal-header">
-                <div class="modal-title" id="usageDashboardTitle">Consommation</div>
+                <div class="modal-title" style="display:flex; align-items:center; gap:10px;">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" style="width:20px; height:20px; flex:0 0 auto;">
+                        <circle cx="12" cy="12" r="10" stroke-width="2" />
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v12" />
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 8.5c0-1.38-1.79-2.5-4-2.5s-4 1.12-4 2.5 1.79 2.5 4 2.5 4 1.12 4 2.5-1.79 2.5-4 2.5-4-1.12-4-2.5" />
+                    </svg>
+                    <span id="usageDashboardTitle">Consommation</span>
+                </div>
                 <button class="close-modal" onclick="closeUsageDashboardModal()">×</button>
             </div>
             <div style="padding: 20px;">
@@ -9831,7 +9852,10 @@ ${persona}
             <div class="about-section">
                 <h3>
                     <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5a2 2 0 104 0 2 2 0 10-4 0zM5 11a2 2 0 102 2h2a2 2 0 102-2v-2a2 2 0 10-2-2H9a2 2 0 10-4 2v2zM13 13a2 2 0 112 2v2a2 2 0 11-2 2h-2a2 2 0 11-2-2v-2a2 2 0 112-2h2z"/>
+                        <rect x="3" y="3" width="7" height="7" rx="1" stroke-width="2" />
+                        <rect x="14" y="3" width="7" height="7" rx="1" stroke-width="2" />
+                        <rect x="3" y="14" width="7" height="7" rx="1" stroke-width="2" />
+                        <rect x="14" y="14" width="7" height="7" rx="1" stroke-width="2" />
                     </svg>
                     Office™ Modules (business)
                 </h3>
@@ -9859,8 +9883,9 @@ ${persona}
             <div class="about-section">
                 <h3>
                     <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7h16" />
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 7v10a2 2 0 002 2h8a2 2 0 002-2V7" />
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7V5a1 1 0 011-1h4a1 1 0 011 1v2" />
                     </svg>
                     Tools (productivity)
                 </h3>
