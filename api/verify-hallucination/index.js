@@ -153,7 +153,8 @@ module.exports = async function (context, req) {
                     claims: claimTexts,
                     evidenceByClaim,
                     lang,
-                    userId: body.userId || 'guest'
+                    userId: body.userId || 'guest',
+                    maxClaims: detectorSignal.maxClaimsForEvidence
                 });
 
                 if (Array.isArray(evidenceAnalysis?.claims) && evidenceAnalysis.claims.length > 0) {

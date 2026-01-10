@@ -245,6 +245,16 @@ function looksLikeSunBlackClaim(claimText) {
   return (/(\bsun\b|\bsoleil\b)/i.test(t) && /(\bblack\b|\bnoir\b)/i.test(t));
 }
 
+function looksLikeFlatEarthClaim(claimText) {
+  const t = String(claimText || '').toLowerCase();
+  return (/\b(earth|terre)\b/i.test(t) && /\b(flat|plate|platte)\b/i.test(t));
+}
+
+function looksLikeTwoPlusTwoEqualsFiveClaim(claimText) {
+  const t = String(claimText || '').replace(/\s+/g, '').toLowerCase();
+  return t.includes('2+2=5');
+}
+
 function findEvidenceIdsMatching(evidenceItems, patterns) {
   const items = Array.isArray(evidenceItems) ? evidenceItems : [];
   const ids = [];
@@ -280,6 +290,36 @@ function evidenceSuggestsSunIsNotBlack(evidenceItems, lang) {
   return { match: ids.length > 0, evidenceUsed: ids };
 }
 
+function evidenceSuggestsEarthIsNotFlat(evidenceItems, lang) {
+  const normalized = normalizeLang(lang);
+  const en = [
+    /\bnot\s+flat\b/i,
+    /\bround\b/i,
+    /\bspherical\b/i,
+    /\boblate\s+spheroid\b/i,
+    /\bcurvature\b/i
+  ];
+  const fr = [
+    /\bn['’]?est\s+pas\s+plate\b/i,
+    /\bron(d|de)\b/i,
+    /\bsph[ée]r(i|ï)que\b/i,
+    /\bsph[ée]ro[iï]de\b/i,
+    /\bcourbure\b/i
+  ];
+  const patterns = normalized === 'en' ? en : fr;
+  const ids = findEvidenceIdsMatching(evidenceItems, patterns);
+  return { match: ids.length > 0, evidenceUsed: ids };
+}
+
+function evidenceSuggestsTwoPlusTwoIsFour(evidenceItems, lang) {
+  const normalized = normalizeLang(lang);
+  const en = [/\b2\s*\+\s*2\s*=\s*4\b/i, /\btwo\s*\+\s*two\s*=\s*four\b/i];
+  const fr = [/\b2\s*\+\s*2\s*=\s*4\b/i, /\bdeux\s*\+\s*deux\s*=\s*quatre\b/i];
+  const patterns = normalized === 'en' ? en : fr;
+  const ids = findEvidenceIdsMatching(evidenceItems, patterns);
+  return { match: ids.length > 0, evidenceUsed: ids };
+}
+
 function normalizeLang(lang) {
   const raw = String(lang || '').toLowerCase();
   return raw.startsWith('en') ? 'en' : 'fr';
@@ -292,6 +332,39 @@ function computeHiFromCounts(counts) {
   const contradictory = Number(counts?.contradictory || 0);
   const hi = (0.5 * notSupported + 1.0 * contradictory) / total;
   return Math.max(0, Math.min(1, hi));
+}
+
+function computeEvidenceWeightedHi(results) {
+  const arr = Array.isArray(results) ? results : [];
+  if (!arr.length) return 0;
+
+  let sum = 0;
+  let total = 0;
+  for (const r of arr) {
+    if (!r || !r.classification) continue;
+    total += 1;
+    if (r.classification === 'CONTRADICTORY') {
+      sum += 1.0;
+    } else if (r.classification === 'NOT_SUPPORTED') {
+      const q = clamp01(Number(r.evidenceQuality));
+      // Réduit les faux positifs quand les preuves sont faibles:
+      // NOT_SUPPORTED avec preuve faible = surtout "inconnu", pas "hallucination".
+      sum += 0.5 * q;
+    }
+  }
+  if (!total) return 0;
+  return clamp01(sum / total);
+}
+
+function computeEvidenceChr({ evidenceHi, contradictionRisk, sufficientEvidenceShare } = {}) {
+  const hi = clamp01(Number(evidenceHi));
+  const risk = clamp01(Number(contradictionRisk));
+  const share = clamp01(Number(sufficientEvidenceShare));
+
+  // Si les preuves sont rares, on évite de sur-interpréter.
+  const evidenceFactor = clamp01(0.25 + 0.75 * share);
+  const contradictionComponent = risk * evidenceFactor;
+  return clamp01(0.75 * contradictionComponent + 0.25 * hi);
 }
 
 function computeCounts(claims) {
@@ -494,13 +567,15 @@ async function callGemini({ lang, claimText, evidenceItems }) {
   return JSON.parse(jsonMatch[0]);
 }
 
-async function verifyClaimsWithEvidence({ claims, evidenceByClaim, lang, userId } = {}) {
+async function verifyClaimsWithEvidence({ claims, evidenceByClaim, lang, userId, maxClaims } = {}) {
   const claimTexts = Array.isArray(claims) ? claims.map(c => (c && c.text ? String(c.text) : String(c || ''))).filter(Boolean) : [];
   const normalized = normalizeLang(lang);
 
   const results = [];
 
-  for (const claimText of claimTexts.slice(0, 6)) {
+  const limit = Math.max(1, Math.min(10, Number(maxClaims) || 6));
+
+  for (const claimText of claimTexts.slice(0, limit)) {
     const evidenceItems = (evidenceByClaim && evidenceByClaim[claimText]) ? evidenceByClaim[claimText] : [];
 
     const { quality: evidenceQuality, details: evidenceQualityDetails } = computeEvidenceQuality(evidenceItems, claimText, normalized);
@@ -545,15 +620,37 @@ async function verifyClaimsWithEvidence({ claims, evidenceByClaim, lang, userId 
     let forcedClassification = null;
     let forcedRationaleAppend = '';
     let forcedEvidenceUsed = null;
-    if (looksLikeSunBlackClaim(claimText) && classification === 'NOT_SUPPORTED' && evidenceQuality >= 0.35) {
-      const ev = evidenceSuggestsSunIsNotBlack(evidenceItems, normalized);
-      if (ev.match) {
-        forcedClassification = 'CONTRADICTORY';
-        forcedEvidenceUsed = ev.evidenceUsed;
-        probabilities = normalizeProbabilities({ p_supported: 0.05, p_not_supported: 0.15, p_contradictory: 0.80 });
-        forcedRationaleAppend = normalized === 'en'
-          ? 'Heuristic: evidence mentions light/brightness (contradicts an apparent-color "black" claim).' 
-          : 'Heuristique : les preuves mentionnent lumière/luminosité (contredit une claim de couleur apparente "noir").';
+    if (classification === 'NOT_SUPPORTED' && evidenceQuality >= 0.35) {
+      if (looksLikeSunBlackClaim(claimText)) {
+        const ev = evidenceSuggestsSunIsNotBlack(evidenceItems, normalized);
+        if (ev.match) {
+          forcedClassification = 'CONTRADICTORY';
+          forcedEvidenceUsed = ev.evidenceUsed;
+          probabilities = normalizeProbabilities({ p_supported: 0.05, p_not_supported: 0.15, p_contradictory: 0.80 });
+          forcedRationaleAppend = normalized === 'en'
+            ? 'Heuristic: evidence mentions light/brightness (contradicts an apparent-color "black" claim).' 
+            : 'Heuristique : les preuves mentionnent lumière/luminosité (contredit une claim de couleur apparente "noir").';
+        }
+      } else if (looksLikeFlatEarthClaim(claimText)) {
+        const ev = evidenceSuggestsEarthIsNotFlat(evidenceItems, normalized);
+        if (ev.match) {
+          forcedClassification = 'CONTRADICTORY';
+          forcedEvidenceUsed = ev.evidenceUsed;
+          probabilities = normalizeProbabilities({ p_supported: 0.05, p_not_supported: 0.15, p_contradictory: 0.80 });
+          forcedRationaleAppend = normalized === 'en'
+            ? 'Heuristic: evidence indicates Earth is not flat (round/spherical/oblate spheroid).' 
+            : 'Heuristique : les preuves indiquent que la Terre n\'est pas plate (ronde/sphérique/sphéroïde).';
+        }
+      } else if (looksLikeTwoPlusTwoEqualsFiveClaim(claimText)) {
+        const ev = evidenceSuggestsTwoPlusTwoIsFour(evidenceItems, normalized);
+        if (ev.match) {
+          forcedClassification = 'CONTRADICTORY';
+          forcedEvidenceUsed = ev.evidenceUsed;
+          probabilities = normalizeProbabilities({ p_supported: 0.02, p_not_supported: 0.08, p_contradictory: 0.90 });
+          forcedRationaleAppend = normalized === 'en'
+            ? 'Heuristic: evidence states 2+2=4 (contradicts the claim).' 
+            : 'Heuristique : les preuves indiquent 2+2=4 (contredit la claim).';
+        }
       }
     }
 
@@ -576,7 +673,7 @@ async function verifyClaimsWithEvidence({ claims, evidenceByClaim, lang, userId 
   }
 
   const counts = computeCounts(results);
-  const hi = computeHiFromCounts(counts);
+  const hi = computeEvidenceWeightedHi(results);
 
   const contradictionRisk = computeContradictionRisk(results);
   // Seuil de "preuve suffisante" (heuristique). 0.6 était trop strict en pratique avec des snippets courts.
@@ -586,19 +683,31 @@ async function verifyClaimsWithEvidence({ claims, evidenceByClaim, lang, userId 
   const sufficientEvidenceShare = computeSufficientEvidenceShare(results, evidenceCoverageThreshold);
   const ci90 = bootstrapRiskCI90(results, 200);
 
+  const chr = computeEvidenceChr({ evidenceHi: hi, contradictionRisk, sufficientEvidenceShare });
+
+  const totalClaims = Number(counts?.total || 0);
+  const contradictionRate = totalClaims ? clamp01(Number(counts?.contradictory || 0) / totalClaims) : 0;
+  const uncertaintyRate = totalClaims ? clamp01(Number(counts?.not_supported || 0) / totalClaims) : 0;
+
   return {
     method: 'evidence',
     lang: normalized,
     claims: results,
     counts,
     hi,
-    // CHR minimal: on ne fait pas d'analyse linguistique ici; on s'aligne sur HI.
-    chr: hi,
+    // CHR evidence: combine contradictionRisk + "preuve suffisante" + HI pondéré.
+    chr,
     score: {
       contradictionRisk: Math.round(contradictionRisk * 1000) / 10,
       evidenceCoverage: Math.round(evidenceCoverage * 1000) / 10,
       evidenceCoverageThreshold,
       sufficientEvidenceShare: Math.round(sufficientEvidenceShare * 1000) / 10,
+      breakdown: {
+        contradictionRate: Math.round(contradictionRate * 1000) / 10,
+        uncertaintyRate: Math.round(uncertaintyRate * 1000) / 10,
+        hiWeightedByEvidenceQuality: Math.round(hi * 1000) / 10,
+        chrEvidence: Math.round(chr * 1000) / 10
+      },
       uncertainty: {
         ci90: [Math.round(ci90.low * 1000) / 10, Math.round(ci90.high * 1000) / 10],
         plusMinus: Math.round(((ci90.high - ci90.low) * 0.5) * 1000) / 10
