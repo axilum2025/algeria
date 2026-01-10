@@ -52,12 +52,15 @@ module.exports = async function (context, req) {
         );
         context.log('🔍 Analyse hallucination:', hallucinationAnalysis);
 
+        // Signal detector (backend-only): sert à ajuster la récupération de preuves (sans exposer un 2e score dans l'UI).
+        const detectorSignal = computeDetectorSignal(hallucinationAnalysis);
+
         // "effectiveAnalysis" peut être remplacée par une analyse evidence-based si Brave + modèle sont disponibles.
         let effectiveAnalysis = hallucinationAnalysis;
 
         // 2. Extraire les faits du texte
         // Important: privilégier les claims du détecteur (évite de vérifier des phrases méta "ChatGPT said...").
-        const facts = pickFactsForBrave(hallucinationAnalysis, text);
+        const facts = pickFactsForBrave(hallucinationAnalysis, text, { max: detectorSignal.maxFactsForBrave });
         context.log(`📊 ${facts.length} faits extraits`);
 
         // 3. Vérifier les faits avec Brave Search
@@ -80,9 +83,12 @@ module.exports = async function (context, req) {
         if (braveVerificationEnabled) {
             context.log('🌐 Vérification avec Brave Search...');
             
-            for (const fact of facts.slice(0, 5)) { // Limiter à 5 faits pour performance
+            for (const fact of facts.slice(0, detectorSignal.maxFactsToVerifyWithBrave)) {
                 try {
-                    const verification = await verifyFactWithBrave(fact, braveApiKey, context, lang);
+                    const verification = await verifyFactWithBrave(fact, braveApiKey, context, lang, {
+                        aggressive: detectorSignal.aggressiveEvidenceRetrieval,
+                        userId: body.userId || 'guest'
+                    });
 
                     evidence.push({
                         fact,
@@ -128,11 +134,14 @@ module.exports = async function (context, req) {
         // 3bis. Evidence-based checking (auditable): claims -> preuves Brave -> verdict sur preuves (Groq/Gemini)
         let evidenceAnalysis = null;
         if (evidenceCheckEnabled) {
-            const claimTexts = pickClaimsForEvidenceCheck(hallucinationAnalysis, text);
+            const claimTexts = pickClaimsForEvidenceCheck(hallucinationAnalysis, text, { max: detectorSignal.maxClaimsForEvidence });
 
             for (const claimText of claimTexts) {
                 try {
-                    const v = await verifyClaimEvidenceWithBrave(claimText, braveApiKey, context, lang);
+                    const v = await verifyClaimEvidenceWithBrave(claimText, braveApiKey, context, lang, {
+                        aggressive: detectorSignal.aggressiveEvidenceRetrieval,
+                        userId: body.userId || 'guest'
+                    });
                     evidenceByClaim[claimText] = Array.isArray(v.results) ? v.results : [];
                 } catch (_) {
                     evidenceByClaim[claimText] = [];
@@ -573,10 +582,8 @@ async function extractFacts(text) {
 }
 
 // Vérifier un fait avec Brave Search
-async function verifyFactWithBrave(fact, apiKey, context, lang) {
-    // Réutiliser la même logique que l'evidence-check (multi-variantes)
-    // pour éviter "partial match" quand une seule requête échoue.
-    const v = await verifyClaimEvidenceWithBrave(fact, apiKey, context, lang);
+async function verifyFactWithBrave(fact, apiKey, context, lang, options) {
+    const v = await verifyClaimEvidenceWithBrave(fact, apiKey, context, lang, options);
     if (v && Array.isArray(v.results) && v.results.length > 0) {
         return {
             verified: false,
@@ -590,7 +597,9 @@ async function verifyFactWithBrave(fact, apiKey, context, lang) {
     return { verified: false, partialMatch: false, query: sanitizeBraveQuery(fact), results: [] };
 }
 
-async function verifyClaimEvidenceWithBrave(claimText, apiKey, context, lang) {
+async function verifyClaimEvidenceWithBrave(claimText, apiKey, context, lang, options) {
+    const aggressive = Boolean(options && options.aggressive);
+    const userId = options && options.userId ? String(options.userId) : 'guest';
     const variants = buildQueryVariantsForClaim(claimText, lang);
     const seen = new Set();
     const merged = [];
@@ -601,15 +610,18 @@ async function verifyClaimEvidenceWithBrave(claimText, apiKey, context, lang) {
     const looksNumericOrTemporal = /\b(19|20)\d{2}\b/.test(String(claimText || '')) || /\b\d+([,.]\d+)?\b/.test(String(claimText || ''));
     const hasAuthorityFilter = variants.some(v => /\bsite:(nasa\.gov|britannica\.com|wikipedia\.org|fr\.wikipedia\.org|larousse\.fr|nso\.edu)\b/i.test(String(v)));
 
-    const maxVariants = looksLikeSunBlack
+    const baseMaxVariants = looksLikeSunBlack
         ? 6
         : (looksNumericOrTemporal
             ? (hasAuthorityFilter ? 6 : 5)
             : (hasAuthorityFilter ? 4 : 3));
 
-    const perQueryCount = looksLikeSunBlack
+    const basePerQueryCount = looksLikeSunBlack
         ? 5
         : (looksNumericOrTemporal ? 5 : 3);
+
+    const maxVariants = aggressive ? Math.min(8, baseMaxVariants + 2) : baseMaxVariants;
+    const perQueryCount = aggressive ? Math.min(10, basePerQueryCount + 2) : basePerQueryCount;
 
     for (const q of variants.slice(0, maxVariants)) {
         const results = await braveSearch(q, apiKey, context, perQueryCount);
@@ -635,10 +647,11 @@ async function verifyClaimEvidenceWithBrave(claimText, apiKey, context, lang) {
             const qg = await generateSearchQueries({
                 claimText: String(claimText || ''),
                 lang,
-                userId: 'guest'
+                userId
             });
             const extraQueries = Array.isArray(qg?.queries) ? qg.queries : [];
-            for (const q of extraQueries.slice(0, 3)) {
+            const extraLimit = aggressive ? 5 : 3;
+            for (const q of extraQueries.slice(0, extraLimit)) {
                 const results = await braveSearch(q, apiKey, context, perQueryCount);
                 for (const r of results) {
                     const key = String(r.url || '').trim();
@@ -813,14 +826,15 @@ function sanitizeBraveQuery(input) {
     return simplified.length > 180 ? simplified.slice(0, 180) : simplified;
 }
 
-function pickClaimsForEvidenceCheck(hallucinationAnalysis, rawText) {
+function pickClaimsForEvidenceCheck(hallucinationAnalysis, rawText, options) {
+    const max = Math.max(1, Math.min(12, Number(options?.max) || 6));
     const claims = Array.isArray(hallucinationAnalysis?.claims) ? hallucinationAnalysis.claims : [];
     const fromDetector = claims
         .map(c => (c && c.text ? stripMetaPrefix(String(c.text).trim()) : ''))
         .filter(Boolean);
 
     if (fromDetector.length > 0) {
-        return [...new Set(fromDetector)].slice(0, 6);
+        return [...new Set(fromDetector)].slice(0, max);
     }
 
     // Fallback: extraire des phrases "vérifiables" basiques
@@ -842,7 +856,7 @@ function pickClaimsForEvidenceCheck(hallucinationAnalysis, rawText) {
         .sort((a, b) => b.score - a.score)
         .map(x => x.text);
 
-    return [...new Set(scored)].slice(0, 6);
+    return [...new Set(scored)].slice(0, max);
 }
 
 function normalizeTextForHallucinationAnalysis(rawText) {
@@ -856,7 +870,8 @@ function normalizeTextForHallucinationAnalysis(rawText) {
         .trim();
 }
 
-function pickFactsForBrave(hallucinationAnalysis, rawText) {
+function pickFactsForBrave(hallucinationAnalysis, rawText, options) {
+    const max = Math.max(1, Math.min(20, Number(options?.max) || 8));
     const claims = Array.isArray(hallucinationAnalysis?.claims) ? hallucinationAnalysis.claims : [];
     const fromClaims = claims
         .map(c => (c && c.text ? String(c.text).trim() : ''))
@@ -864,7 +879,7 @@ function pickFactsForBrave(hallucinationAnalysis, rawText) {
         .filter(Boolean);
 
     if (fromClaims.length > 0) {
-        return [...new Set(fromClaims)].slice(0, 8);
+        return [...new Set(fromClaims)].slice(0, max);
     }
 
     // Fallback: extraction simple (sync) si le détecteur ne fournit pas de claims.
@@ -877,7 +892,32 @@ function pickFactsForBrave(hallucinationAnalysis, rawText) {
         .map(stripMetaPrefix)
         .filter(Boolean);
 
-    return [...new Set(sentences)].slice(0, 8);
+    return [...new Set(sentences)].slice(0, max);
+}
+
+function computeDetectorSignal(hallucinationAnalysis) {
+    const hi = (typeof hallucinationAnalysis?.hi === 'number') ? hallucinationAnalysis.hi : 0;
+    const chr = (typeof hallucinationAnalysis?.chr === 'number') ? hallucinationAnalysis.chr : 0;
+    const counts = hallucinationAnalysis?.counts && typeof hallucinationAnalysis.counts === 'object'
+        ? hallucinationAnalysis.counts
+        : null;
+    const contradictory = counts && typeof counts.contradictory === 'number' ? counts.contradictory : 0;
+    const notSupported = counts && typeof counts.not_supported === 'number' ? counts.not_supported : 0;
+
+    // Heuristique de risque: privilégier HI/CHR et la présence de contradictions.
+    // Objectif: augmenter la récupération de preuves quand c'est vraiment utile, sans exploser la latence.
+    const risk = Math.max(0, Math.min(1, 0.6 * hi + 0.4 * chr));
+    const highRisk = (risk >= 0.28) || contradictory > 0 || notSupported >= 3;
+
+    return {
+        risk,
+        highRisk,
+        aggressiveEvidenceRetrieval: highRisk,
+        // Plus de claims/faits à vérifier en cas de risque élevé.
+        maxClaimsForEvidence: highRisk ? 10 : 6,
+        maxFactsForBrave: highRisk ? 12 : 8,
+        maxFactsToVerifyWithBrave: highRisk ? 8 : 5
+    };
 }
 
 function stripMetaPrefix(s) {
