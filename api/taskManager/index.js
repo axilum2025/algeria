@@ -343,7 +343,8 @@ function computeStressIndex(metrics, profile) {
     return clamp(Math.round(score), 0, 100);
 }
 
-function buildCoachAdvice({ metrics, profile }) {
+function buildCoachAdvice({ metrics, profile, lang }) {
+    const en = String(lang || '').toLowerCase().startsWith('en');
     const completed = Number(metrics.completed || 0);
     const pending = Number(metrics.pending || 0);
     const overdue = Number(metrics.overdue || 0);
@@ -361,45 +362,69 @@ function buildCoachAdvice({ metrics, profile }) {
     const personal = [];
 
     if (!profile?.provided) {
-        work.push("Compléter le profil (âge/sexe/capacité) pour affiner les métriques.");
+        work.push(en ? "Complete your profile (age/sex/capacity) to refine metrics." : "Compléter le profil (âge/sexe/capacité) pour affiner les métriques.");
     } else if (!hasFocusHours) {
-        work.push("Renseigner une capacité (heures focus/jour) pour détecter la surcharge plus finement.");
+        work.push(en ? "Add daily focus capacity (hours) to detect overload more accurately." : "Renseigner une capacité (heures focus/jour) pour détecter la surcharge plus finement.");
     }
 
     if (overdue > 0) {
-        work.push(`Traiter d'abord les ${overdue} tâche(s) en retard: choisir 1 urgence + découper la plus lourde en 2–3 sous-tâches.`);
+        work.push(en
+            ? `Handle the ${overdue} overdue task(s) first: pick 1 urgent item and split the heaviest into 2–3 sub-steps.`
+            : `Traiter d'abord les ${overdue} tâche(s) en retard: choisir 1 urgence + découper la plus lourde en 2–3 sous-tâches.`);
     }
 
     if (overloadNext24) {
         const capHint = hasFocusHours ? ` (capacité ≈ ${focusHours}h)` : '';
-        work.push(`Journée chargée: ~${next24Hours}h prévues sur 24h${capHint}. Reporter 1–2 tâches non critiques et protéger 1 bloc focus.`);
+        work.push(en
+            ? `Busy next 24h: ~${next24Hours}h planned${hasFocusHours ? ` (capacity ≈ ${focusHours}h)` : ''}. Defer 1–2 non-critical tasks and protect 1 focus block.`
+            : `Journée chargée: ~${next24Hours}h prévues sur 24h${capHint}. Reporter 1–2 tâches non critiques et protéger 1 bloc focus.`);
     } else if (pendingEstimatedHours >= 6) {
-        work.push(`Charge globale élevée (~${pendingEstimatedHours}h). Planifier 2 blocs focus et regrouper les micro-tâches.`);
+        work.push(en
+            ? `High overall load (~${pendingEstimatedHours}h). Plan 2 focus blocks and bundle micro-tasks together.`
+            : `Charge globale élevée (~${pendingEstimatedHours}h). Planifier 2 blocs focus et regrouper les micro-tâches.`);
     } else {
-        work.push("Rythme stable: garder 1 bloc focus + 1 tâche courte pour maintenir l'élan.");
+        work.push(en
+            ? "Steady pace: keep 1 focus block + 1 short task to maintain momentum."
+            : "Rythme stable: garder 1 bloc focus + 1 tâche courte pour maintenir l'élan.");
     }
 
     if (pending >= 8 || mentalLoadScore >= 70) {
-        work.push("Réduire la charge mentale: limiter la liste visible à 5 tâches, le reste en backlog.");
+        work.push(en
+            ? "Lower mental load: keep only 5 tasks visible, park the rest in backlog."
+            : "Réduire la charge mentale: limiter la liste visible à 5 tâches, le reste en backlog.");
     }
 
     if (stressIndex >= 70) {
-        personal.push("Stress élevé: bloquer 10 min de pause (respiration/marche) entre 2 tâches importantes.");
+        personal.push(en
+            ? "Stress high: block 10 minutes (breathing/walk) between two important tasks."
+            : "Stress élevé: bloquer 10 min de pause (respiration/marche) entre 2 tâches importantes.");
     } else {
-        personal.push("Préserver l'énergie: 1 pause courte toutes les 90 minutes de focus.");
+        personal.push(en
+            ? "Protect energy: one short break every 90 minutes of focus."
+            : "Préserver l'énergie: 1 pause courte toutes les 90 minutes de focus.");
     }
 
     if (completionRate < 30 && (pending > 0 || overdue > 0)) {
-        personal.push("Objectif victoire rapide: terminer 1 petite tâche (≤15 min) pour relancer la motivation.");
+        personal.push(en
+            ? "Quick win: finish one small task (≤15 min) to regain momentum."
+            : "Objectif victoire rapide: terminer 1 petite tâche (≤15 min) pour relancer la motivation.");
     } else if (completed >= 3) {
-        personal.push("Bon rythme: clôturer la journée par un mini bilan (3 lignes) et préparer 1 priorité pour demain.");
+        personal.push(en
+            ? "Good pace: end the day with a 3-line recap and set 1 priority for tomorrow."
+            : "Bon rythme: clôturer la journée par un mini bilan (3 lignes) et préparer 1 priorité pour demain.");
     }
 
-    const response = [
-        `Conseiller: charge ${pending} en cours, ${overdue} en retard.`,
-        `Scores: mental ${mentalLoadScore}/100, stress ${stressIndex}/100, completion ${completionRate}%.`,
-        `Top actions: ${work.slice(0, 2).join(' ')} ${personal.slice(0, 1).join(' ')}`
-    ].join('\n');
+    const response = en
+        ? [
+            `Coach: ${pending} active, ${overdue} overdue.`,
+            `Scores: mental ${mentalLoadScore}/100, stress ${stressIndex}/100, completion ${completionRate}%.`,
+            `Top actions: ${[...work].slice(0, 2).join(' ')} ${[...personal].slice(0, 1).join(' ')}`
+        ].join('\n')
+        : [
+            `Conseiller: charge ${pending} en cours, ${overdue} en retard.`,
+            `Scores: mental ${mentalLoadScore}/100, stress ${stressIndex}/100, completion ${completionRate}%.`,
+            `Top actions: ${work.slice(0, 2).join(' ')} ${personal.slice(0, 1).join(' ')}`
+        ].join('\n');
 
     return { response, advice: { work, personal } };
 }
@@ -756,6 +781,8 @@ async function coachAdvice(context, req, userId) {
     const now = new Date();
     const tasks = (await getTasks(userId)).map(normalizeTaskShape);
     const profile = parsePersonalProfile(req);
+    const lang = getReqLang(req);
+    const en = isEnglish(req);
 
     const coachModeRaw = String(req.query?.coachMode ?? req.body?.coachMode ?? '').trim().toLowerCase();
     const wantsLlm = coachModeRaw === 'llm' || coachModeRaw === 'ai' || coachModeRaw === 'true' || coachModeRaw === '1';
@@ -825,25 +852,27 @@ async function coachAdvice(context, req, userId) {
             category: x.t.category
         }));
 
-    let coach = buildCoachAdvice({ metrics, profile });
+    let coach = buildCoachAdvice({ metrics, profile, lang });
 
     if (wantsLlm) {
         const groqKey = process.env.APPSETTING_GROQ_API_KEY || process.env.GROQ_API_KEY;
         if (groqKey) {
             try {
-                const systemPrompt = `Tu es "AI Coach" pour Agent ToDo. Objectif: aider l'utilisateur à avancer aujourd'hui.
+                                const systemPrompt = `${en
+                                        ? 'You are "AI Coach" for Agent ToDo. Goal: help the user make progress today.'
+                                        : 'Tu es "AI Coach" pour Agent ToDo. Objectif: aider l\'utilisateur à avancer aujourd\'hui.'}
 
-Contraintes:
+${pickLang(req, 'Contraintes:', 'Constraints:')}
  - ${getResponseLanguageInstruction(lang, { tone: '' })}
-- Ton: conversationnel, bienveillant, direct (style ChatGPT), sans te présenter.
-- Utilise le contexte (métriques, top tâches, historique court) pour personnaliser.
-- Propose 3 actions concrètes max (priorisées), et 1 micro-action (≤ 5 min) si utile.
-- Ne promets pas de résultats et n'invente pas de données.
+- ${pickLang(req, 'Ton: conversationnel, bienveillant, direct (style ChatGPT), sans te présenter.', 'Tone: conversational, kind, direct (ChatGPT style), no self-intro.')}
+- ${pickLang(req, 'Utilise le contexte (métriques, top tâches, historique court) pour personnaliser.', 'Use context (metrics, top tasks, short history) to personalize.')}
+- ${pickLang(req, 'Propose 3 actions concrètes max (priorisées), et 1 micro-action (≤ 5 min) si utile.', 'Propose up to 3 concrete actions (prioritized) plus 1 micro-action (≤5 min) if useful.')}
+- ${pickLang(req, 'Ne promets pas de résultats et n\'invente pas de données.', 'Do not promise results and do not make up data.')}
 
-FORMAT JSON STRICT:
+${pickLang(req, 'FORMAT JSON STRICT:', 'STRICT JSON FORMAT:')}
 {
-  "response": "texte court (5-10 lignes max)",
-  "advice": {"work": ["..."], "personal": ["..."]}
+    "response": ${pickLang(req, '"texte court (5-10 lignes max)"', '"short text (max 5-10 lines)"')},
+    "advice": {"work": ["..."], "personal": ["..."]}
 }`;
 
                 const userPayload = {
