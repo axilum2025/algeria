@@ -1,6 +1,7 @@
 const https = require('https');
 const { analyzeHallucination } = require('../utils/hallucinationDetector');
 const { verifyClaimsWithEvidence } = require('../utils/evidenceClaimVerifier');
+const { getRecommendedSourcesForAudit } = require('../utils/recommendedSourcesAdvisor');
 const { generateSearchQueries } = require('../utils/claimSearchQueryGenerator');
 
 module.exports = async function (context, req) {
@@ -317,10 +318,27 @@ module.exports = async function (context, req) {
             });
         }
 
-        const recommendedSources = sanitizeRecommendedSources(
-            Array.isArray(hallucinationAnalysis?.sources) ? hallucinationAnalysis.sources : [],
-            lang
-        );
+        let recommendedSourcesMeta = null;
+        try {
+            recommendedSourcesMeta = await getRecommendedSourcesForAudit({
+                userId: body.userId || 'guest',
+                lang,
+                text,
+                evidenceClaims: Array.isArray(evidenceAnalysis?.claims) ? evidenceAnalysis.claims : [],
+                max: 5,
+                preferAi: true
+            });
+        } catch (_) {
+            recommendedSourcesMeta = null;
+        }
+
+        // Backward-compatible shape: report.recommendedSources stays an array of strings.
+        const recommendedSources = (recommendedSourcesMeta && Array.isArray(recommendedSourcesMeta.sources))
+            ? recommendedSourcesMeta.sources
+            : sanitizeRecommendedSources(
+                Array.isArray(hallucinationAnalysis?.sources) ? hallucinationAnalysis.sources : [],
+                lang
+            );
 
         const report = {
             source: source || L.sourceUnspecifiedLong,
@@ -351,6 +369,16 @@ module.exports = async function (context, req) {
                 version: 'hd-report-v1.2',
                 lang,
                 analysisMethod: String(effectiveAnalysis?.method || 'unknown'),
+                recommendedSources: recommendedSourcesMeta
+                    ? {
+                        method: String(recommendedSourcesMeta.method || ''),
+                        tags: Array.isArray(recommendedSourcesMeta.tags) ? recommendedSourcesMeta.tags : [],
+                        notes: String(recommendedSourcesMeta.notes || ''),
+                        suggestedDomains: Array.isArray(recommendedSourcesMeta.suggestedDomains)
+                            ? recommendedSourcesMeta.suggestedDomains
+                            : []
+                    }
+                    : null,
                 scoring: (effectiveAnalysis && effectiveAnalysis.method === 'evidence' && effectiveAnalysis.score)
                     ? 'evidence_contradictionRisk_and_coverage'
                     : (analysisTotal > 0 ? 'supported_claims_ratio' : (totalFacts > 0 ? 'brave_ratio' : 'unavailable')),
