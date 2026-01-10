@@ -1616,6 +1616,16 @@
             gap: 12px;
         }
 
+        .stat-item.left {
+            justify-content: flex-start;
+            align-items: baseline;
+        }
+
+        .stat-item.left .stat-value {
+            text-align: left;
+            max-width: none;
+        }
+
         .stat-item .stat-value {
             font-weight: 700;
             text-align: right;
@@ -4038,16 +4048,36 @@
             const kind = m && m.kind ? String(m.kind).toUpperCase() : 'CHAT';
 
             help.innerHTML = `
-                <div class="row">
-                    <span class="k">${safeT('ai.help.activePrefix', 'Modèle actif:')}</span>
-                    <span class="v"><span class="status-dot green" style="display:inline-block; width:10px; height:10px; margin-right:8px; vertical-align:middle;"></span>${activeName}</span>
+                <div class="stat-section-title">${safeT('ai.help.sectionTitle', 'Active model')}</div>
+
+                <div class="stat-item left">
+                    <span>${safeT('ai.help.activePrefix', 'Modèle actif:')}</span>
+                    <span class="stat-value"><span class="status-dot green" style="display:inline-block; width:10px; height:10px; margin-right:8px; vertical-align:middle;"></span>${activeName}</span>
                 </div>
-                <div class="row"><span class="k">${safeT('ai.help.fullId', 'Nom complet:')}</span><span class="v">${active}</span></div>
-                <div class="row"><span class="k">${safeT('ai.help.provider', 'Provider:')}</span><span class="v">${provider}</span></div>
-                <div class="row"><span class="k">${safeT('ai.help.kind', 'Type:')}</span><span class="v">${kind}</span></div>
-                <div class="row"><span class="k">${safeT('ai.help.category', 'Fonctions:')}</span><span class="v">${fullCategory}</span></div>
-                <div class="row"><span class="k">${safeT('ai.help.preferences', 'Préférences:')}</span><span class="v">${prefs || 'N/A'}</span></div>
-                <div class="row"><span class="k">${safeT('ai.help.pricePrefix', 'Prix:')}</span><span class="v">${inTxt} • ${outTxt}</span></div>
+                <div class="stat-item left">
+                    <span>${safeT('ai.help.fullId', 'Nom complet:')}</span>
+                    <span class="stat-value">${active}</span>
+                </div>
+                <div class="stat-item left">
+                    <span>${safeT('ai.help.provider', 'Provider:')}</span>
+                    <span class="stat-value">${provider}</span>
+                </div>
+                <div class="stat-item left">
+                    <span>${safeT('ai.help.kind', 'Type:')}</span>
+                    <span class="stat-value">${kind}</span>
+                </div>
+                <div class="stat-item left">
+                    <span>${safeT('ai.help.category', 'Fonctions:')}</span>
+                    <span class="stat-value">${fullCategory}</span>
+                </div>
+                <div class="stat-item left">
+                    <span>${safeT('ai.help.preferences', 'Préférences:')}</span>
+                    <span class="stat-value">${prefs || 'N/A'}</span>
+                </div>
+                <div class="stat-item left">
+                    <span>${safeT('ai.help.pricePrefix', 'Prix:')}</span>
+                    <span class="stat-value">${inTxt} • ${outTxt}</span>
+                </div>
                 ${fullDesc ? `<div class="hint">${fullDesc}</div>` : ''}
             `;
         }
