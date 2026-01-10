@@ -9832,12 +9832,12 @@ ${persona}
                 'sessions.group.older': 'Plus ancien',
                 'stats.messagesExchanged': 'Messages échangés',
                 'stats.conversations': 'Conversations',
-                'stats.avgHI': 'HI moyen',
-                'stats.avgCHR': 'CHR moyen',
+                'stats.avgHI': 'HI (global)',
+                'stats.avgCHR': 'CHR (global)',
                 'stats.hiCoverage': 'Couverture HI',
                 'stats.chrCoverage': 'Couverture CHR',
-                'stats.recentHI': 'HI récent',
-                'stats.recentCHR': 'CHR récent',
+                'stats.recentHI': 'HI (récent, 20 derniers)',
+                'stats.recentCHR': 'CHR (récent, 20 derniers)',
                 'stats.riskMessages': 'Messages à risque',
                 'stats.highRiskMessages': 'Messages très risqués',
                 'stats.topModels': 'Modèles (top)',
@@ -10021,12 +10021,12 @@ ${persona}
                 'sessions.group.older': 'Older',
                 'stats.messagesExchanged': 'Messages exchanged',
                 'stats.conversations': 'Conversations',
-                'stats.avgHI': 'Average HI',
-                'stats.avgCHR': 'Average CHR',
+                'stats.avgHI': 'HI (global)',
+                'stats.avgCHR': 'CHR (global)',
                 'stats.hiCoverage': 'HI coverage',
                 'stats.chrCoverage': 'CHR coverage',
-                'stats.recentHI': 'Recent HI',
-                'stats.recentCHR': 'Recent CHR',
+                'stats.recentHI': 'HI (recent, last 20)',
+                'stats.recentCHR': 'CHR (recent, last 20)',
                 'stats.riskMessages': 'Risky messages',
                 'stats.highRiskMessages': 'High-risk messages',
                 'stats.topModels': 'Top models',
@@ -35143,18 +35143,24 @@ Réponds UNIQUEMENT dans ce format JSON:
             const shortenModelName = (full) => {
                 const raw = String(full || '').trim();
                 if (!raw) return '';
+
+                // Remove provider/vendor prefix (e.g. openai/gpt-4.1 -> gpt-4.1)
                 const parts = raw.split('/').filter(Boolean);
-                const vendor = parts.length >= 2 ? parts[0] : '';
-                const model = parts.length >= 2 ? parts.slice(1).join('/') : raw;
-                const maxModelLen = 18;
-                let shortModel = model;
-                if (shortModel.length > maxModelLen) {
-                    const head = shortModel.slice(0, 10);
-                    const tail = shortModel.slice(-4);
-                    shortModel = `${head}…${tail}`;
-                }
-                if (!vendor) return shortModel;
-                return `${vendor}:${shortModel}`;
+                const model = parts.length ? parts[parts.length - 1] : raw;
+                const m = model.toLowerCase();
+
+                // Map to user-friendly family names
+                if (m.includes('gpt') || m.includes('chatgpt') || m.includes('o1') || m.includes('o3')) return 'ChatGPT';
+                if (m.includes('kimi')) return 'Kimi';
+                if (m.includes('qwen')) return 'Qwen';
+                if (m.includes('gemini')) return 'Gemini';
+                if (m.includes('claude')) return 'Claude';
+                if (m.includes('llama')) return 'Llama';
+                if (m.includes('mistral')) return 'Mistral';
+
+                // Fallback: take the first token and capitalize
+                const base = model.split(/[-:_\s]+/).filter(Boolean)[0] || model;
+                return base.charAt(0).toUpperCase() + base.slice(1);
             };
 
             const topModels = Array.from(modelCounts.entries())
