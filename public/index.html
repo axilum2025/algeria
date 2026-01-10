@@ -12093,6 +12093,7 @@ ${persona}
                         width: auto !important;
                         bottom: 72px !important;
                         max-height: 70vh !important;
+                        z-index: 10010 !important; /* laisser le drawer sidebar passer au-dessus */
                     }
 
                     /* Agent ToDo réduit sur mobile: petite bulle en bas à droite */
@@ -12100,6 +12101,7 @@ ${persona}
                         left: auto !important;
                         right: 12px !important;
                         bottom: 92px !important;
+                        z-index: 10010 !important;
                     }
 
                     /* Quand le drawer sidebar est ouvert, masquer le panneau chat pour éviter le chevauchement */
@@ -12215,7 +12217,6 @@ ${persona}
                     // Desktop: sidebar toujours visible
                     sidebar.classList.remove('open');
                     backdrop.style.display = 'none';
-                    document.body.classList.remove('todo-sidebar-open');
                     return;
                 }
 
@@ -12223,6 +12224,14 @@ ${persona}
                 sidebar.classList.toggle('open', shouldOpen);
                 backdrop.style.display = shouldOpen ? 'block' : 'none';
                 document.body.classList.toggle('todo-sidebar-open', shouldOpen);
+
+                // Sur mobile, fermer le panneau chat pour ne pas gêner le drawer
+                if (shouldOpen) {
+                    try {
+                        hideAiAssistantPanel();
+                        aiAssistantOpen = false;
+                    } catch (_) {}
+                }
             };
 
             const sync = () => {
