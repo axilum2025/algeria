@@ -1612,7 +1612,7 @@
             justify-content: space-between;
             align-items: center;
             padding: 12px 0;
-            border-bottom: 1px solid var(--border-color);
+            border-bottom: none;
             gap: 12px;
         }
 
@@ -1637,8 +1637,8 @@
 
         .stat-section-title {
             margin-top: 14px;
-            padding-top: 10px;
-            border-top: 1px solid var(--border-color);
+            padding-top: 0;
+            border-top: none;
             font-size: 11px;
             font-weight: 800;
             letter-spacing: 0.08em;
@@ -35246,63 +35246,6 @@ Réponds UNIQUEMENT dans ce format JSON:
             const hiCoveragePct = allMessages.length ? (hiCount / allMessages.length) * 100 : null;
             const chrCoveragePct = allMessages.length ? (chrCount / allMessages.length) * 100 : null;
 
-            // Statistiques récentes (fenêtre glissante locale, utile pour tendance)
-            const recentHiAvg = Array.isArray(messageStats?.hiHistory) && messageStats.hiHistory.length
-                ? (messageStats.hiHistory.reduce((a, b) => a + b, 0) / messageStats.hiHistory.length)
-                : null;
-
-            const recentChrAvg = Array.isArray(messageStats?.chrHistory) && messageStats.chrHistory.length
-                ? (messageStats.chrHistory.reduce((a, b) => a + b, 0) / messageStats.chrHistory.length)
-                : null;
-
-            // Compteurs de risque basés sur HI (alignés sur le dot + seuil “incertitude”)
-            let risk30Count = 0;
-            let risk60Count = 0;
-            for (const msg of allMessages) {
-                const hi = getHiFromMessage(msg);
-                if (hi === null) continue;
-                if (hi >= 30) risk30Count += 1;
-                if (hi >= 60) risk60Count += 1;
-            }
-
-            // Modèles utilisés (top 3)
-            const modelCounts = new Map();
-            for (const msg of allMessages) {
-                const m = msg && msg.model ? String(msg.model).trim() : '';
-                if (!m) continue;
-                modelCounts.set(m, (modelCounts.get(m) || 0) + 1);
-            }
-
-            const shortenModelName = (full) => {
-                const raw = String(full || '').trim();
-                if (!raw) return '';
-
-                // Remove provider/vendor prefix (e.g. openai/gpt-4.1 -> gpt-4.1)
-                const parts = raw.split('/').filter(Boolean);
-                const model = parts.length ? parts[parts.length - 1] : raw;
-                const m = model.toLowerCase();
-
-                // Map to user-friendly family names
-                if (m.includes('gpt') || m.includes('chatgpt') || m.includes('o1') || m.includes('o3')) return 'ChatGPT';
-                if (m.includes('kimi')) return 'Kimi';
-                if (m.includes('qwen')) return 'Qwen';
-                if (m.includes('gemini')) return 'Gemini';
-                if (m.includes('claude')) return 'Claude';
-                if (m.includes('llama')) return 'Llama';
-                if (m.includes('mistral')) return 'Mistral';
-
-                // Fallback: take the first token and capitalize
-                const base = model.split(/[-:_\s]+/).filter(Boolean)[0] || model;
-                return base.charAt(0).toUpperCase() + base.slice(1);
-            };
-
-            const topModels = Array.from(modelCounts.entries())
-                .sort((a, b) => b[1] - a[1])
-                .slice(0, 3)
-                .map(([m, c]) => `${shortenModelName(m)} (${c})`);
-
-            const topModelsHtml = topModels.length ? topModels.map(x => `• ${x}`).join('<br>') : '';
-
             // Moyenne sur l'ensemble des réponses (toutes conversations de l'utilisateur)
             const avgHI = hiCount ? (hiSum / hiCount).toFixed(1) : 'N/A';
             const avgCHR = chrCount ? (chrSum / chrCount).toFixed(1) : 'N/A';
@@ -35313,12 +35256,7 @@ Réponds UNIQUEMENT dans ce format JSON:
                 avgHI: safeT('stats.avgHI', 'HI moyen'),
                 avgCHR: safeT('stats.avgCHR', 'CHR moyen'),
                 hiCoverage: safeT('stats.hiCoverage', 'Couverture HI'),
-                chrCoverage: safeT('stats.chrCoverage', 'Couverture CHR'),
-                recentHI: safeT('stats.recentHI', 'HI récent'),
-                recentCHR: safeT('stats.recentCHR', 'CHR récent'),
-                riskMsgs: safeT('stats.riskMessages', 'Messages à risque'),
-                highRiskMsgs: safeT('stats.highRiskMessages', 'Messages très risqués'),
-                topModels: safeT('stats.topModels', 'Modèles (top)')
+                chrCoverage: safeT('stats.chrCoverage', 'Couverture CHR')
             };
 
             content.innerHTML = `
@@ -35349,37 +35287,11 @@ Réponds UNIQUEMENT dans ce format JSON:
                 <div class="stat-section-title">Couverture</div>
                 <div class="stat-item">
                     <span>${statsLabels.hiCoverage}</span>
-                    <span class="stat-value">${hiCount}/${allMessages.length} • ${fmtPct(hiCoveragePct)}</span>
+                    <span class="stat-value">${fmtPct(hiCoveragePct)}</span>
                 </div>
                 <div class="stat-item">
                     <span>${statsLabels.chrCoverage}</span>
-                    <span class="stat-value">${chrCount}/${allMessages.length} • ${fmtPct(chrCoveragePct)}</span>
-                </div>
-
-                <div class="stat-section-title">Récent</div>
-                <div class="stat-item">
-                    <span>${statsLabels.recentHI}</span>
-                    <span class="stat-value">${recentHiAvg === null ? 'N/A' : recentHiAvg.toFixed(1) + '%'}</span>
-                </div>
-                <div class="stat-item">
-                    <span>${statsLabels.recentCHR}</span>
-                    <span class="stat-value">${recentChrAvg === null ? 'N/A' : recentChrAvg.toFixed(1) + '%'}</span>
-                </div>
-
-                <div class="stat-section-title">Risque</div>
-                <div class="stat-item">
-                    <span>${statsLabels.riskMsgs}</span>
-                    <span class="stat-value">${risk30Count}</span>
-                </div>
-                <div class="stat-item">
-                    <span>${statsLabels.highRiskMsgs}</span>
-                    <span class="stat-value">${risk60Count}</span>
-                </div>
-
-                <div class="stat-section-title">Modèles</div>
-                <div class="stat-item multiline">
-                    <span>${statsLabels.topModels}</span>
-                    <span class="stat-value">${topModelsHtml || 'N/A'}</span>
+                    <span class="stat-value">${fmtPct(chrCoveragePct)}</span>
                 </div>
             `;
 
