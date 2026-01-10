@@ -10295,6 +10295,23 @@ ${persona}
                 'todo.personal.title': 'Espace personnel',
                 'todo.personal.loading': 'Chargement des métriques…',
                 'todo.personal.metricsError': 'Impossible de charger les métriques. Vérifiez que l’API est disponible.',
+                'todo.personal.card.completionTitle': 'Taux de complétion',
+                'todo.personal.card.completionSubtitle': '{completed} terminée(s) / {total} au total',
+                'todo.personal.card.completionHint': 'But MVP: augmenter la régularité, pas la vitesse.',
+                'todo.personal.card.mentalTitle': 'Charge mentale',
+                'todo.personal.card.mentalSubtitle': '{pending} en cours • {overdue} en retard',
+                'todo.personal.card.mentalHint': 'IA: réduire le nombre de tâches visibles et regrouper.',
+                'todo.personal.card.stressTitle': 'Indice de stress',
+                'todo.personal.card.stressSubtitleOverload': 'Surcharge 24h (~{hours}h)',
+                'todo.personal.card.stressSubtitleStreak': 'Streak: {days} jour(s)',
+                'todo.personal.card.stressHint': 'IA: proposer des ajustements avant l’accumulation de retards.',
+                'todo.personal.detailsTitle': 'Détails',
+                'todo.personal.details.inProgress': 'En cours',
+                'todo.personal.advice.overdue': 'Prioriser les tâches en retard ({count}) et découper la plus grosse en sous-tâches.',
+                'todo.personal.advice.overload': 'Journée trop chargée (≈ {hours}h sur 24h). Proposer un mode “journée allégée” ou reporter 1–2 tâches.',
+                'todo.personal.advice.highLoad': 'Charge globale élevée (≈ {hours}h). Planifier 2 blocs focus et réduire le multitâche.',
+                'todo.personal.advice.stable': "Rythme stable. Conserver 1 bloc focus + 1 tâche courte pour garder l'élan.",
+                'todo.personal.error.server': 'Erreur serveur: {status} {statusText}',
 
                 'todo.personal.card.overdue': 'En retard',
                 'todo.personal.card.workload': 'Charge (estimée)',
@@ -10669,6 +10686,23 @@ ${persona}
                 'todo.personal.title': 'Personal space',
                 'todo.personal.loading': 'Loading metrics…',
                 'todo.personal.metricsError': 'Unable to load metrics. Check that the API is available.',
+                'todo.personal.card.completionTitle': 'Completion rate',
+                'todo.personal.card.completionSubtitle': '{completed} completed / {total} total',
+                'todo.personal.card.completionHint': 'MVP goal: increase consistency, not speed.',
+                'todo.personal.card.mentalTitle': 'Mental load score',
+                'todo.personal.card.mentalSubtitle': '{pending} in progress • {overdue} overdue',
+                'todo.personal.card.mentalHint': 'AI: reduce visible tasks and batch them.',
+                'todo.personal.card.stressTitle': 'Stress index',
+                'todo.personal.card.stressSubtitleOverload': 'Overload next 24h (~{hours}h)',
+                'todo.personal.card.stressSubtitleStreak': 'Streak: {days} day(s)',
+                'todo.personal.card.stressHint': 'AI: propose adjustments before delays build up.',
+                'todo.personal.detailsTitle': 'Details',
+                'todo.personal.details.inProgress': 'In progress',
+                'todo.personal.advice.overdue': 'Prioritize overdue tasks ({count}) and break down the biggest one.',
+                'todo.personal.advice.overload': 'Day too busy (≈ {hours}h over 24h). Offer a “lighter day” mode or postpone 1–2 tasks.',
+                'todo.personal.advice.highLoad': 'High workload (≈ {hours}h). Plan 2 focus blocks and reduce multitasking.',
+                'todo.personal.advice.stable': 'Stable pace. Keep 1 focus block + 1 quick task to maintain momentum.',
+                'todo.personal.error.server': 'Server error: {status} {statusText}',
 
                 'todo.personal.card.overdue': 'Overdue',
                 'todo.personal.card.workload': 'Workload (est.)',
@@ -13726,6 +13760,13 @@ ${persona}
         }
 
         async function renderPersonalSpaceView(container) {
+            const fmt = (template, values) => {
+                let out = String(template || '');
+                if (!values) return out;
+                Object.keys(values).forEach(k => { out = out.split(`{${k}}`).join(String(values[k])); });
+                return out;
+            };
+
             container.innerHTML = `
                 <div style="max-width: 980px; margin: 0 auto;">
                     <h2 style="color: var(--text-primary); margin-bottom: 18px; font-size: 22px; font-weight: 700; display: flex; align-items: center; gap: 10px;">
@@ -13733,11 +13774,11 @@ ${persona}
                             <path d="M3 17l6-6 4 4 8-8"/>
                             <path d="M14 7h7v7"/>
                         </svg>
-                        Espace personnel
+                        ${t('todo.personal.title')}
                     </h2>
 
                     <div style="background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 12px; padding: 16px; margin-bottom: 14px;">
-                        <div style="color: var(--text-secondary); font-size: 13px;">Chargement des métriques…</div>
+                        <div style="color: var(--text-secondary); font-size: 13px;">${t('todo.personal.loading')}</div>
                     </div>
                 </div>
             `;
@@ -13753,9 +13794,12 @@ ${persona}
                 if (profile.age) qp.set('age', String(profile.age));
                 if (profile.sex) qp.set('sex', String(profile.sex));
                 if (profile.focusHours) qp.set('focusHours', String(profile.focusHours));
+                qp.set('lang', getAppLanguage());
 
-                const resp = await fetch(`${baseUrl}/productivity?${qp.toString()}`);
-                if (!resp.ok) throw new Error(`Erreur serveur: ${resp.status} ${resp.statusText}`);
+                const resp = await fetch(`${baseUrl}/productivity?${qp.toString()}`, {
+                    headers: { 'X-Language': getAppLanguage() }
+                });
+                if (!resp.ok) throw new Error(fmt(t('todo.personal.error.server'), { status: resp.status, statusText: resp.statusText }));
                 const data = await resp.json();
                 const metrics = data.metrics || {};
 
@@ -13781,10 +13825,10 @@ ${persona}
                     : computeStressIndex({ overdue, next24Hours, overloadNext24, streakDays });
 
                 const advice = [];
-                if (overdue > 0) advice.push(`Prioriser les tâches en retard (${overdue}) et découper la plus grosse en sous-tâches.`);
-                if (overloadNext24) advice.push(`Journée trop chargée (≈ ${next24Hours}h sur 24h). Proposer un mode “journée allégée” ou reporter 1–2 tâches.`);
-                if (!overloadNext24 && pendingHours >= 6) advice.push(`Charge globale élevée (≈ ${pendingHours}h). Planifier 2 blocs focus et réduire le multitâche.`);
-                if (advice.length === 0) advice.push(`Rythme stable. Conserver 1 bloc focus + 1 tâche courte pour garder l'élan.`);
+                if (overdue > 0) advice.push(fmt(t('todo.personal.advice.overdue'), { count: overdue }));
+                if (overloadNext24) advice.push(fmt(t('todo.personal.advice.overload'), { hours: next24Hours }));
+                if (!overloadNext24 && pendingHours >= 6) advice.push(fmt(t('todo.personal.advice.highLoad'), { hours: pendingHours }));
+                if (advice.length === 0) advice.push(t('todo.personal.advice.stable'));
 
                 const profileLocal = getPersonalProfile(userId);
                 const hasAnyProfile = !!(String(profileLocal.age || '').trim() || String(profileLocal.sex || '').trim() || String(profileLocal.focusHours || '').trim());
@@ -13807,32 +13851,34 @@ ${persona}
                 const cardsHtml = `
                     <div id="personalCardsGrid" style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px;">
                         ${renderScoreCard({
-                            title: 'Completion Rate',
+                            title: t('todo.personal.card.completionTitle'),
                             value: `${completionRate}%`,
-                            subtitle: `${completed} terminée(s) / ${total} au total`,
-                            hint: 'But MVP: augmenter la régularité, pas la vitesse.'
+                            subtitle: fmt(t('todo.personal.card.completionSubtitle'), { completed, total }),
+                            hint: t('todo.personal.card.completionHint')
                         })}
                         ${renderScoreCard({
-                            title: 'Mental Load Score',
+                            title: t('todo.personal.card.mentalTitle'),
                             value: mentalLoad,
-                            subtitle: `${pending} en cours • ${overdue} en retard`,
-                            hint: 'IA: réduire le nombre de tâches visibles et regrouper.'
+                            subtitle: fmt(t('todo.personal.card.mentalSubtitle'), { pending, overdue }),
+                            hint: t('todo.personal.card.mentalHint')
                         })}
                         ${renderScoreCard({
-                            title: 'Stress Index',
+                            title: t('todo.personal.card.stressTitle'),
                             value: stress,
-                            subtitle: overloadNext24 ? `Surcharge 24h (~${next24Hours}h)` : `Streak: ${streakDays} jour(s)`,
-                            hint: 'IA: proposer des ajustements avant l’accumulation de retards.'
+                            subtitle: overloadNext24
+                                ? fmt(t('todo.personal.card.stressSubtitleOverload'), { hours: next24Hours })
+                                : fmt(t('todo.personal.card.stressSubtitleStreak'), { days: streakDays }),
+                            hint: t('todo.personal.card.stressHint')
                         })}
                     </div>
                 `;
 
                 const detailsHtml = `
                     <div style="margin-top: 12px; background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 12px; padding: 16px;">
-                        <div style="font-size: 12px; color: var(--text-secondary); font-weight: 700; text-transform: uppercase; letter-spacing: 0.6px; margin-bottom: 10px;">Détails</div>
+                        <div style="font-size: 12px; color: var(--text-secondary); font-weight: 700; text-transform: uppercase; letter-spacing: 0.6px; margin-bottom: 10px;">${t('todo.personal.detailsTitle')}</div>
                         <div id="personalDetailsGrid" style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px;">
                             <div style="padding: 12px; border: 1px solid var(--border-color); border-radius: 10px; background: var(--bg-primary);">
-                                <div style="font-size: 12px; color: var(--text-secondary);">En cours</div>
+                                <div style="font-size: 12px; color: var(--text-secondary);">${t('todo.personal.details.inProgress')}</div>
                                 <div style="font-size: 18px; font-weight: 800; color: var(--text-primary);">${pending}</div>
                             </div>
                             <div style="padding: 12px; border: 1px solid var(--border-color); border-radius: 10px; background: var(--bg-primary);">
