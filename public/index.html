@@ -10225,6 +10225,7 @@ ${persona}
                 'todo.aiAssistant.helpSubtitle': 'Posez vos questions sur vos tâches',
                 'todo.aiAssistant.placeholder': 'Demandez quelque chose...',
                 'todo.aiAssistant.sending': 'Émission en cours...',
+                'todo.aiAssistant.coachPromptOnEnable': "Donne-moi un conseil rapide pour aujourd'hui.",
 
                 'todo.smart.prioritiesHeader': 'Voici tes priorités:',
                 'todo.smart.noTasksToPrioritize': "Je n'ai pas trouvé de tâches à prioriser.",
@@ -10629,6 +10630,7 @@ ${persona}
                 'todo.aiAssistant.helpSubtitle': 'Ask questions about your tasks',
                 'todo.aiAssistant.placeholder': 'Ask something...',
                 'todo.aiAssistant.sending': 'Sending...',
+                'todo.aiAssistant.coachPromptOnEnable': 'Give me a quick tip for today.',
 
                 'todo.smart.prioritiesHeader': 'Here are your priorities:',
                 'todo.smart.noTasksToPrioritize': "I couldn't find any tasks to prioritize.",
@@ -12851,7 +12853,9 @@ ${persona}
             // Déclencher une première réponse coach quand on active
             if (next) {
                 try {
-                    await askAi('Donne-moi un conseil rapide pour aujourd\'hui.');
+                    const prompt = (typeof t === 'function' ? t('todo.aiAssistant.coachPromptOnEnable') : null)
+                        || "Donne-moi un conseil rapide pour aujourd'hui.";
+                    await askAi(prompt);
                 } catch (_) {}
             }
         }
