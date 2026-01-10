@@ -379,6 +379,11 @@ module.exports = async function (context, req) {
                 version: 'hd-report-v1.2',
                 lang,
                 analysisMethod: String(effectiveAnalysis?.method || 'unknown'),
+                metrics: {
+                    metricsSource: (effectiveAnalysis && effectiveAnalysis.method === 'evidence') ? 'evidence' : 'detector',
+                    detectorMethod: String(hallucinationAnalysis?.method || 'unknown'),
+                    effectiveMethod: String(effectiveAnalysis?.method || 'unknown')
+                },
                 recommendedSources: recommendedSourcesMeta
                     ? {
                         method: String(recommendedSourcesMeta.method || ''),
@@ -410,6 +415,15 @@ module.exports = async function (context, req) {
                         : 'Vérification par preuves désactivée ou Brave non configuré.')
             }
         };
+
+        // Backend-only diagnostics: indique clairement d'où proviennent HI/CHR.
+        // (n'affiche pas un 2e score à l'utilisateur; utile pour debug/observabilité)
+        try {
+            const ms = (effectiveAnalysis && effectiveAnalysis.method === 'evidence') ? 'evidence' : 'detector';
+            context.log(`[HD] metricsSource=${ms} detectorMethod=${String(hallucinationAnalysis?.method || 'unknown')} effectiveMethod=${String(effectiveAnalysis?.method || 'unknown')} risk=${String(detectorSignal?.risk ?? '')} aggressive=${String(detectorSignal?.aggressiveEvidenceRetrieval ?? '')}`);
+        } catch (_) {
+            // best-effort
+        }
 
         context.res.status = 200;
         context.res.body = report;
