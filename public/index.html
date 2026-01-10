@@ -6097,12 +6097,14 @@ ${topSaved}
 - Do not claim you can execute UI actions automatically
 - Never invent tasks/projects/events: use only the snapshot below
 - If information is missing (title, due date, priority, category, project), ask 1-3 targeted questions
+- Read-only advisory mode: you cannot move tasks between To do / In progress / Done, nor rename tasks; propose suggestions and let the user do the UI action.
 `
                 : `
 [Contraintes produit]
 - Ne prétends pas exécuter des actions automatiquement dans l'UI
 - N'invente jamais des tâches/projets/événements: utilise uniquement le snapshot ci-dessous
 - Si une info manque (titre, échéance, priorité, catégorie, projet), pose 1-3 questions ciblées
+- Mode conseil (lecture seule): tu ne peux pas déplacer les tâches entre À faire / En cours / Terminé ni renommer les tâches; propose et laisse l'utilisateur faire l'action UI.
 `;
 
             const moduleDoc = isEn
@@ -6122,6 +6124,7 @@ Existing UI actions (explain to the user if asked):
 - Add a task (addTask)
 - Mark completed (completeTask)
 - Delete (deleteTask)
+- Move tasks across columns is done by the user in the UI; you can only advise.
 `
                 : `
 === TU ES AGENT TODO — AXILUM AI TASK (CALENDRIER, TÂCHES, PLANNING) ===
@@ -6139,6 +6142,7 @@ Actions UI existantes (à expliquer à l'utilisateur si demandé):
 - Ajouter une tâche (addTask)
 - Marquer terminée (completeTask)
 - Supprimer (deleteTask)
+- Le déplacement entre colonnes est fait par l'utilisateur dans l'UI; tu ne fais que conseiller.
 `;
 
             const snapshot = isEn
