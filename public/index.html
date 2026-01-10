@@ -10217,15 +10217,6 @@ ${persona}
                 'todo.toast.taskNotificationDisabled': '🔕 Notification désactivée',
                 'todo.toast.notificationTimeUpdated': '⏰ Notification: {when} avant',
 
-                'todo.visualNotificationsEnabled': 'Alerte visuelle activée',
-                'todo.visualNotificationsEnable': 'Activer l\'alerte visuelle',
-                'todo.visualNotificationsToggle': 'Alerte visuelle',
-                'todo.visualNotification.title': 'Rappel visuel',
-                'todo.visualNotification.dueIn': 'Échéance dans {time}',
-                'todo.visualNotification.coachTipLabel': 'Conseil coach',
-                'todo.visualNotification.coachDefault': 'Concentre-toi sur une étape courte et livre un résultat simple.',
-                'todo.visualNotification.dismiss': 'Fermer',
-
                 'todo.aiAssistant.coachMode': 'Coaching',
                 'todo.aiAssistant.subtitle': 'Gestion intelligente',
                 'todo.aiAssistant.deleteChat': 'Supprimer le chat',
@@ -10629,15 +10620,6 @@ ${persona}
                 'todo.toast.taskNotificationEnabledForTask': '🔔 Notification enabled for this task',
                 'todo.toast.taskNotificationDisabled': '🔕 Notification disabled',
                 'todo.toast.notificationTimeUpdated': '⏰ Notification: {when} before',
-
-                'todo.visualNotificationsEnabled': 'Visual alert enabled',
-                'todo.visualNotificationsEnable': 'Enable visual alert',
-                'todo.visualNotificationsToggle': 'Visual alert',
-                'todo.visualNotification.title': 'Visual reminder',
-                'todo.visualNotification.dueIn': 'Due in {time}',
-                'todo.visualNotification.coachTipLabel': 'Coach tip',
-                'todo.visualNotification.coachDefault': 'Focus on one small step and ship a simple result.',
-                'todo.visualNotification.dismiss': 'Dismiss',
 
                 'todo.aiAssistant.coachMode': 'Coaching',
                 'todo.aiAssistant.subtitle': 'Smart management',
@@ -11828,9 +11810,6 @@ ${persona}
                                 <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
                                 <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
                             </svg>
-                        </button>
-                        <button id="visualNotificationToggle" onclick="toggleVisualNotifications()" style="padding: 8px 12px; background: ${visualNotificationsEnabled ? 'rgba(16, 185, 129, 0.1)' : 'transparent'}; color: ${visualNotificationsEnabled ? 'var(--hi-good)' : 'var(--text-secondary)'}; border: 1px solid var(--border-color); border-radius: 8px; cursor: pointer; transition: all 0.2s; display: inline-flex; align-items: center; gap: 6px; font-weight: 600; font-size: 12px; letter-spacing: -0.01em;" title="${visualNotificationsEnabled ? t('todo.visualNotificationsEnabled') : t('todo.visualNotificationsEnable')}">
-                            <span>${t('todo.visualNotificationsToggle')}</span>
                         </button>
                         <button id="addTaskBtn" onclick="showAddTaskModal()" style="padding: 8px 16px; background: var(--accent); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 14px; display: flex; align-items: center; gap: 6px; transition: all 0.2s; white-space: nowrap;" onmouseover="this.style.opacity='0.9'" onmouseout="this.style.opacity='1'">
                             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
@@ -13256,11 +13235,7 @@ ${persona}
                 notificationsEnabled = false;
                 localStorage.setItem('todoNotificationsEnabled', 'false');
                 showToast(t('todo.toast.notificationsDisabled'), 'info');
-                if (!visualNotificationsEnabled) {
-                    stopNotificationCheck();
-                } else {
-                    startNotificationCheck();
-                }
+                stopNotificationCheck();
                 updateNotificationButton();
             }
         }
@@ -13444,12 +13419,10 @@ ${persona}
         }
 
         function checkTaskNotifications() {
-            if (!notificationsEnabled && !visualNotificationsEnabled) return;
+            if (!notificationsEnabled) return;
             
             const now = new Date();
             const notifiedTasks = JSON.parse(localStorage.getItem('notifiedTasks') || '[]');
-            const wantsSound = notificationsEnabled && ('Notification' in window) && Notification.permission === 'granted';
-            const wantsVisual = visualNotificationsEnabled;
             
             userTasks.forEach(task => {
                 if (!task.dueDate || task.completed || !task.notifyEnabled) return;
@@ -13461,16 +13434,9 @@ ${persona}
                 
                 // Notifier 15 minutes avant
                 if (minutesDiff <= 15 && minutesDiff >= 0) {
-                    if (wantsSound) {
-                        sendTaskNotification(task);
-                    }
-                    if (wantsVisual) {
-                        showVisualTaskNotification(task, minutesDiff);
-                    }
-                    if (wantsSound || wantsVisual) {
-                        notifiedTasks.push(task.id);
-                        localStorage.setItem('notifiedTasks', JSON.stringify(notifiedTasks));
-                    }
+                    sendTaskNotification(task);
+                    notifiedTasks.push(task.id);
+                    localStorage.setItem('notifiedTasks', JSON.stringify(notifiedTasks));
                 }
             });
         }
@@ -13503,87 +13469,6 @@ ${persona}
             
             // Auto-close après 10 secondes
             setTimeout(() => notification.close(), 10000);
-        }
-
-        function ensureVisualNotificationStyles() {
-            if (document.getElementById('visualNotificationStyles')) return;
-            const style = document.createElement('style');
-            style.id = 'visualNotificationStyles';
-            style.textContent = `
-                #visualNotificationContainer { position: fixed; bottom: 90px; right: 24px; display: flex; flex-direction: column; gap: 10px; max-width: 360px; z-index: 20040; }
-                .visualNotificationCard { background: var(--bg-primary); border: 1px solid var(--border-color); border-radius: 12px; padding: 14px 16px; box-shadow: 0 12px 30px rgba(0,0,0,0.12); color: var(--text-primary); }
-                .visualNotificationCard .vn-header { font-weight: 700; font-size: 13px; letter-spacing: 0.01em; color: var(--text-primary); margin-bottom: 6px; }
-                .visualNotificationCard .vn-title { font-weight: 600; font-size: 14px; margin-bottom: 4px; }
-                .visualNotificationCard .vn-meta { font-size: 12px; color: var(--text-secondary); margin-bottom: 10px; }
-                .visualNotificationCard .vn-coach { background: var(--bg-secondary); border-radius: 10px; padding: 10px 12px; border: 1px solid var(--border-color); }
-                .visualNotificationCard .vn-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; color: var(--text-secondary); margin-bottom: 6px; }
-                .visualNotificationCard .vn-text { font-size: 12px; line-height: 1.5; color: var(--text-primary); }
-                .visualNotificationCard .vn-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 10px; }
-                .visualNotificationCard .vn-dismiss { padding: 8px 12px; border: 1px solid var(--border-color); background: var(--bg-secondary); color: var(--text-primary); border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 12px; transition: all 0.2s; }
-                .visualNotificationCard .vn-dismiss:hover { background: var(--bg-hover); }
-            `;
-            document.head.appendChild(style);
-        }
-
-        function formatVisualDueLabel(minutesDiff) {
-            const lang = (typeof getAppLanguage === 'function') ? getAppLanguage() : 'fr';
-            const isEn = lang === 'en';
-            if (!Number.isFinite(minutesDiff)) return isEn ? 'soon' : 'bientôt';
-            if (minutesDiff <= 0) return isEn ? 'a few minutes' : 'quelques minutes';
-            if (minutesDiff >= 60) {
-                const hours = Math.floor(minutesDiff / 60);
-                const mins = minutesDiff % 60;
-                return mins > 0 ? `${hours}h${mins}` : `${hours}h`;
-            }
-            return `${minutesDiff} min`;
-        }
-
-        function buildLocalCoachTip(task, minutesDiff) {
-            const lang = (typeof getAppLanguage === 'function') ? getAppLanguage() : 'fr';
-            const isEn = lang === 'en';
-            const priority = String(task.priority || '').toLowerCase();
-            if (priority === 'high') return isEn ? 'Clear the blocker first, then ship a small version.' : 'Enlève le blocage prioritaire puis livre une version simple.';
-            if (minutesDiff <= 10) return isEn ? 'Prepare the essentials and block distractions for 10 minutes.' : 'Prépare l’essentiel et coupe les distractions pendant 10 minutes.';
-            if ((task.title || '').length > 40) return isEn ? 'Split this task in two short steps and finish the first now.' : 'Divise cette tâche en deux étapes courtes et termine la première maintenant.';
-            return isEn ? 'Focus on one clear outcome and confirm it before switching.' : 'Vise un résultat clair et valide-le avant de passer à autre chose.';
-        }
-
-        function showVisualTaskNotification(task, minutesDiff) {
-            if (!visualNotificationsEnabled) return;
-            ensureVisualNotificationStyles();
-
-            let container = document.getElementById('visualNotificationContainer');
-            if (!container) {
-                container = document.createElement('div');
-                container.id = 'visualNotificationContainer';
-                document.body.appendChild(container);
-            }
-
-            const dueLabel = String(t('todo.visualNotification.dueIn') || '').replace('{time}', formatVisualDueLabel(minutesDiff));
-            const coachTip = buildLocalCoachTip(task, minutesDiff) || t('todo.visualNotification.coachDefault');
-
-            const card = document.createElement('div');
-            card.className = 'visualNotificationCard';
-            card.innerHTML = `
-                <div class="vn-header">${escapeHtml(t('todo.visualNotification.title'))}</div>
-                <div class="vn-title">${escapeHtml(task.title || '')}</div>
-                <div class="vn-meta">${escapeHtml(dueLabel)}</div>
-                <div class="vn-coach">
-                    <div class="vn-label">${escapeHtml(t('todo.visualNotification.coachTipLabel'))}</div>
-                    <div class="vn-text">${escapeHtml(coachTip || '')}</div>
-                </div>
-                <div class="vn-actions">
-                    <button class="vn-dismiss" type="button">${escapeHtml(t('todo.visualNotification.dismiss'))}</button>
-                </div>
-            `;
-
-            const dismissBtn = card.querySelector('.vn-dismiss');
-            if (dismissBtn) {
-                dismissBtn.addEventListener('click', () => card.remove());
-            }
-
-            container.appendChild(card);
-            setTimeout(() => card.remove(), 12000);
         }
 
         function renderTodoFilters() {
