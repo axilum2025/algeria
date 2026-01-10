@@ -21425,20 +21425,20 @@ function showAddProjectModal() {
         function loadTaskModule() {
             // 🎯 Tracking: Utilisateur ouvre AI Task
             AxilumContext.updateActivity('AI Task', 'Agent ToDo', 'Ouverture du module');
-            
-            // Si le module est déjà chargé et les fonctions disponibles
-            if (taskModuleLoaded && typeof openOfficePro === 'function') {
+
+            // Si déjà chargé ou disponible, ouvrir immédiatement
+            if (typeof openOfficePro === 'function') {
+                taskModuleLoaded = true;
                 openOfficePro();
                 return;
             }
-            
-            // Charger le wrapper module
+
+            // Sinon, tenter de charger le wrapper puis ouvrir
             const script = document.createElement('script');
             script.src = '/js/task-module.js';
             script.onload = function() {
                 taskModuleLoaded = true;
                 console.log('Module Task wrapper chargé');
-                // Appeler directement openOfficePro qui est déjà dans index.html
                 if (typeof openOfficePro === 'function') {
                     openOfficePro();
                 } else {
@@ -21448,7 +21448,6 @@ function showAddProjectModal() {
             };
             script.onerror = function() {
                 console.error('Erreur lors du chargement du module Task');
-                // Fallback: essayer d'appeler directement la fonction
                 if (typeof openOfficePro === 'function') {
                     openOfficePro();
                 } else {
