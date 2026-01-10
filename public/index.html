@@ -1613,6 +1613,37 @@
             align-items: center;
             padding: 12px 0;
             border-bottom: 1px solid var(--border-color);
+            gap: 12px;
+        }
+
+        .stat-item .stat-value {
+            font-weight: 700;
+            text-align: right;
+            max-width: 60%;
+            overflow-wrap: anywhere;
+            word-break: break-word;
+        }
+
+        .stat-item.multiline {
+            align-items: flex-start;
+        }
+
+        .stat-item.multiline .stat-value {
+            font-weight: 600;
+            font-size: 12px;
+            line-height: 1.4;
+            text-align: right;
+        }
+
+        .stat-section-title {
+            margin-top: 14px;
+            padding-top: 10px;
+            border-top: 1px solid var(--border-color);
+            font-size: 11px;
+            font-weight: 800;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            color: var(--text-secondary);
         }
 
         .stat-label {
@@ -9803,6 +9834,13 @@ ${persona}
                 'stats.conversations': 'Conversations',
                 'stats.avgHI': 'HI moyen',
                 'stats.avgCHR': 'CHR moyen',
+                'stats.hiCoverage': 'Couverture HI',
+                'stats.chrCoverage': 'Couverture CHR',
+                'stats.recentHI': 'HI récent',
+                'stats.recentCHR': 'CHR récent',
+                'stats.riskMessages': 'Messages à risque',
+                'stats.highRiskMessages': 'Messages très risqués',
+                'stats.topModels': 'Modèles (top)',
                 'tooltip.hi': "<strong>Hallucination Index (HI)</strong><br>Mesure le risque qu'une réponse contienne des informations inventées ou non vérifiées.<br><br>• &lt;15% : Très fiable<br>• 15-30% : Fiable<br>• 30-60% : Prudence<br>• &gt;60% : Incertitude",
                 'tooltip.chr': "<strong>Composite Hallucination Risk (CHR)</strong><br>Indicateur global combinant la confiance de l'IA, l'incertitude et les contradictions détectées.<br><br>Plus le CHR est bas, plus la réponse est sûre et cohérente.",
                 'userMenu.close': 'Fermer',
@@ -9985,6 +10023,13 @@ ${persona}
                 'stats.conversations': 'Conversations',
                 'stats.avgHI': 'Average HI',
                 'stats.avgCHR': 'Average CHR',
+                'stats.hiCoverage': 'HI coverage',
+                'stats.chrCoverage': 'CHR coverage',
+                'stats.recentHI': 'Recent HI',
+                'stats.recentCHR': 'Recent CHR',
+                'stats.riskMessages': 'Risky messages',
+                'stats.highRiskMessages': 'High-risk messages',
+                'stats.topModels': 'Top models',
                 'tooltip.hi': '<strong>Hallucination Index (HI)</strong><br>Measures the risk that a response contains fabricated or unverified information.<br><br>• &lt;15%: Very reliable<br>• 15-30%: Reliable<br>• 30-60%: Cautious<br>• &gt;60%: Uncertain',
                 'tooltip.chr': '<strong>Composite Hallucination Risk (CHR)</strong><br>Overall indicator combining AI confidence, uncertainty, and detected contradictions.<br><br>The lower the CHR, the safer and more coherent the response.',
                 'userMenu.close': 'Close',
@@ -34989,6 +35034,17 @@ Réponds UNIQUEMENT dans ce format JSON:
             const modal = document.getElementById('statsModal');
             const content = document.getElementById('statsContent');
 
+            const safeT = (key, fallback) => {
+                try {
+                    if (typeof t !== 'function') return fallback;
+                    const v = t(key);
+                    if (!v || v === key) return fallback;
+                    return v;
+                } catch (_) {
+                    return fallback;
+                }
+            };
+
             const normalizePercent = (value) => {
                 if (typeof value !== 'number' || !Number.isFinite(value)) return null;
                 // Certaines implémentations peuvent renvoyer 0..1 au lieu de 0..100
@@ -35083,83 +35139,108 @@ Réponds UNIQUEMENT dans ce format JSON:
                 if (!m) continue;
                 modelCounts.set(m, (modelCounts.get(m) || 0) + 1);
             }
+
+            const shortenModelName = (full) => {
+                const raw = String(full || '').trim();
+                if (!raw) return '';
+                const parts = raw.split('/').filter(Boolean);
+                const vendor = parts.length >= 2 ? parts[0] : '';
+                const model = parts.length >= 2 ? parts.slice(1).join('/') : raw;
+                const maxModelLen = 18;
+                let shortModel = model;
+                if (shortModel.length > maxModelLen) {
+                    const head = shortModel.slice(0, 10);
+                    const tail = shortModel.slice(-4);
+                    shortModel = `${head}…${tail}`;
+                }
+                if (!vendor) return shortModel;
+                return `${vendor}:${shortModel}`;
+            };
+
             const topModels = Array.from(modelCounts.entries())
                 .sort((a, b) => b[1] - a[1])
                 .slice(0, 3)
-                .map(([m, c]) => `${m} (${c})`);
+                .map(([m, c]) => `${shortenModelName(m)} (${c})`);
+
+            const topModelsHtml = topModels.length ? topModels.map(x => `• ${x}`).join('<br>') : '';
 
             // Moyenne sur l'ensemble des réponses (toutes conversations de l'utilisateur)
             const avgHI = hiCount ? (hiSum / hiCount).toFixed(1) : 'N/A';
             const avgCHR = chrCount ? (chrSum / chrCount).toFixed(1) : 'N/A';
 
             const statsLabels = {
-                messages: (typeof t === 'function') ? t('stats.messagesExchanged') : 'Messages échangés',
-                conversations: (typeof t === 'function') ? t('stats.conversations') : 'Conversations',
-                avgHI: (typeof t === 'function') ? t('stats.avgHI') : 'HI moyen',
-                avgCHR: (typeof t === 'function') ? t('stats.avgCHR') : 'CHR moyen',
-                hiCoverage: (typeof t === 'function') ? t('stats.hiCoverage') : 'Couverture HI',
-                chrCoverage: (typeof t === 'function') ? t('stats.chrCoverage') : 'Couverture CHR',
-                recentHI: (typeof t === 'function') ? t('stats.recentHI') : 'HI récent',
-                recentCHR: (typeof t === 'function') ? t('stats.recentCHR') : 'CHR récent',
-                riskMsgs: (typeof t === 'function') ? t('stats.riskMessages') : 'Messages à risque',
-                highRiskMsgs: (typeof t === 'function') ? t('stats.highRiskMessages') : 'Messages très risqués',
-                topModels: (typeof t === 'function') ? t('stats.topModels') : 'Modèles (top)'
+                messages: safeT('stats.messagesExchanged', 'Messages échangés'),
+                conversations: safeT('stats.conversations', 'Conversations'),
+                avgHI: safeT('stats.avgHI', 'HI moyen'),
+                avgCHR: safeT('stats.avgCHR', 'CHR moyen'),
+                hiCoverage: safeT('stats.hiCoverage', 'Couverture HI'),
+                chrCoverage: safeT('stats.chrCoverage', 'Couverture CHR'),
+                recentHI: safeT('stats.recentHI', 'HI récent'),
+                recentCHR: safeT('stats.recentCHR', 'CHR récent'),
+                riskMsgs: safeT('stats.riskMessages', 'Messages à risque'),
+                highRiskMsgs: safeT('stats.highRiskMessages', 'Messages très risqués'),
+                topModels: safeT('stats.topModels', 'Modèles (top)')
             };
 
             content.innerHTML = `
+                <div class="stat-section-title">Global</div>
                 <div class="stat-item">
                     <span>${statsLabels.messages}</span>
-                    <strong>${allMessages.length}</strong>
+                    <span class="stat-value">${allMessages.length}</span>
                 </div>
                 <div class="stat-item">
                     <span>${statsLabels.conversations}</span>
-                    <strong>${userConversations.length}</strong>
+                    <span class="stat-value">${userConversations.length}</span>
                 </div>
                 <div class="stat-item">
                     <div class="stat-label">
                         <span>${statsLabels.avgHI}</span>
                         <span class="info-icon" onclick="showTooltip(event, 'hi')">i</span>
                     </div>
-                    <strong>${avgHI}%</strong>
+                    <span class="stat-value">${avgHI}%</span>
                 </div>
                 <div class="stat-item">
                     <div class="stat-label">
                         <span>${statsLabels.avgCHR}</span>
                         <span class="info-icon" onclick="showTooltip(event, 'chr')">i</span>
                     </div>
-                    <strong>${avgCHR}%</strong>
+                    <span class="stat-value">${avgCHR}%</span>
                 </div>
 
+                <div class="stat-section-title">Couverture</div>
                 <div class="stat-item">
                     <span>${statsLabels.hiCoverage}</span>
-                    <strong>${hiCount}/${allMessages.length} (${fmtPct(hiCoveragePct)})</strong>
+                    <span class="stat-value">${hiCount}/${allMessages.length} • ${fmtPct(hiCoveragePct)}</span>
                 </div>
                 <div class="stat-item">
                     <span>${statsLabels.chrCoverage}</span>
-                    <strong>${chrCount}/${allMessages.length} (${fmtPct(chrCoveragePct)})</strong>
+                    <span class="stat-value">${chrCount}/${allMessages.length} • ${fmtPct(chrCoveragePct)}</span>
                 </div>
 
+                <div class="stat-section-title">Récent</div>
                 <div class="stat-item">
                     <span>${statsLabels.recentHI}</span>
-                    <strong>${recentHiAvg === null ? 'N/A' : recentHiAvg.toFixed(1) + '%'}</strong>
+                    <span class="stat-value">${recentHiAvg === null ? 'N/A' : recentHiAvg.toFixed(1) + '%'}</span>
                 </div>
                 <div class="stat-item">
                     <span>${statsLabels.recentCHR}</span>
-                    <strong>${recentChrAvg === null ? 'N/A' : recentChrAvg.toFixed(1) + '%'}</strong>
+                    <span class="stat-value">${recentChrAvg === null ? 'N/A' : recentChrAvg.toFixed(1) + '%'}</span>
                 </div>
 
+                <div class="stat-section-title">Risque</div>
                 <div class="stat-item">
                     <span>${statsLabels.riskMsgs}</span>
-                    <strong>${risk30Count}</strong>
+                    <span class="stat-value">${risk30Count}</span>
                 </div>
                 <div class="stat-item">
                     <span>${statsLabels.highRiskMsgs}</span>
-                    <strong>${risk60Count}</strong>
+                    <span class="stat-value">${risk60Count}</span>
                 </div>
 
-                <div class="stat-item">
+                <div class="stat-section-title">Modèles</div>
+                <div class="stat-item multiline">
                     <span>${statsLabels.topModels}</span>
-                    <strong>${topModels.length ? topModels.join(', ') : 'N/A'}</strong>
+                    <span class="stat-value">${topModelsHtml || 'N/A'}</span>
                 </div>
             `;
 
