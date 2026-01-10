@@ -35049,6 +35049,45 @@ Réponds UNIQUEMENT dans ce format JSON:
                 }
             }
 
+            const fmtPct = (value) => {
+                if (value == null || !Number.isFinite(Number(value))) return 'N/A';
+                return `${Number(value).toFixed(1)}%`;
+            };
+
+            const hiCoveragePct = allMessages.length ? (hiCount / allMessages.length) * 100 : null;
+            const chrCoveragePct = allMessages.length ? (chrCount / allMessages.length) * 100 : null;
+
+            // Statistiques récentes (fenêtre glissante locale, utile pour tendance)
+            const recentHiAvg = Array.isArray(messageStats?.hiHistory) && messageStats.hiHistory.length
+                ? (messageStats.hiHistory.reduce((a, b) => a + b, 0) / messageStats.hiHistory.length)
+                : null;
+
+            const recentChrAvg = Array.isArray(messageStats?.chrHistory) && messageStats.chrHistory.length
+                ? (messageStats.chrHistory.reduce((a, b) => a + b, 0) / messageStats.chrHistory.length)
+                : null;
+
+            // Compteurs de risque basés sur HI (alignés sur le dot + seuil “incertitude”)
+            let risk30Count = 0;
+            let risk60Count = 0;
+            for (const msg of allMessages) {
+                const hi = getHiFromMessage(msg);
+                if (hi === null) continue;
+                if (hi >= 30) risk30Count += 1;
+                if (hi >= 60) risk60Count += 1;
+            }
+
+            // Modèles utilisés (top 3)
+            const modelCounts = new Map();
+            for (const msg of allMessages) {
+                const m = msg && msg.model ? String(msg.model).trim() : '';
+                if (!m) continue;
+                modelCounts.set(m, (modelCounts.get(m) || 0) + 1);
+            }
+            const topModels = Array.from(modelCounts.entries())
+                .sort((a, b) => b[1] - a[1])
+                .slice(0, 3)
+                .map(([m, c]) => `${m} (${c})`);
+
             // Moyenne sur l'ensemble des réponses (toutes conversations de l'utilisateur)
             const avgHI = hiCount ? (hiSum / hiCount).toFixed(1) : 'N/A';
             const avgCHR = chrCount ? (chrSum / chrCount).toFixed(1) : 'N/A';
@@ -35057,7 +35096,14 @@ Réponds UNIQUEMENT dans ce format JSON:
                 messages: (typeof t === 'function') ? t('stats.messagesExchanged') : 'Messages échangés',
                 conversations: (typeof t === 'function') ? t('stats.conversations') : 'Conversations',
                 avgHI: (typeof t === 'function') ? t('stats.avgHI') : 'HI moyen',
-                avgCHR: (typeof t === 'function') ? t('stats.avgCHR') : 'CHR moyen'
+                avgCHR: (typeof t === 'function') ? t('stats.avgCHR') : 'CHR moyen',
+                hiCoverage: (typeof t === 'function') ? t('stats.hiCoverage') : 'Couverture HI',
+                chrCoverage: (typeof t === 'function') ? t('stats.chrCoverage') : 'Couverture CHR',
+                recentHI: (typeof t === 'function') ? t('stats.recentHI') : 'HI récent',
+                recentCHR: (typeof t === 'function') ? t('stats.recentCHR') : 'CHR récent',
+                riskMsgs: (typeof t === 'function') ? t('stats.riskMessages') : 'Messages à risque',
+                highRiskMsgs: (typeof t === 'function') ? t('stats.highRiskMessages') : 'Messages très risqués',
+                topModels: (typeof t === 'function') ? t('stats.topModels') : 'Modèles (top)'
             };
 
             content.innerHTML = `
@@ -35082,6 +35128,38 @@ Réponds UNIQUEMENT dans ce format JSON:
                         <span class="info-icon" onclick="showTooltip(event, 'chr')">i</span>
                     </div>
                     <strong>${avgCHR}%</strong>
+                </div>
+
+                <div class="stat-item">
+                    <span>${statsLabels.hiCoverage}</span>
+                    <strong>${hiCount}/${allMessages.length} (${fmtPct(hiCoveragePct)})</strong>
+                </div>
+                <div class="stat-item">
+                    <span>${statsLabels.chrCoverage}</span>
+                    <strong>${chrCount}/${allMessages.length} (${fmtPct(chrCoveragePct)})</strong>
+                </div>
+
+                <div class="stat-item">
+                    <span>${statsLabels.recentHI}</span>
+                    <strong>${recentHiAvg === null ? 'N/A' : recentHiAvg.toFixed(1) + '%'}</strong>
+                </div>
+                <div class="stat-item">
+                    <span>${statsLabels.recentCHR}</span>
+                    <strong>${recentChrAvg === null ? 'N/A' : recentChrAvg.toFixed(1) + '%'}</strong>
+                </div>
+
+                <div class="stat-item">
+                    <span>${statsLabels.riskMsgs}</span>
+                    <strong>${risk30Count}</strong>
+                </div>
+                <div class="stat-item">
+                    <span>${statsLabels.highRiskMsgs}</span>
+                    <strong>${risk60Count}</strong>
+                </div>
+
+                <div class="stat-item">
+                    <span>${statsLabels.topModels}</span>
+                    <strong>${topModels.length ? topModels.join(', ') : 'N/A'}</strong>
                 </div>
             `;
 
