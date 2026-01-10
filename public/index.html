@@ -2910,7 +2910,7 @@
                 </button>
 
                 <!-- AI Task (Calendrier, Tâches, Planning) -->
-                <button class="menu-item" onclick="loadTaskModule()" style="padding-left:30px;" title="AI Task - Calendrier, Tâches, Planning">
+                <button class="menu-item" id="aiTaskMenuBtn" onclick="loadTaskModule()" style="padding-left:30px;" title="AI Task">
                     <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/>
                     </svg>
@@ -4951,7 +4951,7 @@ RÈGLES IMPORTANTES:
                 subtasks: task.subtasks || [],
                 userId: task.userId || currentUser?.email || 'guest',
                 description: task.description || '',
-                category: task.category || 'général',
+                category: task.category || 'autre',
                 priority: task.priority || 'normal'
             };
         });
@@ -5996,6 +5996,8 @@ ${topSaved}
         }
 
         function buildAgentTodoContext({ mode = 'summary', tasks = [], projects = [], events = [], notificationSettings = {}, todoNotificationsEnabled = false, currentUser = null } = {}) {
+            const lang = getAppLanguage();
+            const isEn = lang === 'en';
             const safeArr = (v) => Array.isArray(v) ? v : [];
             const safeObj = (v) => (v && typeof v === 'object') ? v : {};
             const listTasks = safeArr(tasks);
@@ -6060,23 +6062,23 @@ ${topSaved}
                 .sort(sortByDue)
                 .slice(0, 8)
                 .map(t => {
-                    const title = t?.title || 'Tâche';
-                    const due = t?.dueDate ? ` | Échéance: ${t.dueDate}` : '';
-                    const prio = t?.priority ? ` | Priorité: ${t.priority}` : '';
-                    const cat = t?.category ? ` | Catégorie: ${t.category}` : '';
-                    const proj = t?.projectId != null ? ` | Projet: ${t.projectId}` : '';
-                    const prog = (typeof t?.progress === 'number') ? ` | Progress: ${t.progress}%` : '';
+                    const title = t?.title || (isEn ? 'Task' : 'Tâche');
+                    const due = t?.dueDate ? ` | ${isEn ? 'Due' : 'Échéance'}: ${t.dueDate}` : '';
+                    const prio = t?.priority ? ` | ${isEn ? 'Priority' : 'Priorité'}: ${t.priority}` : '';
+                    const cat = t?.category ? ` | ${isEn ? 'Category' : 'Catégorie'}: ${t.category}` : '';
+                    const proj = t?.projectId != null ? ` | ${isEn ? 'Project' : 'Projet'}: ${t.projectId}` : '';
+                    const prog = (typeof t?.progress === 'number') ? ` | ${isEn ? 'Progress' : 'Progress'}: ${t.progress}%` : '';
                     return `- ${title}${due}${prio}${cat}${proj}${prog}`;
-                }).join('\n') || 'Aucune tâche active';
+                }).join('\n') || (isEn ? 'No active tasks' : 'Aucune tâche active');
 
             const topProjects = listProjects
                 .slice(0, 5)
                 .map(p => {
-                    const name = p?.name || p?.title || 'Projet';
-                    const progress = (typeof p?.progress === 'number') ? ` | Progress: ${p.progress}%` : '';
-                    const total = (typeof p?.totalTasks === 'number') ? ` | Total tâches: ${p.totalTasks}` : '';
+                    const name = p?.name || p?.title || (isEn ? 'Project' : 'Projet');
+                    const progress = (typeof p?.progress === 'number') ? ` | ${isEn ? 'Progress' : 'Progress'}: ${p.progress}%` : '';
+                    const total = (typeof p?.totalTasks === 'number') ? ` | ${isEn ? 'Total tasks' : 'Total tâches'}: ${p.totalTasks}` : '';
                     return `- ${name}${progress}${total}`;
-                }).join('\n') || 'Aucun projet';
+                }).join('\n') || (isEn ? 'No projects' : 'Aucun projet');
 
             const nextEvents = listEvents
                 .slice()
@@ -6084,19 +6086,44 @@ ${topSaved}
                 .sort((a, b) => parseDate(a?.date).getTime() - parseDate(b?.date).getTime())
                 .slice(0, 5)
                 .map(e => {
-                    const title = e?.title || 'Événement';
-                    const date = e?.date ? ` | Date: ${e.date}` : '';
+                    const title = e?.title || (isEn ? 'Event' : 'Événement');
+                    const date = e?.date ? ` | ${isEn ? 'Date' : 'Date'}: ${e.date}` : '';
                     return `- ${title}${date}`;
-                }).join('\n') || 'Aucun événement';
+                }).join('\n') || (isEn ? 'No events' : 'Aucun événement');
 
-            const constraints = `
+            const constraints = isEn
+                ? `
+[Product constraints]
+- Do not claim you can execute UI actions automatically
+- Never invent tasks/projects/events: use only the snapshot below
+- If information is missing (title, due date, priority, category, project), ask 1-3 targeted questions
+`
+                : `
 [Contraintes produit]
 - Ne prétends pas exécuter des actions automatiquement dans l'UI
 - N'invente jamais des tâches/projets/événements: utilise uniquement le snapshot ci-dessous
 - Si une info manque (titre, échéance, priorité, catégorie, projet), pose 1-3 questions ciblées
 `;
 
-            const moduleDoc = `
+            const moduleDoc = isEn
+                ? `
+=== YOU ARE TODO AGENT — AXILUM AI TASK (CALENDAR, TASKS, PLANNING) ===
+
+This AI Task module (in-app) covers:
+- Task management (create, complete, delete)
+- Projects (group tasks, progress)
+- Calendar / events (depending on UI)
+
+Local storage (browser / localStorage) used by the module:
+- userTasks, userProjects, userEvents
+- notificationSettings, todoNotificationsEnabled
+
+Existing UI actions (explain to the user if asked):
+- Add a task (addTask)
+- Mark completed (completeTask)
+- Delete (deleteTask)
+`
+                : `
 === TU ES AGENT TODO — AXILUM AI TASK (CALENDRIER, TÂCHES, PLANNING) ===
 
 Ce module AI Task (dans l'app) couvre notamment:
@@ -6114,7 +6141,33 @@ Actions UI existantes (à expliquer à l'utilisateur si demandé):
 - Supprimer (deleteTask)
 `;
 
-            const snapshot = `
+            const snapshot = isEn
+                ? `
+---
+TODO DATA AVAILABLE (snapshot):
+
+User: ${userEmail || 'N/A'}
+
+Tasks (user scope): total=${scopedTasks.length} | active=${activeTasks.length} | completed=${completedTasks.length}
+Due dates: today=${dueToday.length} | overdue=${overdue.length}
+Active breakdown: priority=${JSON.stringify(byPriority)} | category=${JSON.stringify(byCategory)}
+
+Top upcoming tasks:
+${topUpcoming}
+
+Projects: ${listProjects.length}
+${topProjects}
+
+Events: ${listEvents.length}
+${nextEvents}
+
+Notifications:
+- todoNotificationsEnabled=${todoNotificationsEnabled ? 'true' : 'false'}
+- notificationSettings.enabled=${settings.enabled ? 'true' : 'false'}
+- reminderMinutes=${settings.reminderMinutes != null ? settings.reminderMinutes : 'N/A'}
+---
+`
+                : `
 ---
 DONNÉES TODO DISPONIBLES (snapshot):
 
@@ -9017,6 +9070,7 @@ ${persona}
 
         function getTodoCategoryLabel(cat) {
             const key = normalizeTodoCategoryKey(cat);
+            if (key === 'general') return t('todo.category.other');
             if (key === 'travail' || key === 'work') return t('todo.category.work');
             if (key === 'personnel' || key === 'personal') return t('todo.category.personal');
             if (key === 'etudes' || key === 'studies') return t('todo.category.studies');
@@ -9293,104 +9347,118 @@ ${persona}
         // 🤖 DÉTECTION INTELLIGENTE DES COMMANDES TO DO
         function detectAndHandleTodoCommand(message) {
             const lowerMsg = message.toLowerCase();
+            const lang = getAppLanguage();
+            const isEn = lang === 'en';
             
             // ACTIVER LES NOTIFICATIONS
-            if (lowerMsg.match(/active|autorise.*notifications?|rappels?/i)) {
+            if (lowerMsg.match(/\b(active|enable|turn on|allow)\b|autorise.*notifications?|rappels?/i)) {
                 requestNotificationPermission().then(granted => {
                     if (granted) {
                         checkUpcomingNotifications();
                         addMessage(message, 'user');
-                        addMessage("✅ Notifications activées ! Vous recevrez des rappels 15 minutes avant vos événements et tâches.\n\n💡 Les notifications fonctionnent même quand l'onglet est ouvert en arrière-plan.", 'bot');
+                        addMessage(t('todo.agent.notificationsEnabledMessage'), 'bot');
                     } else {
                         addMessage(message, 'user');
-                        addMessage("❌ Impossible d'activer les notifications. Veuillez autoriser les notifications dans les paramètres de votre navigateur.", 'bot');
+                        addMessage(t('todo.agent.notificationsDeniedMessage'), 'bot');
                     }
                 });
                 return { handled: true, response: '' };
             }
             
             // CRÉER UN PROJET
-            if (lowerMsg.match(/cr[ée]e.*projet|nouveau projet|plan.*voyage|plan.*[ée]tudes/i)) {
-                let projectName = message.replace(/(cr[ée]e|nouveau|projet|un|une|de|pour|mon|ma)/gi, '').trim();
+            if (lowerMsg.match(/cr[ée]e.*projet|nouveau projet|create.*project|new project|plan.*voyage|plan.*[ée]tudes|plan.*travel|plan.*stud(y|ies)/i)) {
+                let projectName = message.replace(/(cr[ée]e|nouveau|create|new|projet|project|un|une|a|an|de|pour|for|mon|ma|my)/gi, '').trim();
                 
-                let category = 'général';
-                if (lowerMsg.includes('voyage')) category = 'voyage';
-                else if (lowerMsg.match(/[ée]tudes?|cours|formation/)) category = 'études';
-                else if (lowerMsg.match(/travail|professionnel|entreprise/)) category = 'travail';
+                let category = 'autre';
+                if (lowerMsg.includes('voyage') || lowerMsg.includes('travel')) category = lowerMsg.includes('travel') ? 'travel' : 'voyage';
+                else if (lowerMsg.match(/[ée]tudes?|cours|formation|stud(y|ies)|course|training/)) category = lowerMsg.match(/stud(y|ies)|course|training/) ? 'studies' : 'études';
+                else if (lowerMsg.match(/travail|professionnel|entreprise|work|professional|company/)) category = lowerMsg.match(/work|professional|company/) ? 'work' : 'travail';
                 
                 if (projectName.length < 3) {
-                    return { handled: true, response: "❓ Quel est le nom du projet ? Exemple: 'Crée un projet voyage à Paris'" };
+                    return { handled: true, response: t('todo.agent.projectNamePrompt') };
                 }
                 
                 const project = createProject(projectName, category);
+                const createdTpl = String(t('todo.agent.projectCreated') || '');
                 return {
                     handled: true,
-                    response: `✅ Projet créé: "${project.name}"\n📁 Catégorie: ${project.category}\n🆔 ID: ${project.id}\n\n💡 Ajoutez des tâches avec: "Ajoute [tâche] au projet ${project.id}"`
+                    response: createdTpl
+                        .replace('{name}', project.name)
+                        .replace('{category}', project.category)
+                        .split('{id}').join(String(project.id))
                 };
             }
             
             // VOIR LES PROJETS
-            if (lowerMsg.match(/mes projets|liste.*projets|projets? en cours/i)) {
+            if (lowerMsg.match(/mes projets|liste.*projets|projets? en cours|my projects|list.*projects|projects? in progress|ongoing projects/i)) {
                 if (userProjects.length === 0) {
-                    return { handled: true, response: "📁 Aucun projet créé. Dites 'Crée un projet [nom]' pour commencer !" };
+                    return { handled: true, response: t('todo.agent.noProjects') };
                 }
                 
-                let response = `📊 **Vos projets** (${userProjects.length}):\n\n`;
+                let response = String(t('todo.agent.projectsHeader') || '').replace('{count}', String(userProjects.length));
                 userProjects.forEach(project => {
                     const stats = getProjectStats(project.id);
                     const emoji = project.category === 'voyage' ? '✈️' : project.category === 'études' ? '📚' : project.category === 'travail' ? '💼' : '📁';
                     response += `${emoji} **${project.name}** (${project.category})\n`;
-                    response += `   Progress: ${project.progress}% | Tâches: ${stats.completed}/${stats.totalTasks}\n`;
-                    response += `   ID: ${project.id}\n\n`;
+                    response += String(t('todo.agent.projectStatsLine') || '')
+                        .replace('{progress}', String(project.progress))
+                        .replace('{done}', String(stats.completed))
+                        .replace('{total}', String(stats.totalTasks));
+                    response += String(t('todo.agent.projectIdLine') || '').replace('{id}', String(project.id));
                 });
                 
                 return { handled: true, response };
             }
             
             // AJOUTER UNE TÂCHE
-            if (lowerMsg.match(/^(ajoute|cr[ée]e) (une |la |)t[aâ]che|^nouvelle t[aâ]che|^note (une |la |)t[aâ]che|^rappel[- ]moi/i)) {
+            if (lowerMsg.match(/^(ajoute|cr[ée]e) (une |la |)t[aâ]che|^nouvelle t[aâ]che|^note (une |la |)t[aâ]che|^rappel[- ]moi|^(add|create) (a |an |the |)?task|^new task|^note (a |an |the |)?task|^remind me/i)) {
                 // Détecter la catégorie
-                let category = 'général';
-                if (lowerMsg.includes('travail') || lowerMsg.includes('professionnel')) category = 'travail';
-                else if (lowerMsg.includes('personnel')) category = 'personnel';
-                else if (lowerMsg.includes('voyage')) category = 'voyage';
-                else if (lowerMsg.match(/[ée]tudes?|cours/)) category = 'études';
+                let category = 'autre';
+                if (lowerMsg.includes('travail') || lowerMsg.includes('professionnel') || lowerMsg.includes('work') || lowerMsg.includes('professional')) category = isEn ? 'work' : 'travail';
+                else if (lowerMsg.includes('personnel') || lowerMsg.includes('personal')) category = isEn ? 'personal' : 'personnel';
+                else if (lowerMsg.includes('voyage') || lowerMsg.includes('travel') || lowerMsg.includes('trip')) category = isEn ? 'travel' : 'voyage';
+                else if (lowerMsg.match(/[ée]tudes?|cours|stud(y|ies)|course/)) category = isEn ? 'studies' : 'études';
                 
                 // Détecter si c'est lié à un projet
-                const projectMatch = message.match(/projet (\d+)|au projet (\d+)/i);
-                const projectId = projectMatch ? parseInt(projectMatch[1] || projectMatch[2]) : null;
+                const projectMatch = message.match(/projet (\d+)|au projet (\d+)|project (\d+)|to project (\d+)/i);
+                const projectId = projectMatch ? parseInt(projectMatch[1] || projectMatch[2] || projectMatch[3] || projectMatch[4], 10) : null;
                 
                 // Extraire le titre de la tâche
-                let taskTitle = message.replace(/(ajoute|cr[ée]e|nouvelle|t[aâ]che|note|rappel|à|mes|ma|une|un|travail|personnel|voyage|[ée]tudes?|projet \d+|au projet \d+)/gi, '').trim();
+                let taskTitle = message.replace(/(ajoute|cr[ée]e|nouvelle|t[aâ]che|note|rappel|add|create|new|task|remind|to|my|à|mes|ma|une|un|a|an|the|work|personal|travel|trip|stud(y|ies)|cours|course|training|travail|personnel|voyage|[ée]tudes?|projet \d+|au projet \d+|project \d+|to project \d+)/gi, '').trim();
                 
                 if (taskTitle.length < 3) {
-                    return { handled: true, response: "❓ Quelle tâche voulez-vous ajouter ? Exemple: 'Ajoute réserver l'hôtel à mes tâches voyage'" };
+                    return { handled: true, response: t('todo.agent.taskTitlePrompt') };
                 }
                 
                 const task = addTask(taskTitle, null, 'normal', category, projectId);
-                
-                let response = `✅ Tâche ajoutée: "${task.title}"\n📁 Catégorie: ${category}`;
+
+                const taskAddedTpl = String(t('todo.agent.taskAdded') || '');
+                const categoryLabel = (typeof getTodoCategoryLabel === 'function') ? getTodoCategoryLabel(category) : String(category || '');
+                let response = taskAddedTpl
+                    .replace('{title}', task.title)
+                    .replace('{category}', categoryLabel);
                 if (projectId) {
                     const project = userProjects.find(p => p.id === projectId);
                     if (project) {
-                        response += `\n📊 Projet: ${project.name}`;
+                        response += String(t('todo.agent.taskAddedProjectLine') || '').replace('{project}', project.name);
                         updateProjectProgress(projectId);
                     }
                 }
-                response += `\n\n📋 ${userTasks.filter(t => !t.completed).length} tâche(s) active(s).`;
+                const activeCount = userTasks.filter(t => !t.completed).length;
+                response += String(t('todo.agent.activeTasksCount') || '').replace('{count}', String(activeCount));
                 
                 return { handled: true, response };
             }
             
             // MONTRER LES TÂCHES
-            if (lowerMsg.match(/montre|affiche|liste.*t[aâ]ches?|mes t[aâ]ches|t[aâ]ches? du jour/i)) {
+            if (lowerMsg.match(/montre|affiche|liste.*t[aâ]ches?|mes t[aâ]ches|t[aâ]ches? du jour|show|display|list.*tasks?|my tasks?|today'?s tasks?/i)) {
                 const activeTasks = userTasks.filter(t => !t.completed);
                 
                 if (activeTasks.length === 0) {
-                    return { handled: true, response: "✅ Aucune tâche en cours ! Vous êtes à jour. 🎉" };
+                    return { handled: true, response: t('todo.agent.noActiveTasks') };
                 }
                 
-                let response = `📋 **Vos tâches** (${activeTasks.length}):\n\n`;
+                let response = String(t('todo.agent.tasksHeader') || '').replace('{count}', String(activeTasks.length));
                 activeTasks.forEach((task, index) => {
                     const priority = task.priority === 'high' ? '🔴' : task.priority === 'low' ? '🔵' : '🟡';
                     const categoryIcon = task.category === 'voyage' ? '✈️' : task.category === 'études' ? '📚' : task.category === 'travail' ? '💼' : task.category === 'personnel' ? '👤' : '📋';
@@ -9409,11 +9477,11 @@ ${persona}
             }
             
             // MARQUER TÂCHE COMME TERMINÉE
-            if (lowerMsg.match(/termin[ée]|fait|compl[ée]t[ée]|marque.*fait/i)) {
+            if (lowerMsg.match(/termin[ée]|fait|compl[ée]t[ée]|marque.*fait|\bdone\b|\bcomplete\b|\bcompleted\b|mark.*done/i)) {
                 const activeTasks = userTasks.filter(t => !t.completed);
                 
                 if (activeTasks.length === 0) {
-                    return { handled: true, response: "Vous n'avez pas de tâches en cours." };
+                    return { handled: true, response: t('todo.agent.noTasksInProgress') };
                 }
                 
                 // Tenter d'extraire le numéro de tâche
@@ -9422,13 +9490,13 @@ ${persona}
                     const taskNum = parseInt(numMatch[0]) - 1;
                     if (taskNum >= 0 && taskNum < activeTasks.length) {
                         completeTask(activeTasks[taskNum].id);
-                        return { handled: true, response: `✅ Tâche "${activeTasks[taskNum].title}" marquée comme terminée !` };
+                        return { handled: true, response: String(t('todo.agent.taskCompleted') || '').replace('{title}', activeTasks[taskNum].title) };
                     }
                 }
                 
                 // Sinon marquer la première tâche
                 completeTask(activeTasks[0].id);
-                return { handled: true, response: `✅ Tâche "${activeTasks[0].title}" marquée comme terminée !` };
+                return { handled: true, response: String(t('todo.agent.taskCompleted') || '').replace('{title}', activeTasks[0].title) };
             }
             
             // AJOUTER UN ÉVÉNEMENT / RDV
@@ -9456,15 +9524,18 @@ ${persona}
                 }
                 
                 if (eventTitle.length < 3) {
-                    eventTitle = "Réunion";
+                    eventTitle = isEn ? 'Meeting' : 'Réunion';
                 }
                 
                 const event = addEvent(eventTitle, startDate.toISOString());
                 const dateStr = new Date(event.startDate).toLocaleString(getLocale());
                 
-                return { 
-                    handled: true, 
-                    response: `📅 Événement créé: "${event.title}"\n🕐 Date: ${dateStr}\n\n✅ Ajouté à votre calendrier !` 
+                const eventTpl = String(t('todo.agent.eventCreated') || '');
+                return {
+                    handled: true,
+                    response: eventTpl
+                        .replace('{title}', event.title)
+                        .replace('{date}', dateStr)
                 };
             }
             
@@ -9476,7 +9547,7 @@ ${persona}
                 let response = "";
                 
                 if (todayEvents.length > 0) {
-                    response += `📅 **Aujourd'hui** (${todayEvents.length}):\n\n`;
+                    response += String(t('todo.agent.calendarToday') || '').replace('{count}', String(todayEvents.length));
                     todayEvents.forEach(event => {
                         const time = new Date(event.startDate).toLocaleTimeString(getLocale(), { hour: '2-digit', minute: '2-digit' });
                         response += `🕐 ${time} - ${event.title}\n`;
@@ -9485,41 +9556,47 @@ ${persona}
                 }
                 
                 if (weekEvents.length > todayEvents.length) {
-                    response += `📆 **Cette semaine** (${weekEvents.length} événements):\n\n`;
+                    response += String(t('todo.agent.calendarWeek') || '').replace('{count}', String(weekEvents.length));
                     weekEvents.forEach(event => {
                         const date = new Date(event.startDate).toLocaleDateString(getLocale());
                         const time = new Date(event.startDate).toLocaleTimeString(getLocale(), { hour: '2-digit', minute: '2-digit' });
-                        response += `• ${date} à ${time} - ${event.title}\n`;
+                        response += isEn
+                            ? `• ${date} at ${time} - ${event.title}\n`
+                            : `• ${date} à ${time} - ${event.title}\n`;
                     });
                 }
                 
                 if (response === "") {
-                    response = "📅 Votre calendrier est vide. Aucun événement programmé pour le moment.";
+                    response = t('todo.agent.calendarEmpty');
                 }
                 
                 return { handled: true, response };
             }
             
             // VÉRIFIER DISPONIBILITÉ (avec jours spécifiques)
-            if (lowerMsg.match(/libre|disponible|occup[ée]/i)) {
+            if (lowerMsg.match(/libre|disponible|occup[ée]|\bfree\b|available|\bbusy\b/i)) {
                 // Détecter le jour spécifique
                 const dayMap = {
+                    // FR
                     'lundi': 1, 'mardi': 2, 'mercredi': 3, 'jeudi': 4, 'vendredi': 5, 'samedi': 6, 'dimanche': 0,
-                    'aujourd': -1, 'demain': -2
+                    'aujourd': -1, 'demain': -2,
+                    // EN
+                    'monday': 1, 'tuesday': 2, 'wednesday': 3, 'thursday': 4, 'friday': 5, 'saturday': 6, 'sunday': 0,
+                    'today': -1, 'tomorrow': -2
                 };
                 
                 let targetDate = new Date();
-                let dayName = "aujourd'hui";
+                let dayName = isEn ? 'today' : "aujourd'hui";
                 
                 for (const [day, dayNum] of Object.entries(dayMap)) {
                     if (lowerMsg.includes(day)) {
                         if (dayNum === -1) {
                             // aujourd'hui
-                            dayName = "aujourd'hui";
+                            dayName = isEn ? 'today' : "aujourd'hui";
                         } else if (dayNum === -2) {
                             // demain
                             targetDate.setDate(targetDate.getDate() + 1);
-                            dayName = "demain";
+                            dayName = isEn ? 'tomorrow' : 'demain';
                         } else {
                             // Jour spécifique de la semaine
                             const currentDay = targetDate.getDay();
@@ -9533,10 +9610,10 @@ ${persona}
                 }
                 
                 // Détecter matin/après-midi/soir
-                let timeSlot = "toute la journée";
-                if (lowerMsg.includes('matin')) timeSlot = "matin";
-                else if (lowerMsg.includes('apr[èe]s[-\\s]?midi') || lowerMsg.includes('aprem')) timeSlot = "après-midi";
-                else if (lowerMsg.includes('soir')) timeSlot = "soir";
+                let timeSlot = isEn ? 'all day' : 'toute la journée';
+                if (lowerMsg.includes('matin') || lowerMsg.includes('morning')) timeSlot = isEn ? 'morning' : 'matin';
+                else if (lowerMsg.match(/apr[èe]s[-\s]?midi|aprem/i) || lowerMsg.includes('afternoon')) timeSlot = isEn ? 'afternoon' : 'après-midi';
+                else if (lowerMsg.includes('soir') || lowerMsg.includes('evening')) timeSlot = isEn ? 'evening' : 'soir';
                 
                 const targetDateStr = targetDate.toISOString().split('T')[0];
                 const dayEvents = userEvents.filter(e => {
@@ -9545,9 +9622,21 @@ ${persona}
                 });
                 
                 if (dayEvents.length === 0) {
-                    return { handled: true, response: `✅ Vous êtes libre ${dayName}${timeSlot !== "toute la journée" ? " " + timeSlot : ""} ! Aucun événement programmé.` };
+                    const slotSuffix = (isEn ? timeSlot !== 'all day' : timeSlot !== 'toute la journée')
+                        ? ` ${timeSlot}`
+                        : '';
+                    const freeTpl = String(t('todo.agent.free') || '');
+                    return {
+                        handled: true,
+                        response: freeTpl
+                            .replace('{day}', dayName)
+                            .replace('{slot}', slotSuffix)
+                    };
                 } else {
-                    let response = `📅 ${dayName.charAt(0).toUpperCase() + dayName.slice(1)}, vous avez ${dayEvents.length} événement(s):\n\n`;
+                    const dayLabel = dayName.charAt(0).toUpperCase() + dayName.slice(1);
+                    let response = String(t('todo.agent.dayHasEvents') || '')
+                        .replace('{day}', dayLabel)
+                        .replace('{count}', String(dayEvents.length));
                     dayEvents.forEach(event => {
                         const time = new Date(event.startDate).toLocaleTimeString(getLocale(), { hour: '2-digit', minute: '2-digit' });
                         response += `🕐 ${time} - ${event.title}\n`;
@@ -9574,15 +9663,15 @@ ${persona}
                     
                     if (dayEvents.length === 0) {
                         const dayName = checkDate.toLocaleDateString(getLocale(), { weekday: 'long', day: 'numeric', month: 'long' });
-                        slots.push(`✅ ${dayName} - Libre toute la journée`);
+                        slots.push(String(t('todo.agent.slotFreeAllDay') || '').replace('{dayName}', dayName));
                     }
                 }
                 
                 if (slots.length === 0) {
-                    return { handled: true, response: "📅 Votre semaine est bien chargée ! Tous les jours ont des événements. Essayez de consulter les détails pour trouver des plages horaires libres." };
+                    return { handled: true, response: t('todo.agent.slotsAllBusy') };
                 }
                 
-                let response = "📅 **Créneaux disponibles cette semaine:**\n\n";
+                let response = t('todo.agent.slotsHeader');
                 response += slots.slice(0, 5).join('\n');
                 
                 return { handled: true, response };
@@ -9593,11 +9682,11 @@ ${persona}
                 const activeTasks = userTasks.filter(t => !t.completed && !t.dueDate);
                 const weekEvents = getWeekEvents();
                 
-                let response = "📋 **Planning de la semaine:**\n\n";
+                let response = t('todo.agent.weekPlanHeader');
                 
                 // Afficher les événements existants
                 if (weekEvents.length > 0) {
-                    response += "📅 **Événements programmés:**\n";
+                    response += t('todo.agent.weekPlanEvents');
                     weekEvents.forEach(event => {
                         const date = new Date(event.startDate).toLocaleDateString(getLocale(), { weekday: 'short', day: 'numeric' });
                         const time = new Date(event.startDate).toLocaleTimeString(getLocale(), { hour: '2-digit', minute: '2-digit' });
@@ -9608,14 +9697,14 @@ ${persona}
                 
                 // Suggérer d'ajouter des dates aux tâches
                 if (activeTasks.length > 0) {
-                    response += `📝 **Tâches à planifier (${activeTasks.length}):**\n`;
-                    response += "Vous avez des tâches sans date d'échéance:\n";
+                    response += String(t('todo.agent.weekPlanTasksToSchedule') || '').replace('{count}', String(activeTasks.length));
+                    response += t('todo.agent.weekPlanUndated');
                     activeTasks.slice(0, 5).forEach((task, index) => {
                         response += `${index + 1}. ${task.title}\n`;
                     });
-                    response += "\n💡 Astuce: Dites 'Ajoute une date à la tâche X' pour les planifier !";
+                    response += t('todo.agent.weekPlanTip');
                 } else {
-                    response += "✅ Toutes vos tâches sont planifiées !";
+                    response += t('todo.agent.weekPlanAllPlanned');
                 }
                 
                 return { handled: true, response };
@@ -10096,6 +10185,56 @@ ${persona}
                 'todo.toast.permissionDenied': '❌ Permission refusée',
                 'todo.toast.notificationsDisabled': '🔕 Notifications désactivées',
 
+                'todo.sidebarTooltip': 'AI Task - Calendrier, Tâches, Planning',
+
+                'todo.toast.addTasksFirst': 'ℹ️ Ajoutez des tâches d\'abord',
+                'todo.toast.enableBrowserNotifications': '💡 Activez les notifications dans votre navigateur',
+                'todo.toast.taskNotificationEnabled': '🔔 Notification activée',
+                'todo.toast.taskNotificationEnabledForTask': '🔔 Notification activée pour cette tâche',
+                'todo.toast.taskNotificationDisabled': '🔕 Notification désactivée',
+                'todo.toast.notificationTimeUpdated': '⏰ Notification: {when} avant',
+
+                'todo.aiAssistant.coachMode': 'Mode Coach',
+                'todo.aiAssistant.subtitle': 'Gestion intelligente',
+                'todo.aiAssistant.deleteChat': 'Supprimer le chat',
+                'todo.aiAssistant.close': 'Fermer',
+                'todo.aiAssistant.helpTitle': 'Comment puis-je vous aider ?',
+                'todo.aiAssistant.helpSubtitle': 'Posez vos questions sur vos tâches',
+                'todo.aiAssistant.placeholder': 'Demandez quelque chose...',
+                'todo.aiAssistant.sending': 'Émission en cours...',
+
+                'todo.agent.notificationsEnabledMessage': '✅ Notifications activées ! Vous recevrez des rappels 15 minutes avant vos événements et tâches.\n\n💡 Les notifications fonctionnent même quand l\'onglet est ouvert en arrière-plan.',
+                'todo.agent.notificationsDeniedMessage': '❌ Impossible d\'activer les notifications. Veuillez autoriser les notifications dans les paramètres de votre navigateur.',
+                'todo.agent.projectNamePrompt': "❓ Quel est le nom du projet ? Exemple: 'Crée un projet voyage à Paris'",
+                'todo.agent.projectCreated': '✅ Projet créé: "{name}"\n📁 Catégorie: {category}\n🆔 ID: {id}\n\n💡 Ajoutez des tâches avec: "Ajoute [tâche] au projet {id}"',
+                'todo.agent.noProjects': "📁 Aucun projet créé. Dites 'Crée un projet [nom]' pour commencer !",
+                'todo.agent.projectsHeader': '📊 **Vos projets** ({count}):\n\n',
+                'todo.agent.projectStatsLine': '   Progress: {progress}% | Tâches: {done}/{total}\n',
+                'todo.agent.projectIdLine': '   ID: {id}\n\n',
+                'todo.agent.taskTitlePrompt': "❓ Quelle tâche voulez-vous ajouter ? Exemple: 'Ajoute réserver l\'hôtel à mes tâches voyage'",
+                'todo.agent.taskAdded': '✅ Tâche ajoutée: "{title}"\n📁 Catégorie: {category}',
+                'todo.agent.taskAddedProjectLine': '\n📊 Projet: {project}',
+                'todo.agent.activeTasksCount': '\n\n📋 {count} tâche(s) active(s).',
+                'todo.agent.noActiveTasks': '✅ Aucune tâche en cours ! Vous êtes à jour. 🎉',
+                'todo.agent.tasksHeader': '📋 **Vos tâches** ({count}):\n\n',
+                'todo.agent.noTasksInProgress': "Vous n\'avez pas de tâches en cours.",
+                'todo.agent.taskCompleted': '✅ Tâche "{title}" marquée comme terminée !',
+                'todo.agent.eventCreated': '📅 Événement créé: "{title}"\n🕐 Date: {date}\n\n✅ Ajouté à votre calendrier !',
+                'todo.agent.calendarToday': "📅 **Aujourd\'hui** ({count}):\n\n",
+                'todo.agent.calendarWeek': '📆 **Cette semaine** ({count} événements):\n\n',
+                'todo.agent.calendarEmpty': '📅 Votre calendrier est vide. Aucun événement programmé pour le moment.',
+                'todo.agent.free': '✅ Vous êtes libre {day}{slot}! Aucun événement programmé.',
+                'todo.agent.dayHasEvents': '{day}, vous avez {count} événement(s):\n\n',
+                'todo.agent.slotsAllBusy': '📅 Votre semaine est bien chargée ! Tous les jours ont des événements. Essayez de consulter les détails pour trouver des plages horaires libres.',
+                'todo.agent.slotsHeader': '📅 **Créneaux disponibles cette semaine:**\n\n',
+                'todo.agent.slotFreeAllDay': '✅ {dayName} - Libre toute la journée',
+                'todo.agent.weekPlanHeader': '📋 **Planning de la semaine:**\n\n',
+                'todo.agent.weekPlanEvents': '📅 **Événements programmés:**\n',
+                'todo.agent.weekPlanTasksToSchedule': '📝 **Tâches à planifier ({count}):**\n',
+                'todo.agent.weekPlanUndated': "Vous avez des tâches sans date d\'échéance:\n",
+                'todo.agent.weekPlanTip': "\n💡 Astuce: Dites 'Ajoute une date à la tâche X' pour les planifier !",
+                'todo.agent.weekPlanAllPlanned': '✅ Toutes vos tâches sont planifiées !',
+
                 'todo.notification.upcomingTitle': 'Tâche à venir',
                 'todo.notification.upcomingBody': '{title}\n⏰ Dans 15 minutes ({time})',
 
@@ -10391,6 +10530,56 @@ ${persona}
                 'todo.toast.notificationsEnabled': '🔔 Notifications enabled!',
                 'todo.toast.permissionDenied': '❌ Permission denied',
                 'todo.toast.notificationsDisabled': '🔕 Notifications disabled',
+
+                'todo.sidebarTooltip': 'AI Task - Calendar, Tasks, Planning',
+
+                'todo.toast.addTasksFirst': 'ℹ️ Add tasks first',
+                'todo.toast.enableBrowserNotifications': '💡 Enable notifications in your browser',
+                'todo.toast.taskNotificationEnabled': '🔔 Notification enabled',
+                'todo.toast.taskNotificationEnabledForTask': '🔔 Notification enabled for this task',
+                'todo.toast.taskNotificationDisabled': '🔕 Notification disabled',
+                'todo.toast.notificationTimeUpdated': '⏰ Notification: {when} before',
+
+                'todo.aiAssistant.coachMode': 'Coach mode',
+                'todo.aiAssistant.subtitle': 'Smart management',
+                'todo.aiAssistant.deleteChat': 'Delete chat',
+                'todo.aiAssistant.close': 'Close',
+                'todo.aiAssistant.helpTitle': 'How can I help?',
+                'todo.aiAssistant.helpSubtitle': 'Ask questions about your tasks',
+                'todo.aiAssistant.placeholder': 'Ask something...',
+                'todo.aiAssistant.sending': 'Sending...',
+
+                'todo.agent.notificationsEnabledMessage': '✅ Notifications enabled! You\'ll receive reminders 15 minutes before your events and tasks.\n\n💡 Notifications work even when the tab is in the background.',
+                'todo.agent.notificationsDeniedMessage': '❌ Unable to enable notifications. Please allow notifications in your browser settings.',
+                'todo.agent.projectNamePrompt': "❓ What\'s the project name? Example: 'Create a Paris trip project'",
+                'todo.agent.projectCreated': '✅ Project created: "{name}"\n📁 Category: {category}\n🆔 ID: {id}\n\n💡 Add tasks with: "Add [task] to project {id}"',
+                'todo.agent.noProjects': "📁 No projects yet. Say 'Create a project [name]' to get started!",
+                'todo.agent.projectsHeader': '📊 **Your projects** ({count}):\n\n',
+                'todo.agent.projectStatsLine': '   Progress: {progress}% | Tasks: {done}/{total}\n',
+                'todo.agent.projectIdLine': '   ID: {id}\n\n',
+                'todo.agent.taskTitlePrompt': "❓ What task do you want to add? Example: 'Add book the hotel to my travel tasks'",
+                'todo.agent.taskAdded': '✅ Task added: "{title}"\n📁 Category: {category}',
+                'todo.agent.taskAddedProjectLine': '\n📊 Project: {project}',
+                'todo.agent.activeTasksCount': '\n\n📋 {count} active task(s).',
+                'todo.agent.noActiveTasks': '✅ No tasks in progress! You\'re all caught up. 🎉',
+                'todo.agent.tasksHeader': '📋 **Your tasks** ({count}):\n\n',
+                'todo.agent.noTasksInProgress': "You don't have any tasks in progress.",
+                'todo.agent.taskCompleted': '✅ Task "{title}" marked as done!',
+                'todo.agent.eventCreated': '📅 Event created: "{title}"\n🕐 Date: {date}\n\n✅ Added to your calendar!',
+                'todo.agent.calendarToday': '📅 **Today** ({count}):\n\n',
+                'todo.agent.calendarWeek': '📆 **This week** ({count} events):\n\n',
+                'todo.agent.calendarEmpty': '📅 Your calendar is empty. No events scheduled yet.',
+                'todo.agent.free': '✅ You are free {day}{slot}! No events scheduled.',
+                'todo.agent.dayHasEvents': '{day}, you have {count} event(s):\n\n',
+                'todo.agent.slotsAllBusy': '📅 Your week is quite busy! Every day has events. Check details to find free time slots.',
+                'todo.agent.slotsHeader': '📅 **Available slots this week:**\n\n',
+                'todo.agent.slotFreeAllDay': '✅ {dayName} - Free all day',
+                'todo.agent.weekPlanHeader': '📋 **Weekly plan:**\n\n',
+                'todo.agent.weekPlanEvents': '📅 **Scheduled events:**\n',
+                'todo.agent.weekPlanTasksToSchedule': '📝 **Tasks to schedule ({count}):**\n',
+                'todo.agent.weekPlanUndated': 'You have tasks without a due date:\n',
+                'todo.agent.weekPlanTip': "\n💡 Tip: Say 'Add a date to task X' to schedule them!",
+                'todo.agent.weekPlanAllPlanned': '✅ All your tasks are planned!',
 
                 'todo.notification.upcomingTitle': 'Upcoming task',
                 'todo.notification.upcomingBody': '{title}\n⏰ In 15 minutes ({time})',
@@ -10887,6 +11076,11 @@ ${persona}
             try {
                 const lang = getAppLanguage();
                 document.documentElement.lang = lang;
+            } catch (_) {}
+
+            try {
+                const aiTaskMenuBtn = document.getElementById('aiTaskMenuBtn');
+                if (aiTaskMenuBtn) aiTaskMenuBtn.title = t('todo.sidebarTooltip');
             } catch (_) {}
 
             try {
@@ -12338,7 +12532,7 @@ ${persona}
 
             // Vérifier que les tâches sont prêtes
             if (!userTasks || userTasks.length === 0) {
-                showToast('ℹ️ Ajoutez des tâches d\'abord', 'info');
+                showToast(t('todo.toast.addTasksFirst'), 'info');
             }
             
             const panel = document.createElement('div');
@@ -12350,7 +12544,7 @@ ${persona}
                     <div id="aiAssistantPanelHeader" style="padding: 16px 20px; background: var(--bg-primary); color: var(--text-primary); display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border-color);">
                         <div id="aiAssistantPanelTitle" style="display: flex; align-items: center; gap: 10px;">
                             <div style="position: relative; display: inline-flex; align-items: center; justify-content: center;">
-                                <button id="todoCoachBtn" onclick="toggleTodoCoachMode()" title="Mode Coach" aria-label="Mode Coach" style="padding: 6px; background: transparent; color: var(--text-secondary); border: none; border-radius: 10px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center;" onmouseover="this.style.background='var(--bg-secondary)'; this.style.color='var(--text-primary)'" onmouseout="this.style.background='transparent'; this.style.color='var(--text-secondary)'">
+                                <button id="todoCoachBtn" onclick="toggleTodoCoachMode()" title="${t('todo.aiAssistant.coachMode')}" aria-label="${t('todo.aiAssistant.coachMode')}" style="padding: 6px; background: transparent; color: var(--text-secondary); border: none; border-radius: 10px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center;" onmouseover="this.style.background='var(--bg-secondary)'; this.style.color='var(--text-primary)'" onmouseout="this.style.background='transparent'; this.style.color='var(--text-secondary)'">
                                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                                         <path d="M12 2a4 4 0 0 0-4 4c0 1.4.7 2.7 1.8 3.4L9 12l3-2 3 2-.8-2.6A4 4 0 0 0 16 6a4 4 0 0 0-4-4z"/>
                                         <path d="M7 14h10"/>
@@ -12361,11 +12555,11 @@ ${persona}
                             </div>
                             <div>
                                 <div style="font-weight: 600; font-size: 15px; letter-spacing: -0.01em;">Agent ToDo</div>
-                                <div style="font-size: 11px; color: var(--text-secondary);">Gestion intelligente</div>
+                                <div style="font-size: 11px; color: var(--text-secondary);">${t('todo.aiAssistant.subtitle')}</div>
                             </div>
                         </div>
                         <div style="display: flex; gap: 6px;">
-                            <button id="aiAssistantDeleteBtn" onclick="clearTodoChatHistory()" style="background: var(--bg-secondary); border: 1px solid var(--border-color); color: var(--text-secondary); border-radius: 6px; cursor: pointer; padding: 6px; display: flex; align-items: center; justify-content: center; transition: all 0.2s;" onmouseover="this.style.background='var(--bg-hover)'; this.style.color='var(--text-primary)'" onmouseout="this.style.background='var(--bg-secondary)'; this.style.color='var(--text-secondary)'" title="Supprimer le chat">
+                            <button id="aiAssistantDeleteBtn" onclick="clearTodoChatHistory()" style="background: var(--bg-secondary); border: 1px solid var(--border-color); color: var(--text-secondary); border-radius: 6px; cursor: pointer; padding: 6px; display: flex; align-items: center; justify-content: center; transition: all 0.2s;" onmouseover="this.style.background='var(--bg-hover)'; this.style.color='var(--text-primary)'" onmouseout="this.style.background='var(--bg-secondary)'; this.style.color='var(--text-secondary)'" title="${t('todo.aiAssistant.deleteChat')}">
                                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                                     <polyline points="3 6 5 6 21 6"/>
                                     <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/>
@@ -12374,7 +12568,7 @@ ${persona}
                                     <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/>
                                 </svg>
                             </button>
-                            <button id="aiAssistantCloseBtn" onclick="toggleAiAssistant()" style="background: var(--bg-secondary); border: 1px solid var(--border-color); color: var(--text-secondary); border-radius: 6px; cursor: pointer; padding: 6px; display: flex; align-items: center; justify-content: center; transition: all 0.2s;" onmouseover="this.style.background='var(--bg-hover)'; this.style.color='var(--text-primary)'" onmouseout="this.style.background='var(--bg-secondary)'; this.style.color='var(--text-secondary)'" title="Fermer">
+                            <button id="aiAssistantCloseBtn" onclick="toggleAiAssistant()" style="background: var(--bg-secondary); border: 1px solid var(--border-color); color: var(--text-secondary); border-radius: 6px; cursor: pointer; padding: 6px; display: flex; align-items: center; justify-content: center; transition: all 0.2s;" onmouseover="this.style.background='var(--bg-hover)'; this.style.color='var(--text-primary)'" onmouseout="this.style.background='var(--bg-secondary)'; this.style.color='var(--text-secondary)'" title="${t('todo.aiAssistant.close')}">
                                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                                     <line x1="18" y1="6" x2="6" y2="18"/>
                                     <line x1="6" y1="6" x2="18" y2="18"/>
@@ -12386,14 +12580,14 @@ ${persona}
                     <!-- Conversation -->
                     <div id="aiChatMessages" style="flex: 1; padding: 16px; overflow-y: auto; max-height: 300px; background: var(--bg-primary); display: flex; flex-direction: column;">
                         <div style="text-align: center; padding: 20px; color: var(--text-secondary); font-size: 13px;">
-                            <div style="color: var(--text-primary); font-weight: 500; margin-bottom: 4px;">Comment puis-je vous aider ?</div>
-                            <div style="font-size: 11px; margin-top: 8px; color: var(--text-secondary);">Posez vos questions sur vos tâches</div>
+                            <div style="color: var(--text-primary); font-weight: 500; margin-bottom: 4px;">${t('todo.aiAssistant.helpTitle')}</div>
+                            <div style="font-size: 11px; margin-top: 8px; color: var(--text-secondary);">${t('todo.aiAssistant.helpSubtitle')}</div>
                         </div>
                     </div>
 
                     <!-- Input -->
                     <div id="aiAssistantInputArea" style="padding: 12px; border-top: 1px solid var(--border-color); display: flex; gap: 8px;">
-                        <input id="aiCommandInput" type="text" placeholder="Demandez quelque chose..." onkeypress="if(event.key==='Enter') askAi(this.value)" style="flex: 1; padding: 10px 14px; border: 1px solid var(--border-color); border-radius: 8px; background: var(--bg-primary); font-size: 13px; outline: none; color: var(--text-primary); transition: all 0.2s;" onfocus="this.style.borderColor='var(--text-secondary)'" onblur="this.style.borderColor='var(--border-color)'">
+                        <input id="aiCommandInput" type="text" placeholder="${t('todo.aiAssistant.placeholder')}" onkeypress="if(event.key==='Enter') askAi(this.value)" style="flex: 1; padding: 10px 14px; border: 1px solid var(--border-color); border-radius: 8px; background: var(--bg-primary); font-size: 13px; outline: none; color: var(--text-primary); transition: all 0.2s;" onfocus="this.style.borderColor='var(--text-secondary)'" onblur="this.style.borderColor='var(--border-color)'">
                         <button onclick="askAi(document.getElementById('aiCommandInput').value)" style="padding: 10px 14px; background: var(--bg-secondary); color: var(--text-primary); border: 1px solid var(--border-color); border-radius: 8px; cursor: pointer; font-weight: 500; transition: all 0.2s; display: flex; align-items: center; justify-content: center;" onmouseover="this.style.background='var(--bg-hover)'" onmouseout="this.style.background='var(--bg-secondary)'">
                             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                                 <line x1="22" y1="2" x2="11" y2="13"/>
@@ -12404,6 +12598,11 @@ ${persona}
                 </div>
             `;
             document.body.appendChild(panel);
+
+            try {
+                const messagesContainer = document.getElementById('aiChatMessages');
+                if (messagesContainer) messagesContainer.dataset.empty = '1';
+            } catch (_) {}
 
             // Restaurer et afficher l'historique si présent
             try {
@@ -12459,13 +12658,16 @@ ${persona}
             if (!Array.isArray(aiChatHistory) || aiChatHistory.length === 0) {
                 messagesContainer.innerHTML = `
                     <div style="text-align: center; padding: 20px; color: var(--text-secondary); font-size: 13px;">
-                        <div style="color: var(--text-primary); font-weight: 500; margin-bottom: 4px;">Comment puis-je vous aider ?</div>
-                        <div style="font-size: 11px; margin-top: 8px; color: var(--text-secondary);">Posez vos questions sur vos tâches</div>
+                        <div style="color: var(--text-primary); font-weight: 500; margin-bottom: 4px;">${t('todo.aiAssistant.helpTitle')}</div>
+                        <div style="font-size: 11px; margin-top: 8px; color: var(--text-secondary);">${t('todo.aiAssistant.helpSubtitle')}</div>
                     </div>
                 `;
+                try { messagesContainer.dataset.empty = '1'; } catch (_) {}
                 saveTodoChatHistory(userId, []);
                 return;
             }
+
+            try { messagesContainer.dataset.empty = '0'; } catch (_) {}
 
             messagesContainer.innerHTML = '';
             aiChatHistory.slice(-20).forEach(m => {
@@ -12542,10 +12744,13 @@ ${persona}
             const messagesContainer = document.getElementById('aiChatMessages');
             if (!messagesContainer) return;
 
-            // Effacer message vide
-            if (messagesContainer.children.length === 1 && messagesContainer.children[0].textContent.includes('Posez-moi des questions')) {
-                messagesContainer.innerHTML = '';
-            }
+            // Effacer l'état vide
+            try {
+                if (messagesContainer.dataset.empty === '1') {
+                    messagesContainer.innerHTML = '';
+                    messagesContainer.dataset.empty = '0';
+                }
+            } catch (_) {}
 
             // Message utilisateur
             const userMsg = document.createElement('div');
@@ -12573,7 +12778,7 @@ ${persona}
             loadingMsg.id = 'aiLoadingMsg';
             loadingMsg.style.cssText = 'margin-bottom: 12px;';
             loadingMsg.innerHTML = `<div style="display: inline-block; background: var(--bg-secondary); color: var(--text-secondary); padding: 10px 14px; border-radius: 12px 12px 12px 4px; font-size: 13px; border: 1px solid var(--border-color);">
-                <span style="animation: pulse 1.5s infinite;">Émission en cours...</span>
+                <span style="animation: pulse 1.5s infinite;">${t('todo.aiAssistant.sending')}</span>
             </div>`;
             messagesContainer.appendChild(loadingMsg);
             messagesContainer.scrollTop = messagesContainer.scrollHeight;
@@ -12948,7 +13153,7 @@ ${persona}
                     selectedTask.notificationEnabled = enabled;
                 }
                 
-                showToast(enabled ? '🔔 Notification activée pour cette tâche' : '🔕 Notification désactivée', 'info');
+                showToast(enabled ? t('todo.toast.taskNotificationEnabledForTask') : t('todo.toast.taskNotificationDisabled'), 'info');
                 
                 // Démarrer la vérification des notifications si activé
                 if (enabled) {
@@ -12958,11 +13163,11 @@ ${persona}
                             if (granted) {
                                 startNotificationCheck();
                                 setTimeout(() => {
-                                    showToast('✅ Notifications globales activées', 'success');
+                                    showToast(t('todo.toast.notificationsEnabled'), 'success');
                                 }, 500);
                             } else {
                                 setTimeout(() => {
-                                    showToast('💡 Activez les notifications dans votre navigateur', 'info');
+                                    showToast(t('todo.toast.enableBrowserNotifications'), 'info');
                                 }, 500);
                             }
                         });
@@ -13009,14 +13214,14 @@ ${persona}
                     selectedTask.notificationEnabled = enabled;
                 }
                 
-                showToast(enabled ? '🔔 Notification activée' : '🔕 Notification désactivée', 'info');
+                showToast(enabled ? t('todo.toast.taskNotificationEnabled') : t('todo.toast.taskNotificationDisabled'), 'info');
                 
                 // Auto-activer les notifications globales si nécessaire
                 if (enabled && !notificationsEnabled) {
                     requestNotificationPermission().then(granted => {
                         if (granted) {
                             startNotificationCheck();
-                            setTimeout(() => showToast('✅ Notifications globales activées', 'success'), 500);
+                            setTimeout(() => showToast(t('todo.toast.notificationsEnabled'), 'success'), 500);
                         }
                     });
                 } else if (enabled) {
@@ -13044,7 +13249,10 @@ ${persona}
                     selectedTask.notifyMinutes = minutes;
                 }
                 
-                showToast(`⏰ Notification: ${minutes >= 60 ? (minutes/60) + 'h' : minutes + ' min'} avant`, 'success');
+                const when = minutes >= 60
+                    ? ((minutes / 60) + 'h')
+                    : (minutes + ' min');
+                showToast(String(t('todo.toast.notificationTimeUpdated') || '').replace('{when}', when), 'success');
                 console.log('✅ Temps de notification mis à jour:', minutes, 'minutes');
             }
         }
@@ -36913,6 +37121,10 @@ Réponds UNIQUEMENT dans ce format JSON:
     </script>
     
     <!-- Forgot Password Functions -->
+    <script src="forgot-password-functions.js"></script>
+
+</body>
+</html>
     <script src="forgot-password-functions.js"></script>
 
 </body>
