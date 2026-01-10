@@ -7,6 +7,20 @@
 
 (function() {
     'use strict';
+
+    function normalizeAppLanguage(lang) {
+        const raw = String(lang || '').toLowerCase();
+        if (raw.startsWith('en')) return 'en';
+        return 'fr';
+    }
+
+    function getAppLanguage() {
+        try {
+            const stored = localStorage.getItem('appLanguage');
+            if (stored) return normalizeAppLanguage(stored);
+        } catch (_) {}
+        return normalizeAppLanguage((navigator && navigator.language) ? navigator.language : 'fr');
+    }
     
     console.log('Module Task Management initialisé');
     
@@ -26,7 +40,10 @@
             console.log('Module Task Management ouvert avec succès');
         } catch (error) {
             console.error('Erreur lors de l\'ouverture du module Task:', error);
-            alert('Erreur lors de l\'ouverture d\'AI Task. Veuillez réessayer.');
+            const lang = getAppLanguage();
+            alert(lang === 'en'
+                ? 'Error opening AI Task. Please try again.'
+                : 'Erreur lors de l\'ouverture d\'AI Task. Veuillez réessayer.');
         }
     };
     

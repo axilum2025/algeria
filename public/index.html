@@ -10037,6 +10037,25 @@ ${persona}
                 'welcome.visionDesc': "Analyse d'images",
                 'welcome.tasksTitle': 'Gestion tâches',
                 'welcome.tasksDesc': 'Organisation et planning',
+
+                'todo.title': 'AI Tasks',
+                'todo.aiAssistant': 'Agent ToDo',
+                'todo.aiAssistantTitle': 'Assistant IA',
+                'todo.searchPlaceholder': 'Rechercher...',
+                'todo.notificationsEnabled': 'Notifications activées',
+                'todo.notificationsEnable': 'Activer les notifications',
+                'todo.newTask': 'Nouvelle tâche',
+                'todo.profile': 'Profil personnel',
+                'todo.menu': 'Menu',
+                'todo.close': 'Fermer',
+                'todo.views': 'Vues',
+                'todo.view.list': 'Liste',
+                'todo.view.kanban': 'Tableau',
+                'todo.view.calendar': 'Calendrier',
+                'todo.view.personal': 'Personnel',
+                'todo.error.open': "Erreur lors de l'ouverture d'AI Task",
+                'todo.error.load': "Erreur lors du chargement d'AI Task. Veuillez réessayer.",
+
                 'rnd.applyActionsConfirm': 'Appliquer {count} action(s) au dashboard R&D ?',
                 'rnd.clearChatConfirm': '⚠️ Êtes-vous sûr de vouloir effacer tout l\'historique des conversations avec Agent dev?\n\nCette action est irréversible.',
                 'chat.historyCleared': '🗑️ Historique du chat effacé avec succès',
@@ -10233,6 +10252,25 @@ ${persona}
                 'welcome.visionDesc': 'Image analysis',
                 'welcome.tasksTitle': 'Task management',
                 'welcome.tasksDesc': 'Organization and planning',
+
+                'todo.title': 'AI Tasks',
+                'todo.aiAssistant': 'ToDo Agent',
+                'todo.aiAssistantTitle': 'AI assistant',
+                'todo.searchPlaceholder': 'Search...',
+                'todo.notificationsEnabled': 'Notifications enabled',
+                'todo.notificationsEnable': 'Enable notifications',
+                'todo.newTask': 'New task',
+                'todo.profile': 'Personal profile',
+                'todo.menu': 'Menu',
+                'todo.close': 'Close',
+                'todo.views': 'Views',
+                'todo.view.list': 'List',
+                'todo.view.kanban': 'Board',
+                'todo.view.calendar': 'Calendar',
+                'todo.view.personal': 'Personal',
+                'todo.error.open': 'Error opening AI Task',
+                'todo.error.load': 'Error loading AI Task. Please try again.',
+
                 'rnd.applyActionsConfirm': 'Apply {count} action(s) to the R&D dashboard?',
                 'rnd.clearChatConfirm': '⚠️ Are you sure you want to clear the entire chat history with Agent dev?\n\nThis action is irreversible.',
                 'chat.historyCleared': '🗑️ Chat history cleared successfully',
@@ -11233,7 +11271,7 @@ ${persona}
                 <!-- Header -->
                 <div id="todoHeader" style="background: var(--bg-primary); border-bottom: 1px solid var(--border-color); padding: 16px 24px; display: flex; align-items: center; justify-content: space-between;">
                     <div style="display: flex; align-items: center; gap: 16px;">
-                        <button id="todoSidebarToggle" onclick="window.toggleTodoSidebar(true)" style="display: none; padding: 8px; background: var(--bg-secondary); color: var(--text-primary); border: 1px solid var(--border-color); border-radius: 8px; cursor: pointer; transition: all 0.2s;" title="Menu" onmouseover="this.style.background='var(--bg-hover)'" onmouseout="this.style.background='var(--bg-secondary)'">
+                        <button id="todoSidebarToggle" onclick="window.toggleTodoSidebar(true)" style="display: none; padding: 8px; background: var(--bg-secondary); color: var(--text-primary); border: 1px solid var(--border-color); border-radius: 8px; cursor: pointer; transition: all 0.2s;" title="${t('todo.menu')}" onmouseover="this.style.background='var(--bg-hover)'" onmouseout="this.style.background='var(--bg-secondary)'">
                             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                                 <line x1="3" y1="6" x2="21" y2="6"/>
                                 <line x1="3" y1="12" x2="21" y2="12"/>
@@ -11245,17 +11283,17 @@ ${persona}
                                 <path d="M9 11l3 3L22 4"/>
                                 <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>
                             </svg>
-                            AI Tasks
+                            ${t('todo.title')}
                         </div>
                     </div>
                     <div id="todoHeaderActions" style="display: flex; align-items: center; gap: 12px;">
                         <!-- Assistant IA Conversationnel -->
                         <div style="position: relative;">
-                            <button id="aiAssistantBtn" onclick="toggleAiAssistant()" style="padding: 8px 16px; background: var(--bg-secondary); color: var(--text-primary); border: 1px solid var(--border-color); border-radius: 8px; cursor: pointer; transition: all 0.2s; font-size: 13px; font-weight: 500;" title="Assistant IA" onmouseover="this.style.background='var(--bg-hover)'; this.style.borderColor='var(--text-secondary)'" onmouseout="this.style.background='var(--bg-secondary)'; this.style.borderColor='var(--border-color)'">
-                                Agent ToDo
+                            <button id="aiAssistantBtn" onclick="toggleAiAssistant()" style="padding: 8px 16px; background: var(--bg-secondary); color: var(--text-primary); border: 1px solid var(--border-color); border-radius: 8px; cursor: pointer; transition: all 0.2s; font-size: 13px; font-weight: 500;" title="${t('todo.aiAssistantTitle')}" onmouseover="this.style.background='var(--bg-hover)'; this.style.borderColor='var(--text-secondary)'" onmouseout="this.style.background='var(--bg-secondary)'; this.style.borderColor='var(--border-color)'">
+                                ${t('todo.aiAssistant')}
                             </button>
                         </div>
-                        <button id="todoProfileBtn" onclick="openPersonalProfileModal()" title="Profil personnel" aria-label="Profil personnel" style="padding: 8px; background: transparent; color: var(--text-secondary); border: none; border-radius: 10px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center;" onmouseover="this.style.background='var(--bg-secondary)'; this.style.color='var(--text-primary)'" onmouseout="this.style.background='transparent'; this.style.color='var(--text-secondary)'">
+                        <button id="todoProfileBtn" onclick="openPersonalProfileModal()" title="${t('todo.profile')}" aria-label="${t('todo.profile')}" style="padding: 8px; background: transparent; color: var(--text-secondary); border: none; border-radius: 10px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center;" onmouseover="this.style.background='var(--bg-secondary)'; this.style.color='var(--text-primary)'" onmouseout="this.style.background='transparent'; this.style.color='var(--text-secondary)'">
                             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                                 <path d="M20 21a8 8 0 0 0-16 0" />
                                 <circle cx="12" cy="7" r="4" />
@@ -11266,9 +11304,9 @@ ${persona}
                                 <circle cx="11" cy="11" r="8"/>
                                 <path d="m21 21-4.35-4.35"/>
                             </svg>
-                            <input id="todoSearchInput" type="text" placeholder="Rechercher..." onkeyup="filterTodoSearch(this.value)" style="padding: 8px 12px 8px 40px; border-radius: 8px; border: 1px solid var(--border-color); background: var(--bg-secondary); color: var(--text-primary); font-size: 14px; width: 250px; outline: none;">
+                            <input id="todoSearchInput" type="text" placeholder="${t('todo.searchPlaceholder')}" onkeyup="filterTodoSearch(this.value)" style="padding: 8px 12px 8px 40px; border-radius: 8px; border: 1px solid var(--border-color); background: var(--bg-secondary); color: var(--text-primary); font-size: 14px; width: 250px; outline: none;">
                         </div>
-                        <button id="notificationToggle" onclick="toggleNotifications()" style="padding: 8px; background: ${notificationsEnabled ? 'rgba(59, 130, 246, 0.1)' : 'transparent'}; color: ${notificationsEnabled ? 'var(--accent)' : 'var(--text-secondary)'}; border: 1px solid var(--border-color); border-radius: 8px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; gap: 6px;" title="${notificationsEnabled ? 'Notifications activées' : 'Activer les notifications'}">
+                        <button id="notificationToggle" onclick="toggleNotifications()" style="padding: 8px; background: ${notificationsEnabled ? 'rgba(59, 130, 246, 0.1)' : 'transparent'}; color: ${notificationsEnabled ? 'var(--accent)' : 'var(--text-secondary)'}; border: 1px solid var(--border-color); border-radius: 8px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; gap: 6px;" title="${notificationsEnabled ? t('todo.notificationsEnabled') : t('todo.notificationsEnable')}">
                             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                 <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
                                 <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
@@ -11279,7 +11317,7 @@ ${persona}
                                 <line x1="12" y1="5" x2="12" y2="19"/>
                                 <line x1="5" y1="12" x2="19" y2="12"/>
                             </svg>
-                            <span id="addTaskBtnText">Nouvelle tâche</span>
+                            <span id="addTaskBtnText">${t('todo.newTask')}</span>
                         </button>
                         <button onclick="closeTodoAi()" style="padding: 8px; background: transparent; color: var(--text-secondary); border: none; border-radius: 8px; cursor: pointer; transition: all 0.2s;" onmouseover="this.style.background='var(--bg-secondary)'" onmouseout="this.style.background='transparent'">
                             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -11295,7 +11333,7 @@ ${persona}
                     <div id="todoSidebarBackdrop" onclick="window.toggleTodoSidebar(false)" style="display: none;"></div>
                     <!-- Sidebar -->
                     <div id="todoSidebar" style="width: 240px; background: var(--bg-sidebar); border-right: 1px solid var(--border-color); overflow-y: auto; padding: 16px;">
-                        <button id="todoSidebarClose" onclick="window.toggleTodoSidebar(false)" style="display: none; position: absolute; top: 14px; right: 14px; padding: 8px; background: var(--bg-secondary); color: var(--text-primary); border: 1px solid var(--border-color); border-radius: 10px; cursor: pointer; transition: all 0.2s;" title="Fermer" onmouseover="this.style.background='var(--bg-hover)'" onmouseout="this.style.background='var(--bg-secondary)'">
+                        <button id="todoSidebarClose" onclick="window.toggleTodoSidebar(false)" style="display: none; position: absolute; top: 14px; right: 14px; padding: 8px; background: var(--bg-secondary); color: var(--text-primary); border: 1px solid var(--border-color); border-radius: 10px; cursor: pointer; transition: all 0.2s;" title="${t('todo.close')}" onmouseover="this.style.background='var(--bg-hover)'" onmouseout="this.style.background='var(--bg-secondary)'">
                             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                                 <line x1="18" y1="6" x2="6" y2="18"/>
                                 <line x1="6" y1="6" x2="18" y2="18"/>
@@ -11303,7 +11341,7 @@ ${persona}
                         </button>
                         <!-- Vues -->
                         <div style="margin-bottom: 24px;">
-                            <h3 style="margin-bottom: 8px; color: var(--text-secondary); font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.8px;">Vues</h3>
+                            <h3 style="margin-bottom: 8px; color: var(--text-secondary); font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.8px;">${t('todo.views')}</h3>
                             <button onclick="switchTodoView('list')" id="viewList" class="sidebar-btn" style="width: 100%; padding: 8px 12px; text-align: left; border: none; background: rgba(59, 130, 246, 0.1); color: var(--accent); border-radius: 8px; cursor: pointer; font-size: 14px; display: flex; align-items: center; gap: 10px; margin-bottom: 4px; transition: all 0.2s;">
                                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                     <line x1="8" y1="6" x2="21" y2="6"/>
@@ -11313,7 +11351,7 @@ ${persona}
                                     <line x1="3" y1="12" x2="3.01" y2="12"/>
                                     <line x1="3" y1="18" x2="3.01" y2="18"/>
                                 </svg>
-                                Liste
+                                ${t('todo.view.list')}
                             </button>
                             <button onclick="switchTodoView('kanban')" id="viewKanban" class="sidebar-btn" style="width: 100%; padding: 8px 12px; text-align: left; border: none; background: transparent; color: var(--text-primary); border-radius: 8px; cursor: pointer; font-size: 14px; display: flex; align-items: center; gap: 10px; margin-bottom: 4px; transition: all 0.2s;">
                                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -11322,7 +11360,7 @@ ${persona}
                                     <rect x="14" y="14" width="7" height="7" rx="1"/>
                                     <rect x="3" y="14" width="7" height="7" rx="1"/>
                                 </svg>
-                                Tableau
+                                ${t('todo.view.kanban')}
                             </button>
                             <button onclick="switchTodoView('calendar')" id="viewCalendar" class="sidebar-btn" style="width: 100%; padding: 8px 12px; text-align: left; border: none; background: transparent; color: var(--text-primary); border-radius: 8px; cursor: pointer; font-size: 14px; display: flex; align-items: center; gap: 10px; margin-bottom: 4px; transition: all 0.2s;">
                                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -11331,14 +11369,14 @@ ${persona}
                                     <line x1="8" y1="2" x2="8" y2="6"/>
                                     <line x1="3" y1="10" x2="21" y2="10"/>
                                 </svg>
-                                Calendrier
+                                ${t('todo.view.calendar')}
                             </button>
                             <button onclick="switchTodoView('personal')" id="viewPersonal" class="sidebar-btn" style="width: 100%; padding: 8px 12px; text-align: left; border: none; background: transparent; color: var(--text-primary); border-radius: 8px; cursor: pointer; font-size: 14px; display: flex; align-items: center; gap: 10px; margin-bottom: 4px; transition: all 0.2s;">
                                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                                     <path d="M3 17l6-6 4 4 8-8"/>
                                     <path d="M14 7h7v7"/>
                                 </svg>
-                                Espace personnel
+                                ${t('todo.view.personal')}
                             </button>
                         </div>
 
@@ -20739,7 +20777,7 @@ function showAddProjectModal() {
                     openOfficePro();
                 } else {
                     console.error('openOfficePro non disponible');
-                    alert('Erreur lors de l\'ouverture d\'AI Task');
+                    alert(t('todo.error.open'));
                 }
             };
             script.onerror = function() {
@@ -20748,7 +20786,7 @@ function showAddProjectModal() {
                 if (typeof openOfficePro === 'function') {
                     openOfficePro();
                 } else {
-                    alert('Erreur lors du chargement d\'AI Task. Veuillez réessayer.');
+                    alert(t('todo.error.load'));
                 }
             };
             document.head.appendChild(script);

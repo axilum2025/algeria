@@ -138,6 +138,22 @@
             background: rgba(255,255,255,0.3);
         }
 
+        .lang-select {
+            padding: 8px 10px;
+            border-radius: 10px;
+            border: none;
+            background: rgba(255,255,255,0.2);
+            color: white;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 13px;
+            outline: none;
+        }
+
+        .lang-select option {
+            color: #111827;
+        }
+
         .btn-close {
             padding: 8px 12px;
             background: rgba(255,255,255,0.2);
@@ -627,79 +643,83 @@
                     </svg>
                     To Do AI
                 </h1>
-                <div class="ai-badge">✨ Powered by Llama 3.3 70B</div>
+                <div class="ai-badge" id="poweredByBadge">✨ Powered by Llama 3.3 70B</div>
             </div>
             <div class="header-right">
                 <div class="search-box">
-                    <input type="text" class="search-input" placeholder="🔍 Rechercher...">
+                    <input type="text" class="search-input" id="searchInput" placeholder="🔍 Rechercher...">
                 </div>
                 <button class="btn-add" onclick="showAddTaskModal()">
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
                     </svg>
-                    Ajouter
+                    <span id="addBtnText">Ajouter</span>
                 </button>
+                <select class="lang-select" id="languageSelect" title="Language" aria-label="Language">
+                    <option value="fr">FR</option>
+                    <option value="en">EN</option>
+                </select>
                 <button class="btn-theme" onclick="toggleTheme()" id="themeToggle">🌙</button>
-                <button class="btn-close" onclick="window.close()">✕</button>
+                <button class="btn-close" onclick="window.close()" id="closeBtn" title="Fermer" aria-label="Fermer">✕</button>
             </div>
         </div>
 
         <div class="main-container">
             <div class="sidebar">
                 <div class="sidebar-section">
-                    <h3 class="sidebar-title">Vues</h3>
+                    <h3 class="sidebar-title" id="viewsTitle">Vues</h3>
                     <button class="sidebar-btn active" onclick="switchView('list')">
                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/>
                         </svg>
-                        Liste
+                        <span id="viewListLabel">Liste</span>
                     </button>
                     <button class="sidebar-btn" onclick="switchView('kanban')">
                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/>
                         </svg>
-                        Kanban
+                        <span id="viewKanbanLabel">Kanban</span>
                     </button>
                     <button class="sidebar-btn" onclick="switchView('calendar')">
                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/>
                         </svg>
-                        Calendrier
+                        <span id="viewCalendarLabel">Calendrier</span>
                     </button>
                 </div>
 
                 <div class="sidebar-section">
-                    <h3 class="sidebar-title">Filtres</h3>
+                    <h3 class="sidebar-title" id="filtersTitle">Filtres</h3>
                     <button class="sidebar-btn">
-                        📋 Toutes les tâches
+                        📋 <span id="filterAllLabel">Toutes les tâches</span>
                         <span class="sidebar-count">12</span>
                     </button>
                     <button class="sidebar-btn">
-                        ☀️ Aujourd'hui
+                        ☀️ <span id="filterTodayLabel">Aujourd'hui</span>
                         <span class="sidebar-count">3</span>
                     </button>
                     <button class="sidebar-btn">
-                        📅 Cette semaine
+                        📅 <span id="filterWeekLabel">Cette semaine</span>
                         <span class="sidebar-count">8</span>
                     </button>
                     <button class="sidebar-btn">
-                        ⭐ Prioritaires
+                        ⭐ <span id="filterPriorityLabel">Prioritaires</span>
                         <span class="sidebar-count">5</span>
                     </button>
                 </div>
 
                 <div class="sidebar-section">
-                    <h3 class="sidebar-title">Catégories</h3>
+                    <h3 class="sidebar-title" id="categoriesTitle">Catégories</h3>
                     <button class="sidebar-btn">
-                        💼 Travail
+                        💼 <span id="catWorkLabel">Travail</span>
                         <span class="sidebar-count">7</span>
                     </button>
                     <button class="sidebar-btn">
-                        🏠 Personnel
+                        🏠 <span id="catPersonalLabel">Personnel</span>
                         <span class="sidebar-count">3</span>
                     </button>
                     <button class="sidebar-btn">
-                        📚 Études
+                        📚 <span id="catStudiesLabel">Études</span>
                         <span class="sidebar-count">2</span>
                     </button>
                 </div>
@@ -712,15 +732,144 @@
                         <path d="M9 11l3 3L22 4"/>
                         <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>
                     </svg>
-                    <h3 style="margin-bottom: 8px; font-size: 20px;">Aucune tâche</h3>
-                    <p style="font-size: 14px; margin-bottom: 20px;">Ajoutez une nouvelle tâche pour commencer</p>
-                    <button class="btn-add" onclick="showAddTaskModal()">+ Créer une tâche</button>
+                    <h3 style="margin-bottom: 8px; font-size: 20px;" id="emptyTitle">Aucune tâche</h3>
+                    <p style="font-size: 14px; margin-bottom: 20px;" id="emptyDesc">Ajoutez une nouvelle tâche pour commencer</p>
+                    <button class="btn-add" onclick="showAddTaskModal()" id="emptyBtn">+ Créer une tâche</button>
                 </div>
             </div>
         </div>
     </div>
 
     <script>
+        function normalizeAppLanguage(lang) {
+            const raw = String(lang || '').toLowerCase();
+            if (raw.startsWith('en')) return 'en';
+            return 'fr';
+        }
+
+        function getAppLanguage() {
+            try {
+                const stored = localStorage.getItem('appLanguage');
+                if (stored) return normalizeAppLanguage(stored);
+            } catch (_) {}
+            return normalizeAppLanguage((navigator && navigator.language) ? navigator.language : 'fr');
+        }
+
+        function setAppLanguage(lang) {
+            const normalized = normalizeAppLanguage(lang);
+            try { localStorage.setItem('appLanguage', normalized); } catch (_) {}
+            return normalized;
+        }
+
+        const TODO_I18N = {
+            fr: {
+                poweredBy: '✨ Propulsé par Llama 3.3 70B',
+                searchPlaceholder: '🔍 Rechercher...',
+                add: 'Ajouter',
+                closeTitle: 'Fermer',
+                views: 'Vues',
+                viewList: 'Liste',
+                viewKanban: 'Kanban',
+                viewCalendar: 'Calendrier',
+                filters: 'Filtres',
+                filterAll: 'Toutes les tâches',
+                filterToday: "Aujourd'hui",
+                filterWeek: 'Cette semaine',
+                filterPriority: 'Prioritaires',
+                categories: 'Catégories',
+                catWork: 'Travail',
+                catPersonal: 'Personnel',
+                catStudies: 'Études',
+                emptyTitle: 'Aucune tâche',
+                emptyDesc: 'Ajoutez une nouvelle tâche pour commencer',
+                emptyBtn: '+ Créer une tâche',
+                featureAlert: 'Fonctionnalité To-Do AI complète - À intégrer dans Axilum'
+            },
+            en: {
+                poweredBy: '✨ Powered by Llama 3.3 70B',
+                searchPlaceholder: '🔍 Search...',
+                add: 'Add',
+                closeTitle: 'Close',
+                views: 'Views',
+                viewList: 'List',
+                viewKanban: 'Kanban',
+                viewCalendar: 'Calendar',
+                filters: 'Filters',
+                filterAll: 'All tasks',
+                filterToday: 'Today',
+                filterWeek: 'This week',
+                filterPriority: 'Priority',
+                categories: 'Categories',
+                catWork: 'Work',
+                catPersonal: 'Personal',
+                catStudies: 'Studies',
+                emptyTitle: 'No tasks',
+                emptyDesc: 'Add a new task to get started',
+                emptyBtn: '+ Create a task',
+                featureAlert: 'Full To-Do AI feature — to integrate into Axilum'
+            }
+        };
+
+        function applyTodoLanguage(lang) {
+            const l = normalizeAppLanguage(lang);
+            const dict = TODO_I18N[l] || TODO_I18N.fr;
+
+            document.documentElement.lang = l;
+            const sel = document.getElementById('languageSelect');
+            if (sel) sel.value = l;
+
+            const poweredByBadge = document.getElementById('poweredByBadge');
+            if (poweredByBadge) poweredByBadge.textContent = dict.poweredBy;
+
+            const searchInput = document.getElementById('searchInput');
+            if (searchInput) searchInput.placeholder = dict.searchPlaceholder;
+
+            const addBtnText = document.getElementById('addBtnText');
+            if (addBtnText) addBtnText.textContent = dict.add;
+
+            const closeBtn = document.getElementById('closeBtn');
+            if (closeBtn) {
+                closeBtn.title = dict.closeTitle;
+                closeBtn.setAttribute('aria-label', dict.closeTitle);
+            }
+
+            const viewsTitle = document.getElementById('viewsTitle');
+            if (viewsTitle) viewsTitle.textContent = dict.views;
+            const viewListLabel = document.getElementById('viewListLabel');
+            if (viewListLabel) viewListLabel.textContent = dict.viewList;
+            const viewKanbanLabel = document.getElementById('viewKanbanLabel');
+            if (viewKanbanLabel) viewKanbanLabel.textContent = dict.viewKanban;
+            const viewCalendarLabel = document.getElementById('viewCalendarLabel');
+            if (viewCalendarLabel) viewCalendarLabel.textContent = dict.viewCalendar;
+
+            const filtersTitle = document.getElementById('filtersTitle');
+            if (filtersTitle) filtersTitle.textContent = dict.filters;
+            const filterAllLabel = document.getElementById('filterAllLabel');
+            if (filterAllLabel) filterAllLabel.textContent = dict.filterAll;
+            const filterTodayLabel = document.getElementById('filterTodayLabel');
+            if (filterTodayLabel) filterTodayLabel.textContent = dict.filterToday;
+            const filterWeekLabel = document.getElementById('filterWeekLabel');
+            if (filterWeekLabel) filterWeekLabel.textContent = dict.filterWeek;
+            const filterPriorityLabel = document.getElementById('filterPriorityLabel');
+            if (filterPriorityLabel) filterPriorityLabel.textContent = dict.filterPriority;
+
+            const categoriesTitle = document.getElementById('categoriesTitle');
+            if (categoriesTitle) categoriesTitle.textContent = dict.categories;
+            const catWorkLabel = document.getElementById('catWorkLabel');
+            if (catWorkLabel) catWorkLabel.textContent = dict.catWork;
+            const catPersonalLabel = document.getElementById('catPersonalLabel');
+            if (catPersonalLabel) catPersonalLabel.textContent = dict.catPersonal;
+            const catStudiesLabel = document.getElementById('catStudiesLabel');
+            if (catStudiesLabel) catStudiesLabel.textContent = dict.catStudies;
+
+            const emptyTitle = document.getElementById('emptyTitle');
+            if (emptyTitle) emptyTitle.textContent = dict.emptyTitle;
+            const emptyDesc = document.getElementById('emptyDesc');
+            if (emptyDesc) emptyDesc.textContent = dict.emptyDesc;
+            const emptyBtn = document.getElementById('emptyBtn');
+            if (emptyBtn) emptyBtn.textContent = dict.emptyBtn;
+        }
+
         // Theme Toggle
         function toggleTheme() {
             const body = document.body;
@@ -746,10 +895,24 @@
                 document.body.classList.add('light-mode');
                 themeToggle.textContent = '☀️';
             }
+
+            const lang = getAppLanguage();
+            applyTodoLanguage(lang);
+
+            const languageSelect = document.getElementById('languageSelect');
+            if (languageSelect) {
+                languageSelect.value = lang;
+                languageSelect.addEventListener('change', () => {
+                    const next = setAppLanguage(languageSelect.value);
+                    applyTodoLanguage(next);
+                });
+            }
         });
 
         function showAddTaskModal() {
-            alert('Fonctionnalité To-Do AI complète - À intégrer dans Axilum');
+            const lang = getAppLanguage();
+            const dict = TODO_I18N[lang] || TODO_I18N.fr;
+            alert(dict.featureAlert);
         }
 
         function switchView(view) {
