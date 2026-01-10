@@ -10166,6 +10166,19 @@ ${persona}
                 'todo.profile.incomplete': 'Profil incomplet. Ajoutez âge/sexe/capacité pour mieux personnaliser les scores.',
                 'todo.profile.edit': 'Modifier',
                 'todo.profile.complete': 'Compléter',
+                'todo.profile.modal.title': 'Informations personnelles',
+                'todo.profile.modal.close': 'Fermer',
+                'todo.profile.modal.desc': 'Ces informations servent à personnaliser les métriques et recommandations. Vous pouvez laisser vide.',
+                'todo.profile.modal.age': 'Âge',
+                'todo.profile.modal.agePlaceholder': 'ex: 32',
+                'todo.profile.modal.sex': 'Sexe',
+                'todo.profile.modal.sexFemale': 'Femme',
+                'todo.profile.modal.sexMale': 'Homme',
+                'todo.profile.modal.sexOther': 'Autre',
+                'todo.profile.modal.capacity': 'Capacité (heures focus / jour)',
+                'todo.profile.modal.capacityPlaceholder': 'ex: 6',
+                'todo.profile.modal.capacityHint': 'Aide à interpréter la surcharge (prochaines 24h).',
+                'todo.profile.modal.save': 'Enregistrer',
                 'todo.menu': 'Menu',
                 'todo.close': 'Fermer',
                 'todo.views': 'Vues',
@@ -10557,6 +10570,19 @@ ${persona}
                 'todo.profile.incomplete': 'Profile incomplete. Add age/sex/focus capacity to better personalize the scores.',
                 'todo.profile.edit': 'Edit',
                 'todo.profile.complete': 'Complete',
+                'todo.profile.modal.title': 'Personal information',
+                'todo.profile.modal.close': 'Close',
+                'todo.profile.modal.desc': 'This info helps personalize metrics and recommendations. You may leave it blank.',
+                'todo.profile.modal.age': 'Age',
+                'todo.profile.modal.agePlaceholder': 'e.g., 32',
+                'todo.profile.modal.sex': 'Sex',
+                'todo.profile.modal.sexFemale': 'Female',
+                'todo.profile.modal.sexMale': 'Male',
+                'todo.profile.modal.sexOther': 'Other',
+                'todo.profile.modal.capacity': 'Focus capacity (hours/day)',
+                'todo.profile.modal.capacityPlaceholder': 'e.g., 6',
+                'todo.profile.modal.capacityHint': 'Helps interpret overload (next 24h).',
+                'todo.profile.modal.save': 'Save',
                 'todo.menu': 'Menu',
                 'todo.close': 'Close',
                 'todo.views': 'Views',
@@ -13679,39 +13705,39 @@ ${persona}
                                 <path d="M20 21a8 8 0 0 0-16 0" />
                                 <circle cx="12" cy="7" r="4" />
                             </svg>
-                            <div style="font-weight: 800; color: var(--text-primary);">Informations personnelles</div>
+                            <div style="font-weight: 800; color: var(--text-primary);">${t('todo.profile.modal.title')}</div>
                         </div>
-                        <button type="button" onclick="closePersonalProfileModal()" style="border: 1px solid var(--border-color); background: var(--bg-secondary); color: var(--text-primary); border-radius: 10px; padding: 8px 10px; cursor: pointer;">Fermer</button>
+                        <button type="button" onclick="closePersonalProfileModal()" style="border: 1px solid var(--border-color); background: var(--bg-secondary); color: var(--text-primary); border-radius: 10px; padding: 8px 10px; cursor: pointer;">${t('todo.profile.modal.close')}</button>
                     </div>
 
                     <div style="margin-top: 12px; color: var(--text-secondary); font-size: 13px; line-height: 1.5;">
-                        Ces informations servent à personnaliser les métriques et recommandations. Vous pouvez laisser vide.
+                        ${t('todo.profile.modal.desc')}
                     </div>
 
                     <div style="margin-top: 14px; display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
                         <div>
-                            <div style="font-size: 12px; color: var(--text-secondary); font-weight: 700; margin-bottom: 6px;">Âge</div>
-                            <input id="profileAgeInput" type="number" inputmode="numeric" min="0" max="120" placeholder="ex: 32" value="${String(current.age ?? '')}" style="width: 100%; padding: 10px 12px; border-radius: 10px; border: 1px solid var(--border-color); background: var(--bg-secondary); color: var(--text-primary);" />
+                            <div style="font-size: 12px; color: var(--text-secondary); font-weight: 700; margin-bottom: 6px;">${t('todo.profile.modal.age')}</div>
+                            <input id="profileAgeInput" type="number" inputmode="numeric" min="0" max="120" placeholder="${t('todo.profile.modal.agePlaceholder')}" value="${String(current.age ?? '')}" style="width: 100%; padding: 10px 12px; border-radius: 10px; border: 1px solid var(--border-color); background: var(--bg-secondary); color: var(--text-primary);" />
                         </div>
                         <div>
-                            <div style="font-size: 12px; color: var(--text-secondary); font-weight: 700; margin-bottom: 6px;">Sexe</div>
+                            <div style="font-size: 12px; color: var(--text-secondary); font-weight: 700; margin-bottom: 6px;">${t('todo.profile.modal.sex')}</div>
                             <select id="profileSexInput" style="width: 100%; padding: 10px 12px; border-radius: 10px; border: 1px solid var(--border-color); background: var(--bg-secondary); color: var(--text-primary);">
                                 <option value="" ${current.sex ? '' : 'selected'}>—</option>
-                                <option value="female" ${String(current.sex) === 'female' ? 'selected' : ''}>Femme</option>
-                                <option value="male" ${String(current.sex) === 'male' ? 'selected' : ''}>Homme</option>
-                                <option value="other" ${String(current.sex) === 'other' ? 'selected' : ''}>Autre</option>
+                                <option value="female" ${String(current.sex) === 'female' ? 'selected' : ''}>${t('todo.profile.modal.sexFemale')}</option>
+                                <option value="male" ${String(current.sex) === 'male' ? 'selected' : ''}>${t('todo.profile.modal.sexMale')}</option>
+                                <option value="other" ${String(current.sex) === 'other' ? 'selected' : ''}>${t('todo.profile.modal.sexOther')}</option>
                             </select>
                         </div>
                     </div>
 
                     <div style="margin-top: 10px;">
-                        <div style="font-size: 12px; color: var(--text-secondary); font-weight: 700; margin-bottom: 6px;">Capacité (heures focus / jour)</div>
-                        <input id="profileFocusHoursInput" type="number" inputmode="decimal" min="0" max="24" step="0.5" placeholder="ex: 6" value="${String(current.focusHours ?? '')}" style="width: 100%; padding: 10px 12px; border-radius: 10px; border: 1px solid var(--border-color); background: var(--bg-secondary); color: var(--text-primary);" />
-                        <div style="margin-top: 6px; font-size: 12px; color: var(--text-secondary);">Aide à interpréter la surcharge (prochaines 24h).</div>
+                        <div style="font-size: 12px; color: var(--text-secondary); font-weight: 700; margin-bottom: 6px;">${t('todo.profile.modal.capacity')}</div>
+                        <input id="profileFocusHoursInput" type="number" inputmode="decimal" min="0" max="24" step="0.5" placeholder="${t('todo.profile.modal.capacityPlaceholder')}" value="${String(current.focusHours ?? '')}" style="width: 100%; padding: 10px 12px; border-radius: 10px; border: 1px solid var(--border-color); background: var(--bg-secondary); color: var(--text-primary);" />
+                        <div style="margin-top: 6px; font-size: 12px; color: var(--text-secondary);">${t('todo.profile.modal.capacityHint')}</div>
                     </div>
 
                     <div style="margin-top: 14px; display:flex; gap: 10px; justify-content: flex-end;">
-                        <button type="button" onclick="savePersonalProfileFromModal()" style="border: none; background: var(--accent); color: white; border-radius: 10px; padding: 10px 12px; cursor: pointer; font-weight: 800;">Enregistrer</button>
+                        <button type="button" onclick="savePersonalProfileFromModal()" style="border: none; background: var(--accent); color: white; border-radius: 10px; padding: 10px 12px; cursor: pointer; font-weight: 800;">${t('todo.profile.modal.save')}</button>
                     </div>
                 </div>
             `;
