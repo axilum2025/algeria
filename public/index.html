@@ -3366,21 +3366,21 @@
                             <span class="dot-example green"></span>
                             <div class="dot-item-content">
                                 <strong>Vert - Fiable</strong>
-                                <span>HI moyen &lt; 40%</span>
+                                <span>HI moyen &lt; 15%</span>
                             </div>
                         </div>
                         <div class="dot-item">
                             <span class="dot-example orange"></span>
                             <div class="dot-item-content">
                                 <strong>Orange - Attention</strong>
-                                <span>HI moyen 40-59%</span>
+                                <span>HI moyen 15-29%</span>
                             </div>
                         </div>
                         <div class="dot-item">
                             <span class="dot-example red"></span>
                             <div class="dot-item-content">
                                 <strong>Rouge - Risque</strong>
-                                <span>HI moyen ≥ 60%</span>
+                                <span>HI moyen ≥ 30%</span>
                             </div>
                         </div>
                     </div>
@@ -9332,13 +9332,26 @@ ${persona}
             // Extraire HI/CHR du texte de la réponse
             const hiMatch = botData.response.match(/HI: ([0-9.]+)%/);
             const chrMatch = botData.response.match(/CHR: ([0-9.]+)%/);
+
+            const normalizePercent = (value) => {
+                if (typeof value !== 'number' || !Number.isFinite(value)) return null;
+                // Certaines implémentations peuvent renvoyer 0..1 au lieu de 0..100
+                if (value >= 0 && value <= 1) return Math.round(value * 10000) / 100;
+                return value;
+            };
+
+            const hiFromFields = normalizePercent(botData.hallucinationIndex);
+            const chrFromFields = normalizePercent(botData.contextHistoryRatio);
+            const hiFromText = hiMatch ? parseFloat(hiMatch[1]) : null;
+            const chrFromText = chrMatch ? parseFloat(chrMatch[1]) : null;
             
             const messageData = {
                 user: userMsg,
                 bot: botData.response,
                 timestamp: Date.now(),
-                hiScore: hiMatch ? parseFloat(hiMatch[1]) : 0,
-                chrScore: chrMatch ? parseFloat(chrMatch[1]) : 0,
+                // Aligné sur les métriques: on privilégie les champs numériques du backend
+                hiScore: hiFromFields !== null ? hiFromFields : hiFromText,
+                chrScore: chrFromFields !== null ? chrFromFields : chrFromText,
                 // Sauvegarder toutes les métriques pour restauration
                 hallucinationIndex: botData.hallucinationIndex,
                 contextHistoryRatio: botData.contextHistoryRatio,
@@ -9390,20 +9403,40 @@ ${persona}
                 return 'green'; // Nouvelle conversation = vert par défaut
             }
 
-            const messagesWithHI = conversation.messages.filter(m => m.hiScore !== undefined && m.hiScore !== null);
-            
-            if (messagesWithHI.length === 0) {
+            const normalizePercent = (value) => {
+                if (typeof value !== 'number' || !Number.isFinite(value)) return null;
+                if (value >= 0 && value <= 1) return Math.round(value * 10000) / 100;
+                return value;
+            };
+
+            const getHiFromMessage = (msg) => {
+                if (!msg) return null;
+                const fromIndex = normalizePercent(msg.hallucinationIndex);
+                if (fromIndex !== null) return fromIndex;
+                const fromScore = normalizePercent(msg.hiScore);
+                if (fromScore === null) return null;
+                const hasInline = typeof msg.bot === 'string' && msg.bot.includes('HI:');
+                if (fromScore === 0 && !hasInline) return null;
+                return fromScore;
+            };
+
+            const hiValues = (conversation.messages || [])
+                .map(getHiFromMessage)
+                .filter(v => v !== null);
+
+            if (hiValues.length === 0) {
                 return 'green'; // Pas de scores HI = vert
             }
 
-            const totalHI = messagesWithHI.reduce((sum, msg) => sum + msg.hiScore, 0);
-            const avgHI = totalHI / messagesWithHI.length;
+            const totalHI = hiValues.reduce((sum, v) => sum + v, 0);
+            const avgHI = totalHI / hiValues.length;
 
-            // 🟢 Vert : HI < 40%
-            if (avgHI < 40) return 'green';
-            // 🟠 Orange : HI 40-59%
-            if (avgHI < 60) return 'orange';
-            // 🔴 Rouge : HI >= 60%
+            // Seuils alignés sur les badges HI de l'UI
+            // 🟢 Vert : HI < 15%
+            if (avgHI < 15) return 'green';
+            // 🟠 Orange : HI 15-29%
+            if (avgHI < 30) return 'orange';
+            // 🔴 Rouge : HI >= 30%
             return 'red';
         }
 
@@ -9668,20 +9701,37 @@ ${persona}
         }
 
         function updateStats(data) {
-            // Extract metrics
+            const normalizePercent = (value) => {
+                if (typeof value !== 'number' || !Number.isFinite(value)) return null;
+                if (value >= 0 && value <= 1) return Math.round(value * 10000) / 100;
+                return value;
+            };
+
+            // Priorité: champs numériques (alignés sur les badges UI)
+            const hiFromFields = normalizePercent(data.hallucinationIndex);
+            const chrFromFields = normalizePercent(data.contextHistoryRatio);
+
+            // Fallback: parsing du texte si nécessaire
+            let hiFromText = null;
+            let chrFromText = null;
             if (data.response && data.response.includes('HI:')) {
                 const hiMatch = data.response.match(/HI: ([0-9.]+)%/);
                 const chrMatch = data.response.match(/CHR: ([0-9.]+)%/);
-                
-                if (hiMatch) {
-                    messageStats.hiHistory.push(parseFloat(hiMatch[1]));
-                    if (messageStats.hiHistory.length > 20) messageStats.hiHistory.shift();
-                }
-                
-                if (chrMatch) {
-                    messageStats.chrHistory.push(parseFloat(chrMatch[1]));
-                    if (messageStats.chrHistory.length > 20) messageStats.chrHistory.shift();
-                }
+                hiFromText = hiMatch ? parseFloat(hiMatch[1]) : null;
+                chrFromText = chrMatch ? parseFloat(chrMatch[1]) : null;
+            }
+
+            const hi = hiFromFields !== null ? hiFromFields : hiFromText;
+            const chr = chrFromFields !== null ? chrFromFields : chrFromText;
+
+            if (hi !== null) {
+                messageStats.hiHistory.push(hi);
+                if (messageStats.hiHistory.length > 20) messageStats.hiHistory.shift();
+            }
+
+            if (chr !== null) {
+                messageStats.chrHistory.push(chr);
+                if (messageStats.chrHistory.length > 20) messageStats.chrHistory.shift();
             }
 
             localStorage.setItem('messageStats', JSON.stringify(messageStats));
@@ -34939,13 +34989,69 @@ Réponds UNIQUEMENT dans ce format JSON:
             const modal = document.getElementById('statsModal');
             const content = document.getElementById('statsContent');
 
-            const avgHI = messageStats.hiHistory.length
-                ? (messageStats.hiHistory.reduce((a, b) => a + b, 0) / messageStats.hiHistory.length).toFixed(1)
-                : 'N/A';
+            const normalizePercent = (value) => {
+                if (typeof value !== 'number' || !Number.isFinite(value)) return null;
+                // Certaines implémentations peuvent renvoyer 0..1 au lieu de 0..100
+                if (value >= 0 && value <= 1) return Math.round(value * 10000) / 100;
+                return value;
+            };
 
-            const avgCHR = messageStats.chrHistory.length
-                ? (messageStats.chrHistory.reduce((a, b) => a + b, 0) / messageStats.chrHistory.length).toFixed(1)
-                : 'N/A';
+            const getUserConversationsForStats = () => {
+                return (conversations || []).filter(conv => {
+                    if (!currentUser) return !conv.userId;
+                    return conv.userId === currentUser.id;
+                });
+            };
+
+            const getHiFromMessage = (msg) => {
+                if (!msg) return null;
+                const fromIndex = normalizePercent(msg.hallucinationIndex);
+                if (fromIndex !== null) return fromIndex;
+                const fromScore = normalizePercent(msg.hiScore);
+                if (fromScore === null) return null;
+
+                // Anciennes conversations: hiScore pouvait être forcé à 0 même si la métrique n'existait pas.
+                // On évite de compter ces zéros placeholders.
+                const hasInline = typeof msg.bot === 'string' && msg.bot.includes('HI:');
+                if (fromScore === 0 && !hasInline) return null;
+                return fromScore;
+            };
+
+            const getChrFromMessage = (msg) => {
+                if (!msg) return null;
+                const fromRatio = normalizePercent(msg.contextHistoryRatio);
+                if (fromRatio !== null) return fromRatio;
+                const fromScore = normalizePercent(msg.chrScore);
+                if (fromScore === null) return null;
+                const hasInline = typeof msg.bot === 'string' && msg.bot.includes('CHR:');
+                if (fromScore === 0 && !hasInline) return null;
+                return fromScore;
+            };
+
+            const userConversations = getUserConversationsForStats();
+            const allMessages = userConversations.flatMap(c => Array.isArray(c.messages) ? c.messages : []);
+
+            let hiSum = 0;
+            let hiCount = 0;
+            let chrSum = 0;
+            let chrCount = 0;
+
+            for (const msg of allMessages) {
+                const hi = getHiFromMessage(msg);
+                if (hi !== null) {
+                    hiSum += hi;
+                    hiCount += 1;
+                }
+                const chr = getChrFromMessage(msg);
+                if (chr !== null) {
+                    chrSum += chr;
+                    chrCount += 1;
+                }
+            }
+
+            // Moyenne sur l'ensemble des réponses (toutes conversations de l'utilisateur)
+            const avgHI = hiCount ? (hiSum / hiCount).toFixed(1) : 'N/A';
+            const avgCHR = chrCount ? (chrSum / chrCount).toFixed(1) : 'N/A';
 
             const statsLabels = {
                 messages: (typeof t === 'function') ? t('stats.messagesExchanged') : 'Messages échangés',
@@ -34957,11 +35063,11 @@ Réponds UNIQUEMENT dans ce format JSON:
             content.innerHTML = `
                 <div class="stat-item">
                     <span>${statsLabels.messages}</span>
-                    <strong>${conversations.reduce((sum, c) => sum + c.messages.length, 0)}</strong>
+                    <strong>${allMessages.length}</strong>
                 </div>
                 <div class="stat-item">
                     <span>${statsLabels.conversations}</span>
-                    <strong>${conversations.length}</strong>
+                    <strong>${userConversations.length}</strong>
                 </div>
                 <div class="stat-item">
                     <div class="stat-label">
