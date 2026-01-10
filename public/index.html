@@ -1687,6 +1687,43 @@
             line-height: 1.35;
         }
 
+        /* Mobile: Active model (help) layout */
+        @media (max-width: 768px) {
+            .ai-model-help .stat-item {
+                gap: 10px;
+            }
+
+            .ai-model-help .stat-item .stat-value {
+                max-width: 100%;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .ai-model-help .stat-item {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 6px;
+            }
+
+            .ai-model-help .stat-item.left {
+                align-items: flex-start;
+            }
+
+            .ai-model-help .stat-item > span:first-child {
+                font-size: 12px;
+                color: var(--text-secondary);
+            }
+
+            .ai-model-help .stat-item .stat-value {
+                text-align: left;
+            }
+
+            .ai-model-help .hint a {
+                overflow-wrap: anywhere;
+                word-break: break-word;
+            }
+        }
+
         .stat-label {
             display: flex;
             align-items: center;
@@ -3949,6 +3986,19 @@
         function getAiModelShortName(modelId) {
             const raw = String(modelId || '').trim();
             if (!raw) return '';
+
+            // Noms exacts demandés (dropdown + panneau actif)
+            const KNOWN = {
+                'llama-3.1-8b-instant': 'Llama 3.1 8B instant',
+                'llama-3.3-70b-versatile': 'Llama 3.3 70B versatile',
+                'moonshotai/kimi-k2-instruct': 'Kimi K2 instruct',
+                'moonshotai/kimi-k2-instruct-0905': 'Kimi K2 instruct 0905',
+                'openai/gpt-oss-120b': 'ChatGPT-oss-120b',
+                'openai/gpt-oss-20b': 'ChatGPT-oss-20b',
+                'qwen/qwen3-32b': 'Qwen3 32B'
+            };
+            if (KNOWN[raw]) return KNOWN[raw];
+
             const parts = raw.split('/').filter(Boolean);
             const model = parts.length ? parts[parts.length - 1] : raw;
             const m = model.toLowerCase();
@@ -3964,6 +4014,29 @@
 
             const base = model.split(/[-:_\s]+/).filter(Boolean)[0] || model;
             return base.charAt(0).toUpperCase() + base.slice(1);
+        }
+
+        function getAiProviderDisplayName(providerKey) {
+            const p = String(providerKey || '').trim().toLowerCase();
+            if (!p) return 'N/A';
+            if (p === 'openai') return 'OpenAI';
+            if (p === 'qwen') return 'Qwen';
+            if (p === 'moonshotai') return 'Moonshot AI';
+            if (p === 'meta-llama') return 'Meta';
+            if (p === 'groq') return 'Groq';
+            if (p === 'canopylabs') return 'CanopyLabs';
+            return providerKey;
+        }
+
+        function getAiProviderUrl(providerKey) {
+            const p = String(providerKey || '').trim().toLowerCase();
+            if (p === 'openai') return 'https://openai.com/';
+            if (p === 'qwen') return 'https://qwenlm.ai/';
+            if (p === 'moonshotai') return 'https://www.moonshot.cn/';
+            if (p === 'meta-llama') return 'https://ai.meta.com/llama/';
+            if (p === 'groq') return 'https://groq.com/';
+            if (p === 'canopylabs') return 'https://canopylabs.ai/';
+            return '';
         }
 
         function getAiModelProvider(modelId) {
@@ -4042,6 +4115,8 @@
             const outTxt = outRate == null ? 'N/A' : `${outRate} ${cur}/1M tokens (${t('ai.help.outSuffix')})`;
 
             const provider = getAiModelProvider(active);
+            const providerName = getAiProviderDisplayName(provider);
+            const providerUrl = getAiProviderUrl(provider);
             const prefs = getAiModelPreferences(m);
             const fullCategory = m && m.category ? String(m.category) : 'N/A';
             const fullDesc = m && m.description ? String(m.description) : '';
@@ -4060,7 +4135,7 @@
                 </div>
                 <div class="stat-item left">
                     <span>${safeT('ai.help.provider', 'Provider:')}</span>
-                    <span class="stat-value">${provider}</span>
+                    <span class="stat-value">${providerName}</span>
                 </div>
                 <div class="stat-item left">
                     <span>${safeT('ai.help.kind', 'Type:')}</span>
@@ -4078,7 +4153,17 @@
                     <span>${safeT('ai.help.pricePrefix', 'Prix:')}</span>
                     <span class="stat-value">${inTxt} • ${outTxt}</span>
                 </div>
-                ${fullDesc ? `<div class="hint">${fullDesc}</div>` : ''}
+                ${fullDesc ? `
+                    <div class="stat-item left">
+                        <span>${safeT('ai.help.description', 'Description:')}</span>
+                        <span class="stat-value">${fullDesc}</span>
+                    </div>
+                ` : ''}
+                ${providerUrl ? `
+                    <div class="hint">
+                        ${safeT('ai.help.moreInfo', 'Pour plus d\'informations :')} <a href="${providerUrl}" target="_blank" rel="noopener noreferrer"><strong>${providerName}</strong></a>
+                    </div>
+                ` : ''}
             `;
         }
 
