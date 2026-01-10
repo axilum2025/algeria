@@ -24,3 +24,6 @@ secrets/
 *.pem
 *.key
 *.cert
+
+# Local stash exports (safety backups)
+.stash-backups/
