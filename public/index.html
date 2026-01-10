@@ -10209,6 +10209,30 @@ ${persona}
                 'todo.aiAssistant.placeholder': 'Demandez quelque chose...',
                 'todo.aiAssistant.sending': 'Émission en cours...',
 
+                'todo.smart.prioritiesHeader': 'Voici tes priorités:',
+                'todo.smart.noTasksToPrioritize': "Je n'ai pas trouvé de tâches à prioriser.",
+                'todo.smart.dueDate': ' (échéance: {date})',
+                'todo.smart.overloadWarning': '\n\n⚠️ Surcharge possible dans 24h (~{hours}h).',
+                'todo.smart.overloadWarningInline': '\n⚠️ Surcharge possible dans 24h (~{hours}h).',
+                'todo.smart.scheduleHeader': "Proposition de planning (sans créer d'événements):",
+                'todo.smart.scheduleNoSlots': "Je n'ai pas pu proposer de créneaux (pas assez de tâches ou pas de disponibilité).",
+                'todo.smart.coachUnavailable': 'Conseils indisponibles.',
+                'todo.smart.coachWorkLabel': 'Travail:',
+                'todo.smart.coachPersonalLabel': 'Perso:',
+                'todo.smart.productivitySummary': 'Productivité: {completed} terminée(s), {pending} en cours, {overdue} en retard.\nStreak: {streak} jour(s).\nCharge estimée: ~{hours}h.',
+                'todo.smart.summaryFallback': 'Résumé.',
+                'todo.smart.nextStepsTitle': 'À faire ensuite',
+                'todo.smart.suggestionsTitle': 'Suggestions',
+                'todo.smart.insightUrgent': 'Urgentes: {count}',
+                'todo.smart.insightToday': "Aujourd'hui: {count}",
+                'todo.smart.toast.tasksPrefix': '✅ Tâche(s):',
+                'todo.smart.toast.created': '{count} créée(s)',
+                'todo.smart.toast.updated': '{count} modifiée(s)',
+                'todo.smart.toast.deleted': '{count} supprimée(s)',
+                'todo.smart.error.server': 'Erreur serveur: {status} {statusText}',
+                'todo.smart.error.invalidResponse': "Réponse invalide du serveur. Vérifiez que l'API est déployée.",
+                'todo.smart.error.genericPrefix': '❌ Erreur: ',
+
                 'todo.agent.notificationsEnabledMessage': '✅ Notifications activées ! Vous recevrez des rappels 15 minutes avant vos événements et tâches.\n\n💡 Les notifications fonctionnent même quand l\'onglet est ouvert en arrière-plan.',
                 'todo.agent.notificationsDeniedMessage': '❌ Impossible d\'activer les notifications. Veuillez autoriser les notifications dans les paramètres de votre navigateur.',
                 'todo.agent.projectNamePrompt': "❓ Quel est le nom du projet ? Exemple: 'Crée un projet voyage à Paris'",
@@ -10554,6 +10578,30 @@ ${persona}
                 'todo.aiAssistant.helpSubtitle': 'Ask questions about your tasks',
                 'todo.aiAssistant.placeholder': 'Ask something...',
                 'todo.aiAssistant.sending': 'Sending...',
+
+                'todo.smart.prioritiesHeader': 'Here are your priorities:',
+                'todo.smart.noTasksToPrioritize': "I couldn't find any tasks to prioritize.",
+                'todo.smart.dueDate': ' (due: {date})',
+                'todo.smart.overloadWarning': '\n\n⚠️ Potential overload in 24h (~{hours}h).',
+                'todo.smart.overloadWarningInline': '\n⚠️ Potential overload in 24h (~{hours}h).',
+                'todo.smart.scheduleHeader': 'Proposed schedule (without creating events):',
+                'todo.smart.scheduleNoSlots': "I couldn't suggest time slots (not enough tasks or no availability).",
+                'todo.smart.coachUnavailable': 'Advice unavailable.',
+                'todo.smart.coachWorkLabel': 'Work:',
+                'todo.smart.coachPersonalLabel': 'Personal:',
+                'todo.smart.productivitySummary': 'Productivity: {completed} done, {pending} in progress, {overdue} overdue.\nStreak: {streak} day(s).\nEstimated workload: ~{hours}h.',
+                'todo.smart.summaryFallback': 'Summary.',
+                'todo.smart.nextStepsTitle': 'Next steps',
+                'todo.smart.suggestionsTitle': 'Suggestions',
+                'todo.smart.insightUrgent': 'Urgent: {count}',
+                'todo.smart.insightToday': 'Today: {count}',
+                'todo.smart.toast.tasksPrefix': '✅ Task(s):',
+                'todo.smart.toast.created': '{count} created',
+                'todo.smart.toast.updated': '{count} updated',
+                'todo.smart.toast.deleted': '{count} deleted',
+                'todo.smart.error.server': 'Server error: {status} {statusText}',
+                'todo.smart.error.invalidResponse': 'Invalid server response. Check that the API is deployed.',
+                'todo.smart.error.genericPrefix': '❌ Error: ',
 
                 'todo.agent.notificationsEnabledMessage': '✅ Notifications enabled! You\'ll receive reminders 15 minutes before your events and tasks.\n\n💡 Notifications work even when the tab is in the background.',
                 'todo.agent.notificationsDeniedMessage': '❌ Unable to enable notifications. Please allow notifications in your browser settings.',
@@ -12809,7 +12857,7 @@ ${persona}
                 }
 
                 // Commandes rapides (sans LLM)
-                const isPrioritize = /(\bpriori|\bpriorise|\bprioriser|\bpriorité)/i.test(normalized);
+                const isPrioritize = /(\bpriori|\bpriorise|\bprioriser|\bpriorité|\bprioritiz|\bpriority)/i.test(normalized);
                 const isSchedule = /(\bplanifie|\bplanifier|\bschedule|\bplanning)/i.test(normalized);
                 const isSummary = /(\brésume|\bresume|\brécap|\brecap|\bsummary)/i.test(normalized);
                 const isProductivity = /(\bproductiv|\bstats|\bmétriques|\bmetriques|\bperformance)/i.test(normalized);
@@ -12845,6 +12893,8 @@ ${persona}
                 if (isPrioritize || isSchedule || isSummary || isProductivity || shouldUseCoach) {
                     await syncTasksToServer();
 
+                    const requestLang = getAppLanguage();
+
                     const baseUrl = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
                         ? 'http://localhost:7071/api/tasks'
                         : '/api/tasks';
@@ -12878,24 +12928,37 @@ ${persona}
                     } else if (isProductivity) {
                         const profile = getPersonalProfile(userId);
                         const qp = new URLSearchParams({ userId: String(userId) });
+                        qp.set('lang', requestLang);
                         if (profile.age) qp.set('age', String(profile.age));
                         if (profile.sex) qp.set('sex', String(profile.sex));
                         if (profile.focusHours) qp.set('focusHours', String(profile.focusHours));
                         endpoint = `productivity?${qp.toString()}`;
                         method = 'GET';
                     } else if (isSummary) {
-                        endpoint = `summary?userId=${encodeURIComponent(userId)}`;
+                        endpoint = `summary?userId=${encodeURIComponent(userId)}&lang=${encodeURIComponent(requestLang)}`;
                         method = 'GET';
                     }
 
                     const resp = await fetch(`${baseUrl}/${endpoint}`, {
                         method,
-                        headers: method === 'POST' ? { 'Content-Type': 'application/json' } : undefined,
-                        body: method === 'POST' ? JSON.stringify(body) : undefined
+                        headers: Object.assign(
+                            { 'X-Language': requestLang },
+                            method === 'POST' ? { 'Content-Type': 'application/json' } : null
+                        ),
+                        body: method === 'POST' ? JSON.stringify(Object.assign({ lang: requestLang }, body || {})) : undefined
                     });
 
+                    function tpl(template, values) {
+                        let out = String(template || '');
+                        if (!values) return out;
+                        Object.keys(values).forEach(k => {
+                            out = out.split(`{${k}}`).join(String(values[k]));
+                        });
+                        return out;
+                    }
+
                     if (!resp.ok) {
-                        throw new Error(`Erreur serveur: ${resp.status} ${resp.statusText}`);
+                        throw new Error(tpl(t('todo.smart.error.server'), { status: resp.status, statusText: resp.statusText }));
                     }
 
                     const data = await resp.json();
@@ -12905,11 +12968,11 @@ ${persona}
                     if (isPrioritize) {
                         const top = Array.isArray(data.prioritized) ? data.prioritized.slice(0, 7) : [];
                         const lines = top.map((t, i) => {
-                            const due = t.deadline ? ` (échéance: ${new Date(t.deadline).toLocaleString(getLocale())})` : '';
+                            const due = t.deadline ? tpl(t('todo.smart.dueDate'), { date: new Date(t.deadline).toLocaleString(getLocale()) }) : '';
                             return `${i + 1}. ${t.title}${due}`;
                         });
-                        const extra = data.insights?.overload ? `\n\n⚠️ Surcharge possible dans 24h (~${data.insights.next24Hours}h).` : '';
-                        text = (lines.length ? `Voici tes priorités:\n${lines.join('\n')}` : `Je n'ai pas trouvé de tâches à prioriser.`) + extra;
+                        const extra = data.insights?.overload ? tpl(t('todo.smart.overloadWarning'), { hours: data.insights.next24Hours }) : '';
+                        text = (lines.length ? `${t('todo.smart.prioritiesHeader')}\n${lines.join('\n')}` : t('todo.smart.noTasksToPrioritize')) + extra;
                     } else if (isSchedule) {
                         const blocks = Array.isArray(data.schedule) ? data.schedule.slice(0, 8) : [];
                         const lines = blocks.map(b => {
@@ -12918,24 +12981,30 @@ ${persona}
                             return `- ${s} → ${e} : ${b.title}`;
                         });
                         text = blocks.length
-                            ? `Proposition de planning (sans créer d'événements):\n${lines.join('\n')}`
-                            : `Je n'ai pas pu proposer de créneaux (pas assez de tâches ou pas de disponibilité).`;
+                            ? `${t('todo.smart.scheduleHeader')}\n${lines.join('\n')}`
+                            : t('todo.smart.scheduleNoSlots');
                     } else if (shouldUseCoach) {
-                        const coachText = data.response || 'Conseils indisponibles.';
+                        const coachText = data.response || t('todo.smart.coachUnavailable');
                         const work = Array.isArray(data.advice?.work) ? data.advice.work.slice(0, 4) : [];
                         const personal = Array.isArray(data.advice?.personal) ? data.advice.personal.slice(0, 3) : [];
                         const parts = [coachText];
-                        if (work.length) parts.push(`\nWork:\n- ${work.join('\n- ')}`);
-                        if (personal.length) parts.push(`\nPerso:\n- ${personal.join('\n- ')}`);
+                        if (work.length) parts.push(`\n${t('todo.smart.coachWorkLabel')}\n- ${work.join('\n- ')}`);
+                        if (personal.length) parts.push(`\n${t('todo.smart.coachPersonalLabel')}\n- ${personal.join('\n- ')}`);
                         text = parts.join('\n');
                     } else if (isProductivity) {
                         const m = data.metrics || {};
-                        text = `Productivité: ${m.completed || 0} terminée(s), ${m.pending || 0} en cours, ${m.overdue || 0} en retard.\nStreak: ${m.streakDays || 0} jour(s).\nCharge estimée: ~${m.pendingEstimatedHours || 0}h.`;
+                        text = tpl(t('todo.smart.productivitySummary'), {
+                            completed: m.completed || 0,
+                            pending: m.pending || 0,
+                            overdue: m.overdue || 0,
+                            streak: m.streakDays || 0,
+                            hours: m.pendingEstimatedHours || 0
+                        });
                     } else if (isSummary) {
                         const next = Array.isArray(data.topNext) ? data.topNext : [];
                         const lines = next.map((t, i) => `${i + 1}. ${t.title} — ${t.reason}`);
-                        const extra = data.insights?.overload ? `\n⚠️ Surcharge possible dans 24h (~${data.insights.next24Hours}h).` : '';
-                        text = `${data.response || 'Résumé.'}${lines.length ? `\n\nÀ faire ensuite:\n${lines.join('\n')}` : ''}${extra}`;
+                        const extra = data.insights?.overload ? tpl(t('todo.smart.overloadWarningInline'), { hours: data.insights.next24Hours }) : '';
+                        text = `${data.response || t('todo.smart.summaryFallback')}${lines.length ? `\n\n${t('todo.smart.nextStepsTitle')}:\n${lines.join('\n')}` : ''}${extra}`;
                     }
 
                     const aiMsg = document.createElement('div');
@@ -12960,17 +13029,18 @@ ${persona}
 
                 const response = await fetch(apiUrl, {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: { 'Content-Type': 'application/json', 'X-Language': getAppLanguage() },
                     body: JSON.stringify({ 
                         command: command,
                         history: aiChatHistory,
-                        userId
+                        userId,
+                        lang: getAppLanguage()
                     })
                 });
 
                 // Vérifier si la réponse est OK
                 if (!response.ok) {
-                    throw new Error(`Erreur serveur: ${response.status} ${response.statusText}`);
+                    throw new Error(tpl(t('todo.smart.error.server'), { status: response.status, statusText: response.statusText }));
                 }
 
                 // Récupérer le texte brut pour debug
@@ -12983,7 +13053,7 @@ ${persona}
                     data = JSON.parse(responseText);
                 } catch (parseError) {
                     console.error('JSON parse error:', parseError);
-                    throw new Error('Réponse invalide du serveur. Vérifiez que l\'API est déployée.');
+                    throw new Error(t('todo.smart.error.invalidResponse'));
                 }
 
                 loadingMsg.remove();
@@ -13007,7 +13077,7 @@ ${persona}
                     // Afficher suggestions
                     if (data.suggestions && data.suggestions.length > 0) {
                         responseHtml += `<div style="margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--border-color);">`;
-                        responseHtml += `<div style="font-weight: 600; font-size: 11px; color: var(--text-secondary); margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px;">Suggestions</div>`;
+                        responseHtml += `<div style="font-weight: 600; font-size: 11px; color: var(--text-secondary); margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px;">${escapeHtml(t('todo.smart.suggestionsTitle'))}</div>`;
                         data.suggestions.slice(0, 3).forEach((s, i) => {
                             const task = userTasks.find(t => t.id === s.taskId);
                             if (task) {
@@ -13020,8 +13090,8 @@ ${persona}
                     // Afficher insights
                     if (data.insights && Object.keys(data.insights).length > 0) {
                         responseHtml += `<div style="margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--border-color); font-size: 11px; color: var(--text-secondary); display: flex; gap: 8px; flex-wrap: wrap;">`;
-                        if (data.insights.urgent) responseHtml += `<span style="background: #FEE2E2; color: #DC2626; padding: 2px 8px; border-radius: 6px; font-weight: 500;">${data.insights.urgent} urgentes</span>`;
-                        if (data.insights.today) responseHtml += `<span style="background: #DBEAFE; color: #3B82F6; padding: 2px 8px; border-radius: 6px; font-weight: 500;">${data.insights.today} aujourd'hui</span>`;
+                        if (data.insights.urgent) responseHtml += `<span style="background: #FEE2E2; color: #DC2626; padding: 2px 8px; border-radius: 6px; font-weight: 500;">${escapeHtml(tpl(t('todo.smart.insightUrgent'), { count: data.insights.urgent }))}</span>`;
+                        if (data.insights.today) responseHtml += `<span style="background: #DBEAFE; color: #3B82F6; padding: 2px 8px; border-radius: 6px; font-weight: 500;">${escapeHtml(tpl(t('todo.smart.insightToday'), { count: data.insights.today }))}</span>`;
                         responseHtml += `</div>`;
                     }
 
@@ -13046,16 +13116,16 @@ ${persona}
                         const actions = [];
                         
                         if (data.created && data.created.length > 0) {
-                            actions.push(`${data.created.length} créée(s)`);
+                            actions.push(tpl(t('todo.smart.toast.created'), { count: data.created.length }));
                         }
                         if (data.changes && data.changes.length > 0) {
-                            actions.push(`${data.changes.length} modifiée(s)`);
+                            actions.push(tpl(t('todo.smart.toast.updated'), { count: data.changes.length }));
                         }
                         if (data.deleted && data.deleted.length > 0) {
-                            actions.push(`${data.deleted.length} supprimée(s)`);
+                            actions.push(tpl(t('todo.smart.toast.deleted'), { count: data.deleted.length }));
                         }
                         
-                        message = '✅ Tâche(s): ' + actions.join(', ');
+                        message = `${t('todo.smart.toast.tasksPrefix')} ${actions.join(', ')}`;
                         showToast(message, 'success');
                         
                         // Synchroniser les modifications depuis le serveur
@@ -13070,7 +13140,7 @@ ${persona}
                 loadingMsg.remove();
                 const errorMsg = document.createElement('div');
                 errorMsg.style.cssText = 'margin-bottom: 12px;';
-                errorMsg.innerHTML = `<div style="display: inline-block; background: #FEE2E2; color: #DC2626; padding: 10px 14px; border-radius: 12px 12px 12px 4px; max-width: 80%; font-size: 13px; border: 1px solid #FCA5A5;">❌ Erreur: ${error.message}</div>`;
+                errorMsg.innerHTML = `<div style="display: inline-block; background: #FEE2E2; color: #DC2626; padding: 10px 14px; border-radius: 12px 12px 12px 4px; max-width: 80%; font-size: 13px; border: 1px solid #FCA5A5;">${escapeHtml(t('todo.smart.error.genericPrefix'))}${escapeHtml(error.message)}</div>`;
                 messagesContainer.appendChild(errorMsg);
                 messagesContainer.scrollTop = messagesContainer.scrollHeight;
             }

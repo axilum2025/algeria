@@ -75,10 +75,24 @@ async function auditSafe({ email, action, status, plan, meta }) {
     }
 }
 
+function getReqLang(req) {
+    if (req && req.__axilumLang) return String(req.__axilumLang);
+    return getLangFromReq(req);
+}
+
+function isEnglish(req) {
+    return getReqLang(req) === 'en';
+}
+
+function pickLang(req, fr, en) {
+    return isEnglish(req) ? en : fr;
+}
+
 module.exports = async function (context, req) {
     context.log('✅ Task Manager Request:', req.method, req.params.action);
 
     const lang = getLangFromReq(req);
+    req.__axilumLang = lang;
 
     if (req.method === 'OPTIONS') {
         context.res = {
@@ -100,7 +114,7 @@ module.exports = async function (context, req) {
             context.res = {
                 status: 401,
                 headers: corsJsonHeaders(),
-                body: { error: 'Non authentifié' }
+                body: { error: pickLang(req, 'Non authentifié', 'Not authenticated') }
             };
             return;
         }
@@ -132,7 +146,7 @@ module.exports = async function (context, req) {
                     status: 429,
                     headers: corsJsonHeaders({ 'Retry-After': String(retryAfterSeconds) }),
                     body: {
-                        error: 'Rate limit atteint',
+                        error: pickLang(req, 'Rate limit atteint', 'Rate limit reached'),
                         feature,
                         plan,
                         limitPerMinute: quota.limit,
@@ -475,6 +489,7 @@ function calcOverload(tasks, now) {
 
 async function prioritizeTasks(context, req, userId) {
     const now = new Date();
+    const en = isEnglish(req);
     const inputTasks = req.body?.tasks;
     const tasks = (Array.isArray(inputTasks) ? inputTasks : await getTasks(userId)).map(normalizeTaskShape);
 
@@ -490,7 +505,9 @@ async function prioritizeTasks(context, req, userId) {
                 category: t.category,
                 estimatedMinutes: s.estMin,
                 score: s.score,
-                reason: s.overdue ? 'En retard' : (s.deadline ? 'Échéance proche / priorité' : 'Priorité / effort')
+                reason: s.overdue
+                    ? (en ? 'Overdue' : 'En retard')
+                    : (s.deadline ? (en ? 'Due soon / priority' : 'Échéance proche / priorité') : (en ? 'Priority / effort' : 'Priorité / effort'))
             };
         })
         .sort((a, b) => b.score - a.score);
@@ -502,12 +519,21 @@ async function prioritizeTasks(context, req, userId) {
     groups
         .filter(g => g.count >= 3)
         .slice(0, 3)
-        .forEach(g => suggestions.push({ type: 'batch', message: `Regrouper les tâches "${g.category}" (x${g.count}) en un seul créneau.`, category: g.category, taskIds: g.taskIds }));
+        .forEach(g => suggestions.push({
+            type: 'batch',
+            message: en
+                ? `Group "${g.category}" tasks (x${g.count}) into a single time block.`
+                : `Regrouper les tâches "${g.category}" (x${g.count}) en un seul créneau.`,
+            category: g.category,
+            taskIds: g.taskIds
+        }));
 
     if (overload.overload) {
         suggestions.push({
             type: 'overload',
-            message: `Surcharge probable: ~${Math.round(overload.next24Minutes / 60)}h à faire dans les prochaines 24h. Envisager de reporter/déléguer 1-2 tâches.`,
+            message: en
+                ? `Potential overload: ~${Math.round(overload.next24Minutes / 60)}h in the next 24h. Consider postponing/delegating 1-2 tasks.`
+                : `Surcharge probable: ~${Math.round(overload.next24Minutes / 60)}h à faire dans les prochaines 24h. Envisager de reporter/déléguer 1-2 tâches.`,
             next24Count: overload.next24Count,
             next24Minutes: overload.next24Minutes
         });
@@ -579,6 +605,7 @@ function subtractEvents(slots, events) {
 
 async function suggestSchedule(context, req, userId) {
     const now = new Date();
+    const en = isEnglish(req);
     const tasksRaw = req.body?.tasks;
     const events = req.body?.events || [];
     const preferences = req.body?.preferences || {};
@@ -623,7 +650,7 @@ async function suggestSchedule(context, req, userId) {
                 start: start.toISOString(),
                 end: end.toISOString(),
                 minutes: durMin,
-                reason: 'Placement automatique selon priorité et disponibilité'
+                reason: en ? 'Auto-placed based on priority and availability' : 'Placement automatique selon priorité et disponibilité'
             });
 
             // Réduire le slot courant
@@ -633,7 +660,12 @@ async function suggestSchedule(context, req, userId) {
         }
 
         if (!placed) {
-            unscheduled.push({ taskId: task.id, title: task.title, estimatedMinutes: durMin, reason: 'Aucun créneau libre dans la fenêtre de planification' });
+            unscheduled.push({
+                taskId: task.id,
+                title: task.title,
+                estimatedMinutes: durMin,
+                reason: en ? 'No free time slot within the planning window' : 'Aucun créneau libre dans la fenêtre de planification'
+            });
         }
     }
 
@@ -897,6 +929,7 @@ FORMAT JSON STRICT:
 
 async function summary(context, req, userId) {
     const now = new Date();
+    const en = isEnglish(req);
     const mode = String(req.query?.mode || req.body?.mode || 'daily').toLowerCase();
     const tasks = (await getTasks(userId)).map(normalizeTaskShape);
 
@@ -916,13 +949,23 @@ async function summary(context, req, userId) {
         .map(t => ({ t, s: computeTaskScore(t, now) }))
         .sort((a, b) => b.s.score - a.s.score)
         .slice(0, 5)
-        .map(x => ({ taskId: x.t.id, title: x.t.title, reason: x.s.overdue ? 'En retard' : (x.t.deadline ? 'Échéance / priorité' : 'Priorité') }));
+        .map(x => ({
+            taskId: x.t.id,
+            title: x.t.title,
+            reason: x.s.overdue
+                ? (en ? 'Overdue' : 'En retard')
+                : (x.t.deadline ? (en ? 'Due date / priority' : 'Échéance / priorité') : (en ? 'Priority' : 'Priorité'))
+        }));
 
     const overload = calcOverload(tasks, now);
 
     const text = mode === 'weekly'
-        ? `🗓️ Récap hebdo: ${completed.length} terminée(s), ${pending.length} en cours. ${overload.overload ? '⚠️ surcharge possible.' : ''}`
-        : `📅 Récap du jour: ${completed.length} terminée(s), ${pending.length} en cours. ${overload.overload ? '⚠️ surcharge possible.' : ''}`;
+        ? (en
+            ? `🗓️ Weekly recap: ${completed.length} completed, ${pending.length} in progress. ${overload.overload ? '⚠️ potential overload.' : ''}`
+            : `🗓️ Récap hebdo: ${completed.length} terminée(s), ${pending.length} en cours. ${overload.overload ? '⚠️ surcharge possible.' : ''}`)
+        : (en
+            ? `📅 Daily recap: ${completed.length} completed, ${pending.length} in progress. ${overload.overload ? '⚠️ potential overload.' : ''}`
+            : `📅 Récap du jour: ${completed.length} terminée(s), ${pending.length} en cours. ${overload.overload ? '⚠️ surcharge possible.' : ''}`);
 
     context.res = {
         status: 200,
@@ -1009,7 +1052,7 @@ Output: {"title":"Acheter du lait","priority":"low","category":"personnel",...}`
                 status: 402,
                 headers: corsJsonHeaders(),
                 body: {
-                    error: 'Crédit insuffisant',
+                    error: pickLang(req, 'Crédit insuffisant', 'Insufficient credit'),
                     currency: e.currency || 'EUR',
                     remainingCents: Number(e.remainingCents || 0),
                     remainingEur: Number((Number(e.remainingCents || 0) / 100).toFixed(2))
@@ -1058,7 +1101,7 @@ Output: {"title":"Acheter du lait","priority":"low","category":"personnel",...}`
         context.res = {
             status: 502,
             headers: corsJsonHeaders(),
-            body: { error: 'Réponse IA invalide (JSON).', details: String(e && e.message ? e.message : e) }
+            body: { error: pickLang(req, 'Réponse IA invalide (JSON).', 'Invalid AI response (JSON).'), details: String(e && e.message ? e.message : e) }
         };
         return;
     }
@@ -1343,6 +1386,7 @@ async function syncTasks(context, req, userId) {
 async function smartCommand(context, req, userId) {
     const command = safeText(req.body?.command, MAX_TEXT_CHARS).trim();
     const history = normalizeHistory(req.body?.history);
+    const lang = getReqLang(req);
 
     if (!command) {
         context.res = {
@@ -1385,6 +1429,9 @@ async function smartCommand(context, req, userId) {
     }));
 
     const systemPrompt = `Tu es Agent ToDo, un assistant de productivité intelligent. Tu aides l'utilisateur à gérer ses tâches de manière conversationnelle.
+
+LANGUE:
+ - ${getResponseLanguageInstruction(lang, { tone: '' })}
 
 IMPORTANT: Ne te présente PAS à chaque message. Réponds naturellement et directement aux questions de l'utilisateur. Utilise ton nom "Agent ToDo" seulement si c'est pertinent dans le contexte de la conversation, pas systématiquement.
 
@@ -1490,7 +1537,7 @@ RÈGLES:
                 status: 402,
                 headers: corsJsonHeaders(),
                 body: {
-                    error: 'Crédit insuffisant',
+                    error: pickLang(req, 'Crédit insuffisant', 'Insufficient credit'),
                     currency: e.currency || 'EUR',
                     remainingCents: Number(e.remainingCents || 0),
                     remainingEur: Number((Number(e.remainingCents || 0) / 100).toFixed(2))
@@ -1536,7 +1583,7 @@ RÈGLES:
         context.res = {
             status: 502,
             headers: corsJsonHeaders(),
-            body: { error: 'Réponse IA invalide (JSON).', details: String(e && e.message ? e.message : e) }
+            body: { error: pickLang(req, 'Réponse IA invalide (JSON).', 'Invalid AI response (JSON).'), details: String(e && e.message ? e.message : e) }
         };
         return;
     }
