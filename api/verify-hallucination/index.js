@@ -357,6 +357,7 @@ module.exports = async function (context, req) {
             chr,
             hiPercent,
             chrPercent,
+            metricsSource: (effectiveAnalysis && effectiveAnalysis.method === 'evidence') ? 'evidence' : 'detector',
             warning: effectiveAnalysis?.warning || null,
             recommendedSources,
             counts: analysisCounts || null,

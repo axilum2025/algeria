@@ -769,6 +769,7 @@ Ne mentionne pas tes capacités ou fonctionnalités à moins que l'utilisateur n
                 autoCorrectThreshold: autoCorrectThreshold,
                 hallucinationIndex: parseFloat(hiPercent),
                 contextHistoryRatio: parseFloat(chrPercent),
+                metricsSource: 'detector',
                 hallucinationClaims: hallucinationAnalysis.claims || [],
                 hallucinationCounts: hallucinationAnalysis.counts || {},
                 hallucinationSources: hallucinationAnalysis.sources || [],

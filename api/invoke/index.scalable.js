@@ -222,6 +222,7 @@ module.exports = async function (context, req) {
                 // Métriques hallucination
                 hallucinationIndex: parseFloat(hiPercent),
                 contextHistoryRatio: parseFloat(chrPercent),
+                metricsSource: 'detector',
                 hallucinationClaims: hallucinationAnalysis.claims || [],
                 hallucinationCounts: hallucinationAnalysis.counts || {},
                 hallucinationSources: hallucinationAnalysis.sources || [],
