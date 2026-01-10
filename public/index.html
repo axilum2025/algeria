@@ -1677,13 +1677,6 @@
             line-height: 1.35;
         }
 
-        .ai-model-validate.confirmed {
-            border-color: #3B82F6 !important;
-            box-shadow: 0 4px 16px rgba(59, 130, 246, 0.16);
-            cursor: default !important;
-            opacity: 0.95;
-        }
-
         .stat-label {
             display: flex;
             align-items: center;
@@ -3676,7 +3669,6 @@
                             <select id="aiModelSelect" onchange="onAiModelChanged()" style="flex:1; min-width:240px; padding:10px; border:1px solid var(--border-color); border-radius:10px; background:var(--bg-primary); color:var(--text-primary);">
                                 <option value="">Chargement…</option>
                             </select>
-                            <button type="button" id="aiModelValidateBtn" class="ai-model-validate" onclick="validateAiModelSelection()" style="padding:10px 14px; border:1px solid var(--border-color); border-radius:10px; background:var(--bg-secondary); color:var(--text-primary); cursor:pointer;">Valider la sélection</button>
                         </div>
                         <div id="aiModelHelp" class="ai-model-help" style="margin-top:10px; color: var(--text-secondary); font-size: 13px; line-height: 1.4;"></div>
                     </div>
@@ -3933,22 +3925,12 @@
         // ===================================
         const DEFAULT_AI_MODEL = 'llama-3.3-70b-versatile';
         const AI_MODEL_LS_ACTIVE = 'axilum_ai_model';
-        const AI_MODEL_LS_PENDING = 'axilum_ai_model_pending';
 
         let aiModelsCache = [];
 
         let activeAiModel = (() => {
             try {
                 return String(localStorage.getItem(AI_MODEL_LS_ACTIVE) || '').trim();
-            } catch (_) {
-                return '';
-            }
-        })();
-
-        let pendingAiModel = (() => {
-            try {
-                const v = String(localStorage.getItem(AI_MODEL_LS_PENDING) || '').trim();
-                return v;
             } catch (_) {
                 return '';
             }
@@ -3974,6 +3956,22 @@
             return base.charAt(0).toUpperCase() + base.slice(1);
         }
 
+        function getAiModelProvider(modelId) {
+            const raw = String(modelId || '').trim();
+            if (!raw) return '';
+            const parts = raw.split('/').filter(Boolean);
+            if (parts.length >= 2) return parts[0];
+            return 'groq';
+        }
+
+        function getAiModelPreferences(modelEntry) {
+            const catRaw = String(modelEntry?.category || '').trim();
+            if (!catRaw) return '';
+            const tokens = catRaw.split('/').map(s => String(s || '').trim()).filter(Boolean);
+            const cleaned = tokens.filter(t => !/function\s*calling/i.test(t));
+            return cleaned.join(', ');
+        }
+
         function safeT(key, fallback) {
             try {
                 if (typeof t !== 'function') return fallback;
@@ -3997,25 +3995,6 @@
             } catch (_) {}
         }
 
-        function getPendingAiModel() {
-            const m = String(pendingAiModel || '').trim();
-            return m || getActiveAiModel();
-        }
-
-        function setPendingAiModel(modelId) {
-            pendingAiModel = String(modelId || '').trim();
-            try {
-                localStorage.setItem(AI_MODEL_LS_PENDING, pendingAiModel);
-            } catch (_) {}
-        }
-
-        function clearPendingAiModel() {
-            pendingAiModel = '';
-            try {
-                localStorage.removeItem(AI_MODEL_LS_PENDING);
-            } catch (_) {}
-        }
-
         function getSelectedAiModel() {
             // Modèle réellement utilisé côté API
             return getActiveAiModel();
@@ -4025,20 +4004,13 @@
             const sel = document.getElementById('aiModelSelect');
             if (!sel) return;
             const next = String(sel.value || '').trim();
-            setPendingAiModel(next);
-            try { showToast(t('ai.toast.modelUpdated'), 'success'); } catch (_) {}
+            const nextId = next || DEFAULT_AI_MODEL;
+            setActiveAiModel(nextId);
+            try {
+                const nice = getAiModelShortName(nextId) || nextId;
+                showToast(t('ai.toast.modelValidated').replace('{model}', nice), 'success');
+            } catch (_) {}
             try { updateAiModelHelp(); } catch (_) {}
-        }
-
-        function validateAiModelSelection() {
-            const sel = document.getElementById('aiModelSelect');
-            if (!sel) return;
-            const next = String(sel.value || '').trim() || DEFAULT_AI_MODEL;
-            setActiveAiModel(next);
-            clearPendingAiModel();
-            updateAiModelHelp();
-            const nice = getAiModelShortName(next) || next;
-            try { showToast(t('ai.toast.modelValidated').replace('{model}', nice), 'success'); } catch (_) {}
         }
 
         function updateAiModelHelp(models) {
@@ -4049,11 +4021,9 @@
             const list = Array.isArray(models) ? models : (Array.isArray(aiModelsCache) ? aiModelsCache : []);
 
             const active = getActiveAiModel();
-            const pending = getPendingAiModel();
             const activeName = getAiModelShortName(active) || active;
-            const pendingName = getAiModelShortName(pending) || pending;
 
-            const m = Array.isArray(list) ? list.find(x => x && x.id === active) : null;
+            const m = Array.isArray(list) ? list.find(x => x && String(x.id || '').trim() === active) : null;
             const hasPricing = m && (m.in != null || m.out != null);
             const cur = m ? (String(m.pricingCurrency || '').toUpperCase() || '') : '';
             const inRate = hasPricing && m.in != null && Number.isFinite(Number(m.in)) ? Number(m.in) : null;
@@ -4061,21 +4031,24 @@
             const inTxt = inRate == null ? 'N/A' : `${inRate} ${cur}/1M tokens (${t('ai.help.inSuffix')})`;
             const outTxt = outRate == null ? 'N/A' : `${outRate} ${cur}/1M tokens (${t('ai.help.outSuffix')})`;
 
-            const validateBtn = document.getElementById('aiModelValidateBtn');
-            const isConfirmed = String(pending || '').trim() === String(active || '').trim();
-            if (validateBtn) {
-                validateBtn.disabled = !!isConfirmed;
-                validateBtn.classList.toggle('confirmed', !!isConfirmed);
-                validateBtn.textContent = isConfirmed
-                    ? safeT('settings.aiModelSelected', 'Modèle sélectionné')
-                    : safeT('settings.aiValidateModel', 'Valider la sélection');
-            }
+            const provider = getAiModelProvider(active);
+            const prefs = getAiModelPreferences(m);
+            const fullCategory = m && m.category ? String(m.category) : 'N/A';
+            const fullDesc = m && m.description ? String(m.description) : '';
+            const kind = m && m.kind ? String(m.kind).toUpperCase() : 'CHAT';
 
             help.innerHTML = `
-                <div class="row"><span class="k">${safeT('ai.help.activePrefix', 'Modèle actif:')}</span><span class="v">${activeName}</span></div>
-                ${isConfirmed ? '' : `<div class="row"><span class="k">${safeT('ai.help.pendingPrefix', 'Sélection:')}</span><span class="v">${pendingName}</span></div>`}
+                <div class="row">
+                    <span class="k">${safeT('ai.help.activePrefix', 'Modèle actif:')}</span>
+                    <span class="v"><span class="status-dot green" style="display:inline-block; width:10px; height:10px; margin-right:8px; vertical-align:middle;"></span>${activeName}</span>
+                </div>
+                <div class="row"><span class="k">${safeT('ai.help.fullId', 'Nom complet:')}</span><span class="v">${active}</span></div>
+                <div class="row"><span class="k">${safeT('ai.help.provider', 'Provider:')}</span><span class="v">${provider}</span></div>
+                <div class="row"><span class="k">${safeT('ai.help.kind', 'Type:')}</span><span class="v">${kind}</span></div>
+                <div class="row"><span class="k">${safeT('ai.help.category', 'Fonctions:')}</span><span class="v">${fullCategory}</span></div>
+                <div class="row"><span class="k">${safeT('ai.help.preferences', 'Préférences:')}</span><span class="v">${prefs || 'N/A'}</span></div>
                 <div class="row"><span class="k">${safeT('ai.help.pricePrefix', 'Prix:')}</span><span class="v">${inTxt} • ${outTxt}</span></div>
-                <div class="hint">${safeT('ai.help.hint', "La sélection n'est appliquée qu'après validation.")}</div>
+                ${fullDesc ? `<div class="hint">${fullDesc}</div>` : ''}
             `;
         }
 
@@ -4090,28 +4063,32 @@
                 const data = await res.json().catch(() => null);
                 const models = (res.ok && data && Array.isArray(data.models)) ? data.models : [];
 
-                const current = getPendingAiModel();
+                const current = getActiveAiModel();
                 const options = models.length ? models : [{ id: DEFAULT_AI_MODEL }];
 
-                // Build labels without provider/speciality; add #index only if duplicates exist
-                const nameCounts = new Map();
+                // Build labels without provider nor function-calling; add #index only if duplicates exist
+                const labelCounts = new Map();
                 for (const mm of options) {
                     const id = String(mm && mm.id || '').trim();
                     if (!id) continue;
-                    const n = getAiModelShortName(id) || id;
-                    nameCounts.set(n, (nameCounts.get(n) || 0) + 1);
+                    const base = getAiModelShortName(id) || id;
+                    const prefs = getAiModelPreferences(mm);
+                    const label = prefs ? `${base} — ${prefs}` : base;
+                    labelCounts.set(label, (labelCounts.get(label) || 0) + 1);
                 }
-                const nameIndex = new Map();
+                const labelIndex = new Map();
 
                 sel.innerHTML = options.map(m => {
                     const id = String(m.id || '').trim();
                     if (!id) return '';
                     const selected = id === current ? ' selected' : '';
                     const base = getAiModelShortName(id) || id;
-                    const count = nameCounts.get(base) || 0;
-                    const idx = (nameIndex.get(base) || 0) + 1;
-                    nameIndex.set(base, idx);
-                    const label = count > 1 ? `${base} #${idx}` : base;
+                    const prefs = getAiModelPreferences(m);
+                    const rawLabel = prefs ? `${base} — ${prefs}` : base;
+                    const count = labelCounts.get(rawLabel) || 0;
+                    const idx = (labelIndex.get(rawLabel) || 0) + 1;
+                    labelIndex.set(rawLabel, idx);
+                    const label = count > 1 ? `${rawLabel} #${idx}` : rawLabel;
                     const title = id.replace(/"/g, '&quot;');
                     return `<option value="${id}"${selected} title="${title}">${label}</option>`;
                 }).join('') || `<option value="${DEFAULT_AI_MODEL}">${DEFAULT_AI_MODEL}</option>`;
@@ -4119,7 +4096,7 @@
                 // Si le modèle stocké n'existe plus, revenir au défaut.
                 const exists = options.some(m => String(m.id || '').trim() === current);
                 if (!exists) {
-                    setPendingAiModel(DEFAULT_AI_MODEL);
+                    setActiveAiModel(DEFAULT_AI_MODEL);
                     sel.value = DEFAULT_AI_MODEL;
                 }
 
@@ -10098,14 +10075,18 @@ ${persona}
                 'usage.table.tokens': 'Tokens',
                 'usage.table.cost': 'Coût',
 
-                'ai.toast.modelUpdated': 'Sélection mise à jour (non validée)',
-                'ai.toast.modelValidated': 'Modèle activé : {model}',
+                'ai.toast.modelUpdated': 'Modèle sélectionné',
+                'ai.toast.modelValidated': 'Modèle actif : {model}',
                 'ai.help.activePrefix': 'Modèle actif:',
-                'ai.help.pendingPrefix': 'Sélection:',
+                'ai.help.fullId': 'Nom complet:',
+                'ai.help.provider': 'Provider:',
+                'ai.help.kind': 'Type:',
+                'ai.help.category': 'Fonctions:',
+                'ai.help.preferences': 'Préférences:',
                 'ai.help.pricePrefix': 'Prix:',
                 'ai.help.inSuffix': 'entrée',
                 'ai.help.outSuffix': 'sortie',
-                'ai.help.hint': "La sélection n'est appliquée qu'après validation."
+                'ai.help.hint': "Astuce : survolez un modèle dans la liste pour voir son identifiant complet."
             },
             en: {
                 'ui.newConversation': 'New Conversation',
@@ -10290,14 +10271,18 @@ ${persona}
                 'usage.table.tokens': 'Tokens',
                 'usage.table.cost': 'Cost',
 
-                'ai.toast.modelUpdated': 'Selection updated (not validated)',
+                'ai.toast.modelUpdated': 'Model selected',
                 'ai.toast.modelValidated': 'Active model: {model}',
                 'ai.help.activePrefix': 'Active model:',
-                'ai.help.pendingPrefix': 'Selection:',
+                'ai.help.fullId': 'Full name:',
+                'ai.help.provider': 'Provider:',
+                'ai.help.kind': 'Type:',
+                'ai.help.category': 'Functions:',
+                'ai.help.preferences': 'Preferences:',
                 'ai.help.pricePrefix': 'Pricing:',
                 'ai.help.inSuffix': 'input',
                 'ai.help.outSuffix': 'output',
-                'ai.help.hint': 'Selection applies only after confirmation.'
+                'ai.help.hint': 'Tip: hover a model in the list to see its full identifier.'
             }
         };
 
@@ -10569,9 +10554,6 @@ ${persona}
 
                 const aiModelLabel = document.getElementById('aiModelLabel');
                 if (aiModelLabel) aiModelLabel.textContent = t('settings.aiModelLabel');
-
-                const aiModelValidateBtn = document.getElementById('aiModelValidateBtn');
-                if (aiModelValidateBtn) aiModelValidateBtn.textContent = t('settings.aiValidateModel');
 
                 const modeSectionTitle = document.getElementById('modeSectionTitle');
                 if (modeSectionTitle) modeSectionTitle.textContent = t('settings.modeTitle');
