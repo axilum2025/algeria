@@ -270,16 +270,31 @@ function getLocaleFromLang(lang) {
 
 function getResponseLanguageShort(lang) {
   const l = normalizeLang(lang);
-  if (l === 'en') return 'Réponds en anglais';
+  if (l === 'en') return 'Respond in English';
   if (l === 'fr') return 'Réponds en français';
   return `Réponds en ${getLanguageNameFr(l)}`;
 }
 
 function getResponseLanguageInstruction(lang, { tone = 'clair et professionnel' } = {}) {
   const l = normalizeLang(lang);
-  const base = l === 'en'
-    ? 'Réponds en anglais'
-    : (l === 'fr' ? 'Réponds en français' : `Réponds en ${getLanguageNameFr(l)}`);
+
+  // For English, use an English instruction to avoid the model "sticking" to French
+  // when the rest of the system prompt is in French.
+  if (l === 'en') {
+    const rawTone = String(tone || '').toLowerCase();
+    let englishTone = 'in a clear and professional tone';
+    if (rawTone.includes('actionnable') || rawTone.includes('actionable')) englishTone = 'in a clear and actionable way';
+    else if (rawTone.includes('orienté') || rawTone.includes('résultat') || rawTone.includes('result')) englishTone = 'in a clear, results-oriented way';
+    else if (rawTone.includes('pédagog') || rawTone.includes('pedagog') || rawTone.includes('précis') || rawTone.includes('precis')) englishTone = 'in a clear and precise, educational way';
+    else if (rawTone.includes('direct')) englishTone = 'directly and clearly';
+    else if (rawTone.includes('structur')) englishTone = 'clearly and in a structured way';
+    else if (rawTone.includes('concret') || rawTone.includes('concret')) englishTone = 'with concrete steps';
+    else if (rawTone.includes('naturel')) englishTone = 'naturally and clearly';
+
+    return `Respond in English, ${englishTone}. Do not respond in French unless the user explicitly asks.`;
+  }
+
+  const base = l === 'fr' ? 'Réponds en français' : `Réponds en ${getLanguageNameFr(l)}`;
   const t = String(tone || '').trim();
   if (!t) return `${base}.`;
   return `${base}, ${t}.`;
