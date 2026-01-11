@@ -255,7 +255,7 @@ ${getResponseLanguageInstruction(lang, { tone: 'de manière claire, précise et 
             } else if (msg.type === 'bot' && msg.content) {
                 // Nettoyer le contenu du bot
                 const cleanContent = msg.content
-                    .replace(/\n*---[\s\S]*/g, '')
+                    .replace(/(^|\n)\s*---\s*\n(?=\s*(📊|📚|💡|Sources\s*:))[\s\S]*/m, '')
                     .replace(/\n*💡.*\n*/gi, '')
                     .trim();
                 if (cleanContent) {

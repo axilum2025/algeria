@@ -625,7 +625,10 @@ Ne mentionne pas tes capacités ou fonctionnalités à moins que l'utilisateur n
             if ((msg.type === 'user' || msg.role === 'user') && msg.content) {
                 messages.push({ role: "user", content: msg.content });
             } else if ((msg.type === 'bot' || msg.role === 'assistant') && msg.content) {
-                const cleanContent = msg.content.replace(/\n*---[\s\S]*/g, '').replace(/\n*💡.*\n*/gi, '').trim();
+                const cleanContent = String(msg.content)
+                    .replace(/(^|\n)\s*---\s*\n(?=\s*(📊|📚|💡|Sources\s*:))[\s\S]*/m, '')
+                    .replace(/\n*💡.*\n*/gi, '')
+                    .trim();
                 if (cleanContent) messages.push({ role: "assistant", content: cleanContent });
             } else if ((msg.type === 'system' || msg.role === 'system') && msg.content) {
                 // Messages système comme le contexte Excel

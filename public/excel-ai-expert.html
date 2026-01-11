@@ -2304,7 +2304,7 @@ La colonne Remise a été ajoutée avec succès !"
 
                     // Clean metrics
                     aiResponse = aiResponse
-                        .replace(/\n*---[\s\S]*$/g, '')
+                        .replace(/(^|\n)\s*---\s*\n(?=\s*(📊|📚|💡|Sources\s*:))[\s\S]*$/m, '')
                         .replace(/\n*📊.*?Métriques.*?\n.*?HI:.*?CHR:.*?\n*/gi, '')
                         .replace(/\n*📚.*?Sources:.*?\n*/gi, '')
                         .replace(/\n*💡.*?Plan.*?tokens.*?\n*/gi, '')

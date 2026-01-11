@@ -442,7 +442,7 @@ module.exports = async function (context, req) {
                 messages.push({ role: "user", content: msg.content });
             } else if (msg.type === 'bot' && msg.content) {
                 const cleanContent = msg.content
-                    .replace(/\n*---[\s\S]*/g, '')
+                    .replace(/(^|\n)\s*---\s*\n(?=\s*(📊|📚|💡|Sources\s*:))[\s\S]*/m, '')
                     .replace(/\n*💡.*\n*/gi, '')
                     .trim();
                 // Ajouter seulement si le contenu n'est pas vide après nettoyage

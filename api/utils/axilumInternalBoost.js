@@ -92,7 +92,7 @@ function compactHistoryFromMessages(recentHistory, { maxTurns = 6, maxCharsPerLi
     }
     if ((msg.type === 'bot' || msg.role === 'assistant') && msg.content) {
       const clean = String(msg.content)
-        .replace(/\n*---[\s\S]*/g, '')
+        .replace(/(^|\n)\s*---\s*\n(?=\s*(📊|📚|💡|Sources\s*:))[\s\S]*/m, '')
         .replace(/\n*💡.*\n*/gi, '')
         .trim();
       if (clean) historyLines.push(`Assistant: ${clean.slice(0, maxCharsPerLine)}`);

@@ -8161,7 +8161,7 @@ ${persona}
                 // Retirer toutes les variations de métriques (HI/CHR/pourcentages)
                 displayText = text
                     // Retirer "---" et tout ce qui suit (métriques complètes)
-                    .replace(/\n*---[\s\S]*/g, '')
+                    .replace(/(^|\n)\s*---\s*\n(?=\s*(📊|📚|💡|Sources\s*:))[\s\S]*/m, '')
                     // Retirer lignes avec emoji + HI/CHR
                     .replace(/\n*📊.*?HI:.*?CHR:.*?\n*/gi, '')
                     // Retirer lignes HI: X% • CHR: Y%
@@ -25583,7 +25583,7 @@ ${recruitmentInfo}
                 
                 // Nettoyer les métriques
                 aiResponse = aiResponse
-                    .replace(/\n*---[\s\S]*$/g, '')
+                    .replace(/(^|\n)\s*---\s*\n(?=\s*(📊|📚|💡|Sources\s*:))[\s\S]*$/m, '')
                     .replace(/\n*📊.*?Métriques.*?\n.*?HI:.*?CHR:.*?\n*/gi, '')
                     .replace(/\n*📚.*?Sources:.*?\n*/gi, '')
                     .replace(/\n\s*Sources\s*:\s*[\s\S]*$/i, '')
@@ -31689,7 +31689,7 @@ ${recruitmentInfo}
                         let answer = data.response || data.bot || 'Je n\'ai pas pu répondre. Réessayez.';
                         // Nettoyage défensif: éviter d'afficher du JSON/sources/métriques
                         answer = String(answer || '')
-                            .replace(/\n*---[\s\S]*$/g, '')
+                            .replace(/(^|\n)\s*---\s*\n(?=\s*(📊|📚|💡|Sources\s*:))[\s\S]*$/m, '')
                             .replace(/\n*📊.*?HI:.*?CHR:.*?\n*/gi, '')
                             .replace(/\n*📚.*?Sources:.*?\n*/gi, '')
                             .replace(/\n\s*Sources\s*:\s*[\s\S]*$/i, '')
@@ -33270,7 +33270,7 @@ ${recruitmentInfo}
                 
                 // Nettoyer les métriques HI/CHR et métadonnées
                 aiResponse = aiResponse
-                    .replace(/\n*---[\s\S]*$/g, '')  // Supprimer tout après ---
+                    .replace(/(^|\n)\s*---\s*\n(?=\s*(📊|📚|💡|Sources\s*:))[\s\S]*$/m, '')  // Supprimer tout après ---
                     .replace(/\n*📊.*?Métriques.*?\n.*?HI:.*?CHR:.*?\n*/gi, '')  // Supprimer métriques
                     .replace(/\n*📚.*?Sources:.*?\n*/gi, '')  // Supprimer sources
                     .replace(/\n*💡.*?Plan.*?tokens.*?\n*/gi, '')  // Supprimer infos tokens
@@ -33604,7 +33604,7 @@ Si aucun problème: réponds "Aucun problème détecté"`;
                 let analysis = data.response || data.message || 'Analyse impossible';
                 
                 // Nettoyer la réponse
-                analysis = analysis.replace(/\n*---[\s\S]*$/g, '').trim();
+                analysis = analysis.replace(/(^|\n)\s*---\s*\n(?=\s*(📊|📚|💡|Sources\s*:))[\s\S]*$/m, '').trim();
                 
                 // Afficher popup de prévisualisation
                 showCleanPreview(analysis);
@@ -33986,7 +33986,7 @@ Réponds UNIQUEMENT dans ce format JSON:
                 let aiResponse = data.response || data.message || '';
                 
                 // Nettoyer la réponse
-                aiResponse = aiResponse.replace(/\n*---[\s\S]*$/g, '').trim();
+                aiResponse = aiResponse.replace(/(^|\n)\s*---\s*\n(?=\s*(📊|📚|💡|Sources\s*:))[\s\S]*$/m, '').trim();
                 
                 // Parser le JSON de la réponse
                 let kpisConfig;
@@ -34282,7 +34282,7 @@ Réponds UNIQUEMENT dans ce format JSON:
                 
                 const data = await response.json();
                 let aiResponse = data.response || data.message || '';
-                aiResponse = aiResponse.replace(/\n*---[\s\S]*$/g, '').trim();
+                aiResponse = aiResponse.replace(/(^|\n)\s*---\s*\n(?=\s*(📊|📚|💡|Sources\s*:))[\s\S]*$/m, '').trim();
                 
                 // Parser le JSON de la réponse
                 let formulasConfig;
@@ -34601,7 +34601,7 @@ Réponds UNIQUEMENT dans ce format JSON:
                 
                 const data = await response.json();
                 let aiResponse = data.response || data.message || '';
-                aiResponse = aiResponse.replace(/\n*---[\s\S]*$/g, '').trim();
+                aiResponse = aiResponse.replace(/(^|\n)\s*---\s*\n(?=\s*(📊|📚|💡|Sources\s*:))[\s\S]*$/m, '').trim();
                 
                 // Parser le JSON de la réponse
                 let chartsConfig;
