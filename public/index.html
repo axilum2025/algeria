@@ -12228,9 +12228,15 @@ ${persona}
                 // Sur mobile, fermer le panneau chat pour ne pas gêner le drawer
                 if (shouldOpen) {
                     try {
+                        aiAssistantWasOpenBeforeSidebar = aiAssistantOpen;
                         hideAiAssistantPanel();
                         aiAssistantOpen = false;
                     } catch (_) {}
+                } else if (aiAssistantWasOpenBeforeSidebar) {
+                    // Rouvrir automatiquement le chat si l'utilisateur l'avait ouvert avant le drawer
+                    aiAssistantWasOpenBeforeSidebar = false;
+                    aiAssistantOpen = true;
+                    showAiAssistantPanel();
                 }
             };
 
@@ -12241,11 +12247,19 @@ ${persona}
                     sidebar.classList.remove('open');
                     backdrop.style.display = 'none';
                     document.body.classList.remove('todo-sidebar-open');
+                    aiAssistantWasOpenBeforeSidebar = false;
                 } else {
-                    // Mobile: fermé par défaut
-                    sidebar.classList.remove('open');
-                    backdrop.style.display = 'none';
-                    document.body.classList.remove('todo-sidebar-open');
+                    // Mobile: ne pas écraser l'état (un resize peut arriver pendant l'ouverture)
+                    const isOpen = sidebar.classList.contains('open');
+                    backdrop.style.display = isOpen ? 'block' : 'none';
+                    document.body.classList.toggle('todo-sidebar-open', isOpen);
+
+                    // Si un resize a fermé le drawer, restaurer le chat si nécessaire
+                    if (!isOpen && aiAssistantWasOpenBeforeSidebar) {
+                        aiAssistantWasOpenBeforeSidebar = false;
+                        aiAssistantOpen = true;
+                        showAiAssistantPanel();
+                    }
                 }
             };
 
@@ -12269,12 +12283,14 @@ ${persona}
             // Fermer le panneau Agent ToDo (sinon il reste sur le chat principal)
             aiAssistantOpen = false;
             aiAssistantMinimized = false;
+            aiAssistantWasOpenBeforeSidebar = false;
             hideAiAssistantPanel();
         }
 
         // Assistant IA Conversationnel
         let aiAssistantOpen = false;
         let aiAssistantMinimized = false;
+        let aiAssistantWasOpenBeforeSidebar = false;
 
         function getTodoUserId() {
             try {
