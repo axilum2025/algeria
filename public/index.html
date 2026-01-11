@@ -12954,6 +12954,15 @@ ${persona}
 
                 const coachEnabled = isTodoCoachEnabled(userId);
 
+                function tpl(template, values) {
+                    let out = String(template || '');
+                    if (!values) return out;
+                    Object.keys(values).forEach(k => {
+                        out = out.split(`{${k}}`).join(String(values[k]));
+                    });
+                    return out;
+                }
+
                 function buildTodoHistoryExcerpt(history, { maxMessages = 8, maxChars = 900 } = {}) {
                     const items = Array.isArray(history) ? history.slice(-maxMessages) : [];
                     const lines = items
@@ -13059,15 +13068,6 @@ ${persona}
                         ),
                         body: method === 'POST' ? JSON.stringify(Object.assign({ lang: requestLang }, body || {})) : undefined
                     });
-
-                    function tpl(template, values) {
-                        let out = String(template || '');
-                        if (!values) return out;
-                        Object.keys(values).forEach(k => {
-                            out = out.split(`{${k}}`).join(String(values[k]));
-                        });
-                        return out;
-                    }
 
                     if (!resp.ok) {
                         throw new Error(tpl(t('todo.smart.error.server'), { status: resp.status, statusText: resp.statusText }));
