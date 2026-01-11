@@ -1323,6 +1323,33 @@
             max-width: 320px;
         }
 
+        .toast.with-icon {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .toast .toast-icon {
+            width: 18px;
+            height: 18px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            flex: 0 0 auto;
+            opacity: 0.9;
+        }
+
+        .toast .toast-icon svg {
+            width: 18px;
+            height: 18px;
+            display: block;
+        }
+
+        .toast .toast-text {
+            flex: 1 1 auto;
+            min-width: 0;
+        }
+
         .toast.show {
             transform: translateY(0);
             opacity: 1;
@@ -10506,6 +10533,8 @@ ${persona}
                 'settings.dataExportDesc': 'Télécharger toutes vos conversations',
                 'settings.dataClearTitle': 'Effacer Données',
                 'settings.dataClearDesc': 'Supprimer toutes les conversations',
+                'settings.dataClearConfirm': '⚠️ Voulez-vous vraiment effacer toutes vos données ?\n\nCette action est irréversible et supprimera :\n- Toutes les conversations\n- Tous les messages\n- Toutes les statistiques\n\nExportez vos données avant si nécessaire.',
+                'settings.dataClearedToast': 'Toutes les données ont été effacées',
                 'settings.storageTitle': 'Mode de stockage',
                 'settings.storagePrefix': 'Choix actuel :',
                 'settings.storage.ask': 'Demander à chaque upload',
@@ -10911,6 +10940,8 @@ ${persona}
                 'settings.dataExportDesc': 'Download all your conversations',
                 'settings.dataClearTitle': 'Clear data',
                 'settings.dataClearDesc': 'Delete all conversations',
+                'settings.dataClearConfirm': '⚠️ Do you really want to clear all your data?\n\nThis action is irreversible and will delete:\n- All conversations\n- All messages\n- All statistics\n\nExport your data first if needed.',
+                'settings.dataClearedToast': 'All data has been cleared',
                 'settings.storageTitle': 'Storage mode',
                 'settings.storagePrefix': 'Current choice:',
                 'settings.storage.ask': 'Ask on each upload',
@@ -35979,7 +36010,11 @@ Réponds UNIQUEMENT dans ce format JSON:
         }
 
         function confirmClearData() {
-            if (confirm('⚠️ Voulez-vous vraiment effacer toutes vos données ?\n\nCette action est irréversible et supprimera :\n- Toutes les conversations\n- Tous les messages\n- Toutes les statistiques\n\nExportez vos données avant si nécessaire.')) {
+            const confirmMsg = (typeof t === 'function')
+                ? t('settings.dataClearConfirm')
+                : '⚠️ Voulez-vous vraiment effacer toutes vos données ?\n\nCette action est irréversible et supprimera :\n- Toutes les conversations\n- Tous les messages\n- Toutes les statistiques\n\nExportez vos données avant si nécessaire.';
+
+            if (confirm(confirmMsg)) {
                 conversations = [];
                 messageStats = { hiHistory: [], chrHistory: [] };
                 localStorage.removeItem('conversations');
@@ -35991,7 +36026,9 @@ Réponds UNIQUEMENT dans ce format JSON:
                 newConversation();
                 
                 closeSettingsModal();
-                showToast('🗑️ Toutes les données ont été effacées', 'success');
+                const trashSvg = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/></svg>`;
+                const toastMsg = (typeof t === 'function') ? t('settings.dataClearedToast') : 'Toutes les données ont été effacées';
+                showToast(toastMsg, 'success', { iconSvg: trashSvg });
             }
         }
 
@@ -37365,6 +37402,20 @@ Réponds UNIQUEMENT dans ce format JSON:
         if (document.readyState === 'loading') {
             document.addEventListener('DOMContentLoaded', initUnblockSystem);
         } else {
+            // DOM déjà chargé
+            initUnblockSystem();
+        }
+    </script>
+    
+    <!-- Forgot Password Functions -->
+    <script src="forgot-password-functions.js"></script>
+
+</body>
+</html>
+    <script src="forgot-password-functions.js"></script>
+
+</body>
+</html>
             // DOM déjà chargé
             initUnblockSystem();
         }
