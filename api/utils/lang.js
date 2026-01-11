@@ -270,6 +270,7 @@ function getConversationFocusInstruction(lang) {
   if (l === 'en') {
     return [
       'Conversation rule: stay on the user\'s intent and keep context.',
+      'If you end your message with a question, treat the user\'s next message as answering that question and continue accordingly.',
       'If the user message is short/low-signal (e.g., "good thanks", "nothing", "ok"), reply briefly and ask one simple follow-up question.',
       'If the user replies with a short "yes"/"no", treat it as answering your immediately previous question (not as a band, brand, or named entity). Continue the current topic.',
       'Do NOT invent unrelated facts, brands, places, restaurants, games, or news. If unsure, ask for clarification instead of guessing.'
@@ -278,6 +279,7 @@ function getConversationFocusInstruction(lang) {
   // Default FR
   return [
     "Règle conversation: reste sur l'intention de l'utilisateur et garde le contexte.",
+    'Si tu termines ton message par une question, interprète le message suivant de l\'utilisateur comme une réponse à cette question et continue en conséquence.',
     'Si le message utilisateur est court/faible signal (ex: "good thanks", "rien", "ok"), réponds brièvement et pose une seule question de relance simple.',
     'Si l\'utilisateur répond juste "oui"/"non" (ou "yes"/"no"), interprète ça comme une réponse à ta question précédente (pas comme un nom propre). Continue sur le même sujet.',
     'N\'invente PAS de faits/sujets hors contexte (marques, lieux, restaurants, jeux, actualités). Si tu n\'es pas sûr, demande une précision au lieu de deviner.'
@@ -304,6 +306,31 @@ function isNegation(text) {
   const s = normalizeShortReply(text);
   if (!s) return false;
   return /^(no|nope|nah|non)$/.test(s);
+}
+
+function extractYesNoFollowup(text) {
+  const raw = String(text || '').trim();
+  if (!raw) return null;
+
+  // Detect patterns like:
+  // - "Yes. What's next?"
+  // - "Oui, quels sont les prochains matchs ?"
+  // - "No - not that, tell me ..."
+  // Note: keep this conservative to avoid matching words like "yesterday".
+  const re = /^\s*(yes|yeah|yep|yup|sure|ok|okay|alright|oui|ouais|si|no|nope|nah|non)\b[\s\.,;:!?\-–—]+([\s\S]+)$/i;
+  const m = raw.match(re);
+  if (!m) return null;
+
+  const token = String(m[1] || '').toLowerCase();
+  const remainder = String(m[2] || '').trim();
+  if (!remainder) return null;
+
+  const yesTokens = new Set(['yes', 'yeah', 'yep', 'yup', 'sure', 'ok', 'okay', 'alright', 'oui', 'ouais', 'si']);
+  const noTokens = new Set(['no', 'nope', 'nah', 'non']);
+  const answer = yesTokens.has(token) ? 'yes' : (noTokens.has(token) ? 'no' : '');
+  if (!answer) return null;
+
+  return { answer, remainder };
 }
 
 function looksLikeQuestion(text) {
@@ -360,6 +387,28 @@ function getYesNoDisambiguationInstruction(lang) {
     return 'Disambiguation: a standalone "yes"/"no" is an answer to your previous question. Do not interpret it as a named entity (e.g., the band "Yes").';
   }
   return 'Désambiguïsation: un simple "oui"/"non" est une réponse à ta question précédente. Ne l\'interprète pas comme un nom propre (ex: le groupe "Yes").';
+}
+
+function getYesNoFollowupInstruction(lang, followup) {
+  const l = normalizeLang(lang);
+  const remainder = String(followup?.remainder || '').trim();
+  if (!remainder) return '';
+
+  if (l === 'en') {
+    return [
+      'The user started their message with a brief "yes"/"no" and then asked a specific follow-up request.',
+      'Treat the "yes"/"no" as answering your previous question, then answer the follow-up request directly within the current topic.',
+      `Follow-up request to answer now: ${remainder}`,
+      'Do not drift into generic advice. If you lack a key detail, ask ONE concise clarifying question while still giving a helpful, context-aware partial answer.'
+    ].join('\n');
+  }
+
+  return [
+    'L\'utilisateur commence par "oui/non" puis formule une demande précise.',
+    'Interprète "oui/non" comme une réponse à ta question précédente, puis répond directement à la demande de suivi en restant sur le sujet en cours.',
+    `Demande de suivi à traiter maintenant : ${remainder}`,
+    'Ne dérive pas vers des conseils génériques. S\'il manque un détail important, pose UNE seule question de clarification tout en donnant une réponse partielle utile.'
+  ].join('\n');
 }
 
 function getLangFromReq(req, { fallback = 'fr' } = {}) {
@@ -436,8 +485,10 @@ module.exports = {
   getConversationFocusInstruction,
   isAffirmation,
   isNegation,
+  extractYesNoFollowup,
   looksLikeQuestion,
   getYesNoDisambiguationInstruction
   ,looksLikeMoreInfoRequest
   ,getMoreInfoInstruction
+  ,getYesNoFollowupInstruction
 };

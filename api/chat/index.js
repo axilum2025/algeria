@@ -3,7 +3,7 @@ const { assertWithinBudget, recordUsage, BudgetExceededError } = require('../uti
 const { getAuthEmail } = require('../utils/auth');
 const { precheckCredit, debitAfterUsage } = require('../utils/aiCreditGuard');
 const { stripModelReasoning } = require('../utils/stripModelReasoning');
-const { normalizeLang, detectLangFromText, detectLangFromTextDetailed, getLangFromReq, getLanguageNameFr, getResponseLanguageInstruction, isLowSignalMessage, getConversationFocusInstruction, isAffirmation, isNegation, looksLikeQuestion, getYesNoDisambiguationInstruction, looksLikeMoreInfoRequest, getMoreInfoInstruction } = require('../utils/lang');
+const { normalizeLang, detectLangFromText, detectLangFromTextDetailed, getLangFromReq, getLanguageNameFr, getResponseLanguageInstruction, isLowSignalMessage, getConversationFocusInstruction, isAffirmation, isNegation, extractYesNoFollowup, looksLikeQuestion, getYesNoDisambiguationInstruction, looksLikeMoreInfoRequest, getMoreInfoInstruction, getYesNoFollowupInstruction } = require('../utils/lang');
 
 const DEFAULT_GROQ_MODEL = 'llama-3.3-70b-versatile';
 
@@ -243,6 +243,8 @@ module.exports = async function (context, req) {
     const shouldFocus = isLowSignalMessage(lastUserText);
     const isYesNo = isAffirmation(lastUserText) || isNegation(lastUserText);
     const disambiguateYesNo = isYesNo && looksLikeQuestion(lastAssistantMsg?.content || '');
+    const yesNoFollowup = extractYesNoFollowup(lastUserText);
+    const hasYesNoFollowup = !!(yesNoFollowup && looksLikeQuestion(lastAssistantMsg?.content || ''));
     const wantsMoreInfo = looksLikeMoreInfoRequest(lastUserText);
     const languageSystemMessage = shouldEnforceLanguage
       ? {
@@ -253,6 +255,7 @@ module.exports = async function (context, req) {
             'Règle: conserve cette langue tout au long de la conversation, sauf si l’utilisateur demande explicitement une traduction ou change volontairement de langue.',
             shouldFocus ? getConversationFocusInstruction(detectedLang) : '',
             disambiguateYesNo ? getYesNoDisambiguationInstruction(detectedLang) : '',
+            hasYesNoFollowup ? getYesNoFollowupInstruction(detectedLang, yesNoFollowup) : '',
             wantsMoreInfo ? getMoreInfoInstruction(detectedLang) : ''
           ].join('\n')
         }

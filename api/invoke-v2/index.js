@@ -15,7 +15,7 @@ const { getUserPlan, hasFeature, getPlanPriority } = require('../utils/entitleme
 const { checkAndConsume } = require('../utils/planQuota');
 const { appendAuditEvent } = require('../utils/auditStorage');
 const { precheckCredit, debitAfterUsage } = require('../utils/aiCreditGuard');
-const { getLangFromReq, getSearchLang, getResponseLanguageInstruction, getResponseLanguageShort, normalizeLang, detectLangFromText, detectLangFromTextDetailed, isLowSignalMessage, getConversationFocusInstruction, isAffirmation, isNegation, looksLikeQuestion, getYesNoDisambiguationInstruction, looksLikeMoreInfoRequest, getMoreInfoInstruction } = require('../utils/lang');
+const { getLangFromReq, getSearchLang, getResponseLanguageInstruction, getResponseLanguageShort, normalizeLang, detectLangFromText, detectLangFromTextDetailed, isLowSignalMessage, getConversationFocusInstruction, isAffirmation, isNegation, extractYesNoFollowup, looksLikeQuestion, getYesNoDisambiguationInstruction, looksLikeMoreInfoRequest, getMoreInfoInstruction, getYesNoFollowupInstruction } = require('../utils/lang');
 const { stripModelReasoning } = require('../utils/stripModelReasoning');
 
 const DEFAULT_GROQ_MODEL = 'llama-3.3-70b-versatile';
@@ -144,11 +144,13 @@ module.exports = async function (context, req) {
         const lastAssistantText = String(lastAssistantFromHistory?.content || '').trim();
         const isYesNo = isAffirmation(userQuery) || isNegation(userQuery);
         const yesNoLine = (isYesNo && looksLikeQuestion(lastAssistantText)) ? getYesNoDisambiguationInstruction(lang) : '';
+        const yesNoFollowup = extractYesNoFollowup(userQuery);
+        const yesNoFollowupLine = (yesNoFollowup && looksLikeQuestion(lastAssistantText)) ? getYesNoFollowupInstruction(lang, yesNoFollowup) : '';
         const moreInfoLine = looksLikeMoreInfoRequest(userQuery) ? getMoreInfoInstruction(lang) : '';
 
         const focusLine = isLowSignalMessage(userQuery)
-            ? [getConversationFocusInstruction(lang), yesNoLine, moreInfoLine].filter(Boolean).join('\n')
-            : [yesNoLine, moreInfoLine].filter(Boolean).join('\n');
+            ? [getConversationFocusInstruction(lang), yesNoLine, yesNoFollowupLine, moreInfoLine].filter(Boolean).join('\n')
+            : [yesNoLine, yesNoFollowupLine, moreInfoLine].filter(Boolean).join('\n');
         if (!userMessage) {
             context.res = { 
                 status: 400, 
