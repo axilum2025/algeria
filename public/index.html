@@ -3006,7 +3006,7 @@
                     <p class="welcome-subtitle" id="welcomeSubtitle">Votre assistant intelligent pour tous vos besoins professionnels</p>
                     
                     <div class="prompt-suggestions">
-                        <div class="prompt-card" onclick="useSuggestion(t('welcome.suggest.excelAnalysis'))">
+                        <div class="prompt-card" onclick="startExcelReportWorkflow()">
                             <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
                             </svg>
@@ -5535,6 +5535,83 @@ RÈGLES IMPORTANTES:
             // Optionnel: auto-envoi
             if (autoSend === true) {
                 try { sendMessage(); } catch (_) {}
+            }
+        }
+
+        // ===================================
+        // ✅ Workflow: Excel analysis -> upload -> auto report (Agent Xcel) -> back to Axilum
+        // ===================================
+        const pendingExcelReportByConversation = {};
+        const excelReportRestoreChatTypeByConversation = {};
+        const EXCEL_FILE_ACCEPT = '.xlsx,.xls,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel';
+
+        function startExcelReportWorkflow() {
+            try {
+                const convId = currentConversationId;
+                if (!convId) return;
+
+                // Masquer l'écran d'accueil (si visible)
+                const welcomeScreen = document.getElementById('welcomeScreen');
+                if (welcomeScreen) welcomeScreen.style.display = 'none';
+
+                pendingExcelReportByConversation[convId] = true;
+                excelReportRestoreChatTypeByConversation[convId] = (typeof currentChatType !== 'undefined' && currentChatType) ? currentChatType : 'axilum';
+
+                // Demande d'upload (réponse locale, pas d'appel IA)
+                try { addMessage(t('excelReport.uploadRequest'), 'bot'); } catch (_) {}
+
+                // Ouvrir le sélecteur de fichiers en forçant le filtre Excel
+                const fileInput = document.getElementById('fileInput');
+                if (fileInput) {
+                    try {
+                        if (fileInput.dataset && fileInput.dataset.prevAccept === undefined) {
+                            fileInput.dataset.prevAccept = fileInput.getAttribute('accept') || '';
+                        }
+                    } catch (_) {}
+                    try { fileInput.setAttribute('accept', EXCEL_FILE_ACCEPT); } catch (_) {}
+                    try { fileInput.click(); } catch (_) {}
+                }
+            } catch (_) {
+                // no-op
+            }
+        }
+
+        async function runExcelReportFromUploadedFile() {
+            const input = document.getElementById('userInput');
+            if (!input) return;
+
+            const convId = currentConversationId;
+            if (!convId) return;
+
+            // Préparer le prompt utilisateur (visible) + contexte Excel (invisible via buildAgentExcelContext)
+            input.value = t('excelReport.generatePrompt');
+            try { adjustTextareaHeight(); } catch (_) {}
+
+            try {
+                // Basculer temporairement sur l'agent Excel Expert
+                try { setChatType('excel-expert'); } catch (_) {}
+                await sendMessage();
+            } finally {
+                // Retour au chat Axilum normal (tel que demandé)
+                try { setChatType('axilum'); } catch (_) {}
+
+                // Rétablir l'accept du file input
+                try {
+                    const fileInput = document.getElementById('fileInput');
+                    if (fileInput && fileInput.dataset && typeof fileInput.dataset.prevAccept === 'string') {
+                        const prevAccept = fileInput.dataset.prevAccept;
+                        if (prevAccept) fileInput.setAttribute('accept', prevAccept);
+                        else fileInput.removeAttribute('accept');
+                        delete fileInput.dataset.prevAccept;
+                    }
+                } catch (_) {}
+
+                // Nettoyer le flag workflow
+                delete pendingExcelReportByConversation[convId];
+                delete excelReportRestoreChatTypeByConversation[convId];
+
+                // Notifier (toast uniquement)
+                try { showToast(t('excelReport.doneToast'), 'success'); } catch (_) {}
             }
         }
 
@@ -9010,8 +9087,39 @@ ${persona}
 
                         const sheet = wb.Sheets[firstSheetName];
                         const csv = window.XLSX.utils.sheet_to_csv(sheet);
-                        const preview = String(csv || '').trim().substring(0, 5000);
 
+                        // Extraire aussi en tableau (header:1) pour alimenter le contexte de l'agent Excel
+                        let jsonData = [];
+                        try {
+                            jsonData = window.XLSX.utils.sheet_to_json(sheet, { header: 1, defval: '' });
+                        } catch (_) {
+                            jsonData = [];
+                        }
+
+                        const convId = currentConversationId;
+                        const shouldAutoReport = !!(convId && pendingExcelReportByConversation && pendingExcelReportByConversation[convId]);
+
+                        if (shouldAutoReport) {
+                            // Alimenter le module Excel (contexte) sans ouvrir la page Excel Expert
+                            try {
+                                excelCurrentFile = file;
+                                if (Array.isArray(jsonData) && jsonData.length > 0) {
+                                    excelColumns = Array.isArray(jsonData[0]) ? jsonData[0].map(v => String(v ?? '')) : [];
+                                    excelSheetData = jsonData.slice(1).map(r => Array.isArray(r) ? r : []);
+                                } else {
+                                    excelColumns = [];
+                                    excelSheetData = [];
+                                }
+                            } catch (_) {
+                                // Si les variables Excel ne sont pas accessibles, on continue quand même.
+                            }
+
+                            showToast(t('excelReport.processingToast'), 'info');
+                            await runExcelReportFromUploadedFile();
+                            return;
+                        }
+
+                        const preview = String(csv || '').trim().substring(0, 5000);
                         input.value = `Contenu Excel ${file.name} — Feuille: ${firstSheetName} (aperçu CSV):\n\n${preview}${csv.length > 5000 ? '\n\n...' : ''}`;
                         showToast('✅ Excel chargé (aperçu prêt)', 'success');
                     } catch (e) {
@@ -9021,6 +9129,15 @@ ${persona}
                             input.value = `J'ai uploadé un fichier ${file.name}. Peux-tu l'analyser ?`;
                         }
                         showToast('❌ Échec lecture Excel/CSV', 'error');
+
+                        // Si on était dans le workflow auto-report, nettoyer l'état pour éviter de rester bloqué.
+                        try {
+                            const convId = currentConversationId;
+                            if (convId && pendingExcelReportByConversation && pendingExcelReportByConversation[convId]) {
+                                delete pendingExcelReportByConversation[convId];
+                                delete excelReportRestoreChatTypeByConversation[convId];
+                            }
+                        } catch (_) {}
                     }
                 } else {
                     showToast('❌ Type de fichier non supporté', 'error');
@@ -10217,6 +10334,11 @@ ${persona}
                 'welcome.suggest.vision': 'Analyse cette image et décris en détail ce que tu vois',
                 'welcome.suggest.tasks': 'Aide-moi à organiser mes tâches et crée un planning pour la semaine',
 
+                'excelReport.uploadRequest': '📎 Merci d\'uploader un fichier Excel (.xlsx/.xls) pour générer automatiquement un rapport détaillé.',
+                'excelReport.generatePrompt': 'Génère un rapport détaillé à partir du fichier Excel que je viens d\'uploader.\n\nStructure: 1) Résumé exécutif 2) KPIs clés 3) Tendances 4) Anomalies/valeurs manquantes 5) Recommandations.\n\nRéponds directement avec le rapport (sans demander d\'infos supplémentaires sauf si indispensable).',
+                'excelReport.processingToast': '📊 Excel reçu — génération du rapport…',
+                'excelReport.doneToast': '✅ Rapport généré — retour à Axilum AI',
+
                 'todo.title': 'AI Tasks',
                 'todo.aiAssistant': 'Agent ToDo',
                 'todo.aiAssistantTitle': 'Assistant IA',
@@ -10642,6 +10764,11 @@ ${persona}
                 'welcome.suggest.email': 'Write a professional email to [recipient] about [topic]',
                 'welcome.suggest.vision': 'Analyze this image and describe what you see in detail',
                 'welcome.suggest.tasks': 'Help me organize my tasks and create a plan for the week',
+
+                'excelReport.uploadRequest': '📎 Please upload an Excel file (.xlsx/.xls) to automatically generate a detailed report.',
+                'excelReport.generatePrompt': 'Generate a detailed report from the Excel file I just uploaded.\n\nStructure: 1) Executive summary 2) Key KPIs 3) Trends 4) Anomalies/missing values 5) Recommendations.\n\nAnswer directly with the report (only ask questions if strictly necessary).',
+                'excelReport.processingToast': '📊 Excel received — generating the report…',
+                'excelReport.doneToast': '✅ Report generated — back to Axilum AI',
 
                 'todo.title': 'AI Tasks',
                 'todo.aiAssistant': 'ToDo Agent',
