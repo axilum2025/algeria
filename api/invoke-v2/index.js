@@ -15,7 +15,7 @@ const { getUserPlan, hasFeature, getPlanPriority } = require('../utils/entitleme
 const { checkAndConsume } = require('../utils/planQuota');
 const { appendAuditEvent } = require('../utils/auditStorage');
 const { precheckCredit, debitAfterUsage } = require('../utils/aiCreditGuard');
-const { getLangFromReq, getSearchLang, getResponseLanguageInstruction, getResponseLanguageShort, normalizeLang, detectLangFromText, detectLangFromTextDetailed } = require('../utils/lang');
+const { getLangFromReq, getSearchLang, getResponseLanguageInstruction, getResponseLanguageShort, normalizeLang, detectLangFromText, detectLangFromTextDetailed, isLowSignalMessage, getConversationFocusInstruction } = require('../utils/lang');
 const { stripModelReasoning } = require('../utils/stripModelReasoning');
 
 const DEFAULT_GROQ_MODEL = 'llama-3.3-70b-versatile';
@@ -116,7 +116,15 @@ module.exports = async function (context, req) {
         const userQuery = extractUserQueryFromMessage(userMessage);
         const explicitLang = req.body?.lang || req.body?.language || req.body?.locale || req.query?.lang;
         const hintedLang = explicitLang ? normalizeLang(explicitLang) : getLangFromReq(req, { fallback: 'fr' });
-        const detected = detectLangFromTextDetailed(userQuery, { fallback: hintedLang });
+
+        const conversationHistoryForLang = req.body.history || [];
+        const firstUserFromHistory = Array.isArray(conversationHistoryForLang)
+            ? conversationHistoryForLang.find(m => m && (m.type === 'user' || m.role === 'user') && typeof m.content === 'string' && m.content.trim())
+            : null;
+        const firstText = String(firstUserFromHistory?.content || '').trim();
+        const baseText = firstText.length >= 6 ? firstText : userQuery;
+
+        const detected = detectLangFromTextDetailed(baseText, { fallback: hintedLang });
         const lang = (detected.confidence === 'high' && detected.lang && detected.lang !== hintedLang)
             ? detected.lang
             : (detected.lang || hintedLang);
@@ -129,6 +137,7 @@ module.exports = async function (context, req) {
         const langStructured = getResponseLanguageInstruction(lang, { tone: 'clair et structuré' });
         const langDirect = getResponseLanguageInstruction(lang, { tone: 'direct et actionnable' });
         const langCompact = getResponseLanguageInstruction(lang, { tone: 'clair et professionnel' });
+        const focusLine = isLowSignalMessage(userQuery) ? getConversationFocusInstruction(lang) : '';
         if (!userMessage) {
             context.res = { 
                 status: 400, 
@@ -500,7 +509,7 @@ Seulement si l'utilisateur demande explicitement de modifier, ajouter, calculer 
 
 Si l'utilisateur a chargé des données Excel, utilise-les pour donner des conseils personnalisés.
 
-${OUTPUT_FORMAT_RULES_BULLET}`;
+${focusLine ? `\n${focusLine}\n` : ''}${OUTPUT_FORMAT_RULES_BULLET}`;
                         } else if (chatType === 'agent-dev') {
                                 systemPrompt = `Tu es Agent Dev, un assistant spécialisé en développement logiciel.
 
@@ -512,7 +521,7 @@ Règles:
 - Ne mentionne pas d'autres agents, modules ou outils de l'application sauf si l'utilisateur le demande explicitement.
 - Si l'utilisateur colle un "🔎 Rapport Hallucination Detector" ou "🔎 Hallucination Detector Report", reconnais-le et explique-le.
 
-${langPro}${OUTPUT_FORMAT_RULES_BULLET}`;
+${langPro}\n${focusLine ? focusLine + '\n' : ''}${OUTPUT_FORMAT_RULES_BULLET}`;
             } else if (chatType === 'hr-management') {
                 systemPrompt = `Tu es Agent RH, un assistant RH.
 
@@ -522,7 +531,7 @@ Règles:
 - Si des données RH internes ne sont pas fournies, demande les infos nécessaires.
 - Ne mentionne pas d'autres agents, modules ou outils de l'application sauf si l'utilisateur le demande explicitement.
 
-${langActionable}${OUTPUT_FORMAT_RULES_BULLET}`;
+${langActionable}\n${focusLine ? focusLine + '\n' : ''}${OUTPUT_FORMAT_RULES_BULLET}`;
             } else if (chatType === 'marketing-agent') {
                 systemPrompt = `Tu es Agent Marketing.
 
@@ -532,7 +541,7 @@ Règles:
 - Propose des plans concrets (étapes, livrables, KPI) adaptés à un SaaS.
 - Ne mentionne pas d'autres agents, modules ou outils de l'application sauf si l'utilisateur le demande explicitement.
 
-${langResults}${OUTPUT_FORMAT_RULES_BULLET}`;
+${langResults}\n${focusLine ? focusLine + '\n' : ''}${OUTPUT_FORMAT_RULES_BULLET}`;
             } else if (chatType === 'web-search' || chatType === 'rnd-web-search') {
                 systemPrompt = /\[S\d+\]/.test(String(contextFromSearch || ''))
                     ? buildSystemPromptForAgent('web-search', contextFromSearch, { lang })
@@ -547,7 +556,7 @@ Règles:
 - Ne prétends pas exécuter des actions automatiquement.
 - Ne mentionne pas d'autres agents, modules ou outils de l'application sauf si l'utilisateur le demande explicitement.
 
-${langConcrete}${OUTPUT_FORMAT_RULES_BULLET}`;
+${langConcrete}\n${focusLine ? focusLine + '\n' : ''}${OUTPUT_FORMAT_RULES_BULLET}`;
             } else if (chatType === 'agent-alex') {
                 systemPrompt = `Tu es Agent Alex (assistant stratégie/produit SaaS).
 
@@ -555,7 +564,7 @@ Règles:
 - Propose options + avantages/inconvénients + next step.
 - Ne mentionne pas d'autres agents, modules ou outils de l'application sauf si l'utilisateur le demande explicitement.
 
-${langStructured}${OUTPUT_FORMAT_RULES_BULLET}`;
+${langStructured}\n${focusLine ? focusLine + '\n' : ''}${OUTPUT_FORMAT_RULES_BULLET}`;
             } else if (chatType === 'agent-tony') {
                 systemPrompt = `Tu es Agent Tony (assistant vente/ops SaaS).
 
@@ -563,9 +572,11 @@ Règles:
 - Propose scripts, templates et KPI.
 - Ne mentionne pas d'autres agents, modules ou outils de l'application sauf si l'utilisateur le demande explicitement.
 
-${langDirect}${OUTPUT_FORMAT_RULES_BULLET}`;
+${langDirect}\n${focusLine ? focusLine + '\n' : ''}${OUTPUT_FORMAT_RULES_BULLET}`;
             } else {
-                systemPrompt = buildCompactSystemPrompt(neededFunctions, { lang }) + contextFromSearch;
+                systemPrompt = buildCompactSystemPrompt(neededFunctions, { lang })
+                    + (focusLine ? `\n${focusLine}\n` : '')
+                    + contextFromSearch;
             }
 
             const messages = [

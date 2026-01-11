@@ -3,7 +3,7 @@ const { assertWithinBudget, recordUsage, BudgetExceededError } = require('../uti
 const { getAuthEmail } = require('../utils/auth');
 const { precheckCredit, debitAfterUsage } = require('../utils/aiCreditGuard');
 const { stripModelReasoning } = require('../utils/stripModelReasoning');
-const { normalizeLang, detectLangFromText, detectLangFromTextDetailed, getLangFromReq, getLanguageNameFr, getResponseLanguageInstruction } = require('../utils/lang');
+const { normalizeLang, detectLangFromText, detectLangFromTextDetailed, getLangFromReq, getLanguageNameFr, getResponseLanguageInstruction, isLowSignalMessage, getConversationFocusInstruction } = require('../utils/lang');
 
 const DEFAULT_GROQ_MODEL = 'llama-3.3-70b-versatile';
 
@@ -236,13 +236,16 @@ module.exports = async function (context, req) {
       : (detected.lang || hintedLang);
 
     const shouldEnforceLanguage = !looksLikeTranslationFlow(messages);
+    const lastUserMsg = [...messages].reverse().find(m => m && m.role === 'user' && typeof m.content === 'string' && m.content.trim());
+    const shouldFocus = isLowSignalMessage(lastUserMsg?.content || '');
     const languageSystemMessage = shouldEnforceLanguage
       ? {
           role: 'system',
           content: [
             `Langue utilisateur détectée: ${getLanguageNameFr(detectedLang)} (${detectedLang}).`,
             getResponseLanguageInstruction(detectedLang, { tone: 'même si le reste du contexte est dans une autre langue' }),
-            'Règle: conserve cette langue tout au long de la conversation, sauf si l’utilisateur demande explicitement une traduction ou change volontairement de langue.'
+            'Règle: conserve cette langue tout au long de la conversation, sauf si l’utilisateur demande explicitement une traduction ou change volontairement de langue.',
+            shouldFocus ? getConversationFocusInstruction(detectedLang) : ''
           ].join('\n')
         }
       : null;

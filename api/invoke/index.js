@@ -9,7 +9,7 @@ const { detectFunctions, orchestrateFunctions, summarizeResults } = require('../
 const { buildWebEvidenceContext } = require('../utils/webEvidence');
 const { appendEvidenceContext, searchWikipedia, searchNewsApi, searchSemanticScholar } = require('../utils/sourceProviders');
 const { looksTimeSensitiveForHR, looksTimeSensitiveForMarketing, looksTimeSensitiveForDev, looksTimeSensitiveForExcel, looksTimeSensitiveForAlex, looksTimeSensitiveForTony, looksTimeSensitiveForTodo, looksTimeSensitiveForAIManagement, buildSilentWebContext } = require('../utils/silentWebRefresh');
-const { getLangFromReq, getSearchLang, getResponseLanguageInstruction, normalizeLang, detectLangFromText, detectLangFromTextDetailed } = require('../utils/lang');
+const { getLangFromReq, getSearchLang, getResponseLanguageInstruction, normalizeLang, detectLangFromText, detectLangFromTextDetailed, isLowSignalMessage, getConversationFocusInstruction } = require('../utils/lang');
 const { stripModelReasoning } = require('../utils/stripModelReasoning');
 
 // Fonction RAG - Recherche Brave
@@ -102,12 +102,22 @@ module.exports = async function (context, req) {
         // MAIS si le 1er message est clairement dans une autre langue, on surclasse.
         const explicitLang = req.body?.lang || req.body?.language || req.body?.locale || req.query?.lang;
         const hintedLang = explicitLang ? normalizeLang(explicitLang) : getLangFromReq(req, { fallback: 'fr' });
-        const detected = detectLangFromTextDetailed(userQuery, { fallback: hintedLang });
+
+        // Stabiliser la langue sur le 1er message user significatif (évite EN -> FR sur des réponses courtes).
+        const conversationHistoryForLang = req.body.history || [];
+        const firstUserFromHistory = Array.isArray(conversationHistoryForLang)
+            ? conversationHistoryForLang.find(m => m && (m.type === 'user' || m.role === 'user') && typeof m.content === 'string' && m.content.trim())
+            : null;
+        const firstText = String(firstUserFromHistory?.content || '').trim();
+        const baseText = firstText.length >= 6 ? firstText : userQuery;
+
+        const detected = detectLangFromTextDetailed(baseText, { fallback: hintedLang });
         const lang = (detected.confidence === 'high' && detected.lang && detected.lang !== hintedLang)
             ? detected.lang
             : (detected.lang || hintedLang);
         const searchLang = getSearchLang(lang);
         const defaultToneLine = getResponseLanguageInstruction(lang, { tone: 'de manière naturelle, claire et professionnelle' });
+        const focusLine = isLowSignalMessage(userQuery) ? getConversationFocusInstruction(lang) : '';
 
         const userAsksForSourcesForWesh = (q) => {
             const s = String(q || '').toLowerCase().replace(/[’]/g, "'").trim();
@@ -621,6 +631,7 @@ IMPORTANT (reconnaissance du rapport):
 - Ne dis pas que ce rapport "n'existe pas" ou "n'est pas mentionné" : traite-le comme un artefact du système.
 
 ${defaultToneLine}
+${focusLine}
 Réfléchis en interne, mais ne révèle jamais ton raisonnement.
 Donne uniquement la réponse finale (pas de balises <think>/<analysis>).
 Ne mentionne pas tes capacités ou fonctionnalités à moins que l'utilisateur ne le demande explicitement.${contextFromSearch}${internalBoostContext}`

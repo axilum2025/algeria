@@ -11,7 +11,7 @@ const { buildWebEvidenceContext } = require('../utils/webEvidence');
 const { appendEvidenceContext, searchWikipedia, searchNewsApi, searchSemanticScholar } = require('../utils/sourceProviders');
 const { shouldUseInternalBoost, buildAxilumInternalBoostContext } = require('../utils/axilumInternalBoost');
 const { looksTimeSensitiveForHR, looksTimeSensitiveForMarketing, looksTimeSensitiveForDev, looksTimeSensitiveForExcel, looksTimeSensitiveForAlex, looksTimeSensitiveForTony, looksTimeSensitiveForTodo, looksTimeSensitiveForAIManagement, buildSilentWebContext } = require('../utils/silentWebRefresh');
-const { getLangFromReq, getSearchLang, normalizeLang, detectLangFromText, detectLangFromTextDetailed } = require('../utils/lang');
+const { getLangFromReq, getSearchLang, normalizeLang, detectLangFromText, detectLangFromTextDetailed, isLowSignalMessage, getConversationFocusInstruction } = require('../utils/lang');
 
 // Fonction RAG - Recherche Brave
 async function searchBrave(query, apiKey) {
@@ -97,11 +97,20 @@ module.exports = async function (context, req) {
         const requestedModel = req.body?.model || req.body?.aiModel || null;
         const explicitLang = req.body?.lang || req.body?.language || req.body?.locale || req.query?.lang;
         const hintedLang = explicitLang ? normalizeLang(explicitLang) : getLangFromReq(req, { fallback: 'fr' });
-        const detected = detectLangFromTextDetailed(userQuery, { fallback: hintedLang });
+
+        const conversationHistoryForLang = req.body.history || [];
+        const firstUserFromHistory = Array.isArray(conversationHistoryForLang)
+            ? conversationHistoryForLang.find(m => m && (m.type === 'user' || m.role === 'user') && typeof m.content === 'string' && m.content.trim())
+            : null;
+        const firstText = String(firstUserFromHistory?.content || '').trim();
+        const baseText = firstText.length >= 6 ? firstText : userQuery;
+
+        const detected = detectLangFromTextDetailed(baseText, { fallback: hintedLang });
         const lang = (detected.confidence === 'high' && detected.lang && detected.lang !== hintedLang)
             ? detected.lang
             : (detected.lang || hintedLang);
         const searchLang = getSearchLang(lang);
+        const focusLine = isLowSignalMessage(userQuery) ? getConversationFocusInstruction(lang) : '';
 
         const userAsksForSourcesForWesh = (q) => {
             const s = String(q || '').toLowerCase().replace(/[’]/g, "'").trim();
@@ -176,6 +185,8 @@ module.exports = async function (context, req) {
                     : `Votre question : "${userQuery}"\n\nJe suis actuellement en mode configuration limitée. Pour profiter pleinement du mode gratuit, veuillez configurer GROQ_API_KEY dans Azure.\n\nEn attendant, essayez le mode PRO pour une expérience complète !`;
             }
             
+            if (focusLine) fallbackResponse = `${fallbackResponse}\n\n${focusLine}`;
+
             context.res = {
                 status: 200,
                 headers: { 

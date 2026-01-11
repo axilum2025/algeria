@@ -240,6 +240,48 @@ function parseAcceptLanguage(headerValue) {
   return first.split(';')[0].trim();
 }
 
+function isLowSignalMessage(text) {
+  const raw = String(text || '').trim();
+  if (!raw) return true;
+
+  const s = raw
+    .toLowerCase()
+    .replace(/[’]/g, "'")
+    .replace(/[^\p{L}\p{N}\s'_-]+/gu, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  if (!s) return true;
+
+  const words = s.split(' ').filter(Boolean);
+  if (raw.length <= 10) return true;
+  if (words.length <= 3) return true;
+
+  // Common acknowledgements / small talk
+  if (/^(ok|okay|okey|yes|yeah|yep|no|nope|merci|thanks|thank you|thx)$/.test(s)) return true;
+  if (/^(good\s*thanks|good\s*thank\s*you|fine\s*thanks|im\s*good|i\s*am\s*good|not\s*much|nothing|no\s*thing|nothin(g)?|rien|pas\s*grand\s*chose|ça\s*va|ca\s*va)$/.test(s)) return true;
+  if (/^(how\s*are\s*you|hru|what\s*about\s*you|and\s*you)$/.test(s)) return true;
+
+  return false;
+}
+
+function getConversationFocusInstruction(lang) {
+  const l = normalizeLang(lang);
+  if (l === 'en') {
+    return [
+      'Conversation rule: stay on the user\'s intent and keep context.',
+      'If the user message is short/low-signal (e.g., "good thanks", "nothing", "ok"), reply briefly and ask one simple follow-up question.',
+      'Do NOT invent unrelated facts, brands, places, restaurants, games, or news. If unsure, ask for clarification instead of guessing.'
+    ].join('\n');
+  }
+  // Default FR
+  return [
+    "Règle conversation: reste sur l'intention de l'utilisateur et garde le contexte.",
+    'Si le message utilisateur est court/faible signal (ex: "good thanks", "rien", "ok"), réponds brièvement et pose une seule question de relance simple.',
+    'N\'invente PAS de faits/sujets hors contexte (marques, lieux, restaurants, jeux, actualités). Si tu n\'es pas sûr, demande une précision au lieu de deviner.'
+  ].join('\n');
+}
+
 function getLangFromReq(req, { fallback = 'fr' } = {}) {
   const body = req?.body || {};
   const query = req?.query || {};
@@ -309,5 +351,7 @@ module.exports = {
   getSearchLang,
   getLocaleFromLang,
   getResponseLanguageShort,
-  getResponseLanguageInstruction
+  getResponseLanguageInstruction,
+  isLowSignalMessage,
+  getConversationFocusInstruction
 };
