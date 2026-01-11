@@ -11,7 +11,7 @@ const { buildWebEvidenceContext } = require('../utils/webEvidence');
 const { appendEvidenceContext, searchWikipedia, searchNewsApi, searchSemanticScholar } = require('../utils/sourceProviders');
 const { shouldUseInternalBoost, buildAxilumInternalBoostContext } = require('../utils/axilumInternalBoost');
 const { looksTimeSensitiveForHR, looksTimeSensitiveForMarketing, looksTimeSensitiveForDev, looksTimeSensitiveForExcel, looksTimeSensitiveForAlex, looksTimeSensitiveForTony, looksTimeSensitiveForTodo, looksTimeSensitiveForAIManagement, buildSilentWebContext } = require('../utils/silentWebRefresh');
-const { getLangFromReq, getSearchLang, normalizeLang, detectLangFromText, detectLangFromTextDetailed, isLowSignalMessage, getConversationFocusInstruction } = require('../utils/lang');
+const { getLangFromReq, getSearchLang, normalizeLang, detectLangFromText, detectLangFromTextDetailed, isLowSignalMessage, getConversationFocusInstruction, isAffirmation, isNegation, looksLikeQuestion, getYesNoDisambiguationInstruction } = require('../utils/lang');
 
 // Fonction RAG - Recherche Brave
 async function searchBrave(query, apiKey) {
@@ -110,7 +110,17 @@ module.exports = async function (context, req) {
             ? detected.lang
             : (detected.lang || hintedLang);
         const searchLang = getSearchLang(lang);
-        const focusLine = isLowSignalMessage(userQuery) ? getConversationFocusInstruction(lang) : '';
+        const conversationHistoryForYesNo = req.body.history || [];
+        const lastAssistantFromHistory = Array.isArray(conversationHistoryForYesNo)
+            ? [...conversationHistoryForYesNo].reverse().find(m => m && (m.type === 'bot' || m.role === 'assistant') && typeof m.content === 'string' && m.content.trim())
+            : null;
+        const lastAssistantText = String(lastAssistantFromHistory?.content || '').trim();
+        const isYesNo = isAffirmation(userQuery) || isNegation(userQuery);
+        const yesNoLine = (isYesNo && looksLikeQuestion(lastAssistantText)) ? getYesNoDisambiguationInstruction(lang) : '';
+
+        const focusLine = isLowSignalMessage(userQuery)
+            ? [getConversationFocusInstruction(lang), yesNoLine].filter(Boolean).join('\n')
+            : yesNoLine;
 
         const userAsksForSourcesForWesh = (q) => {
             const s = String(q || '').toLowerCase().replace(/[’]/g, "'").trim();

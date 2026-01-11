@@ -15,7 +15,7 @@ const { getUserPlan, hasFeature, getPlanPriority } = require('../utils/entitleme
 const { checkAndConsume } = require('../utils/planQuota');
 const { appendAuditEvent } = require('../utils/auditStorage');
 const { precheckCredit, debitAfterUsage } = require('../utils/aiCreditGuard');
-const { getLangFromReq, getSearchLang, getResponseLanguageInstruction, getResponseLanguageShort, normalizeLang, detectLangFromText, detectLangFromTextDetailed, isLowSignalMessage, getConversationFocusInstruction } = require('../utils/lang');
+const { getLangFromReq, getSearchLang, getResponseLanguageInstruction, getResponseLanguageShort, normalizeLang, detectLangFromText, detectLangFromTextDetailed, isLowSignalMessage, getConversationFocusInstruction, isAffirmation, isNegation, looksLikeQuestion, getYesNoDisambiguationInstruction } = require('../utils/lang');
 const { stripModelReasoning } = require('../utils/stripModelReasoning');
 
 const DEFAULT_GROQ_MODEL = 'llama-3.3-70b-versatile';
@@ -137,7 +137,17 @@ module.exports = async function (context, req) {
         const langStructured = getResponseLanguageInstruction(lang, { tone: 'clair et structuré' });
         const langDirect = getResponseLanguageInstruction(lang, { tone: 'direct et actionnable' });
         const langCompact = getResponseLanguageInstruction(lang, { tone: 'clair et professionnel' });
-        const focusLine = isLowSignalMessage(userQuery) ? getConversationFocusInstruction(lang) : '';
+        const conversationHistoryForYesNo = req.body.history || [];
+        const lastAssistantFromHistory = Array.isArray(conversationHistoryForYesNo)
+            ? [...conversationHistoryForYesNo].reverse().find(m => m && (m.type === 'bot' || m.role === 'assistant') && typeof m.content === 'string' && m.content.trim())
+            : null;
+        const lastAssistantText = String(lastAssistantFromHistory?.content || '').trim();
+        const isYesNo = isAffirmation(userQuery) || isNegation(userQuery);
+        const yesNoLine = (isYesNo && looksLikeQuestion(lastAssistantText)) ? getYesNoDisambiguationInstruction(lang) : '';
+
+        const focusLine = isLowSignalMessage(userQuery)
+            ? [getConversationFocusInstruction(lang), yesNoLine].filter(Boolean).join('\n')
+            : yesNoLine;
         if (!userMessage) {
             context.res = { 
                 status: 400, 

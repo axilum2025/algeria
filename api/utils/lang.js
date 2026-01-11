@@ -271,6 +271,7 @@ function getConversationFocusInstruction(lang) {
     return [
       'Conversation rule: stay on the user\'s intent and keep context.',
       'If the user message is short/low-signal (e.g., "good thanks", "nothing", "ok"), reply briefly and ask one simple follow-up question.',
+      'If the user replies with a short "yes"/"no", treat it as answering your immediately previous question (not as a band, brand, or named entity). Continue the current topic.',
       'Do NOT invent unrelated facts, brands, places, restaurants, games, or news. If unsure, ask for clarification instead of guessing.'
     ].join('\n');
   }
@@ -278,8 +279,50 @@ function getConversationFocusInstruction(lang) {
   return [
     "Règle conversation: reste sur l'intention de l'utilisateur et garde le contexte.",
     'Si le message utilisateur est court/faible signal (ex: "good thanks", "rien", "ok"), réponds brièvement et pose une seule question de relance simple.',
+    'Si l\'utilisateur répond juste "oui"/"non" (ou "yes"/"no"), interprète ça comme une réponse à ta question précédente (pas comme un nom propre). Continue sur le même sujet.',
     'N\'invente PAS de faits/sujets hors contexte (marques, lieux, restaurants, jeux, actualités). Si tu n\'es pas sûr, demande une précision au lieu de deviner.'
   ].join('\n');
+}
+
+function normalizeShortReply(text) {
+  return String(text || '')
+    .trim()
+    .toLowerCase()
+    .replace(/[’]/g, "'")
+    .replace(/[^\p{L}\p{N}\s'_-]+/gu, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+function isAffirmation(text) {
+  const s = normalizeShortReply(text);
+  if (!s) return false;
+  return /^(yes|yeah|yep|yup|sure|ok|okay|alright|oui|ouais|si)$/.test(s);
+}
+
+function isNegation(text) {
+  const s = normalizeShortReply(text);
+  if (!s) return false;
+  return /^(no|nope|nah|non)$/.test(s);
+}
+
+function looksLikeQuestion(text) {
+  const raw = String(text || '').trim();
+  if (!raw) return false;
+  if (/\?\s*$/.test(raw)) return true;
+  const s = raw.toLowerCase();
+  return (
+    /\b(would you like|do you want|are you|can you|could you|should we|shall we)\b/.test(s)
+    || /\b(est-ce que|veux-tu|voulez-vous|souhaites-tu|peux-tu|pouvez-vous)\b/.test(s)
+  );
+}
+
+function getYesNoDisambiguationInstruction(lang) {
+  const l = normalizeLang(lang);
+  if (l === 'en') {
+    return 'Disambiguation: a standalone "yes"/"no" is an answer to your previous question. Do not interpret it as a named entity (e.g., the band "Yes").';
+  }
+  return 'Désambiguïsation: un simple "oui"/"non" est une réponse à ta question précédente. Ne l\'interprète pas comme un nom propre (ex: le groupe "Yes").';
 }
 
 function getLangFromReq(req, { fallback = 'fr' } = {}) {
@@ -353,5 +396,9 @@ module.exports = {
   getResponseLanguageShort,
   getResponseLanguageInstruction,
   isLowSignalMessage,
-  getConversationFocusInstruction
+  getConversationFocusInstruction,
+  isAffirmation,
+  isNegation,
+  looksLikeQuestion,
+  getYesNoDisambiguationInstruction
 };
