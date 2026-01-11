@@ -3003,36 +3003,36 @@
                         </svg>
                     </div>
                     <h1 class="welcome-title">Axilum AI</h1>
-                    <p class="welcome-subtitle">Votre assistant intelligent pour tous vos besoins professionnels</p>
+                    <p class="welcome-subtitle" id="welcomeSubtitle">Votre assistant intelligent pour tous vos besoins professionnels</p>
                     
                     <div class="prompt-suggestions">
-                        <div class="prompt-card" onclick="useSuggestion('Analyse ce fichier Excel et génère un rapport détaillé')">
+                        <div class="prompt-card" onclick="useSuggestion(t('welcome.suggest.excelAnalysis'))">
                             <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
                             </svg>
                             <div class="prompt-text">
-                                <h3>Analyse Excel</h3>
-                                <p>Génère un rapport détaillé</p>
+                                <h3 id="welcomeExcelTitle">Analyse Excel</h3>
+                                <p id="welcomeExcelDesc">Génère un rapport détaillé</p>
                             </div>
                         </div>
                         
-                        <div class="prompt-card" onclick="useSuggestion('Crée un rapport financier pour ce mois avec analyse des dépenses et revenus', 'alex', true)">
+                        <div class="prompt-card" onclick="useSuggestion(t('welcome.suggest.financeReport'), 'alex', true)">
                             <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
                             </svg>
                             <div class="prompt-text">
-                                <h3>Rapport financier</h3>
-                                <p>Analyse dépenses et revenus</p>
+                                <h3 id="welcomeFinanceTitle">Rapport financier</h3>
+                                <p id="welcomeFinanceDesc">Analyse dépenses et revenus</p>
                             </div>
                         </div>
                         
-                        <div class="prompt-card" onclick="useSuggestion('Recherche des informations détaillées sur [sujet] et résume les points clés')">
+                        <div class="prompt-card" onclick="useSuggestion(t('welcome.suggest.webSearch'))">
                             <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
                             </svg>
                             <div class="prompt-text">
-                                <h3>Recherche web</h3>
-                                <p>Trouve et résume des infos</p>
+                                <h3 id="welcomeWebTitle">Recherche web</h3>
+                                <p id="welcomeWebDesc">Trouve et résume des infos</p>
                             </div>
                         </div>
 
@@ -3041,22 +3041,22 @@
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v14m-7-7h14"/>
                             </svg>
                             <div class="prompt-text">
-                                <h3>Plus</h3>
-                                <p>Afficher plus de suggestions</p>
+                                <h3 id="welcomeMoreTitle">Plus</h3>
+                                <p id="welcomeMoreDesc">Afficher plus de suggestions</p>
                             </div>
                         </div>
                         
-                        <div class="prompt-card prompt-card--hidden welcome-prompt--extra" onclick="useSuggestion('Rédige un email professionnel pour [destinataire] concernant [sujet]')">
+                        <div class="prompt-card prompt-card--hidden welcome-prompt--extra" onclick="useSuggestion(t('welcome.suggest.email'))">
                             <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
                             </svg>
                             <div class="prompt-text">
-                                <h3>Rédaction email</h3>
-                                <p>Email professionnel</p>
+                                <h3 id="welcomeEmailTitle">Rédaction email</h3>
+                                <p id="welcomeEmailDesc">Email professionnel</p>
                             </div>
                         </div>
                         
-                        <div class="prompt-card prompt-card--hidden welcome-prompt--extra" onclick="useSuggestion('Analyse cette image et décris en détail ce que tu vois')">
+                        <div class="prompt-card prompt-card--hidden welcome-prompt--extra" onclick="useSuggestion(t('welcome.suggest.vision'))">
                             <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
                             </svg>
@@ -3066,7 +3066,7 @@
                             </div>
                         </div>
                         
-                        <div class="prompt-card prompt-card--hidden welcome-prompt--extra" onclick="useSuggestion('Aide-moi à organiser mes tâches et crée un planning pour la semaine')">
+                        <div class="prompt-card prompt-card--hidden welcome-prompt--extra" onclick="useSuggestion(t('welcome.suggest.tasks'))">
                             <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/>
                             </svg>
@@ -10193,10 +10193,29 @@ ${persona}
                 'ui.attachFileTitle': 'Joindre un fichier',
                 'ui.voiceInputTitle': 'Saisie vocale',
                 'ui.chooseAgentTitle': 'Choisir un agent',
+                'welcome.subtitle': 'Votre assistant intelligent pour tous vos besoins professionnels',
                 'welcome.visionTitle': 'Vision AI',
                 'welcome.visionDesc': "Analyse d'images",
                 'welcome.tasksTitle': 'Gestion tâches',
                 'welcome.tasksDesc': 'Organisation et planning',
+
+                'welcome.excelTitle': 'Analyse Excel',
+                'welcome.excelDesc': 'Génère un rapport détaillé',
+                'welcome.financeTitle': 'Rapport financier',
+                'welcome.financeDesc': 'Analyse dépenses et revenus',
+                'welcome.webTitle': 'Recherche web',
+                'welcome.webDesc': 'Trouve et résume des infos',
+                'welcome.moreTitle': 'Plus',
+                'welcome.moreDesc': 'Afficher plus de suggestions',
+                'welcome.emailTitle': 'Rédaction email',
+                'welcome.emailDesc': 'Email professionnel',
+
+                'welcome.suggest.excelAnalysis': 'Analyse ce fichier Excel et génère un rapport détaillé',
+                'welcome.suggest.financeReport': 'Crée un rapport financier pour ce mois avec analyse des dépenses et revenus',
+                'welcome.suggest.webSearch': 'Recherche des informations détaillées sur [sujet] et résume les points clés',
+                'welcome.suggest.email': 'Rédige un email professionnel pour [destinataire] concernant [sujet]',
+                'welcome.suggest.vision': 'Analyse cette image et décris en détail ce que tu vois',
+                'welcome.suggest.tasks': 'Aide-moi à organiser mes tâches et crée un planning pour la semaine',
 
                 'todo.title': 'AI Tasks',
                 'todo.aiAssistant': 'Agent ToDo',
@@ -10600,10 +10619,29 @@ ${persona}
                 'ui.attachFileTitle': 'Attach a file',
                 'ui.voiceInputTitle': 'Voice input',
                 'ui.chooseAgentTitle': 'Choose an agent',
+                'welcome.subtitle': 'Your smart assistant for all your professional needs',
                 'welcome.visionTitle': 'Vision AI',
                 'welcome.visionDesc': 'Image analysis',
                 'welcome.tasksTitle': 'Task management',
                 'welcome.tasksDesc': 'Organization and planning',
+
+                'welcome.excelTitle': 'Excel analysis',
+                'welcome.excelDesc': 'Generate a detailed report',
+                'welcome.financeTitle': 'Financial report',
+                'welcome.financeDesc': 'Analyze expenses and income',
+                'welcome.webTitle': 'Web search',
+                'welcome.webDesc': 'Find and summarize information',
+                'welcome.moreTitle': 'More',
+                'welcome.moreDesc': 'Show more suggestions',
+                'welcome.emailTitle': 'Email writing',
+                'welcome.emailDesc': 'Professional email',
+
+                'welcome.suggest.excelAnalysis': 'Analyze this Excel file and generate a detailed report',
+                'welcome.suggest.financeReport': 'Create a financial report for this month with an analysis of expenses and income',
+                'welcome.suggest.webSearch': 'Research detailed information about [topic] and summarize the key points',
+                'welcome.suggest.email': 'Write a professional email to [recipient] about [topic]',
+                'welcome.suggest.vision': 'Analyze this image and describe what you see in detail',
+                'welcome.suggest.tasks': 'Help me organize my tasks and create a plan for the week',
 
                 'todo.title': 'AI Tasks',
                 'todo.aiAssistant': 'ToDo Agent',
@@ -11531,6 +11569,39 @@ ${persona}
 
                 const welcomeTasksDesc = document.getElementById('welcomeTasksDesc');
                 if (welcomeTasksDesc) welcomeTasksDesc.textContent = t('welcome.tasksDesc');
+
+                const welcomeSubtitle = document.getElementById('welcomeSubtitle');
+                if (welcomeSubtitle) welcomeSubtitle.textContent = t('welcome.subtitle');
+
+                const welcomeExcelTitle = document.getElementById('welcomeExcelTitle');
+                if (welcomeExcelTitle) welcomeExcelTitle.textContent = t('welcome.excelTitle');
+
+                const welcomeExcelDesc = document.getElementById('welcomeExcelDesc');
+                if (welcomeExcelDesc) welcomeExcelDesc.textContent = t('welcome.excelDesc');
+
+                const welcomeFinanceTitle = document.getElementById('welcomeFinanceTitle');
+                if (welcomeFinanceTitle) welcomeFinanceTitle.textContent = t('welcome.financeTitle');
+
+                const welcomeFinanceDesc = document.getElementById('welcomeFinanceDesc');
+                if (welcomeFinanceDesc) welcomeFinanceDesc.textContent = t('welcome.financeDesc');
+
+                const welcomeWebTitle = document.getElementById('welcomeWebTitle');
+                if (welcomeWebTitle) welcomeWebTitle.textContent = t('welcome.webTitle');
+
+                const welcomeWebDesc = document.getElementById('welcomeWebDesc');
+                if (welcomeWebDesc) welcomeWebDesc.textContent = t('welcome.webDesc');
+
+                const welcomeMoreTitle = document.getElementById('welcomeMoreTitle');
+                if (welcomeMoreTitle) welcomeMoreTitle.textContent = t('welcome.moreTitle');
+
+                const welcomeMoreDesc = document.getElementById('welcomeMoreDesc');
+                if (welcomeMoreDesc) welcomeMoreDesc.textContent = t('welcome.moreDesc');
+
+                const welcomeEmailTitle = document.getElementById('welcomeEmailTitle');
+                if (welcomeEmailTitle) welcomeEmailTitle.textContent = t('welcome.emailTitle');
+
+                const welcomeEmailDesc = document.getElementById('welcomeEmailDesc');
+                if (welcomeEmailDesc) welcomeEmailDesc.textContent = t('welcome.emailDesc');
 
                 const voiceStatusText = document.getElementById('voiceStatusText');
                 if (voiceStatusText && (!voiceStatusText.textContent || voiceStatusText.textContent.trim().length === 0 || voiceStatusText.textContent === 'Je vous écoute...')) {
