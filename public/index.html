@@ -35324,6 +35324,56 @@ Réponds UNIQUEMENT dans ce format JSON:
         // 🔊 Variable globale pour tracker le bouton TTS actif
         let activeTTSButton = null;
 
+        // 🔊 Nettoyage du texte pour une synthèse vocale lisible (Markdown)
+        function cleanTextForSpeech(input, maxLen = 1000) {
+            try {
+                if (input == null) return '';
+                let text = String(input);
+
+                // Supprimer les blocs de code (garder le reste lisible)
+                text = text.replace(/```[\s\S]*?```/g, ' ');
+                // Inline code: `x` -> x
+                text = text.replace(/`([^`]+)`/g, '$1');
+
+                // Titres Markdown (#, ##, ### ...)
+                text = text.replace(/^\s{0,3}#{1,6}\s+/gm, '');
+
+                // Retirer les # restants (hashtags, #1)
+                text = text.replace(/#/g, ' ');
+
+                // Images / liens Markdown
+                text = text.replace(/!\[([^\]]*)\]\(([^)]+)\)/g, '$1');
+                text = text.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '$1');
+
+                // Citation et listes
+                text = text.replace(/^\s*>\s?/gm, '');
+                text = text.replace(/^\s*[-*+]\s+/gm, '');
+                text = text.replace(/^\s*\d+\.?\s+/gm, '');
+
+                // Tables Markdown: enlever séparateurs + pipes
+                text = text.replace(/^\s*\|?\s*(?::?-{2,}:?\s*\|\s*)+(?::?-{2,}:?)?\s*\|?\s*$/gm, ' ');
+                text = text.replace(/\|/g, ' ');
+
+                // Gras/italique/souligné Markdown
+                text = text.replace(/\*\*|__|\*|_/g, '');
+
+                // Supprimer URLs brutes
+                text = text.replace(/https?:\/\/\S+/gi, ' ');
+
+                // Nettoyage espaces
+                text = text.replace(/\s+/g, ' ').trim();
+
+                if (maxLen && text.length > maxLen) {
+                    text = text.substring(0, maxLen);
+                }
+
+                return text;
+            } catch (_) {
+                return String(input || '');
+            }
+        }
+
+
         // 🔊 Fonction pour basculer entre lecture et arrêt
         function toggleTTS(button) {
             try {
@@ -35374,7 +35424,8 @@ Réponds UNIQUEMENT dans ce format JSON:
                 window.speechSynthesis.cancel();
                 
                 // Créer et configurer la synthèse vocale
-                const utterance = new SpeechSynthesisUtterance(text);
+                const cleanText = cleanTextForSpeech(text, 3000);
+                const utterance = new SpeechSynthesisUtterance(cleanText);
                 utterance.lang = getSpeechLocale();
                 utterance.rate = 1.0;
                 utterance.pitch = 1.0;

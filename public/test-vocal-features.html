@@ -306,6 +306,25 @@
         }
         
         // Text-to-Speech
+        function cleanTextForSpeech(text) {
+            try {
+                let out = String(text || '');
+                // Titres Markdown (#, ##, ### ...), avec ou sans espace
+                out = out.replace(/^\s{0,3}#{1,6}\s*/gm, '');
+                // Hashtags/étiquettes
+                out = out.replace(/(^|\s)#([A-Za-zÀ-ÿ0-9_-]{2,})/g, '$1$2');
+                // Couleurs hex
+                out = out.replace(/#([0-9a-f]{3,8})\b/gi, '$1');
+                // Gras/italique Markdown
+                out = out.replace(/\*\*/g, '').replace(/__/g, '').replace(/\*/g, '').replace(/_/g, '');
+                // URLs brutes
+                out = out.replace(/https?:\/\/\S+/gi, ' ');
+                return out.replace(/\s+/g, ' ').trim();
+            } catch (e) {
+                return String(text || '');
+            }
+        }
+
         function toggleSpeech() {
             const text = document.getElementById('ttsInput').value;
             const btn = document.getElementById('speakBtn');
@@ -321,7 +340,8 @@
             }
             
             try {
-                currentUtterance = new SpeechSynthesisUtterance(text);
+                const cleanText = cleanTextForSpeech(text);
+                currentUtterance = new SpeechSynthesisUtterance(cleanText);
                 const speechLocale = (function() {
                     try {
                         const stored = localStorage.getItem('appLanguage');
