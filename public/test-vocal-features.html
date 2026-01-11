@@ -309,6 +309,64 @@
         function cleanTextForSpeech(text) {
             try {
                 let out = String(text || '');
+                // Tableaux Markdown: ignorer séparateurs et lire les lignes comme des cellules
+                out = out
+                    .split('\n')
+                    .map((line) => {
+                        const trimmed = String(line || '').trim();
+                        const pipeCount = (trimmed.match(/\|/g) || []).length;
+                        if (pipeCount < 2) return line;
+                        if (/^\|?\s*:?-{3,}:?\s*(\|\s*:?-{3,}:?\s*)+\|?$/.test(trimmed)) return ' ';
+                        const raw = trimmed.replace(/^\|/, '').replace(/\|$/, '');
+                        const cells = raw.split('|').map(c => String(c || '').trim()).filter(Boolean);
+                        if (cells.length >= 2) return `${cells.join(' ; ')}.`;
+                        return line;
+                    })
+                    .join('\n');
+                        // Tableaux Markdown: convertir en "Col: valeur" et éviter les séparateurs
+                        out = (function convertMarkdownTables(src) {
+                            const lines = String(src || '').split(/\r?\n/);
+                            const outLines = [];
+
+                            const isTableSep = (line) => /^\s*\|?\s*:?-{3,}:?\s*(\|\s*:?-{3,}:?\s*)+\|?\s*$/.test(String(line || ''));
+                            const isMaybeTableLine = (line) => /\|/.test(String(line || ''));
+                            const splitCells = (line) => {
+                                const raw = String(line || '').trim().replace(/^\|/, '').replace(/\|$/, '');
+                                return raw.split('|').map(c => String(c || '').trim());
+                            };
+
+                            let i = 0;
+                            while (i < lines.length) {
+                                const line = lines[i];
+                                const next = (i + 1 < lines.length) ? lines[i + 1] : '';
+                                if (isMaybeTableLine(line) && isTableSep(next)) {
+                                    const headers = splitCells(line);
+                                    i += 2;
+                                    while (i < lines.length) {
+                                        const row = lines[i];
+                                        if (!isMaybeTableLine(row)) break;
+                                        if (isTableSep(row)) { i += 1; continue; }
+                                        if (String(row || '').trim().length === 0) break;
+                                        const cells = splitCells(row);
+                                        const max = Math.max(headers.length, cells.length);
+                                        const parts = [];
+                                        for (let j = 0; j < max; j += 1) {
+                                            const h = String(headers[j] || '').trim() || `Colonne ${j + 1}`;
+                                            const v = String(cells[j] || '').trim();
+                                            if (v) parts.push(`${h}: ${v}`);
+                                        }
+                                        if (parts.length) outLines.push(parts.join('; '));
+                                        i += 1;
+                                    }
+                                    continue;
+                                }
+                                outLines.push(line);
+                                i += 1;
+                            }
+                            return outLines.join('\n');
+                        })(out);
+
+                out = out.replace(/\|/g, ' ');
                 // Titres Markdown (#, ##, ### ...), avec ou sans espace
                 out = out.replace(/^\s{0,3}#{1,6}\s*/gm, '');
                 // Hashtags/étiquettes
@@ -316,6 +374,8 @@
                 // Couleurs hex
                 out = out.replace(/#([0-9a-f]{3,8})\b/gi, '$1');
                 // Gras/italique Markdown
+                        // Éviter que la voix lise "|"
+                        out = out.replace(/\s*\|\s*/g, ' ; ');
                 out = out.replace(/\*\*/g, '').replace(/__/g, '').replace(/\*/g, '').replace(/_/g, '');
                 // URLs brutes
                 out = out.replace(/https?:\/\/\S+/gi, ' ');
