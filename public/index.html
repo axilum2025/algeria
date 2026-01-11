@@ -4553,7 +4553,10 @@
         }
 
         function detectLangFromTextClient(text, fallback) {
-            const fb = normalizeLangClient(fallback || (navigator.language || 'fr'));
+            // UI policy: local/instant messages should follow the app language (FR/EN)
+            // as fallback (avoid unexpected languages from the browser locale).
+            const appLang = (typeof getAppLanguage === 'function') ? getAppLanguage() : 'fr';
+            const fb = normalizeLangClient(fallback || appLang);
             const raw = String(text || '').trim();
             if (!raw) return fb;
             const byScript = detectLangByScriptClient(raw);
@@ -4592,13 +4595,23 @@
         function getStoredUserLang() {
             try {
                 const v = localStorage.getItem('axilum_user_lang');
-                if (v) return normalizeLangClient(v);
+                if (v) {
+                    const stored = normalizeLangClient(v);
+                    if (stored === 'en' || stored === 'fr') return stored;
+                    // Migrate legacy/unsupported stored language to app language.
+                    const appLang = (typeof getAppLanguage === 'function') ? getAppLanguage() : 'fr';
+                    try { localStorage.setItem('axilum_user_lang', normalizeLangClient(appLang)); } catch (_) {}
+                    return normalizeLangClient(appLang);
+                }
             } catch (_) {}
-            return normalizeLangClient(navigator.language || 'fr');
+            const appLang = (typeof getAppLanguage === 'function') ? getAppLanguage() : 'fr';
+            return normalizeLangClient(appLang);
         }
 
         function setStoredUserLang(lang) {
-            const l = normalizeLangClient(lang);
+            // UI policy: keep only FR/EN to match app language selector.
+            const normalized = normalizeLangClient(lang);
+            const l = (normalized === 'en') ? 'en' : 'fr';
             try { localStorage.setItem('axilum_user_lang', l); } catch (_) {}
             return l;
         }
@@ -7288,7 +7301,7 @@ ${persona}
 
                 const chosen = setChatType(arg);
 
-                const uiLang = getStoredUserLang();
+                const uiLang = (typeof getAppLanguage === 'function') ? getAppLanguage() : getStoredUserLang();
                 const mkWelcome = (agentLabel) => tLocal('agent_welcome', uiLang).replace('{agent}', agentLabel);
 
                 // Afficher uniquement un message d'accueil (sans citer d'autres modules/agents).
