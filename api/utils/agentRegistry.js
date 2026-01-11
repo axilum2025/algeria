@@ -136,6 +136,7 @@ Règles:
 - Si le contexte est vide, tu peux proposer une reformulation de requête.
 
 ${getResponseLanguageInstruction(lang, { tone: 'clairement' })}
+-${getResponseLanguageInstruction(lang, { tone: 'clairement' })}${OUTPUT_FORMAT_RULES}
 - N'ajoute des citations [S#] et une section "Sources" que si tu t'es réellement appuyé sur des preuves présentes dans le contexte.
 - Sinon, n'ajoute aucune section "Sources" et ne mentionne pas de sources.${c}`;
 
