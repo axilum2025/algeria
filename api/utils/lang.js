@@ -87,6 +87,45 @@ function detectLangByScript(text) {
   return '';
 }
 
+function detectLangByGreeting(text) {
+  const raw = String(text || '').trim();
+  if (!raw) return '';
+  const s = raw.toLowerCase();
+
+  // English greetings (support no-space variants)
+  if (/\b(good\s*morning|good\s*afternoon|good\s*evening)\b/i.test(raw)) return 'en';
+  if (/\b(hello|hi|hey|good\s*day)\b/i.test(raw)) return 'en';
+
+  // French greetings
+  if (/\b(bonjour|bonsoir|salut|coucou|bonne\s*nuit)\b/i.test(raw)) return 'fr';
+
+  // Spanish greetings
+  if (/\b(hola|buenas|buenos\s*d[ií]as|buenas\s*tardes|buenas\s*noches)\b/i.test(raw)) return 'es';
+
+  // Portuguese greetings
+  if (/\b(ol[áa]|bom\s*dia|boa\s*tarde|boa\s*noite)\b/i.test(raw)) return 'pt';
+
+  // Italian greetings
+  if (/\b(ciao|buongiorno|buona\s*sera|buonanotte)\b/i.test(raw)) return 'it';
+
+  // German greetings
+  if (/\b(hallo|guten\s*morgen|guten\s*tag|guten\s*abend)\b/i.test(raw)) return 'de';
+
+  // Turkish greetings
+  if (/\b(merhaba|g[üu]nayd[ıi]n|iyi\s*ak[sş]amlar)\b/i.test(raw)) return 'tr';
+
+  // Dutch greetings
+  if (/\b(hallo|goedemorgen|goedenavond)\b/i.test(raw)) return 'nl';
+
+  // Indonesian greetings
+  if (/\b(halo|selamat\s*pagi|selamat\s*siang|selamat\s*malam)\b/i.test(raw)) return 'id';
+
+  // Vietnamese greetings
+  if (/\b(xin\s*ch[àa]o|ch[àa]o)\b/i.test(raw)) return 'vi';
+
+  return '';
+}
+
 function scoreLatinLang(text) {
   const s = ` ${String(text || '').toLowerCase().replace(/[^\p{L}\p{N}\s]+/gu, ' ').replace(/\s+/g, ' ').trim()} `;
   if (!s.trim()) return null;
@@ -113,7 +152,7 @@ function scoreLatinLang(text) {
   };
 
   // Stopwords / markers (small, high-signal list)
-  addHits('en', ['the', 'and', 'you', 'your', 'please', 'thanks', 'what', 'why', 'how', 'hello'], 2);
+  addHits('en', ['the', 'and', 'you', 'your', 'please', 'thanks', 'what', 'why', 'how', 'hello', 'hi', 'hey', 'morning'], 2);
   addHits('fr', ['le', 'la', 'les', 'des', 'est', 'vous', 'merci', 'bonjour', 'pourquoi', 'comment', 'avec'], 2);
   addHits('es', ['hola', 'gracias', 'por', 'para', 'cómo', 'como', 'qué', 'que', 'usted', 'buenos', 'buenas'], 2);
   addHits('de', ['und', 'der', 'die', 'das', 'bitte', 'danke', 'warum', 'wie', 'hallo'], 2);
@@ -135,21 +174,28 @@ function scoreLatinLang(text) {
   // Pick winner
   let best = null;
   let bestScore = 0;
+  let secondScore = 0;
   for (const [k, v] of Object.entries(scores)) {
     if (v > bestScore) {
+      secondScore = bestScore;
       best = k;
       bestScore = v;
+    } else if (v > secondScore) {
+      secondScore = v;
     }
   }
 
   if (!best) return null;
   if (bestScore < 2) return null; // too weak
-  return { lang: best, score: bestScore };
+  return { lang: best, score: bestScore, secondScore };
 }
 
 function detectLangFromText(text, { fallback = 'fr' } = {}) {
   const raw = String(text || '').trim();
   if (!raw) return normalizeLang(fallback);
+
+  const byGreeting = detectLangByGreeting(raw);
+  if (byGreeting) return normalizeLang(byGreeting);
 
   const byScript = detectLangByScript(raw);
   if (byScript) return normalizeLang(byScript);
@@ -158,6 +204,32 @@ function detectLangFromText(text, { fallback = 'fr' } = {}) {
   if (scored && scored.lang) return normalizeLang(scored.lang);
 
   return normalizeLang(fallback);
+}
+
+function detectLangFromTextDetailed(text, { fallback = 'fr' } = {}) {
+  const raw = String(text || '').trim();
+  if (!raw) {
+    return { lang: normalizeLang(fallback), confidence: 'low', reason: 'empty' };
+  }
+
+  const byGreeting = detectLangByGreeting(raw);
+  if (byGreeting) {
+    return { lang: normalizeLang(byGreeting), confidence: 'high', reason: 'greeting' };
+  }
+
+  const byScript = detectLangByScript(raw);
+  if (byScript) {
+    return { lang: normalizeLang(byScript), confidence: 'high', reason: 'script' };
+  }
+
+  const scored = scoreLatinLang(raw);
+  if (scored && scored.lang) {
+    const delta = Math.max(0, (scored.score || 0) - (scored.secondScore || 0));
+    const confidence = (scored.score >= 4 || delta >= 2) ? 'high' : 'medium';
+    return { lang: normalizeLang(scored.lang), confidence, reason: 'latin-score', score: scored.score, delta };
+  }
+
+  return { lang: normalizeLang(fallback), confidence: 'low', reason: 'fallback' };
 }
 
 function parseAcceptLanguage(headerValue) {
@@ -216,6 +288,7 @@ function getResponseLanguageInstruction(lang, { tone = 'clair et professionnel' 
 module.exports = {
   normalizeLang,
   detectLangFromText,
+  detectLangFromTextDetailed,
   getLanguageNameFr,
   getLangFromReq,
   getSearchLang,

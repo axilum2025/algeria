@@ -9,7 +9,7 @@ const { detectFunctions, orchestrateFunctions, summarizeResults } = require('../
 const { buildWebEvidenceContext } = require('../utils/webEvidence');
 const { appendEvidenceContext, searchWikipedia, searchNewsApi, searchSemanticScholar } = require('../utils/sourceProviders');
 const { looksTimeSensitiveForHR, looksTimeSensitiveForMarketing, looksTimeSensitiveForDev, looksTimeSensitiveForExcel, looksTimeSensitiveForAlex, looksTimeSensitiveForTony, looksTimeSensitiveForTodo, looksTimeSensitiveForAIManagement, buildSilentWebContext } = require('../utils/silentWebRefresh');
-const { getLangFromReq, getSearchLang, getResponseLanguageInstruction, normalizeLang, detectLangFromText } = require('../utils/lang');
+const { getLangFromReq, getSearchLang, getResponseLanguageInstruction, normalizeLang, detectLangFromText, detectLangFromTextDetailed } = require('../utils/lang');
 const { stripModelReasoning } = require('../utils/stripModelReasoning');
 
 // Fonction RAG - Recherche Brave
@@ -98,9 +98,14 @@ module.exports = async function (context, req) {
         const userMessage = req.body.message;
         const userQuery = extractUserQueryFromMessage(userMessage);
         const requestedModel = req.body?.model || req.body?.aiModel || null;
-        const explicitLang = req.body?.lang || req.body?.language || req.body?.locale || req.query?.lang || req.headers?.['x-language'] || req.headers?.['x-lang'];
-        const fallbackLang = getLangFromReq(req, { fallback: 'fr' });
-        const lang = explicitLang ? normalizeLang(explicitLang) : detectLangFromText(userQuery, { fallback: fallbackLang });
+        // Langue: priorité au param explicite (body/query). Ensuite système (Accept-Language),
+        // MAIS si le 1er message est clairement dans une autre langue, on surclasse.
+        const explicitLang = req.body?.lang || req.body?.language || req.body?.locale || req.query?.lang;
+        const hintedLang = explicitLang ? normalizeLang(explicitLang) : getLangFromReq(req, { fallback: 'fr' });
+        const detected = detectLangFromTextDetailed(userQuery, { fallback: hintedLang });
+        const lang = (detected.confidence === 'high' && detected.lang && detected.lang !== hintedLang)
+            ? detected.lang
+            : (detected.lang || hintedLang);
         const searchLang = getSearchLang(lang);
         const defaultToneLine = getResponseLanguageInstruction(lang, { tone: 'de manière naturelle, claire et professionnelle' });
 

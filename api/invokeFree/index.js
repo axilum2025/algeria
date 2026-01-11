@@ -11,7 +11,7 @@ const { buildWebEvidenceContext } = require('../utils/webEvidence');
 const { appendEvidenceContext, searchWikipedia, searchNewsApi, searchSemanticScholar } = require('../utils/sourceProviders');
 const { shouldUseInternalBoost, buildAxilumInternalBoostContext } = require('../utils/axilumInternalBoost');
 const { looksTimeSensitiveForHR, looksTimeSensitiveForMarketing, looksTimeSensitiveForDev, looksTimeSensitiveForExcel, looksTimeSensitiveForAlex, looksTimeSensitiveForTony, looksTimeSensitiveForTodo, looksTimeSensitiveForAIManagement, buildSilentWebContext } = require('../utils/silentWebRefresh');
-const { getLangFromReq, getSearchLang, normalizeLang, detectLangFromText } = require('../utils/lang');
+const { getLangFromReq, getSearchLang, normalizeLang, detectLangFromText, detectLangFromTextDetailed } = require('../utils/lang');
 
 // Fonction RAG - Recherche Brave
 async function searchBrave(query, apiKey) {
@@ -95,9 +95,12 @@ module.exports = async function (context, req) {
         const userMessage = req.body.message;
         const userQuery = extractUserQueryFromMessage(userMessage);
         const requestedModel = req.body?.model || req.body?.aiModel || null;
-        const explicitLang = req.body?.lang || req.body?.language || req.body?.locale || req.query?.lang || req.headers?.['x-language'] || req.headers?.['x-lang'];
-        const fallbackLang = getLangFromReq(req, { fallback: 'fr' });
-        const lang = explicitLang ? normalizeLang(explicitLang) : detectLangFromText(userQuery, { fallback: fallbackLang });
+        const explicitLang = req.body?.lang || req.body?.language || req.body?.locale || req.query?.lang;
+        const hintedLang = explicitLang ? normalizeLang(explicitLang) : getLangFromReq(req, { fallback: 'fr' });
+        const detected = detectLangFromTextDetailed(userQuery, { fallback: hintedLang });
+        const lang = (detected.confidence === 'high' && detected.lang && detected.lang !== hintedLang)
+            ? detected.lang
+            : (detected.lang || hintedLang);
         const searchLang = getSearchLang(lang);
 
         const userAsksForSourcesForWesh = (q) => {

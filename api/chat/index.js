@@ -3,7 +3,7 @@ const { assertWithinBudget, recordUsage, BudgetExceededError } = require('../uti
 const { getAuthEmail } = require('../utils/auth');
 const { precheckCredit, debitAfterUsage } = require('../utils/aiCreditGuard');
 const { stripModelReasoning } = require('../utils/stripModelReasoning');
-const { normalizeLang, detectLangFromText, getLangFromReq, getLanguageNameFr, getResponseLanguageInstruction } = require('../utils/lang');
+const { normalizeLang, detectLangFromText, detectLangFromTextDetailed, getLangFromReq, getLanguageNameFr, getResponseLanguageInstruction } = require('../utils/lang');
 
 const DEFAULT_GROQ_MODEL = 'llama-3.3-70b-versatile';
 
@@ -103,6 +103,22 @@ function pickLanguageFromMessages(messages, fallbackLang) {
   const lastUser = [...messages].reverse().find(m => m && m.role === 'user' && typeof m.content === 'string' && m.content.trim());
   const lastText = String(lastUser?.content || '').replace(/\s+/g, ' ').trim();
   return detectLangFromText(lastText, { fallback: fb });
+}
+
+function pickLanguageFromMessagesDetailed(messages, fallbackLang) {
+  const fb = normalizeLang(fallbackLang || 'fr');
+  if (!Array.isArray(messages) || messages.length === 0) {
+    return { lang: fb, confidence: 'low', reason: 'empty-messages' };
+  }
+
+  const firstUser = messages.find(m => m && m.role === 'user' && typeof m.content === 'string' && m.content.trim());
+  const firstText = String(firstUser?.content || '').replace(/\s+/g, ' ').trim();
+  const isTooShort = firstText.length < 6;
+  if (!isTooShort) return detectLangFromTextDetailed(firstText, { fallback: fb });
+
+  const lastUser = [...messages].reverse().find(m => m && m.role === 'user' && typeof m.content === 'string' && m.content.trim());
+  const lastText = String(lastUser?.content || '').replace(/\s+/g, ' ').trim();
+  return detectLangFromTextDetailed(lastText, { fallback: fb });
 }
 
 module.exports = async function (context, req) {
@@ -208,9 +224,16 @@ module.exports = async function (context, req) {
     // 1) langue explicitement fournie par le client (si présent)
     // 2) sinon détection depuis le 1er message user (stable)
     // 3) fallback: Accept-Language
-    const explicitLang = req.body?.lang || req.body?.language || req.body?.locale || req.query?.lang || req.headers?.['x-language'] || req.headers?.['x-lang'];
-    const fallbackLang = getLangFromReq(req, { fallback: 'fr' });
-    const detectedLang = explicitLang ? normalizeLang(explicitLang) : pickLanguageFromMessages(messages, fallbackLang);
+    // Langue: body/query = explicite. Sinon détection (1er message), fallback système.
+    // Si la détection est forte, elle peut surclasser une préférence système.
+    const explicitLang = req.body?.lang || req.body?.language || req.body?.locale || req.query?.lang;
+    const hintedLang = explicitLang ? normalizeLang(explicitLang) : getLangFromReq(req, { fallback: 'fr' });
+    const detected = explicitLang
+      ? { lang: hintedLang, confidence: 'high', reason: 'explicit' }
+      : pickLanguageFromMessagesDetailed(messages, hintedLang);
+    const detectedLang = (detected.confidence === 'high' && detected.lang && detected.lang !== hintedLang)
+      ? detected.lang
+      : (detected.lang || hintedLang);
 
     const shouldEnforceLanguage = !looksLikeTranslationFlow(messages);
     const languageSystemMessage = shouldEnforceLanguage

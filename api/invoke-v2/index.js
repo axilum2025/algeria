@@ -15,7 +15,7 @@ const { getUserPlan, hasFeature, getPlanPriority } = require('../utils/entitleme
 const { checkAndConsume } = require('../utils/planQuota');
 const { appendAuditEvent } = require('../utils/auditStorage');
 const { precheckCredit, debitAfterUsage } = require('../utils/aiCreditGuard');
-const { getLangFromReq, getSearchLang, getResponseLanguageInstruction, getResponseLanguageShort, normalizeLang, detectLangFromText } = require('../utils/lang');
+const { getLangFromReq, getSearchLang, getResponseLanguageInstruction, getResponseLanguageShort, normalizeLang, detectLangFromText, detectLangFromTextDetailed } = require('../utils/lang');
 const { stripModelReasoning } = require('../utils/stripModelReasoning');
 
 const DEFAULT_GROQ_MODEL = 'llama-3.3-70b-versatile';
@@ -114,9 +114,12 @@ module.exports = async function (context, req) {
     try {
         const userMessage = req.body.message;
         const userQuery = extractUserQueryFromMessage(userMessage);
-        const explicitLang = req.body?.lang || req.body?.language || req.body?.locale || req.query?.lang || req.headers?.['x-language'] || req.headers?.['x-lang'];
-        const fallbackLang = getLangFromReq(req, { fallback: 'fr' });
-        const lang = explicitLang ? normalizeLang(explicitLang) : detectLangFromText(userQuery, { fallback: fallbackLang });
+        const explicitLang = req.body?.lang || req.body?.language || req.body?.locale || req.query?.lang;
+        const hintedLang = explicitLang ? normalizeLang(explicitLang) : getLangFromReq(req, { fallback: 'fr' });
+        const detected = detectLangFromTextDetailed(userQuery, { fallback: hintedLang });
+        const lang = (detected.confidence === 'high' && detected.lang && detected.lang !== hintedLang)
+            ? detected.lang
+            : (detected.lang || hintedLang);
         const searchLang = getSearchLang(lang);
         const langShort = getResponseLanguageShort(lang);
         const langPro = getResponseLanguageInstruction(lang, { tone: 'clairement et professionnellement' });
