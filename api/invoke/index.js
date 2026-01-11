@@ -9,7 +9,7 @@ const { detectFunctions, orchestrateFunctions, summarizeResults } = require('../
 const { buildWebEvidenceContext } = require('../utils/webEvidence');
 const { appendEvidenceContext, searchWikipedia, searchNewsApi, searchSemanticScholar } = require('../utils/sourceProviders');
 const { looksTimeSensitiveForHR, looksTimeSensitiveForMarketing, looksTimeSensitiveForDev, looksTimeSensitiveForExcel, looksTimeSensitiveForAlex, looksTimeSensitiveForTony, looksTimeSensitiveForTodo, looksTimeSensitiveForAIManagement, buildSilentWebContext } = require('../utils/silentWebRefresh');
-const { getLangFromReq, getSearchLang, getResponseLanguageInstruction, normalizeLang, detectLangFromText, detectLangFromTextDetailed, isLowSignalMessage, getConversationFocusInstruction, isAffirmation, isNegation, looksLikeQuestion, getYesNoDisambiguationInstruction } = require('../utils/lang');
+const { getLangFromReq, getSearchLang, getResponseLanguageInstruction, normalizeLang, detectLangFromText, detectLangFromTextDetailed, isLowSignalMessage, getConversationFocusInstruction, isAffirmation, isNegation, looksLikeQuestion, getYesNoDisambiguationInstruction, looksLikeMoreInfoRequest, getMoreInfoInstruction } = require('../utils/lang');
 const { stripModelReasoning } = require('../utils/stripModelReasoning');
 
 // Fonction RAG - Recherche Brave
@@ -125,6 +125,7 @@ module.exports = async function (context, req) {
         const lastAssistantText = String(lastAssistantFromHistory?.content || '').trim();
         const isYesNo = isAffirmation(userQuery) || isNegation(userQuery);
         const yesNoLine = (isYesNo && looksLikeQuestion(lastAssistantText)) ? getYesNoDisambiguationInstruction(lang) : '';
+        const moreInfoLine = looksLikeMoreInfoRequest(userQuery) ? getMoreInfoInstruction(lang) : '';
 
         const userAsksForSourcesForWesh = (q) => {
             const s = String(q || '').toLowerCase().replace(/[’]/g, "'").trim();
@@ -640,6 +641,7 @@ IMPORTANT (reconnaissance du rapport):
 ${defaultToneLine}
 ${focusLine}
 ${yesNoLine}
+${moreInfoLine}
 Réfléchis en interne, mais ne révèle jamais ton raisonnement.
 Donne uniquement la réponse finale (pas de balises <think>/<analysis>).
 Ne mentionne pas tes capacités ou fonctionnalités à moins que l'utilisateur ne le demande explicitement.${contextFromSearch}${internalBoostContext}`

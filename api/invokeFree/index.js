@@ -11,7 +11,7 @@ const { buildWebEvidenceContext } = require('../utils/webEvidence');
 const { appendEvidenceContext, searchWikipedia, searchNewsApi, searchSemanticScholar } = require('../utils/sourceProviders');
 const { shouldUseInternalBoost, buildAxilumInternalBoostContext } = require('../utils/axilumInternalBoost');
 const { looksTimeSensitiveForHR, looksTimeSensitiveForMarketing, looksTimeSensitiveForDev, looksTimeSensitiveForExcel, looksTimeSensitiveForAlex, looksTimeSensitiveForTony, looksTimeSensitiveForTodo, looksTimeSensitiveForAIManagement, buildSilentWebContext } = require('../utils/silentWebRefresh');
-const { getLangFromReq, getSearchLang, normalizeLang, detectLangFromText, detectLangFromTextDetailed, isLowSignalMessage, getConversationFocusInstruction, isAffirmation, isNegation, looksLikeQuestion, getYesNoDisambiguationInstruction } = require('../utils/lang');
+const { getLangFromReq, getSearchLang, normalizeLang, detectLangFromText, detectLangFromTextDetailed, isLowSignalMessage, getConversationFocusInstruction, isAffirmation, isNegation, looksLikeQuestion, getYesNoDisambiguationInstruction, looksLikeMoreInfoRequest, getMoreInfoInstruction } = require('../utils/lang');
 
 // Fonction RAG - Recherche Brave
 async function searchBrave(query, apiKey) {
@@ -117,10 +117,11 @@ module.exports = async function (context, req) {
         const lastAssistantText = String(lastAssistantFromHistory?.content || '').trim();
         const isYesNo = isAffirmation(userQuery) || isNegation(userQuery);
         const yesNoLine = (isYesNo && looksLikeQuestion(lastAssistantText)) ? getYesNoDisambiguationInstruction(lang) : '';
+        const moreInfoLine = looksLikeMoreInfoRequest(userQuery) ? getMoreInfoInstruction(lang) : '';
 
         const focusLine = isLowSignalMessage(userQuery)
-            ? [getConversationFocusInstruction(lang), yesNoLine].filter(Boolean).join('\n')
-            : yesNoLine;
+            ? [getConversationFocusInstruction(lang), yesNoLine, moreInfoLine].filter(Boolean).join('\n')
+            : [yesNoLine, moreInfoLine].filter(Boolean).join('\n');
 
         const userAsksForSourcesForWesh = (q) => {
             const s = String(q || '').toLowerCase().replace(/[’]/g, "'").trim();

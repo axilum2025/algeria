@@ -317,6 +317,40 @@ function looksLikeQuestion(text) {
   );
 }
 
+function looksLikeMoreInfoRequest(text) {
+  const raw = String(text || '').trim();
+  if (!raw) return false;
+  const s = raw
+    .toLowerCase()
+    .replace(/[’]/g, "'")
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  // English patterns
+  if (/\b(i\s*don'?t\s*know|idk)\b/.test(s)) return true;
+  if (/\b(more\s+info(rmation)?s?|tell\s+me\s+more|give\s+me\s+more|more\s+details|elaborate)\b/.test(s)) return true;
+
+  // French patterns
+  if (/\b(je\s+ne\s+sais\s+pas|jsp|j\s*sais\s*pas|aucune\s+id[ée]e)\b/.test(s)) return true;
+  if (/\b(plus\s+d['’]infos?|donne\s+moi\s+plus\s+d['’]infos?|plus\s+d['’]informations?|plus\s+de\s+d[ée]tails|dis\s+moi\s+plus|explique\s+moi|d[ée]veloppe)\b/.test(s)) return true;
+
+  return false;
+}
+
+function getMoreInfoInstruction(lang) {
+  const l = normalizeLang(lang);
+  if (l === 'en') {
+    return [
+      'If the user asks for "more information" without specifics, do NOT reply with only a clarification question.',
+      'Instead: provide a concise, structured overview (3–6 bullets) that continues the current topic, then offer 3 concrete options (A/B/C) the user can pick.'
+    ].join('\n');
+  }
+  return [
+    'Si l\'utilisateur demande "plus d\'infos" sans préciser, ne réponds PAS uniquement par une demande de clarification.',
+    'À la place: donne un aperçu concis et structuré (3–6 puces) en restant sur le sujet en cours, puis propose 3 options concrètes (A/B/C) au choix.'
+  ].join('\n');
+}
+
 function getYesNoDisambiguationInstruction(lang) {
   const l = normalizeLang(lang);
   if (l === 'en') {
@@ -401,4 +435,6 @@ module.exports = {
   isNegation,
   looksLikeQuestion,
   getYesNoDisambiguationInstruction
+  ,looksLikeMoreInfoRequest
+  ,getMoreInfoInstruction
 };
