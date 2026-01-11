@@ -323,16 +323,19 @@ function looksLikeMoreInfoRequest(text) {
   const s = raw
     .toLowerCase()
     .replace(/[’]/g, "'")
+    .replace(/[\u2010-\u2015]/g, '-')
+    .replace(/[^\p{L}\p{N}\s'_-]+/gu, ' ')
+    .replace(/[-_]+/g, ' ')
     .replace(/\s+/g, ' ')
     .trim();
 
   // English patterns
   if (/\b(i\s*don'?t\s*know|idk)\b/.test(s)) return true;
-  if (/\b(more\s+info(rmation)?s?|tell\s+me\s+more|give\s+me\s+more|more\s+details|elaborate)\b/.test(s)) return true;
+  if (/\b(more\s+info(rmation)?s?|tell\s+me\s+more|give\s+me\s+more|more\s+details|elaborate|expand(\s+on)?(\s+that)?)\b/.test(s)) return true;
 
   // French patterns
   if (/\b(je\s+ne\s+sais\s+pas|jsp|j\s*sais\s*pas|aucune\s+id[ée]e)\b/.test(s)) return true;
-  if (/\b(plus\s+d['’]infos?|donne\s+moi\s+plus\s+d['’]infos?|plus\s+d['’]informations?|plus\s+de\s+d[ée]tails|dis\s+moi\s+plus|explique\s+moi|d[ée]veloppe)\b/.test(s)) return true;
+  if (/\b(plus\s+d['’]infos?|donne\s+moi\s+plus\s+d['’]infos?|plus\s+d['’]informations?|plus\s+de\s+d[ée]tails|plus\s+d['’]explications?|dis\s+moi\s+plus|explique\s+moi|en\s+dire\s+plus|m['’]\s*en\s+dire\s+plus|d[ée]veloppe(r)?|d[ée]taill(e(r)?|e\s+moi)|pr[ée]cise(r)?|approfondi(r|ssez)?)\b/.test(s)) return true;
 
   return false;
 }
