@@ -1444,28 +1444,25 @@
         
         /* 🎨 Metrics icon styling */
         .metrics-icon {
-            position: absolute;
-            bottom: 8px;
-            right: 8px;
-            width: 24px;
-            height: 24px;
-            padding: 0;
-            border: none;
-            background: transparent;
             display: inline-flex;
             align-items: center;
             justify-content: center;
+            width: 24px;
+            height: 24px;
+            margin-left: 6px;
+            border: none;
+            padding: 0;
+            background: transparent;
             cursor: pointer;
             transition: transform 0.2s ease, opacity 0.2s ease, color 0.2s ease;
             color: var(--text-secondary);
-            opacity: 0.7;
-            z-index: 10;
-            box-shadow: none;
+            opacity: 0.6;
+            vertical-align: text-bottom;
         }
         
         .metrics-icon:hover {
             opacity: 1;
-            transform: scale(1.1);
+            transform: scale(1.15);
             color: var(--accent);
         }
         
@@ -1478,7 +1475,6 @@
             .metrics-icon {
                 width: 26px;
                 height: 26px;
-                opacity: 0.75;
             }
         }
 
@@ -8608,6 +8604,13 @@ ${persona}
                     });
                 }
                 
+                // Stocker les métriques globalement pour le bouton inline
+                if (metrics.performance.length > 0 || metrics.quality.length > 0) {
+                    window.__currentMessageMetrics = metrics;
+                } else {
+                    window.__currentMessageMetrics = null;
+                }
+                
                 // Créer l'icône élégante si des métriques existent
                 if (metrics.performance.length > 0 || metrics.quality.length > 0) {
                     // Chercher d'abord le bouton dans le bloc RAG après l'ajout au DOM
@@ -8622,26 +8625,7 @@ ${persona}
                             });
                             ragMetricsIcon.style.opacity = '1'; // Rendre visible
                         } else {
-                            // Sinon, créer le bouton en haut à droite comme avant
-                            const metricsIcon = document.createElement('button');
-                            metricsIcon.type = 'button';
-                            metricsIcon.className = 'metrics-icon';
-                            metricsIcon.title = (typeof t === 'function' ? t('metrics.title') : 'Métriques de réponse');
-                            metricsIcon.setAttribute('aria-label', (typeof t === 'function' ? t('metrics.title') : 'Métriques de réponse'));
-                            metricsIcon.innerHTML = `
-                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <circle cx="12" cy="12" r="10"/>
-                                    <path d="M12 16v-4M12 8h.01"/>
-                                </svg>
-                            `;
-                            
-                            metricsIcon.addEventListener('click', function(e) {
-                                e.stopPropagation();
-                                showMetricsModal(metrics);
-                            });
-                            
-                            messageWrapper.style.position = 'relative';
-                            messageWrapper.appendChild(metricsIcon);
+                            // Sinon, ne rien faire - le bouton métriques sera ajouté avec le TTS
                         }
                     }, 10);
                 }
@@ -8719,11 +8703,62 @@ ${persona}
                             toggleTTS(this);
                         });
                         
-                        // Insérer le bouton dans le dernier élément de texte
+                        // Créer le bouton métriques si les métriques existent
+                        let metricsButton = null;
+                        if (window.__currentMessageMetrics) {
+                            metricsButton = document.createElement('button');
+                            metricsButton.type = 'button';
+                            metricsButton.className = 'metrics-icon';
+                            metricsButton.title = 'Métriques de réponse';
+                            metricsButton.setAttribute('aria-label', 'Métriques de réponse');
+                            metricsButton.style.cssText = `
+                                display: inline-flex;
+                                align-items: center;
+                                justify-content: center;
+                                width: 24px;
+                                height: 24px;
+                                margin-left: 6px;
+                                border: none;
+                                padding: 0;
+                                background: transparent;
+                                cursor: pointer;
+                                transition: transform 0.2s ease, opacity 0.2s ease, color 0.2s ease;
+                                color: var(--text-secondary);
+                                opacity: 0.6;
+                                vertical-align: text-bottom;
+                            `;
+                            metricsButton.innerHTML = `
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <circle cx="12" cy="12" r="10"/>
+                                    <path d="M12 16v-4M12 8h.01"/>
+                                </svg>
+                            `;
+                            
+                            metricsButton.addEventListener('mouseenter', function() {
+                                this.style.opacity = '1';
+                                this.style.transform = 'scale(1.15)';
+                                this.style.color = 'var(--accent)';
+                            });
+                            
+                            metricsButton.addEventListener('mouseleave', function() {
+                                this.style.opacity = '0.6';
+                                this.style.transform = 'scale(1)';
+                                this.style.color = 'var(--text-secondary)';
+                            });
+                            
+                            metricsButton.addEventListener('click', function(e) {
+                                e.stopPropagation();
+                                showMetricsModal(window.__currentMessageMetrics);
+                            });
+                        }
+                        
+                        // Insérer les boutons dans le dernier élément de texte
                         if (lastTextElement.nodeType === Node.TEXT_NODE) {
                             lastTextElement.parentNode.appendChild(ttsButton);
+                            if (metricsButton) lastTextElement.parentNode.appendChild(metricsButton);
                         } else {
                             lastTextElement.appendChild(ttsButton);
+                            if (metricsButton) lastTextElement.appendChild(metricsButton);
                         }
                     }
                 }, 10);
