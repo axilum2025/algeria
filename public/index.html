@@ -246,7 +246,9 @@
             left: -40%;
             top: 0;
             bottom: 0;
+            height: 100vh;
             height: 100dvh;
+            min-height: 100vh;
             width: 40%;
             max-width: 320px;
             background: var(--bg-sidebar);
@@ -259,14 +261,26 @@
             overflow: hidden;
         }
 
+        /* Sidebar: zone scrollable (desktop + mobile) */
+        .sidebar-scroll {
+            flex: 1 1 auto;
+            overflow-y: auto;
+            overflow-x: hidden;
+            -webkit-overflow-scrolling: touch;
+            overscroll-behavior: contain;
+            padding-bottom: 14px;
+        }
+
         /* Sidebar: masquer l'indicateur de scroll tout en gardant le scroll */
         .sidebar,
+        .sidebar-scroll,
         .conversations {
             scrollbar-width: none; /* Firefox */
             -ms-overflow-style: none; /* IE/Edge legacy */
         }
 
         .sidebar::-webkit-scrollbar,
+        .sidebar-scroll::-webkit-scrollbar,
         .conversations::-webkit-scrollbar {
             width: 0;
             height: 0;
@@ -3045,6 +3059,7 @@
             </button>
         </div>
 
+        <div class="sidebar-scroll">
         <div class="conversations" id="conversationsList">
             <!-- Dynamically loaded -->
         </div>
@@ -3141,6 +3156,7 @@
                     <span class="menu-item-text">Hallucination Detector</span>
                 </button>
             </div>
+        </div>
         </div>
     </div>
 
