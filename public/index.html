@@ -2762,8 +2762,8 @@
 
         .voice-orb {
             position: relative;
-            width: 100px;
-            height: 100px;
+            width: 120px;
+            height: 120px;
             border-radius: 50%;
             display: flex;
             align-items: center;
@@ -2778,62 +2778,119 @@
             width: 100%;
             height: 100%;
             border-radius: 50%;
-            background: radial-gradient(circle, var(--accent) 0%, transparent 70%);
-            opacity: 0.3;
-            animation: pulse-ring 2s ease-out infinite;
+            background: conic-gradient(from 0deg, #667eea, #764ba2, #a78bfa, #667eea);
+            opacity: 0.4;
+            animation: gemini-rotate 4s linear infinite;
+            filter: blur(15px);
         }
 
-        @keyframes pulse-ring {
-            0% { transform: scale(0.8); opacity: 0.5; }
-            100% { transform: scale(1.4); opacity: 0; }
+        .voice-orb::after {
+            content: '';
+            position: absolute;
+            width: 90%;
+            height: 90%;
+            border-radius: 50%;
+            background: conic-gradient(from 180deg, #764ba2, #667eea, #a78bfa, #764ba2);
+            opacity: 0.3;
+            animation: gemini-rotate 3s linear infinite reverse;
+            filter: blur(10px);
+        }
+
+        @keyframes gemini-rotate {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        @keyframes gemini-pulse {
+            0%, 100% { transform: scale(1); opacity: 0.8; }
+            50% { transform: scale(1.15); opacity: 1; }
         }
 
         .voice-orb-core {
-            width: 60px;
-            height: 60px;
+            width: 70px;
+            height: 70px;
             border-radius: 50%;
-            background: var(--bg-sidebar);
-            border: 1px solid var(--border-color);
-            box-shadow: 0 12px 32px var(--shadow);
-            color: var(--text-primary);
+            background: radial-gradient(circle at 30% 30%, #a78bfa, #667eea 50%, #764ba2);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            box-shadow: 0 0 30px rgba(102, 126, 234, 0.5), inset 0 0 20px rgba(255, 255, 255, 0.2);
             display: flex;
             align-items: center;
             justify-content: center;
             position: relative;
             z-index: 1;
+            animation: gemini-pulse 2s ease-in-out infinite;
+        }
+
+        .voice-orb-core svg {
+            display: none;
+        }
+
+        .voice-orb-core::before {
+            content: '';
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: radial-gradient(circle, white 0%, rgba(255,255,255,0.6) 50%, transparent 70%);
+            animation: gemini-inner-glow 1.5s ease-in-out infinite;
+        }
+
+        @keyframes gemini-inner-glow {
+            0%, 100% { transform: scale(1); opacity: 0.9; }
+            50% { transform: scale(1.3); opacity: 1; }
         }
 
         .voice-orb.listening .voice-orb-core {
-            border-color: var(--accent);
-            color: var(--accent);
-            animation: orb-listening 1.5s ease-in-out infinite;
+            background: radial-gradient(circle at 30% 30%, #60a5fa, #3b82f6 50%, #2563eb);
+            box-shadow: 0 0 40px rgba(59, 130, 246, 0.7), inset 0 0 25px rgba(255, 255, 255, 0.3);
+            animation: gemini-listening 0.8s ease-in-out infinite;
+        }
+
+        .voice-orb.listening::before {
+            background: conic-gradient(from 0deg, #3b82f6, #60a5fa, #93c5fd, #3b82f6);
+            opacity: 0.6;
+            animation: gemini-rotate 2s linear infinite;
+        }
+
+        @keyframes gemini-listening {
+            0%, 100% { transform: scale(1); }
+            25% { transform: scale(1.08); }
+            50% { transform: scale(1.12); }
+            75% { transform: scale(1.05); }
         }
 
         .voice-orb.thinking .voice-orb-core {
-            border-color: var(--hi-med);
-            color: var(--hi-med);
-            animation: orb-thinking 1s linear infinite;
+            background: radial-gradient(circle at 30% 30%, #fbbf24, #f59e0b 50%, #d97706);
+            box-shadow: 0 0 40px rgba(245, 158, 11, 0.7), inset 0 0 25px rgba(255, 255, 255, 0.3);
+            animation: gemini-thinking 1s linear infinite;
+        }
+
+        .voice-orb.thinking::before {
+            background: conic-gradient(from 0deg, #f59e0b, #fbbf24, #fcd34d, #f59e0b);
+            opacity: 0.6;
+            animation: gemini-rotate 1s linear infinite;
+        }
+
+        @keyframes gemini-thinking {
+            0% { transform: rotate(0deg) scale(1); }
+            50% { transform: rotate(180deg) scale(1.05); }
+            100% { transform: rotate(360deg) scale(1); }
         }
 
         .voice-orb.speaking .voice-orb-core {
-            border-color: var(--hi-low);
-            color: var(--hi-low);
-            animation: orb-speaking 0.5s ease-in-out infinite;
+            background: radial-gradient(circle at 30% 30%, #34d399, #10b981 50%, #059669);
+            box-shadow: 0 0 50px rgba(16, 185, 129, 0.8), inset 0 0 30px rgba(255, 255, 255, 0.3);
+            animation: gemini-speaking 0.4s ease-in-out infinite;
         }
 
-        @keyframes orb-listening {
+        .voice-orb.speaking::before {
+            background: conic-gradient(from 0deg, #10b981, #34d399, #6ee7b7, #10b981);
+            opacity: 0.7;
+            animation: gemini-rotate 1.5s linear infinite;
+        }
+
+        @keyframes gemini-speaking {
             0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.1); }
-        }
-
-        @keyframes orb-thinking {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-
-        @keyframes orb-speaking {
-            0%, 100% { transform: scale(1); box-shadow: 0 12px 32px var(--shadow); }
-            50% { transform: scale(1.15); box-shadow: 0 16px 40px var(--shadow); }
+            50% { transform: scale(1.18); }
         }
 
         .voice-particles {
@@ -2885,34 +2942,44 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 3px;
-            height: 30px;
+            gap: 4px;
+            height: 40px;
         }
 
         .voice-bar {
-            width: 3px;
-            height: 10px;
-            background: var(--accent);
-            border-radius: 2px;
-            opacity: 0.3;
+            width: 4px;
+            height: 12px;
+            background: linear-gradient(to top, #667eea, #a78bfa);
+            border-radius: 4px;
+            opacity: 0.4;
             transition: all 0.1s ease;
         }
 
-        .voice-orb.listening .voice-bar,
-        .voice-orb.speaking .voice-bar {
-            animation: voice-bar-pulse 0.5s ease-in-out infinite;
+        .voice-orb.listening .voice-bar {
+            background: linear-gradient(to top, #3b82f6, #60a5fa);
+            animation: voice-bar-listening 0.4s ease-in-out infinite;
         }
 
-        @keyframes voice-bar-pulse {
-            0%, 100% { height: 10px; opacity: 0.3; }
-            50% { height: 25px; opacity: 0.8; }
+        .voice-orb.speaking .voice-bar {
+            background: linear-gradient(to top, #10b981, #34d399);
+            animation: voice-bar-speaking 0.3s ease-in-out infinite;
+        }
+
+        @keyframes voice-bar-listening {
+            0%, 100% { height: 12px; opacity: 0.4; }
+            50% { height: 30px; opacity: 0.9; }
+        }
+
+        @keyframes voice-bar-speaking {
+            0%, 100% { height: 12px; opacity: 0.5; }
+            50% { height: 35px; opacity: 1; }
         }
 
         .voice-bar:nth-child(1) { animation-delay: 0s; }
-        .voice-bar:nth-child(2) { animation-delay: 0.1s; }
-        .voice-bar:nth-child(3) { animation-delay: 0.2s; }
-        .voice-bar:nth-child(4) { animation-delay: 0.3s; }
-        .voice-bar:nth-child(5) { animation-delay: 0.4s; }
+        .voice-bar:nth-child(2) { animation-delay: 0.08s; }
+        .voice-bar:nth-child(3) { animation-delay: 0.16s; }
+        .voice-bar:nth-child(4) { animation-delay: 0.24s; }
+        .voice-bar:nth-child(5) { animation-delay: 0.32s; }
 
         .input-container.voice-hidden {
             opacity: 0;
