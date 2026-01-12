@@ -8858,8 +8858,8 @@ ${persona}
             }
             
             modal.innerHTML = `
-                <div style="background: var(--bg-primary); border-radius: 16px; padding: 24px; max-width: 400px; width: 90%; box-shadow: 0 20px 60px rgba(0,0,0,0.3); animation: slideUp 0.3s ease;">
-                    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px;">
+                <div style="background: var(--bg-primary); border-radius: 16px; padding: 24px; max-width: 400px; width: 90%; max-height: 90vh; max-height: 90dvh; overflow-y: auto; box-shadow: 0 20px 60px rgba(0,0,0,0.3); animation: slideUp 0.3s ease;">
+                    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; position: sticky; top: -24px; background: var(--bg-primary); padding: 24px 0 12px 0; margin: -24px -24px 20px -24px; padding: 24px 24px 12px 24px; z-index: 1;">
                         <h3 style="margin: 0; color: var(--text-primary); font-size: 18px; font-weight: 700; display: flex; align-items: center; gap: 10px;">
                             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                 <path d="M3 3v18h18"/>
