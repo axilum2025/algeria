@@ -28,6 +28,7 @@
             --bubble-tail-radius: 4px;
             --bubble-shadow: 0 1px 3px var(--shadow);
             --surface-translucent: color-mix(in srgb, var(--bg-sidebar) 92%, transparent);
+            --surface-solid: var(--bg-sidebar);
             --hi-low: #10B981;
             --hi-med: #F59E0B;
             --hi-high: #EF4444;
@@ -46,6 +47,9 @@
             --user-msg: #3B82F6;
             --bot-msg: #1F2937;
             --shadow: rgba(0, 0, 0, 0.4);
+            /* Surfaces du chat (input + bulles user) plus sombres en mode sombre */
+            --surface-translucent: color-mix(in srgb, #0B1220 92%, transparent);
+            --surface-solid: #0B1220;
         }
 
         * {
@@ -938,7 +942,7 @@
 
         .input-wrapper:focus-within {
             border-color: var(--accent);
-            background: var(--bg-sidebar);
+            background: var(--surface-solid);
             box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
         }
 
