@@ -287,6 +287,18 @@
             overflow: hidden;
         }
 
+        /* Desktop + Dark: harmoniser le fond du sidebar avec le fond de page */
+        @media (min-width: 800px) {
+            [data-theme="dark"] .sidebar {
+                background: var(--bg-primary);
+            }
+
+            [data-theme="dark"] .sidebar-menu,
+            [data-theme="dark"] .new-chat-btn {
+                background: var(--bg-primary);
+            }
+        }
+
         /* Sidebar: zone scrollable (desktop + mobile) */
         .sidebar-scroll {
             flex: 1 1 auto;
