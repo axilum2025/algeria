@@ -16603,6 +16603,49 @@ ${persona}
                         }
                     }
 
+                    /* Mobile en mode "site desktop" (largeur grande mais device tactile)
+                       -> compacter header/tabs pour éviter que le chat soit poussé vers le bas */
+                    @media (hover: none) and (pointer: coarse) {
+                        .hr-header {
+                            padding: 14px 16px !important;
+                        }
+                        .hr-title {
+                            font-size: 22px !important;
+                            margin-bottom: 4px !important;
+                        }
+                        .hr-subtitle {
+                            display: none !important;
+                        }
+                        .hr-close-btn {
+                            top: 12px !important;
+                            right: 16px !important;
+                            width: 36px !important;
+                            height: 36px !important;
+                        }
+                        .hr-tabs {
+                            padding: 10px 16px !important;
+                            gap: 6px !important;
+                            overflow-x: auto;
+                            -webkit-overflow-scrolling: touch;
+                        }
+                        .hr-tab {
+                            padding: 10px 14px !important;
+                            font-size: 13px !important;
+                            flex-shrink: 0;
+                        }
+                        .hr-content-area {
+                            padding: 16px !important;
+                        }
+
+                        /* Agent RH: zone messages responsive (évite hauteur fixe trop grande) */
+                        #hrContentAgent > div:first-child {
+                            margin-bottom: 12px !important;
+                        }
+                        #hrChatMessages {
+                            height: clamp(260px, calc(100dvh - 360px), 560px) !important;
+                        }
+                    }
+
                     /* Mobile: forcer le scroll de l'overlay (iOS/Android) */
                     @media (max-width: 768px) {
                         #hrManagementOverlay:not(.hr-agent-only) {
