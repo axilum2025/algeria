@@ -14,6 +14,7 @@
             --bg-sidebar: #FFFFFF;
             --text-primary: #1F2937;
             --text-secondary: #6B7280;
+            --chat-text-primary: #0B1220;
             --border-color: #E5E7EB;
             --user-msg: #3B82F6;
             --bot-msg: #FFFFFF;
@@ -43,6 +44,7 @@
             --bg-sidebar: #0F172A;
             --text-primary: #F9FAFB;
             --text-secondary: #9CA3AF;
+            --chat-text-primary: #F9FAFB;
             --border-color: #374151;
             --user-msg: #3B82F6;
             --bot-msg: #1F2937;
@@ -725,12 +727,15 @@
         .message-content {
             padding: var(--bubble-padding-y) var(--bubble-padding-x);
             border-radius: 12px;
-            line-height: 1.7;
-            font-size: 15.5px;
+            line-height: 1.8;
+            font-size: 16.75px;
+            color: var(--chat-text-primary);
             white-space: pre-wrap;
             overflow-wrap: anywhere;
             word-break: break-word;
             position: relative;
+            -webkit-font-smoothing: antialiased;
+            text-rendering: optimizeLegibility;
         }
 
         /* Typographie moderne (style ChatGPT/Gemini) */
@@ -1075,8 +1080,8 @@
             border: none;
             background: transparent;
             outline: none;
-            font-size: 15px;
-            color: var(--text-primary);
+            font-size: 16px;
+            color: var(--chat-text-primary);
             resize: none;
             max-height: 200px;
             font-family: inherit;
