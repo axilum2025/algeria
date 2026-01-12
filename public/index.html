@@ -1447,9 +1447,9 @@
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            width: 24px;
-            height: 24px;
-            margin-left: 6px;
+            width: 28px;
+            height: 28px;
+            margin-right: 8px;
             border: none;
             padding: 0;
             background: transparent;
@@ -1457,7 +1457,6 @@
             transition: transform 0.2s ease, opacity 0.2s ease, color 0.2s ease;
             color: var(--text-secondary);
             opacity: 0.6;
-            vertical-align: text-bottom;
         }
         
         .metrics-icon:hover {
@@ -1473,10 +1472,43 @@
         /* Desktop: légèrement plus grand et visible */
         @media (min-width: 769px) {
             .metrics-icon {
-                width: 26px;
-                height: 26px;
+                width: 30px;
+                height: 30px;
             }
         }
+        
+        /* Container for action buttons below message */
+        .message-actions {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            margin-top: 8px;
+            padding-left: 4px;
+        }
+        
+        .message-actions button {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 28px;
+            height: 28px;
+            border: none;
+            padding: 0;
+            background: transparent;
+            cursor: pointer;
+            transition: transform 0.2s ease, opacity 0.2s ease, color 0.2s ease;
+            color: var(--text-secondary);
+            opacity: 0.6;
+            border-radius: 6px;
+        }
+        
+        .message-actions button:hover {
+            opacity: 1;
+            transform: scale(1.15);
+            color: var(--accent);
+            background: var(--bg-secondary);
+        }
+
 
         .protection-overlay {
             position: fixed;
@@ -8662,22 +8694,7 @@ ${persona}
                         ttsButton.dataset.text = displayText;
                         ttsButton.title = 'Écouter ce message';
                         ttsButton.setAttribute('aria-label', 'Écouter ce message');
-                        ttsButton.style.cssText = `
-                            display: inline-flex;
-                            align-items: center;
-                            justify-content: center;
-                            width: 24px;
-                            height: 24px;
-                            margin-left: 6px;
-                            border: none;
-                            padding: 0;
-                            background: transparent;
-                            cursor: pointer;
-                            transition: transform 0.2s ease, opacity 0.2s ease, color 0.2s ease;
-                            color: var(--text-secondary);
-                            opacity: 0.6;
-                            vertical-align: text-bottom;
-                        `;
+                        
                         ttsButton.innerHTML = `
                             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                 <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/>
@@ -8703,30 +8720,20 @@ ${persona}
                             toggleTTS(this);
                         });
                         
-                        // Créer le bouton métriques si les métriques existent
-                        let metricsButton = null;
+                        // Créer un conteneur pour les boutons d'action
+                        const actionsContainer = document.createElement('div');
+                        actionsContainer.className = 'message-actions';
+                        
+                        // Ajouter le bouton TTS
+                        actionsContainer.appendChild(ttsButton);
+                        
+                        // Créer et ajouter le bouton métriques si les métriques existent
                         if (window.__currentMessageMetrics) {
-                            metricsButton = document.createElement('button');
+                            const metricsButton = document.createElement('button');
                             metricsButton.type = 'button';
                             metricsButton.className = 'metrics-icon';
                             metricsButton.title = 'Métriques de réponse';
                             metricsButton.setAttribute('aria-label', 'Métriques de réponse');
-                            metricsButton.style.cssText = `
-                                display: inline-flex;
-                                align-items: center;
-                                justify-content: center;
-                                width: 24px;
-                                height: 24px;
-                                margin-left: 6px;
-                                border: none;
-                                padding: 0;
-                                background: transparent;
-                                cursor: pointer;
-                                transition: transform 0.2s ease, opacity 0.2s ease, color 0.2s ease;
-                                color: var(--text-secondary);
-                                opacity: 0.6;
-                                vertical-align: text-bottom;
-                            `;
                             metricsButton.innerHTML = `
                                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                     <circle cx="12" cy="12" r="10"/>
@@ -8734,32 +8741,16 @@ ${persona}
                                 </svg>
                             `;
                             
-                            metricsButton.addEventListener('mouseenter', function() {
-                                this.style.opacity = '1';
-                                this.style.transform = 'scale(1.15)';
-                                this.style.color = 'var(--accent)';
-                            });
-                            
-                            metricsButton.addEventListener('mouseleave', function() {
-                                this.style.opacity = '0.6';
-                                this.style.transform = 'scale(1)';
-                                this.style.color = 'var(--text-secondary)';
-                            });
-                            
                             metricsButton.addEventListener('click', function(e) {
                                 e.stopPropagation();
                                 showMetricsModal(window.__currentMessageMetrics);
                             });
+                            
+                            actionsContainer.appendChild(metricsButton);
                         }
                         
-                        // Insérer les boutons dans le dernier élément de texte
-                        if (lastTextElement.nodeType === Node.TEXT_NODE) {
-                            lastTextElement.parentNode.appendChild(ttsButton);
-                            if (metricsButton) lastTextElement.parentNode.appendChild(metricsButton);
-                        } else {
-                            lastTextElement.appendChild(ttsButton);
-                            if (metricsButton) lastTextElement.appendChild(metricsButton);
-                        }
+                        // Insérer le conteneur après le message-content
+                        messageContent.parentNode.insertBefore(actionsContainer, messageContent.nextSibling);
                     }
                 }, 10);
             }
