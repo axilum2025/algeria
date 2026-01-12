@@ -285,9 +285,36 @@
     })();
 
     (function initTheme() {
+      function applyTheme(theme) {
+        document.body.setAttribute('data-theme', theme || 'light');
+      }
+      
       try {
+        // Lire le thème depuis localStorage
         const theme = localStorage.getItem('theme') || localStorage.getItem('axilum_theme') || 'light';
-        document.body.setAttribute('data-theme', theme);
+        applyTheme(theme);
+        
+        // Essayer de lire le thème du parent (si dans iframe)
+        if (window.parent && window.parent !== window) {
+          try {
+            const parentTheme = window.parent.document.body.getAttribute('data-theme');
+            if (parentTheme) applyTheme(parentTheme);
+          } catch (_) {}
+        }
+        
+        // Écouter les changements de thème via postMessage
+        window.addEventListener('message', function(ev) {
+          if (ev.data && ev.data.type === 'axilum:theme-change' && ev.data.theme) {
+            applyTheme(ev.data.theme);
+          }
+        });
+        
+        // Observer les changements localStorage (autre onglet)
+        window.addEventListener('storage', function(ev) {
+          if (ev.key === 'theme' || ev.key === 'axilum_theme') {
+            applyTheme(ev.newValue || 'light');
+          }
+        });
       } catch (_) {}
     })();
 

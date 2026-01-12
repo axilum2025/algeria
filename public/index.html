@@ -5500,6 +5500,14 @@ RÈGLES IMPORTANTES:
             const newTheme = currentTheme === 'light' ? 'dark' : 'light';
             body.setAttribute('data-theme', newTheme);
             localStorage.setItem('theme', newTheme);
+            
+            // Notifier les iframes du changement de thème
+            try {
+                const enterpriseFrame = document.getElementById('enterpriseOfferFrame');
+                if (enterpriseFrame && enterpriseFrame.contentWindow) {
+                    enterpriseFrame.contentWindow.postMessage({ type: 'axilum:theme-change', theme: newTheme }, '*');
+                }
+            } catch (_) {}
         }
 
         function newConversation(options) {
@@ -12044,7 +12052,17 @@ ${persona}
         function openEnterpriseOfferModal(e) {
             try { if (e) { e.preventDefault(); e.stopPropagation(); } } catch (_) {}
             const modal = document.getElementById('enterpriseOfferModal');
-            if (modal) modal.style.display = 'flex';
+            if (modal) {
+                modal.style.display = 'flex';
+                // Envoyer le thème actuel à l'iframe
+                setTimeout(() => {
+                    const iframe = document.getElementById('enterpriseOfferFrame');
+                    const currentTheme = document.body.getAttribute('data-theme') || 'light';
+                    if (iframe && iframe.contentWindow) {
+                        iframe.contentWindow.postMessage({ type: 'axilum:theme-change', theme: currentTheme }, '*');
+                    }
+                }, 100);
+            }
         }
 
         function closeEnterpriseOfferModal(e) {
