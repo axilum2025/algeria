@@ -2780,7 +2780,7 @@
             height: 140%;
             border-radius: 50%;
             background: radial-gradient(circle, var(--accent-alpha, rgba(102, 126, 234, 0.15)) 0%, transparent 70%);
-            animation: space-ambient 6s ease-in-out infinite;
+            animation: space-ambient 10s ease-in-out infinite;
             filter: blur(20px);
         }
 
@@ -2808,8 +2808,8 @@
             justify-content: center;
             position: relative;
             z-index: 1;
-            animation: space-float 8s ease-in-out infinite, morph-idle 12s ease-in-out infinite;
-            transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+            animation: space-float 14s ease-in-out infinite, morph-idle 20s ease-in-out infinite;
+            transition: all 1s ease-in-out;
         }
 
         @keyframes space-float {
@@ -2840,7 +2840,7 @@
             height: 15px;
             border-radius: 50%;
             background: radial-gradient(ellipse, rgba(255,255,255,0.7) 0%, transparent 70%);
-            animation: shine-float 8s ease-in-out infinite;
+            animation: shine-float 14s ease-in-out infinite;
         }
 
         @keyframes shine-float {
@@ -2859,7 +2859,7 @@
                 0 0 50px rgba(110, 168, 254, 0.4),
                 inset 3px 3px 20px rgba(255, 255, 255, 0.5),
                 inset -3px -3px 15px rgba(74, 143, 231, 0.2);
-            animation: space-float 4s ease-in-out infinite, morph-listening 3s ease-in-out infinite;
+            animation: space-float 8s ease-in-out infinite, morph-listening 6s ease-in-out infinite;
         }
 
         @keyframes morph-listening {
@@ -2871,7 +2871,7 @@
 
         .voice-orb.listening::before {
             background: radial-gradient(circle, rgba(110, 168, 254, 0.25) 0%, transparent 70%);
-            animation: space-ambient 3s ease-in-out infinite;
+            animation: space-ambient 6s ease-in-out infinite;
         }
 
         /* État: Réflexion (AI pense) - Violet doux */
@@ -2885,7 +2885,7 @@
                 0 0 50px rgba(180, 167, 214, 0.4),
                 inset 3px 3px 20px rgba(255, 255, 255, 0.5),
                 inset -3px -3px 15px rgba(150, 136, 192, 0.2);
-            animation: space-float 5s ease-in-out infinite, morph-thinking 4s ease-in-out infinite;
+            animation: space-float 10s ease-in-out infinite, morph-thinking 8s ease-in-out infinite;
         }
 
         @keyframes morph-thinking {
@@ -2897,7 +2897,7 @@
 
         .voice-orb.thinking::before {
             background: radial-gradient(circle, rgba(180, 167, 214, 0.25) 0%, transparent 70%);
-            animation: space-ambient 2s ease-in-out infinite;
+            animation: space-ambient 5s ease-in-out infinite;
         }
 
         /* État: Parle (AI répond) - Vert menthe doux */
@@ -2911,7 +2911,7 @@
                 0 0 55px rgba(147, 228, 193, 0.45),
                 inset 3px 3px 20px rgba(255, 255, 255, 0.5),
                 inset -3px -3px 15px rgba(109, 202, 168, 0.2);
-            animation: space-float 3s ease-in-out infinite, morph-speaking 2s ease-in-out infinite;
+            animation: space-float 6s ease-in-out infinite, morph-speaking 4s ease-in-out infinite;
         }
 
         @keyframes morph-speaking {
@@ -2923,7 +2923,7 @@
 
         .voice-orb.speaking::before {
             background: radial-gradient(circle, rgba(147, 228, 193, 0.3) 0%, transparent 70%);
-            animation: space-ambient 2s ease-in-out infinite;
+            animation: space-ambient 5s ease-in-out infinite;
         }
 
         .voice-particles {
@@ -2943,7 +2943,7 @@
         }
 
         .voice-orb.listening .voice-particle {
-            animation: particle-float 2s ease-in-out infinite;
+            animation: particle-float 4s ease-in-out infinite;
         }
 
         @keyframes particle-float {
@@ -2990,12 +2990,12 @@
 
         .voice-orb.listening .voice-bar {
             background: #6ea8fe;
-            animation: bar-gentle-listening 1.2s ease-in-out infinite;
+            animation: bar-gentle-listening 2s ease-in-out infinite;
         }
 
         .voice-orb.speaking .voice-bar {
             background: #93e4c1;
-            animation: bar-gentle-speaking 0.8s ease-in-out infinite;
+            animation: bar-gentle-speaking 1.5s ease-in-out infinite;
         }
 
         @keyframes bar-gentle-listening {
