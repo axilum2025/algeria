@@ -31576,7 +31576,7 @@ ${recruitmentInfo}
                 gap: 8px !important;
             }
             
-            }
+            .input-icon-btn {
             #userInput {
                 flex: 1 1 100% !important;
                 width: 100% !important;
@@ -31591,8 +31591,13 @@ ${recruitmentInfo}
                 resize: none !important;
                 vertical-align: top !important;
                 align-items: flex-start !important;
+                scrollbar-width: none !important;
+                -ms-overflow-style: none !important;
             }
-            .input-icon-btn {
+            
+            #userInput::-webkit-scrollbar {
+                display: none !important;
+            }
                 order: 2 !important;
                 margin: 0 !important;
                 padding: 8px !important;
