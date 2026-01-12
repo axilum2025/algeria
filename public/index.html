@@ -2740,20 +2740,20 @@
         }
 
         .voice-mode-container {
-            position: absolute;
+            position: fixed;
+            top: 0;
             bottom: 0;
             left: 0;
             right: 0;
-            height: 180px;
             background: var(--bg-primary);
             display: none;
             align-items: center;
             justify-content: center;
             flex-direction: column;
             gap: 15px;
-            padding: 20px;
-            z-index: 100;
-            border-top: 1px solid var(--border-color);
+            padding: 24px;
+            z-index: 1000;
+            overflow: auto;
         }
 
         .voice-mode-container.active {
