@@ -7004,7 +7004,8 @@ ${persona}
 
                         if (Number.isFinite(balance)) {
                             const formatted = formatMoney(balance, cur);
-                            quotaValue.textContent = formatted;
+                            const amountOnly = formatMoneyAmountOnly(balance);
+                            quotaValue.textContent = amountOnly;
                             if (quotaIndicator) {
                                 quotaIndicator.title = `Crédit: ${formatted}`;
                             }
@@ -7063,6 +7064,16 @@ ${persona}
                 return new Intl.NumberFormat(getLocale(), { style: 'currency', currency: c, minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(n);
             } catch (_) {
                 return `${c} ${n.toFixed(2)}`;
+            }
+        }
+
+        function formatMoneyAmountOnly(amount) {
+            const n = Number(amount);
+            if (!Number.isFinite(n)) return '—';
+            try {
+                return new Intl.NumberFormat(getLocale(), { style: 'decimal', minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(n);
+            } catch (_) {
+                return n.toFixed(2);
             }
         }
 
