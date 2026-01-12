@@ -818,15 +818,26 @@
         }
 
         .message-wrapper.bot .message-content {
-            background: var(--bot-msg);
+            background: transparent;
             color: var(--text-primary);
             margin-left: 0;
             margin-right: auto;
-            max-width: min(var(--bubble-max-percent), var(--bubble-max-width));
-            border: 1px solid var(--border-color);
-            box-shadow: var(--bubble-shadow);
-            border-radius: var(--bubble-radius) var(--bubble-radius) var(--bubble-radius) var(--bubble-tail-radius);
+            max-width: 100%;
+            border: none;
+            box-shadow: none;
+            border-radius: 0;
+            padding: 0;
         }
+
+
+
+
+
+
+
+
+
+
 
         .message-wrapper.error .message-content {
             background: #FFF3F3;
