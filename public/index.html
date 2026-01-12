@@ -907,19 +907,6 @@
             transition: all 0.3s ease-out;
         }
 
-        .input-container.is-collapsed {
-            transform: translateX(-50%) translateY(64px);
-            opacity: 0.55;
-        }
-
-        .input-container.is-collapsed:hover {
-            opacity: 0.9;
-        }
-
-        .input-container.is-collapsed .input-wrapper {
-            box-shadow: 0 1px 12px var(--shadow);
-        }
-
         /* Quand le sidebar est ouvert, cacher la zone d’écriture (mobile + desktop) */
         .input-container.sidebar-open {
             opacity: 0;
@@ -3031,34 +3018,6 @@
             opacity: 0;
             transform: translateY(20px);
             pointer-events: none;
-        }
-
-        body.input-collapsed .chat-messages {
-            padding-bottom: calc(140px + env(safe-area-inset-bottom, 0px));
-        }
-
-        @media (min-width: 800px) {
-            body.input-collapsed .chat-messages {
-                padding-bottom: calc(120px + env(safe-area-inset-bottom, 0px));
-            }
-        }
-
-        @media (max-width: 1024px) {
-            body.input-collapsed .chat-messages {
-                padding-bottom: calc(140px + env(safe-area-inset-bottom, 0px));
-            }
-        }
-
-        @media (max-width: 768px) {
-            body.input-collapsed .chat-messages {
-                padding-bottom: calc(140px + env(safe-area-inset-bottom, 0px));
-            }
-        }
-
-        @media (max-width: 480px) {
-            body.input-collapsed .chat-messages {
-                padding-bottom: calc(140px + env(safe-area-inset-bottom, 0px));
-            }
         }
     </style>
     
@@ -5490,8 +5449,6 @@ RÈGLES IMPORTANTES:
                 }
             });
 
-            initInputAutoCollapse();
-
             // Fermer sidebar en cliquant sur la zone de chat
             document.getElementById('chatContainer').addEventListener('click', (e) => {
                 const sidebar = document.getElementById('sidebar');
@@ -5609,57 +5566,6 @@ RÈGLES IMPORTANTES:
             const textarea = document.getElementById('userInput');
             textarea.style.height = 'auto';
             textarea.style.height = Math.min(textarea.scrollHeight, 120) + 'px';
-        }
-
-        let inputCollapseTimer = null;
-
-        function setInputCollapsed(collapsed) {
-            const inputContainer = document.querySelector('.input-container');
-            if (!inputContainer) return;
-            if (collapsed) {
-                inputContainer.classList.add('is-collapsed');
-                document.body.classList.add('input-collapsed');
-            } else {
-                inputContainer.classList.remove('is-collapsed');
-                document.body.classList.remove('input-collapsed');
-            }
-        }
-
-        function scheduleInputCollapse() {
-            clearTimeout(inputCollapseTimer);
-            inputCollapseTimer = setTimeout(() => {
-                const inputContainer = document.querySelector('.input-container');
-                if (!inputContainer) return;
-                const sidebarOpen = document.getElementById('sidebar')?.classList.contains('open');
-                const hasFocusInside = inputContainer.contains(document.activeElement);
-                const voiceHidden = inputContainer.classList.contains('voice-hidden');
-                if (!hasFocusInside && !sidebarOpen && !voiceHidden) {
-                    setInputCollapsed(true);
-                }
-            }, 900);
-        }
-
-        function initInputAutoCollapse() {
-            const inputContainer = document.querySelector('.input-container');
-            const textarea = document.getElementById('userInput');
-            if (!inputContainer || !textarea) return;
-
-            setInputCollapsed(true);
-
-            const expand = () => {
-                clearTimeout(inputCollapseTimer);
-                setInputCollapsed(false);
-            };
-
-            ['focusin', 'pointerenter'].forEach((evt) => {
-                inputContainer.addEventListener(evt, expand);
-            });
-
-            ['focusout', 'pointerleave'].forEach((evt) => {
-                inputContainer.addEventListener(evt, scheduleInputCollapse);
-            });
-
-            textarea.addEventListener('input', expand);
         }
 
         function toggleSidebar() {
