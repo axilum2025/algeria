@@ -1082,65 +1082,28 @@
         }
 
         .send-btn {
-            background: none;
-            border: none;
+            order: 3;
             color: var(--text-secondary);
-            cursor: pointer;
-            width: 32px;
-            height: 32px;
-            padding: 6px;
-            border-radius: 8px;
-            transition: all 0.2s;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            flex-shrink: 0;
-            order: 2;
+            -webkit-tap-highlight-color: transparent;
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;
+            user-select: none;
         }
 
         .send-btn svg {
-            width: 22px;
-            height: 22px;
-            stroke: var(--accent);
+            width: 20px;
+            height: 20px;
+            stroke: currentColor;
             transition: all 0.2s;
         }
 
-        .send-btn:hover:not(:disabled) {
-            background: rgba(59, 130, 246, 0.1);
-            transform: scale(1.1);
-        }
-
-        .send-btn:hover:not(:disabled) svg {
-            stroke: var(--accent);
-            transform: translateX(2px);
-        }
-
         .send-btn:disabled {
-            opacity: 0.3;
+            opacity: 0.35;
             cursor: not-allowed;
         }
 
         .send-btn:disabled svg {
             stroke: var(--text-secondary);
-        }
-
-        .send-btn:focus,
-        .send-btn:active {
-            outline: none !important;
-            box-shadow: none !important;
-            -webkit-tap-highlight-color: transparent;
-        }
-
-        .send-btn:focus-visible {
-            outline: 1px solid var(--accent) !important;
-            outline-offset: 1px;
-        }
-
-        .send-btn {
-            -webkit-tap-highlight-color: transparent;
-            -webkit-touch-callout: none;
-            -webkit-user-select: none;
-            user-select: none;
         }
 
         /* Typing Indicator */
@@ -3293,7 +3256,7 @@
                 </button>
                 <textarea id="userInput" placeholder="Écrivez votre message..." rows="1"></textarea>
                 <button class="agent-btn" id="agentBtn" onclick="toggleAgentPicker()" title="Choisir un agent">Agent</button>
-                <button class="send-btn" id="sendBtn" onclick="sendMessage()">
+                <button class="input-icon-btn send-btn" id="sendBtn" onclick="sendMessage()">
                     <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/>
                     </svg>
