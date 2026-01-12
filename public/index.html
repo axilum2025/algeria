@@ -68,6 +68,15 @@
             transition: background 0.3s, color 0.3s;
         }
 
+        /* Scrollbar (Firefox) */
+        body {
+            scrollbar-color: rgba(0, 0, 0, 0.25) transparent;
+        }
+
+        [data-theme="dark"] body {
+            scrollbar-color: rgba(255, 255, 255, 0.25) transparent;
+        }
+
         /* Header */
         .header {
             position: fixed;
@@ -2384,8 +2393,16 @@
             transition: background 0.2s;
         }
 
+        [data-theme="dark"] ::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.22);
+        }
+
         ::-webkit-scrollbar-thumb:hover {
             background: rgba(0, 0, 0, 0.3);
+        }
+
+        [data-theme="dark"] ::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 255, 255, 0.32);
         }
 
         [data-theme="dark"] ::-webkit-scrollbar-thumb {
