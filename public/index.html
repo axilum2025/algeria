@@ -16605,28 +16605,61 @@ ${persona}
 
                     /* Mobile: forcer le scroll de l'overlay (iOS/Android) */
                     @media (max-width: 768px) {
-                        #hrManagementOverlay {
+                        #hrManagementOverlay:not(.hr-agent-only) {
                             height: 100dvh !important;
                             overflow-y: auto !important;
                             overflow-x: hidden !important;
                             -webkit-overflow-scrolling: touch;
                             touch-action: pan-y;
                         }
-                        .hr-content-area {
+                        #hrManagementOverlay:not(.hr-agent-only) .hr-content-area {
                             overflow-y: visible !important;
+                        }
+
+                        /* Mobile: vue dédiée Agent RH (comme Dev/Marketing) */
+                        #hrManagementOverlay.hr-agent-only {
+                            height: 100dvh !important;
+                            overflow: hidden !important;
+                        }
+                        #hrManagementOverlay.hr-agent-only .hr-tabs {
+                            display: none !important;
+                        }
+                        #hrManagementOverlay.hr-agent-only .hr-content-area {
+                            padding: 16px !important;
+                            overflow: hidden !important;
+                        }
+                        #hrManagementOverlay.hr-agent-only #hrContentAgent {
+                            display: flex !important;
+                            flex-direction: column;
+                            height: 100%;
+                            min-height: 0;
+                        }
+                        #hrManagementOverlay.hr-agent-only #hrContentAgent > div:first-child {
+                            margin-bottom: 12px !important;
+                        }
+                        #hrManagementOverlay.hr-agent-only #hrContentAgent > div:last-child {
+                            flex: 1;
+                            min-height: 0;
+                            display: flex;
+                            flex-direction: column;
+                        }
+                        #hrManagementOverlay.hr-agent-only #hrChatMessages {
+                            flex: 1;
+                            height: auto !important;
+                            min-height: 0;
                         }
                     }
 
                     /* Paysage / faible hauteur: scroll global plus fiable */
                     @media (max-height: 520px) and (orientation: landscape) {
-                        #hrManagementOverlay {
+                        #hrManagementOverlay:not(.hr-agent-only) {
                             height: 100dvh !important;
                             overflow-y: auto !important;
                             overflow-x: hidden !important;
                             -webkit-overflow-scrolling: touch;
                             touch-action: pan-y;
                         }
-                        .hr-content-area {
+                        #hrManagementOverlay:not(.hr-agent-only) .hr-content-area {
                             overflow-y: visible !important;
                         }
                     }
@@ -18295,6 +18328,9 @@ ${persona}
             `;
             
             document.body.appendChild(overlay);
+
+            // État initial: dashboard (permet à showHRTab d'avoir un état propre)
+            try { showHRTab('dashboard'); } catch (_) {}
             
             // Initialize HR data (différé pour laisser le navigateur peindre l'UI)
             setTimeout(() => {
@@ -24229,17 +24265,49 @@ N'inclus des actions QUE si l'utilisateur demande explicitement de modifier/ajou
                 return;
             }
 
-            // Hide only the previous content (évite de toucher tous les panneaux)
-            if (window.__hrUiState.activeContentId) {
-                const prev = document.getElementById(window.__hrUiState.activeContentId);
-                if (prev) prev.style.display = 'none';
+            const overlay = document.getElementById('hrManagementOverlay');
+            const root = overlay ? overlay : document;
+
+            // Mobile: en mode Agent RH, n'afficher que la vue chat (évite confusion)
+            try {
+                const isMobile = window.matchMedia && window.matchMedia('(max-width: 768px)').matches;
+                if (overlay && tabName === 'agent' && isMobile) {
+                    overlay.classList.add('hr-agent-only');
+
+                    const titleEl = overlay.querySelector('.hr-title');
+                    const subtitleEl = overlay.querySelector('.hr-subtitle');
+                    if (titleEl && titleEl.dataset && titleEl.dataset.hrOriginal == null) {
+                        titleEl.dataset.hrOriginal = titleEl.textContent || '';
+                    }
+                    if (subtitleEl && subtitleEl.dataset && subtitleEl.dataset.hrOriginal == null) {
+                        subtitleEl.dataset.hrOriginal = subtitleEl.textContent || '';
+                    }
+                    if (titleEl) titleEl.textContent = 'Agent RH';
+                    if (subtitleEl) subtitleEl.textContent = 'Assistant IA RH';
+                } else if (overlay) {
+                    overlay.classList.remove('hr-agent-only');
+                    const titleEl = overlay.querySelector('.hr-title');
+                    const subtitleEl = overlay.querySelector('.hr-subtitle');
+                    if (titleEl && titleEl.dataset && titleEl.dataset.hrOriginal != null) {
+                        titleEl.textContent = titleEl.dataset.hrOriginal;
+                        delete titleEl.dataset.hrOriginal;
+                    }
+                    if (subtitleEl && subtitleEl.dataset && subtitleEl.dataset.hrOriginal != null) {
+                        subtitleEl.textContent = subtitleEl.dataset.hrOriginal;
+                        delete subtitleEl.dataset.hrOriginal;
+                    }
+                }
+            } catch (_) {
+                // ignore
             }
 
-            // Remove active only from previous tab
-            if (window.__hrUiState.activeTabId) {
-                const prevTab = document.getElementById(window.__hrUiState.activeTabId);
-                if (prevTab) prevTab.classList.remove('active');
-            }
+            // Masquer tous les contenus + reset tous les onglets (sécurise les 1ères ouvertures)
+            root.querySelectorAll('.hr-content').forEach(p => {
+                p.style.display = 'none';
+            });
+            root.querySelectorAll('.hr-tab').forEach(btn => {
+                btn.classList.remove('active');
+            });
             
             // Show selected content
             const selectedContent = document.getElementById(`hrContent${tabName.charAt(0).toUpperCase() + tabName.slice(1)}`);
@@ -24253,10 +24321,7 @@ N'inclus des actions QUE si l'utilisateur demande explicitement de modifier/ajou
             if (contentArea) {
                 contentArea.scrollTop = 0;
             }
-            const overlay = document.getElementById('hrManagementOverlay');
-            if (overlay) {
-                overlay.scrollTop = 0;
-            }
+            if (overlay) overlay.scrollTop = 0;
             
             // Activate selected tab
             const selectedTab = document.getElementById(`hrTab${tabName.charAt(0).toUpperCase() + tabName.slice(1)}`);
