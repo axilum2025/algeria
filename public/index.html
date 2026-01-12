@@ -917,28 +917,22 @@
 
         .input-wrapper {
             display: flex;
-            flex-wrap: wrap;
             align-items: center;
             gap: 10px;
-            padding: 16px 18px;
-            background: linear-gradient(135deg,
-                color-mix(in srgb, var(--bg-primary) 86%, #ffffff 14%),
-                color-mix(in srgb, var(--bg-primary) 78%, #e9ecff 22%)
-            );
+            padding: 12px 16px;
+            background: color-mix(in srgb, var(--bg-sidebar) 92%, transparent);
             border-radius: 28px;
-            border: 1px solid color-mix(in srgb, var(--border-color) 55%, #c7d7ff 45%);
-            transition: all 0.25s ease;
-            box-shadow: 0 10px 32px rgba(25, 46, 91, 0.18);
-            min-height: 56px;
+            border: 1.5px solid var(--border-color);
+            transition: all 0.2s;
+            box-shadow: 0 2px 16px var(--shadow);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
         }
 
         .input-wrapper:focus-within {
-            border-color: color-mix(in srgb, var(--accent) 65%, #a5c8ff 35%);
-            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.14);
-            background: linear-gradient(135deg,
-                color-mix(in srgb, var(--bg-primary) 76%, #ffffff 24%),
-                color-mix(in srgb, var(--bg-primary) 70%, #dbeafe 30%)
-            );
+            border-color: var(--accent);
+            background: var(--bg-sidebar);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
         }
 
         .input-actions {
@@ -1067,11 +1061,11 @@
             font-size: 15px;
             color: var(--text-primary);
             resize: none;
-            max-height: 200px;
+            max-height: 150px;
             font-family: inherit;
             min-height: 24px;
-            line-height: 1.55;
-            padding: 10px 12px;
+            line-height: 1.5;
+            padding: 6px 8px;
         }
 
         #userInput::placeholder {
@@ -1080,20 +1074,19 @@
         }
 
         .send-btn {
-            background: linear-gradient(135deg, #1a73e8, #7ab5ff);
-            color: #fff;
+            background: transparent;
+            color: var(--accent);
             border: none;
-            border-radius: 16px;
-            width: 44px;
-            height: 40px;
+            border-radius: 50%;
+            width: 36px;
+            height: 36px;
             display: flex;
             align-items: center;
             justify-content: center;
             cursor: pointer;
-            transition: all 0.25s ease;
+            transition: all 0.2s;
             flex-shrink: 0;
             padding: 0;
-            box-shadow: 0 10px 26px rgba(26, 115, 232, 0.35);
         }
 
         .send-btn svg {
