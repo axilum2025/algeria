@@ -1127,13 +1127,21 @@
 
         .send-btn:focus,
         .send-btn:active {
-            outline: none;
-            box-shadow: none;
+            outline: none !important;
+            box-shadow: none !important;
+            -webkit-tap-highlight-color: transparent;
         }
 
         .send-btn:focus-visible {
-            outline: 2px solid var(--accent);
-            outline-offset: 2px;
+            outline: 1px solid var(--accent) !important;
+            outline-offset: 1px;
+        }
+
+        .send-btn {
+            -webkit-tap-highlight-color: transparent;
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;
+            user-select: none;
         }
 
         /* Typing Indicator */
