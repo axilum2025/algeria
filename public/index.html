@@ -2760,137 +2760,170 @@
             display: flex;
         }
 
+        /* Goutte d'eau spatiale - flotte doucement dans l'espace */
         .voice-orb {
             position: relative;
             width: 120px;
             height: 120px;
-            border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
             cursor: pointer;
-            transition: all 0.3s ease;
+            transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
+        /* Halo ambiant très doux */
         .voice-orb::before {
             content: '';
             position: absolute;
-            width: 100%;
-            height: 100%;
+            width: 140%;
+            height: 140%;
             border-radius: 50%;
-            background: conic-gradient(from 0deg, #667eea, #764ba2, #a78bfa, #667eea);
-            opacity: 0.4;
-            animation: gemini-rotate 4s linear infinite;
-            filter: blur(15px);
+            background: radial-gradient(circle, var(--accent-alpha, rgba(102, 126, 234, 0.15)) 0%, transparent 70%);
+            animation: space-ambient 6s ease-in-out infinite;
+            filter: blur(20px);
         }
 
-        .voice-orb::after {
-            content: '';
-            position: absolute;
-            width: 90%;
-            height: 90%;
-            border-radius: 50%;
-            background: conic-gradient(from 180deg, #764ba2, #667eea, #a78bfa, #764ba2);
-            opacity: 0.3;
-            animation: gemini-rotate 3s linear infinite reverse;
-            filter: blur(10px);
+        @keyframes space-ambient {
+            0%, 100% { transform: scale(1); opacity: 0.5; }
+            50% { transform: scale(1.1); opacity: 0.7; }
         }
 
-        @keyframes gemini-rotate {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-
-        @keyframes gemini-pulse {
-            0%, 100% { transform: scale(1); opacity: 0.8; }
-            50% { transform: scale(1.15); opacity: 1; }
-        }
-
+        /* Core - la goutte d'eau qui flotte */
         .voice-orb-core {
-            width: 70px;
-            height: 70px;
-            border-radius: 50%;
-            background: radial-gradient(circle at 30% 30%, #a78bfa, #667eea 50%, #764ba2);
-            border: 2px solid rgba(255, 255, 255, 0.3);
-            box-shadow: 0 0 30px rgba(102, 126, 234, 0.5), inset 0 0 20px rgba(255, 255, 255, 0.2);
+            width: 80px;
+            height: 80px;
+            border-radius: 48% 52% 53% 47% / 52% 48% 52% 48%;
+            background: linear-gradient(135deg, 
+                var(--accent, #667eea) 0%, 
+                color-mix(in srgb, var(--accent, #667eea) 70%, white) 30%,
+                var(--accent, #667eea) 70%,
+                color-mix(in srgb, var(--accent, #667eea) 60%, black) 100%);
+            box-shadow: 
+                0 0 40px var(--accent-alpha, rgba(102, 126, 234, 0.3)),
+                inset 3px 3px 15px rgba(255, 255, 255, 0.4),
+                inset -3px -3px 15px rgba(0, 0, 0, 0.1);
             display: flex;
             align-items: center;
             justify-content: center;
             position: relative;
             z-index: 1;
-            animation: gemini-pulse 2s ease-in-out infinite;
+            animation: space-float 8s ease-in-out infinite, morph-idle 12s ease-in-out infinite;
+            transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        @keyframes space-float {
+            0%, 100% { transform: translateY(0) rotate(0deg); }
+            25% { transform: translateY(-8px) rotate(2deg); }
+            50% { transform: translateY(-4px) rotate(-1deg); }
+            75% { transform: translateY(-10px) rotate(1deg); }
+        }
+
+        @keyframes morph-idle {
+            0%, 100% { border-radius: 48% 52% 53% 47% / 52% 48% 52% 48%; }
+            25% { border-radius: 52% 48% 47% 53% / 48% 52% 48% 52%; }
+            50% { border-radius: 50% 50% 52% 48% / 53% 47% 50% 50%; }
+            75% { border-radius: 47% 53% 50% 50% / 50% 50% 53% 47%; }
         }
 
         .voice-orb-core svg {
             display: none;
         }
 
+        /* Reflet lumineux sur la goutte */
         .voice-orb-core::before {
             content: '';
-            width: 20px;
-            height: 20px;
+            position: absolute;
+            top: 15%;
+            left: 20%;
+            width: 25px;
+            height: 15px;
             border-radius: 50%;
-            background: radial-gradient(circle, white 0%, rgba(255,255,255,0.6) 50%, transparent 70%);
-            animation: gemini-inner-glow 1.5s ease-in-out infinite;
+            background: radial-gradient(ellipse, rgba(255,255,255,0.7) 0%, transparent 70%);
+            animation: shine-float 8s ease-in-out infinite;
         }
 
-        @keyframes gemini-inner-glow {
-            0%, 100% { transform: scale(1); opacity: 0.9; }
-            50% { transform: scale(1.3); opacity: 1; }
+        @keyframes shine-float {
+            0%, 100% { transform: translate(0, 0) scale(1); opacity: 0.7; }
+            50% { transform: translate(3px, 2px) scale(1.1); opacity: 0.9; }
         }
 
+        /* État: Écoute (utilisateur parle) - Bleu doux */
         .voice-orb.listening .voice-orb-core {
-            background: radial-gradient(circle at 30% 30%, #60a5fa, #3b82f6 50%, #2563eb);
-            box-shadow: 0 0 40px rgba(59, 130, 246, 0.7), inset 0 0 25px rgba(255, 255, 255, 0.3);
-            animation: gemini-listening 0.8s ease-in-out infinite;
+            background: linear-gradient(135deg, 
+                #6ea8fe 0%, 
+                #9ec5fe 30%,
+                #6ea8fe 70%,
+                #4a8fe7 100%);
+            box-shadow: 
+                0 0 50px rgba(110, 168, 254, 0.4),
+                inset 3px 3px 20px rgba(255, 255, 255, 0.5),
+                inset -3px -3px 15px rgba(74, 143, 231, 0.2);
+            animation: space-float 4s ease-in-out infinite, morph-listening 3s ease-in-out infinite;
+        }
+
+        @keyframes morph-listening {
+            0%, 100% { border-radius: 48% 52% 53% 47% / 52% 48% 52% 48%; transform: translateY(0) scale(1); }
+            25% { border-radius: 52% 48% 45% 55% / 55% 45% 52% 48%; transform: translateY(-6px) scale(1.02); }
+            50% { border-radius: 45% 55% 52% 48% / 48% 52% 45% 55%; transform: translateY(-3px) scale(1.04); }
+            75% { border-radius: 55% 45% 48% 52% / 52% 48% 55% 45%; transform: translateY(-8px) scale(1.01); }
         }
 
         .voice-orb.listening::before {
-            background: conic-gradient(from 0deg, #3b82f6, #60a5fa, #93c5fd, #3b82f6);
-            opacity: 0.6;
-            animation: gemini-rotate 2s linear infinite;
+            background: radial-gradient(circle, rgba(110, 168, 254, 0.25) 0%, transparent 70%);
+            animation: space-ambient 3s ease-in-out infinite;
         }
 
-        @keyframes gemini-listening {
-            0%, 100% { transform: scale(1); }
-            25% { transform: scale(1.08); }
-            50% { transform: scale(1.12); }
-            75% { transform: scale(1.05); }
-        }
-
+        /* État: Réflexion (AI pense) - Violet doux */
         .voice-orb.thinking .voice-orb-core {
-            background: radial-gradient(circle at 30% 30%, #fbbf24, #f59e0b 50%, #d97706);
-            box-shadow: 0 0 40px rgba(245, 158, 11, 0.7), inset 0 0 25px rgba(255, 255, 255, 0.3);
-            animation: gemini-thinking 1s linear infinite;
+            background: linear-gradient(135deg, 
+                #b4a7d6 0%, 
+                #d4c4eb 30%,
+                #b4a7d6 70%,
+                #9688c0 100%);
+            box-shadow: 
+                0 0 50px rgba(180, 167, 214, 0.4),
+                inset 3px 3px 20px rgba(255, 255, 255, 0.5),
+                inset -3px -3px 15px rgba(150, 136, 192, 0.2);
+            animation: space-float 5s ease-in-out infinite, morph-thinking 4s ease-in-out infinite;
+        }
+
+        @keyframes morph-thinking {
+            0%, 100% { border-radius: 50% 50% 50% 50%; transform: translateY(0) rotate(0deg); }
+            25% { border-radius: 55% 45% 55% 45%; transform: translateY(-5px) rotate(3deg); }
+            50% { border-radius: 45% 55% 45% 55%; transform: translateY(-7px) rotate(-2deg); }
+            75% { border-radius: 52% 48% 52% 48%; transform: translateY(-4px) rotate(1deg); }
         }
 
         .voice-orb.thinking::before {
-            background: conic-gradient(from 0deg, #f59e0b, #fbbf24, #fcd34d, #f59e0b);
-            opacity: 0.6;
-            animation: gemini-rotate 1s linear infinite;
+            background: radial-gradient(circle, rgba(180, 167, 214, 0.25) 0%, transparent 70%);
+            animation: space-ambient 2s ease-in-out infinite;
         }
 
-        @keyframes gemini-thinking {
-            0% { transform: rotate(0deg) scale(1); }
-            50% { transform: rotate(180deg) scale(1.05); }
-            100% { transform: rotate(360deg) scale(1); }
-        }
-
+        /* État: Parle (AI répond) - Vert menthe doux */
         .voice-orb.speaking .voice-orb-core {
-            background: radial-gradient(circle at 30% 30%, #34d399, #10b981 50%, #059669);
-            box-shadow: 0 0 50px rgba(16, 185, 129, 0.8), inset 0 0 30px rgba(255, 255, 255, 0.3);
-            animation: gemini-speaking 0.4s ease-in-out infinite;
+            background: linear-gradient(135deg, 
+                #93e4c1 0%, 
+                #b8f0d8 30%,
+                #93e4c1 70%,
+                #6dcaa8 100%);
+            box-shadow: 
+                0 0 55px rgba(147, 228, 193, 0.45),
+                inset 3px 3px 20px rgba(255, 255, 255, 0.5),
+                inset -3px -3px 15px rgba(109, 202, 168, 0.2);
+            animation: space-float 3s ease-in-out infinite, morph-speaking 2s ease-in-out infinite;
+        }
+
+        @keyframes morph-speaking {
+            0%, 100% { border-radius: 48% 52% 53% 47% / 52% 48% 52% 48%; transform: scale(1); }
+            25% { border-radius: 52% 48% 48% 52% / 48% 52% 55% 45%; transform: scale(1.03); }
+            50% { border-radius: 50% 50% 55% 45% / 53% 47% 48% 52%; transform: scale(1.06); }
+            75% { border-radius: 47% 53% 50% 50% / 50% 50% 52% 48%; transform: scale(1.02); }
         }
 
         .voice-orb.speaking::before {
-            background: conic-gradient(from 0deg, #10b981, #34d399, #6ee7b7, #10b981);
-            opacity: 0.7;
-            animation: gemini-rotate 1.5s linear infinite;
-        }
-
-        @keyframes gemini-speaking {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.18); }
+            background: radial-gradient(circle, rgba(147, 228, 193, 0.3) 0%, transparent 70%);
+            animation: space-ambient 2s ease-in-out infinite;
         }
 
         .voice-particles {
@@ -2942,42 +2975,42 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 4px;
+            gap: 6px;
             height: 40px;
         }
 
         .voice-bar {
             width: 4px;
-            height: 12px;
-            background: linear-gradient(to top, #667eea, #a78bfa);
+            height: 8px;
+            background: var(--accent, #667eea);
             border-radius: 4px;
-            opacity: 0.4;
-            transition: all 0.1s ease;
+            opacity: 0.3;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
         .voice-orb.listening .voice-bar {
-            background: linear-gradient(to top, #3b82f6, #60a5fa);
-            animation: voice-bar-listening 0.4s ease-in-out infinite;
+            background: #6ea8fe;
+            animation: bar-gentle-listening 1.2s ease-in-out infinite;
         }
 
         .voice-orb.speaking .voice-bar {
-            background: linear-gradient(to top, #10b981, #34d399);
-            animation: voice-bar-speaking 0.3s ease-in-out infinite;
+            background: #93e4c1;
+            animation: bar-gentle-speaking 0.8s ease-in-out infinite;
         }
 
-        @keyframes voice-bar-listening {
-            0%, 100% { height: 12px; opacity: 0.4; }
-            50% { height: 30px; opacity: 0.9; }
+        @keyframes bar-gentle-listening {
+            0%, 100% { height: 8px; opacity: 0.3; }
+            50% { height: 22px; opacity: 0.6; }
         }
 
-        @keyframes voice-bar-speaking {
-            0%, 100% { height: 12px; opacity: 0.5; }
-            50% { height: 35px; opacity: 1; }
+        @keyframes bar-gentle-speaking {
+            0%, 100% { height: 8px; opacity: 0.4; }
+            50% { height: 28px; opacity: 0.7; }
         }
 
         .voice-bar:nth-child(1) { animation-delay: 0s; }
-        .voice-bar:nth-child(2) { animation-delay: 0.08s; }
-        .voice-bar:nth-child(3) { animation-delay: 0.16s; }
+        .voice-bar:nth-child(2) { animation-delay: 0.15s; }
+        .voice-bar:nth-child(3) { animation-delay: 0.3s; }
         .voice-bar:nth-child(4) { animation-delay: 0.24s; }
         .voice-bar:nth-child(5) { animation-delay: 0.32s; }
 
