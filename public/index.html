@@ -36553,7 +36553,10 @@ Réponds UNIQUEMENT dans ce format JSON:
                 // Créer et configurer la synthèse vocale
                 const cleanText = cleanTextForSpeech(text, 3000);
                 const utterance = new SpeechSynthesisUtterance(cleanText);
-                utterance.lang = getSpeechLocale();
+                const locale = getSpeechLocale();
+                utterance.lang = locale;
+                const chosenVoice = pickVoiceForLocale(locale);
+                if (chosenVoice) utterance.voice = chosenVoice;
                 utterance.rate = 1.0;
                 utterance.pitch = 1.0;
                 utterance.volume = 1.0;
@@ -36705,6 +36708,33 @@ Réponds UNIQUEMENT dans ce format JSON:
         let voiceInputTimer = null; // Timer pour attendre la fin de l'énoncé
         let lastTranscript = ''; // Dernier transcript pour éviter les doublons
         let recognitionStartIndex = 0; // Index de départ pour éviter les répétitions
+
+        // 🔊 Cache des voix TTS pour stabiliser la langue sélectionnée
+        let cachedVoices = [];
+
+        function refreshTtsVoices() {
+            if (!voiceSynthesis || typeof voiceSynthesis.getVoices !== 'function') return;
+            cachedVoices = voiceSynthesis.getVoices();
+        }
+
+        // Choisir la meilleure voix correspondant à la locale (ex: en-US, fr-FR)
+        function pickVoiceForLocale(locale) {
+            if (!cachedVoices || cachedVoices.length === 0) refreshTtsVoices();
+            const lang = String(locale || '').toLowerCase();
+            if (!lang) return null;
+            const startsWithMatch = cachedVoices.find(v => String(v.lang || '').toLowerCase() === lang);
+            if (startsWithMatch) return startsWithMatch;
+            const prefix = lang.split('-')[0];
+            const prefixMatch = cachedVoices.find(v => String(v.lang || '').toLowerCase().startsWith(prefix));
+            if (prefixMatch) return prefixMatch;
+            // Fallback: première voix dispo
+            return cachedVoices[0] || null;
+        }
+
+        if (voiceSynthesis && voiceSynthesis.addEventListener) {
+            voiceSynthesis.addEventListener('voiceschanged', refreshTtsVoices);
+        }
+        refreshTtsVoices();
 
         // Initialiser la reconnaissance vocale
         function initVoiceRecognition() {
@@ -36935,7 +36965,10 @@ Réponds UNIQUEMENT dans ce format JSON:
             }
 
             currentUtterance = new SpeechSynthesisUtterance(cleanText);
-            currentUtterance.lang = getSpeechLocale();
+            const locale = getSpeechLocale();
+            currentUtterance.lang = locale;
+            const chosenVoice = pickVoiceForLocale(locale);
+            if (chosenVoice) currentUtterance.voice = chosenVoice;
             currentUtterance.rate = 1.0;
             currentUtterance.pitch = 1.0;
             currentUtterance.volume = 1.0;
