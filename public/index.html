@@ -100,11 +100,28 @@
             padding: 8px;
             border-radius: 8px;
             transition: background 0.2s;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
         }
 
         .menu-btn svg {
             width: 24px;
             height: 24px;
+        }
+
+        /* Desktop: bouton menu un peu plus grand (meilleure harmonie avec le logo) */
+        @media (min-width: 800px) {
+            .menu-btn {
+                width: 40px;
+                height: 40px;
+                padding: 8px;
+            }
+
+            .menu-btn svg {
+                width: 28px;
+                height: 28px;
+            }
         }
 
         .menu-btn:hover {
