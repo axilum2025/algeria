@@ -29545,7 +29545,7 @@ ${recruitmentInfo}
                                     ${riskLabel}
                                 </div>
                                 <div class="turnover-card-score-value" style="font-size: 32px; font-weight: 700; color: ${riskColor};">${analysis.riskScore}%</div>
-                                ${confidence === null ? '' : `<div style="margin-top: 4px; font-size: 11px; color: rgba(255,255,255,0.6);">Confiance: <strong style=\"color: rgba(255,255,255,0.85);\">${confidence}%</strong> (${confidenceLabel})</div>`}
+                                ${confidence === null ? '' : `<div style="margin-top: 4px; font-size: 11px; color: rgba(255,255,255,0.6);">Confiance: <strong style=\"color: rgba(255,255,255,0.85);\">${confidence}%</strong></div>`}
                             </div>
                         </div>
                         
@@ -29720,7 +29720,7 @@ ${recruitmentInfo}
                         ${confidence === null ? '' : `
                         <div class="turnover-modal-meta" style="display:flex; gap: 12px; flex-wrap: wrap; align-items: center; justify-content: center;">
                             <div class="turnover-modal-chip turnover-modal-chip-confidence" style="background: rgba(255,255,255,0.18); border: 1px solid rgba(255,255,255,0.25); border-radius: 999px; padding: 8px 14px; font-size: 12px; font-weight: 700;">
-                                Confiance: ${confidence}% (${confidenceLabel})
+                                Confiance: ${confidence}%
                             </div>
                             <div class="turnover-modal-chip turnover-modal-chip-window" style="background: rgba(255,255,255,0.12); border: 1px solid rgba(255,255,255,0.2); border-radius: 999px; padding: 8px 14px; font-size: 12px; font-weight: 600; opacity: 0.95;">
                                 Fenêtre: ${windowMonths} derniers mois
