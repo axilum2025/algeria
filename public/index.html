@@ -25033,7 +25033,13 @@ N'inclus des actions QUE si l'utilisateur demande explicitement de modifier/ajou
                 </div>
             `;
             
-            document.body.appendChild(modal);
+            // Ajouter au hrManagementOverlay pour éviter les problèmes d'instance
+            const hrOverlay = document.getElementById('hrManagementOverlay');
+            if (hrOverlay) {
+                hrOverlay.appendChild(modal);
+            } else {
+                document.body.appendChild(modal);
+            }
         }
         
         function closeAddEmployeeModal() {
@@ -30324,7 +30330,13 @@ ${recruitmentInfo}
                 </div>
             `;
             
-            document.body.appendChild(modal);
+            // Ajouter au hrManagementOverlay pour éviter les problèmes d'instance
+            const hrOverlay = document.getElementById('hrManagementOverlay');
+            if (hrOverlay) {
+                hrOverlay.appendChild(modal);
+            } else {
+                document.body.appendChild(modal);
+            }
             modal.onclick = (e) => {
                 if (e.target === modal) modal.remove();
             };
@@ -30441,7 +30453,13 @@ ${recruitmentInfo}
                 </div>
             `;
             
-            document.body.appendChild(modal);
+            // Ajouter au hrManagementOverlay pour éviter les problèmes d'instance
+            const hrOverlay = document.getElementById('hrManagementOverlay');
+            if (hrOverlay) {
+                hrOverlay.appendChild(modal);
+            } else {
+                document.body.appendChild(modal);
+            }
             modal.onclick = (e) => {
                 if (e.target === modal) modal.remove();
             };
