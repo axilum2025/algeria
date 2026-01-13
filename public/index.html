@@ -16378,6 +16378,19 @@ ${persona}
                         box-shadow: 0 8px 20px rgba(16, 185, 129, 0.4);
                     }
                     
+                    /* HR buttons: avoid green flash on click */
+                    .hr-btn, .hr-tab, .hr-close-btn, #hrManagementOverlay button {
+                        -webkit-tap-highlight-color: transparent;
+                    }
+                    
+                    .hr-btn:focus, .hr-tab:focus, .hr-close-btn:focus, #hrManagementOverlay button:focus {
+                        outline: none;
+                    }
+                    
+                    .hr-btn:active, .hr-tab:active, .hr-close-btn:active, #hrManagementOverlay button:active {
+                        outline: none;
+                    }
+                    
                     .hr-close-btn {
                         position: absolute;
                         top: 24px;
