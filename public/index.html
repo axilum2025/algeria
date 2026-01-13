@@ -4082,6 +4082,9 @@
                             <strong>Devise :</strong> la facturation est en $ (USD).
                             Utilisez le taux de change actuel pour confirmer le prix.
                         </p>
+
+                        <div id="pricingByModelTitle" style="margin-top: 14px; font-weight: 700; color: var(--text-primary); font-size: 13px;">Prix par modèle :</div>
+                        <div id="pricingByModelBody" style="margin-top: 8px; color: var(--text-secondary); font-size: 13px;">Chargement…</div>
                     </div>
                 </div>
 
@@ -4431,6 +4434,137 @@
                     </div>
                 ` : ''}
             `;
+        }
+
+        let pricingByModelCache = null;
+        let pricingByModelFetchPromise = null;
+
+        function formatPricingRate(value) {
+            const n = Number(value);
+            if (!Number.isFinite(n)) return null;
+            try {
+                return new Intl.NumberFormat(getLocale(), { style: 'decimal', minimumFractionDigits: 2, maximumFractionDigits: 6 }).format(n);
+            } catch (_) {
+                return String(n);
+            }
+        }
+
+        function escapeHtmlLite(value) {
+            const s = String(value == null ? '' : value);
+            if (typeof escapeHtml === 'function') return escapeHtml(s);
+            return s
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#39;');
+        }
+
+        function renderPricingByModelTable(models) {
+            const titleEl = document.getElementById('pricingByModelTitle');
+            const bodyEl = document.getElementById('pricingByModelBody');
+            if (titleEl) titleEl.textContent = t('settings.pricing.byModelTitle');
+            if (!bodyEl) return;
+
+            const list = Array.isArray(models) ? models : [];
+            if (!list.length) {
+                bodyEl.textContent = t('settings.pricing.byModel.loading');
+                return;
+            }
+
+            const rows = list
+                .slice()
+                .sort((a, b) => String(a?.id || '').localeCompare(String(b?.id || '')))
+                .map((m) => {
+                    const id = String(m?.id || '').trim();
+                    const cur = String(m?.pricingCurrency || '').trim().toUpperCase();
+                    const inRate = m?.in != null && Number.isFinite(Number(m.in)) ? Number(m.in) : null;
+                    const outRate = m?.out != null && Number.isFinite(Number(m.out)) ? Number(m.out) : null;
+
+                    const tokensRef = t('settings.pricing.byModel.tokensRef');
+
+                    let costHtml = escapeHtmlLite(t('settings.pricing.byModel.na'));
+                    if (inRate != null || outRate != null) {
+                        const inTxt = inRate == null ? null : formatPricingRate(inRate);
+                        const outTxt = outRate == null ? null : formatPricingRate(outRate);
+                        const safeCur = escapeHtmlLite(cur || '');
+                        costHtml = `<div style="color: var(--text-primary); font-weight: 700;">${escapeHtmlLite(inTxt == null ? t('settings.pricing.byModel.na') : inTxt)} ${safeCur}/1M</div>`
+                            + `<div style="color: var(--text-secondary); font-size: 12px; margin-top: 2px;">${escapeHtmlLite(t('settings.pricing.byModel.prompt'))}</div>`
+                            + `<div style="height: 6px;"></div>`
+                            + `<div style="color: var(--text-primary); font-weight: 700;">${escapeHtmlLite(outTxt == null ? t('settings.pricing.byModel.na') : outTxt)} ${safeCur}/1M</div>`
+                            + `<div style="color: var(--text-secondary); font-size: 12px; margin-top: 2px;">${escapeHtmlLite(t('settings.pricing.byModel.completion'))}</div>`;
+                    }
+
+                    return `
+                        <tr style="border-top: 1px solid var(--border-color);">
+                            <td style="text-align:left; padding: 10px 10px; color: var(--text-primary); font-weight: 600;">${escapeHtmlLite(id)}</td>
+                            <td style="text-align:left; padding: 10px 10px; color: var(--text-secondary);">${escapeHtmlLite(tokensRef)}</td>
+                            <td style="text-align:right; padding: 10px 10px;">${costHtml}</td>
+                        </tr>
+                    `;
+                })
+                .join('');
+
+            bodyEl.innerHTML = `
+                <div style="overflow:auto; border: 1px solid var(--border-color); border-radius: 10px;">
+                    <table style="width: 100%; border-collapse: collapse; font-size: 13px;">
+                        <thead>
+                            <tr style="background: var(--bg-secondary); border-bottom: 1px solid var(--border-color);">
+                                <th style="text-align:left; padding: 10px 10px; color: var(--text-primary);">${escapeHtmlLite(t('settings.pricing.byModel.table.model'))}</th>
+                                <th style="text-align:left; padding: 10px 10px; color: var(--text-primary);">${escapeHtmlLite(t('settings.pricing.byModel.table.tokens'))}</th>
+                                <th style="text-align:right; padding: 10px 10px; color: var(--text-primary);">${escapeHtmlLite(t('settings.pricing.byModel.table.cost'))}</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${rows}
+                        </tbody>
+                    </table>
+                </div>
+            `;
+        }
+
+        async function refreshPricingByModelTable(forceFetch = false) {
+            try {
+                const cached = Array.isArray(pricingByModelCache) ? pricingByModelCache : null;
+                const fromAiCache = Array.isArray(aiModelsCache) ? aiModelsCache : null;
+
+                if (!forceFetch) {
+                    if (cached && cached.length) {
+                        renderPricingByModelTable(cached);
+                        return;
+                    }
+                    if (fromAiCache && fromAiCache.length) {
+                        pricingByModelCache = fromAiCache;
+                        renderPricingByModelTable(fromAiCache);
+                        return;
+                    }
+                }
+
+                if (pricingByModelFetchPromise) {
+                    await pricingByModelFetchPromise;
+                    if (Array.isArray(pricingByModelCache)) renderPricingByModelTable(pricingByModelCache);
+                    return;
+                }
+
+                const bodyEl = document.getElementById('pricingByModelBody');
+                if (bodyEl) bodyEl.textContent = t('settings.pricing.byModel.loading');
+
+                pricingByModelFetchPromise = (async () => {
+                    const res = await fetch('/api/ai/models?purpose=chat', { method: 'GET' });
+                    const data = await res.json().catch(() => null);
+                    const models = (res.ok && data && Array.isArray(data.models)) ? data.models : [];
+                    pricingByModelCache = models;
+                })();
+
+                await pricingByModelFetchPromise;
+                pricingByModelFetchPromise = null;
+                renderPricingByModelTable(pricingByModelCache);
+            } catch (_) {
+                try {
+                    const bodyEl = document.getElementById('pricingByModelBody');
+                    if (bodyEl) bodyEl.textContent = t('settings.pricing.byModel.loading');
+                } catch (_) {}
+            }
         }
 
         async function refreshAiModelSelect() {
@@ -11021,6 +11155,15 @@ ${persona}
                 'settings.pricing.p1': '<strong>Axilum AI fonctionne en prépayé :</strong> vous chargez un crédit (en $) et vous pouvez utiliser tous les modules tant que ce crédit n’est pas épuisé. La consommation est calculée côté serveur à partir des usages réels (tokens, appels IA) et déduite automatiquement.',
                 'settings.pricing.p2': '<strong>Où voir le solde ?</strong> Le compteur en haut affiche votre crédit restant. <strong>Pour voir le détail</strong> (période, coût IA, etc.), cliquez directement sur ce compteur.',
                 'settings.pricing.p3': '<strong>Devise :</strong> la facturation est en $ (USD). Utilisez le taux de change actuel pour confirmer le prix.',
+                'settings.pricing.byModelTitle': 'Prix par modèle :',
+                'settings.pricing.byModel.loading': 'Chargement…',
+                'settings.pricing.byModel.table.model': 'Modèle',
+                'settings.pricing.byModel.table.tokens': 'Tokens',
+                'settings.pricing.byModel.table.cost': 'Coût',
+                'settings.pricing.byModel.tokensRef': '1M tokens',
+                'settings.pricing.byModel.na': 'N/A',
+                'settings.pricing.byModel.prompt': 'prompt',
+                'settings.pricing.byModel.completion': 'completion',
                 'settings.infoTitle': 'Informations',
                 'settings.infoContent': '<strong>Version :</strong> 1.0.0<br><strong>Dernière mise à jour :</strong> Décembre 2025<br><strong>Build :</strong> Production',
 
@@ -11517,6 +11660,15 @@ ${persona}
                 'settings.pricing.p1': '<strong>Axilum AI runs on prepaid credit:</strong> you top up a balance (in $) and can use all modules as long as your credit is not depleted. Usage is computed server-side from real consumption (tokens, AI calls) and deducted automatically.',
                 'settings.pricing.p2': '<strong>Where to see your balance?</strong> The counter at the top shows your remaining credit. <strong>To see details</strong> (period, AI cost, etc.), click directly on that counter.',
                 'settings.pricing.p3': '<strong>Currency:</strong> billing is in $ (USD). If you need other currencies, configure the exchange rate server-side.',
+                'settings.pricing.byModelTitle': 'Price per model:',
+                'settings.pricing.byModel.loading': 'Loading…',
+                'settings.pricing.byModel.table.model': 'Model',
+                'settings.pricing.byModel.table.tokens': 'Tokens',
+                'settings.pricing.byModel.table.cost': 'Cost',
+                'settings.pricing.byModel.tokensRef': '1M tokens',
+                'settings.pricing.byModel.na': 'N/A',
+                'settings.pricing.byModel.prompt': 'prompt',
+                'settings.pricing.byModel.completion': 'completion',
                 'settings.infoTitle': 'Information',
                 'settings.infoContent': '<strong>Version:</strong> 1.0.0<br><strong>Last update:</strong> December 2025<br><strong>Build:</strong> Production',
 
@@ -11890,6 +12042,13 @@ ${persona}
                 const pricingP3 = document.getElementById('pricingP3');
                 if (pricingP3) pricingP3.innerHTML = t('settings.pricing.p3');
 
+                const pricingByModelTitle = document.getElementById('pricingByModelTitle');
+                if (pricingByModelTitle) pricingByModelTitle.textContent = t('settings.pricing.byModelTitle');
+                try {
+                    const list = Array.isArray(pricingByModelCache) ? pricingByModelCache : (Array.isArray(aiModelsCache) ? aiModelsCache : null);
+                    if (list && list.length) renderPricingByModelTable(list);
+                } catch (_) {}
+
                 const infoSectionTitle = document.getElementById('infoSectionTitle');
                 if (infoSectionTitle) infoSectionTitle.textContent = t('settings.infoTitle');
 
@@ -12184,6 +12343,7 @@ ${persona}
             } catch (_) {}
             refreshStorageModeUI();
             try { refreshAiModelSelect(); } catch (_) {}
+            try { refreshPricingByModelTable(false); } catch (_) {}
         }
 
         function closeSettingsModal() {
