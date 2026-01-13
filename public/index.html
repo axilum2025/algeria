@@ -16477,11 +16477,10 @@ ${persona}
 
                     /* Chat Agent RH (aligné sur Dev/Mark) */
                     .hr-chat-container {
-                        background: rgba(255, 255, 255, 0.05);
-                        border: 1px solid rgba(16, 185, 129, 0.25);
+                        background: rgba(0, 0, 0, 0.3);
+                        border: 1px solid rgba(16, 185, 129, 0.3);
                         border-radius: 16px;
                         overflow: hidden;
-                        backdrop-filter: blur(10px);
                         display: flex;
                         flex-direction: column;
                         height: 500px;
@@ -16879,82 +16878,50 @@ ${persona}
 
                     /* Mobile: forcer le scroll de l'overlay (iOS/Android) */
                     @media (max-width: 768px) {
-                        #hrManagementOverlay:not(.hr-agent-only) {
+                        #hrManagementOverlay {
                             height: 100dvh !important;
                             overflow-y: auto !important;
                             overflow-x: hidden !important;
                             -webkit-overflow-scrolling: touch;
                             touch-action: pan-y;
                         }
-                        #hrManagementOverlay:not(.hr-agent-only) .hr-content-area {
+                        #hrManagementOverlay .hr-content-area {
                             overflow-y: visible !important;
                         }
 
-                        /* Mobile: vue dédiée Agent RH (comme Dev/Marketing) */
-                        #hrManagementOverlay.hr-agent-only {
-                            height: 100dvh !important;
-                            overflow: hidden !important;
-                        }
-                        #hrManagementOverlay.hr-agent-only .hr-tabs {
-                            display: none !important;
-                        }
-                        #hrManagementOverlay.hr-agent-only .hr-content-area {
-                            padding: 16px !important;
-                            overflow: hidden !important;
+                        /* Mobile: Agent RH - garder les tabs visibles (comme R&D) */
+                        #hrContentAgent {
                             display: flex;
                             flex-direction: column;
-                            height: 100%;
-                            min-height: 0;
+                            min-height: 400px;
+                            height: calc(100dvh - 200px);
+                            max-height: 70vh;
                         }
-                        #hrManagementOverlay.hr-agent-only .hr-agent-header {
-                            margin-bottom: 12px !important;
-                        }
-                        #hrManagementOverlay.hr-agent-only #hrContentAgent {
-                            display: flex !important;
-                            flex-direction: column;
-                            height: 100%;
-                            min-height: 0;
-                            flex: 1;
-                        }
-                        #hrManagementOverlay.hr-agent-only #hrContentAgent > div:first-child {
-                            margin-bottom: 12px !important;
-                        }
-                        #hrManagementOverlay.hr-agent-only #hrContentAgent > div:last-child {
+                        #hrContentAgent .hr-chat-container {
                             flex: 1;
                             min-height: 0;
                             display: flex;
                             flex-direction: column;
                         }
-                        #hrManagementOverlay.hr-agent-only .hr-chat-container {
+                        #hrContentAgent #hrChatMessages {
                             flex: 1;
                             min-height: 0;
-                            display: flex;
-                            flex-direction: column;
-                            height: auto;
                         }
-                        #hrManagementOverlay.hr-agent-only #hrChatMessages {
-                            flex: 1;
-                            height: auto !important;
-                            min-height: 0;
-                        }
-                        #hrManagementOverlay.hr-agent-only .hr-chat-messages {
-                            padding: 16px !important;
-                        }
-                        #hrManagementOverlay.hr-agent-only .hr-chat-input {
+                        #hrContentAgent .hr-chat-input {
                             padding: 14px !important;
                         }
                     }
 
                     /* Paysage / faible hauteur: scroll global plus fiable */
                     @media (max-height: 520px) and (orientation: landscape) {
-                        #hrManagementOverlay:not(.hr-agent-only) {
+                        #hrManagementOverlay {
                             height: 100dvh !important;
                             overflow-y: auto !important;
                             overflow-x: hidden !important;
                             -webkit-overflow-scrolling: touch;
                             touch-action: pan-y;
                         }
-                        #hrManagementOverlay:not(.hr-agent-only) .hr-content-area {
+                        #hrManagementOverlay .hr-content-area {
                             overflow-y: visible !important;
                         }
                     }
@@ -24578,39 +24545,8 @@ N'inclus des actions QUE si l'utilisateur demande explicitement de modifier/ajou
             const overlay = document.getElementById('hrManagementOverlay');
             const root = overlay ? overlay : document;
 
-            // Mobile: en mode Agent RH, n'afficher que la vue chat (évite confusion)
-            try {
-                const isMobile = window.matchMedia && window.matchMedia('(max-width: 768px)').matches;
-                const isTouch = window.matchMedia && window.matchMedia('(hover: none) and (pointer: coarse)').matches;
-                if (overlay && tabName === 'agent' && (isMobile || isTouch)) {
-                    overlay.classList.add('hr-agent-only');
-
-                    const titleEl = overlay.querySelector('.hr-title');
-                    const subtitleEl = overlay.querySelector('.hr-subtitle');
-                    if (titleEl && titleEl.dataset && titleEl.dataset.hrOriginal == null) {
-                        titleEl.dataset.hrOriginal = titleEl.textContent || '';
-                    }
-                    if (subtitleEl && subtitleEl.dataset && subtitleEl.dataset.hrOriginal == null) {
-                        subtitleEl.dataset.hrOriginal = subtitleEl.textContent || '';
-                    }
-                    if (titleEl) titleEl.textContent = 'Agent RH';
-                    if (subtitleEl) subtitleEl.textContent = 'Assistant IA RH';
-                } else if (overlay) {
-                    overlay.classList.remove('hr-agent-only');
-                    const titleEl = overlay.querySelector('.hr-title');
-                    const subtitleEl = overlay.querySelector('.hr-subtitle');
-                    if (titleEl && titleEl.dataset && titleEl.dataset.hrOriginal != null) {
-                        titleEl.textContent = titleEl.dataset.hrOriginal;
-                        delete titleEl.dataset.hrOriginal;
-                    }
-                    if (subtitleEl && subtitleEl.dataset && subtitleEl.dataset.hrOriginal != null) {
-                        subtitleEl.textContent = subtitleEl.dataset.hrOriginal;
-                        delete subtitleEl.dataset.hrOriginal;
-                    }
-                }
-            } catch (_) {
-                // ignore
-            }
+            // Note: On ne passe plus en mode "agent-only" - les tabs restent toujours visibles
+            // comme dans le module R&D (Agent dev)
 
             // Masquer tous les contenus + reset tous les onglets (sécurise les 1ères ouvertures)
             root.querySelectorAll('.hr-content').forEach(p => {
