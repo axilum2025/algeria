@@ -16302,6 +16302,19 @@ ${persona}
                         min-height: 0;
                         -webkit-overflow-scrolling: touch;
                         overscroll-behavior: contain;
+                        display: flex;
+                        flex-direction: column;
+                    }
+                    
+                    /* Quand l'agent est actif, le contenu doit remplir l'espace */
+                    #hrContentAgent {
+                        display: none;
+                        flex-direction: column;
+                        flex: 1;
+                        min-height: 0;
+                    }
+                    #hrContentAgent[style*="display: flex"] {
+                        flex: 1;
                     }
                     
                     .hr-stat-card {
@@ -16483,8 +16496,8 @@ ${persona}
                         overflow: hidden;
                         display: flex;
                         flex-direction: column;
-                        height: 500px;
-                        min-height: 420px;
+                        flex: 1;
+                        min-height: 400px;
                     }
 
                     .hr-chat-messages {
@@ -16893,13 +16906,15 @@ ${persona}
                         #hrContentAgent {
                             display: flex;
                             flex-direction: column;
-                            min-height: 400px;
-                            height: calc(100dvh - 200px);
-                            max-height: 70vh;
+                            flex: 1;
+                            min-height: 0;
+                        }
+                        #hrContentAgent .hr-agent-header {
+                            flex-shrink: 0;
                         }
                         #hrContentAgent .hr-chat-container {
                             flex: 1;
-                            min-height: 0;
+                            min-height: 300px;
                             display: flex;
                             flex-direction: column;
                         }
@@ -16909,6 +16924,7 @@ ${persona}
                         }
                         #hrContentAgent .hr-chat-input {
                             padding: 14px !important;
+                            flex-shrink: 0;
                         }
                     }
 
