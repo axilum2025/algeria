@@ -152,7 +152,6 @@
 <body>
   <header class="page-header">
     <div class="page-header-inner">
-      <button class="btn" id="backBtn" type="button" onclick="goBackToApp()">← Retour</button>
       <h1 class="title" id="pageTitle">Offre Entreprise</h1>
       <div style="width: 90px;"></div>
     </div>
@@ -217,7 +216,6 @@
         fr: {
           pageTitle: 'Offre Entreprise',
           documentTitle: 'Axilum AI — Offre Entreprise',
-          back: '← Retour',
           pillSecurity: 'Sécurité',
           pillAudit: 'Audit',
           pillIntegrations: 'Intégrations',
@@ -239,7 +237,6 @@
         en: {
           pageTitle: 'Enterprise Offer',
           documentTitle: 'Axilum AI — Enterprise Offer',
-          back: '← Back',
           pillSecurity: 'Security',
           pillAudit: 'Audit',
           pillIntegrations: 'Integrations',
@@ -268,7 +265,6 @@
         if (el) el.textContent = value;
       };
 
-      setText('backBtn', d.back);
       setText('pageTitle', d.pageTitle);
       setText('pillSecurity', d.pillSecurity);
       setText('pillAudit', d.pillAudit);
@@ -328,29 +324,6 @@
       } catch (_) {}
     })();
 
-    function goBackToApp() {
-      // 1) Si la page est ouverte dans un modal/iframe, demander au parent de fermer le modal
-      try {
-        if (window.parent && window.parent !== window) {
-          window.parent.postMessage({ type: 'axilum:enterprise-offer:close' }, '*');
-          return;
-        }
-      } catch (_) {}
-
-      // 2) Sinon, revenir à la page précédente (évite de recharger le menu principal)
-      try {
-        const ref = document.referrer ? new URL(document.referrer) : null;
-        if (ref && ref.origin === window.location.origin) {
-          history.back();
-          return;
-        }
-      } catch (_) {}
-
-      // 3) Fallback: retour app
-      try {
-        window.location.href = '/';
-      } catch (_) {}
-    }
   </script>
 </body>
 </html>
