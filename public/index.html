@@ -25114,11 +25114,11 @@ N'inclus des actions QUE si l'utilisateur demande explicitement de modifier/ajou
                 align-items: center;
                 justify-content: center;
                 z-index: 10003;
-                animation: fadeIn 0.3s ease;
+                padding: 16px;
             `;
             
             modal.innerHTML = `
-                <div style="background: linear-gradient(135deg, #0a4d3c 0%, #064e3b 50%, #1e3a8a 100%); border: 2px solid rgba(16, 185, 129, 0.3); border-radius: 24px; padding: 40px; max-width: 900px; width: 90%; max-height: 90vh; overflow-y: auto; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5); animation: slideIn 0.3s ease;">
+                <div style="background: linear-gradient(135deg, #0a4d3c 0%, #064e3b 50%, #1e3a8a 100%); border: 2px solid rgba(16, 185, 129, 0.3); border-radius: 24px; padding: 24px; max-width: 900px; width: 100%; max-height: 90vh; overflow-y: auto; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);">
                     <!-- Header -->
                     <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 32px; padding-bottom: 20px; border-bottom: 1px solid rgba(16, 185, 129, 0.2);">
                         <div style="flex: 1;">
@@ -25132,7 +25132,7 @@ N'inclus des actions QUE si l'utilisateur demande explicitement de modifier/ajou
                         </button>
                     </div>
                     
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 32px;">
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 24px; margin-bottom: 32px;">
                         <!-- Informations personnelles -->
                         <div style="background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(16, 185, 129, 0.2); border-radius: 16px; padding: 24px;">
                             <h3 style="margin: 0 0 20px; font-size: 18px; font-weight: 600; color: #10b981;">Informations personnelles</h3>
@@ -25187,7 +25187,7 @@ N'inclus des actions QUE si l'utilisateur demande explicitement de modifier/ajou
                     <!-- Informations salariales -->
                     <div style="background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(16, 185, 129, 0.2); border-radius: 16px; padding: 24px; margin-bottom: 32px;">
                         <h3 style="margin: 0 0 20px; font-size: 18px; font-weight: 600; color: #3b82f6;">Informations salariales</h3>
-                        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px;">
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 20px;">
                             <div>
                                 <div style="font-size: 12px; color: rgba(255, 255, 255, 0.5); margin-bottom: 4px;">Salaire annuel</div>
                                 <div style="font-size: 20px; color: white; font-weight: 700;">${new Intl.NumberFormat('fr-DZ').format(employee.baseSalary)} ${currency}</div>
