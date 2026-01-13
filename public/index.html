@@ -366,6 +366,16 @@
                 0 0 0 3px color-mix(in srgb, var(--accent) 35%, transparent);
         }
 
+        /* Sidebar buttons: avoid default blue focus outline on click, keep focus-visible for keyboard */
+        .sidebar button:focus {
+            outline: none;
+        }
+
+        .sidebar button:focus-visible {
+            outline: none;
+            box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 35%, transparent);
+        }
+
         .sessions-toggle-btn {
             width: 100%;
             padding: 12px;
@@ -4481,8 +4491,6 @@
                     const inRate = m?.in != null && Number.isFinite(Number(m.in)) ? Number(m.in) : null;
                     const outRate = m?.out != null && Number.isFinite(Number(m.out)) ? Number(m.out) : null;
 
-                    const tokensRef = t('settings.pricing.byModel.tokensRef');
-
                     let costHtml = escapeHtmlLite(t('settings.pricing.byModel.na'));
                     if (inRate != null || outRate != null) {
                         const inTxt = inRate == null ? null : formatPricingRate(inRate);
@@ -4498,7 +4506,6 @@
                     return `
                         <tr style="border-top: 1px solid var(--border-color);">
                             <td style="text-align:left; padding: 10px 10px; color: var(--text-primary); font-weight: 600;">${escapeHtmlLite(id)}</td>
-                            <td style="text-align:left; padding: 10px 10px; color: var(--text-secondary);">${escapeHtmlLite(tokensRef)}</td>
                             <td style="text-align:right; padding: 10px 10px;">${costHtml}</td>
                         </tr>
                     `;
@@ -4511,7 +4518,6 @@
                         <thead>
                             <tr style="background: var(--bg-secondary); border-bottom: 1px solid var(--border-color);">
                                 <th style="text-align:left; padding: 10px 10px; color: var(--text-primary);">${escapeHtmlLite(t('settings.pricing.byModel.table.model'))}</th>
-                                <th style="text-align:left; padding: 10px 10px; color: var(--text-primary);">${escapeHtmlLite(t('settings.pricing.byModel.table.tokens'))}</th>
                                 <th style="text-align:right; padding: 10px 10px; color: var(--text-primary);">${escapeHtmlLite(t('settings.pricing.byModel.table.cost'))}</th>
                             </tr>
                         </thead>
@@ -11158,9 +11164,7 @@ ${persona}
                 'settings.pricing.byModelTitle': 'Prix par modèle :',
                 'settings.pricing.byModel.loading': 'Chargement…',
                 'settings.pricing.byModel.table.model': 'Modèle',
-                'settings.pricing.byModel.table.tokens': 'Tokens',
                 'settings.pricing.byModel.table.cost': 'Coût',
-                'settings.pricing.byModel.tokensRef': '1M tokens',
                 'settings.pricing.byModel.na': 'N/A',
                 'settings.pricing.byModel.prompt': 'prompt',
                 'settings.pricing.byModel.completion': 'completion',
@@ -11663,9 +11667,7 @@ ${persona}
                 'settings.pricing.byModelTitle': 'Price per model:',
                 'settings.pricing.byModel.loading': 'Loading…',
                 'settings.pricing.byModel.table.model': 'Model',
-                'settings.pricing.byModel.table.tokens': 'Tokens',
                 'settings.pricing.byModel.table.cost': 'Cost',
-                'settings.pricing.byModel.tokensRef': '1M tokens',
                 'settings.pricing.byModel.na': 'N/A',
                 'settings.pricing.byModel.prompt': 'prompt',
                 'settings.pricing.byModel.completion': 'completion',
@@ -12343,7 +12345,8 @@ ${persona}
             } catch (_) {}
             refreshStorageModeUI();
             try { refreshAiModelSelect(); } catch (_) {}
-            try { refreshPricingByModelTable(false); } catch (_) {}
+            // Defer to avoid blocking click release (prevents visible "blue flash" on sidebar buttons)
+            setTimeout(() => { try { refreshPricingByModelTable(false); } catch (_) {} }, 0);
         }
 
         function closeSettingsModal() {
