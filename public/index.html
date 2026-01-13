@@ -4408,10 +4408,8 @@
             const provider = getAiModelProvider(active);
             const providerName = getAiProviderDisplayName(provider);
             const providerUrl = getAiProviderUrl(provider);
-            const prefs = getAiModelPreferences(m);
             const fullCategory = m && m.category ? String(m.category) : 'N/A';
-            const fullDesc = m && m.description ? String(m.description) : '';
-            const kind = m && m.kind ? String(m.kind).toUpperCase() : 'CHAT';
+
 
             help.innerHTML = `
                 <div class="stat-section-title">${safeT('ai.help.sectionTitle', 'Active model')}</div>
@@ -4421,35 +4419,13 @@
                     <span class="stat-value"><span class="status-dot green" style="display:inline-block; width:10px; height:10px; margin-right:8px; vertical-align:middle;"></span>${activeName}</span>
                 </div>
                 <div class="stat-item left">
-                    <span>${safeT('ai.help.fullId', 'Nom complet:')}</span>
-                    <span class="stat-value">${active}</span>
-                </div>
-                <div class="stat-item left">
                     <span>${safeT('ai.help.provider', 'Provider:')}</span>
                     <span class="stat-value">${providerName}</span>
-                </div>
-                <div class="stat-item left">
-                    <span>${safeT('ai.help.kind', 'Type:')}</span>
-                    <span class="stat-value">${kind}</span>
                 </div>
                 <div class="stat-item left">
                     <span>${safeT('ai.help.category', 'Fonctions:')}</span>
                     <span class="stat-value">${fullCategory}</span>
                 </div>
-                <div class="stat-item left">
-                    <span>${safeT('ai.help.preferences', 'Préférences:')}</span>
-                    <span class="stat-value">${prefs || 'N/A'}</span>
-                </div>
-                <div class="stat-item left">
-                    <span>${safeT('ai.help.pricePrefix', 'Prix:')}</span>
-                    <span class="stat-value">${inTxt} • ${outTxt}</span>
-                </div>
-                ${fullDesc ? `
-                    <div class="stat-item left">
-                        <span>${safeT('ai.help.description', 'Description:')}</span>
-                        <span class="stat-value">${fullDesc}</span>
-                    </div>
-                ` : ''}
                 ${providerUrl ? `
                     <div class="hint">
                         ${safeT('ai.help.moreInfo', 'Pour plus d\'informations :')} <a href="${providerUrl}" target="_blank" rel="noopener noreferrer"><strong>${providerName}</strong></a>
