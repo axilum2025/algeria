@@ -367,8 +367,18 @@
         }
 
         /* Sidebar buttons: avoid default blue focus outline on click, keep focus-visible for keyboard */
+        .sidebar button {
+            -webkit-tap-highlight-color: transparent;
+        }
+
         .sidebar button:focus {
             outline: none;
+            box-shadow: none;
+        }
+
+        .sidebar button:active {
+            outline: none;
+            box-shadow: none;
         }
 
         .sidebar button:focus-visible {
