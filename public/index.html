@@ -30947,19 +30947,19 @@ ${recruitmentInfo}
 
                         <div class="hr-candidate-metrics">
                             <div class="hr-candidate-metric">
-                                <div class="hr-candidate-metric-value" style="color: ${metricColor(candidate.scoreBreakdown.skillsScore)};">${candidate.scoreBreakdown.skillsScore}%</div>
+                                <div class="hr-candidate-metric-value" style="color: ${metricColor(((candidate.scoreBreakdown || {}).skillsScore || 0))};">${((candidate.scoreBreakdown || {}).skillsScore || 0)}%</div>
                                 <div class="hr-candidate-metric-label">Compétences</div>
                             </div>
                             <div class="hr-candidate-metric">
-                                <div class="hr-candidate-metric-value" style="color: ${metricColor(candidate.scoreBreakdown.experienceScore)};">${candidate.scoreBreakdown.experienceScore}%</div>
+                                <div class="hr-candidate-metric-value" style="color: ${metricColor(((candidate.scoreBreakdown || {}).experienceScore || 0))};">${((candidate.scoreBreakdown || {}).experienceScore || 0)}%</div>
                                 <div class="hr-candidate-metric-label">Expérience</div>
                             </div>
                             <div class="hr-candidate-metric">
-                                <div class="hr-candidate-metric-value" style="color: ${metricColor(candidate.scoreBreakdown.languageScore)};">${candidate.scoreBreakdown.languageScore}%</div>
+                                <div class="hr-candidate-metric-value" style="color: ${metricColor(((candidate.scoreBreakdown || {}).languageScore || 0))};">${((candidate.scoreBreakdown || {}).languageScore || 0)}%</div>
                                 <div class="hr-candidate-metric-label">Langues</div>
                             </div>
                             <div class="hr-candidate-metric">
-                                <div class="hr-candidate-metric-value" style="color: ${metricColor(candidate.scoreBreakdown.degreeScore)};">${candidate.scoreBreakdown.degreeScore}%</div>
+                                <div class="hr-candidate-metric-value" style="color: ${metricColor(((candidate.scoreBreakdown || {}).degreeScore || 0))};">${((candidate.scoreBreakdown || {}).degreeScore || 0)}%</div>
                                 <div class="hr-candidate-metric-label">Diplôme</div>
                             </div>
                         </div>
@@ -31140,11 +31140,11 @@ ${recruitmentInfo}
                         <div class="hr-section-title" style="margin-bottom: 10px;">📊 Analyse détaillée</div>
                         <div style="display: grid; gap: 12px;">
                             ${Object.entries({
-                                'Compétences': {score: candidate.scoreBreakdown.skillsScore, weight: '40%', icon: '💻'},
-                                'Expérience': {score: candidate.scoreBreakdown.experienceScore, weight: '30%', icon: '📊'},
-                                'Langues': {score: candidate.scoreBreakdown.languageScore, weight: '10%', icon: '🌍'},
-                                'Diplôme': {score: candidate.scoreBreakdown.degreeScore, weight: '10%', icon: '🎓'},
-                                'Must-Have': {score: candidate.scoreBreakdown.mustHaveScore, weight: '10%', icon: '✅'}
+                                'Compétences': {score: ((candidate.scoreBreakdown || {}).skillsScore || 0), weight: '40%', icon: '💻'},
+                                'Expérience': {score: ((candidate.scoreBreakdown || {}).experienceScore || 0), weight: '30%', icon: '📊'},
+                                'Langues': {score: ((candidate.scoreBreakdown || {}).languageScore || 0), weight: '10%', icon: '🌍'},
+                                'Diplôme': {score: ((candidate.scoreBreakdown || {}).degreeScore || 0), weight: '10%', icon: '🎓'},
+                                'Must-Have': {score: ((candidate.scoreBreakdown || {}).mustHaveScore || 0), weight: '10%', icon: '✅'}
                             }).map(([label, data]) => {
                                 const color = data.score >= 80 ? '#10b981' : data.score >= 60 ? '#f59e0b' : '#ef4444';
                                 return `
