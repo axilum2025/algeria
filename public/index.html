@@ -30926,15 +30926,21 @@ ${recruitmentInfo}
 
                 const metricColor = (v) => v >= 70 ? '#6ee7b7' : '#fca5a5';
                 
+                // Safe defaults for candidate properties
+                const cName = candidate.name || 'Sans nom';
+                const cEmail = candidate.email || 'Email non renseigné';
+                const cMatchScore = candidate.matchScore ?? 0;
+                const cRecommendation = candidate.recommendation || 'Analyse en attente';
+                
                 return `
                     <div class="hr-item hr-candidate-card" onclick="viewCandidateDetails('${candidate.id}')">
                         <div class="hr-candidate-header">
                             <div style="flex: 1;">
-                                <h3 class="hr-candidate-name">${candidate.name}</h3>
-                                <p class="hr-candidate-email">📧 ${candidate.email}</p>
+                                <h3 class="hr-candidate-name">${cName}</h3>
+                                <p class="hr-candidate-email">📧 ${vEmail}</p>
                             </div>
                             <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 8px;">
-                                <span class="${badgeClass}" style="display: inline-flex; align-items: center; gap: 6px;">${scoreIcon} ${candidate.matchScore}%</span>
+                                <span class="${badgeClass}" style="display: inline-flex; align-items: center; gap: 6px;">${scoreIcon} ${cMatchScore}%</span>
                                 ${candidate.shortlisted === true ? `<span class="hr-badge hr-badge-success" style="display: inline-flex; align-items: center; gap: 6px;">⭐ Shortlist</span>` : ''}
                                 <span style="font-size: 11px; color: rgba(255,255,255,0.55); text-transform: uppercase; letter-spacing: 0.5px; font-weight: 700;">Match</span>
                             </div>
@@ -30965,7 +30971,7 @@ ${recruitmentInfo}
                         </div>
 
                         <div class="hr-section" style="margin: 0; padding: 14px; border-radius: 12px;">
-                            <div style="font-size: 13px; font-weight: 800; color: rgba(255,255,255,0.9); text-align: center;">${candidate.recommendation}</div>
+                            <div style="font-size: 13px; font-weight: 800; color: rgba(255,255,255,0.9); text-align: center;">${vRecommendation}</div>
                         </div>
                     </div>
                 `;
@@ -31104,6 +31110,12 @@ ${recruitmentInfo}
 
             const job = jobs.find(j => j.id === candidate.jobId);
             
+            // Safe defaults for candidate properties
+            const vName = candidate.name || 'Sans nom';
+            const vEmail = candidate.email || 'Email non renseigné';
+            const vMatchScore = candidate.matchScore ?? 0;
+            const vRecommendation = candidate.recommendation || 'Analyse en attente';
+            
             const modal = document.createElement('div');
             modal.id = 'candidateDetailsModal';
             modal.className = 'hr-modal-overlay';
@@ -31116,17 +31128,17 @@ ${recruitmentInfo}
                     </button>
 
                     <div style="margin-bottom: 16px; padding-right: 56px;">
-                        <h2 class="hr-modal-title">${candidate.name}</h2>
-                        <p class="hr-modal-subtitle">📧 ${candidate.email}</p>
+                        <h2 class="hr-modal-title">${vName}</h2>
+                        <p class="hr-modal-subtitle">📧 ${vEmail}</p>
                     </div>
 
                     <div class="hr-section" style="margin-bottom: 16px;">
                         <div style="text-align: center;">
                             <div class="hr-stat-label" style="margin-bottom: 8px;">Score de compatibilité</div>
                             <div style="font-size: 64px; font-weight: 900; line-height: 1; background: linear-gradient(135deg, #10b981, #06b6d4, #3b82f6); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
-                                ${candidate.matchScore}%
+                                ${vMatchScore}%
                             </div>
-                            <div style="margin-top: 10px; font-size: 14px; font-weight: 800; color: rgba(255,255,255,0.85);">${candidate.recommendation}</div>
+                            <div style="margin-top: 10px; font-size: 14px; font-weight: 800; color: rgba(255,255,255,0.85);">${vRecommendation}</div>
                         </div>
                     </div>
 
