@@ -30925,6 +30925,22 @@ ${recruitmentInfo}
                 }
 
                 const metricColor = (v) => v >= 70 ? '#6ee7b7' : '#fca5a5';
+                const breakdown = candidate.scoreBreakdown || {};
+                const skillsScore = breakdown.skillsScore ?? 0;
+                const experienceScore = breakdown.experienceScore ?? 0;
+                const languageScore = breakdown.languageScore ?? 0;
+                const degreeScore = breakdown.degreeScore ?? 0;
+                const cMatchScore = candidate.matchScore ?? 0;
+                const cRecommendation = candidate.recommendation || "Analyse en attente";
+
+                const breakdown = candidate.scoreBreakdown || {};
+                const skillsScore = breakdown.skillsScore ?? 0;
+                const experienceScore = breakdown.experienceScore ?? 0;
+                const languageScore = breakdown.languageScore ?? 0;
+                const degreeScore = breakdown.degreeScore ?? 0;
+                const cMatchScore = candidate.matchScore ?? 0;
+                const cRecommendation = candidate.recommendation || "Analyse en attente";
+
                 
                 return `
                     <div class="hr-item hr-candidate-card" onclick="viewCandidateDetails('${candidate.id}')">
@@ -30947,19 +30963,19 @@ ${recruitmentInfo}
 
                         <div class="hr-candidate-metrics">
                             <div class="hr-candidate-metric">
-                                <div class="hr-candidate-metric-value" style="color: ${metricColor(candidate.scoreBreakdown.skillsScore)};">${candidate.scoreBreakdown.skillsScore}%</div>
+                                <div class="hr-candidate-metric-value" style="color: ${metricColor(skillsScore)};">${skillsScore}%</div>
                                 <div class="hr-candidate-metric-label">Compétences</div>
                             </div>
                             <div class="hr-candidate-metric">
-                                <div class="hr-candidate-metric-value" style="color: ${metricColor(candidate.scoreBreakdown.experienceScore)};">${candidate.scoreBreakdown.experienceScore}%</div>
+                                <div class="hr-candidate-metric-value" style="color: ${metricColor(experienceScore)};">${experienceScore}%</div>
                                 <div class="hr-candidate-metric-label">Expérience</div>
                             </div>
                             <div class="hr-candidate-metric">
-                                <div class="hr-candidate-metric-value" style="color: ${metricColor(candidate.scoreBreakdown.languageScore)};">${candidate.scoreBreakdown.languageScore}%</div>
+                                <div class="hr-candidate-metric-value" style="color: ${metricColor(languageScore)};">${languageScore}%</div>
                                 <div class="hr-candidate-metric-label">Langues</div>
                             </div>
                             <div class="hr-candidate-metric">
-                                <div class="hr-candidate-metric-value" style="color: ${metricColor(candidate.scoreBreakdown.degreeScore)};">${candidate.scoreBreakdown.degreeScore}%</div>
+                                <div class="hr-candidate-metric-value" style="color: ${metricColor(degreeScore)};">${degreeScore}%</div>
                                 <div class="hr-candidate-metric-label">Diplôme</div>
                             </div>
                         </div>
@@ -31102,6 +31118,16 @@ ${recruitmentInfo}
             
             if (!candidate) return;
 
+            // Safe defaults for all candidate properties
+            const candidateName = candidate.name || "Sans nom";
+            const candidateEmail = candidate.email || "Email non renseigné";
+            const experience = candidate.experience ?? 0;
+            const degree = candidate.degree || "Non renseigné";
+            const languages = candidate.languages || "Non renseigné";
+            const cSkills = Array.isArray(candidate.skills) ? candidate.skills : [];
+            const cMatchScore = candidate.matchScore ?? 0;
+            const cRecommendation = candidate.recommendation || "Analyse en attente";
+
             const job = jobs.find(j => j.id === candidate.jobId);
             
             const modal = document.createElement('div');
@@ -31116,17 +31142,17 @@ ${recruitmentInfo}
                     </button>
 
                     <div style="margin-bottom: 16px; padding-right: 56px;">
-                        <h2 class="hr-modal-title">${candidate.name}</h2>
-                        <p class="hr-modal-subtitle">📧 ${candidate.email}</p>
+                        <h2 class="hr-modal-title">${candidateName}</h2>
+                        <p class="hr-modal-subtitle">📧 ${candidateEmail}</p>
                     </div>
 
                     <div class="hr-section" style="margin-bottom: 16px;">
                         <div style="text-align: center;">
                             <div class="hr-stat-label" style="margin-bottom: 8px;">Score de compatibilité</div>
                             <div style="font-size: 64px; font-weight: 900; line-height: 1; background: linear-gradient(135deg, #10b981, #06b6d4, #3b82f6); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
-                                ${candidate.matchScore}%
+                                ${cMatchScore}%
                             </div>
-                            <div style="margin-top: 10px; font-size: 14px; font-weight: 800; color: rgba(255,255,255,0.85);">${candidate.recommendation}</div>
+                            <div style="margin-top: 10px; font-size: 14px; font-weight: 800; color: rgba(255,255,255,0.85);">${cRecommendation}</div>
                         </div>
                     </div>
 
@@ -31140,11 +31166,11 @@ ${recruitmentInfo}
                         <div class="hr-section-title" style="margin-bottom: 10px;">📊 Analyse détaillée</div>
                         <div style="display: grid; gap: 12px;">
                             ${Object.entries({
-                                'Compétences': {score: candidate.scoreBreakdown.skillsScore, weight: '40%', icon: '💻'},
-                                'Expérience': {score: candidate.scoreBreakdown.experienceScore, weight: '30%', icon: '📊'},
-                                'Langues': {score: candidate.scoreBreakdown.languageScore, weight: '10%', icon: '🌍'},
-                                'Diplôme': {score: candidate.scoreBreakdown.degreeScore, weight: '10%', icon: '🎓'},
-                                'Must-Have': {score: candidate.scoreBreakdown.mustHaveScore, weight: '10%', icon: '✅'}
+                                'Compétences': {score: skillsScore, weight: '40%', icon: '💻'},
+                                'Expérience': {score: experienceScore, weight: '30%', icon: '📊'},
+                                'Langues': {score: languageScore, weight: '10%', icon: '🌍'},
+                                'Diplôme': {score: degreeScore, weight: '10%', icon: '🎓'},
+                                'Must-Have': {score: (candidate.scoreBreakdown?.mustHaveScore ?? 0), weight: '10%', icon: '✅'}
                             }).map(([label, data]) => {
                                 const color = data.score >= 80 ? '#10b981' : data.score >= 60 ? '#f59e0b' : '#ef4444';
                                 return `
@@ -31170,27 +31196,27 @@ ${recruitmentInfo}
                         <div class="hr-form-grid-2" style="margin-bottom: 14px;">
                             <div class="hr-item" style="margin: 0; padding: 14px;">
                                 <div style="font-size: 12px; color: rgba(255,255,255,0.6); font-weight: 700; margin-bottom: 4px;">Expérience</div>
-                                <div style="font-size: 15px; font-weight: 900; color: rgba(255,255,255,0.92);">${candidate.experience} ans</div>
+                                <div style="font-size: 15px; font-weight: 900; color: rgba(255,255,255,0.92);">${experience} ans</div>
                             </div>
                             <div class="hr-item" style="margin: 0; padding: 14px;">
                                 <div style="font-size: 12px; color: rgba(255,255,255,0.6); font-weight: 700; margin-bottom: 4px;">Diplôme</div>
-                                <div style="font-size: 15px; font-weight: 900; color: rgba(255,255,255,0.92);">${candidate.degree}</div>
+                                <div style="font-size: 15px; font-weight: 900; color: rgba(255,255,255,0.92);">${degree}</div>
                             </div>
                             <div class="hr-item" style="margin: 0; padding: 14px;">
                                 <div style="font-size: 12px; color: rgba(255,255,255,0.6); font-weight: 700; margin-bottom: 4px;">Niveau langues</div>
-                                <div style="font-size: 15px; font-weight: 900; color: rgba(255,255,255,0.92);">${candidate.languages}</div>
+                                <div style="font-size: 15px; font-weight: 900; color: rgba(255,255,255,0.92);">${languages}</div>
                             </div>
                             <div class="hr-item" style="margin: 0; padding: 14px;">
                                 <div style="font-size: 12px; color: rgba(255,255,255,0.6); font-weight: 700; margin-bottom: 4px;">Compétences</div>
-                                <div style="font-size: 15px; font-weight: 900; color: rgba(255,255,255,0.92);">${candidate.skills.length} listées</div>
+                                <div style="font-size: 15px; font-weight: 900; color: rgba(255,255,255,0.92);">${cSkills.length} listées</div>
                             </div>
                         </div>
 
-                        ${candidate.skills.length > 0 ? `
+                        ${cSkills.length > 0 ? `
                             <div style="margin-bottom: 14px;">
                                 <div style="font-size: 12px; color: rgba(255,255,255,0.6); font-weight: 800; margin-bottom: 10px;">Compétences détaillées</div>
                                 <div style="display: flex; flex-wrap: wrap; gap: 8px;">
-                                    ${candidate.skills.map(skill => `
+                                    ${cSkills.map(skill => `
                                         <span class="hr-badge hr-badge-info" style="padding: 6px 12px; border-radius: 999px;">${skill}</span>
                                     `).join('')}
                                 </div>
