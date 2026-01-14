@@ -19516,10 +19516,10 @@ ${persona}
                                 text-transform: none !important;
                             }
 
-                            /* Confiance: encore plus compact sur petit écran */
-                            .turnover-modal-chip-confidence {
+                            /* Confiance et Fenêtre: même taille sur petit écran */
+                            .turnover-modal-chip-confidence, .turnover-modal-chip-window {
                                 padding: 8px 12px !important;
-                                font-size: 12px !important;
+                                font-size: 12px !important; min-width: 150px !important; max-width: 200px !important; box-sizing: border-box !important;
                             }
                         }
 
