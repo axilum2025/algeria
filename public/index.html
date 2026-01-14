@@ -16195,73 +16195,6 @@ ${persona}
                 // ignore
             }
         }
-
-        function applyHRViewportScrollLock(enable) {
-            const key = '__hrViewportScrollLockState';
-
-            if (enable) {
-                if (window[key] && window[key].enabled) return;
-
-                window[key] = {
-                    enabled: true,
-                    htmlOverflow: document.documentElement.style.overflow,
-                    htmlOverscrollY: document.documentElement.style.overscrollBehaviorY,
-                    htmlHeight: document.documentElement.style.height,
-                    bodyOverflow: document.body.style.overflow,
-                    bodyOverscrollY: document.body.style.overscrollBehaviorY,
-                    bodyHeight: document.body.style.height
-                };
-
-                // Android: empêche pull-to-refresh quand le scroll remonte au viewport
-                // iOS: limite la propagation du scroll (iOS16+)
-                document.documentElement.style.overscrollBehaviorY = 'none';
-                document.documentElement.style.height = '100%';
-                document.body.style.overscrollBehaviorY = 'none';
-                document.body.style.height = '100%';
-                document.body.style.overflow = 'hidden';
-                return;
-            }
-
-            const state = window[key];
-            if (!state) return;
-            document.documentElement.style.overflow = state.htmlOverflow;
-            document.documentElement.style.overscrollBehaviorY = state.htmlOverscrollY;
-            document.documentElement.style.height = state.htmlHeight;
-            document.body.style.overflow = state.bodyOverflow;
-            document.body.style.overscrollBehaviorY = state.bodyOverscrollY;
-            document.body.style.height = state.bodyHeight;
-            window[key] = null;
-        }
-
-        function installHROverscrollEdgeNudge(rootEl) {
-            if (!rootEl || rootEl.__hrOverscrollNudgeInstalled) return;
-            rootEl.__hrOverscrollNudgeInstalled = true;
-
-            const nudge = (el) => {
-                if (!el) return;
-                if (el.scrollHeight <= el.clientHeight) return;
-                if (el.scrollTop <= 0) el.scrollTop = 1;
-                const max = el.scrollHeight - el.clientHeight;
-                if (el.scrollTop >= max) el.scrollTop = Math.max(1, max - 1);
-            };
-
-            rootEl.addEventListener('touchstart', (e) => {
-                let node = e.target;
-                while (node && node !== rootEl && node.parentElement) {
-                    try {
-                        const style = window.getComputedStyle(node);
-                        if ((style.overflowY === 'auto' || style.overflowY === 'scroll') && node.scrollHeight > node.clientHeight) {
-                            nudge(node);
-                            return;
-                        }
-                    } catch (_) {
-                        // ignore
-                    }
-                    node = node.parentElement;
-                }
-                nudge(rootEl);
-            }, { passive: true });
-        }
         
         function openHRManagement() {
             // Fermer AI Management s'il est ouvert
@@ -16368,9 +16301,7 @@ ${persona}
                         padding: 40px;
                         min-height: 0;
                         -webkit-overflow-scrolling: touch;
-                        overscroll-behavior: none;
-                        overscroll-behavior-y: none;
-                        overscroll-behavior-x: none;
+                        overscroll-behavior: contain;
                         display: flex;
                         flex-direction: column;
                     }
@@ -16977,8 +16908,6 @@ ${persona}
                             overflow-x: hidden !important;
                             -webkit-overflow-scrolling: touch;
                             touch-action: pan-y;
-                            overscroll-behavior: none;
-                            overscroll-behavior-y: none;
                         }
                         #hrManagementOverlay .hr-content-area {
                             overflow-y: visible !important;
@@ -17018,8 +16947,6 @@ ${persona}
                             overflow-x: hidden !important;
                             -webkit-overflow-scrolling: touch;
                             touch-action: pan-y;
-                            overscroll-behavior: none;
-                            overscroll-behavior-y: none;
                         }
                         #hrManagementOverlay .hr-content-area {
                             overflow-y: visible !important;
@@ -18592,7 +18519,7 @@ ${persona}
                         </div>
                         
                         <!-- Recruitment / CV Screening Tab -->
-                        <div id="hrContentRecruitment" class="hr-content" style="display: none; position: relative; width: 100%; height: auto; overflow: visible; padding: 20px; padding-bottom: 100px; background: transparent;">
+                        <div id="hrContentRecruitment" class="hr-content" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100vh; height: 100dvh; overflow-y: auto; -webkit-overflow-scrolling: touch; overscroll-behavior: contain; padding: 20px; padding-bottom: 100px; background: linear-gradient(135deg, #0a4d3c 0%, #064e3b 50%, #1e3a8a 100%); z-index: 9999;">
                             <div style="max-width: 1400px; margin: 0 auto; padding-top: 20px;">
                                 <!-- RGPD Warning Banner -->
                                 <div class="hr-recruitment-rgpd" style="background: linear-gradient(135deg, #10b981 0%, #06b6d4 50%, #3b82f6 100%); border-radius: 16px; padding: 24px; margin-bottom: 24px; color: white; border: 1px solid rgba(16, 185, 129, 0.25);">
@@ -18711,10 +18638,6 @@ ${persona}
             
             document.body.appendChild(overlay);
 
-            // Bloquer le pull-to-refresh / scroll chaining au niveau viewport
-            applyHRViewportScrollLock(true);
-            installHROverscrollEdgeNudge(overlay);
-
             // État initial: dashboard (permet à showHRTab d'avoir un état propre)
             try { showHRTab('dashboard'); } catch (_) {}
             
@@ -18732,10 +18655,7 @@ ${persona}
             const overlay = document.getElementById('hrManagementOverlay');
             if (overlay) {
                 overlay.style.animation = 'fadeOut 0.3s ease';
-                setTimeout(() => {
-                    overlay.remove();
-                    applyHRViewportScrollLock(false);
-                }, 300);
+                setTimeout(() => overlay.remove(), 300);
             }
         }
         
