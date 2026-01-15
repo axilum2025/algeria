@@ -32453,7 +32453,7 @@ ${recruitmentInfo}
                                         <div class="quick-prompts">
                                             <button class="quick-btn" onclick="generateRealKPIs()">KPIs budgétaires</button>
                                             <button class="quick-btn" onclick="startMarketStudyWizard()">${t('marketStudy.quickBtn')}</button>
-                                            <button class="quick-btn" onclick="document.getElementById('financeMsg').value='Comptabilité: Checklist clôture mensuelle'; document.getElementById('financeMsg').focus(); sendFinanceMessage();">Clôture mensuelle</button>
+                                            <button class="quick-btn" onclick="generateMonthlyClosureChecklist()">Clôture mensuelle</button>
                                         </div>
                                         <div class="chat-editor">
                                             <textarea id="financeMsg" class="chat-textarea" placeholder="Budget, comptabilité, analyse marché, trésorerie..." style="margin: 0;"></textarea>
@@ -32979,7 +32979,102 @@ ${topExpenses || '• Aucune catégorie identifiée'}
         }
 
         // ===================================
-        // 📊 Étude de Marché (Wizard -> Wesh -> Alex)
+        // � Clôture Mensuelle - Checklist Automatique
+        // ===================================
+        function generateMonthlyClosureChecklist() {
+            try {
+                if (!financeContext.invoices || financeContext.invoices.length === 0) {
+                    financeChatAddMessage('bot', '⚠️ Aucune donnée disponible. Veuillez uploader des factures pour générer la checklist de clôture.');
+                    return;
+                }
+
+                financeChatAddMessage('user', '📋 Générer la checklist de clôture mensuelle');
+                
+                const invoices = financeContext.invoices;
+                const currentDate = new Date();
+                const currentMonth = currentDate.getMonth();
+                const currentYear = currentDate.getFullYear();
+                const monthName = currentDate.toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' });
+                
+                // Factures du mois en cours
+                const thisMonthInvoices = invoices.filter(inv => {
+                    const invDate = new Date(inv.date || inv.invoiceDate);
+                    return invDate.getMonth() === currentMonth && invDate.getFullYear() === currentYear;
+                });
+                
+                const revenueInvoices = thisMonthInvoices.filter(i => i.type === 'income' || i.type === 'revenue');
+                const expenseInvoices = thisMonthInvoices.filter(i => i.type === 'expense');
+                
+                const totalRevenue = revenueInvoices.reduce((sum, inv) => sum + Math.abs(parseFloat(inv.amount) || 0), 0);
+                const totalExpenses = expenseInvoices.reduce((sum, inv) => sum + Math.abs(parseFloat(inv.amount) || 0), 0);
+                
+                // Statut des tâches
+                const hasRevenue = revenueInvoices.length > 0;
+                const hasExpenses = expenseInvoices.length > 0;
+                const hasBalance = totalRevenue > 0 || totalExpenses > 0;
+                
+                const checklist = `📋 CHECKLIST CLÔTURE MENSUELLE
+Période: ${monthName}
+Généré le ${currentDate.toLocaleDateString('fr-FR')}
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+📊 ÉTAT DES DONNÉES
+• Factures clients: ${revenueInvoices.length} ${hasRevenue ? '✅' : '⚠️'}
+• Factures fournisseurs: ${expenseInvoices.length} ${hasExpenses ? '✅' : '⚠️'}
+• CA du mois: ${totalRevenue.toFixed(2)} €
+• Charges du mois: ${totalExpenses.toFixed(2)} €
+• Solde: ${(totalRevenue - totalExpenses).toFixed(2)} €
+
+✅ TÂCHES À EFFECTUER
+
+1️⃣ VÉRIFICATION DES FACTURES
+${hasRevenue ? '✅' : '⬜'} Saisie factures clients (${revenueInvoices.length} enregistrées)
+${hasExpenses ? '✅' : '⬜'} Saisie factures fournisseurs (${expenseInvoices.length} enregistrées)
+⬜ Vérifier numérotation des factures
+⬜ Contrôler cohérence des montants
+
+2️⃣ RAPPROCHEMENT BANCAIRE
+⬜ Pointer relevé bancaire
+⬜ Justifier écarts de caisse
+⬜ Vérifier encaissements clients
+⬜ Vérifier paiements fournisseurs
+
+3️⃣ CONTRÔLES COMPTABLES
+⬜ Équilibrer journal de banque
+⬜ Vérifier comptes de TVA
+⬜ Contrôler comptes de charges
+⬜ Contrôler comptes de produits
+⬜ Vérifier balance générale
+
+4️⃣ DÉCLARATIONS
+⬜ TVA à déclarer
+⬜ Charges sociales
+⬜ Autres obligations fiscales
+
+5️⃣ ANALYSE & REPORTING
+${hasBalance ? '✅' : '⬜'} Calculer résultat du mois
+⬜ Analyser écarts budget/réel
+⬜ Mettre à jour tableaux de bord
+⬜ Préparer rapport mensuel
+
+6️⃣ ARCHIVAGE
+⬜ Classer factures clients
+⬜ Classer factures fournisseurs
+⬜ Sauvegarder documents comptables
+⬜ Archiver relevés bancaires`;
+
+                financeChatAddMessage('bot', checklist);
+                saveFinanceConversation();
+                
+            } catch (err) {
+                console.error('[generateMonthlyClosureChecklist] Erreur:', err);
+                financeChatAddMessage('bot', '❌ Erreur lors de la génération de la checklist: ' + err.message);
+            }
+        }
+
+        // ===================================
+        // �📊 Étude de Marché (Wizard -> Wesh -> Alex)
         // ===================================
         const marketStudyDraftByConversation = {};
         const marketStudyRunningByConversation = {};
