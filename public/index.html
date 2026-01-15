@@ -24779,6 +24779,11 @@ N'inclus des actions QUE si l'utilisateur demande explicitement de modifier/ajou
         }
 
         function closeRecruitmentModal() {
+            // Masquer explicitement le modal de recrutement (position: fixed)
+            const recruitmentModal = document.getElementById('hrContentRecruitment');
+            if (recruitmentModal) {
+                recruitmentModal.style.display = 'none';
+            }
             showHRTab('dashboard');
             scheduleHRTabCleanup('recruitment');
         }
