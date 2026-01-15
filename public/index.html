@@ -637,6 +637,17 @@
             animation: slideUp 0.6s ease backwards;
         }
 
+        /* Mode PC: afficher toutes les cartes, cacher le bouton Plus */
+        @media (min-width: 769px) {
+            .prompt-card--hidden {
+                display: flex !important;
+            }
+            .prompt-card--more {
+                display: none !important;
+            }
+        }
+
+        /* Mode mobile: comportement par défaut */
         .prompt-card--hidden {
             display: none;
         }
