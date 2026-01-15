@@ -7294,6 +7294,16 @@ ${persona}
             }
         }
 
+        function formatMoneyWithDollar(amount) {
+            const n = Number(amount);
+            if (!Number.isFinite(n)) return '—';
+            try {
+                return '$' + new Intl.NumberFormat(getLocale(), { style: 'decimal', minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(n);
+            } catch (_) {
+                return '$' + n.toFixed(2);
+            }
+        }
+
         function safeText(s) {
             return String(s == null ? '' : s);
         }
@@ -7350,11 +7360,11 @@ ${persona}
 
                 if (balanceEl) {
                     const bal = Number.isFinite(balanceValue) ? balanceValue : 0;
-                    balanceEl.textContent = formatMoneyAmountOnly(bal);
+                    balanceEl.textContent = formatMoneyWithDollar(bal);
                 }
 
                 if (monthCostEl) {
-                    monthCostEl.textContent = formatMoneyAmountOnly(Number(totals.totalCost || 0));
+                    monthCostEl.textContent = formatMoneyWithDollar(Number(totals.totalCost || 0));
                 }
 
                 if (monthTokensEl) {
@@ -7375,7 +7385,7 @@ ${persona}
                     const tokens = Number(it.totalTokens || 0);
                     const cost = it.cost == null ? null : Number(it.cost);
                     const itemCurrency = 'USD';
-                    const costLabel = (cost == null || !Number.isFinite(cost)) ? '—' : formatMoneyAmountOnly(cost);
+                    const costLabel = (cost == null || !Number.isFinite(cost)) ? '—' : formatMoneyWithDollar(cost);
                     return `
                         <tr>
                             <td style="padding: 10px; border-top: 1px solid var(--border-color); white-space: nowrap;">${safeText(dateLabel)}</td>
