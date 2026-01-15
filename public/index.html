@@ -32872,14 +32872,50 @@ ${recruitmentInfo}
                 const netIncome = totalRevenue - totalExpenses;
                 const netMargin = totalRevenue > 0 ? ((netIncome / totalRevenue) * 100).toFixed(1) : 0;
 
+                // Performance Mensuelle
+                const currentDate = new Date();
+                const currentMonth = currentDate.getMonth();
+                const currentYear = currentDate.getFullYear();
+                
+                const thisMonthInvoices = invoices.filter(inv => {
+                    const invDate = new Date(inv.date || inv.invoiceDate);
+                    return invDate.getMonth() === currentMonth && invDate.getFullYear() === currentYear;
+                });
+                
+                const lastMonthInvoices = invoices.filter(inv => {
+                    const invDate = new Date(inv.date || inv.invoiceDate);
+                    const lastMonth = currentMonth === 0 ? 11 : currentMonth - 1;
+                    const lastMonthYear = currentMonth === 0 ? currentYear - 1 : currentYear;
+                    return invDate.getMonth() === lastMonth && invDate.getFullYear() === lastMonthYear;
+                });
+                
+                const thisMonthRevenue = thisMonthInvoices.filter(inv => inv.type === 'income' || inv.type === 'revenue')
+                    .reduce((sum, inv) => sum + Math.abs(parseFloat(inv.amount) || 0), 0);
+                const thisMonthExpenses = thisMonthInvoices.filter(inv => inv.type === 'expense')
+                    .reduce((sum, inv) => sum + Math.abs(parseFloat(inv.amount) || 0), 0);
+                const lastMonthRevenue = lastMonthInvoices.filter(inv => inv.type === 'income' || inv.type === 'revenue')
+                    .reduce((sum, inv) => sum + Math.abs(parseFloat(inv.amount) || 0), 0);
+                
+                const revenueGrowth = lastMonthRevenue > 0 
+                    ? (((thisMonthRevenue - lastMonthRevenue) / lastMonthRevenue) * 100).toFixed(1)
+                    : 'N/A';
+
                 const kpiReport = `📊 KPIs Financiers (basé sur ${invoices.length} factures)
 
+📈 PERFORMANCE GLOBALE
 • CA Total: ${totalRevenue.toFixed(2)} €
 • Charges: ${totalExpenses.toFixed(2)} €
 • Résultat Net: ${netIncome.toFixed(2)} € ${netIncome >= 0 ? '✅' : '⚠️'}
 • Marge: ${netMargin}%
 • Factures revenus: ${invoices.filter(i => i.type === 'income' || i.type === 'revenue').length}
-• Factures charges: ${invoices.filter(i => i.type === 'expense').length}`;
+• Factures charges: ${invoices.filter(i => i.type === 'expense').length}
+
+📅 PERFORMANCE MENSUELLE
+• CA ce mois: ${thisMonthRevenue.toFixed(2)} €
+• Charges ce mois: ${thisMonthExpenses.toFixed(2)} €
+• Résultat: ${(thisMonthRevenue - thisMonthExpenses).toFixed(2)} €
+• CA mois dernier: ${lastMonthRevenue.toFixed(2)} €
+• Croissance: ${revenueGrowth}${revenueGrowth !== 'N/A' ? '%' : ''} ${revenueGrowth > 0 ? '📈' : revenueGrowth < 0 ? '📉' : ''}`;
 
                 financeChatAddMessage('bot', kpiReport);
                 saveFinanceConversation();
