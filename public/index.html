@@ -32919,6 +32919,16 @@ ${recruitmentInfo}
                     .map(([cat, amount]) => `• ${cat}: ${amount.toFixed(2)} €`)
                     .join('\n');
 
+                // Ratios Clés
+                const revenueInvoices = invoices.filter(i => i.type === 'income' || i.type === 'revenue');
+                const expenseInvoices = invoices.filter(i => i.type === 'expense');
+                const avgRevenueTicket = revenueInvoices.length > 0 
+                    ? (totalRevenue / revenueInvoices.length).toFixed(2) 
+                    : '0';
+                const avgExpenseTicket = expenseInvoices.length > 0 
+                    ? (totalExpenses / expenseInvoices.length).toFixed(2) 
+                    : '0';
+
                 const kpiReport = `📊 KPIs Financiers (basé sur ${invoices.length} factures)
 
 📈 PERFORMANCE GLOBALE
@@ -32926,8 +32936,8 @@ ${recruitmentInfo}
 • Charges: ${totalExpenses.toFixed(2)} €
 • Résultat Net: ${netIncome.toFixed(2)} € ${netIncome >= 0 ? '✅' : '⚠️'}
 • Marge: ${netMargin}%
-• Factures revenus: ${invoices.filter(i => i.type === 'income' || i.type === 'revenue').length}
-• Factures charges: ${invoices.filter(i => i.type === 'expense').length}
+• Factures revenus: ${revenueInvoices.length}
+• Factures charges: ${expenseInvoices.length}
 
 📅 PERFORMANCE MENSUELLE
 • CA ce mois: ${thisMonthRevenue.toFixed(2)} €
@@ -32942,7 +32952,12 @@ ${recruitmentInfo}
 • Moyenne mensuelle charges: ${avgMonthlyExpenses} €
 
 💼 TOP 3 CATÉGORIES DE DÉPENSES
-${topExpenses || '• Aucune catégorie identifiée'}`;
+${topExpenses || '• Aucune catégorie identifiée'}
+
+📊 RATIOS CLÉS
+• Ticket moyen revenus: ${avgRevenueTicket} €
+• Ticket moyen charges: ${avgExpenseTicket} €
+• Ratio revenus/charges: ${expenseInvoices.length > 0 ? (revenueInvoices.length / expenseInvoices.length).toFixed(2) : 'N/A'}`;
 
                 financeChatAddMessage('bot', kpiReport);
                 saveFinanceConversation();
