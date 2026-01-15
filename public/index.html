@@ -31417,10 +31417,9 @@ ${recruitmentInfo}
         let currentConversationName = '';
         
         // Sauvegarde automatique des conversations
-        function saveFinanceConversation() {
+        async function saveFinanceConversation() {
             try {
-                const conversations = JSON.parse(localStorage.getItem('financeConversations') || '{}');
-                conversations[financeConversationId] = {
+                const data = {
                     id: financeConversationId,
                     name: currentConversationName || `Conversation ${new Date().toLocaleDateString(getLocale())}`,
                     history: financeChatHistory,
@@ -31428,7 +31427,15 @@ ${recruitmentInfo}
                     lastUpdated: new Date().toISOString(),
                     messageCount: financeChatHistory.length
                 };
-                localStorage.setItem('financeConversations', JSON.stringify(conversations));
+                
+                if (window.financeStorageClient) {
+                    await window.financeStorageClient.saveConversation(financeConversationId, data);
+                } else {
+                    // Fallback si client pas initialisé
+                    const conversations = JSON.parse(localStorage.getItem('financeConversations') || '{}');
+                    conversations[financeConversationId] = data;
+                    localStorage.setItem('financeConversations', JSON.stringify(conversations));
+                }
                 console.log('[Finance] Conversation sauvegardée:', financeConversationId);
             } catch (error) {
                 console.error('[Finance] Erreur sauvegarde:', error);
