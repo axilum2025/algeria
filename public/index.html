@@ -32900,6 +32900,13 @@ ${recruitmentInfo}
                     ? (((thisMonthRevenue - lastMonthRevenue) / lastMonthRevenue) * 100).toFixed(1)
                     : 'N/A';
 
+                // Trésorerie
+                const cashFlow = thisMonthRevenue - thisMonthExpenses;
+                const cashFlowStatus = cashFlow > 0 ? '✅ Positif' : cashFlow < 0 ? '⚠️ Négatif' : '➖ Équilibré';
+                const monthsCount = Math.max(1, Math.ceil(invoices.length / 10));
+                const avgMonthlyRevenue = (totalRevenue / monthsCount).toFixed(2);
+                const avgMonthlyExpenses = (totalExpenses / monthsCount).toFixed(2);
+
                 const kpiReport = `📊 KPIs Financiers (basé sur ${invoices.length} factures)
 
 📈 PERFORMANCE GLOBALE
@@ -32915,7 +32922,12 @@ ${recruitmentInfo}
 • Charges ce mois: ${thisMonthExpenses.toFixed(2)} €
 • Résultat: ${(thisMonthRevenue - thisMonthExpenses).toFixed(2)} €
 • CA mois dernier: ${lastMonthRevenue.toFixed(2)} €
-• Croissance: ${revenueGrowth}${revenueGrowth !== 'N/A' ? '%' : ''} ${revenueGrowth > 0 ? '📈' : revenueGrowth < 0 ? '📉' : ''}`;
+• Croissance: ${revenueGrowth}${revenueGrowth !== 'N/A' ? '%' : ''} ${revenueGrowth > 0 ? '📈' : revenueGrowth < 0 ? '📉' : ''}
+
+💰 TRÉSORERIE
+• Flux ce mois: ${cashFlow.toFixed(2)} € ${cashFlowStatus}
+• Moyenne mensuelle CA: ${avgMonthlyRevenue} €
+• Moyenne mensuelle charges: ${avgMonthlyExpenses} €`;
 
                 financeChatAddMessage('bot', kpiReport);
                 saveFinanceConversation();
