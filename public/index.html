@@ -895,6 +895,11 @@
             border-radius: var(--bubble-radius) var(--bubble-radius) var(--bubble-tail-radius) var(--bubble-radius);
             box-shadow: 0 2px 16px var(--shadow);
         }
+        /* Mode dark: bordure bleue plus visible pour les bulles utilisateur */
+        [data-theme="dark"] .message-wrapper.user .message-content {
+            border: 1px solid var(--accent);
+        }
+
 
         /* Images uploadées dans le chat : pas de "cadre" (bulle bleue) autour de la photo */
         .message-wrapper.user.image-message .message-content {
