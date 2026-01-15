@@ -32961,6 +32961,17 @@ ${topExpenses || '• Aucune catégorie identifiée'}
 
                 financeChatAddMessage('bot', kpiReport);
                 saveFinanceConversation();
+                
+                // Demander à Alex de générer des recommandations basées sur ces KPIs
+                setTimeout(() => {
+                    const textarea = document.getElementById('financeMsg');
+                    if (textarea) {
+                        const recommendationRequest = `Analyse ces KPIs et donne-moi 3-5 recommandations actionnables prioritaires pour améliorer ma situation financière:\n\n${kpiReport}`;
+                        textarea.value = recommendationRequest;
+                        sendFinanceMessage();
+                    }
+                }, 500);
+                
             } catch (err) {
                 console.error('[generateRealKPIs] Erreur:', err);
                 financeChatAddMessage('bot', '❌ Erreur lors de la génération des KPIs: ' + err.message);
