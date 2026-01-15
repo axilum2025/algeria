@@ -5640,6 +5640,16 @@ RÈGLES IMPORTANTES:
             // Lancer l'animation toutes les 30 secondes
             setInterval(animateLogo, 30000);
             
+            // Initialiser Finance Storage Client si utilisateur connecté
+            if (window.financeStorageClient && currentUser) {
+                try {
+                    const token = sessionStorage.getItem('authToken') || localStorage.getItem('authToken') || '';
+                    await window.financeStorageClient.initialize(currentUser.id || currentUser.email, token);
+                } catch (error) {
+                    console.warn('[Finance] Erreur init client:', error);
+                }
+            }
+            
             await initConversationStorage();
             await syncWithServer();
             loadConversations();
