@@ -32907,6 +32907,18 @@ ${recruitmentInfo}
                 const avgMonthlyRevenue = (totalRevenue / monthsCount).toFixed(2);
                 const avgMonthlyExpenses = (totalExpenses / monthsCount).toFixed(2);
 
+                // Top 3 Catégories de Dépenses
+                const expensesByCategory = {};
+                invoices.filter(inv => inv.type === 'expense').forEach(inv => {
+                    const category = inv.category || inv.categoryName || 'Non classé';
+                    expensesByCategory[category] = (expensesByCategory[category] || 0) + Math.abs(parseFloat(inv.amount) || 0);
+                });
+                const topExpenses = Object.entries(expensesByCategory)
+                    .sort(([,a], [,b]) => b - a)
+                    .slice(0, 3)
+                    .map(([cat, amount]) => `• ${cat}: ${amount.toFixed(2)} €`)
+                    .join('\n');
+
                 const kpiReport = `📊 KPIs Financiers (basé sur ${invoices.length} factures)
 
 📈 PERFORMANCE GLOBALE
@@ -32927,7 +32939,10 @@ ${recruitmentInfo}
 💰 TRÉSORERIE
 • Flux ce mois: ${cashFlow.toFixed(2)} € ${cashFlowStatus}
 • Moyenne mensuelle CA: ${avgMonthlyRevenue} €
-• Moyenne mensuelle charges: ${avgMonthlyExpenses} €`;
+• Moyenne mensuelle charges: ${avgMonthlyExpenses} €
+
+💼 TOP 3 CATÉGORIES DE DÉPENSES
+${topExpenses || '• Aucune catégorie identifiée'}`;
 
                 financeChatAddMessage('bot', kpiReport);
                 saveFinanceConversation();
