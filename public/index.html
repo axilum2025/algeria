@@ -32451,7 +32451,7 @@ ${recruitmentInfo}
                             <div class="chat-input">
                                     <div class="chat-compose">
                                         <div class="quick-prompts">
-                                            <button class="quick-btn" onclick="document.getElementById('financeMsg').value='Analyse budgétaire: Quels KPI dois-je suivre mensuellement ?'; document.getElementById('financeMsg').focus(); sendFinanceMessage();">KPIs budgétaires</button>
+                                            <button class="quick-btn" onclick="generateRealKPIs()">📊 KPIs budgétaires</button>
                                             <button class="quick-btn" onclick="startMarketStudyWizard()">${t('marketStudy.quickBtn')}</button>
                                             <button class="quick-btn" onclick="document.getElementById('financeMsg').value='Comptabilité: Checklist clôture mensuelle'; document.getElementById('financeMsg').focus(); sendFinanceMessage();">Clôture</button>
                                         </div>
@@ -32850,6 +32850,43 @@ ${recruitmentInfo}
                     try { cleanupFinanceRefocusGuards && cleanupFinanceRefocusGuards(); } catch (_) {}
                 }
             }, 500);
+        }
+
+        // ===================================
+        // 📊 Génération KPIs Réels
+        // ===================================
+        function generateRealKPIs() {
+            try {
+                if (!financeContext.invoices || financeContext.invoices.length === 0) {
+                    financeChatAddMessage('bot', '⚠️ Aucune donnée disponible. Veuillez uploader des factures pour générer des KPIs.');
+                    return;
+                }
+
+                financeChatAddMessage('user', '📊 Générer les KPIs budgétaires');
+                
+                const invoices = financeContext.invoices;
+                const totalRevenue = invoices.filter(inv => inv.type === 'income' || inv.type === 'revenue')
+                    .reduce((sum, inv) => sum + Math.abs(parseFloat(inv.amount) || 0), 0);
+                const totalExpenses = invoices.filter(inv => inv.type === 'expense')
+                    .reduce((sum, inv) => sum + Math.abs(parseFloat(inv.amount) || 0), 0);
+                const netIncome = totalRevenue - totalExpenses;
+                const netMargin = totalRevenue > 0 ? ((netIncome / totalRevenue) * 100).toFixed(1) : 0;
+
+                const kpiReport = `📊 KPIs Financiers (basé sur ${invoices.length} factures)
+
+• CA Total: ${totalRevenue.toFixed(2)} €
+• Charges: ${totalExpenses.toFixed(2)} €
+• Résultat Net: ${netIncome.toFixed(2)} € ${netIncome >= 0 ? '✅' : '⚠️'}
+• Marge: ${netMargin}%
+• Factures revenus: ${invoices.filter(i => i.type === 'income' || i.type === 'revenue').length}
+• Factures charges: ${invoices.filter(i => i.type === 'expense').length}`;
+
+                financeChatAddMessage('bot', kpiReport);
+                saveFinanceConversation();
+            } catch (err) {
+                console.error('[generateRealKPIs] Erreur:', err);
+                financeChatAddMessage('bot', '❌ Erreur lors de la génération des KPIs: ' + err.message);
+            }
         }
 
         // ===================================
