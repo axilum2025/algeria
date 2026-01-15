@@ -73,6 +73,14 @@
             scrollbar-color: rgba(0, 0, 0, 0.25) transparent;
         }
 
+        /* RH: éviter un flash de fond différent pendant l'overscroll mobile */
+        html.hr-overlay-open,
+        body.hr-overlay-open {
+            background: linear-gradient(135deg, #0a4d3c, #064e3b, #1e3a8a);
+            background-attachment: fixed;
+            overscroll-behavior: none;
+        }
+
         [data-theme="dark"] body {
             scrollbar-color: rgba(255, 255, 255, 0.25) transparent;
         }
@@ -18676,6 +18684,11 @@ ${persona}
                 </div>
             `;
             
+            try {
+                document.documentElement.classList.add('hr-overlay-open');
+                document.body.classList.add('hr-overlay-open');
+            } catch (_) {}
+
             document.body.appendChild(overlay);
 
             // État initial: dashboard (permet à showHRTab d'avoir un état propre)
@@ -18695,7 +18708,18 @@ ${persona}
             const overlay = document.getElementById('hrManagementOverlay');
             if (overlay) {
                 overlay.style.animation = 'fadeOut 0.3s ease';
-                setTimeout(() => overlay.remove(), 300);
+                setTimeout(() => {
+                    try { overlay.remove(); } catch (_) {}
+                    try {
+                        document.documentElement.classList.remove('hr-overlay-open');
+                        document.body.classList.remove('hr-overlay-open');
+                    } catch (_) {}
+                }, 300);
+            } else {
+                try {
+                    document.documentElement.classList.remove('hr-overlay-open');
+                    document.body.classList.remove('hr-overlay-open');
+                } catch (_) {}
             }
         }
         
