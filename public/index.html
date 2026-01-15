@@ -7350,11 +7350,11 @@ ${persona}
 
                 if (balanceEl) {
                     const bal = Number.isFinite(balanceValue) ? balanceValue : 0;
-                    balanceEl.textContent = formatMoney(bal, displayCurrency);
+                    balanceEl.textContent = formatMoneyAmountOnly(bal);
                 }
 
                 if (monthCostEl) {
-                    monthCostEl.textContent = formatMoney(Number(totals.totalCost || 0), totalsCurrency);
+                    monthCostEl.textContent = formatMoneyAmountOnly(Number(totals.totalCost || 0));
                 }
 
                 if (monthTokensEl) {
@@ -7375,7 +7375,7 @@ ${persona}
                     const tokens = Number(it.totalTokens || 0);
                     const cost = it.cost == null ? null : Number(it.cost);
                     const itemCurrency = 'USD';
-                    const costLabel = (cost == null || !Number.isFinite(cost)) ? '—' : formatMoney(cost, itemCurrency);
+                    const costLabel = (cost == null || !Number.isFinite(cost)) ? '—' : formatMoneyAmountOnly(cost);
                     return `
                         <tr>
                             <td style="padding: 10px; border-top: 1px solid var(--border-color); white-space: nowrap;">${safeText(dateLabel)}</td>
