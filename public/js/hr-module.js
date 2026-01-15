@@ -39,7 +39,13 @@
         const overlay = document.getElementById('hrManagementOverlay');
         if (overlay) {
             overlay.style.animation = 'fadeOut 0.3s ease';
-            setTimeout(() => overlay.remove(), 300);
+            setTimeout(() => {
+                try { overlay.remove(); } catch (_) {}
+                try {
+                    document.documentElement.classList.remove('hr-overlay-open');
+                    document.body.classList.remove('hr-overlay-open');
+                } catch (_) {}
+            }, 300);
         }
     };
     
