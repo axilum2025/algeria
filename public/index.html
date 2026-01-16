@@ -31666,6 +31666,15 @@ ${recruitmentInfo}
             if (modal) modal.style.display = "none";
         }
 
+        function openFinanceHelpModal() {
+            const modal = document.getElementById("financeHelpModal");
+            if (modal) modal.style.display = "flex";
+        }
+        function closeFinanceHelpModal() {
+            const modal = document.getElementById("financeHelpModal");
+            if (modal) modal.style.display = "none";
+        }
+
         function toggleFinanceSettings() {
             const overlay = document.getElementById('financeAIOverlay');
             const panel = document.getElementById('financeSettingsPanel');
@@ -32329,6 +32338,9 @@ ${recruitmentInfo}
                                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h7"/><path d="M14 6h7"/><path d="M14 18h7"/><circle cx="12" cy="12" r="2"/></svg>
                             </button>
                             <button class="history-toggle-btn" onclick="toggleFinanceHistory()" aria-label="Historique" title="Historique des conversations">
+                            <button class="history-toggle-btn" onclick="openFinanceHelpModal()" aria-label="Aide" title="Guide d'utilisation">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                            </button>
                                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                             </button>
                             <button class="ghost-btn" onclick="toggleFinanceSettings()" aria-label="Paramètres" title="Paramètres de l'entreprise">
@@ -32395,6 +32407,67 @@ ${recruitmentInfo}
           </div>
       </div>
   </div>
+  <!-- Modal Aide - Guide dutilisation -->
+  <div id="financeHelpModal" class="rgpd-modal-overlay" style="display: none;">
+      <div class="rgpd-modal-content" style="max-width: 620px;">
+          <button class="rgpd-modal-close" onclick="closeFinanceHelpModal()" aria-label="Fermer">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </button>
+          <div class="rgpd-modal-header">
+              <div class="rgpd-icon"><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#34d399" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></div>
+              <h2>Guide du Module Finance</h2>
+              <p>Comment utiliser les fonctionnalités</p>
+          </div>
+          <div class="rgpd-modal-body">
+              <div class="rgpd-section">
+                  <h3>🤖 Agent Alex - Votre Assistant IA</h3>
+                  <p>Alex est votre assistant intelligent spécialisé en finance et comptabilité. Il peut :</p>
+                  <ul>
+                      <li><strong>Analyser</strong> vos factures et documents financiers</li>
+                      <li><strong>Répondre</strong> à vos questions comptables et fiscales</li>
+                      <li><strong>Générer</strong> des rapports et analyses</li>
+                      <li><strong>Conseiller</strong> sur la gestion de trésorerie</li>
+                  </ul>
+                  <p style="margin-top: 10px; font-style: italic; color: #94a3b8;">Tapez votre question dans le chat pour commencer.</p>
+              </div>
+              <div class="rgpd-section">
+                  <h3>⚡ Outils dAutomatisation</h3>
+                  <p>Accédez aux outils via le bouton <strong>⚙️ Outils</strong> à gauche :</p>
+                  <ul>
+                      <li><strong>📄 Lecture de Factures</strong> - Scannez vos factures (photo/PDF) pour extraction automatique des montants, dates, TVA et fournisseurs</li>
+                      <li><strong>🛡️ Détection de Fraudes</strong> - Analyse IA pour détecter anomalies, doublons et transactions suspectes</li>
+                      <li><strong>📊 Prévision Trésorerie</strong> - Projections de cash-flow basées sur votre historique</li>
+                      <li><strong>📈 Analyse de Marché</strong> - Cours en temps réel et analyses sectorielles</li>
+                  </ul>
+              </div>
+              <div class="rgpd-section">
+                  <h3>💬 Actions Rapides dans le Chat</h3>
+                  <p>Utilisez ces commandes directement dans le chat :</p>
+                  <ul>
+                      <li><strong>"Analyse cette facture"</strong> + joindre image</li>
+                      <li><strong>"Résume mes dépenses du mois"</strong></li>
+                      <li><strong>"Calcule la TVA sur 1500€"</strong></li>
+                      <li><strong>"Prévision de trésorerie pour Q2"</strong></li>
+                      <li><strong>"Compare mes charges vs revenus"</strong></li>
+                  </ul>
+              </div>
+              <div class="rgpd-section">
+                  <h3>🔘 Boutons du Header</h3>
+                  <ul>
+                      <li><strong>⚙️ Outils</strong> - Panneau des outils automatisés</li>
+                      <li><strong>❓ Aide</strong> - Ce guide (vous y êtes)</li>
+                      <li><strong>🕐 Historique</strong> - Vos conversations sauvegardées</li>
+                      <li><strong>⚙️ Paramètres</strong> - Informations de votre entreprise</li>
+                      <li><strong>🛡️ RGPD</strong> - Protection de vos données</li>
+                  </ul>
+              </div>
+              <div class="rgpd-section rgpd-contact">
+                  <p><strong>💡 Astuce :</strong> Plus vous fournissez de contexte (paramètres entreprise, historique), plus Alex sera précis dans ses analyses.</p>
+              </div>
+          </div>
+      </div>
+  </div>
+
 
                     <div id="financeSettingsPanel" class="history-panel">
                         <div class="history-header">
