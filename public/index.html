@@ -31542,9 +31542,9 @@ ${recruitmentInfo}
         
         function deleteFinanceConversation(conversationId) {
             try {
-                const conversations = JSON.parse(localStorage.getItem('financeConversations') || '{}');
-                delete conversations[conversationId];
-                localStorage.setItem('financeConversations', JSON.stringify(conversations));
+                delete financeConversationsCache[conversationId];
+                // Envoyer suppression à Azure
+                const token = sessionStorage.getItem('authToken') || localStorage.getItem('authToken'); if (token) { fetch('/api/finance-conversations?id=' + conversationId, { method: 'DELETE', headers: { 'Authorization': 'Bearer ' + token } }).catch(e => console.warn('[Finance] Erreur API delete:', e)); }
                 console.log('[Finance] Conversation supprimée:', conversationId);
                 return true;
             } catch (error) {
