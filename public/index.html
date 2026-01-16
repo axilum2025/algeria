@@ -6785,7 +6785,7 @@ Notifications:
 
         function getFinanceModuleDataFromStorage() {
             const financeData = safeJsonParse(localStorage.getItem('axilum_finance_data') || '{}', {});
-            const conversationsObj = safeJsonParse(localStorage.getItem('financeConversations') || '{}', {});
+            const conversationsObj = (typeof financeConversationsCache !== 'undefined') ? financeConversationsCache : safeJsonParse(localStorage.getItem('financeConversations') || '{}' , {});
             const conversations = (conversationsObj && typeof conversationsObj === 'object') ? Object.values(conversationsObj) : [];
 
             // Récupérer un snapshot runtime si le module Finance a déjà été initialisé
@@ -32549,7 +32549,7 @@ ${recruitmentInfo}
             
             if (chatHistEl) {
                 // Essayer de charger depuis localStorage
-                const savedConversations = JSON.parse(localStorage.getItem('financeConversations') || '{}');
+                const savedConversations = (typeof financeConversationsCache !== 'undefined') ? financeConversationsCache : JSON.parse(localStorage.getItem('financeConversations') || '{}');
                 const savedConv = savedConversations[financeConversationId];
                 
                 if (savedConv && savedConv.history && savedConv.history.length > 0) {
