@@ -31555,10 +31555,9 @@ ${recruitmentInfo}
         
         function renameFinanceConversation(conversationId, newName) {
             try {
-                const conversations = JSON.parse(localStorage.getItem('financeConversations') || '{}');
-                if (conversations[conversationId]) {
-                    conversations[conversationId].name = newName;
-                    localStorage.setItem('financeConversations', JSON.stringify(conversations));
+                if (financeConversationsCache[conversationId]) {
+                    financeConversationsCache[conversationId].name = newName;
+                    saveFinanceConversation();
                     if (conversationId === financeConversationId) {
                         currentConversationName = newName;
                         updateConversationTitle();
