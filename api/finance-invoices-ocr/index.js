@@ -200,8 +200,13 @@ module.exports = async function (context, req) {
 
   const hasAzure = !!(endpoint && apiKey);
 
-  // Auth optionnelle pour OCR (mais obligatoire pour stockage isolé)
+  // Auth obligatoire: l'OCR traite des documents sensibles et peut stocker des blobs
   const userId = getAuthEmail(req);
+  if (!userId && req.method !== 'OPTIONS') {
+    context.res.status = 401;
+    context.res.body = { error: 'Non authentifié' };
+    return;
+  }
 
   // Debug logging
   context.log('[OCR] hasAzure:', hasAzure);

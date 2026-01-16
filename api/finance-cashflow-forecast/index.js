@@ -1,21 +1,18 @@
-module.exports = async function (context, req) {
-  const setCors = () => {
-    context.res = context.res || {};
-    context.res.headers = Object.assign({}, context.res.headers, {
-      'Access-Control-Allow-Origin': '*',
-      'Access-Control-Allow-Methods': 'POST, OPTIONS',
-      'Access-Control-Allow-Headers': 'Content-Type'
-    });
-  };
+const { requireAuth, setCors } = require('../utils/auth');
 
+module.exports = async function (context, req) {
   if (req.method === 'OPTIONS') {
-    setCors();
+    setCors(context, 'POST, OPTIONS');
     context.res.status = 200;
     context.res.body = '';
     return;
   }
 
   try {
+    // Finance = zone authentifiée (multi-utilisateurs)
+    const userId = requireAuth(context, req);
+    if (!userId) return;
+
     const body = req.body || {};
     const horizonDays = Number(body.horizonDays || 90);
     const method = body.method || 'historical'; // 'historical', 'trend', 'seasonal'
@@ -26,7 +23,7 @@ module.exports = async function (context, req) {
 
     // Si pas de données historiques, utiliser modèle baseline
     if (historicalInvoices.length === 0) {
-      return generateBaselineForecast(context, horizonDays, setCors);
+      return generateBaselineForecast(context, horizonDays, () => setCors(context, 'POST, OPTIONS'));
     }
 
     // Analyse de l'historique
@@ -38,7 +35,7 @@ module.exports = async function (context, req) {
     // Identification des risques
     const risks = identifyRisks(forecast, analysis);
 
-    setCors();
+    setCors(context, 'POST, OPTIONS');
     context.res.status = 200;
     context.res.headers['Content-Type'] = 'application/json';
     context.res.body = {
@@ -59,7 +56,7 @@ module.exports = async function (context, req) {
       recommendations: generateRecommendations(forecast, risks, analysis)
     };
   } catch (err) {
-    setCors();
+    setCors(context, 'POST, OPTIONS');
     context.res.status = 500;
     context.res.headers['Content-Type'] = 'application/json';
     context.res.body = { error: err.message || String(err) };

@@ -1,27 +1,23 @@
-module.exports = async function (context, req) {
-  const setCors = () => {
-    context.res = context.res || {};
-    context.res.headers = Object.assign({}, context.res.headers, {
-      'Access-Control-Allow-Origin': '*',
-      'Access-Control-Allow-Methods': 'POST, OPTIONS',
-      'Access-Control-Allow-Headers': 'Content-Type'
-    });
-  };
+const { requireAuth, setCors } = require('../utils/auth');
 
+module.exports = async function (context, req) {
   if (req.method === 'OPTIONS') {
-    setCors();
+    setCors(context, 'POST, OPTIONS');
     context.res.status = 200;
     context.res.body = '';
     return;
   }
 
   try {
+    const userId = requireAuth(context, req);
+    if (!userId) return;
+
     // Accepte soit expenses soit invoices
     const items = Array.isArray(req.body?.expenses) ? req.body.expenses : 
                   Array.isArray(req.body?.invoices) ? req.body.invoices : [];
 
     if (items.length === 0) {
-      setCors();
+      setCors(context, 'POST, OPTIONS');
       context.res.status = 200;
       context.res.headers['Content-Type'] = 'application/json';
       context.res.body = { 
@@ -118,7 +114,7 @@ module.exports = async function (context, req) {
     const totalAmount = items.reduce((sum, e) => sum + Math.abs(parseFloat(e.amount) || 0), 0);
     const deductibleAmount = categories.filter(c => c.taxDeductible).reduce((sum, c) => sum + c.amount, 0);
 
-    setCors();
+    setCors(context, 'POST, OPTIONS');
     context.res.status = 200;
     context.res.headers['Content-Type'] = 'application/json';
     context.res.body = { 
@@ -140,7 +136,7 @@ module.exports = async function (context, req) {
       ]
     };
   } catch (err) {
-    setCors();
+    setCors(context, 'POST, OPTIONS');
     context.res.status = 500;
     context.res.headers['Content-Type'] = 'application/json';
     context.res.body = { error: err.message || String(err) };
