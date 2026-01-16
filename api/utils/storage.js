@@ -82,27 +82,32 @@ function buildBlobUrl(container, blobName) {
 
 async function ensureContainer(containerClient) {
   try {
-    await containerClient.createIfNotExists({ access: 'container' });
+    // Conteneur PRIVÉ par défaut (pas d'accès public)
+    await containerClient.createIfNotExists();
   } catch {}
 }
 
-async function uploadBuffer(container, blobName, buffer, contentType) {
+async function uploadBuffer(container, blobName, buffer, contentType, userId = null) {
   const svc = getBlobServiceClient();
   if (!svc) return null;
   const containerClient = svc.getContainerClient(container);
   await ensureContainer(containerClient);
-  const blockBlob = containerClient.getBlockBlobClient(blobName);
+  // Si userId fourni, préfixer le blob pour isolation
+  const finalBlobName = userId ? `users/${userId}/${blobName}` : blobName;
+  const blockBlob = containerClient.getBlockBlobClient(finalBlobName);
   const opts = contentType ? { blobHTTPHeaders: { blobContentType: contentType } } : undefined;
   await blockBlob.uploadData(buffer, opts);
-  return buildBlobUrl(container, blobName) || blockBlob.url;
+  return buildBlobUrl(container, finalBlobName) || blockBlob.url;
 }
 
-async function listBlobs(container) {
+async function listBlobs(container, userId = null) {
   const svc = getBlobServiceClient();
   if (!svc) return [];
   const out = [];
   const containerClient = svc.getContainerClient(container);
-  for await (const item of containerClient.listBlobsFlat()) {
+  // Si userId fourni, filtrer par préfixe users/{userId}/
+  const prefix = userId ? `users/${userId}/` : undefined;
+  for await (const item of containerClient.listBlobsFlat({ prefix })) {
     // Essayer buildBlobUrl avec SAS token
     let url = buildBlobUrl(container, item.name);
     
@@ -147,11 +152,13 @@ async function listBlobs(container) {
 
 module.exports = { getBlobServiceClient, uploadBuffer, listBlobs, buildBlobUrl, getConfig };
 
-async function deleteBlob(container, blobName) {
+async function deleteBlob(container, blobName, userId = null) {
   const svc = getBlobServiceClient();
   if (!svc) return false;
   const containerClient = svc.getContainerClient(container);
-  const client = containerClient.getBlobClient(blobName);
+  // Si userId fourni, vérifier que le blob appartient à l'utilisateur
+  const finalBlobName = userId ? `users/${userId}/${blobName}` : blobName;
+  const client = containerClient.getBlobClient(finalBlobName);
   try {
     await client.deleteIfExists();
     return true;

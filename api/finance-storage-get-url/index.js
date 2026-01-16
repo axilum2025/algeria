@@ -1,44 +1,47 @@
 const { buildBlobUrl, getBlobServiceClient, getConfig } = require('../utils/storage');
 const { generateBlobSASQueryParameters, BlobSASPermissions, StorageSharedKeyCredential } = require('@azure/storage-blob');
+const { getAuthEmail, setCors } = require('../utils/auth');
 
 module.exports = async function (context, req) {
-  const setCors = () => {
-    context.res = context.res || {};
-    context.res.headers = Object.assign({}, context.res.headers, {
-      'Access-Control-Allow-Origin': '*',
-      'Access-Control-Allow-Methods': 'POST, OPTIONS',
-      'Access-Control-Allow-Headers': 'Content-Type'
-    });
-  };
+  setCors(context, 'POST, OPTIONS');
+  context.res.headers['Content-Type'] = 'application/json';
 
   if (req.method === 'OPTIONS') {
-    setCors();
     context.res.status = 200;
     context.res.body = '';
     return;
   }
 
   try {
+    // Auth obligatoire pour obtenir une URL de téléchargement
+    const userId = getAuthEmail(req);
+    if (!userId) {
+      context.res.status = 401;
+      context.res.body = { error: 'Non authentifié' };
+      return;
+    }
+
     const container = (req.body?.container || 'invoices').toString();
     const name = (req.body?.name || '').toString();
     
     if (!name) {
-      setCors();
       context.res.status = 400;
-      context.res.headers['Content-Type'] = 'application/json';
       context.res.body = { error: 'Missing blob name' };
       return;
     }
     
+    // Construire le chemin complet avec préfixe utilisateur
+    const fullBlobName = `users/${userId}/${name}`;
+    
     // Essayer buildBlobUrl d'abord (avec SAS si disponible)
-    let url = buildBlobUrl(container, name);
+    let url = buildBlobUrl(container, fullBlobName);
     
     // Si null, générer un SAS token directement
     if (!url) {
       const svc = getBlobServiceClient();
       if (svc) {
         const containerClient = svc.getContainerClient(container);
-        const blockBlob = containerClient.getBlockBlobClient(name);
+        const blockBlob = containerClient.getBlockBlobClient(fullBlobName);
         const config = getConfig();
         
         if (config.account && config.key) {
@@ -51,7 +54,7 @@ module.exports = async function (context, req) {
             const sasToken = generateBlobSASQueryParameters(
               {
                 containerName: container,
-                blobName: name,
+                blobName: fullBlobName,
                 permissions,
                 startsOn,
                 expiresOn
@@ -71,14 +74,10 @@ module.exports = async function (context, req) {
       }
     }
     
-    setCors();
     context.res.status = 200;
-    context.res.headers['Content-Type'] = 'application/json';
     context.res.body = { url };
   } catch (err) {
-    setCors();
     context.res.status = 500;
-    context.res.headers['Content-Type'] = 'application/json';
     context.res.body = { error: err.message || String(err) };
   }
 };

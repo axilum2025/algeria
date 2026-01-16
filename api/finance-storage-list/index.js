@@ -1,33 +1,37 @@
 const { listBlobs } = require('../utils/storage');
+const { getAuthEmail, setCors } = require('../utils/auth');
 
 module.exports = async function (context, req) {
-  const setCors = () => {
-    context.res = context.res || {};
-    context.res.headers = Object.assign({}, context.res.headers, {
-      'Access-Control-Allow-Origin': '*',
-      'Access-Control-Allow-Methods': 'POST, OPTIONS',
-      'Access-Control-Allow-Headers': 'Content-Type'
-    });
-  };
+  setCors(context, 'POST, OPTIONS');
+  context.res.headers['Content-Type'] = 'application/json';
 
   if (req.method === 'OPTIONS') {
-    setCors();
     context.res.status = 200;
     context.res.body = '';
     return;
   }
 
   try {
+    // Auth obligatoire pour lister les fichiers
+    const userId = getAuthEmail(req);
+    if (!userId) {
+      context.res.status = 401;
+      context.res.body = { error: 'Non authentifié' };
+      return;
+    }
+
     const container = (req.body?.container || 'invoices').toString();
-    const items = await listBlobs(container);
-    setCors();
+    // Lister uniquement les blobs de l'utilisateur (préfixe users/{userId}/)
+    const items = await listBlobs(container, userId);
+    // Nettoyer les noms pour retirer le préfixe users/{userId}/
+    const cleanedItems = items.map(item => ({
+      ...item,
+      name: item.name.replace(`users/${userId}/`, '')
+    }));
     context.res.status = 200;
-    context.res.headers['Content-Type'] = 'application/json';
-    context.res.body = { container, count: items.length, items };
+    context.res.body = { container, count: cleanedItems.length, items: cleanedItems };
   } catch (err) {
-    setCors();
     context.res.status = 500;
-    context.res.headers['Content-Type'] = 'application/json';
     context.res.body = { error: err.message || String(err) };
   }
 };

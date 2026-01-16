@@ -1,18 +1,13 @@
 // API: Gestion des conversations Finance (avec isolation par utilisateur)
 const financeStorage = require('../utils/financeStorage');
+const { getAuthEmail, setCors } = require('../utils/auth');
 
 module.exports = async function (context, req) {
     context.log('📊 Finance Conversations API');
 
     // CORS
-    context.res = {
-        headers: {
-            'Content-Type': 'application/json',
-            'Access-Control-Allow-Origin': '*',
-            'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
-            'Access-Control-Allow-Headers': 'Content-Type, Authorization'
-        }
-    };
+    setCors(context, 'GET, POST, PUT, DELETE, OPTIONS');
+    context.res.headers['Content-Type'] = 'application/json';
 
     if (req.method === 'OPTIONS') {
         context.res.status = 200;
@@ -23,8 +18,8 @@ module.exports = async function (context, req) {
         // Initialiser le storage
         await financeStorage.initialize();
 
-        // Extraire userId depuis le header Authorization ou body
-        const userId = extractUserId(req);
+        // Extraire userId depuis le JWT vérifié (email comme clé)
+        const userId = getAuthEmail(req);
         if (!userId) {
             context.res.status = 401;
             context.res.body = { error: 'Utilisateur non authentifié' };
@@ -79,33 +74,3 @@ module.exports = async function (context, req) {
         context.res.body = { error: error.message };
     }
 };
-
-function extractUserId(req) {
-    // Option 1: Depuis le header Authorization (JWT token)
-    const authHeader = req.headers['authorization'] || req.headers['Authorization'];
-    if (authHeader && authHeader.startsWith('Bearer ')) {
-        try {
-            const token = authHeader.substring(7);
-            // TODO: Décoder le JWT pour extraire userId
-            // const decoded = jwt.verify(token, process.env.JWT_SECRET);
-            // return decoded.userId;
-            
-            // Pour l'instant, retourner un userId de test
-            // Remplacer par vrai décodage JWT
-            return token; // Temporaire
-        } catch (error) {
-            console.error('Erreur décodage token:', error);
-        }
-    }
-
-    // Option 2: Depuis le body (temporaire pour développement)
-    if (req.body && req.body.userId) {
-        return req.body.userId;
-    }
-
-    // Option 3: Depuis cookie/session
-    // const session = req.headers['cookie'];
-    // return extractUserIdFromSession(session);
-
-    return null;
-}

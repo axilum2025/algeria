@@ -1,29 +1,15 @@
 const PDFDocument = require('pdfkit');
 const { getLangFromReq, getLocaleFromLang } = require('../utils/lang');
 const { uploadBuffer, buildBlobUrl } = require('../utils/storage');
+const { getAuthEmail, setCors } = require('../utils/auth');
 
 module.exports = async function (context, req) {
-  // Initialiser context.res dès le début
-  context.res = {
-    status: 200,
-    headers: {},
-    body: null
-  };
-
-  const setCors = () => {
-    context.res.headers = Object.assign({}, context.res.headers, {
-      'Access-Control-Allow-Origin': '*',
-      'Access-Control-Allow-Methods': 'POST, OPTIONS',
-      'Access-Control-Allow-Headers': 'Content-Type',
-      'Content-Type': 'application/json',
-      'Cache-Control': 'no-cache, no-store, must-revalidate',
-      'Pragma': 'no-cache',
-      'Expires': '0'
-    });
-  };
-
-  // Toujours définir les headers CORS dès le début
-  setCors();
+  // Initialiser context.res avec CORS
+  setCors(context, 'POST, OPTIONS');
+  context.res.headers['Content-Type'] = 'application/json';
+  context.res.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate';
+  context.res.headers['Pragma'] = 'no-cache';
+  context.res.headers['Expires'] = '0';
 
   context.log('[Finance Reports] Request received:', { 
     method: req.method, 
@@ -38,6 +24,14 @@ module.exports = async function (context, req) {
   }
 
   try {
+    // Auth obligatoire pour générer un rapport
+    const userId = getAuthEmail(req);
+    if (!userId) {
+      context.res.status = 401;
+      context.res.body = { error: 'Non authentifié' };
+      return;
+    }
+
     const lang = getLangFromReq(req);
     const locale = getLocaleFromLang(lang);
     const body = req.body || {};
@@ -48,6 +42,7 @@ module.exports = async function (context, req) {
     const companyInfo = body.companyInfo || {}; // Informations de l'entreprise
 
     context.log('[Finance Reports] 📊 Processing request:', { 
+      userId,
       period, 
       format, 
       reportType, 
@@ -84,11 +79,11 @@ module.exports = async function (context, req) {
       context.log('[Finance Reports] 📋 JSON report generated');
     }
 
-    // Upload vers Azure Blob Storage
+    // Upload vers Azure Blob Storage avec préfixe userId pour isolation
     const filename = `finance-report-${reportType}-${period}-${Date.now()}.${format}`;
     const mimeType = format === 'pdf' ? 'application/pdf' : 'application/json';
-    context.log('[Finance Reports] ☁️ Uploading to Azure:', { filename, mimeType });
-    const azureUrl = await uploadBuffer('reports', filename, pdfBuffer, mimeType);
+    context.log('[Finance Reports] ☁️ Uploading to Azure:', { filename, mimeType, userId });
+    const azureUrl = await uploadBuffer('reports', filename, pdfBuffer, mimeType, userId);
     context.log('[Finance Reports] ✅ Upload successful:', azureUrl);
 
     context.res.status = 200;

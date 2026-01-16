@@ -1,17 +1,12 @@
 // API: Gestion des paramètres entreprise Finance
 const financeStorage = require('../utils/financeStorage');
+const { getAuthEmail, setCors } = require('../utils/auth');
 
 module.exports = async function (context, req) {
     context.log('⚙️ Finance Settings API');
 
-    context.res = {
-        headers: {
-            'Content-Type': 'application/json',
-            'Access-Control-Allow-Origin': '*',
-            'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-            'Access-Control-Allow-Headers': 'Content-Type, Authorization'
-        }
-    };
+    setCors(context, 'GET, POST, OPTIONS');
+    context.res.headers['Content-Type'] = 'application/json';
 
     if (req.method === 'OPTIONS') {
         context.res.status = 200;
@@ -21,7 +16,8 @@ module.exports = async function (context, req) {
     try {
         await financeStorage.initialize();
 
-        const userId = extractUserId(req);
+        // Extraire userId depuis le JWT vérifié (email comme clé)
+        const userId = getAuthEmail(req);
         if (!userId) {
             context.res.status = 401;
             context.res.body = { error: 'Utilisateur non authentifié' };
@@ -58,14 +54,3 @@ module.exports = async function (context, req) {
         context.res.body = { error: error.message };
     }
 };
-
-function extractUserId(req) {
-    const authHeader = req.headers['authorization'] || req.headers['Authorization'];
-    if (authHeader && authHeader.startsWith('Bearer ')) {
-        return authHeader.substring(7);
-    }
-    if (req.body && req.body.userId) {
-        return req.body.userId;
-    }
-    return null;
-}

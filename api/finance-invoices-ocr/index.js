@@ -1,4 +1,5 @@
 const { uploadBuffer } = require('../utils/storage');
+const { getAuthEmail, setCors } = require('../utils/auth');
 
 /**
  * Détecte si une facture est une CHARGE (dépense) ou un REVENU (bénéfice)
@@ -176,14 +177,9 @@ function detectTransactionType(fullText, vendor, extractedFields) {
 }
 
 module.exports = async function (context, req) {
-  const setCors = () => {
-    context.res = context.res || {};
-    context.res.headers = Object.assign({}, context.res.headers, {
-      'Access-Control-Allow-Origin': '*',
-      'Access-Control-Allow-Methods': 'POST, OPTIONS',
-      'Access-Control-Allow-Headers': 'Content-Type'
-    });
-  };
+  // Utiliser setCors importé depuis auth.js
+  setCors(context, 'POST, OPTIONS');
+  context.res.headers['Content-Type'] = 'application/json';
 
   const endpoint = (
     process.env.APPSETTING_FORM_RECOGNIZER_ENDPOINT ||
@@ -204,13 +200,16 @@ module.exports = async function (context, req) {
 
   const hasAzure = !!(endpoint && apiKey);
 
+  // Auth optionnelle pour OCR (mais obligatoire pour stockage isolé)
+  const userId = getAuthEmail(req);
+
   // Debug logging
   context.log('[OCR] hasAzure:', hasAzure);
   context.log('[OCR] endpoint:', endpoint ? endpoint.substring(0, 30) + '...' : 'NOT SET');
   context.log('[OCR] apiKey:', apiKey ? 'SET (length: ' + apiKey.length + ')' : 'NOT SET');
+  context.log('[OCR] userId:', userId || 'NOT AUTHENTICATED');
 
   if (req.method === 'OPTIONS') {
-    setCors();
     context.res.status = 200;
     context.res.body = '';
     return;
@@ -388,7 +387,7 @@ module.exports = async function (context, req) {
     if (!hasAzure) {
       // Fallback: essayer d'extraire du texte basique du PDF/Image
       // Pour l'instant, retourner un stub mais avec indication claire
-      setCors();
+      
       context.res.status = 200;
       context.res.headers['Content-Type'] = 'application/json';
       
@@ -421,7 +420,7 @@ module.exports = async function (context, req) {
       contentType = 'application/json';
     } else {
       // No input provided
-      setCors();
+      
       context.res.status = 400;
       context.res.headers['Content-Type'] = 'application/json';
       context.res.body = { error: 'fileUrl ou contentBase64 requis' };
@@ -455,7 +454,7 @@ module.exports = async function (context, req) {
         const cvResp = await fetch(cvUrl, { method: 'POST', headers: cvHeaders, body: cvBody });
         if (cvResp.status !== 202) {
           const errText = await cvResp.text().catch(() => '');
-          setCors();
+          
           context.res.status = 200;
           context.res.headers['Content-Type'] = 'application/json';
           context.res.body = { warning: `Analyse non acceptée (${analyzeResp.status})`, details: errText, fallback: fallbackStub(fileUrl), method: 'azure-form-recognizer-error' };
@@ -464,7 +463,7 @@ module.exports = async function (context, req) {
 
         const cvOpLoc = cvResp.headers.get('operation-location');
         if (!cvOpLoc) {
-          setCors();
+          
           context.res.status = 200;
           context.res.headers['Content-Type'] = 'application/json';
           context.res.body = { warning: 'operation-location manquant (Computer Vision)', fallback: fallbackStub(fileUrl), method: 'azure-computer-vision-missing-oploc' };
@@ -484,7 +483,7 @@ module.exports = async function (context, req) {
           await new Promise(res => setTimeout(res, cvDelayMs));
         }
         if (!cvResult) {
-          setCors();
+          
           context.res.status = 200;
           context.res.headers['Content-Type'] = 'application/json';
           context.res.body = { warning: 'Analyse non terminée (Computer Vision)', fallback: fallbackStub(fileUrl), method: 'azure-computer-vision-timeout' };
@@ -513,19 +512,19 @@ module.exports = async function (context, req) {
               const arrayBuf = await srcResp.arrayBuffer();
               const buf = Buffer.from(arrayBuf);
               const guessName = (new URL(fileUrl)).pathname.split('/').pop() || `invoice-${Date.now()}.pdf`;
-              storedUrl = await uploadBuffer('invoices', guessName, buf, srcResp.headers.get('content-type') || 'application/pdf');
+              storedUrl = await uploadBuffer('invoices', guessName, buf, srcResp.headers.get('content-type') || 'application/pdf', userId);
             }
           } else if (contentBase64) {
             const buf = Buffer.from(String(contentBase64), 'base64');
             const name = `invoice-${Date.now()}.pdf`;
-            storedUrl = await uploadBuffer('invoices', name, buf, 'application/pdf');
+            storedUrl = await uploadBuffer('invoices', name, buf, 'application/pdf', userId);
           }
         } catch {}
 
         // Détection du type de transaction
         const transactionType = detectTransactionType(text, vendor, null);
         
-        setCors();
+        
         context.res.status = 200;
         context.res.headers['Content-Type'] = 'application/json';
         context.res.body = {
@@ -545,7 +544,7 @@ module.exports = async function (context, req) {
         return;
       } catch (cvErr) {
         const errText = await analyzeResp.text().catch(() => '');
-        setCors();
+        
         context.res.status = 200;
         context.res.headers['Content-Type'] = 'application/json';
         context.res.body = { warning: `Analyse non acceptée (${analyzeResp.status})`, details: errText, fallback: fallbackStub(fileUrl), method: 'azure-form-recognizer-error' };
@@ -555,7 +554,7 @@ module.exports = async function (context, req) {
 
     const opLoc = analyzeResp.headers.get('operation-location');
     if (!opLoc) {
-      setCors();
+      
       context.res.status = 200;
       context.res.headers['Content-Type'] = 'application/json';
       context.res.body = { warning: 'operation-location manquant', fallback: fallbackStub(fileUrl), method: 'azure-form-recognizer-missing-oploc' };
@@ -586,7 +585,7 @@ module.exports = async function (context, req) {
     }
 
     if (!resultData) {
-      setCors();
+      
       context.res.status = 200;
       context.res.headers['Content-Type'] = 'application/json';
       context.res.body = { warning: 'Analyse non terminée', fallback: fallbackStub(fileUrl), method: 'azure-form-recognizer-timeout' };
@@ -691,12 +690,12 @@ module.exports = async function (context, req) {
           const arrayBuf = await srcResp.arrayBuffer();
           const buf = Buffer.from(arrayBuf);
           const guessName = (new URL(fileUrl)).pathname.split('/').pop() || `invoice-${Date.now()}.pdf`;
-          storedUrl = await uploadBuffer('invoices', guessName, buf, srcResp.headers.get('content-type') || 'application/pdf');
+          storedUrl = await uploadBuffer('invoices', guessName, buf, srcResp.headers.get('content-type') || 'application/pdf', userId);
         }
       } else if (contentBase64) {
         const buf = Buffer.from(String(contentBase64), 'base64');
         const name = `invoice-${Date.now()}.pdf`;
-        storedUrl = await uploadBuffer('invoices', name, buf, 'application/pdf');
+        storedUrl = await uploadBuffer('invoices', name, buf, 'application/pdf', userId);
       }
     } catch {}
 
@@ -704,7 +703,7 @@ module.exports = async function (context, req) {
     const transactionType = detectTransactionType(fullText, vendor, extractedFields);
     context.log('[OCR] Transaction type detected:', transactionType);
     
-    setCors();
+    
     context.res.status = 200;
     context.res.headers['Content-Type'] = 'application/json';
     context.res.body = {
@@ -728,7 +727,7 @@ module.exports = async function (context, req) {
       method: 'azure-form-recognizer'
     };
   } catch (err) {
-    setCors();
+    
     context.res.status = 500;
     context.res.headers['Content-Type'] = 'application/json';
     context.res.body = { error: err.message || String(err) };
