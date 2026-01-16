@@ -31531,8 +31531,8 @@ ${recruitmentInfo}
         
         function getFinanceConversations() {
             try {
-                const conversations = JSON.parse(localStorage.getItem('financeConversations') || '{}');
-                return Object.values(conversations).sort((a, b) => 
+                // Lire depuis le cache Azure (synchrone)
+                return Object.values(financeConversationsCache).sort((a, b) => 
                     new Date(b.lastUpdated) - new Date(a.lastUpdated)
                 );
             } catch (error) {
