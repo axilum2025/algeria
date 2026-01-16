@@ -31493,8 +31493,7 @@ ${recruitmentInfo}
         
         function loadFinanceConversation(conversationId) {
             try {
-                const conversations = JSON.parse(localStorage.getItem('financeConversations') || '{}');
-                const conv = conversations[conversationId];
+                const conv = financeConversationsCache[conversationId];
                 if (!conv) {
                     console.warn('[Finance] Conversation non trouvée:', conversationId);
                     return false;
