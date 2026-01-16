@@ -34001,7 +34001,7 @@ ${hasBalance ? '✅' : '⬜'} Calculer résultat du mois
                 }
                 
                 // 2. Charger toutes les conversations depuis localStorage
-                const conversations = JSON.parse(localStorage.getItem('financeConversations') || '{}');
+                const conversations = (typeof financeConversationsCache !== 'undefined') ? financeConversationsCache : JSON.parse(localStorage.getItem('financeConversations') || '{}');
                 const convCount = Object.keys(conversations).length;
                 console.log(`[Finance] 📋 ${convCount} conversation(s) dans localStorage`);
                 
@@ -34320,7 +34320,7 @@ ${hasBalance ? '✅' : '⬜'} Calculer résultat du mois
             let allInvoices = [];
             try {
                 if (financeContext.invoices) allInvoices = [...financeContext.invoices];
-                const conversations = JSON.parse(localStorage.getItem('financeConversations') || '{}');
+                const conversations = (typeof financeConversationsCache !== 'undefined') ? financeConversationsCache : JSON.parse(localStorage.getItem('financeConversations') || '{}');
                 Object.values(conversations).forEach(conv => {
                     if (conv.context && conv.context.invoices) {
                         allInvoices = allInvoices.concat(conv.context.invoices);
@@ -34477,7 +34477,7 @@ ${hasBalance ? '✅' : '⬜'} Calculer résultat du mois
                 if (r.ok && data.deleted) {
                     // Supprimer aussi du localStorage pour éviter faux positifs de doublons
                     try {
-                        const conversations = JSON.parse(localStorage.getItem('financeConversations') || '{}');
+                    const conversations = (typeof financeConversationsCache !== 'undefined') ? financeConversationsCache : JSON.parse(localStorage.getItem('financeConversations') || '{}');
                         let found = false;
                         Object.keys(conversations).forEach(convId => {
                             const conv = conversations[convId];
@@ -34491,7 +34491,7 @@ ${hasBalance ? '✅' : '⬜'} Calculer résultat du mois
                                 if (conv.context.invoices.length < originalLength) found = true;
                             }
                         });
-                        localStorage.setItem('financeConversations', JSON.stringify(conversations));
+                    if (typeof financeConversationsCache !== 'undefined') { Object.assign(financeConversationsCache, conversations); } saveFinanceConversation();
                         console.log(`[Finance] 🗑️ Facture ${name} supprimée du localStorage:`, found);
                     } catch (err) {
                         console.error('[Finance] Erreur suppression localStorage:', err);
