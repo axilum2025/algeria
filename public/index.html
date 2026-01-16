@@ -31416,6 +31416,55 @@ ${recruitmentInfo}
         let financeConversationId = sessionStorage.getItem('financeConversationId') || `finance-${Date.now()}`;
         let currentConversationName = '';
         
+        // Cache des conversations pour accès synchrone
+        let financeConversationsCache = {};
+        let financeConversationsCacheLoaded = false;
+        
+        // Charger le cache depuis Azure au démarrage
+        function loadFinanceConversationsCache() {
+            const token = sessionStorage.getItem('authToken') || localStorage.getItem('authToken');
+            if (!token) {
+                // Pas de token, charger depuis localStorage
+                try {
+                    financeConversationsCache = JSON.parse(localStorage.getItem('financeConversations') || '{}');
+                } catch (e) {
+                    financeConversationsCache = {};
+                }
+                financeConversationsCacheLoaded = true;
+                return;
+            }
+            
+            fetch('/api/finance-conversations', {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(response => response.ok ? response.json() : [])
+            .then(data => {
+                // Convertir array en objet {id: data}
+                financeConversationsCache = {};
+                (data || []).forEach(conv => {
+                    financeConversationsCache[conv.id] = conv;
+                });
+                financeConversationsCacheLoaded = true;
+                console.log('[Finance] Cache chargé depuis Azure:', Object.keys(financeConversationsCache).length, 'conversations');
+            })
+            .catch(error => {
+                console.warn('[Finance] Erreur API, fallback localStorage:', error);
+                try {
+                    financeConversationsCache = JSON.parse(localStorage.getItem('financeConversations') || '{}');
+                } catch (e) {
+                    financeConversationsCache = {};
+                }
+                financeConversationsCacheLoaded = true;
+            });
+        }
+        
+        // Initialiser le cache au chargement
+        loadFinanceConversationsCache();
+        
         // Sauvegarde automatique des conversations
         async function saveFinanceConversation() {
             try {
