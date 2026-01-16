@@ -18297,7 +18297,7 @@ ${persona}
                                         
                                         <div style="background: rgba(255,255,255,0.05); border: 1px solid rgba(59, 130, 246, 0.4); border-radius: 16px; padding: 24px; backdrop-filter: blur(10px); transition: all 0.3s;" onmouseover="this.style.background='rgba(255,255,255,0.08)'; this.style.transform='translateY(-2px)'" onmouseout="this.style.background='rgba(255,255,255,0.05)'; this.style.transform='translateY(0)'">
                                             <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px;">
-                                                <div style="width: 48px; height: 48px; background: rgba(59,130,246,0.2); border-radius: 12px; display: flex; align-items: center; justify-content: center; border: 1px solid rgba(59,130,246,0.3);">
+                                                <div style="width: 48px; height: 48px; background: rgba(59,130,246,0.2); border-radius: 12px; display: flex; align-items: center; justify-content: center; border: 1px solid rgba(52,211,153,0.3);">
                                                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>
                                                 </div>
                                             </div>
@@ -31716,7 +31716,7 @@ ${recruitmentInfo}
                 const nav = document.getElementById(`financeSettingsNav_${k}`);
                 if (nav) {
                     const isActive = (k === safeKey);
-                    nav.style.borderColor = isActive ? 'rgba(59,130,246,0.65)' : 'rgba(59,130,246,0.25)';
+                    nav.style.borderColor = isActive ? 'rgba(59,130,246,0.65)' : 'rgba(52,211,153,0.25)';
                     nav.style.background = isActive ? 'rgba(59,130,246,0.18)' : 'rgba(255,255,255,0.04)';
                     nav.style.color = 'white';
                 }
@@ -32101,7 +32101,7 @@ ${recruitmentInfo}
                     #financeAIOverlay .history-close { background: none; border: none; color: #94a3b8; cursor: pointer; padding: 4px; }
                     #financeAIOverlay .history-list { display: flex; flex-direction: column; gap: 8px; overflow-y: auto; max-height: 400px; }
                     #financeAIOverlay .history-item { background: rgba(255,255,255,0.04); border: 1px solid rgba(148,163,184,0.18); border-radius: 10px; padding: 12px; display: flex; justify-content: space-between; align-items: center; transition: all 0.2s; cursor: pointer; }
-                    #financeAIOverlay .history-item:hover { background: rgba(59,130,246,0.1); border-color: rgba(59,130,246,0.3); }
+                    #financeAIOverlay .history-item:hover { background: rgba(59,130,246,0.1); border-color: rgba(52,211,153,0.3); }
                     #financeAIOverlay .history-item.active { background: rgba(16,185,129,0.12); border-color: rgba(16,185,129,0.35); }
                     #financeAIOverlay .duplicate-badge { display: inline-block; background: linear-gradient(135deg, #f59e0b, #dc2626); color: white; font-size: 10px; font-weight: 700; padding: 2px 6px; border-radius: 8px; margin-left: 6px; }
                     #financeAIOverlay .history-info { flex: 1; }
@@ -32412,16 +32412,16 @@ ${recruitmentInfo}
                             <div style="width: 150px; flex: 0 0 auto;">
                                 <div style="font-size: 12px; font-weight: 800; letter-spacing: .04em; text-transform: uppercase; color: rgba(255,255,255,0.55); margin: 2px 0 10px;">Menu</div>
 
-                                <button type="button" id="financeSettingsNav_general" onclick="showFinanceSettingsSection('general')" style="width: 100%; text-align:left; padding: 10px 12px; border-radius: 10px; border: 1px solid rgba(59,130,246,0.25); background: rgba(255,255,255,0.04); color: white; cursor: pointer; font-size: 13px; font-weight: 700; margin-bottom: 10px;">
+                                <button type="button" id="financeSettingsNav_general" onclick="showFinanceSettingsSection('general')" style="width: 100%; text-align:left; padding: 10px 12px; border-radius: 10px; border: 1px solid rgba(52,211,153,0.25); background: rgba(255,255,255,0.04); color: white; cursor: pointer; font-size: 13px; font-weight: 700; margin-bottom: 10px;">
                                     Général
                                 </button>
-                                <button type="button" id="financeSettingsNav_contact" onclick="showFinanceSettingsSection('contact')" style="width: 100%; text-align:left; padding: 10px 12px; border-radius: 10px; border: 1px solid rgba(59,130,246,0.25); background: rgba(255,255,255,0.04); color: white; cursor: pointer; font-size: 13px; font-weight: 700; margin-bottom: 10px;">
+                                <button type="button" id="financeSettingsNav_contact" onclick="showFinanceSettingsSection('contact')" style="width: 100%; text-align:left; padding: 10px 12px; border-radius: 10px; border: 1px solid rgba(52,211,153,0.25); background: rgba(255,255,255,0.04); color: white; cursor: pointer; font-size: 13px; font-weight: 700; margin-bottom: 10px;">
                                     Contact
                                 </button>
-                                <button type="button" id="financeSettingsNav_currency" onclick="showFinanceSettingsSection('currency')" style="width: 100%; text-align:left; padding: 10px 12px; border-radius: 10px; border: 1px solid rgba(59,130,246,0.25); background: rgba(255,255,255,0.04); color: white; cursor: pointer; font-size: 13px; font-weight: 700; margin-bottom: 10px;">
+                                <button type="button" id="financeSettingsNav_currency" onclick="showFinanceSettingsSection('currency')" style="width: 100%; text-align:left; padding: 10px 12px; border-radius: 10px; border: 1px solid rgba(52,211,153,0.25); background: rgba(255,255,255,0.04); color: white; cursor: pointer; font-size: 13px; font-weight: 700; margin-bottom: 10px;">
                                     Devise
                                 </button>
-                                <button type="button" id="financeSettingsNav_legal" onclick="showFinanceSettingsSection('legal')" style="width: 100%; text-align:left; padding: 10px 12px; border-radius: 10px; border: 1px solid rgba(59,130,246,0.25); background: rgba(255,255,255,0.04); color: white; cursor: pointer; font-size: 13px; font-weight: 700;">
+                                <button type="button" id="financeSettingsNav_legal" onclick="showFinanceSettingsSection('legal')" style="width: 100%; text-align:left; padding: 10px 12px; border-radius: 10px; border: 1px solid rgba(52,211,153,0.25); background: rgba(255,255,255,0.04); color: white; cursor: pointer; font-size: 13px; font-weight: 700;">
                                     Légal
                                 </button>
                             </div>
@@ -32435,21 +32435,21 @@ ${recruitmentInfo}
                                             <label style="display: block; font-size: 13px; font-weight: 600; color: #374151; margin-bottom: 6px;">
                                                 Nom de l'entreprise <span style="color: #ef4444;">*</span>
                                             </label>
-                                            <input type="text" id="financeCompanyName" placeholder="Ex: Axilum" style="width: 100%; padding: 10px; border: 1px solid rgba(59,130,246,0.3); border-radius: 8px; background: rgba(255,255,255,0.05); color: white; font-size: 14px;" />
+                                            <input type="text" id="financeCompanyName" placeholder="Ex: Axilum" style="width: 100%; padding: 10px; border: 1px solid rgba(52,211,153,0.3); border-radius: 8px; background: rgba(255,255,255,0.05); color: white; font-size: 14px;" />
                                         </div>
 
                                         <div>
                                             <label style="display: block; font-size: 13px; font-weight: 600; color: #374151; margin-bottom: 6px;">
                                                 Domaine d'activité <span style="color: #ef4444;">*</span>
                                             </label>
-                                            <input type="text" id="financeCompanyActivity" placeholder="Ex: Technologies, Commerce, Services..." style="width: 100%; padding: 10px; border: 1px solid rgba(59,130,246,0.3); border-radius: 8px; background: rgba(255,255,255,0.05); color: white; font-size: 14px;" />
+                                            <input type="text" id="financeCompanyActivity" placeholder="Ex: Technologies, Commerce, Services..." style="width: 100%; padding: 10px; border: 1px solid rgba(52,211,153,0.3); border-radius: 8px; background: rgba(255,255,255,0.05); color: white; font-size: 14px;" />
                                         </div>
 
                                         <div>
                                             <label style="display: block; font-size: 13px; font-weight: 600; color: #374151; margin-bottom: 6px;">
                                                 Adresse complète <span style="color: #ef4444;">*</span>
                                             </label>
-                                            <textarea id="financeCompanyAddress" placeholder="Rue, ville, code postal, pays..." rows="2" style="width: 100%; padding: 10px; border: 1px solid rgba(59,130,246,0.3); border-radius: 8px; background: rgba(255,255,255,0.05); color: white; font-size: 14px; resize: vertical;"></textarea>
+                                            <textarea id="financeCompanyAddress" placeholder="Rue, ville, code postal, pays..." rows="2" style="width: 100%; padding: 10px; border: 1px solid rgba(52,211,153,0.3); border-radius: 8px; background: rgba(255,255,255,0.05); color: white; font-size: 14px; resize: vertical;"></textarea>
                                         </div>
                                     </div>
                                 </div>
@@ -32461,13 +32461,13 @@ ${recruitmentInfo}
                                             <label style="display: block; font-size: 13px; font-weight: 600; color: #374151; margin-bottom: 6px;">
                                                 Téléphone <span style="color: #ef4444;">*</span>
                                             </label>
-                                            <input type="tel" id="financeCompanyPhone" placeholder="+213 XX XX XX XX" style="width: 100%; padding: 10px; border: 1px solid rgba(59,130,246,0.3); border-radius: 8px; background: rgba(255,255,255,0.05); color: white; font-size: 14px;" />
+                                            <input type="tel" id="financeCompanyPhone" placeholder="+213 XX XX XX XX" style="width: 100%; padding: 10px; border: 1px solid rgba(52,211,153,0.3); border-radius: 8px; background: rgba(255,255,255,0.05); color: white; font-size: 14px;" />
                                         </div>
                                         <div>
                                             <label style="display: block; font-size: 13px; font-weight: 600; color: #374151; margin-bottom: 6px;">
                                                 Email <span style="color: #ef4444;">*</span>
                                             </label>
-                                            <input type="email" id="financeCompanyEmail" placeholder="contact@entreprise.com" style="width: 100%; padding: 10px; border: 1px solid rgba(59,130,246,0.3); border-radius: 8px; background: rgba(255,255,255,0.05); color: white; font-size: 14px;" />
+                                            <input type="email" id="financeCompanyEmail" placeholder="contact@entreprise.com" style="width: 100%; padding: 10px; border: 1px solid rgba(52,211,153,0.3); border-radius: 8px; background: rgba(255,255,255,0.05); color: white; font-size: 14px;" />
                                         </div>
                                     </div>
                                 </div>
@@ -32478,7 +32478,7 @@ ${recruitmentInfo}
                                         <label style="display: block; font-size: 13px; font-weight: 600; color: #374151; margin-bottom: 6px;">
                                             Devise <span style="color: #ef4444;">*</span>
                                         </label>
-                                        <select id="financeCompanyCurrency" style="width: 100%; padding: 10px; border: 1px solid rgba(59,130,246,0.3); border-radius: 8px; background: rgba(255,255,255,0.05); color: white; font-size: 14px;">
+                                        <select id="financeCompanyCurrency" style="width: 100%; padding: 10px; border: 1px solid rgba(52,211,153,0.3); border-radius: 8px; background: rgba(255,255,255,0.05); color: white; font-size: 14px;">
                                             <option value="EUR">EUR (€)</option>
                                             <option value="DZD">DZD</option>
                                             <option value="USD">USD ($)</option>
@@ -32494,11 +32494,11 @@ ${recruitmentInfo}
                                         <label style="display: block; font-size: 13px; font-weight: 600; color: #374151; margin-bottom: 6px;">
                                             Numéro SIRET/RC <span style="color: #9ca3af; font-weight: 400;">(optionnel)</span>
                                         </label>
-                                        <input type="text" id="financeCompanyRegistration" placeholder="Ex: 123 456 789 00012" style="width: 100%; padding: 10px; border: 1px solid rgba(59,130,246,0.3); border-radius: 8px; background: rgba(255,255,255,0.05); color: white; font-size: 14px;" />
+                                        <input type="text" id="financeCompanyRegistration" placeholder="Ex: 123 456 789 00012" style="width: 100%; padding: 10px; border: 1px solid rgba(52,211,153,0.3); border-radius: 8px; background: rgba(255,255,255,0.05); color: white; font-size: 14px;" />
                                     </div>
                                 </div>
 
-                                <button onclick="saveFinanceCompanySettings()" style="width: 100%; padding: 12px; background: linear-gradient(135deg, #3b82f6, #2563eb); color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; margin-top: 8px;" onmouseover="this.style.opacity='0.9'" onmouseout="this.style.opacity='1'">
+                                <button onclick="saveFinanceCompanySettings()" style="width: 100%; padding: 12px; background: linear-gradient(135deg, #10b981, #059669); color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; margin-top: 8px;" onmouseover="this.style.opacity='0.9'" onmouseout="this.style.opacity='1'">
                                     Enregistrer les informations
                                 </button>
                             </div>
@@ -36416,7 +36416,7 @@ Réponds UNIQUEMENT dans ce format JSON:
                         ${formulasList}
                     </div>
                     
-                    <div style="background: rgba(59,130,246,0.1); border: 1px solid rgba(59,130,246,0.3); border-radius: 8px; padding: 12px; margin-bottom: 24px;">
+                    <div style="background: rgba(59,130,246,0.1); border: 1px solid rgba(52,211,153,0.3); border-radius: 8px; padding: 12px; margin-bottom: 24px;">
                         <div style="display: flex; align-items: start; gap: 8px; color: #2563EB; font-size: 13px; font-weight: 600;">
                             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-top: 2px; flex-shrink: 0;">
                                 <circle cx="12" cy="12" r="10"/>
