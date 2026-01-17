@@ -30,6 +30,7 @@ if [ ! -f "$ENV_FILE" ]; then
     echo ""
     cat << 'EOF'
 # .env.azure - Variables AUTORISÉES pour Azure Static Web Apps
+    AXILUM_AUTH_SECRET=un_secret_long_aleatoire
 GROQ_API_KEY=votre_clé_groq
 AZURE_STORAGE_CONNECTION_STRING=votre_connection_string
 AZURE_COMMUNICATION_CONNECTION_STRING=votre_connection_string
@@ -64,6 +65,11 @@ source "$ENV_FILE"
 echo "🔍 Vérification des variables essentielles..."
 MISSING=0
 
+if [ -z "${AXILUM_AUTH_SECRET:-}" ]; then
+    echo "❌ AXILUM_AUTH_SECRET manquant (JWT/auth)"
+    MISSING=1
+fi
+
 if [ -z "${GROQ_API_KEY:-}" ]; then
     echo "❌ GROQ_API_KEY manquant"
     MISSING=1
@@ -89,6 +95,7 @@ echo ""
 # Construction de la commande avec toutes les variables non vides
 SETTINGS=()
 
+[ -n "${AXILUM_AUTH_SECRET:-}" ] && SETTINGS+=("AXILUM_AUTH_SECRET=$AXILUM_AUTH_SECRET")
 [ -n "${GROQ_API_KEY:-}" ] && SETTINGS+=("GROQ_API_KEY=$GROQ_API_KEY")
 [ -n "${AZURE_STORAGE_CONNECTION_STRING:-}" ] && SETTINGS+=("AZURE_STORAGE_CONNECTION_STRING=$AZURE_STORAGE_CONNECTION_STRING")
 [ -n "${AZURE_COMMUNICATION_CONNECTION_STRING:-}" ] && SETTINGS+=("AZURE_COMMUNICATION_CONNECTION_STRING=$AZURE_COMMUNICATION_CONNECTION_STRING")

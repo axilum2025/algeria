@@ -19,6 +19,21 @@
 
 ## 📋 Variables essentielles à configurer
 
+### 0. **Authentification (JWT)**
+
+⚠️ **Non configuré automatiquement** : vous devez définir ce secret en production.
+
+```bash
+AXILUM_AUTH_SECRET=un_secret_long_aleatoire
+```
+
+- **Utilisé dans** : `auth-login`, `auth-verify` et tous les endpoints protégés via `Authorization: Bearer <jwt>`.
+- **Impact** : si manquant, le login/verify échoue (erreur `AXILUM_AUTH_SECRET manquant`).
+- **Génération recommandée** (exemples) :
+  - `openssl rand -base64 48`
+  - `openssl rand -hex 32`
+- **Rotation** : si vous changez ce secret, tous les JWT existants deviennent invalides (les utilisateurs devront se reconnecter).
+
 ### 1. **GROQ API** (IA - LLM Principal)
 ```bash
 GROQ_API_KEY=votre_clé_groq_ici
