@@ -31751,10 +31751,28 @@ ${recruitmentInfo}
         // Cache des conversations pour accès synchrone
         let financeConversationsCache = {};
         let financeConversationsCacheLoaded = false;
+
+        // Token unifié pour le module Finance (préférer axilum_auth_token)
+        function getFinanceAuthToken() {
+            try {
+                if (typeof getAuthToken === 'function') {
+                    const t = getAuthToken();
+                    if (t) return t;
+                }
+            } catch (_) {}
+            return sessionStorage.getItem('authToken') || localStorage.getItem('authToken') || null;
+        }
+
+        function withFinanceAuthHeaders(headers = {}) {
+            const h = Object.assign({}, headers || {});
+            const token = getFinanceAuthToken();
+            if (token) h['Authorization'] = `Bearer ${token}`;
+            return h;
+        }
         
         // Charger le cache depuis Azure au démarrage
         function loadFinanceConversationsCache() {
-            const token = sessionStorage.getItem('authToken') || localStorage.getItem('authToken');
+            const token = getFinanceAuthToken();
             if (!token) {
                 // Pas de token, charger depuis localStorage
                 try {
@@ -31876,7 +31894,11 @@ ${recruitmentInfo}
             try {
                 delete financeConversationsCache[conversationId];
                 // Envoyer suppression à Azure
-                const token = sessionStorage.getItem('authToken') || localStorage.getItem('authToken'); if (token) { fetch('/api/finance-conversations?id=' + conversationId, { method: 'DELETE', headers: { 'Authorization': 'Bearer ' + token } }).catch(e => console.warn('[Finance] Erreur API delete:', e)); }
+                const token = getFinanceAuthToken();
+                if (token) {
+                    fetch('/api/finance-conversations?id=' + conversationId, { method: 'DELETE', headers: { 'Authorization': 'Bearer ' + token } })
+                        .catch(e => console.warn('[Finance] Erreur API delete:', e));
+                }
                 console.log('[Finance] Conversation supprimée:', conversationId);
                 return true;
             } catch (error) {
@@ -34209,12 +34231,12 @@ ${hasBalance ? '✅' : '⬜'} Calculer résultat du mois
                 
                 const fetchOptions = {
                     method: 'POST',
-                    headers: { 
-                        'Content-Type': 'application/json', 
+                    headers: withFinanceAuthHeaders({
+                        'Content-Type': 'application/json',
                         'Accept': 'application/json',
                         'Cache-Control': 'no-cache, no-store, must-revalidate',
                         'Pragma': 'no-cache'
-                    },
+                    }),
                     cache: 'no-store',
                     body: JSON.stringify(payload || {})
                 };
@@ -34288,7 +34310,7 @@ ${hasBalance ? '✅' : '⬜'} Calculer résultat du mois
                 try {
                     const response = await fetch('/api/finance/invoices/ocr', {
                         method: 'POST',
-                        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+                        headers: withFinanceAuthHeaders({ 'Content-Type': 'application/json', 'Accept': 'application/json' }),
                         body: JSON.stringify({ contentBase64: base64 })
                     });
 
@@ -34791,9 +34813,7 @@ ${hasBalance ? '✅' : '⬜'} Calculer résultat du mois
         async function loadFinanceReports() {
             try {
                 console.log('[Finance] Chargement des rapports...');
-                const token = sessionStorage.getItem('authToken') || localStorage.getItem('authToken');
-                const headers = { 'Content-Type': 'application/json' };
-                if (token) headers['Authorization'] = `Bearer ${token}`;
+                const headers = withFinanceAuthHeaders({ 'Content-Type': 'application/json' });
                 const r = await fetch('/api/finance/storage/list', { 
                     method: 'POST', 
                     headers, 
@@ -34858,9 +34878,7 @@ ${hasBalance ? '✅' : '⬜'} Calculer résultat du mois
             if (!itemsEl) return;
             itemsEl.innerHTML = '<div class="list-name">Chargement...</div>';
             try {
-                const token = sessionStorage.getItem('authToken') || localStorage.getItem('authToken');
-                const headers = { 'Content-Type': 'application/json' };
-                if (token) headers['Authorization'] = `Bearer ${token}`;
+                const headers = withFinanceAuthHeaders({ 'Content-Type': 'application/json' });
                 const r = await fetch('/api/finance/storage/list', { method: 'POST', headers, body: JSON.stringify({ container }) });
                 if (!r.ok) throw new Error(`HTTP ${r.status}`);
                 const data = await r.json();
@@ -34978,9 +34996,7 @@ ${hasBalance ? '✅' : '⬜'} Calculer résultat du mois
                         console.log('[Finance] 🔗 URL manquante, appel API get-url...');
                         // Tenter de récupérer l'URL si manquante
                         try {
-                            const token = sessionStorage.getItem('authToken') || localStorage.getItem('authToken');
-                            const headers = { 'Content-Type': 'application/json' };
-                            if (token) headers['Authorization'] = `Bearer ${token}`;
+                            const headers = withFinanceAuthHeaders({ 'Content-Type': 'application/json' });
                             const r = await fetch('/api/finance/storage/get-url', { 
                                 method: 'POST', 
                                 headers, 
@@ -35043,9 +35059,7 @@ ${hasBalance ? '✅' : '⬜'} Calculer résultat du mois
         async function deleteFinanceItem(container, name) {
             if (!confirm(`Supprimer ${name} ?`)) return;
             try {
-                const token = sessionStorage.getItem('authToken') || localStorage.getItem('authToken');
-                const headers = { 'Content-Type': 'application/json' };
-                if (token) headers['Authorization'] = `Bearer ${token}`;
+                const headers = withFinanceAuthHeaders({ 'Content-Type': 'application/json' });
                 const r = await fetch('/api/finance/storage/delete', { method: 'POST', headers, body: JSON.stringify({ container, name }) });
                 const data = await r.json().catch(() => ({}));
                 if (r.ok && data.deleted) {
