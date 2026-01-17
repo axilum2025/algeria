@@ -2,7 +2,7 @@
 
 **Version** : v2.0-MINT-BUILD-202512162050  
 **Date** : 25 Décembre 2025  
-**Architecture** : Frontend SPA + Azure Functions Backend  
+**Architecture** : Frontend SPA + Backend Node/Express (App Service) ou Azure Functions  
 **Niveau de maturité** : 🟢 Production-Ready avec évolutions continues
 
 ---
@@ -30,12 +30,20 @@
 └─────────────────────────────────────────────┘
                     ↓
 ┌─────────────────────────────────────────────┐
+│         App Service (Node/Express)          │
+│  - Sert /public (SPA)                       │
+│  - Monte dynamiquement /api/*               │
+│  - Auth JWT (AXILUM_AUTH_SECRET)            │
+└─────────────────────────────────────────────┘
+                    ↓
+┌─────────────────────────────────────────────┐
 │         Services Externes                   │
 │  - Groq API (Llama 3.3 70B)                │
-│  - Azure Computer Vision                    │
+│  - Azure AI Vision / Form Recognizer (OCR)  │
 │  - Brave Search API                         │
 │  - Microsoft Graph (Calendar)               │
-│  - SendGrid (Emails)                        │
+│  - Azure Communication Services / SendGrid   │
+│  - Azure Storage (Table + Blob)             │
 └─────────────────────────────────────────────┘
 ```
 
