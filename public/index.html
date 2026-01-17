@@ -4242,14 +4242,14 @@
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7a4 4 0 014-4h8a4 4 0 014 4v10a4 4 0 01-4 4H8a4 4 0 01-4-4V7z" />
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 8h8M8 12h8M8 16h6" />
                     </svg>
-                    <span>Stockage</span>
+                    <span id="storageModeModalHeaderLabel">Stockage</span>
                 </div>
                 <button class="close-modal" onclick="closeStorageModeModal()">×</button>
             </div>
 
             <div style="padding: 20px;">
                 <div style="background: var(--bg-secondary); padding: 14px; border-radius: 10px; border: 1px solid var(--border-color);">
-                    <div style="font-weight: 800; color: var(--text-primary); margin-bottom: 8px;">Mode de stockage</div>
+                    <div id="storageModeModalModeTitle" style="font-weight: 800; color: var(--text-primary); margin-bottom: 8px;">Mode de stockage</div>
 
                     <div style="display:flex; gap:10px; flex-wrap: wrap;">
                         <button type="button" class="settings-plan-btn" id="storageModeBtnAsk" onclick="setStorageMode('ask')" style="min-width: 160px;">Demander</button>
@@ -4257,7 +4257,7 @@
                         <button type="button" class="settings-plan-btn" id="storageModeBtnCloud" onclick="setStorageMode('cloud')" style="min-width: 160px;">Cloud</button>
                     </div>
 
-                    <p style="margin: 10px 0 0; color: var(--text-secondary); font-size: 13px; line-height: 1.5;">
+                    <p id="storageModeModalHelp" style="margin: 10px 0 0; color: var(--text-secondary); font-size: 13px; line-height: 1.5;">
                         <strong>Local</strong> : les fichiers restent sur votre appareil. <strong>Cloud</strong> : synchronisation serveur (connexion requise).
                     </p>
                 </div>
@@ -4265,23 +4265,23 @@
                 <div style="margin-top: 12px; background: var(--bg-secondary); padding: 14px; border-radius: 10px; border: 1px solid var(--border-color);">
                     <div style="display:flex; align-items:center; justify-content:space-between; gap: 10px;">
                         <div>
-                            <div style="font-weight: 800; color: var(--text-primary);">Quota stockage Cloud</div>
-                            <div style="color: var(--text-secondary); font-size: 13px; margin-top: 4px;">Indication (pour activer/acheter du stockage)</div>
+                            <div id="storageQuotaTitle" style="font-weight: 800; color: var(--text-primary);">Quota stockage Cloud</div>
+                            <div id="storageQuotaSubtitle" style="color: var(--text-secondary); font-size: 13px; margin-top: 4px;">Indication (pour activer/acheter du stockage)</div>
                         </div>
-                        <button type="button" class="settings-plan-btn" onclick="openStorageAddModal()" style="min-width: 190px;">Ajouter du stockage</button>
+                        <button id="storageQuotaAddBtn" type="button" class="settings-plan-btn" onclick="openStorageAddModal()" style="min-width: 190px;">Ajouter du stockage</button>
                     </div>
 
                     <div style="margin-top: 10px; display:grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px;">
                         <div style="background: var(--bg-primary); padding: 12px; border-radius: 10px; border: 1px solid var(--border-color);">
-                            <div style="color: var(--text-secondary); font-size: 12px;">Quota total</div>
+                            <div id="storageQuotaTotalLabel" style="color: var(--text-secondary); font-size: 12px;">Quota total</div>
                             <div id="storageQuotaTotal" style="color: var(--text-primary); font-size: 18px; font-weight: 800; margin-top: 4px;">—</div>
                         </div>
                         <div style="background: var(--bg-primary); padding: 12px; border-radius: 10px; border: 1px solid var(--border-color);">
-                            <div style="color: var(--text-secondary); font-size: 12px;">Utilisé (Finance)</div>
+                            <div id="storageQuotaUsedLabel" style="color: var(--text-secondary); font-size: 12px;">Utilisé (Finance)</div>
                             <div id="storageQuotaUsed" style="color: var(--text-primary); font-size: 18px; font-weight: 800; margin-top: 4px;">—</div>
                         </div>
                         <div style="background: var(--bg-primary); padding: 12px; border-radius: 10px; border: 1px solid var(--border-color);">
-                            <div style="color: var(--text-secondary); font-size: 12px;">Reste</div>
+                            <div id="storageQuotaRemainingLabel" style="color: var(--text-secondary); font-size: 12px;">Reste</div>
                             <div id="storageQuotaRemaining" style="color: var(--text-primary); font-size: 18px; font-weight: 800; margin-top: 4px;">—</div>
                         </div>
                     </div>
@@ -4295,17 +4295,17 @@
     <div class="modal" id="storageAddModal" style="display:none;">
         <div class="modal-content" style="max-width: 520px;">
             <div class="modal-header">
-                <div class="modal-title">Ajouter du stockage</div>
+                <div id="storageAddModalTitle" class="modal-title">Ajouter du stockage</div>
                 <button class="close-modal" onclick="closeStorageAddModal()">×</button>
             </div>
             <div class="modal-body" style="padding: 20px;">
-                <p style="margin: 0 0 12px; color: var(--text-secondary); font-size: 13px; line-height: 1.5;">
+                <p id="storageAddModalDesc" style="margin: 0 0 12px; color: var(--text-secondary); font-size: 13px; line-height: 1.5;">
                     Sélectionnez un pack. (UI prête — paiement/activation automatique à brancher ensuite.)
                 </p>
                 <div style="display:flex; gap:10px; flex-wrap: wrap;">
-                    <button type="button" class="settings-plan-btn" onclick="addStorageAddonGb(5)" style="min-width: 140px;">+5 Go</button>
-                    <button type="button" class="settings-plan-btn" onclick="addStorageAddonGb(10)" style="min-width: 140px;">+10 Go</button>
-                    <button type="button" class="settings-plan-btn" onclick="addStorageAddonGb(50)" style="min-width: 140px;">+50 Go</button>
+                    <button id="storageAddPack5" type="button" class="settings-plan-btn" onclick="addStorageAddonGb(5)" style="min-width: 140px;">+5 Go</button>
+                    <button id="storageAddPack10" type="button" class="settings-plan-btn" onclick="addStorageAddonGb(10)" style="min-width: 140px;">+10 Go</button>
+                    <button id="storageAddPack50" type="button" class="settings-plan-btn" onclick="addStorageAddonGb(50)" style="min-width: 140px;">+50 Go</button>
                 </div>
                 <div id="storageAddStatus" style="margin-top: 12px; color: var(--text-secondary); font-size: 13px;"></div>
             </div>
@@ -11570,6 +11570,23 @@ ${persona}
                 'settings.storage.ask': 'Demander à chaque upload',
                 'settings.storage.local': 'Local (cet appareil)',
                 'settings.storage.cloud': 'Cloud sécurisé',
+                'settings.storageModal.header': 'Stockage',
+                'settings.storageModal.modeTitle': 'Mode de stockage',
+                'settings.storageModal.ask': 'Demander',
+                'settings.storageModal.local': 'Local',
+                'settings.storageModal.cloud': 'Cloud',
+                'settings.storageModal.help': '<strong>Local</strong> : les fichiers restent sur votre appareil. <strong>Cloud</strong> : synchronisation serveur (connexion requise).',
+                'settings.storageModal.quotaTitle': 'Quota stockage Cloud',
+                'settings.storageModal.quotaSubtitle': 'Indication (pour activer/acheter du stockage)',
+                'settings.storageModal.addStorage': 'Ajouter du stockage',
+                'settings.storageModal.quotaTotal': 'Quota total',
+                'settings.storageModal.quotaUsed': 'Utilisé (Finance)',
+                'settings.storageModal.quotaRemaining': 'Reste',
+                'settings.storageAdd.title': 'Ajouter du stockage',
+                'settings.storageAdd.desc': 'Sélectionnez un pack. (UI prête — paiement/activation automatique à brancher ensuite.)',
+                'settings.storageAdd.pack5': '+5 Go',
+                'settings.storageAdd.pack10': '+10 Go',
+                'settings.storageAdd.pack50': '+50 Go',
                 'toast.storagePrefix': '🗄️ Stockage:',
                 'settings.pricingTitle': 'Tarification &amp; consommation',
                 'settings.pricing.p1': '<strong>Axilum AI fonctionne en prépayé :</strong> vous chargez un crédit (en $) et vous pouvez utiliser tous les modules tant que ce crédit n’est pas épuisé. La consommation est calculée côté serveur à partir des usages réels (tokens, appels IA) et déduite automatiquement.',
@@ -12075,6 +12092,23 @@ ${persona}
                 'settings.storage.ask': 'Ask on each upload',
                 'settings.storage.local': 'Local (this device)',
                 'settings.storage.cloud': 'Secure cloud',
+                'settings.storageModal.header': 'Storage',
+                'settings.storageModal.modeTitle': 'Storage mode',
+                'settings.storageModal.ask': 'Ask',
+                'settings.storageModal.local': 'Local',
+                'settings.storageModal.cloud': 'Cloud',
+                'settings.storageModal.help': '<strong>Local</strong>: files stay on your device. <strong>Cloud</strong>: server sync (sign-in required).',
+                'settings.storageModal.quotaTitle': 'Cloud storage quota',
+                'settings.storageModal.quotaSubtitle': 'Info (to enable/buy storage)',
+                'settings.storageModal.addStorage': 'Add storage',
+                'settings.storageModal.quotaTotal': 'Total quota',
+                'settings.storageModal.quotaUsed': 'Used (Finance)',
+                'settings.storageModal.quotaRemaining': 'Remaining',
+                'settings.storageAdd.title': 'Add storage',
+                'settings.storageAdd.desc': 'Select a pack. (UI ready — connect payment/activation later.)',
+                'settings.storageAdd.pack5': '+5 GB',
+                'settings.storageAdd.pack10': '+10 GB',
+                'settings.storageAdd.pack50': '+50 GB',
                 'toast.storagePrefix': '🗄️ Storage:',
                 'settings.pricingTitle': 'Pricing &amp; usage',
                 'settings.pricing.p1': '<strong>Axilum AI runs on prepaid credit:</strong> you top up a balance (in $) and can use all modules as long as your credit is not depleted. Usage is computed server-side from real consumption (tokens, AI calls) and deducted automatically.',
@@ -12446,6 +12480,57 @@ ${persona}
 
                 const storageModeTitle = document.getElementById('storageModeTitle');
                 if (storageModeTitle) storageModeTitle.textContent = t('settings.storageTitle');
+
+                const storageModeModalHeaderLabel = document.getElementById('storageModeModalHeaderLabel');
+                if (storageModeModalHeaderLabel) storageModeModalHeaderLabel.textContent = t('settings.storageModal.header');
+
+                const storageModeModalModeTitle = document.getElementById('storageModeModalModeTitle');
+                if (storageModeModalModeTitle) storageModeModalModeTitle.textContent = t('settings.storageModal.modeTitle');
+
+                const storageModeBtnAsk = document.getElementById('storageModeBtnAsk');
+                if (storageModeBtnAsk) storageModeBtnAsk.textContent = t('settings.storageModal.ask');
+
+                const storageModeBtnLocal = document.getElementById('storageModeBtnLocal');
+                if (storageModeBtnLocal) storageModeBtnLocal.textContent = t('settings.storageModal.local');
+
+                const storageModeBtnCloud = document.getElementById('storageModeBtnCloud');
+                if (storageModeBtnCloud) storageModeBtnCloud.textContent = t('settings.storageModal.cloud');
+
+                const storageModeModalHelp = document.getElementById('storageModeModalHelp');
+                if (storageModeModalHelp) storageModeModalHelp.innerHTML = t('settings.storageModal.help');
+
+                const storageQuotaTitle = document.getElementById('storageQuotaTitle');
+                if (storageQuotaTitle) storageQuotaTitle.textContent = t('settings.storageModal.quotaTitle');
+
+                const storageQuotaSubtitle = document.getElementById('storageQuotaSubtitle');
+                if (storageQuotaSubtitle) storageQuotaSubtitle.textContent = t('settings.storageModal.quotaSubtitle');
+
+                const storageQuotaAddBtn = document.getElementById('storageQuotaAddBtn');
+                if (storageQuotaAddBtn) storageQuotaAddBtn.textContent = t('settings.storageModal.addStorage');
+
+                const storageQuotaTotalLabel = document.getElementById('storageQuotaTotalLabel');
+                if (storageQuotaTotalLabel) storageQuotaTotalLabel.textContent = t('settings.storageModal.quotaTotal');
+
+                const storageQuotaUsedLabel = document.getElementById('storageQuotaUsedLabel');
+                if (storageQuotaUsedLabel) storageQuotaUsedLabel.textContent = t('settings.storageModal.quotaUsed');
+
+                const storageQuotaRemainingLabel = document.getElementById('storageQuotaRemainingLabel');
+                if (storageQuotaRemainingLabel) storageQuotaRemainingLabel.textContent = t('settings.storageModal.quotaRemaining');
+
+                const storageAddModalTitle = document.getElementById('storageAddModalTitle');
+                if (storageAddModalTitle) storageAddModalTitle.textContent = t('settings.storageAdd.title');
+
+                const storageAddModalDesc = document.getElementById('storageAddModalDesc');
+                if (storageAddModalDesc) storageAddModalDesc.textContent = t('settings.storageAdd.desc');
+
+                const storageAddPack5 = document.getElementById('storageAddPack5');
+                if (storageAddPack5) storageAddPack5.textContent = t('settings.storageAdd.pack5');
+
+                const storageAddPack10 = document.getElementById('storageAddPack10');
+                if (storageAddPack10) storageAddPack10.textContent = t('settings.storageAdd.pack10');
+
+                const storageAddPack50 = document.getElementById('storageAddPack50');
+                if (storageAddPack50) storageAddPack50.textContent = t('settings.storageAdd.pack50');
 
                 const storageModePrefix = document.getElementById('storageModePrefix');
                 if (storageModePrefix) storageModePrefix.textContent = t('settings.storagePrefix');
