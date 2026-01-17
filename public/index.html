@@ -32368,20 +32368,21 @@ ${recruitmentInfo}
           <div class="rgpd-modal-header">
               <div class="rgpd-icon"><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#34d399" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M9 12l2 2 4-4"/></svg></div>
               <h2>Protection de vos données</h2>
-              <p>Conformité RGPD et sécurité</p>
+              <p>Sécurité, isolation par utilisateur et bonnes pratiques RGPD</p>
           </div>
           <div class="rgpd-modal-body">
               <div class="rgpd-section">
                   <h3>🔒 Isolation des données</h3>
-                  <p>Vos données financières sont <strong>strictement personnelles</strong> et isolées. Aucun autre utilisateur ne peut y accéder, même en utilisant le même appareil.</p>
+                  <p>Vos données Finance sont <strong>isolées par compte</strong> : toutes les opérations passent par une authentification (JWT signé) et l'accès est scindé par utilisateur côté serveur. Concrètement, un autre compte ne peut pas lister, télécharger ou supprimer vos factures/rapports, ni accéder à vos conversations/paramètres.</p>
               </div>
               <div class="rgpd-section">
                   <h3>🛡️ Sécurité renforcée</h3>
                   <ul>
-                      <li>Chiffrement de bout en bout (TLS 1.2+)</li>
-                      <li>Stockage sécurisé Azure (AES-256)</li>
-                      <li>Authentification par token JWT</li>
-                      <li>Hébergement en Europe (France)</li>
+                      <li>Chiffrement en transit (HTTPS/TLS)</li>
+                      <li>Stockage Cloud privé (Azure, conteneurs Blob non publics)</li>
+                      <li>Authentification par token JWT signé (obligatoire)</li>
+                      <li>Isolation stricte des fichiers (préfixe utilisateur) et contrôle d'accès côté serveur</li>
+                      <li>Hébergement en France (France Central)</li>
                   </ul>
               </div>
               <div class="rgpd-section">
@@ -32389,16 +32390,16 @@ ${recruitmentInfo}
                   <ul>
                       <li><strong>Accès</strong> : Consultez toutes vos données à tout moment</li>
                       <li><strong>Rectification</strong> : Modifiez vos informations</li>
-                      <li><strong>Suppression</strong> : Demandez leffacement de vos données</li>
-                      <li><strong>Portabilité</strong> : Exportez vos données</li>
+                      <li><strong>Suppression</strong> : Demandez l'effacement de vos données</li>
+                      <li><strong>Portabilité</strong> : Exportez vos données (selon les fonctionnalités disponibles)</li>
                   </ul>
               </div>
               <div class="rgpd-section">
                   <h3>⏱️ Conservation des données</h3>
                   <ul>
-                      <li>Conversations : 2 ans</li>
-                      <li>Factures : 10 ans (obligation légale)</li>
-                      <li>Rapports : 10 ans (obligation légale)</li>
+                      <li>Conversations / paramètres : conservés pour fournir le service, et supprimables sur demande</li>
+                      <li>Factures / rapports : conservés tant que vous les gardez, et supprimables depuis l'interface</li>
+                      <li>Note : la conformité RGPD dépend aussi de votre usage (base légale, mentions, droits, processus internes)</li>
                   </ul>
               </div>
               <div class="rgpd-section rgpd-contact">
