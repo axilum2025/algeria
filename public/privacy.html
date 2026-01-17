@@ -137,7 +137,7 @@
 
   <main class="container">
     <div class="card">
-      <p class="meta"><strong>Dernière mise à jour :</strong> Décembre 2025</p>
+      <p class="meta"><strong>Dernière mise à jour :</strong> Janvier 2026</p>
 
     <h2>Résumé</h2>
     <p>
@@ -160,22 +160,24 @@
     <h3>2) Cloud sécurisé (compte requis)</h3>
     <ul>
       <li>Vos données peuvent être synchronisées pour l’accès multi-appareils.</li>
-      <li>Accès contrôlé par authentification (compte requis).</li>
-      <li>Stockage cloud privé et chiffré au repos (selon la configuration du fournisseur cloud).</li>
+      <li>Accès contrôlé par authentification (token JWT signé).</li>
+      <li>Isolation stricte par utilisateur côté serveur (un compte ne peut pas accéder aux données d’un autre compte).</li>
+      <li>Stockage cloud privé et chiffré au repos (chiffrement géré par Azure).</li>
     </ul>
 
     <h2>Ce que nous stockons</h2>
     <ul>
       <li><strong>Conversations</strong> : messages, métadonnées (selon fonctionnalités activées).</li>
-      <li><strong>Fichiers/images</strong> : uniquement si vous les téléchargez/importez.</li>
+      <li><strong>Fichiers/documents</strong> : uniquement si vous les téléchargez/importez (ex: factures/rapports Finance).</li>
       <li><strong>Compte</strong> : email et informations nécessaires à l’authentification.</li>
     </ul>
 
     <h2>Sécurité</h2>
     <ul>
       <li><strong>Chiffrement en transit</strong> : communications via HTTPS.</li>
-      <li><strong>Contrôle d’accès</strong> : en mode Cloud, les données sont associées à votre compte.</li>
-      <li><strong>Isolation</strong> : chaque utilisateur accède uniquement à ses propres données (en mode Cloud).</li>
+      <li><strong>Contrôle d’accès</strong> : en mode Cloud, l’accès est protégé par token JWT signé.</li>
+      <li><strong>Isolation</strong> : chaque utilisateur accède uniquement à ses propres données (en mode Cloud), y compris pour les fichiers (factures/rapports) et l’historique Finance.</li>
+      <li><strong>Stockage privé</strong> : les conteneurs de fichiers sont non publics et les opérations de liste/téléchargement/suppression sont limitées au périmètre de votre compte.</li>
       <li><strong>Limites d’upload</strong> : taille et formats peuvent être limités pour réduire les risques.</li>
     </ul>
 
@@ -184,6 +186,13 @@
       La conservation dépend du mode choisi (Local vs Cloud) et de vos actions (suppression manuelle).
       Certaines données peuvent être conservées pour assurer le bon fonctionnement (ex: historique, synchronisation),
       sauf suppression.
+    </p>
+
+    <h2>Module Finance (spécifique)</h2>
+    <p>
+      Lorsque vous utilisez les fonctionnalités Finance avec stockage Cloud, les conversations et paramètres sont associés à votre compte,
+      et les documents (factures/rapports) sont stockés dans un espace isolé par utilisateur.
+      Cela empêche un autre compte de lister, télécharger ou supprimer vos documents.
     </p>
 
     <h2>Vos choix et contrôles</h2>
@@ -195,7 +204,7 @@
 
     <h2>Contact</h2>
     <p>
-      Support : <a href="mailto:support@solutionshub.uk">support@solutionshub.uk</a>
+      Support : <a href="mailto:contact@axilum.com">contact@axilum.com</a>
     </p>
 
       <p style="margin-top: 14px;">
