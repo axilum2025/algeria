@@ -4,6 +4,35 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Axilum AI — Confidentialité</title>
+  <script>
+    (function redirectToEnglishPrivacyIfNeeded() {
+      function normalizeAppLanguage(lang) {
+        const raw = String(lang || '').toLowerCase();
+        if (raw.startsWith('en')) return 'en';
+        return 'fr';
+      }
+
+      function getAppLanguage() {
+        try {
+          const saved = localStorage.getItem('appLanguage');
+          if (saved) return normalizeAppLanguage(saved);
+        } catch (_) {}
+        try {
+          return normalizeAppLanguage(navigator.language || 'fr');
+        } catch (_) {
+          return 'fr';
+        }
+      }
+
+      const lang = getAppLanguage();
+      if (lang === 'en') {
+        const target = 'privacy.en.html' + (window.location.search || '') + (window.location.hash || '');
+        if (!String(window.location.pathname || '').endsWith('privacy.en.html')) {
+          window.location.replace(target);
+        }
+      }
+    })();
+  </script>
   <style>
     :root {
       --bg-primary: #FAFBFC;

@@ -1,0 +1,237 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Axilum AI — Privacy</title>
+  <style>
+    :root {
+      --bg-primary: #FAFBFC;
+      --bg-secondary: #F4F6F8;
+      --bg-sidebar: #FFFFFF;
+      --text-primary: #1F2937;
+      --text-secondary: #6B7280;
+      --border-color: #E5E7EB;
+      --accent: #3B82F6;
+      --shadow: rgba(0, 0, 0, 0.08);
+    }
+
+    [data-theme="dark"] {
+      --bg-primary: #111827;
+      --bg-secondary: #1F2937;
+      --bg-sidebar: #0F172A;
+      --text-primary: #F9FAFB;
+      --text-secondary: #9CA3AF;
+      --border-color: #374151;
+      --shadow: rgba(0, 0, 0, 0.4);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+      background: var(--bg-primary);
+      color: var(--text-primary);
+      transition: background 0.3s, color 0.3s;
+    }
+
+    .page-header {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      background: var(--bg-primary);
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .page-header-inner {
+      max-width: 980px;
+      margin: 0 auto;
+      padding: 14px 16px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      justify-content: space-between;
+    }
+
+    .btn {
+      appearance: none;
+      border: 1px solid var(--border-color);
+      background: var(--bg-secondary);
+      color: var(--text-primary);
+      border-radius: 10px;
+      padding: 10px 12px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: opacity 0.2s;
+      white-space: nowrap;
+    }
+    .btn:hover { opacity: 0.92; }
+
+    .title {
+      margin: 0;
+      font-size: 18px;
+      font-weight: 800;
+      letter-spacing: -0.2px;
+    }
+
+    .container {
+      max-width: 980px;
+      margin: 0 auto;
+      padding: 18px 16px 28px;
+    }
+
+    .card {
+      background: var(--bg-sidebar);
+      border: 1px solid var(--border-color);
+      border-radius: 14px;
+      box-shadow: 0 6px 16px var(--shadow);
+      padding: 16px;
+    }
+
+    h2 {
+      margin: 18px 0 10px;
+      font-size: 16px;
+    }
+    h3 {
+      margin: 14px 0 8px;
+      font-size: 14px;
+      color: var(--text-primary);
+    }
+    p {
+      margin: 10px 0;
+      color: var(--text-secondary);
+      line-height: 1.55;
+      font-size: 14px;
+    }
+    ul {
+      margin: 8px 0 0 18px;
+      color: var(--text-secondary);
+      line-height: 1.55;
+      font-size: 14px;
+    }
+    li { margin: 6px 0; }
+
+    a {
+      color: var(--accent);
+      text-decoration: none;
+      font-weight: 600;
+    }
+    a:hover { text-decoration: underline; }
+
+    .meta {
+      margin: 0 0 10px;
+      font-size: 13px;
+      color: var(--text-secondary);
+    }
+  </style>
+</head>
+<body>
+  <header class="page-header">
+    <div class="page-header-inner">
+      <button class="btn" type="button" onclick="goBackToApp()">← Back</button>
+      <h1 class="title">Privacy</h1>
+      <div style="width: 90px;"></div>
+    </div>
+  </header>
+
+  <main class="container">
+    <div class="card">
+      <p class="meta"><strong>Last updated:</strong> January 2026</p>
+
+      <h2>Summary</h2>
+      <p>
+        Axilum AI offers two storage modes so you stay in control:
+        <strong>Local (this device)</strong> or <strong>Secure Cloud (account required)</strong>.
+        The <strong>Ask on each upload</strong> mode lets you decide case by case.
+      </p>
+
+      <h2>Storage modes</h2>
+      <h3>1) Local (this device)</h3>
+      <ul>
+        <li>Your conversations and files stay in your browser (local storage).</li>
+        <li>No multi-device synchronization.</li>
+        <li>
+          Important: if multiple people use the same computer and the same browser profile,
+          they may potentially access this data.
+        </li>
+      </ul>
+
+      <h3>2) Secure Cloud (account required)</h3>
+      <ul>
+        <li>Your data can be synchronized for multi-device access.</li>
+        <li>Access is controlled via authentication (signed JWT token).</li>
+        <li>Strict user isolation on the server (one account cannot access another account’s data).</li>
+        <li>Private cloud storage encrypted at rest (encryption managed by Azure).</li>
+      </ul>
+
+      <h2>What we store</h2>
+      <ul>
+        <li><strong>Conversations</strong>: messages, metadata (depending on enabled features).</li>
+        <li><strong>Files/documents</strong>: only if you upload/import them (e.g. Finance invoices/reports).</li>
+        <li><strong>Account</strong>: email and information needed for authentication.</li>
+      </ul>
+
+      <h2>Security</h2>
+      <ul>
+        <li><strong>Encryption in transit</strong>: HTTPS communications.</li>
+        <li><strong>Access control</strong>: in Cloud mode, access is protected by a signed JWT token.</li>
+        <li><strong>Isolation</strong>: each user can only access their own data (in Cloud mode), including files (invoices/reports) and Finance history.</li>
+        <li><strong>Private storage</strong>: file containers are non-public and list/download/delete operations are restricted to your account scope.</li>
+        <li><strong>Upload limits</strong>: size and formats may be limited to reduce risks.</li>
+      </ul>
+
+      <h2>Retention period</h2>
+      <p>
+        Retention depends on the chosen mode (Local vs Cloud) and your actions (manual deletion).
+        Some data may be kept to ensure proper operation (e.g. history, synchronization),
+        unless you delete it.
+      </p>
+
+      <h2>Finance module (specific)</h2>
+      <p>
+        When you use Finance features with Cloud storage, conversations and settings are linked to your account,
+        and documents (invoices/reports) are stored in a user-isolated space.
+        This prevents another account from listing, downloading, or deleting your documents.
+      </p>
+
+      <h2>Your choices and controls</h2>
+      <ul>
+        <li>You can choose the storage mode in <strong>Settings → Data management</strong>.</li>
+        <li>You can export your conversations (if the option is available).</li>
+        <li>You can delete your local data from within the application.</li>
+      </ul>
+
+      <h2>Contact</h2>
+      <p>
+        Support: <a href="mailto:contact@axilum.com">contact@axilum.com</a>
+      </p>
+
+      <p style="margin-top: 14px;">
+        <a href="/" onclick="goBackToApp(); return false;">Back to the application</a>
+      </p>
+    </div>
+  </main>
+
+  <script>
+    (function applyTheme() {
+      try {
+        const savedTheme = localStorage.getItem('theme') || 'light';
+        document.body.setAttribute('data-theme', savedTheme);
+      } catch (_) {
+        document.body.setAttribute('data-theme', 'light');
+      }
+    })();
+
+    function goBackToApp() {
+      try {
+        if (window.history && window.history.length > 1) {
+          window.history.back();
+          return;
+        }
+      } catch (_) {}
+      window.location.href = '/';
+    }
+  </script>
+</body>
+</html>
