@@ -150,7 +150,55 @@ async function listBlobs(container, userId = null) {
   return out;
 }
 
-module.exports = { getBlobServiceClient, uploadBuffer, listBlobs, buildBlobUrl, getConfig };
+async function listBlobsByPrefix(container, prefix) {
+  const svc = getBlobServiceClient();
+  if (!svc) return [];
+  const out = [];
+  const containerClient = svc.getContainerClient(container);
+  const effectivePrefix = (prefix == null || prefix === '') ? undefined : String(prefix);
+
+  for await (const item of containerClient.listBlobsFlat({ prefix: effectivePrefix })) {
+    let url = buildBlobUrl(container, item.name);
+
+    if (!url) {
+      try {
+        const blockBlob = containerClient.getBlockBlobClient(item.name);
+        const { account, key } = getConfig();
+
+        if (account && key) {
+          const startsOn = new Date();
+          const expiresOn = new Date(startsOn.getTime() + 60 * 60 * 1000);
+          const permissions = BlobSASPermissions.parse('r');
+          const credential = new StorageSharedKeyCredential(account, key);
+
+          const sasToken = generateBlobSASQueryParameters(
+            {
+              containerName: container,
+              blobName: item.name,
+              permissions,
+              startsOn,
+              expiresOn
+            },
+            credential
+          ).toString();
+
+          url = `${blockBlob.url}?${sasToken}`;
+        } else {
+          url = blockBlob.url;
+        }
+      } catch (error) {
+        console.error('Error generating SAS for blob:', item.name, error);
+        url = null;
+      }
+    }
+
+    out.push({ name: item.name, size: item.properties?.contentLength || null, url });
+  }
+
+  return out;
+}
+
+module.exports = { getBlobServiceClient, uploadBuffer, listBlobs, listBlobsByPrefix, buildBlobUrl, getConfig };
 
 async function deleteBlob(container, blobName, userId = null) {
   const svc = getBlobServiceClient();

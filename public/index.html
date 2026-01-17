@@ -4130,7 +4130,7 @@
                             <h4 id="dataClearTitle">Effacer Données</h4>
                             <p id="dataClearDesc">Supprimer toutes les conversations</p>
                         </div>
-                        <div class="feature-card" style="cursor: pointer;" onclick="cycleStorageMode()">
+                        <div class="feature-card" style="cursor: pointer;" onclick="openStorageModeModal()">
                             <h4 id="storageModeTitle">Mode de stockage</h4>
                             <p><span id="storageModePrefix">Choix actuel :</span> <strong id="storageModeValue">Demander à chaque upload</strong></p>
                         </div>
@@ -4229,6 +4229,85 @@
                     <div id="usageDashboardLatestTitle" style="padding: 12px; border-bottom: 1px solid var(--border-color); color: var(--text-primary); font-weight: 700;">Derniers appels</div>
                     <div id="usageDashboardBody" style="padding: 12px; color: var(--text-secondary); font-size: 13px;">Chargement…</div>
                 </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Storage Mode Modal (Paramètres > Mode de stockage) -->
+    <div class="modal" id="storageModeModal" style="display:none;">
+        <div class="modal-content" style="max-width: 760px;">
+            <div class="modal-header">
+                <div class="modal-title" style="display:flex; align-items:center; gap:10px;">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" style="width:20px; height:20px; flex:0 0 auto;">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7a4 4 0 014-4h8a4 4 0 014 4v10a4 4 0 01-4 4H8a4 4 0 01-4-4V7z" />
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 8h8M8 12h8M8 16h6" />
+                    </svg>
+                    <span>Stockage</span>
+                </div>
+                <button class="close-modal" onclick="closeStorageModeModal()">×</button>
+            </div>
+
+            <div style="padding: 20px;">
+                <div style="background: var(--bg-secondary); padding: 14px; border-radius: 10px; border: 1px solid var(--border-color);">
+                    <div style="font-weight: 800; color: var(--text-primary); margin-bottom: 8px;">Mode de stockage</div>
+
+                    <div style="display:flex; gap:10px; flex-wrap: wrap;">
+                        <button type="button" class="settings-plan-btn" id="storageModeBtnAsk" onclick="setStorageMode('ask')" style="min-width: 160px;">Demander</button>
+                        <button type="button" class="settings-plan-btn" id="storageModeBtnLocal" onclick="setStorageMode('local')" style="min-width: 160px;">Local</button>
+                        <button type="button" class="settings-plan-btn" id="storageModeBtnCloud" onclick="setStorageMode('cloud')" style="min-width: 160px;">Cloud</button>
+                    </div>
+
+                    <p style="margin: 10px 0 0; color: var(--text-secondary); font-size: 13px; line-height: 1.5;">
+                        <strong>Local</strong> : les fichiers restent sur votre appareil. <strong>Cloud</strong> : synchronisation serveur (connexion requise).
+                    </p>
+                </div>
+
+                <div style="margin-top: 12px; background: var(--bg-secondary); padding: 14px; border-radius: 10px; border: 1px solid var(--border-color);">
+                    <div style="display:flex; align-items:center; justify-content:space-between; gap: 10px;">
+                        <div>
+                            <div style="font-weight: 800; color: var(--text-primary);">Quota stockage Cloud</div>
+                            <div style="color: var(--text-secondary); font-size: 13px; margin-top: 4px;">Indication (pour activer/acheter du stockage)</div>
+                        </div>
+                        <button type="button" class="settings-plan-btn" onclick="openStorageAddModal()" style="min-width: 190px;">Ajouter du stockage</button>
+                    </div>
+
+                    <div style="margin-top: 10px; display:grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px;">
+                        <div style="background: var(--bg-primary); padding: 12px; border-radius: 10px; border: 1px solid var(--border-color);">
+                            <div style="color: var(--text-secondary); font-size: 12px;">Quota total</div>
+                            <div id="storageQuotaTotal" style="color: var(--text-primary); font-size: 18px; font-weight: 800; margin-top: 4px;">—</div>
+                        </div>
+                        <div style="background: var(--bg-primary); padding: 12px; border-radius: 10px; border: 1px solid var(--border-color);">
+                            <div style="color: var(--text-secondary); font-size: 12px;">Utilisé (Finance)</div>
+                            <div id="storageQuotaUsed" style="color: var(--text-primary); font-size: 18px; font-weight: 800; margin-top: 4px;">—</div>
+                        </div>
+                        <div style="background: var(--bg-primary); padding: 12px; border-radius: 10px; border: 1px solid var(--border-color);">
+                            <div style="color: var(--text-secondary); font-size: 12px;">Reste</div>
+                            <div id="storageQuotaRemaining" style="color: var(--text-primary); font-size: 18px; font-weight: 800; margin-top: 4px;">—</div>
+                        </div>
+                    </div>
+                    <div id="storageQuotaHint" style="margin-top: 10px; color: var(--text-secondary); font-size: 13px; line-height: 1.5;"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Storage Add Modal (choix pack) -->
+    <div class="modal" id="storageAddModal" style="display:none;">
+        <div class="modal-content" style="max-width: 520px;">
+            <div class="modal-header">
+                <div class="modal-title">Ajouter du stockage</div>
+                <button class="close-modal" onclick="closeStorageAddModal()">×</button>
+            </div>
+            <div class="modal-body" style="padding: 20px;">
+                <p style="margin: 0 0 12px; color: var(--text-secondary); font-size: 13px; line-height: 1.5;">
+                    Sélectionnez un pack. (UI prête — paiement/activation automatique à brancher ensuite.)
+                </p>
+                <div style="display:flex; gap:10px; flex-wrap: wrap;">
+                    <button type="button" class="settings-plan-btn" onclick="addStorageAddonGb(5)" style="min-width: 140px;">+5 Go</button>
+                    <button type="button" class="settings-plan-btn" onclick="addStorageAddonGb(10)" style="min-width: 140px;">+10 Go</button>
+                    <button type="button" class="settings-plan-btn" onclick="addStorageAddonGb(50)" style="min-width: 140px;">+50 Go</button>
+                </div>
+                <div id="storageAddStatus" style="margin-top: 12px; color: var(--text-secondary); font-size: 13px;"></div>
             </div>
         </div>
     </div>
@@ -6122,6 +6201,8 @@ RÈGLES IMPORTANTES:
             const finalMode = (m === 'cloud' || m === 'local' || m === 'ask') ? m : 'ask';
             localStorage.setItem('axilum_storage_mode', finalMode);
             refreshStorageModeUI();
+            try { updateStorageModeButtonsUI(); } catch (_) {}
+            try { refreshStorageQuotaUI(); } catch (_) {}
             showToast(`${t('toast.storagePrefix')} ${storageModeLabel(finalMode)}`, 'info');
         }
 
@@ -6129,6 +6210,253 @@ RÈGLES IMPORTANTES:
             const current = getStorageMode();
             const next = current === 'ask' ? 'local' : (current === 'local' ? 'cloud' : 'ask');
             setStorageMode(next);
+        }
+
+        function closeStorageModeModal() {
+            const el = document.getElementById('storageModeModal');
+            if (el) el.style.display = 'none';
+        }
+
+        function openStorageModeModal() {
+            const el = document.getElementById('storageModeModal');
+            if (!el) return;
+            el.style.display = 'flex';
+            try { refreshStorageModeUI(); } catch (_) {}
+            try { updateStorageModeButtonsUI(); } catch (_) {}
+            try { refreshStorageAddonFromServer(); } catch (_) {}
+            try { refreshStorageQuotaUI(); } catch (_) {}
+        }
+
+        function closeStorageAddModal() {
+            const el = document.getElementById('storageAddModal');
+            if (el) el.style.display = 'none';
+        }
+
+        function openStorageAddModal() {
+            const el = document.getElementById('storageAddModal');
+            if (!el) return;
+            el.style.display = 'flex';
+            const status = document.getElementById('storageAddStatus');
+            if (status) status.textContent = '';
+        }
+
+        function getStorageAddonGb() {
+            try {
+                const v = Number(window.__axilumStorageAddonGb || 0);
+                if (Number.isFinite(v) && v > 0) return v;
+            } catch (_) {}
+            try {
+                const v2 = Number(localStorage.getItem('axilum_storage_addon_gb') || 0);
+                return Number.isFinite(v2) && v2 > 0 ? v2 : 0;
+            } catch (_) {
+                return 0;
+            }
+        }
+
+        function setStorageAddonGb(gb) {
+            const v = Number(gb);
+            const finalV = Number.isFinite(v) && v >= 0 ? Math.floor(v) : 0;
+            try { window.__axilumStorageAddonGb = finalV; } catch (_) {}
+            try { localStorage.setItem('axilum_storage_addon_gb', String(finalV)); } catch (_) {}
+        }
+
+        function getIncludedStorageQuotaGb(plan) {
+            const p = String(plan || '').toLowerCase();
+            if (p === 'free') return 0.2; // 200 Mo indicatif
+            if (p === 'enterprise') return 50;
+            return 5; // PRO par défaut
+        }
+
+        function getTotalStorageQuotaGb() {
+            const included = getIncludedStorageQuotaGb(currentPlan);
+            const addon = getStorageAddonGb();
+            return Math.max(0, Number(included || 0) + Number(addon || 0));
+        }
+
+        function formatGb(gb) {
+            const n = Number(gb);
+            if (!Number.isFinite(n)) return '—';
+            if (n < 1) return `${Math.round(n * 1024)} Mo`;
+            return `${n.toFixed(n < 10 ? 1 : 0)} Go`;
+        }
+
+        function formatBytes(bytes) {
+            const n = Number(bytes);
+            if (!Number.isFinite(n) || n < 0) return '—';
+            const kb = 1024;
+            const mb = kb * 1024;
+            const gb = mb * 1024;
+            if (n >= gb) return `${(n / gb).toFixed(2)} Go`;
+            if (n >= mb) return `${(n / mb).toFixed(1)} Mo`;
+            if (n >= kb) return `${(n / kb).toFixed(1)} Ko`;
+            return `${Math.round(n)} o`;
+        }
+
+        async function fetchFinanceCloudStorageUsageBytes() {
+            const token = (typeof getAuthToken === 'function') ? getAuthToken() : null;
+            if (!token) return null;
+
+            const headers = { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` };
+            const containers = ['invoices', 'reports'];
+            let total = 0;
+            let any = false;
+
+            for (const c of containers) {
+                try {
+                    const res = await fetch('/api/finance-storage-list', {
+                        method: 'POST',
+                        headers,
+                        body: JSON.stringify({ container: c })
+                    });
+                    const data = await res.json().catch(() => null);
+                    if (!res.ok || !data || !Array.isArray(data.items)) continue;
+                    for (const it of data.items) {
+                        const s = it && it.size != null ? Number(it.size) : 0;
+                        if (Number.isFinite(s) && s > 0) total += s;
+                    }
+                    any = true;
+                } catch (_) {
+                    // ignore
+                }
+            }
+
+            return any ? total : 0;
+        }
+
+        async function fetchCloudStorageUsageFromServer() {
+            const token = (typeof getAuthToken === 'function') ? getAuthToken() : null;
+            if (!token) return null;
+
+            const headers = { 'Authorization': `Bearer ${token}` };
+            try {
+                const res = await fetch('/api/me/storage-usage', { method: 'GET', headers });
+                const data = await res.json().catch(() => null);
+                if (!res.ok || !data || !data.ok || !data.usage) return null;
+                try {
+                    if (data.quota && data.quota.addonGb != null) {
+                        setStorageAddonGb(Number(data.quota.addonGb || 0));
+                    }
+                } catch (_) {}
+                return data;
+            } catch (_) {
+                return null;
+            }
+        }
+
+        async function refreshStorageAddonFromServer() {
+            const token = (typeof getAuthToken === 'function') ? getAuthToken() : null;
+            if (!token) return null;
+            try {
+                const res = await fetch('/api/me/storage-addon', {
+                    method: 'GET',
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const data = await res.json().catch(() => null);
+                if (!res.ok || !data || !data.ok) return null;
+                if (data.addonGb != null) setStorageAddonGb(Number(data.addonGb || 0));
+                return data;
+            } catch (_) {
+                return null;
+            }
+        }
+
+        async function refreshStorageQuotaUI() {
+            const totalEl = document.getElementById('storageQuotaTotal');
+            const usedEl = document.getElementById('storageQuotaUsed');
+            const remEl = document.getElementById('storageQuotaRemaining');
+            const hintEl = document.getElementById('storageQuotaHint');
+
+            if (totalEl) totalEl.textContent = formatGb(getTotalStorageQuotaGb());
+            if (usedEl) usedEl.textContent = '…';
+            if (remEl) remEl.textContent = '…';
+            if (hintEl) hintEl.textContent = '';
+
+            const mode = getStorageMode();
+            if (mode !== 'cloud') {
+                if (usedEl) usedEl.textContent = '—';
+                if (remEl) remEl.textContent = '—';
+                if (hintEl) hintEl.textContent = 'Passez en mode Cloud pour mesurer et gérer le quota.';
+                return;
+            }
+
+            // 1) Préférer la mesure serveur (auth obligatoire, extensible multi-modules)
+            const server = await fetchCloudStorageUsageFromServer();
+            const bytes = server && server.usage ? Number(server.usage.totalBytes || 0) : await fetchFinanceCloudStorageUsageBytes();
+            if (bytes == null) {
+                if (usedEl) usedEl.textContent = 'Connexion requise';
+                if (remEl) remEl.textContent = '—';
+                if (hintEl) hintEl.textContent = 'Connectez-vous pour voir l’usage Cloud et acheter du stockage.';
+                return;
+            }
+
+            const quotaBytes = getTotalStorageQuotaGb() * 1024 * 1024 * 1024;
+            const remainingBytes = Math.max(0, quotaBytes - bytes);
+
+            if (usedEl) usedEl.textContent = formatBytes(bytes);
+            if (remEl) remEl.textContent = formatBytes(remainingBytes);
+            if (hintEl) {
+                const addon = getStorageAddonGb();
+                hintEl.textContent = addon
+                    ? `Inclu: ${formatGb(getIncludedStorageQuotaGb(currentPlan))} • Add-on: ${formatGb(addon)}.`
+                    : `Inclu: ${formatGb(getIncludedStorageQuotaGb(currentPlan))}.`;
+            }
+        }
+
+        function updateStorageModeButtonsUI() {
+            const m = getStorageMode();
+            const ask = document.getElementById('storageModeBtnAsk');
+            const local = document.getElementById('storageModeBtnLocal');
+            const cloud = document.getElementById('storageModeBtnCloud');
+            if (ask) ask.classList.toggle('active', m === 'ask');
+            if (local) local.classList.toggle('active', m === 'local');
+            if (cloud) cloud.classList.toggle('active', m === 'cloud');
+        }
+
+        function addStorageAddonGb(deltaGb) {
+            const d = Number(deltaGb);
+            if (!Number.isFinite(d) || d <= 0) return;
+            const status = document.getElementById('storageAddStatus');
+            if (status) status.textContent = 'Activation…';
+
+            (async () => {
+                const token = (typeof getAuthToken === 'function') ? getAuthToken() : null;
+                if (!token) {
+                    if (status) status.textContent = 'Connexion requise.';
+                    try { showToast('Connexion requise', 'error'); } catch (_) {}
+                    return;
+                }
+
+                try {
+                    const res = await fetch('/api/me/storage-addon', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                        body: JSON.stringify({ deltaGb: Math.floor(d) })
+                    });
+                    const data = await res.json().catch(() => null);
+
+                    if (res.ok && data && data.ok) {
+                        if (data.addonGb != null) setStorageAddonGb(Number(data.addonGb || 0));
+                        if (status) status.textContent = `Stockage ajouté: +${Math.floor(d)} Go (add-on total: ${getStorageAddonGb()} Go).`;
+                        try { refreshStorageQuotaUI(); } catch (_) {}
+                        try { showToast(`Stockage: +${Math.floor(d)} Go`, 'success'); } catch (_) {}
+                        return;
+                    }
+
+                    const err = (data && (data.error || data.details)) ? String(data.error || data.details) : 'Non autorisé';
+                    if (status) status.textContent = `Demande enregistrée localement (serveur: ${err}).`;
+
+                    // Fallback démo local (ne débloque rien côté serveur tant que billing non branché)
+                    const next = getStorageAddonGb() + Math.floor(d);
+                    setStorageAddonGb(next);
+                    try { refreshStorageQuotaUI(); } catch (_) {}
+                    try { showToast('Mode démo: add-on local', 'info'); } catch (_) {}
+                } catch (_) {
+                    if (status) status.textContent = 'Erreur réseau. Add-on local.';
+                    const next = getStorageAddonGb() + Math.floor(d);
+                    setStorageAddonGb(next);
+                    try { refreshStorageQuotaUI(); } catch (_) {}
+                }
+            })();
         }
 
         // 🖼️ Dernière image uploadée (par conversation) pour questions Vision

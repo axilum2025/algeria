@@ -2,6 +2,7 @@ const PDFDocument = require('pdfkit');
 const { getLangFromReq, getLocaleFromLang } = require('../utils/lang');
 const { uploadBuffer, buildBlobUrl } = require('../utils/storage');
 const { getAuthEmail, setCors } = require('../utils/auth');
+const { checkUserCanAddBytes, buildQuotaExceededBody } = require('../utils/storageQuota');
 
 module.exports = async function (context, req) {
   // Initialiser context.res avec CORS
@@ -83,6 +84,15 @@ module.exports = async function (context, req) {
     const filename = `finance-report-${reportType}-${period}-${Date.now()}.${format}`;
     const mimeType = format === 'pdf' ? 'application/pdf' : 'application/json';
     context.log('[Finance Reports] ☁️ Uploading to Azure:', { filename, mimeType, userId });
+
+    const quotaCheck = await checkUserCanAddBytes(userId, pdfBuffer.length);
+    if (!quotaCheck.ok) {
+      context.res.status = 413;
+      context.res.body = buildQuotaExceededBody(quotaCheck);
+      context.log('[Finance Reports] ❌ Quota exceeded, blocking upload');
+      return;
+    }
+
     const azureUrl = await uploadBuffer('reports', filename, pdfBuffer, mimeType, userId);
     context.log('[Finance Reports] ✅ Upload successful:', azureUrl);
 

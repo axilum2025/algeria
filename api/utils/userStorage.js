@@ -4,7 +4,7 @@ let tableClient = null;
 
 function getTableClient() {
     if (!tableClient) {
-        const connectionString = process.env.AZURE_STORAGE_CONNECTION_STRING;
+        const connectionString = process.env.AZURE_STORAGE_CONNECTION_STRING || process.env.APPSETTING_AZURE_STORAGE_CONNECTION_STRING;
         if (connectionString) {
             tableClient = TableClient.fromConnectionString(connectionString, "Users");
             tableClient.createTable().catch(() => {});

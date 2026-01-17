@@ -1,5 +1,6 @@
 const { uploadBuffer } = require('../utils/storage');
 const { getAuthEmail, setCors } = require('../utils/auth');
+const { checkUserCanAddBytes, buildQuotaExceededBody } = require('../utils/storageQuota');
 
 /**
  * Détecte si une facture est une CHARGE (dépense) ou un REVENU (bénéfice)
@@ -510,6 +511,7 @@ module.exports = async function (context, req) {
         const invoiceNumber = parsed.invoiceNumber;
 
         let storedUrl = null;
+        let storage = null;
         try {
           if (fileUrl) {
             const srcResp = await fetch(fileUrl);
@@ -517,12 +519,22 @@ module.exports = async function (context, req) {
               const arrayBuf = await srcResp.arrayBuffer();
               const buf = Buffer.from(arrayBuf);
               const guessName = (new URL(fileUrl)).pathname.split('/').pop() || `invoice-${Date.now()}.pdf`;
-              storedUrl = await uploadBuffer('invoices', guessName, buf, srcResp.headers.get('content-type') || 'application/pdf', userId);
+              const quotaCheck = await checkUserCanAddBytes(userId, buf.length);
+              if (!quotaCheck.ok) {
+                storage = { blocked: true, reason: 'quota-exceeded', details: buildQuotaExceededBody(quotaCheck) };
+              } else {
+                storedUrl = await uploadBuffer('invoices', guessName, buf, srcResp.headers.get('content-type') || 'application/pdf', userId);
+              }
             }
           } else if (contentBase64) {
             const buf = Buffer.from(String(contentBase64), 'base64');
             const name = `invoice-${Date.now()}.pdf`;
-            storedUrl = await uploadBuffer('invoices', name, buf, 'application/pdf', userId);
+            const quotaCheck = await checkUserCanAddBytes(userId, buf.length);
+            if (!quotaCheck.ok) {
+              storage = { blocked: true, reason: 'quota-exceeded', details: buildQuotaExceededBody(quotaCheck) };
+            } else {
+              storedUrl = await uploadBuffer('invoices', name, buf, 'application/pdf', userId);
+            }
           }
         } catch {}
 
@@ -544,6 +556,7 @@ module.exports = async function (context, req) {
           transactionType, // Type détecté
           source: fileUrl || (contentBase64 ? 'inline' : null),
           storedUrl,
+          storage,
           method: 'azure-computer-vision-read'
         };
         return;
@@ -688,6 +701,7 @@ module.exports = async function (context, req) {
     }
 
     let storedUrl = null;
+    let storage = null;
     try {
       if (fileUrl) {
         const srcResp = await fetch(fileUrl);
@@ -695,12 +709,22 @@ module.exports = async function (context, req) {
           const arrayBuf = await srcResp.arrayBuffer();
           const buf = Buffer.from(arrayBuf);
           const guessName = (new URL(fileUrl)).pathname.split('/').pop() || `invoice-${Date.now()}.pdf`;
-          storedUrl = await uploadBuffer('invoices', guessName, buf, srcResp.headers.get('content-type') || 'application/pdf', userId);
+          const quotaCheck = await checkUserCanAddBytes(userId, buf.length);
+          if (!quotaCheck.ok) {
+            storage = { blocked: true, reason: 'quota-exceeded', details: buildQuotaExceededBody(quotaCheck) };
+          } else {
+            storedUrl = await uploadBuffer('invoices', guessName, buf, srcResp.headers.get('content-type') || 'application/pdf', userId);
+          }
         }
       } else if (contentBase64) {
         const buf = Buffer.from(String(contentBase64), 'base64');
         const name = `invoice-${Date.now()}.pdf`;
-        storedUrl = await uploadBuffer('invoices', name, buf, 'application/pdf', userId);
+        const quotaCheck = await checkUserCanAddBytes(userId, buf.length);
+        if (!quotaCheck.ok) {
+          storage = { blocked: true, reason: 'quota-exceeded', details: buildQuotaExceededBody(quotaCheck) };
+        } else {
+          storedUrl = await uploadBuffer('invoices', name, buf, 'application/pdf', userId);
+        }
       }
     } catch {}
 
@@ -729,6 +753,7 @@ module.exports = async function (context, req) {
       },
       source: fileUrl || (contentBase64 ? 'inline' : null),
       storedUrl,
+      storage,
       method: 'azure-form-recognizer'
     };
   } catch (err) {

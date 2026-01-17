@@ -1,5 +1,6 @@
 const { getBlobServiceClient } = require('../utils/storage');
 const { requireAuth, setCors } = require('../utils/auth');
+const { checkUserCanAddBytes, buildQuotaExceededBody } = require('../utils/storageQuota');
 
 function decodeDataUrl(dataUrl) {
   const m = String(dataUrl || '').match(/^data:([^;]+);base64,(.+)$/);
@@ -61,6 +62,24 @@ module.exports = async function (context, req) {
     await container.createIfNotExists();
     const blobName = `${email}/${remoteImageId}`;
     const blob = container.getBlockBlobClient(blobName);
+
+    // Delta = taille ajoutée nette (si overwrite)
+    let existingBytes = 0;
+    try {
+      const props = await blob.getProperties();
+      existingBytes = Number(props?.contentLength) || 0;
+    } catch (_) {}
+    const deltaBytes = Math.max(0, buf.length - Math.max(0, existingBytes));
+
+    const quotaCheck = await checkUserCanAddBytes(email, deltaBytes);
+    if (!quotaCheck.ok) {
+      context.res = {
+        status: 413,
+        headers: { 'Content-Type': 'application/json' },
+        body: buildQuotaExceededBody(quotaCheck)
+      };
+      return;
+    }
 
     await blob.uploadData(buf, {
       blobHTTPHeaders: { blobContentType: decoded.mimeType }
