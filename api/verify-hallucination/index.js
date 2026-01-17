@@ -3,6 +3,7 @@ const { analyzeHallucination } = require('../utils/hallucinationDetector');
 const { verifyClaimsWithEvidence } = require('../utils/evidenceClaimVerifier');
 const { getRecommendedSourcesForAudit } = require('../utils/recommendedSourcesAdvisor');
 const { generateSearchQueries } = require('../utils/claimSearchQueryGenerator');
+const { getAuthEmail } = require('../utils/auth');
 
 module.exports = async function (context, req) {
     context.log('🔍 Verify Hallucination API appelée');
@@ -25,6 +26,13 @@ module.exports = async function (context, req) {
     try {
         const body = (req && req.body && typeof req.body === 'object') ? req.body : {};
         const { text, source } = body;
+
+        // Identité (audit/budget/quotas): en production on n'accepte pas un userId fourni par le client.
+        const email = getAuthEmail(req);
+        const allowUserIdOverride = process.env.NODE_ENV !== 'production';
+        const clientUserId = String(body.userId || '').trim();
+        const userIdForAudit = email || (allowUserIdOverride ? (clientUserId || 'guest') : 'guest');
+
         const lang = normalizeLang(body.lang);
         const L = getHdApiStrings(lang);
         const enableEvidenceCheck = body.evidenceCheck !== false; // default true
@@ -87,7 +95,7 @@ module.exports = async function (context, req) {
                 try {
                     const verification = await verifyFactWithBrave(fact, braveApiKey, context, lang, {
                         aggressive: detectorSignal.aggressiveEvidenceRetrieval,
-                        userId: body.userId || 'guest'
+                        userId: userIdForAudit
                     });
 
                     evidence.push({
@@ -140,7 +148,7 @@ module.exports = async function (context, req) {
                 try {
                     const v = await verifyClaimEvidenceWithBrave(claimText, braveApiKey, context, lang, {
                         aggressive: detectorSignal.aggressiveEvidenceRetrieval,
-                        userId: body.userId || 'guest'
+                        userId: userIdForAudit
                     });
                     evidenceByClaim[claimText] = Array.isArray(v.results) ? v.results : [];
                 } catch (_) {
@@ -153,7 +161,7 @@ module.exports = async function (context, req) {
                     claims: claimTexts,
                     evidenceByClaim,
                     lang,
-                    userId: body.userId || 'guest',
+                    userId: userIdForAudit,
                     maxClaims: detectorSignal.maxClaimsForEvidence
                 });
 
@@ -331,7 +339,7 @@ module.exports = async function (context, req) {
         let recommendedSourcesMeta = null;
         try {
             recommendedSourcesMeta = await getRecommendedSourcesForAudit({
-                userId: body.userId || 'guest',
+                userId: userIdForAudit,
                 lang,
                 text,
                 evidenceClaims: Array.isArray(evidenceAnalysis?.claims) ? evidenceAnalysis.claims : [],
