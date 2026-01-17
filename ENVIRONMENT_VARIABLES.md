@@ -59,6 +59,7 @@ Pour limiter le bruteforce sur certains endpoints (codes / vérifications), l'ap
 - `AZURE_STORAGE_CONNECTION_STRING` (ou `APPSETTING_AZURE_STORAGE_CONNECTION_STRING`) : requis.
 - `RATE_LIMIT_TABLE_ENABLED` : défaut `true` (mettre `false` pour désactiver et revenir au mode mémoire).
 - `RATE_LIMIT_TABLE_NAME` : défaut `RateLimits`.
+- `RATE_LIMIT_CLEANUP_ENABLED` : si `1`, active l'endpoint admin `POST /api/admin-rate-limits-cleanup` en production (sinon 404).
 
 Notes:
 - Les clés stockées sont hashées (pas d'IP/email/token en clair).
