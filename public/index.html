@@ -4160,6 +4160,9 @@
                             <strong>Devise :</strong> la facturation est en $ (USD).
                             Utilisez le taux de change actuel pour confirmer le prix.
                         </p>
+                        <p id="pricingP4" style="margin: 10px 0 0; color: var(--text-secondary); font-size: 13px; line-height: 1.5;">
+                            <strong>Prix stockage :</strong> Quota inclus : 100 Mo gratuit. Au-delà : 0.10 $ / Go / mois. Packs : +5, +10, +50 Go.
+                        </p>
 
                         <div id="pricingCostInfo" style="margin-top: 12px; padding-top: 12px; border-top: 1px dashed var(--border-color); color: var(--text-secondary); font-size: 13px; line-height: 1.5;">
                             <div id="pricingCostTitle" style="font-weight: 700; color: var(--text-primary); margin-bottom: 4px;">Coût (Cost)</div>
@@ -11592,6 +11595,7 @@ ${persona}
                 'settings.pricing.p1': '<strong>Axilum AI fonctionne en prépayé :</strong> vous chargez un crédit (en $) et vous pouvez utiliser tous les modules tant que ce crédit n’est pas épuisé. La consommation est calculée côté serveur à partir des usages réels (tokens, appels IA) et déduite automatiquement.',
                 'settings.pricing.p2': '<strong>Où voir le solde ?</strong> Le compteur en haut affiche votre crédit restant. <strong>Pour voir le détail</strong> (période, coût IA, etc.), cliquez directement sur ce compteur.',
                 'settings.pricing.p3': '<strong>Devise :</strong> la facturation est en $ (USD). Utilisez le taux de change actuel pour confirmer le prix.',
+                'settings.pricing.p4': '<strong>Prix stockage :</strong> Quota inclus : 100 Mo gratuit. Au-delà : 0.10 $ / Go / mois. Packs : +5, +10, +50 Go.',
                 'settings.pricing.costTitle': 'Coût',
                 'settings.pricing.costBody': 'Le <strong>prompt</strong> correspond aux tokens d’entrée (vos messages, instructions). La <strong>completion</strong> correspond aux tokens de sortie (la réponse générée).',
                 'settings.pricing.byModelTitle': 'Prix par modèle :',
@@ -12114,6 +12118,7 @@ ${persona}
                 'settings.pricing.p1': '<strong>Axilum AI runs on prepaid credit:</strong> you top up a balance (in $) and can use all modules as long as your credit is not depleted. Usage is computed server-side from real consumption (tokens, AI calls) and deducted automatically.',
                 'settings.pricing.p2': '<strong>Where to see your balance?</strong> The counter at the top shows your remaining credit. <strong>To see details</strong> (period, AI cost, etc.), click directly on that counter.',
                 'settings.pricing.p3': '<strong>Currency:</strong> billing is in $ (USD).',
+                'settings.pricing.p4': '<strong>Storage pricing:</strong> Included quota: 100 MB free. Beyond: $0.10 / GB / month. Packs: +5, +10, +50 GB.',
                 'settings.pricing.costTitle': 'Cost',
                 'settings.pricing.costBody': '<strong>Prompt</strong> tokens are input tokens (your messages and instructions). <strong>Completion</strong> tokens are output tokens (the model’s generated answer).',
                 'settings.pricing.byModelTitle': 'Price per model:',
@@ -12550,6 +12555,9 @@ ${persona}
 
                 const pricingP3 = document.getElementById('pricingP3');
                 if (pricingP3) pricingP3.innerHTML = t('settings.pricing.p3');
+
+                const pricingP4 = document.getElementById('pricingP4');
+                if (pricingP4) pricingP4.innerHTML = t('settings.pricing.p4');
 
                 const pricingCostTitle = document.getElementById('pricingCostTitle');
                 if (pricingCostTitle) pricingCostTitle.textContent = t('settings.pricing.costTitle');
