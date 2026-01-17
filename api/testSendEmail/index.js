@@ -2,12 +2,72 @@
  * Test endpoint pour vérifier l'envoi d'email
  */
 
+const { getAuthEmail } = require('../utils/auth');
+const { getRoles } = require('../utils/userStorage');
+
+function corsJsonHeaders(extra = {}) {
+    return {
+        'Content-Type': 'application/json',
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+        'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-Admin-Key',
+        ...extra
+    };
+}
+
+function readAdminKey(req) {
+    const raw = req.headers?.['x-admin-key'] || req.headers?.['X-Admin-Key'] || '';
+    return String(Array.isArray(raw) ? raw[0] : raw).trim();
+}
+
+function hasValidAdminKey(req) {
+    const expected = String(process.env.ADMIN_API_KEY || '').trim();
+    if (!expected) return false;
+    const got = readAdminKey(req);
+    return Boolean(got && got === expected);
+}
+
+async function isAdminEmail(email) {
+    if (!email) return false;
+    const roles = await getRoles(String(email).toLowerCase()).catch(() => []);
+    return Array.isArray(roles) && roles.includes('admin');
+}
+
 module.exports = async function (context, req) {
     context.log('🧪 Test Send Email triggered');
+
+    if (String(req.method || '').toUpperCase() === 'OPTIONS') {
+        context.res = { status: 204, headers: corsJsonHeaders(), body: '' };
+        return;
+    }
+
+    const enabled = String(process.env.TEST_SEND_EMAIL_ENABLED || '').trim() === '1';
+    if (process.env.NODE_ENV === 'production' && !enabled) {
+        context.res = {
+            status: 404,
+            headers: corsJsonHeaders(),
+            body: JSON.stringify({ error: 'Not found' })
+        };
+        return;
+    }
+
+    const adminKeyOk = hasValidAdminKey(req);
+    const emailAuth = getAuthEmail(req);
+    if (!adminKeyOk) {
+        const admin = await isAdminEmail(emailAuth);
+        if (!admin) {
+            context.res = {
+                status: emailAuth ? 403 : 401,
+                headers: corsJsonHeaders(),
+                body: JSON.stringify({ error: emailAuth ? 'Non autorisé' : 'Non authentifié' })
+            };
+            return;
+        }
+    }
     
     try {
-        const email = req.query.email || 'test@example.com';
-        const name = req.query.name || 'Test User';
+        const email = String(req.query.email || 'test@example.com').trim().toLowerCase();
+        const name = String(req.query.name || 'Test User').trim().slice(0, 80);
         
         context.log(`📧 Test d'envoi d'email à ${email}`);
         
@@ -58,7 +118,7 @@ module.exports = async function (context, req) {
         
         context.res = {
             status: 200,
-            headers: { 'Content-Type': 'application/json' },
+            headers: corsJsonHeaders(),
             body: JSON.stringify({
                 success: true,
                 message: 'Email envoyé avec succès',
@@ -71,7 +131,7 @@ module.exports = async function (context, req) {
         context.log.error('❌ Erreur:', error.message);
         context.res = {
             status: 500,
-            headers: { 'Content-Type': 'application/json' },
+            headers: corsJsonHeaders(),
             body: JSON.stringify({
                 error: error.message,
                 stack: error.stack
