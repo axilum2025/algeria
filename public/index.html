@@ -4168,6 +4168,9 @@
 
                         <div id="pricingByModelTitle" style="margin-top: 14px; font-weight: 700; color: var(--text-primary); font-size: 13px;">Prix par modèle :</div>
                         <div id="pricingByModelBody" style="margin-top: 8px; color: var(--text-secondary); font-size: 13px;">Chargement…</div>
+
+                        <div id="pricingStorageTitle" style="margin-top: 18px; font-weight: 700; color: var(--text-primary); font-size: 13px;">Stockage Cloud</div>
+                        <div id="pricingStorageBody" style="margin-top: 6px; color: var(--text-secondary); font-size: 13px; line-height: 1.55;"></div>
                     </div>
                 </div>
 
@@ -4268,7 +4271,7 @@
                             <div id="storageQuotaTitle" style="font-weight: 800; color: var(--text-primary);">Quota stockage Cloud</div>
                             <div id="storageQuotaSubtitle" style="color: var(--text-secondary); font-size: 13px; margin-top: 4px;">Indication (pour activer/acheter du stockage)</div>
                         </div>
-                        <button id="storageQuotaAddBtn" type="button" class="settings-plan-btn" onclick="openStorageAddModal()" style="min-width: 190px;">Ajouter du stockage</button>
+                        <button id="storageQuotaAddBtn" type="button" class="settings-plan-btn" onclick="openStorageAddModal()" style="min-width: 190px; background: var(--accent); color: #fff;">Ajouter du stockage</button>
                     </div>
 
                     <div style="margin-top: 10px; display:grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px;">
@@ -11601,6 +11604,8 @@ ${persona}
                 'settings.pricing.byModel.na': 'N/A',
                 'settings.pricing.byModel.prompt': 'prompt',
                 'settings.pricing.byModel.completion': 'completion',
+                'settings.pricing.storageTitle': 'Stockage Cloud',
+                'settings.pricing.storageBody': '<strong>Quota inclus :</strong> Chaque compte bénéficie d'un quota de stockage Cloud gratuit de <strong>100 Mo</strong>.<br><strong>Prix unitaire :</strong> Au-delà du quota inclus, le stockage supplémentaire est facturé <strong>0.10 $ / Go / mois</strong>.<br><strong>Packs disponibles :</strong> +5 Go, +10 Go ou +50 Go (achat ponctuel, valable tant que le crédit est positif).<br><strong>Usage :</strong> Le stockage Cloud est utilisé pour synchroniser vos conversations et documents (ex: factures Finance) entre vos appareils.',
                 'settings.infoTitle': 'Informations',
                 'settings.infoContent': '<strong>Version :</strong> 1.0.0<br><strong>Dernière mise à jour :</strong> Décembre 2025<br><strong>Build :</strong> Production',
 
@@ -12123,6 +12128,8 @@ ${persona}
                 'settings.pricing.byModel.na': 'N/A',
                 'settings.pricing.byModel.prompt': 'prompt',
                 'settings.pricing.byModel.completion': 'completion',
+                'settings.pricing.storageTitle': 'Cloud Storage',
+                'settings.pricing.storageBody': '<strong>Included quota:</strong> Each account gets a free Cloud storage quota of <strong>100 MB</strong>.<br><strong>Unit price:</strong> Beyond the included quota, additional storage is billed at <strong>$0.10 / GB / month</strong>.<br><strong>Available packs:</strong> +5 GB, +10 GB or +50 GB (one-time purchase, valid as long as your credit is positive).<br><strong>Usage:</strong> Cloud storage is used to sync your conversations and documents (e.g. Finance invoices) across your devices.',
                 'settings.infoTitle': 'Information',
                 'settings.infoContent': '<strong>Version:</strong> 1.0.0<br><strong>Last update:</strong> December 2025<br><strong>Build:</strong> Production',
 
@@ -12563,6 +12570,12 @@ ${persona}
                     const list = Array.isArray(pricingByModelCache) ? pricingByModelCache : (Array.isArray(aiModelsCache) ? aiModelsCache : null);
                     if (list && list.length) renderPricingByModelTable(list);
                 } catch (_) {}
+
+                const pricingStorageTitle = document.getElementById('pricingStorageTitle');
+                if (pricingStorageTitle) pricingStorageTitle.textContent = t('settings.pricing.storageTitle');
+
+                const pricingStorageBody = document.getElementById('pricingStorageBody');
+                if (pricingStorageBody) pricingStorageBody.innerHTML = t('settings.pricing.storageBody');
 
                 const infoSectionTitle = document.getElementById('infoSectionTitle');
                 if (infoSectionTitle) infoSectionTitle.textContent = t('settings.infoTitle');
