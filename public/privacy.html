@@ -129,14 +129,14 @@
 <body>
   <header class="page-header">
     <div class="page-header-inner">
-      <button id="privacyBackBtn" class="btn" type="button" onclick="goBackToApp()">← Retour</button>
-      <h1 id="privacyTitle" class="title">Confidentialité</h1>
+      <button class="btn" type="button" onclick="goBackToApp()">← Retour</button>
+      <h1 class="title">Confidentialité</h1>
       <div style="width: 90px;"></div>
     </div>
   </header>
 
   <main class="container">
-    <div id="privacyCard" class="card">
+    <div class="card">
       <p class="meta"><strong>Dernière mise à jour :</strong> Janvier 2026</p>
 
     <h2>Résumé</h2>
@@ -222,120 +222,6 @@
         document.body.setAttribute('data-theme', 'light');
       }
     })();
-
-    function normalizeAppLanguage(lang) {
-      const raw = String(lang || '').toLowerCase();
-      if (raw.startsWith('en')) return 'en';
-      return 'fr';
-    }
-
-    function getAppLanguage() {
-      try {
-        const stored = localStorage.getItem('appLanguage');
-        if (stored) return normalizeAppLanguage(stored);
-      } catch (_) {}
-      return normalizeAppLanguage((navigator && navigator.language) ? navigator.language : 'fr');
-    }
-
-    // Privacy page content (FR HTML is the source-of-truth in DOM; EN is injected on demand)
-    let PRIVACY_CARD_FR_HTML = null;
-    const PRIVACY_CARD_EN_HTML = `
-      <p class="meta"><strong>Last updated:</strong> January 2026</p>
-
-      <h2>Summary</h2>
-      <p>
-        Axilum AI offers two storage modes to keep you in control:
-        <strong>Local (this device)</strong> or <strong>Secure cloud (account required)</strong>.
-        The <strong>Ask on each upload</strong> mode lets you decide case by case.
-      </p>
-
-      <h2>Storage modes</h2>
-      <h3>1) Local (this device)</h3>
-      <ul>
-        <li>Your conversations and files stay in your browser (local storage).</li>
-        <li>No multi-device sync.</li>
-        <li>
-          Important: if multiple people use the same computer and the same browser profile,
-          they may potentially access this data.
-        </li>
-      </ul>
-
-      <h3>2) Secure cloud (account required)</h3>
-      <ul>
-        <li>Your data can be synchronized for multi-device access.</li>
-        <li>Access is controlled by authentication (signed JWT token).</li>
-        <li>Strict per-user isolation on the server (an account cannot access another account’s data).</li>
-        <li>Private cloud storage encrypted at rest (encryption managed by Azure).</li>
-      </ul>
-
-      <h2>What we store</h2>
-      <ul>
-        <li><strong>Conversations</strong>: messages and metadata (depending on enabled features).</li>
-        <li><strong>Files/documents</strong>: only if you upload/import them (e.g., Finance invoices/reports).</li>
-        <li><strong>Account</strong>: email and information required for authentication.</li>
-      </ul>
-
-      <h2>Security</h2>
-      <ul>
-        <li><strong>Encryption in transit</strong>: HTTPS communications.</li>
-        <li><strong>Access control</strong>: in Cloud mode, access is protected by a signed JWT token.</li>
-        <li><strong>Isolation</strong>: each user can only access their own data (in Cloud mode), including files (invoices/reports) and Finance history.</li>
-        <li><strong>Private storage</strong>: file containers are not public; list/download/delete operations are scoped to your account.</li>
-        <li><strong>Upload limits</strong>: file size and formats may be restricted to reduce risks.</li>
-      </ul>
-
-      <h2>Retention period</h2>
-      <p>
-        Retention depends on the selected mode (Local vs Cloud) and your actions (manual deletion).
-        Some data may be retained to ensure proper operation (e.g., history, synchronization), unless deleted.
-      </p>
-
-      <h2>Finance module (specific)</h2>
-      <p>
-        When you use Finance features with Cloud storage, conversations and settings are tied to your account,
-        and documents (invoices/reports) are stored in a per-user isolated space.
-        This prevents another account from listing, downloading, or deleting your documents.
-      </p>
-
-      <h2>Your choices and controls</h2>
-      <ul>
-        <li>You can choose the storage mode in <strong>Settings → Data management</strong>.</li>
-        <li>You can export your conversations (if the option is available).</li>
-        <li>You can delete your local data from the application.</li>
-      </ul>
-
-      <h2>Contact</h2>
-      <p>
-        Support: <a href="mailto:contact@axilum.com">contact@axilum.com</a>
-      </p>
-
-      <p style="margin-top: 14px;">
-        <a href="/" onclick="goBackToApp(); return false;">Back to the app</a>
-      </p>
-    `;
-
-    function applyPrivacyLanguage() {
-      const lang = getAppLanguage();
-      try { document.documentElement.lang = lang; } catch (_) {}
-
-      const backBtn = document.getElementById('privacyBackBtn');
-      if (backBtn) backBtn.textContent = (lang === 'en') ? '← Back' : '← Retour';
-
-      const title = document.getElementById('privacyTitle');
-      if (title) title.textContent = (lang === 'en') ? 'Privacy' : 'Confidentialité';
-
-      try {
-        document.title = (lang === 'en') ? 'Axilum AI — Privacy' : 'Axilum AI — Confidentialité';
-      } catch (_) {}
-
-      const card = document.getElementById('privacyCard');
-      if (!card) return;
-      if (PRIVACY_CARD_FR_HTML === null) PRIVACY_CARD_FR_HTML = card.innerHTML;
-      card.innerHTML = (lang === 'en') ? PRIVACY_CARD_EN_HTML : PRIVACY_CARD_FR_HTML;
-    }
-
-    // Script is at the end of body, DOM is ready here.
-    applyPrivacyLanguage();
 
     function goBackToApp() {
       try {
