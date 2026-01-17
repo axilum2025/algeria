@@ -6443,18 +6443,11 @@ RÈGLES IMPORTANTES:
                     }
 
                     const err = (data && (data.error || data.details)) ? String(data.error || data.details) : 'Non autorisé';
-                    if (status) status.textContent = `Demande enregistrée localement (serveur: ${err}).`;
-
-                    // Fallback démo local (ne débloque rien côté serveur tant que billing non branché)
-                    const next = getStorageAddonGb() + Math.floor(d);
-                    setStorageAddonGb(next);
-                    try { refreshStorageQuotaUI(); } catch (_) {}
-                    try { showToast('Mode démo: add-on local', 'info'); } catch (_) {}
+                    if (status) status.textContent = `Non activé (serveur: ${err}).`;
+                    try { showToast('Stockage non activé (paiement requis)', 'error'); } catch (_) {}
                 } catch (_) {
-                    if (status) status.textContent = 'Erreur réseau. Add-on local.';
-                    const next = getStorageAddonGb() + Math.floor(d);
-                    setStorageAddonGb(next);
-                    try { refreshStorageQuotaUI(); } catch (_) {}
+                    if (status) status.textContent = 'Erreur réseau. Réessayez plus tard.';
+                    try { showToast('Erreur réseau', 'error'); } catch (_) {}
                 }
             })();
         }

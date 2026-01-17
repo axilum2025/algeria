@@ -8,6 +8,8 @@ function safeGb(n, fallback = 0) {
 }
 
 function canSelfServeStorageAddon() {
+  // Sécurité: jamais en production (même si la variable est mal configurée).
+  if (String(process.env.NODE_ENV || '').toLowerCase() === 'production') return false;
   return String(process.env.AXILUM_ALLOW_SELF_SERVICE_STORAGE_ADDON || '').trim() === '1';
 }
 
