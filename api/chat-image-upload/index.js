@@ -1,6 +1,7 @@
 const { getBlobServiceClient } = require('../utils/storage');
 const { requireAuth, setCors } = require('../utils/auth');
 const { checkUserCanAddBytes, buildQuotaExceededBody } = require('../utils/storageQuota');
+const { sanitizeUserIdForBlobPrefix } = require('../utils/blobNaming');
 
 function decodeDataUrl(dataUrl) {
   const m = String(dataUrl || '').match(/^data:([^;]+);base64,(.+)$/);
@@ -60,7 +61,8 @@ module.exports = async function (context, req) {
 
     const container = svc.getContainerClient('chat-images');
     await container.createIfNotExists();
-    const blobName = `${email}/${remoteImageId}`;
+    const safeEmail = sanitizeUserIdForBlobPrefix(email);
+    const blobName = `${safeEmail}/${remoteImageId}`;
     const blob = container.getBlockBlobClient(blobName);
 
     // Delta = taille ajoutée nette (si overwrite)

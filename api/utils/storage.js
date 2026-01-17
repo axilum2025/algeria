@@ -1,4 +1,5 @@
 const { BlobServiceClient, StorageSharedKeyCredential, generateBlobSASQueryParameters, BlobSASPermissions } = require('@azure/storage-blob');
+const { buildUsersBlobName, buildUsersPrefix } = require('./blobNaming');
 
 function getConfig() {
   const conn = (process.env.APPSETTING_AZURE_STORAGE_CONNECTION_STRING || process.env.AZURE_STORAGE_CONNECTION_STRING || '').trim();
@@ -93,7 +94,7 @@ async function uploadBuffer(container, blobName, buffer, contentType, userId = n
   const containerClient = svc.getContainerClient(container);
   await ensureContainer(containerClient);
   // Si userId fourni, préfixer le blob pour isolation
-  const finalBlobName = userId ? `users/${userId}/${blobName}` : blobName;
+  const finalBlobName = userId ? buildUsersBlobName(userId, blobName) : String(blobName || '');
   const blockBlob = containerClient.getBlockBlobClient(finalBlobName);
   const opts = contentType ? { blobHTTPHeaders: { blobContentType: contentType } } : undefined;
   await blockBlob.uploadData(buffer, opts);
@@ -106,7 +107,7 @@ async function listBlobs(container, userId = null) {
   const out = [];
   const containerClient = svc.getContainerClient(container);
   // Si userId fourni, filtrer par préfixe users/{userId}/
-  const prefix = userId ? `users/${userId}/` : undefined;
+  const prefix = userId ? buildUsersPrefix(userId) : undefined;
   for await (const item of containerClient.listBlobsFlat({ prefix })) {
     // Essayer buildBlobUrl avec SAS token
     let url = buildBlobUrl(container, item.name);
@@ -205,7 +206,7 @@ async function deleteBlob(container, blobName, userId = null) {
   if (!svc) return false;
   const containerClient = svc.getContainerClient(container);
   // Si userId fourni, vérifier que le blob appartient à l'utilisateur
-  const finalBlobName = userId ? `users/${userId}/${blobName}` : blobName;
+  const finalBlobName = userId ? buildUsersBlobName(userId, blobName) : String(blobName || '');
   const client = containerClient.getBlobClient(finalBlobName);
   try {
     await client.deleteIfExists();

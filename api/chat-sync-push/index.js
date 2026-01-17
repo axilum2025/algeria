@@ -1,6 +1,7 @@
 const { getBlobServiceClient } = require('../utils/storage');
 const { requireAuth, setCors } = require('../utils/auth');
 const { checkUserCanAddBytes, buildQuotaExceededBody } = require('../utils/storageQuota');
+const { sanitizeUserIdForBlobPrefix } = require('../utils/blobNaming');
 
 module.exports = async function (context, req) {
   setCors(context, 'POST, OPTIONS');
@@ -29,7 +30,8 @@ module.exports = async function (context, req) {
 
     const container = svc.getContainerClient('chat-sync');
     await container.createIfNotExists();
-    const blobName = `${email}/conversations.json`;
+    const safeEmail = sanitizeUserIdForBlobPrefix(email);
+    const blobName = `${safeEmail}/conversations.json`;
     const blob = container.getBlockBlobClient(blobName);
 
     const payload = Buffer.from(JSON.stringify(conversations), 'utf8');

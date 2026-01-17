@@ -1,5 +1,6 @@
 const { buildBlobUrl, getBlobServiceClient } = require('../utils/storage');
 const { requireAuth, setCors } = require('../utils/auth');
+const { sanitizeUserIdForBlobPrefix } = require('../utils/blobNaming');
 
 function isValidRemoteImageId(remoteImageId) {
   return /^[A-Za-z0-9._-]{1,200}$/.test(String(remoteImageId || ''));
@@ -30,7 +31,8 @@ module.exports = async function (context, req) {
     }
 
     const container = 'chat-images';
-    const blobName = `${email}/${remoteImageId}`;
+    const safeEmail = sanitizeUserIdForBlobPrefix(email);
+    const blobName = `${safeEmail}/${remoteImageId}`;
 
     // Vérifier existence si possible
     const svc = getBlobServiceClient();

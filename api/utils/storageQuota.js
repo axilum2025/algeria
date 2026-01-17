@@ -1,6 +1,7 @@
 const { listBlobs, listBlobsByPrefix } = require('./storage');
 const { getUserPlan } = require('./entitlements');
 const { getUserByEmail } = require('./userStorage');
+const { buildDirectPrefix } = require('./blobNaming');
 
 function safeNumber(n, fallback = 0) {
   const v = Number(n);
@@ -57,7 +58,8 @@ async function computeUserCloudStorageState(email, options = {}) {
 
     let items = [];
     if (prefixType === 'direct') {
-      items = await listBlobsByPrefix(containerName, `${email}/`);
+      const prefix = buildDirectPrefix(email);
+      items = await listBlobsByPrefix(containerName, prefix);
     } else {
       items = await listBlobs(containerName, email);
     }

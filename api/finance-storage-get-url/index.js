@@ -1,6 +1,7 @@
 const { buildBlobUrl, getBlobServiceClient, getConfig } = require('../utils/storage');
 const { generateBlobSASQueryParameters, BlobSASPermissions, StorageSharedKeyCredential } = require('@azure/storage-blob');
 const { getAuthEmail, setCors } = require('../utils/auth');
+const { buildUsersBlobName } = require('../utils/blobNaming');
 
 module.exports = async function (context, req) {
   setCors(context, 'POST, OPTIONS');
@@ -31,7 +32,7 @@ module.exports = async function (context, req) {
     }
     
     // Construire le chemin complet avec préfixe utilisateur
-    const fullBlobName = `users/${userId}/${name}`;
+    const fullBlobName = buildUsersBlobName(userId, name);
     
     // Essayer buildBlobUrl d'abord (avec SAS si disponible)
     let url = buildBlobUrl(container, fullBlobName);

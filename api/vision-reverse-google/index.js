@@ -5,6 +5,11 @@ const {
     BlobSASPermissions
 } = require('@azure/storage-blob');
 
+const { requireAuth, setCors } = require('../utils/auth');
+const { getConfig } = require('../utils/storage');
+const { checkUserCanAddBytes, buildQuotaExceededBody, DEFAULT_CONTAINERS } = require('../utils/storageQuota');
+const { sanitizeUserIdForBlobPrefix } = require('../utils/blobNaming');
+
 function parseAzureStorageConnectionString(connectionString) {
     const parts = {};
     for (const segment of String(connectionString).split(';')) {
@@ -21,17 +26,15 @@ function parseAzureStorageConnectionString(connectionString) {
 module.exports = async function (context, req) {
     context.log('Google Custom Search - Reverse Image Search');
 
+    setCors(context, 'POST, OPTIONS');
+
     if (req.method === 'OPTIONS') {
-        context.res = {
-            status: 200,
-            headers: {
-                'Access-Control-Allow-Origin': '*',
-                'Access-Control-Allow-Methods': 'POST, OPTIONS',
-                'Access-Control-Allow-Headers': 'Content-Type'
-            }
-        };
+        context.res = { status: 200 };
         return;
     }
+
+    const email = requireAuth(context, req);
+    if (!email) return;
 
     try {
         let body = req.body;
@@ -55,7 +58,7 @@ module.exports = async function (context, req) {
         if (!imageBase64) {
             context.res = {
                 status: 400,
-                headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
+                headers: { 'Content-Type': 'application/json' },
                 body: { error: 'Image is required (imageBase64)' }
             };
             return;
@@ -67,7 +70,7 @@ module.exports = async function (context, req) {
         if (!apiKey) {
             context.res = {
                 status: 500,
-                headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
+                headers: { 'Content-Type': 'application/json' },
                 body: { error: 'Google Search API key not configured' }
             };
             return;
@@ -76,7 +79,7 @@ module.exports = async function (context, req) {
         if (!cx) {
             context.res = {
                 status: 500,
-                headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
+                headers: { 'Content-Type': 'application/json' },
                 body: { 
                     error: 'Google Custom Search Engine ID (cx) not configured',
                     hint: 'Create one at https://programmablesearchengine.google.com/'
@@ -86,11 +89,12 @@ module.exports = async function (context, req) {
         }
 
         // Upload temporairement l'image sur Azure Blob et générer une URL SAS (évite l'accès public)
-        const connectionString = process.env.AZURE_STORAGE_CONNECTION_STRING;
+        const cfg = getConfig();
+        const connectionString = (cfg && cfg.conn) ? String(cfg.conn) : '';
         if (!connectionString) {
             context.res = {
                 status: 500,
-                headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
+                headers: { 'Content-Type': 'application/json' },
                 body: { error: 'Azure Storage not configured' }
             };
             return;
@@ -100,7 +104,7 @@ module.exports = async function (context, req) {
         if (!accountName || !accountKey) {
             context.res = {
                 status: 500,
-                headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
+                headers: { 'Content-Type': 'application/json' },
                 body: {
                     error: 'Azure Storage connection string invalid (missing AccountName/AccountKey)'
                 }
@@ -120,10 +124,34 @@ module.exports = async function (context, req) {
             context.log.warn('Container already exists or error:', e.message);
         }
 
-        const blobName = `face-${Date.now()}-${Math.random().toString(36).slice(2)}.jpg`;
+        const safeEmail = sanitizeUserIdForBlobPrefix(email);
+        const blobName = `users/${safeEmail}/reverse-${Date.now()}-${Math.random().toString(36).slice(2)}.jpg`;
         const blockBlobClient = containerClient.getBlockBlobClient(blobName);
 
         const imageBuffer = Buffer.from(imageBase64, 'base64');
+
+        // Limite simple pour éviter abus/timeouts (≈ 4MB)
+        if (imageBuffer.length > 4 * 1024 * 1024) {
+            context.res = {
+                status: 413,
+                headers: { 'Content-Type': 'application/json' },
+                body: { error: 'Image trop grande (max ~4MB)' }
+            };
+            return;
+        }
+
+        // Quota strict: inclure le container temp dans le calcul
+        const containers = DEFAULT_CONTAINERS.concat([{ name: containerName, prefixType: 'users' }]);
+        const quotaCheck = await checkUserCanAddBytes(email, imageBuffer.length, { containers });
+        if (!quotaCheck.ok) {
+            context.res = {
+                status: 413,
+                headers: { 'Content-Type': 'application/json' },
+                body: buildQuotaExceededBody(quotaCheck)
+            };
+            return;
+        }
+
         await blockBlobClient.upload(imageBuffer, imageBuffer.length, {
             blobHTTPHeaders: { blobContentType: 'image/jpeg' }
         });
@@ -151,7 +179,7 @@ module.exports = async function (context, req) {
         if (!query) {
             context.res = {
                 status: 200,
-                headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
+                headers: { 'Content-Type': 'application/json' },
                 body: {
                     mode: 'links',
                     warning: 'Google Custom Search API does not support reverse image search by URL. Returning links instead.',
@@ -192,7 +220,7 @@ module.exports = async function (context, req) {
             context.log.error('Google Custom Search error:', text);
             context.res = {
                 status: response.status,
-                headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
+                headers: { 'Content-Type': 'application/json' },
                 body: {
                     error: `Google Search Error: ${response.status}`,
                     googleErrorMessage,
@@ -208,7 +236,7 @@ module.exports = async function (context, req) {
         } catch (e) {
             context.res = {
                 status: 502,
-                headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
+                headers: { 'Content-Type': 'application/json' },
                 body: { error: 'Invalid JSON from Google Search', details: text.slice(0, 2000) }
             };
             return;
@@ -232,7 +260,7 @@ module.exports = async function (context, req) {
 
         context.res = {
             status: 200,
-            headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
+            headers: { 'Content-Type': 'application/json' },
             body: {
                 mode: 'search',
                 query,
@@ -247,7 +275,7 @@ module.exports = async function (context, req) {
         context.log.error('Error:', error);
         context.res = {
             status: 500,
-            headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
+            headers: { 'Content-Type': 'application/json' },
             body: { error: 'Reverse image search failed', details: error.message }
         };
     }
