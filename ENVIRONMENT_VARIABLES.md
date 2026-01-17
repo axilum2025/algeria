@@ -52,6 +52,18 @@ GROQ_API_KEY=votre_clé_groq_ici
 - `AI_COST_CURRENCY` : devise dans laquelle on calcule les coûts (défaut: `EUR`).
 - `AI_FX_USD_TO_EUR` : taux de conversion si `AI_PRICING_CURRENCY=USD` et `AI_COST_CURRENCY=EUR`.
 
+### Rate limiting (Azure Table)
+
+Pour limiter le bruteforce sur certains endpoints (codes / vérifications), l'app peut persister les compteurs dans Azure Table (multi-instances).
+
+- `AZURE_STORAGE_CONNECTION_STRING` (ou `APPSETTING_AZURE_STORAGE_CONNECTION_STRING`) : requis.
+- `RATE_LIMIT_TABLE_ENABLED` : défaut `true` (mettre `false` pour désactiver et revenir au mode mémoire).
+- `RATE_LIMIT_TABLE_NAME` : défaut `RateLimits`.
+
+Notes:
+- Les clés stockées sont hashées (pas d'IP/email/token en clair).
+- En mode serverless, la persistance Table est recommandée pour une limitation cohérente entre instances.
+
 ### Quota prépayé utilisateur (EUR)
 
 - `AI_CREDIT_ENFORCE=1` : active le blocage basé sur le crédit prépayé utilisateur.

@@ -1,4 +1,5 @@
 const { getCode, deleteCode } = require('../utils/codeStorage');
+const { getClientIp, hashIdentifier, rateLimit } = require('../utils/clientRateLimit');
 
 module.exports = async function (context, req) {
     context.log('🔑 Verify Code function triggered');
@@ -15,46 +16,47 @@ module.exports = async function (context, req) {
             return;
         }
 
+        // Best-effort rate limiting (per instance)
+        const ipHash = hashIdentifier(getClientIp(req));
+        const emailKey = hashIdentifier(email);
+        const rl1 = await rateLimit({ key: `verifyCode:ip:${ipHash}`, limit: 20, windowMs: 60_000 });
+        const rl2 = await rateLimit({ key: `verifyCode:email:${emailKey}`, limit: 10, windowMs: 10 * 60_000 });
+        if (!rl1.allowed || !rl2.allowed) {
+            const retryAfter = Math.max(rl1.retryAfterSeconds, rl2.retryAfterSeconds);
+            context.res = {
+                status: 429,
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Retry-After': String(retryAfter)
+                },
+                body: JSON.stringify({ verified: false, error: 'Trop de tentatives. Réessayez plus tard.' })
+            };
+            return;
+        }
+
         const storedData = await getCode(email);
 
-        if (!storedData) {
+        const isValid = Boolean(storedData) && Date.now() <= storedData.expiresAt && storedData.code === code;
+        if (!isValid) {
+            if (storedData && Date.now() > storedData.expiresAt) {
+                await deleteCode(email);
+            }
             context.res = {
                 status: 400,
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ verified: false, error: 'Aucun code en attente pour cet email.' })
+                body: JSON.stringify({ verified: false, error: 'Code invalide ou expiré.' })
             };
             return;
         }
 
-        // Vérifier si le code a expiré
-        if (Date.now() > storedData.expiresAt) {
-            await deleteCode(email); // Nettoyer le code expiré
-            context.res = {
-                status: 400,
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ verified: false, error: 'Le code de vérification a expiré.' })
-            };
-            return;
-        }
-
-        // Vérifier si le code correspond
-        if (storedData.code === code) {
-            await deleteCode(email); // Le code a été utilisé, on le supprime
-            context.log(`✅ Code vérifié avec succès pour ${email}`);
-            context.res = {
-                status: 200,
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ verified: true, message: 'Email vérifié avec succès !' })
-            };
-            return;
-        } else {
-            context.res = {
-                status: 400,
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ verified: false, error: 'Code de vérification incorrect.' })
-            };
-            return;
-        }
+        await deleteCode(email);
+        context.log(`✅ Code vérifié avec succès pour ${email}`);
+        context.res = {
+            status: 200,
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ verified: true, message: 'Email vérifié avec succès !' })
+        };
+        return;
 
     } catch (error) {
         context.log.error('❌ Erreur lors de la vérification du code:', error);

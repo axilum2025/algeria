@@ -5,8 +5,17 @@
 
 const sgMail = require('@sendgrid/mail');
 const { storeCode } = require('../utils/codeStorage');
+const { setCors } = require('../utils/auth');
+const { getClientIp, hashIdentifier, rateLimit } = require('../utils/clientRateLimit');
 
 module.exports = async function (context, req) {
+    setCors(context, 'POST, OPTIONS');
+
+    if (req.method === 'OPTIONS') {
+        context.res = { status: 200, body: '' };
+        return;
+    }
+
     context.log('📧 Send Verification Email function triggered');
     
     try {
@@ -29,13 +38,39 @@ module.exports = async function (context, req) {
             };
             return;
         }
+
+        const normalizedEmail = String(email).trim().toLowerCase();
+        const codeStr = String(verificationCode).trim();
+        if (!/^[0-9]{6}$/.test(codeStr)) {
+            context.res = {
+                status: 400,
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ error: 'Code de vérification invalide' })
+            };
+            return;
+        }
+
+        // Best-effort rate limiting (multi-instance via Azure Table if configured)
+        const ipHash = hashIdentifier(getClientIp(req));
+        const emailKey = hashIdentifier(normalizedEmail);
+        const rl1 = await rateLimit({ key: `sendVerificationEmail:ip:${ipHash}`, limit: 10, windowMs: 60_000 });
+        const rl2 = await rateLimit({ key: `sendVerificationEmail:email:${emailKey}`, limit: 3, windowMs: 10 * 60_000 });
+        if (!rl1.allowed || !rl2.allowed) {
+            const retryAfter = Math.max(rl1.retryAfterSeconds, rl2.retryAfterSeconds);
+            context.res = {
+                status: 429,
+                headers: { 'Content-Type': 'application/json', 'Retry-After': String(retryAfter) },
+                body: JSON.stringify({ error: 'Trop de tentatives. Réessayez plus tard.', success: false })
+            };
+            return;
+        }
         
-        context.log(`✅ Envoi du code ${verificationCode} à ${email}`);
+        context.log(`✅ Envoi du code de vérification à ${normalizedEmail}`);
 
         // Stocker le code côté serveur (24h) pour vérification
         try {
             const expiresAt = Date.now() + (24 * 60 * 60 * 1000);
-            await storeCode(String(email).toLowerCase(), String(verificationCode), expiresAt);
+            await storeCode(normalizedEmail, codeStr, expiresAt);
         } catch (e) {
             context.log.warn('⚠️ Impossible de stocker le code de vérification:', e?.message || String(e));
         }
@@ -60,7 +95,7 @@ module.exports = async function (context, req) {
         sgMail.setApiKey(apiKey);
         
         const emailMessage = {
-            to: email,
+            to: normalizedEmail,
             from: process.env.SENDGRID_SENDER || 'noreply@axilum.ai',
             subject: 'Votre code de vérification Axilum AI',
             text: `Bonjour ${name || 'utilisateur'},\n\nBienvenue sur Axilum AI !\n\nVotre code de vérification est :\n\n${verificationCode}\n\nCe code expire dans 24 heures.\n\nSi vous n'avez pas créé ce compte, ignorez cet email.\n\nCordialement,\nL'équipe Axilum AI`,
@@ -93,7 +128,7 @@ module.exports = async function (context, req) {
                             
                             <div style="text-align: center; margin: 40px 0;">
                                 <div style="font-size: 48px; font-weight: bold; letter-spacing: 8px; color: #667eea; background: white; padding: 20px; border-radius: 10px; display: inline-block;">
-                                    ${verificationCode}
+                                    ${codeStr}
                                 </div>
                             </div>
                             
@@ -119,7 +154,7 @@ module.exports = async function (context, req) {
         // Envoyer l'email et attendre
         try {
             await sgMail.send(emailMessage);
-            context.log(`✅ Email envoyé à ${email}`);
+            context.log(`✅ Email envoyé à ${normalizedEmail}`);
             
             context.res = {
                 status: 200,
@@ -136,7 +171,6 @@ module.exports = async function (context, req) {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ 
                     error: 'Erreur envoi email',
-                    details: sendError.message,
                     success: false
                 })
             };
