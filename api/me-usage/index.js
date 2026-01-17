@@ -40,8 +40,19 @@ module.exports = async function (context, req) {
 
   try {
     const email = getAuthEmail(req);
+    const requireAuth = String(process.env.ME_USAGE_REQUIRE_AUTH || '').trim() === '1' || process.env.NODE_ENV === 'production';
+    if (requireAuth && !email) {
+      context.res = {
+        status: 401,
+        headers: { 'Content-Type': 'application/json' },
+        body: { ok: false, error: 'Non authentifié' }
+      };
+      return;
+    }
+
     const fallbackUserId = String((req.query && (req.query.userId || req.query.uid)) || '').trim();
-    const userId = email || fallbackUserId || 'guest';
+    const userId = email || (fallbackUserId || 'guest');
+    const effectiveUserId = email ? userId : 'guest';
 
     const month = String((req.query && (req.query.month || req.query.monthKey)) || '').trim() || monthKeyFromDate();
     const defaultCurrency = String(process.env.AI_COST_CURRENCY || 'USD').trim().toUpperCase() || 'USD';
@@ -49,11 +60,11 @@ module.exports = async function (context, req) {
     const responseCurrency = currency;
     const limit = normalizeLimit(req.query && (req.query.limit || req.query.n), 25, 1, 100);
 
-    const credit = await getCredit(userId, { currency }).catch(() => ({ balanceCents: 0, currency }));
+    const credit = await getCredit(effectiveUserId, { currency }).catch(() => ({ balanceCents: 0, currency }));
     const balanceCents = Number(credit?.balanceCents || 0);
     const balanceAmount = Number((balanceCents / 100).toFixed(2));
 
-    const totals = await getUserMonthlyTotals(userId, month);
+    const totals = await getUserMonthlyTotals(effectiveUserId, month);
     const totalsCurrency = responseCurrency;
 
     const conn = getConnectionString();
@@ -62,7 +73,7 @@ module.exports = async function (context, req) {
     if (conn) {
       const client = TableClient.fromConnectionString(conn, USAGE_TABLE);
       const partitionKey = `m_${month}`;
-      const userKey = safeKeyPart(userId || 'anonymous');
+      const userKey = safeKeyPart(effectiveUserId || 'anonymous');
       const filter = `PartitionKey eq '${escapeODataString(partitionKey)}' and userId eq '${escapeODataString(userKey)}'`;
 
       const rows = [];
@@ -106,7 +117,7 @@ module.exports = async function (context, req) {
       body: {
         ok: true,
         month,
-        userId: email || (fallbackUserId || null),
+        userId: email || null,
         credit: {
           balanceCents,
           currency: responseCurrency,
