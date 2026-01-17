@@ -98,6 +98,16 @@ module.exports = async function (context, req) {
         const userMessage = req.body.message;
         const userQuery = extractUserQueryFromMessage(userMessage);
         const requestedModel = req.body?.model || req.body?.aiModel || null;
+        const email = getAuthEmail(req);
+        const requireAuth = String(process.env.INVOKE_REQUIRE_AUTH || '').trim() === '1' || process.env.NODE_ENV === 'production';
+        if (requireAuth && !email) {
+            context.res = {
+                status: 401,
+                headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
+                body: { error: 'Non authentifié' }
+            };
+            return;
+        }
         // Langue: priorité au param explicite (body/query). Ensuite système (Accept-Language),
         // MAIS si le 1er message est clairement dans une autre langue, on surclasse.
         const explicitLang = req.body?.lang || req.body?.language || req.body?.locale || req.query?.lang;
@@ -167,7 +177,9 @@ module.exports = async function (context, req) {
 
         const startTime = Date.now();
         const groqKey = process.env.APPSETTING_GROQ_API_KEY || process.env.GROQ_API_KEY;
-        const userIdForBilling = getAuthEmail(req) || req.body?.userId || req.query?.userId || 'guest';
+        const allowUserIdOverride = process.env.NODE_ENV !== 'production';
+        const clientUserId = String((req.body?.userId || req.query?.userId || '')).trim();
+        const userIdForBilling = email || (allowUserIdOverride ? (clientUserId || 'guest') : 'guest');
         
         if (!groqKey) {
             context.res = { status: 200, headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }, body: { error: "Groq API Key not configured", responseTime: `${Date.now() - startTime}ms` } };
@@ -254,7 +266,7 @@ module.exports = async function (context, req) {
                 toolsContext,
                 analyzeHallucination,
                 logger: context.log,
-                userId: (getAuthEmail(req) || req.body?.userId || req.query?.userId || 'guest'),
+                userId: userIdForBilling,
                 model: requestedModel,
                 lang
             });

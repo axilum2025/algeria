@@ -176,7 +176,19 @@ module.exports = async function (context, req) {
         const chatType = req.body.chatType || req.body.conversationId;
 
         const email = getAuthEmail(req);
-        const userIdForBilling = email || req.body?.userId || req.query?.userId || 'guest';
+        const requireAuth = String(process.env.INVOKE_REQUIRE_AUTH || '').trim() === '1' || process.env.NODE_ENV === 'production';
+        if (requireAuth && !email) {
+            context.res = {
+                status: 401,
+                headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
+                body: { error: 'Non authentifié' }
+            };
+            return;
+        }
+
+        const allowUserIdOverride = process.env.NODE_ENV !== 'production';
+        const clientUserId = String((req.body?.userId || req.query?.userId || '')).trim();
+        const userIdForBilling = email || (allowUserIdOverride ? (clientUserId || 'guest') : 'guest');
         const requestedModel = req.body?.model || req.body?.aiModel || null;
         const resolvedModel = resolveRequestedGroqModel(requestedModel);
         const plan = await getUserPlan(email);

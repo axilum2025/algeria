@@ -7,6 +7,7 @@
 const { analyzeHallucination } = require('../utils/hallucinationDetector');
 const { buildSystemPromptForAgent, normalizeAgentId } = require('../utils/agentRegistry');
 const { orchestrateMultiAgents, callGroqChatCompletion } = require('../utils/orchestrator');
+const { getAuthEmail } = require('../utils/auth');
 const { buildWebEvidenceContext } = require('../utils/webEvidence');
 const { appendEvidenceContext, searchWikipedia, searchNewsApi, searchSemanticScholar } = require('../utils/sourceProviders');
 const { shouldUseInternalBoost, buildAxilumInternalBoostContext } = require('../utils/axilumInternalBoost');
@@ -166,7 +167,10 @@ module.exports = async function (context, req) {
         }
 
         const startTime = Date.now();
-        const userIdForBilling = req.body?.userId || req.query?.userId || 'guest';
+        const email = getAuthEmail(req);
+        const allowUserIdOverride = process.env.NODE_ENV !== 'production';
+        const clientUserId = String((req.body?.userId || req.query?.userId || '')).trim();
+        const userIdForBilling = email || (allowUserIdOverride ? (clientUserId || 'guest') : 'guest');
         
         // Groq API configuration
         const groqApiKey = process.env.GROQ_API_KEY;
@@ -269,7 +273,7 @@ module.exports = async function (context, req) {
                 analyzeHallucination,
                 logger: context.log,
                 model: requestedModel,
-                userId: (req.body?.userId || req.query?.userId || 'guest'),
+                userId: userIdForBilling,
                 lang
             });
 
