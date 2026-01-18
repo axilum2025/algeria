@@ -65,14 +65,6 @@ function decodePrincipal(headerValue) {
 }
 
 function getAuthEmail(req) {
-  // 0) Dev fallback env (opt-in)
-  // Permet de tester les endpoints protégés sans email provider (SendGrid, etc.)
-  // IMPORTANT: jamais actif en production.
-  const devEnvEmail = (process.env.AXILUM_DEV_AUTH_EMAIL || process.env.AXILUM_DEV_USER_EMAIL || '').trim();
-  if (devEnvEmail && process.env.NODE_ENV !== 'production') {
-    return String(devEnvEmail).toLowerCase();
-  }
-
   // 1) Azure Static Web Apps Auth header
   const principalHeader = req.headers && (req.headers['x-ms-client-principal'] || req.headers['X-MS-CLIENT-PRINCIPAL']);
   const principal = decodePrincipal(principalHeader);
@@ -105,7 +97,7 @@ function setCors(context, allowMethods = 'GET, POST, OPTIONS') {
   context.res.headers = Object.assign({}, context.res.headers, {
     'Access-Control-Allow-Origin': '*',
     'Access-Control-Allow-Methods': allowMethods,
-    'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-AXILUM-USER-EMAIL'
+    'Access-Control-Allow-Headers': 'Content-Type, Authorization'
   });
 }
 

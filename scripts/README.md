@@ -8,28 +8,6 @@ Scripts CLI pour configurer automatiquement Azure Face API et Google Custom Sear
 
 ## 🎯 Scripts Disponibles
 
-### 🔐 Provisionner un utilisateur (PROD, sans SendGrid)
-
-Crée un utilisateur via les endpoints admin (instant code) puis vérifie un login.
-
-```bash
-APP_URL="https://<votre-app>.azurewebsites.net" \
-EMAIL="user@example.com" \
-DISPLAY_NAME="User" \
-./scripts/provision-prod-user.sh
-```
-
-Si l'endpoint est protégé (recommandé en prod), ajoute aussi :
-
-```bash
-ADMIN_API_KEY="<admin_key>"
-```
-
-Prérequis côté prod:
-- `INSTANT_CODE_ENABLED=1` (temporaire)
-- Recommandé: `ADMIN_API_KEY` + `INSTANT_CODE_REQUIRE_ADMIN=1`
-- Recommandé après création: remettre `INSTANT_CODE_ENABLED=0`
-
 ### 1️⃣ **Configuration Complète** (Recommandé)
 ```bash
 ./setup-vision-complete.sh
