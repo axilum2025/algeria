@@ -3554,6 +3554,13 @@
                             style="width: 100%; padding: 12px; border: 1px solid var(--border-color); border-radius: 8px; background: var(--bg-secondary); color: var(--text-primary); font-size: 14px;" 
                             placeholder="john@example.com">
                     </div>
+                    <div id="forgotPasswordCodeGroup" style="margin-bottom: 20px; display: none;">
+                        <label id="forgotPasswordCodeLabel" style="display: block; margin-bottom: 8px; font-weight: 500; color: var(--text-primary);">Code</label>
+                        <input type="text" id="forgotPasswordCode" inputmode="numeric" pattern="[0-9]{6}" maxlength="6"
+                            style="width: 100%; padding: 12px; border: 1px solid var(--border-color); border-radius: 8px; background: var(--bg-secondary); color: var(--text-primary); font-size: 18px; text-align: center; letter-spacing: 6px; font-family: monospace;" 
+                            placeholder="000000" autocomplete="off">
+                        <p id="forgotPasswordCodeHint" style="margin-top: 6px; color: var(--text-secondary); font-size: 12px;">Entrez le code reçu par email</p>
+                    </div>
                     <div style="margin-bottom: 24px;">
                         <label id="forgotPasswordNewLabel" style="display: block; margin-bottom: 8px; font-weight: 500; color: var(--text-primary);">Nouveau mot de passe</label>
                         <input type="password" id="forgotPasswordNew" required minlength="6"
