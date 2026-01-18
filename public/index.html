@@ -13679,10 +13679,10 @@ ${persona}
                 }));
 
                 // Synchronisation complète (REMPLACE toutes les tâches serveur)
-                const response = await fetch('/api/tasks/sync', {
+                const response = await apiFetch('/api/tasks/sync', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ tasks: tasks, userId: getTodoUserId() })
+                    body: JSON.stringify({ tasks: tasks })
                 });
 
                 if (response.ok) {
@@ -13698,7 +13698,7 @@ ${persona}
 
         async function syncTasksFromServer() {
             try {
-                const response = await fetch(`/api/tasks/list?userId=${encodeURIComponent(getTodoUserId())}`);
+                const response = await apiFetch('/api/tasks/list');
                 const data = await response.json();
                 
                 if (data.tasks && data.tasks.length > 0) {
@@ -14340,11 +14340,7 @@ ${persona}
 
                     const requestLang = getAppLanguage();
 
-                    const baseUrl = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
-                        ? 'http://localhost:7071/api/tasks'
-                        : '/api/tasks';
-
-                    let endpoint = 'summary';
+                                        let endpoint = 'summary';
                     let method = 'GET';
                     let body = null;
 
@@ -14372,7 +14368,7 @@ ${persona}
                         };
                     } else if (isProductivity) {
                         const profile = getPersonalProfile(userId);
-                        const qp = new URLSearchParams({ userId: String(userId) });
+                        const qp = new URLSearchParams();
                         qp.set('lang', requestLang);
                         if (profile.age) qp.set('age', String(profile.age));
                         if (profile.sex) qp.set('sex', String(profile.sex));
@@ -14380,15 +14376,15 @@ ${persona}
                         endpoint = `productivity?${qp.toString()}`;
                         method = 'GET';
                     } else if (isSummary) {
-                        endpoint = `summary?userId=${encodeURIComponent(userId)}&lang=${encodeURIComponent(requestLang)}`;
+                        endpoint = `summary?lang=${encodeURIComponent(requestLang)}`;
                         method = 'GET';
                     }
 
-                    const resp = await fetch(`${baseUrl}/${endpoint}`, {
+                    const resp = await apiFetch(`/api/tasks/${endpoint}`, {
                         method,
                         headers: Object.assign(
                             { 'X-Language': requestLang },
-                            method === 'POST' ? { 'Content-Type': 'application/json' } : null
+                            method === 'POST' ? { 'Content-Type': 'application/json' } : {}
                         ),
                         body: method === 'POST' ? JSON.stringify(Object.assign({ lang: requestLang }, body || {})) : undefined
                     });
@@ -14458,18 +14454,12 @@ ${persona}
                 // Synchroniser les tâches localStorage vers serveur avant commande
                 await syncTasksToServer();
 
-                // DÉVELOPPEMENT LOCAL - Pointer vers le serveur local Azure Functions
-                const apiUrl = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' 
-                    ? 'http://localhost:7071/api/tasks/smart-command'
-                    : '/api/tasks/smart-command';
-
-                const response = await fetch(apiUrl, {
+                const response = await apiFetch('/api/tasks/smart-command', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json', 'X-Language': getAppLanguage() },
                     body: JSON.stringify({ 
                         command: command,
                         history: aiChatHistory,
-                        userId,
                         lang: getAppLanguage()
                     })
                 });
@@ -15178,19 +15168,15 @@ ${persona}
             `;
 
             const userId = getTodoUserId();
-            const baseUrl = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
-                ? 'http://localhost:7071/api/tasks'
-                : '/api/tasks';
-
-            try {
+                        try {
                 const profile = getPersonalProfile(userId);
-                const qp = new URLSearchParams({ userId: String(userId) });
+                const qp = new URLSearchParams();
                 if (profile.age) qp.set('age', String(profile.age));
                 if (profile.sex) qp.set('sex', String(profile.sex));
                 if (profile.focusHours) qp.set('focusHours', String(profile.focusHours));
                 qp.set('lang', getAppLanguage());
 
-                const resp = await fetch(`${baseUrl}/productivity?${qp.toString()}`, {
+                const resp = await apiFetch(`/api/tasks/productivity?${qp.toString()}`, {
                     headers: { 'X-Language': getAppLanguage() }
                 });
                 if (!resp.ok) throw new Error(fmt(t('todo.personal.error.server'), { status: resp.status, statusText: resp.statusText }));
@@ -15654,13 +15640,12 @@ ${persona}
             showToast(t('todo.toast.analyzing'), 'info');
 
             // Appel à l'API taskManager
-            fetch('/api/tasks/smart-add', {
+            apiFetch('/api/tasks/smart-add', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     description: description,
-                    userId: 'current-user',
-                    model: (typeof getSelectedAiModel === 'function') ? getSelectedAiModel() : null
+                                        model: (typeof getSelectedAiModel === 'function') ? getSelectedAiModel() : null
                 })
             })
             .then(res => res.json())
