@@ -32,7 +32,7 @@ const PORT = process.env.PORT || 8080;
 const corsOptions = {
   origin: '*',
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-AXILUM-USER-EMAIL'],
   exposedHeaders: ['Retry-After'],
   optionsSuccessStatus: 204
 };
@@ -136,7 +136,7 @@ if (fs.existsSync(apiRoot)) {
               // Always set CORS headers
               res.set('Access-Control-Allow-Origin', '*');
               res.set('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-              res.set('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+              res.set('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-AXILUM-USER-EMAIL');
               res.set('Access-Control-Expose-Headers', 'Retry-After');
               
               if (typeof context.res.body === 'object') {

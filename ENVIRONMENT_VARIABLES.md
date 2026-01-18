@@ -34,6 +34,37 @@ AXILUM_AUTH_SECRET=un_secret_long_aleatoire
   - `openssl rand -hex 32`
 - **Rotation** : si vous changez ce secret, tous les JWT existants deviennent invalides (les utilisateurs devront se reconnecter).
 
+### Provisionnement utilisateur (Instant Code) — admin-only
+
+Utile pour créer un utilisateur **sans dépendre d'un provider email** (ex: SendGrid) en environnement de production.
+
+Variables:
+
+```bash
+# Active/désactive les endpoints /api/generate-instant-code et /api/verify-instant-code
+INSTANT_CODE_ENABLED=0
+
+# Recommande: exiger une clé admin en prod
+INSTANT_CODE_REQUIRE_ADMIN=1
+ADMIN_API_KEY=...
+```
+
+Recommandation:
+- Activez `INSTANT_CODE_ENABLED=1` uniquement le temps de créer le compte.
+- Remettez `INSTANT_CODE_ENABLED=0` après.
+
+#### Mode DEV (bypass de login)
+
+Pour tester rapidement les endpoints protégés (ex: Agent ToDo `/api/tasks/*`) sans config e-mail (SendGrid/Azure Communication), vous pouvez forcer une identité en **développement uniquement** :
+
+```bash
+AXILUM_DEV_AUTH_EMAIL=votre@email.test
+```
+
+Notes:
+- Ce fallback est ignoré quand `NODE_ENV=production`.
+- Utile si `TODO_TASKS_REQUIRE_AUTH=true` mais que le flux login/verify n'est pas encore opérationnel.
+
 ### 1. **GROQ API** (IA - LLM Principal)
 ```bash
 GROQ_API_KEY=votre_clé_groq_ici
