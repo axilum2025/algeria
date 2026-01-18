@@ -12844,6 +12844,258 @@ ${persona}
                     showStats();
                 }
             } catch (_) {}
+
+            try {
+                // Finance overlay: labels are injected dynamically, so apply dedicated i18n when present.
+                if (typeof applyLanguageToFinanceUI === 'function') applyLanguageToFinanceUI();
+            } catch (_) {}
+        }
+
+        function applyLanguageToFinanceUI() {
+            const overlay = document.getElementById('financeAIOverlay');
+            if (!overlay) return;
+
+            const lang = getAppLanguage();
+            const strings = {
+                fr: {
+                    headerTitle: 'Centre Finance & Comptabilité',
+                    headerSubtitle: 'Gestion financière & analyse de marché',
+
+                    btnToolsAria: 'Outils',
+                    btnToolsTitle: "Outils d'Automatisation",
+                    btnHistoryAria: 'Historique',
+                    btnHistoryTitle: 'Historique des conversations',
+                    btnHelpAria: 'Aide',
+                    btnHelpTitle: "Guide d'utilisation",
+                    btnSettingsAria: 'Paramètres',
+                    btnSettingsTitle: "Paramètres de l'entreprise",
+                    btnRgpdAria: 'RGPD',
+                    btnRgpdTitle: 'Protection des données',
+                    btnCloseAria: 'Fermer',
+
+                    rgpdTitle: 'Protection de vos données',
+                    rgpdSubtitle: 'Sécurité, isolation par utilisateur et bonnes pratiques RGPD',
+                    helpTitle: 'Guide Complet du Module Finance',
+                    helpSubtitle: 'Découvrez toutes les fonctionnalités et capacités',
+
+                    settingsTitle: '⚙️ Paramètres Entreprise',
+                    settingsDesc: "Informations de votre entreprise pour améliorer la précision de l'analyse financière.",
+                    settingsMenu: 'Menu',
+                    navGeneral: 'Général',
+                    navContact: 'Contact',
+                    navCurrency: 'Devise',
+                    navLegal: 'Légal',
+                    sectionGeneral: 'Général',
+                    sectionContact: 'Contact',
+                    sectionCurrency: 'Devise',
+                    sectionLegal: 'Légal',
+                    labelCompanyName: "Nom de l'entreprise",
+                    labelCompanyActivity: "Domaine d'activité",
+                    labelCompanyAddress: 'Adresse complète',
+                    labelCompanyPhone: 'Téléphone',
+                    labelCompanyEmail: 'Email',
+                    labelCompanyCurrency: 'Devise',
+                    labelCompanyRegistration: 'Numéro SIRET/RC',
+                    labelOptional: '(optionnel)',
+                    placeholderCompanyName: 'Ex: Axilum',
+                    placeholderCompanyActivity: 'Ex: Technologies, Commerce, Services...',
+                    placeholderCompanyAddress: 'Rue, ville, code postal, pays...',
+                    placeholderCompanyPhone: '+213 XX XX XX XX',
+                    placeholderCompanyEmail: 'contact@entreprise.com',
+                    placeholderCompanyRegistration: 'Ex: 123 456 789 00012',
+                    saveSettings: 'Enregistrer les informations',
+
+                    historyTitle: 'Historique',
+                    newConversation: '+ Nouvelle conversation',
+
+                    toolsTitle: "Outils d'Automatisation",
+                    toolInvoiceName: 'Lecture Automatique de Factures',
+                    toolInvoiceDesc: 'OCR IA • Extraction montants, dates, fournisseurs, TVA',
+                    toolFraudName: 'Détection de Fraudes',
+                    toolFraudDesc: 'ML Detection • Anomalies, doublons, alertes temps réel',
+                    toolCashflowName: 'Prévision de Trésorerie',
+                    toolCashflowDesc: 'Prédictions flux futurs • Simulations scénarios',
+                    toolExpenseName: 'Classification des Dépenses',
+                    toolExpenseDesc: 'Auto-catégorisation • Règles personnalisables',
+                    toolReportsName: 'Rapports Financiers Automatiques',
+                    toolReportsDesc: 'Bilans, comptes résultat • Export PDF multiformat',
+                    toolListInvoices: 'Lister Factures',
+                    toolListReports: 'Lister Rapports',
+
+                    chatTitle: 'Agent Alex',
+                    chatSubtitle: 'Posez vos questions de gestion financière et comptable',
+                    statusActive: 'Actif',
+                    quickKpis: 'KPIs budgétaires',
+                    quickClosure: 'Clôture mensuelle',
+                    inputPlaceholder: 'Budget, comptabilité, analyse marché, trésorerie...',
+                    uploadInvoiceTitle: 'Uploader une facture'
+                },
+                en: {
+                    headerTitle: 'Finance & Accounting Hub',
+                    headerSubtitle: 'Financial Management & Market Analysis Center',
+
+                    btnToolsAria: 'Tools',
+                    btnToolsTitle: 'Automation tools',
+                    btnHistoryAria: 'History',
+                    btnHistoryTitle: 'Conversation history',
+                    btnHelpAria: 'Help',
+                    btnHelpTitle: 'User guide',
+                    btnSettingsAria: 'Settings',
+                    btnSettingsTitle: 'Company settings',
+                    btnRgpdAria: 'Data protection',
+                    btnRgpdTitle: 'Data protection',
+                    btnCloseAria: 'Close',
+
+                    rgpdTitle: 'Your data protection',
+                    rgpdSubtitle: 'Security, per-user isolation and GDPR best practices',
+                    helpTitle: 'Finance Module - Full Guide',
+                    helpSubtitle: 'Discover all features and capabilities',
+
+                    settingsTitle: '⚙️ Company Settings',
+                    settingsDesc: 'Company information to improve financial analysis accuracy.',
+                    settingsMenu: 'Menu',
+                    navGeneral: 'General',
+                    navContact: 'Contact',
+                    navCurrency: 'Currency',
+                    navLegal: 'Legal',
+                    sectionGeneral: 'General',
+                    sectionContact: 'Contact',
+                    sectionCurrency: 'Currency',
+                    sectionLegal: 'Legal',
+                    labelCompanyName: 'Company name',
+                    labelCompanyActivity: 'Business activity',
+                    labelCompanyAddress: 'Full address',
+                    labelCompanyPhone: 'Phone',
+                    labelCompanyEmail: 'Email',
+                    labelCompanyCurrency: 'Currency',
+                    labelCompanyRegistration: 'Registration number',
+                    labelOptional: '(optional)',
+                    placeholderCompanyName: 'e.g., Axilum',
+                    placeholderCompanyActivity: 'e.g., Technology, Retail, Services…',
+                    placeholderCompanyAddress: 'Street, city, postal code, country…',
+                    placeholderCompanyPhone: '+213 XX XX XX XX',
+                    placeholderCompanyEmail: 'contact@company.com',
+                    placeholderCompanyRegistration: 'e.g., 123 456 789 00012',
+                    saveSettings: 'Save information',
+
+                    historyTitle: 'History',
+                    newConversation: '+ New conversation',
+
+                    toolsTitle: 'Automation tools',
+                    toolInvoiceName: 'Automatic Invoice Reading',
+                    toolInvoiceDesc: 'AI OCR • Extract amounts, dates, vendor, VAT',
+                    toolFraudName: 'Fraud Detection',
+                    toolFraudDesc: 'ML detection • Anomalies, duplicates, real-time alerts',
+                    toolCashflowName: 'Cashflow Forecast',
+                    toolCashflowDesc: 'Future cashflow predictions • Scenario simulations',
+                    toolExpenseName: 'Expense Classification',
+                    toolExpenseDesc: 'Auto-categorization • Customizable rules',
+                    toolReportsName: 'Automated Financial Reports',
+                    toolReportsDesc: 'Balance sheet, P&L • Multi-format PDF export',
+                    toolListInvoices: 'List invoices',
+                    toolListReports: 'List reports',
+
+                    chatTitle: 'Agent Alex',
+                    chatSubtitle: 'Ask questions about finance management and accounting',
+                    statusActive: 'Active',
+                    quickKpis: 'Budget KPIs',
+                    quickClosure: 'Monthly close',
+                    inputPlaceholder: 'Budget, accounting, market analysis, cashflow…',
+                    uploadInvoiceTitle: 'Upload an invoice'
+                }
+            };
+
+            const S = (lang === 'en') ? strings.en : strings.fr;
+
+            const setText = (id, text) => {
+                const el = overlay.querySelector(`#${id}`);
+                if (el && typeof text === 'string') el.textContent = text;
+            };
+            const setHtml = (id, html) => {
+                const el = overlay.querySelector(`#${id}`);
+                if (el && typeof html === 'string') el.innerHTML = html;
+            };
+            const setAttr = (id, attr, val) => {
+                const el = overlay.querySelector(`#${id}`);
+                if (el && typeof val === 'string') el.setAttribute(attr, val);
+            };
+
+            setText('financeHeaderTitle', S.headerTitle);
+            setText('financeHeaderSubtitle', S.headerSubtitle);
+
+            setAttr('financeToolsToggleBtn', 'aria-label', S.btnToolsAria);
+            setAttr('financeToolsToggleBtn', 'title', S.btnToolsTitle);
+            setAttr('financeHistoryToggleBtn', 'aria-label', S.btnHistoryAria);
+            setAttr('financeHistoryToggleBtn', 'title', S.btnHistoryTitle);
+            setAttr('financeHelpToggleBtn', 'aria-label', S.btnHelpAria);
+            setAttr('financeHelpToggleBtn', 'title', S.btnHelpTitle);
+            setAttr('financeSettingsToggleBtn', 'aria-label', S.btnSettingsAria);
+            setAttr('financeSettingsToggleBtn', 'title', S.btnSettingsTitle);
+            setAttr('financeRgpdToggleBtn', 'aria-label', S.btnRgpdAria);
+            setAttr('financeRgpdToggleBtn', 'title', S.btnRgpdTitle);
+            setAttr('financeCloseBtn', 'aria-label', S.btnCloseAria);
+
+            setText('financeRgpdTitle', S.rgpdTitle);
+            setText('financeRgpdSubtitle', S.rgpdSubtitle);
+            setText('financeHelpTitle', S.helpTitle);
+            setText('financeHelpSubtitle', S.helpSubtitle);
+
+            setText('financeSettingsPanelTitle', S.settingsTitle);
+            setText('financeSettingsPanelDesc', S.settingsDesc);
+            setText('financeSettingsMenuLabel', S.settingsMenu);
+            setText('financeSettingsNav_general', S.navGeneral);
+            setText('financeSettingsNav_contact', S.navContact);
+            setText('financeSettingsNav_currency', S.navCurrency);
+            setText('financeSettingsNav_legal', S.navLegal);
+            setText('financeSettingsSectionTitle_general', S.sectionGeneral);
+            setText('financeSettingsSectionTitle_contact', S.sectionContact);
+            setText('financeSettingsSectionTitle_currency', S.sectionCurrency);
+            setText('financeSettingsSectionTitle_legal', S.sectionLegal);
+
+            setHtml('financeLabelCompanyName', `${S.labelCompanyName} <span style="color: #ef4444;">*</span>`);
+            setHtml('financeLabelCompanyActivity', `${S.labelCompanyActivity} <span style="color: #ef4444;">*</span>`);
+            setHtml('financeLabelCompanyAddress', `${S.labelCompanyAddress} <span style="color: #ef4444;">*</span>`);
+            setHtml('financeLabelCompanyPhone', `${S.labelCompanyPhone} <span style="color: #ef4444;">*</span>`);
+            setHtml('financeLabelCompanyEmail', `${S.labelCompanyEmail} <span style="color: #ef4444;">*</span>`);
+            setHtml('financeLabelCompanyCurrency', `${S.labelCompanyCurrency} <span style="color: #ef4444;">*</span>`);
+            setHtml('financeLabelCompanyRegistration', `${S.labelCompanyRegistration} <span style="color: #9ca3af; font-weight: 400;">${S.labelOptional}</span>`);
+
+            setAttr('financeCompanyName', 'placeholder', S.placeholderCompanyName);
+            setAttr('financeCompanyActivity', 'placeholder', S.placeholderCompanyActivity);
+            setAttr('financeCompanyAddress', 'placeholder', S.placeholderCompanyAddress);
+            setAttr('financeCompanyPhone', 'placeholder', S.placeholderCompanyPhone);
+            setAttr('financeCompanyEmail', 'placeholder', S.placeholderCompanyEmail);
+            setAttr('financeCompanyRegistration', 'placeholder', S.placeholderCompanyRegistration);
+            setText('financeSaveSettingsBtn', S.saveSettings);
+
+            setText('financeHistoryTitle', S.historyTitle);
+            setText('financeNewConversationBtn', S.newConversation);
+
+            setText('financeToolsPanelTitleText', S.toolsTitle);
+            setText('financeToolInvoiceName', S.toolInvoiceName);
+            setText('financeToolInvoiceDesc', S.toolInvoiceDesc);
+            setText('financeToolFraudName', S.toolFraudName);
+            setText('financeToolFraudDesc', S.toolFraudDesc);
+            setText('financeToolCashflowName', S.toolCashflowName);
+            setText('financeToolCashflowDesc', S.toolCashflowDesc);
+            setText('financeToolExpenseName', S.toolExpenseName);
+            setText('financeToolExpenseDesc', S.toolExpenseDesc);
+            setText('financeToolReportsName', S.toolReportsName);
+            setText('financeToolReportsDesc', S.toolReportsDesc);
+            setText('financeToolListInvoicesName', S.toolListInvoices);
+            setText('financeToolListReportsName', S.toolListReports);
+
+            setText('financeChatTitle', S.chatTitle);
+            setText('financeChatSubtitle', S.chatSubtitle);
+            setText('financeStatusLabel', S.statusActive);
+            setText('financeQuickKpisBtn', S.quickKpis);
+            try {
+                // This label already exists in the global i18n table; reuse it.
+                setText('financeQuickMarketBtn', t('marketStudy.quickBtn'));
+            } catch (_) {}
+            setText('financeQuickClosureBtn', S.quickClosure);
+            setAttr('financeMsg', 'placeholder', S.inputPlaceholder);
+            setAttr('financeUploadBtn', 'title', S.uploadInvoiceTitle);
         }
 
         function onLanguageChanged() {
@@ -32765,27 +33017,27 @@ ${recruitmentInfo}
                                 <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#34d399" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                             </div>
                             <div>
-                                <h1 class="finance-h1">Finance & Accounting Hub</h1>
-                                <p class="finance-sub">Financial Management & Market Analysis Center</p>
+                                <h1 class="finance-h1" id="financeHeaderTitle">Finance & Accounting Hub</h1>
+                                <p class="finance-sub" id="financeHeaderSubtitle">Financial Management & Market Analysis Center</p>
                             </div>
                         </div>
                         <div style="display: flex; gap: 8px;">
-          <button class="history-toggle-btn tools-toggle-btn" onclick="toggleFinanceTools()" aria-label="Outils" title="Outils d'Automatisation">
+          <button class="history-toggle-btn tools-toggle-btn" id="financeToolsToggleBtn" onclick="toggleFinanceTools()" aria-label="Outils" title="Outils d'Automatisation">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h7"/><path d="M14 6h7"/><path d="M14 18h7"/><circle cx="12" cy="12" r="2"/></svg>
           </button>
-          <button class="history-toggle-btn" onclick="toggleFinanceHistory()" aria-label="Historique" title="Historique des conversations">
+          <button class="history-toggle-btn" id="financeHistoryToggleBtn" onclick="toggleFinanceHistory()" aria-label="Historique" title="Historique des conversations">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
           </button>
-          <button class="history-toggle-btn" onclick="openFinanceHelpModal()" aria-label="Aide" title="Guide d'utilisation">
+          <button class="history-toggle-btn" id="financeHelpToggleBtn" onclick="openFinanceHelpModal()" aria-label="Aide" title="Guide d'utilisation">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
           </button>
-          <button class="ghost-btn" onclick="toggleFinanceSettings()" aria-label="Paramètres" title="Paramètres de l'entreprise">
+          <button class="ghost-btn" id="financeSettingsToggleBtn" onclick="toggleFinanceSettings()" aria-label="Paramètres" title="Paramètres de l'entreprise">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 1v6m0 6v6M5.64 5.64l4.24 4.24m4.24 4.24l4.24 4.24M1 12h6m6 0h6M5.64 18.36l4.24-4.24m4.24-4.24l4.24-4.24"/></svg>
           </button>
-          <button class="ghost-btn" onclick="openFinanceRGPDModal()" aria-label="RGPD" title="Protection des données">
+          <button class="ghost-btn" id="financeRgpdToggleBtn" onclick="openFinanceRGPDModal()" aria-label="RGPD" title="Protection des données">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M9 12l2 2 4-4"/></svg>
           </button>
-          <button class="ghost-btn" onclick="closeFinanceAI()" aria-label="Fermer">
+          <button class="ghost-btn" id="financeCloseBtn" onclick="closeFinanceAI()" aria-label="Fermer">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
           </button>
                         </div>
@@ -32803,8 +33055,8 @@ ${recruitmentInfo}
           </button>
           <div class="rgpd-modal-header">
               <div class="rgpd-icon"><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#34d399" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M9 12l2 2 4-4"/></svg></div>
-              <h2>Protection de vos données</h2>
-              <p>Sécurité, isolation par utilisateur et bonnes pratiques RGPD</p>
+              <h2 id="financeRgpdTitle">Protection de vos données</h2>
+              <p id="financeRgpdSubtitle">Sécurité, isolation par utilisateur et bonnes pratiques RGPD</p>
           </div>
           <div class="rgpd-modal-body">
               <div class="rgpd-section">
@@ -32852,8 +33104,8 @@ ${recruitmentInfo}
           </button>
           <div class="rgpd-modal-header">
               <div class="rgpd-icon"><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#34d399" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></div>
-              <h2>Guide Complet du Module Finance</h2>
-              <p>Découvrez toutes les fonctionnalités et capacités</p>
+              <h2 id="financeHelpTitle">Guide Complet du Module Finance</h2>
+              <p id="financeHelpSubtitle">Découvrez toutes les fonctionnalités et capacités</p>
           </div>
           <div class="rgpd-modal-body">
               <div class="rgpd-section">
@@ -32985,19 +33237,19 @@ ${recruitmentInfo}
 
                     <div id="financeSettingsPanel" class="history-panel">
                         <div class="history-header">
-                            <div class="history-title">⚙️ Paramètres Entreprise</div>
+                            <div class="history-title" id="financeSettingsPanelTitle">⚙️ Paramètres Entreprise</div>
                             <button class="history-close" onclick="toggleFinanceSettings()">
                                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
                             </button>
                         </div>
                         
-                        <div style="padding: 16px; color: #6b7280; font-size: 13px; line-height: 1.6;">
+                        <div id="financeSettingsPanelDesc" style="padding: 16px; color: #6b7280; font-size: 13px; line-height: 1.6;">
                             Informations de votre entreprise pour améliorer la précision de l'analyse financière.
                         </div>
                         
                         <div style="display:flex; gap: 14px; padding: 0 16px 16px;">
                             <div style="width: 150px; flex: 0 0 auto;">
-                                <div style="font-size: 12px; font-weight: 800; letter-spacing: .04em; text-transform: uppercase; color: rgba(255,255,255,0.55); margin: 2px 0 10px;">Menu</div>
+                                <div id="financeSettingsMenuLabel" style="font-size: 12px; font-weight: 800; letter-spacing: .04em; text-transform: uppercase; color: rgba(255,255,255,0.55); margin: 2px 0 10px;">Menu</div>
 
                                 <button type="button" id="financeSettingsNav_general" onclick="showFinanceSettingsSection('general')" style="width: 100%; text-align:left; padding: 10px 12px; border-radius: 10px; border: 1px solid rgba(52,211,153,0.25); background: rgba(255,255,255,0.04); color: white; cursor: pointer; font-size: 13px; font-weight: 700; margin-bottom: 10px;">
                                     Général
@@ -33015,25 +33267,25 @@ ${recruitmentInfo}
 
                             <div id="financeSettingsScroll" style="flex: 1; overflow-y: auto; display:flex; flex-direction: column; gap: 16px;">
                                 <div id="financeSettingsSection_general">
-                                    <div style="font-size: 13px; font-weight: 800; color: rgba(255,255,255,0.9); margin: 0 0 10px;">Général</div>
+                                    <div id="financeSettingsSectionTitle_general" style="font-size: 13px; font-weight: 800; color: rgba(255,255,255,0.9); margin: 0 0 10px;">Général</div>
 
                                     <div style="display: flex; flex-direction: column; gap: 16px;">
                                         <div>
-                                            <label style="display: block; font-size: 13px; font-weight: 600; color: #374151; margin-bottom: 6px;">
+                                            <label id="financeLabelCompanyName" style="display: block; font-size: 13px; font-weight: 600; color: #374151; margin-bottom: 6px;">
                                                 Nom de l'entreprise <span style="color: #ef4444;">*</span>
                                             </label>
                                             <input type="text" id="financeCompanyName" placeholder="Ex: Axilum" style="width: 100%; padding: 10px; border: 1px solid rgba(52,211,153,0.3); border-radius: 8px; background: rgba(255,255,255,0.05); color: white; font-size: 14px;" />
                                         </div>
 
                                         <div>
-                                            <label style="display: block; font-size: 13px; font-weight: 600; color: #374151; margin-bottom: 6px;">
+                                            <label id="financeLabelCompanyActivity" style="display: block; font-size: 13px; font-weight: 600; color: #374151; margin-bottom: 6px;">
                                                 Domaine d'activité <span style="color: #ef4444;">*</span>
                                             </label>
                                             <input type="text" id="financeCompanyActivity" placeholder="Ex: Technologies, Commerce, Services..." style="width: 100%; padding: 10px; border: 1px solid rgba(52,211,153,0.3); border-radius: 8px; background: rgba(255,255,255,0.05); color: white; font-size: 14px;" />
                                         </div>
 
                                         <div>
-                                            <label style="display: block; font-size: 13px; font-weight: 600; color: #374151; margin-bottom: 6px;">
+                                            <label id="financeLabelCompanyAddress" style="display: block; font-size: 13px; font-weight: 600; color: #374151; margin-bottom: 6px;">
                                                 Adresse complète <span style="color: #ef4444;">*</span>
                                             </label>
                                             <textarea id="financeCompanyAddress" placeholder="Rue, ville, code postal, pays..." rows="2" style="width: 100%; padding: 10px; border: 1px solid rgba(52,211,153,0.3); border-radius: 8px; background: rgba(255,255,255,0.05); color: white; font-size: 14px; resize: vertical;"></textarea>
@@ -33042,16 +33294,16 @@ ${recruitmentInfo}
                                 </div>
 
                                 <div id="financeSettingsSection_contact" style="display:none;">
-                                    <div style="font-size: 13px; font-weight: 800; color: rgba(255,255,255,0.9); margin: 0 0 10px;">Contact</div>
+                                    <div id="financeSettingsSectionTitle_contact" style="font-size: 13px; font-weight: 800; color: rgba(255,255,255,0.9); margin: 0 0 10px;">Contact</div>
                                     <div style="display: flex; flex-direction: column; gap: 16px;">
                                         <div>
-                                            <label style="display: block; font-size: 13px; font-weight: 600; color: #374151; margin-bottom: 6px;">
+                                            <label id="financeLabelCompanyPhone" style="display: block; font-size: 13px; font-weight: 600; color: #374151; margin-bottom: 6px;">
                                                 Téléphone <span style="color: #ef4444;">*</span>
                                             </label>
                                             <input type="tel" id="financeCompanyPhone" placeholder="+213 XX XX XX XX" style="width: 100%; padding: 10px; border: 1px solid rgba(52,211,153,0.3); border-radius: 8px; background: rgba(255,255,255,0.05); color: white; font-size: 14px;" />
                                         </div>
                                         <div>
-                                            <label style="display: block; font-size: 13px; font-weight: 600; color: #374151; margin-bottom: 6px;">
+                                            <label id="financeLabelCompanyEmail" style="display: block; font-size: 13px; font-weight: 600; color: #374151; margin-bottom: 6px;">
                                                 Email <span style="color: #ef4444;">*</span>
                                             </label>
                                             <input type="email" id="financeCompanyEmail" placeholder="contact@entreprise.com" style="width: 100%; padding: 10px; border: 1px solid rgba(52,211,153,0.3); border-radius: 8px; background: rgba(255,255,255,0.05); color: white; font-size: 14px;" />
@@ -33060,9 +33312,9 @@ ${recruitmentInfo}
                                 </div>
 
                                 <div id="financeSettingsSection_currency" style="display:none;">
-                                    <div style="font-size: 13px; font-weight: 800; color: rgba(255,255,255,0.9); margin: 0 0 10px;">Devise</div>
+                                    <div id="financeSettingsSectionTitle_currency" style="font-size: 13px; font-weight: 800; color: rgba(255,255,255,0.9); margin: 0 0 10px;">Devise</div>
                                     <div>
-                                        <label style="display: block; font-size: 13px; font-weight: 600; color: #374151; margin-bottom: 6px;">
+                                        <label id="financeLabelCompanyCurrency" style="display: block; font-size: 13px; font-weight: 600; color: #374151; margin-bottom: 6px;">
                                             Devise <span style="color: #ef4444;">*</span>
                                         </label>
                                         <select id="financeCompanyCurrency" style="width: 100%; padding: 10px; border: 1px solid rgba(52,211,153,0.3); border-radius: 8px; background: rgba(255,255,255,0.05); color: white; font-size: 14px;">
@@ -33076,16 +33328,16 @@ ${recruitmentInfo}
                                 </div>
 
                                 <div id="financeSettingsSection_legal" style="display:none;">
-                                    <div style="font-size: 13px; font-weight: 800; color: rgba(255,255,255,0.9); margin: 0 0 10px;">Légal</div>
+                                    <div id="financeSettingsSectionTitle_legal" style="font-size: 13px; font-weight: 800; color: rgba(255,255,255,0.9); margin: 0 0 10px;">Légal</div>
                                     <div>
-                                        <label style="display: block; font-size: 13px; font-weight: 600; color: #374151; margin-bottom: 6px;">
+                                        <label id="financeLabelCompanyRegistration" style="display: block; font-size: 13px; font-weight: 600; color: #374151; margin-bottom: 6px;">
                                             Numéro SIRET/RC <span style="color: #9ca3af; font-weight: 400;">(optionnel)</span>
                                         </label>
                                         <input type="text" id="financeCompanyRegistration" placeholder="Ex: 123 456 789 00012" style="width: 100%; padding: 10px; border: 1px solid rgba(52,211,153,0.3); border-radius: 8px; background: rgba(255,255,255,0.05); color: white; font-size: 14px;" />
                                     </div>
                                 </div>
 
-                                <button onclick="saveFinanceCompanySettings()" style="width: 100%; padding: 12px; background: linear-gradient(135deg, #10b981, #059669); color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; margin-top: 8px;" onmouseover="this.style.opacity='0.9'" onmouseout="this.style.opacity='1'">
+                                <button id="financeSaveSettingsBtn" onclick="saveFinanceCompanySettings()" style="width: 100%; padding: 12px; background: linear-gradient(135deg, #10b981, #059669); color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; margin-top: 8px;" onmouseover="this.style.opacity='0.9'" onmouseout="this.style.opacity='1'">
                                     Enregistrer les informations
                                 </button>
                             </div>
@@ -33095,13 +33347,13 @@ ${recruitmentInfo}
                     <!-- Panneau historique -->
                     <div id="financeHistoryPanel" class="history-panel">
                         <div class="history-header">
-                            <div class="history-title">Historique</div>
+                            <div class="history-title" id="financeHistoryTitle">Historique</div>
                             <button class="history-close" onclick="toggleFinanceHistory()">
                                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
                             </button>
                         </div>
                         <button class="new-conv-btn" onclick="newFinanceConversation(); toggleFinanceHistory();">
-                            + Nouvelle conversation
+                            <span id="financeNewConversationBtn">+ Nouvelle conversation</span>
                         </button>
                         <div id="financeHistoryList" class="history-list"></div>
                     </div>
@@ -33111,61 +33363,61 @@ ${recruitmentInfo}
                         <div class="finance-tools">
                             <div class="tools-title">
                                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#34d399" stroke-width="2"><path d="M12 6V2m0 20v-4M6 12H2m20 0h-4"/><circle cx="12" cy="12" r="8"/></svg>
-                                Outils d'Automatisation
+                                <span id="financeToolsPanelTitleText">Outils d'Automatisation</span>
                             </div>
                             
                             <div class="tool-card" onclick="runInvoiceOcr()">
                                 <div class="tool-icon" style="background: linear-gradient(135deg, rgba(16,185,129,0.18), rgba(59,130,246,0.18));">
                                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#34d399" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
                                 </div>
-                                <div class="tool-name">Lecture Automatique de Factures</div>
-                                <div class="tool-desc">OCR IA • Extraction montants, dates, fournisseurs, TVA</div>
+                                <div class="tool-name" id="financeToolInvoiceName">Lecture Automatique de Factures</div>
+                                <div class="tool-desc" id="financeToolInvoiceDesc">OCR IA • Extraction montants, dates, fournisseurs, TVA</div>
                             </div>
                             
                             <div class="tool-card" onclick="runFraudDetection()">
                                 <div class="tool-icon" style="background: linear-gradient(135deg, rgba(239,68,68,0.18), rgba(220,38,38,0.18));">
                                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
                                 </div>
-                                <div class="tool-name">Détection de Fraudes</div>
-                                <div class="tool-desc">ML Detection • Anomalies, doublons, alertes temps réel</div>
+                                <div class="tool-name" id="financeToolFraudName">Détection de Fraudes</div>
+                                <div class="tool-desc" id="financeToolFraudDesc">ML Detection • Anomalies, doublons, alertes temps réel</div>
                             </div>
                             
                             <div class="tool-card" onclick="runCashflowForecast()">
                                 <div class="tool-icon" style="background: linear-gradient(135deg, rgba(59,130,246,0.18), rgba(37,99,235,0.18));">
                                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" stroke-width="2"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>
                                 </div>
-                                <div class="tool-name">Prévision de Trésorerie</div>
-                                <div class="tool-desc">Prédictions flux futurs • Simulations scénarios</div>
+                                <div class="tool-name" id="financeToolCashflowName">Prévision de Trésorerie</div>
+                                <div class="tool-desc" id="financeToolCashflowDesc">Prédictions flux futurs • Simulations scénarios</div>
                             </div>
                             
                             <div class="tool-card" onclick="runExpenseClassification()">
                                 <div class="tool-icon" style="background: linear-gradient(135deg, rgba(245,158,11,0.18), rgba(217,119,6,0.18));">
                                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="9" y1="9" x2="15" y2="9"/><line x1="9" y1="15" x2="15" y2="15"/></svg>
                                 </div>
-                                <div class="tool-name">Classification des Dépenses</div>
-                                <div class="tool-desc">Auto-catégorisation • Règles personnalisables</div>
+                                <div class="tool-name" id="financeToolExpenseName">Classification des Dépenses</div>
+                                <div class="tool-desc" id="financeToolExpenseDesc">Auto-catégorisation • Règles personnalisables</div>
                             </div>
                             
                             <div class="tool-card" onclick="runAutoReports()">
                                 <div class="tool-icon" style="background: linear-gradient(135deg, rgba(139,92,246,0.18), rgba(124,58,237,0.18));">
                                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#8b5cf6" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
                                 </div>
-                                <div class="tool-name">Rapports Financiers Automatiques</div>
-                                <div class="tool-desc">Bilans, comptes résultat • Export PDF multiformat</div>
+                                <div class="tool-name" id="financeToolReportsName">Rapports Financiers Automatiques</div>
+                                <div class="tool-desc" id="financeToolReportsDesc">Bilans, comptes résultat • Export PDF multiformat</div>
                             </div>
 
                             <div class="tool-card" onclick="runListInvoices()">
                                 <div class="tool-icon" style="background: linear-gradient(135deg, rgba(2,132,199,0.18), rgba(14,165,233,0.18));">
                                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#0ea5e9" stroke-width="2"><rect x="3" y="4" width="18" height="16" rx="2"/><line x1="7" y1="8" x2="17" y2="8"/><line x1="7" y1="12" x2="17" y2="12"/><line x1="7" y1="16" x2="13" y2="16"/></svg>
                                 </div>
-                                  <div class="tool-name">Lister Factures</div>                  
+                                    <div class="tool-name" id="financeToolListInvoicesName">Lister Factures</div>                  
                             </div>
 
                             <div class="tool-card" onclick="runListReports()">
                                 <div class="tool-icon" style="background: linear-gradient(135deg, rgba(21,128,61,0.18), rgba(34,197,94,0.18));">
                                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2"><path d="M4 4h16v16H4z"/><path d="M8 14l2 2 6-6"/></svg>
                                 </div>
-                                  <div class="tool-name">Lister Rapports</div>                 
+                                    <div class="tool-name" id="financeToolListReportsName">Lister Rapports</div>                 
                             </div>
                             <div id="financeListPanel" class="list-panel" style="display:none;"></div>
                         </div>
@@ -33173,26 +33425,26 @@ ${recruitmentInfo}
                         <!-- Chat Panel -->
                         <div class="finance-chat">
                             <div>
-                                <h2 class="chat-title">Agent Alex</h2>
-                                <p class="chat-sub">Posez vos questions de gestion financière et comptable</p>
+                                <h2 class="chat-title" id="financeChatTitle">Agent Alex</h2>
+                                <p class="chat-sub" id="financeChatSubtitle">Posez vos questions de gestion financière et comptable</p>
                                 <div class="status-badge" id="financeStatus">
                                     <span style="width:6px; height:6px; background:#22c55e; border-radius:50%;"></span>
-                                    Actif
+                                    <span id="financeStatusLabel">Actif</span>
                                 </div>
                             </div>
                             <div class="chat-history" id="financeChatHistory"></div>
                             <div class="chat-input">
                                     <div class="chat-compose">
                                         <div class="quick-prompts">
-                                            <button class="quick-btn" onclick="generateRealKPIs()">KPIs budgétaires</button>
-                                            <button class="quick-btn" onclick="startMarketStudyWizard()">${t('marketStudy.quickBtn')}</button>
-                                            <button class="quick-btn" onclick="generateMonthlyClosureChecklist()">Clôture mensuelle</button>
+                                            <button class="quick-btn" id="financeQuickKpisBtn" onclick="generateRealKPIs()">KPIs budgétaires</button>
+                                            <button class="quick-btn" id="financeQuickMarketBtn" onclick="startMarketStudyWizard()">${t('marketStudy.quickBtn')}</button>
+                                            <button class="quick-btn" id="financeQuickClosureBtn" onclick="generateMonthlyClosureChecklist()">Clôture mensuelle</button>
                                         </div>
                                         <div class="chat-editor">
                                             <textarea id="financeMsg" class="chat-textarea" placeholder="Budget, comptabilité, analyse marché, trésorerie..." style="margin: 0;"></textarea>
                                             <div class="chat-btns">
                                                 <input type="file" id="financeInvoiceFileInput" accept="application/pdf,image/*" style="display:none" onchange="onFinanceInvoiceSelected(event)" />
-                                                <button class="upload-btn" title="Uploader une facture" onclick="openFinanceUpload()">
+                                                <button class="upload-btn" id="financeUploadBtn" title="Uploader une facture" onclick="openFinanceUpload()">
                                                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
                                                 </button>
                                                 <button class="send-btn" id="financeSendBtn" onclick="sendFinanceMessage()">
@@ -33208,6 +33460,8 @@ ${recruitmentInfo}
             `;
             
             document.body.appendChild(overlay);
+
+            try { applyLanguageToFinanceUI(); } catch (_) {}
             
             // Tenter de charger la conversation existante depuis localStorage
             const chatHistEl = overlay.querySelector('#financeChatHistory');
@@ -33238,7 +33492,10 @@ ${recruitmentInfo}
                     // Message de bienvenue
                     const welcome = document.createElement('div');
                     welcome.className = 'chat-msg bot';
-                    welcome.textContent = 'Prêt à vous aider. Posez vos questions sur finance, comptabilité, budget ou analyses marché.';
+                    const isEn = (typeof getAppLanguage === 'function') && getAppLanguage() === 'en';
+                    welcome.textContent = isEn
+                        ? 'Ready to help. Ask questions about finance, accounting, budgets, or market analysis.'
+                        : 'Prêt à vous aider. Posez vos questions sur finance, comptabilité, budget ou analyses marché.';
                     chatHistEl.appendChild(welcome);
                     financeChatHistory.push({ role: 'bot', text: welcome.textContent });
                 }
