@@ -13053,6 +13053,26 @@ ${persona}
             setText('financeRgpdSecurityH3', S.rgpdSecurityH3);
             setText('financeRgpdSecurityLi1', S.rgpdSecurityLi1);
             setText('financeRgpdSecurityLi2', S.rgpdSecurityLi2);
+
+            // Fallback: if list items are missing ids (or DOM differs), still translate the security section.
+            try {
+                const rgpdModal = overlay.querySelector('#financeRGPDModal');
+                if (rgpdModal) {
+                    const securityH3 = rgpdModal.querySelector('#financeRgpdSecurityH3') || Array.from(rgpdModal.querySelectorAll('.rgpd-section h3'))
+                        .find((h) => {
+                            const txt = (h && h.textContent) ? h.textContent : '';
+                            return txt.includes('Sécurité') || txt.toLowerCase().includes('security');
+                        });
+                    if (securityH3) securityH3.textContent = S.rgpdSecurityH3;
+
+                    const securitySection = securityH3 ? securityH3.closest('.rgpd-section') : null;
+                    if (securitySection) {
+                        const lis = securitySection.querySelectorAll('li');
+                        if (lis && lis[0]) lis[0].textContent = S.rgpdSecurityLi1;
+                        if (lis && lis[1]) lis[1].textContent = S.rgpdSecurityLi2;
+                    }
+                }
+            } catch (_) {}
             setText('financeHelpTitle', S.helpTitle);
             setText('financeHelpSubtitle', S.helpSubtitle);
 
@@ -32363,6 +32383,7 @@ ${recruitmentInfo}
         
         function openFinanceRGPDModal() {
             const modal = document.getElementById("financeRGPDModal");
+            try { if (typeof applyLanguageToFinanceUI === 'function') applyLanguageToFinanceUI(); } catch (_) {}
             if (modal) modal.style.display = "flex";
         }
         function closeFinanceRGPDModal() {
