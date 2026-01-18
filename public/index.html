@@ -12877,6 +12877,8 @@ ${persona}
                     rgpdSubtitle: 'Sécurité, isolation par utilisateur et bonnes pratiques RGPD',
                     rgpdIsolationH3: '🔒 Isolation des données',
                     rgpdIsolationP1: "Vos données Finance sont <strong>isolées par compte</strong> : toutes les opérations passent par une authentification (JWT signé) et l'accès est scindé par utilisateur côté serveur. Concrètement, un autre compte ne peut pas lister, télécharger ou supprimer vos factures/rapports, ni accéder à vos conversations/paramètres.",
+                    rgpdSecurityH3: '🛡️ Sécurité renforcée',
+                    rgpdSecurityLi1: 'Chiffrement en transit (HTTPS/TLS)',
                     helpTitle: 'Guide Complet du Module Finance',
                     helpSubtitle: 'Découvrez toutes les fonctionnalités et capacités',
 
@@ -12952,6 +12954,8 @@ ${persona}
                     rgpdSubtitle: 'Security, per-user isolation and GDPR best practices',
                     rgpdIsolationH3: '🔒 Data isolation',
                     rgpdIsolationP1: 'Your Finance data is <strong>isolated per account</strong>: every operation requires authentication (signed JWT) and access is partitioned per user on the server. Concretely, another account cannot list, download, or delete your invoices/reports, nor access your conversations/settings.',
+                    rgpdSecurityH3: '🛡️ Enhanced security',
+                    rgpdSecurityLi1: 'Encryption in transit (HTTPS/TLS)',
                     helpTitle: 'Finance Module - Full Guide',
                     helpSubtitle: 'Discover all features and capabilities',
 
@@ -13043,6 +13047,9 @@ ${persona}
             setText('financeRgpdSubtitle', S.rgpdSubtitle);
             setText('financeRgpdIsolationH3', S.rgpdIsolationH3);
             setHtml('financeRgpdIsolationP1', S.rgpdIsolationP1);
+
+            setText('financeRgpdSecurityH3', S.rgpdSecurityH3);
+            setText('financeRgpdSecurityLi1', S.rgpdSecurityLi1);
             setText('financeHelpTitle', S.helpTitle);
             setText('financeHelpSubtitle', S.helpSubtitle);
 
@@ -33070,9 +33077,9 @@ ${recruitmentInfo}
                   <p id="financeRgpdIsolationP1">Vos données Finance sont <strong>isolées par compte</strong> : toutes les opérations passent par une authentification (JWT signé) et l'accès est scindé par utilisateur côté serveur. Concrètement, un autre compte ne peut pas lister, télécharger ou supprimer vos factures/rapports, ni accéder à vos conversations/paramètres.</p>
               </div>
               <div class="rgpd-section">
-                  <h3>🛡️ Sécurité renforcée</h3>
+                  <h3 id="financeRgpdSecurityH3">🛡️ Sécurité renforcée</h3>
                   <ul>
-                      <li>Chiffrement en transit (HTTPS/TLS)</li>
+                      <li id="financeRgpdSecurityLi1">Chiffrement en transit (HTTPS/TLS)</li>
                       <li>Stockage Cloud privé (Azure, conteneurs Blob non publics)</li>
                       <li>Authentification par token JWT signé (obligatoire)</li>
                       <li>Isolation stricte des fichiers (préfixe utilisateur) et contrôle d'accès côté serveur</li>
