@@ -12881,6 +12881,7 @@ ${persona}
                     rgpdSecurityLi1: 'Chiffrement en transit (HTTPS/TLS)',
                     rgpdSecurityLi2: 'Stockage Cloud privé (Azure, conteneurs Blob non publics)',
                     rgpdSecurityLi3: 'Authentification par token JWT signé (obligatoire)',
+                    rgpdSecurityLi4: "Isolation stricte des fichiers (préfixe utilisateur) et contrôle d'accès côté serveur",
                     helpTitle: 'Guide Complet du Module Finance',
                     helpSubtitle: 'Découvrez toutes les fonctionnalités et capacités',
 
@@ -12960,6 +12961,7 @@ ${persona}
                     rgpdSecurityLi1: 'Encryption in transit (HTTPS/TLS)',
                     rgpdSecurityLi2: 'Private cloud storage (Azure, non-public Blob containers)',
                     rgpdSecurityLi3: 'Authentication via signed JWT token (required)',
+                    rgpdSecurityLi4: 'Strict file isolation (user prefix) and server-side access control',
                     helpTitle: 'Finance Module - Full Guide',
                     helpSubtitle: 'Discover all features and capabilities',
 
@@ -13056,6 +13058,7 @@ ${persona}
             setText('financeRgpdSecurityLi1', S.rgpdSecurityLi1);
             setText('financeRgpdSecurityLi2', S.rgpdSecurityLi2);
             setText('financeRgpdSecurityLi3', S.rgpdSecurityLi3);
+            setText('financeRgpdSecurityLi4', S.rgpdSecurityLi4);
 
             // Fallback: if list items are missing ids (or DOM differs), still translate the security section.
             try {
@@ -13074,6 +13077,7 @@ ${persona}
                         if (lis && lis[0]) lis[0].textContent = S.rgpdSecurityLi1;
                         if (lis && lis[1]) lis[1].textContent = S.rgpdSecurityLi2;
                         if (lis && lis[2]) lis[2].textContent = S.rgpdSecurityLi3;
+                        if (lis && lis[3]) lis[3].textContent = S.rgpdSecurityLi4;
                     }
                 }
             } catch (_) {}
@@ -33117,7 +33121,7 @@ ${recruitmentInfo}
                       <li id="financeRgpdSecurityLi1">Chiffrement en transit (HTTPS/TLS)</li>
                       <li id="financeRgpdSecurityLi2">Stockage Cloud privé (Azure, conteneurs Blob non publics)</li>
                       <li id="financeRgpdSecurityLi3">Authentification par token JWT signé (obligatoire)</li>
-                      <li>Isolation stricte des fichiers (préfixe utilisateur) et contrôle d'accès côté serveur</li>
+                      <li id="financeRgpdSecurityLi4">Isolation stricte des fichiers (préfixe utilisateur) et contrôle d'accès côté serveur</li>
                       <li>Hébergement en France (France Central)</li>
                   </ul>
               </div>
