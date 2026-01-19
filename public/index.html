@@ -12888,6 +12888,10 @@ ${persona}
                     rgpdRightsLi2: '<strong>Rectification</strong> : Modifiez vos informations',
                     rgpdRightsLi3: "<strong>Suppression</strong> : Demandez l'effacement de vos données",
                     rgpdRightsLi4: '<strong>Portabilité</strong> : Exportez vos données (selon les fonctionnalités disponibles)',
+                    rgpdRetentionH3: '⏱️ Conservation des données',
+                    rgpdRetentionLi1: 'Conversations / paramètres : conservés pour fournir le service, et supprimables sur demande',
+                    rgpdRetentionLi2: "Factures / rapports : conservés tant que vous les gardez, et supprimables depuis l'interface",
+                    rgpdRetentionLi3: 'Note : la conformité RGPD dépend aussi de votre usage (base légale, mentions, droits, processus internes)',
                     helpTitle: 'Guide Complet du Module Finance',
                     helpSubtitle: 'Découvrez toutes les fonctionnalités et capacités',
 
@@ -12974,6 +12978,10 @@ ${persona}
                     rgpdRightsLi2: '<strong>Rectification</strong>: Update your information',
                     rgpdRightsLi3: '<strong>Erasure</strong>: Request deletion of your data',
                     rgpdRightsLi4: '<strong>Portability</strong>: Export your data (depending on available features)',
+                    rgpdRetentionH3: '⏱️ Data retention',
+                    rgpdRetentionLi1: 'Conversations / settings: retained to provide the service, and deletable upon request',
+                    rgpdRetentionLi2: 'Invoices / reports: retained as long as you keep them, and deletable from the interface',
+                    rgpdRetentionLi3: 'Note: GDPR compliance also depends on how you use the service (legal basis, notices, rights handling, internal processes)',
                     helpTitle: 'Finance Module - Full Guide',
                     helpSubtitle: 'Discover all features and capabilities',
 
@@ -13078,6 +13086,11 @@ ${persona}
             setHtml('financeRgpdRightsLi2', S.rgpdRightsLi2);
             setHtml('financeRgpdRightsLi3', S.rgpdRightsLi3);
             setHtml('financeRgpdRightsLi4', S.rgpdRightsLi4);
+
+            setText('financeRgpdRetentionH3', S.rgpdRetentionH3);
+            setText('financeRgpdRetentionLi1', S.rgpdRetentionLi1);
+            setText('financeRgpdRetentionLi2', S.rgpdRetentionLi2);
+            setText('financeRgpdRetentionLi3', S.rgpdRetentionLi3);
 
             // Fallback: if list items are missing ids (or DOM differs), still translate the security section.
             try {
@@ -33155,11 +33168,11 @@ ${recruitmentInfo}
                   </ul>
               </div>
               <div class="rgpd-section">
-                  <h3>⏱️ Conservation des données</h3>
+                  <h3 id="financeRgpdRetentionH3">⏱️ Conservation des données</h3>
                   <ul>
-                      <li>Conversations / paramètres : conservés pour fournir le service, et supprimables sur demande</li>
-                      <li>Factures / rapports : conservés tant que vous les gardez, et supprimables depuis l'interface</li>
-                      <li>Note : la conformité RGPD dépend aussi de votre usage (base légale, mentions, droits, processus internes)</li>
+                      <li id="financeRgpdRetentionLi1">Conversations / paramètres : conservés pour fournir le service, et supprimables sur demande</li>
+                      <li id="financeRgpdRetentionLi2">Factures / rapports : conservés tant que vous les gardez, et supprimables depuis l'interface</li>
+                      <li id="financeRgpdRetentionLi3">Note : la conformité RGPD dépend aussi de votre usage (base légale, mentions, droits, processus internes)</li>
                   </ul>
               </div>
               <div class="rgpd-section rgpd-contact">
