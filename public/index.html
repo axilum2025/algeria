@@ -13073,6 +13073,7 @@ ${persona}
                         const lis = securitySection.querySelectorAll('li');
                         if (lis && lis[0]) lis[0].textContent = S.rgpdSecurityLi1;
                         if (lis && lis[1]) lis[1].textContent = S.rgpdSecurityLi2;
+                        if (lis && lis[2]) lis[2].textContent = S.rgpdSecurityLi3;
                     }
                 }
             } catch (_) {}
@@ -32387,7 +32388,14 @@ ${recruitmentInfo}
         function openFinanceRGPDModal() {
             const modal = document.getElementById("financeRGPDModal");
             try { if (typeof applyLanguageToFinanceUI === 'function') applyLanguageToFinanceUI(); } catch (_) {}
-            if (modal) modal.style.display = "flex";
+            if (modal) {
+                modal.style.display = "flex";
+                try {
+                    requestAnimationFrame(() => {
+                        try { if (typeof applyLanguageToFinanceUI === 'function') applyLanguageToFinanceUI(); } catch (_) {}
+                    });
+                } catch (_) {}
+            }
         }
         function closeFinanceRGPDModal() {
             const modal = document.getElementById("financeRGPDModal");
