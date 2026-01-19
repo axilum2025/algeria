@@ -12883,6 +12883,11 @@ ${persona}
                     rgpdSecurityLi3: 'Authentification par token JWT signé (obligatoire)',
                     rgpdSecurityLi4: "Isolation stricte des fichiers (préfixe utilisateur) et contrôle d'accès côté serveur",
                     rgpdSecurityLi5: 'Hébergement en France (France Central)',
+                    rgpdRightsH3: '📋 Vos droits RGPD',
+                    rgpdRightsLi1: '<strong>Accès</strong> : Consultez toutes vos données à tout moment',
+                    rgpdRightsLi2: '<strong>Rectification</strong> : Modifiez vos informations',
+                    rgpdRightsLi3: "<strong>Suppression</strong> : Demandez l'effacement de vos données",
+                    rgpdRightsLi4: '<strong>Portabilité</strong> : Exportez vos données (selon les fonctionnalités disponibles)',
                     helpTitle: 'Guide Complet du Module Finance',
                     helpSubtitle: 'Découvrez toutes les fonctionnalités et capacités',
 
@@ -12964,6 +12969,11 @@ ${persona}
                     rgpdSecurityLi3: 'Authentication via signed JWT token (required)',
                     rgpdSecurityLi4: 'Strict file isolation (user prefix) and server-side access control',
                     rgpdSecurityLi5: 'Hosted in France (France Central)',
+                    rgpdRightsH3: '📋 Your GDPR rights',
+                    rgpdRightsLi1: '<strong>Access</strong>: View all your data at any time',
+                    rgpdRightsLi2: '<strong>Rectification</strong>: Update your information',
+                    rgpdRightsLi3: '<strong>Erasure</strong>: Request deletion of your data',
+                    rgpdRightsLi4: '<strong>Portability</strong>: Export your data (depending on available features)',
                     helpTitle: 'Finance Module - Full Guide',
                     helpSubtitle: 'Discover all features and capabilities',
 
@@ -13062,6 +13072,12 @@ ${persona}
             setText('financeRgpdSecurityLi3', S.rgpdSecurityLi3);
             setText('financeRgpdSecurityLi4', S.rgpdSecurityLi4);
             setText('financeRgpdSecurityLi5', S.rgpdSecurityLi5);
+
+            setText('financeRgpdRightsH3', S.rgpdRightsH3);
+            setHtml('financeRgpdRightsLi1', S.rgpdRightsLi1);
+            setHtml('financeRgpdRightsLi2', S.rgpdRightsLi2);
+            setHtml('financeRgpdRightsLi3', S.rgpdRightsLi3);
+            setHtml('financeRgpdRightsLi4', S.rgpdRightsLi4);
 
             // Fallback: if list items are missing ids (or DOM differs), still translate the security section.
             try {
@@ -33130,12 +33146,12 @@ ${recruitmentInfo}
                   </ul>
               </div>
               <div class="rgpd-section">
-                  <h3>📋 Vos droits RGPD</h3>
+                  <h3 id="financeRgpdRightsH3">📋 Vos droits RGPD</h3>
                   <ul>
-                      <li><strong>Accès</strong> : Consultez toutes vos données à tout moment</li>
-                      <li><strong>Rectification</strong> : Modifiez vos informations</li>
-                      <li><strong>Suppression</strong> : Demandez l'effacement de vos données</li>
-                      <li><strong>Portabilité</strong> : Exportez vos données (selon les fonctionnalités disponibles)</li>
+                      <li id="financeRgpdRightsLi1"><strong>Accès</strong> : Consultez toutes vos données à tout moment</li>
+                      <li id="financeRgpdRightsLi2"><strong>Rectification</strong> : Modifiez vos informations</li>
+                      <li id="financeRgpdRightsLi3"><strong>Suppression</strong> : Demandez l'effacement de vos données</li>
+                      <li id="financeRgpdRightsLi4"><strong>Portabilité</strong> : Exportez vos données (selon les fonctionnalités disponibles)</li>
                   </ul>
               </div>
               <div class="rgpd-section">
