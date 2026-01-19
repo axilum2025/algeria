@@ -12880,6 +12880,7 @@ ${persona}
                     rgpdSecurityH3: '🛡️ Sécurité renforcée',
                     rgpdSecurityLi1: 'Chiffrement en transit (HTTPS/TLS)',
                     rgpdSecurityLi2: 'Stockage Cloud privé (Azure, conteneurs Blob non publics)',
+                    rgpdSecurityLi3: 'Authentification par token JWT signé (obligatoire)',
                     helpTitle: 'Guide Complet du Module Finance',
                     helpSubtitle: 'Découvrez toutes les fonctionnalités et capacités',
 
@@ -12958,6 +12959,7 @@ ${persona}
                     rgpdSecurityH3: '🛡️ Enhanced security',
                     rgpdSecurityLi1: 'Encryption in transit (HTTPS/TLS)',
                     rgpdSecurityLi2: 'Private cloud storage (Azure, non-public Blob containers)',
+                    rgpdSecurityLi3: 'Authentication via signed JWT token (required)',
                     helpTitle: 'Finance Module - Full Guide',
                     helpSubtitle: 'Discover all features and capabilities',
 
@@ -13053,6 +13055,7 @@ ${persona}
             setText('financeRgpdSecurityH3', S.rgpdSecurityH3);
             setText('financeRgpdSecurityLi1', S.rgpdSecurityLi1);
             setText('financeRgpdSecurityLi2', S.rgpdSecurityLi2);
+            setText('financeRgpdSecurityLi3', S.rgpdSecurityLi3);
 
             // Fallback: if list items are missing ids (or DOM differs), still translate the security section.
             try {
@@ -33105,7 +33108,7 @@ ${recruitmentInfo}
                   <ul>
                       <li id="financeRgpdSecurityLi1">Chiffrement en transit (HTTPS/TLS)</li>
                       <li id="financeRgpdSecurityLi2">Stockage Cloud privé (Azure, conteneurs Blob non publics)</li>
-                      <li>Authentification par token JWT signé (obligatoire)</li>
+                      <li id="financeRgpdSecurityLi3">Authentification par token JWT signé (obligatoire)</li>
                       <li>Isolation stricte des fichiers (préfixe utilisateur) et contrôle d'accès côté serveur</li>
                       <li>Hébergement en France (France Central)</li>
                   </ul>
