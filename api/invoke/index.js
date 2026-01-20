@@ -121,10 +121,14 @@ module.exports = async function (context, req) {
         const firstText = String(firstUserFromHistory?.content || '').trim();
         const baseText = firstText.length >= 6 ? firstText : userQuery;
 
-        const detected = detectLangFromTextDetailed(baseText, { fallback: hintedLang });
-        const lang = (detected.confidence === 'high' && detected.lang && detected.lang !== hintedLang)
-            ? detected.lang
-            : (detected.lang || hintedLang);
+        const detected = explicitLang
+            ? { lang: hintedLang, confidence: 'high', reason: 'explicit' }
+            : detectLangFromTextDetailed(baseText, { fallback: hintedLang });
+        const lang = explicitLang
+            ? hintedLang
+            : ((detected.confidence === 'high' && detected.lang && detected.lang !== hintedLang)
+                ? detected.lang
+                : (detected.lang || hintedLang));
         const searchLang = getSearchLang(lang);
         const defaultToneLine = getResponseLanguageInstruction(lang, { tone: 'de manière naturelle, claire et professionnelle' });
         const focusLine = isLowSignalMessage(userQuery) ? getConversationFocusInstruction(lang) : '';

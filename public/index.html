@@ -8816,6 +8816,7 @@ ${persona}
                         message: messageForBackend,  // 🎯 Connaissance app + contexte + message (ou OCR)
                         conversationId: currentConversationId,
                         chatType: currentChatType,
+                        lang: (typeof getAppLanguage === 'function') ? getAppLanguage() : undefined,
                         history: history,
                         useV2: useV2  // ✨ Paramètre pour activer V2
                     })
