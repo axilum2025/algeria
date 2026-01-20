@@ -12892,6 +12892,7 @@ ${persona}
                     rgpdRetentionLi1: 'Conversations / paramètres : conservés pour fournir le service, et supprimables sur demande',
                     rgpdRetentionLi2: "Factures / rapports : conservés tant que vous les gardez, et supprimables depuis l'interface",
                     rgpdRetentionLi3: 'Note : la conformité RGPD dépend aussi de votre usage (base légale, mentions, droits, processus internes)',
+                    rgpdContactP: 'Pour toute question relative à vos données : <strong>contact@axilum.com</strong>',
                     helpTitle: 'Guide Complet du Module Finance',
                     helpSubtitle: 'Découvrez toutes les fonctionnalités et capacités',
 
@@ -12982,6 +12983,7 @@ ${persona}
                     rgpdRetentionLi1: 'Conversations / settings: retained to provide the service, and deletable upon request',
                     rgpdRetentionLi2: 'Invoices / reports: retained as long as you keep them, and deletable from the interface',
                     rgpdRetentionLi3: 'Note: GDPR compliance also depends on how you use the service (legal basis, notices, rights handling, internal processes)',
+                    rgpdContactP: 'For any questions about your data: <strong>contact@axilum.com</strong>',
                     helpTitle: 'Finance Module - Full Guide',
                     helpSubtitle: 'Discover all features and capabilities',
 
@@ -13041,16 +13043,20 @@ ${persona}
 
             const S = (lang === 'en') ? strings.en : strings.fr;
 
+            const getElById = (id) => {
+                return overlay.querySelector(`#${id}`) || document.getElementById(id);
+            };
+
             const setText = (id, text) => {
-                const el = overlay.querySelector(`#${id}`);
+                const el = getElById(id);
                 if (el && typeof text === 'string') el.textContent = text;
             };
             const setHtml = (id, html) => {
-                const el = overlay.querySelector(`#${id}`);
+                const el = getElById(id);
                 if (el && typeof html === 'string') el.innerHTML = html;
             };
             const setAttr = (id, attr, val) => {
-                const el = overlay.querySelector(`#${id}`);
+                const el = getElById(id);
                 if (el && typeof val === 'string') el.setAttribute(attr, val);
             };
 
@@ -13092,9 +13098,11 @@ ${persona}
             setText('financeRgpdRetentionLi2', S.rgpdRetentionLi2);
             setText('financeRgpdRetentionLi3', S.rgpdRetentionLi3);
 
+            setHtml('financeRgpdContactP', S.rgpdContactP);
+
             // Fallback: if list items are missing ids (or DOM differs), still translate the security section.
             try {
-                const rgpdModal = overlay.querySelector('#financeRGPDModal');
+                const rgpdModal = overlay.querySelector('#financeRGPDModal') || document.getElementById('financeRGPDModal');
                 if (rgpdModal) {
                     const securityH3 = rgpdModal.querySelector('#financeRgpdSecurityH3') || Array.from(rgpdModal.querySelectorAll('.rgpd-section h3'))
                         .find((h) => {
@@ -13112,6 +13120,9 @@ ${persona}
                         if (lis && lis[3]) lis[3].textContent = S.rgpdSecurityLi4;
                         if (lis && lis[4]) lis[4].textContent = S.rgpdSecurityLi5;
                     }
+
+                    const contactP = rgpdModal.querySelector('#financeRgpdContactP') || rgpdModal.querySelector('.rgpd-contact p');
+                    if (contactP && typeof S.rgpdContactP === 'string') contactP.innerHTML = S.rgpdContactP;
                 }
             } catch (_) {}
             setText('financeHelpTitle', S.helpTitle);
@@ -32431,6 +32442,13 @@ ${recruitmentInfo}
                     requestAnimationFrame(() => {
                         try { if (typeof applyLanguageToFinanceUI === 'function') applyLanguageToFinanceUI(); } catch (_) {}
                     });
+                } catch (_) {}
+
+                // Extra safety: some DOM updates can land after the first frame.
+                try {
+                    setTimeout(() => {
+                        try { if (typeof applyLanguageToFinanceUI === 'function') applyLanguageToFinanceUI(); } catch (_) {}
+                    }, 50);
                 } catch (_) {}
             }
         }
