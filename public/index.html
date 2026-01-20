@@ -7212,6 +7212,8 @@ Notifications:
             const totalExpenses = invs.filter(isExpense).reduce((s, i) => s + safeNum(i?.amount), 0);
             const netIncome = totalRevenue - totalExpenses;
 
+            const isEn = (lang === 'en');
+
             const topInvoices = invs
                 .slice()
                 .sort((a, b) => String(b?.extractedAt || b?.createdAt || b?.date || '').localeCompare(String(a?.extractedAt || a?.createdAt || a?.date || '')))
@@ -7219,23 +7221,25 @@ Notifications:
                 .map(inv => {
                     const vendor = inv?.vendor || inv?.supplier || inv?.client || 'N/A';
                     const amount = inv?.amount != null ? safeNum(inv.amount) : 0;
-                    const date = inv?.date ? ` | Date: ${inv.date}` : '';
-                    const num = inv?.invoiceNumber ? ` | N°: ${inv.invoiceNumber}` : '';
-                    const t = typeField(inv) ? ` | Type: ${typeField(inv)}` : '';
-                    const dup = inv?.isDuplicate ? ' | ⚠️ Doublon' : '';
-                    return `- ${vendor} | Montant: ${amount} ${inv?.currency || currency}${date}${num}${t}${dup}`;
-                }).join('\n') || 'Aucune facture';
+                    const date = inv?.date ? (isEn ? ` | Date: ${inv.date}` : ` | Date: ${inv.date}`) : '';
+                    const num = inv?.invoiceNumber ? (isEn ? ` | N°: ${inv.invoiceNumber}` : ` | N°: ${inv.invoiceNumber}`) : '';
+                    const t = typeField(inv) ? (isEn ? ` | Type: ${typeField(inv)}` : ` | Type: ${typeField(inv)}`) : '';
+                    const dup = inv?.isDuplicate ? (isEn ? ' | ⚠️ Duplicate' : ' | ⚠️ Doublon') : '';
+                    
+                    const lblAmount = isEn ? 'Amount' : 'Montant';
+                    return `- ${vendor} | ${lblAmount}: ${amount} ${inv?.currency || currency}${date}${num}${t}${dup}`;
+                }).join('\n') || (isEn ? 'No invoices' : 'Aucune facture');
 
             const topReports = reps
                 .slice()
                 .sort((a, b) => String(b?.createdAt || b?.generatedAt || '').localeCompare(String(a?.createdAt || a?.generatedAt || '')))
                 .slice(0, 4)
                 .map(r => {
-                    const title = r?.title || r?.name || r?.type || 'Rapport';
-                    const period = r?.period ? ` | Période: ${r.period}` : '';
-                    const created = r?.createdAt ? ` | Créé: ${r.createdAt}` : '';
+                    const title = r?.title || r?.name || r?.type || (isEn ? 'Report' : 'Rapport');
+                    const period = r?.period ? (isEn ? ` | Period: ${r.period}` : ` | Période: ${r.period}`) : '';
+                    const created = r?.createdAt ? (isEn ? ` | Created: ${r.createdAt}` : ` | Créé: ${r.createdAt}`) : '';
                     return `- ${title}${period}${created}`;
-                }).join('\n') || 'Aucun rapport';
+                }).join('\n') || (isEn ? 'No reports' : 'Aucun rapport');
 
             const constraintsFr = `
 [Contraintes produit]
