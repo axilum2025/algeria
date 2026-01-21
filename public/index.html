@@ -17491,6 +17491,21 @@ ${persona}
         }
         
         function openHRManagement() {
+            const lang = (typeof getAppLanguage === 'function' && getAppLanguage() === 'en') ? 'en' : 'fr';
+            const t = {
+                title: lang === 'en' ? 'Human Resources Hub' : 'Pôle Ressources Humaines',
+                subtitle: lang === 'en' ? 'Talent Management & Development Center' : 'Gestion & Développement des Talents',
+                tabDashboard: lang === 'en' ? 'Dashboard' : 'Tableau de bord',
+                tabEmployees: lang === 'en' ? 'Employees' : 'Employés',
+                tabRecruitment: lang === 'en' ? 'Recruitment' : 'Recrutement',
+                tabLeaves: lang === 'en' ? 'Leaves' : 'Congés',
+                tabPayroll: lang === 'en' ? 'Payroll' : 'Paie',
+                tabReviews: lang === 'en' ? 'Reviews' : 'Évaluations',
+                tabTurnover: lang === 'en' ? 'Turnover' : 'Turnover',
+                tabAgent: lang === 'en' ? 'HR Agent' : 'Agent RH',
+                tabCompany: lang === 'en' ? 'Company' : 'Entreprise'
+            };
+
             // Fermer AI Management s'il est ouvert
             const excelAiOverlay = document.getElementById('excelAiOverlay');
             if (excelAiOverlay) {
@@ -19187,8 +19202,8 @@ ${persona}
                     <!-- Header -->
                     <div class="hr-header">
                         <div>
-                            <h1 class="hr-title">Human Resources Hub</h1>
-                            <p class="hr-subtitle">Talent Management & Development Center</p>
+                            <h1 class="hr-title">${t.title}</h1>
+                            <p class="hr-subtitle">${t.subtitle}</p>
                         </div>
                         <div class="hr-header-actions">
                             <button class="hr-help-btn" onclick="showHRHelp()" title="Guide">
@@ -19210,34 +19225,31 @@ ${persona}
                     <!-- Navigation Tabs -->
                     <div class="hr-tabs">
                         <button onclick="showHRTab('dashboard')" id="hrTabDashboard" class="hr-tab active">
-                            Dashboard
+                            ${t.tabDashboard}
                         </button>
                         <button onclick="showHRTab('employees')" id="hrTabEmployees" class="hr-tab">
-                            Employés
+                            ${t.tabEmployees}
                         </button>
                         <button onclick="showHRTab('recruitment')" id="hrTabRecruitment" class="hr-tab">
-                            Recrutement
+                            ${t.tabRecruitment}
                         </button>
                         <button onclick="showHRTab('leaves')" id="hrTabLeaves" class="hr-tab">
-                            Congés
+                            ${t.tabLeaves}
                         </button>
                         <button onclick="showHRTab('payroll')" id="hrTabPayroll" class="hr-tab">
-                            Paie
+                            ${t.tabPayroll}
                         </button>
                         <button onclick="showHRTab('reviews')" id="hrTabReviews" class="hr-tab">
-                            Évaluations
+                            ${t.tabReviews}
                         </button>
                         <button onclick="showHRTab('turnover')" id="hrTabTurnover" class="hr-tab">
-                            Turnover
+                            ${t.tabTurnover}
                         </button>
-                        <button onclick="showHRTab('agent')" id="hrTabAgent" class="hr-tab" title="Ouvrir Agent RH">
-                            Agent RH
+                        <button onclick="showHRTab('agent')" id="hrTabAgent" class="hr-tab" title="${t.tabAgent}">
+                            ${t.tabAgent}
                         </button>
-<button onclick="openCompanySettings()" id="hrTabCompany" class="hr-tab">
-                            Entreprise
-                        </button>
-                    </div>
-                    
+                        <button onclick="openCompanySettings()" id="hrTabCompany" class="hr-tab">
+                            ${t.tabCompany}
                     <!-- Content Area -->
                     <div class="hr-content-area">
                         <!-- Dashboard Tab -->
