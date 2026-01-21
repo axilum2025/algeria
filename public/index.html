@@ -17332,6 +17332,163 @@ ${persona}
                 // ignore
             }
         }
+
+        function showHRHelp() {
+            const lang = (typeof getAppLanguage === 'function' && getAppLanguage() === 'en') ? 'en' : 'fr';
+            const isEn = (lang === 'en');
+            
+            const existingHelp = document.getElementById('hr-help-modal');
+            if (existingHelp) existingHelp.remove();
+            
+            const helpModal = document.createElement('div');
+            helpModal.id = 'hr-help-modal';
+            helpModal.style.cssText = `
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: rgba(0, 0, 0, 0.85);
+                z-index: 10002;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                padding: 20px;
+                backdrop-filter: blur(5px);
+                animation: fadeIn 0.2s ease-out;
+            `;
+            
+            const title = isEn ? 'Agent RH User Guide' : 'Guide Complet Agent RH';
+            const subtitle = isEn ? 'Master Human Resources Management' : 'Maîtriser la Gestion RH';
+            const closeText = isEn ? 'Close Guide' : 'Fermer le guide';
+            
+            const contentFr = `
+                <h3>1. Introduction</h3>
+                <p><strong>Agent RH</strong> est votre assistant spécialisé en gestion des ressources humaines, paie et développement des talents.</p>
+                
+                <h3>2. Fonctionnalités Clés</h3>
+                <ul>
+                    <li><strong>Employés :</strong> Gestion des dossiers du personnel et organigramme.</li>
+                    <li><strong>Paie :</strong> Automatisation des fiches de paie et calculs.</li>
+                    <li><strong>Congés :</strong> Suivi des demandes et soldes.</li>
+                    <li><strong>Recrutement :</strong> Suivi des candidats et entretiens.</li>
+                </ul>
+                
+                <h3>3. Commandes Utiles</h3>
+                <ul>
+                    <li><code>/employe [nom]</code> : Voir le dossier d'un employé.</li>
+                    <li><code>/paie [mois]</code> : Générer les fiches de paie.</li>
+                    <li><code>/conges</code> : Analyser le planning des absences.</li>
+                </ul>
+                
+                <h3>4. Astuces</h3>
+                <p>Utilisez l'Agent RH pour rédiger des offres d'emploi ou préparer des entretiens annuels.</p>
+            `;
+            
+            const contentEn = `
+                <h3>1. Introduction</h3>
+                <p><strong>Agent RH</strong> is your specialized assistant for HR management, payroll, and talent development.</p>
+                
+                <h3>2. Key Features</h3>
+                <ul>
+                    <li><strong>Employees:</strong> Manage staff records and org chart.</li>
+                    <li><strong>Payroll:</strong> Automate payslips and calculations.</li>
+                    <li><strong>Leaves:</strong> Track requests and balances.</li>
+                    <li><strong>Recruitment:</strong> Track candidates and interviews.</li>
+                </ul>
+                
+                <h3>3. Useful Commands</h3>
+                <ul>
+                    <li><code>/employee [name]</code> : View employee file.</li>
+                    <li><code>/payroll [month]</code> : Generate payslips.</li>
+                    <li><code>/leaves</code> : Analyze absence schedule.</li>
+                </ul>
+                
+                <h3>4. Tips</h3>
+                <p>Use Agent RH to draft job offers or prepare annual reviews.</p>
+            `;
+
+            helpModal.innerHTML = `
+                <div style="
+                    background: #022c22;
+                    width: 100%;
+                    max-width: 700px;
+                    max-height: 85vh;
+                    border-radius: 16px;
+                    border: 1px solid rgba(16, 185, 129, 0.3);
+                    display: flex;
+                    flex-direction: column;
+                    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+                    overflow: hidden;
+                ">
+                    <div style="
+                        padding: 24px;
+                        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+                        background: rgba(16, 185, 129, 0.1);
+                        display: flex;
+                        justify-content: space-between;
+                        align-items: start;
+                    ">
+                        <div>
+                            <h2 style="margin: 0; font-size: 24px; color: white;">${title}</h2>
+                            <p style="margin: 4px 0 0; color: rgba(255, 255, 255, 0.6);">${subtitle}</p>
+                        </div>
+                        <button onclick="document.getElementById('hr-help-modal').remove()" style="
+                            background: none;
+                            border: none;
+                            color: rgba(255, 255, 255, 0.5);
+                            cursor: pointer;
+                            padding: 4px;
+                        ">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                        </button>
+                    </div>
+                    <div style="
+                        padding: 32px;
+                        overflow-y: auto;
+                        color: rgba(255, 255, 255, 0.9);
+                        line-height: 1.6;
+                        font-family: inherit;
+                    ">
+                        <style>
+                            #hr-help-modal h3 { color: #34d399; margin-top: 24px; margin-bottom: 12px; font-size: 18px; }
+                            #hr-help-modal h3:first-child { margin-top: 0; }
+                            #hr-help-modal ul { padding-left: 20px; margin-bottom: 16px; }
+                            #hr-help-modal li { margin-bottom: 8px; }
+                            #hr-help-modal code { background: rgba(255, 255, 255, 0.1); padding: 2px 6px; border-radius: 4px; font-family: monospace; color: #6ee7b7; }
+                            #hr-help-modal p { margin-bottom: 16px; }
+                        </style>
+                        ${isEn ? contentEn : contentFr}
+                    </div>
+                    <div style="
+                        padding: 20px 24px;
+                        border-top: 1px solid rgba(255, 255, 255, 0.1);
+                        background: rgba(0, 0, 0, 0.2);
+                        display: flex;
+                        justify-content: flex-end;
+                    ">
+                        <button onclick="document.getElementById('hr-help-modal').remove()" style="
+                            padding: 10px 20px;
+                            background: linear-gradient(135deg, #10b981, #06b6d4);
+                            border: none;
+                            border-radius: 8px;
+                            color: white;
+                            font-weight: 600;
+                            cursor: pointer;
+                        ">${closeText}</button>
+                    </div>
+                </div>
+            `;
+            
+            document.body.appendChild(helpModal);
+            
+            // Close on click outside
+            helpModal.addEventListener('click', (e) => {
+                if (e.target === helpModal) {
+                    helpModal.remove();
+                }
+            });
+        }
         
         function openHRManagement() {
             // Fermer AI Management s'il est ouvert
@@ -17378,6 +17535,14 @@ ${persona}
                         padding: 24px 40px;
                         border-bottom: 1px solid rgba(16, 185, 129, 0.3);
                         backdrop-filter: blur(10px);
+                        display: flex;
+                        justify-content: space-between;
+                        align-items: center;
+                    }
+                    
+                    .hr-header-actions {
+                        display: flex;
+                        gap: 12px;
                     }
                     
                     .hr-title {
@@ -17530,9 +17695,6 @@ ${persona}
                     }
                     
                     .hr-close-btn {
-                        position: absolute;
-                        top: 24px;
-                        right: 40px;
                         width: 40px;
                         height: 40px;
                         background: rgba(255, 255, 255, 0.1);
@@ -17549,6 +17711,24 @@ ${persona}
                         background: rgba(239, 68, 68, 0.2);
                         border-color: rgba(239, 68, 68, 0.5);
                         transform: rotate(90deg);
+                    }
+
+                    .hr-help-btn {
+                        width: 40px;
+                        height: 40px;
+                        background: rgba(255, 255, 255, 0.1);
+                        border: 1px solid rgba(255, 255, 255, 0.2);
+                        border-radius: 8px;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        cursor: pointer;
+                        transition: all 0.3s ease;
+                    }
+
+                    .hr-help-btn:hover {
+                         background: rgba(255, 255, 255, 0.1);
+                         border-color: rgba(255, 255, 255, 0.3);
                     }
                     
                     .hr-section {
@@ -17919,9 +18099,6 @@ ${persona}
                         .hr-stat-value {
                             font-size: 36px;
                         }
-                        .hr-close-btn {
-                            right: 30px;
-                        }
                     }
                     
                     @media (max-width: 768px) {
@@ -17935,8 +18112,10 @@ ${persona}
                             font-size: 12px;
                         }
                         .hr-close-btn {
-                            top: 16px;
-                            right: 20px;
+                            width: 36px;
+                            height: 36px;
+                        }
+                        .hr-help-btn {
                             width: 36px;
                             height: 36px;
                         }
@@ -17978,9 +18157,6 @@ ${persona}
                             padding: 10px 20px;
                             font-size: 13px;
                         }
-                        .hr-header > div {
-                            flex-wrap: wrap;
-                        }
                     }
 
                     /* Mobile en mode "site desktop" (largeur grande mais device tactile)
@@ -17997,8 +18173,10 @@ ${persona}
                             display: none !important;
                         }
                         .hr-close-btn {
-                            top: 12px !important;
-                            right: 16px !important;
+                            width: 36px !important;
+                            height: 36px !important;
+                        }
+                        .hr-help-btn {
                             width: 36px !important;
                             height: 36px !important;
                         }
@@ -18102,8 +18280,10 @@ ${persona}
                             display: none;
                         }
                         .hr-close-btn {
-                            top: 12px;
-                            right: 16px;
+                            width: 32px;
+                            height: 32px;
+                        }
+                        .hr-help-btn {
                             width: 32px;
                             height: 32px;
                         }
@@ -18150,14 +18330,6 @@ ${persona}
                         .hr-badge {
                             padding: 3px 8px;
                             font-size: 10px;
-                        }
-                        .hr-header > div {
-                            flex-direction: column;
-                            align-items: stretch;
-                            width: 100%;
-                        }
-                        .hr-header > div > button {
-                            width: 100%;
                         }
                     }
                     
@@ -19014,15 +19186,25 @@ ${persona}
                     
                     <!-- Header -->
                     <div class="hr-header">
-                        <button class="hr-close-btn" onclick="closeHRManagement()">
-                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <line x1="18" y1="6" x2="6" y2="18"></line>
-                                <line x1="6" y1="6" x2="18" y2="18"></line>
-                            </svg>
-                        </button>
-                        <h1 class="hr-title">Human Resources Hub</h1>
-                        <p class="hr-subtitle">Talent Management & Development Center</p>
-                        
+                        <div>
+                            <h1 class="hr-title">Human Resources Hub</h1>
+                            <p class="hr-subtitle">Talent Management & Development Center</p>
+                        </div>
+                        <div class="hr-header-actions">
+                            <button class="hr-help-btn" onclick="showHRHelp()" title="Guide">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <circle cx="12" cy="12" r="10"></circle>
+                                    <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
+                                    <line x1="12" y1="17" x2="12.01" y2="17"></line>
+                                </svg>
+                            </button>
+                            <button class="hr-close-btn" onclick="closeHRManagement()">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <line x1="18" y1="6" x2="6" y2="18"></line>
+                                    <line x1="6" y1="6" x2="18" y2="18"></line>
+                                </svg>
+                            </button>
+                        </div>
                     </div>
                     
                     <!-- Navigation Tabs -->
