@@ -13552,6 +13552,165 @@ ${persona}
         let notificationCheckInterval = null;
         let aiChatHistory = []; // Historique de conversation avec Agent ToDo
 
+        function showTodoHelp() {
+            const lang = (typeof getAppLanguage === 'function' && getAppLanguage() === 'en') ? 'en' : 'fr';
+            const isEn = (lang === 'en');
+            
+            const existingHelp = document.getElementById('todo-help-modal');
+            if (existingHelp) existingHelp.remove();
+            
+            const helpModal = document.createElement('div');
+            helpModal.id = 'todo-help-modal';
+            helpModal.style.cssText = `
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: rgba(0, 0, 0, 0.7);
+                z-index: 10005;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                padding: 20px;
+                backdrop-filter: blur(5px);
+                animation: fadeIn 0.2s ease-out;
+            `;
+            
+            const title = isEn ? 'Agent ToDo User Guide' : 'Guide Utilisateur Agent ToDo';
+            const subtitle = isEn ? 'Master your tasks and productivity' : 'Maîtrisez vos tâches et votre productivité';
+            const closeText = isEn ? 'Close Guide' : 'Fermer le guide';
+            
+            const contentFr = `
+                <h3>1. Introduction</h3>
+                <p><strong>Agent ToDo</strong> est votre assistant intelligent pour la gestion des tâches, des projets et de la productivité personnelle.</p>
+                
+                <h3>2. Fonctionnalités Clés</h3>
+                <ul>
+                    <li><strong>Gestion des Tâches :</strong> Créez, organisez et suivez vos tâches quotidiennes avec des priorités.</li>
+                    <li><strong>Vues Multiples :</strong> Basculez entre les vues Liste, Kanban, Calendrier et Personnel pour visualiser votre travail.</li>
+                    <li><strong>Catégories Intelligentes :</strong> Classez vos tâches par projets ou domaines (Travail, Personnel, Urgent, etc.).</li>
+                    <li><strong>Rappels & Notifications :</strong> Ne manquez jamais une échéance grâce aux rappels intelligents.</li>
+                </ul>
+                
+                <h3>3. Commandes Utiles</h3>
+                <ul>
+                    <li><code>/tache [nom]</code> : Créer une nouvelle tâche rapidement.</li>
+                    <li><code>/synthese</code> : Résumé de vos tâches en cours et terminées.</li>
+                    <li><code>/agenda</code> : Voir vos tâches planifiées pour aujourd'hui.</li>
+                </ul>
+                
+                <h3>4. Astuces</h3>
+                <p>Utilisez l'Assistant IA pour prioriser automatiquement vos tâches ou suggérer des plans d'action pour des objectifs complexes.</p>
+            `;
+            
+            const contentEn = `
+                <h3>1. Introduction</h3>
+                <p><strong>Agent ToDo</strong> is your intelligent assistant for task management, projects, and personal productivity.</p>
+                
+                <h3>2. Key Features</h3>
+                <ul>
+                    <li><strong>Task Management:</strong> Create, organize, and track daily tasks with priorities.</li>
+                    <li><strong>Multiple Views:</strong> Switch between List, Kanban, Calendar, and Personal views to visualize your work.</li>
+                    <li><strong>Smart Categories:</strong> Categorize tasks by projects or domains (Work, Personal, Urgent, etc.).</li>
+                    <li><strong>Reminders & Notifications:</strong> Never miss a deadline with smart reminders.</li>
+                </ul>
+                
+                <h3>3. Useful Commands</h3>
+                <ul>
+                    <li><code>/task [name]</code> : Create a new task quickly.</li>
+                    <li><code>/summary</code> : Summary of your ongoing and completed tasks.</li>
+                    <li><code>/agenda</code> : View tasks scheduled for today.</li>
+                </ul>
+                
+                <h3>4. Tips</h3>
+                <p>Use the AI Assistant to automatically prioritize your tasks or suggest action plans for complex goals.</p>
+            `;
+
+            helpModal.innerHTML = `
+                <div style="
+                    background: var(--bg-primary);
+                    color: var(--text-primary);
+                    width: 100%;
+                    max-width: 700px;
+                    max-height: 85vh;
+                    border-radius: 16px;
+                    border: 1px solid var(--border-color);
+                    display: flex;
+                    flex-direction: column;
+                    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+                    overflow: hidden;
+                ">
+                    <div style="
+                        padding: 24px;
+                        border-bottom: 1px solid var(--border-color);
+                        background: var(--bg-secondary);
+                        display: flex;
+                        justify-content: space-between;
+                        align-items: start;
+                    ">
+                        <div>
+                            <h2 style="margin: 0; font-size: 24px; color: var(--text-primary); font-weight: 700;">${title}</h2>
+                            <p style="margin: 4px 0 0; color: var(--text-secondary); font-size: 14px;">${subtitle}</p>
+                        </div>
+                        <button onclick="document.getElementById('todo-help-modal').remove()" style="
+                            background: none;
+                            border: none;
+                            color: var(--text-secondary);
+                            cursor: pointer;
+                            padding: 4px;
+                        ">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                        </button>
+                    </div>
+                    <div style="
+                        padding: 32px;
+                        overflow-y: auto;
+                        color: var(--text-primary);
+                        line-height: 1.6;
+                        font-family: inherit;
+                    ">
+                        <style>
+                            #todo-help-modal h3 { color: var(--accent); margin-top: 24px; margin-bottom: 12px; font-size: 18px; font-weight: 600; }
+                            #todo-help-modal h3:first-child { margin-top: 0; }
+                            #todo-help-modal ul { padding-left: 20px; margin-bottom: 16px; }
+                            #todo-help-modal li { margin-bottom: 8px; }
+                            #todo-help-modal code { background: var(--bg-secondary); padding: 2px 6px; border-radius: 4px; font-family: monospace; color: var(--accent); border: 1px solid var(--border-color); }
+                            #todo-help-modal p { margin-bottom: 16px; }
+                        </style>
+                        ${isEn ? contentEn : contentFr}
+                    </div>
+                    <div style="
+                        padding: 20px 24px;
+                        border-top: 1px solid var(--border-color);
+                        background: var(--bg-secondary);
+                        display: flex;
+                        justify-content: flex-end;
+                    ">
+                        <button onclick="document.getElementById('todo-help-modal').remove()" style="
+                            padding: 10px 20px;
+                            background: var(--accent);
+                            border: none;
+                            border-radius: 8px;
+                            color: white;
+                            font-weight: 600;
+                            cursor: pointer;
+                            transition: opacity 0.2s;
+                        " onmouseover="this.style.opacity='0.9'" onmouseout="this.style.opacity='1'">${closeText}</button>
+                    </div>
+                </div>
+            `;
+            
+            document.body.appendChild(helpModal);
+            
+            // Close on click outside
+            helpModal.addEventListener('click', (e) => {
+                if (e.target === helpModal) {
+                    helpModal.remove();
+                }
+            });
+        }
+
         // Office Pro - Interface complète To Do AI
         function openOfficePro() {
             // Fermer l'overlay existant s'il y en a un
@@ -13628,6 +13787,14 @@ ${persona}
                                 <line x1="5" y1="12" x2="19" y2="12"/>
                             </svg>
                             <span id="addTaskBtnText">${t('todo.newTask')}</span>
+                        </button>
+                        </button>
+                        <button id="todoHelpBtn" onclick="showTodoHelp()" title="${t('todo.help') || 'Guide'}" style="padding: 8px; background: transparent; color: var(--text-secondary); border: none; border-radius: 8px; cursor: pointer; transition: all 0.2s;" onmouseover="this.style.background='var(--bg-secondary)'; this.style.color='var(--text-primary)'" onmouseout="this.style.background='transparent'; this.style.color='var(--text-secondary)'">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <circle cx="12" cy="12" r="10"></circle>
+                                <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
+                                <line x1="12" y1="17" x2="12.01" y2="17"></line>
+                            </svg>
                         </button>
                         <button onclick="closeTodoAi()" style="padding: 8px; background: transparent; color: var(--text-secondary); border: none; border-radius: 8px; cursor: pointer; transition: all 0.2s;" onmouseover="this.style.background='var(--bg-secondary)'" onmouseout="this.style.background='transparent'">
                             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -13987,6 +14154,14 @@ ${persona}
                 }
                 
                 @media (max-width: 480px) {
+                    #todoHeaderActions {
+                        gap: 8px !important;
+                    }
+
+                    #todoHelpBtn {
+                        padding: 6px !important;
+                    }
+                    
                     #todoSearchInput {
                         font-size: 12px !important;
                     }
