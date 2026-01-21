@@ -6697,6 +6697,9 @@ Paramètres entreprise: ${Object.keys(companySettings || {}).length ? 'présents
         }
 
         function buildAgentMarketingContext({ mode = 'summary', campaigns = [], personas = [], content = [], business = {} } = {}) {
+            const lang = (typeof getAppLanguage === 'function' && getAppLanguage() === 'en') ? 'en' : 'fr';
+            const isEn = (lang === 'en');
+
             const safeNum = (v) => (typeof v === 'number' && Number.isFinite(v)) ? v : (parseFloat(v) || 0);
             const list = Array.isArray(campaigns) ? campaigns : [];
             const totalBudget = list.reduce((sum, c) => sum + safeNum(c?.budget), 0);
@@ -6710,39 +6713,45 @@ Paramètres entreprise: ${Object.keys(companySettings || {}).length ? 'présents
                 .sort((a, b) => safeNum(b?.roi) - safeNum(a?.roi))
                 .slice(0, 5)
                 .map(c => {
-                    const name = c?.name || 'Campagne';
-                    const type = c?.type ? ` | Type: ${c.type}` : '';
-                    const status = c?.status ? ` | Statut: ${c.status}` : '';
+                    const name = c?.name || (isEn ? 'Campaign' : 'Campagne');
+                    const type = c?.type ? (isEn ? ` | Type: ${c.type}` : ` | Type: ${c.type}`) : '';
+                    const status = c?.status ? (isEn ? ` | Status: ${c.status}` : ` | Statut: ${c.status}`) : '';
                     const roi = ` | ROI: ${Math.round(safeNum(c?.roi))}%`;
                     const leads = c?.leads != null ? ` | Leads: ${safeNum(c?.leads)}` : '';
                     const budget = c?.budget != null ? ` | Budget: ${safeNum(c?.budget)} DA` : '';
                     return `- ${name}${type}${status}${roi}${leads}${budget}`;
-                }).join('\n') || 'Aucune campagne';
+                }).join('\n') || (isEn ? 'No campaigns' : 'Aucune campagne');
 
             const topPersonas = (Array.isArray(personas) ? personas : []).slice(0, 5).map(p => {
                 const name = p?.name || 'Persona';
-                const age = p?.age != null ? ` | Âge: ${p.age}` : '';
-                const prof = p?.profession ? ` | Profession: ${p.profession}` : '';
-                const goals = Array.isArray(p?.goals) && p.goals.length ? ` | Objectifs: ${p.goals.slice(0, 4).join(', ')}` : '';
+                const age = p?.age != null ? (isEn ? ` | Age: ${p.age}` : ` | Âge: ${p.age}`) : '';
+                const prof = p?.profession ? (isEn ? ` | Job: ${p.profession}` : ` | Profession: ${p.profession}`) : '';
+                const goals = Array.isArray(p?.goals) && p.goals.length ? (isEn ? ` | Goals: ${p.goals.slice(0, 4).join(', ')}` : ` | Objectifs: ${p.goals.slice(0, 4).join(', ')}`) : '';
                 return `- ${name}${age}${prof}${goals}`;
-            }).join('\n') || 'Aucun persona';
+            }).join('\n') || (isEn ? 'No personas' : 'Aucun persona');
 
             const topContent = (Array.isArray(content) ? content : []).slice(0, 5).map(i => {
-                const title = i?.title || 'Contenu';
-                const type = i?.type ? ` | Type: ${i.type}` : '';
-                const status = i?.status ? ` | Statut: ${i.status}` : '';
+                const title = i?.title || (isEn ? 'Content' : 'Contenu');
+                const type = i?.type ? (isEn ? ` | Type: ${i.type}` : ` | Type: ${i.type}`) : '';
+                const status = i?.status ? (isEn ? ` | Status: ${i.status}` : ` | Statut: ${i.status}`) : '';
                 const date = i?.publishDate ? ` | Date: ${i.publishDate}` : '';
                 return `- ${title}${type}${status}${date}`;
-            }).join('\n') || 'Aucun contenu';
+            }).join('\n') || (isEn ? 'No content' : 'Aucun contenu');
 
-            const constraints = `
+            const constraintsFr = `
 [Contraintes produit]
 - Ne mentionne pas d'autres modules/agents/outils sauf si l'utilisateur le demande explicitement
 - N'invente jamais de données marketing si elles ne sont pas dans le contexte
 - Si une info manque (période, canal, budget), pose 1-3 questions ciblées
 `;
+            const constraintsEn = `
+[Product constraints]
+- Do not mention other modules/agents/tools unless the user explicitly asks
+- Never invent marketing data if not in the context
+- If info is missing (period, channel, budget), ask 1-3 targeted questions
+`;
 
-            const moduleDoc = `
+            const moduleDocFr = `
 === TU ES AGENT MARK — AXILUM MARKETING & BUSINESS HUB ===
 
 Ce module Marketing (dans l'app) couvre notamment:
@@ -6755,16 +6764,32 @@ Ce module Marketing (dans l'app) couvre notamment:
 Stockage local (navigateur / localStorage) utilisé par le module:
 - marketingCampaigns, marketingPersonas, marketingContent, marketingBusiness
 `;
+            const moduleDocEn = `
+=== YOU ARE AGENT MARK — AXILUM MARKETING & BUSINESS HUB ===
+
+This Marketing module (in app) covers:
+- Campaigns: create/read, KPIs (ROI, leads, budget, spent), status (e.g. active)
+- Personas: client profiles + goals
+- Content: editorial calendar (type, status, date)
+- Business: business model + objectives + metrics (LTV, churn, MRR)
+- Analytics: present section (may be "under development" depending on UI)
+
+Local storage (browser / localStorage) used by the module:
+- marketingCampaigns, marketingPersonas, marketingContent, marketingBusiness
+`;
+
+            const constraints = isEn ? constraintsEn : constraintsFr;
+            const moduleDoc = isEn ? moduleDocEn : moduleDocFr;
 
             const businessSafe = (business && typeof business === 'object') ? business : {};
             const objectives = Array.isArray(businessSafe.objectives) ? businessSafe.objectives : [];
             const topObjectives = objectives.slice(0, 5).map(o => {
-                const title = o?.title || 'Objectif';
-                const target = o?.target ? ` | Cible: ${o.target}` : '';
+                const title = o?.title || (isEn ? 'Objective' : 'Objectif');
+                const target = o?.target ? (isEn ? ` | Target: ${o.target}` : ` | Cible: ${o.target}`) : '';
                 return `- ${title}${target}`;
-            }).join('\n') || 'Aucun objectif';
+            }).join('\n') || (isEn ? 'No objectives' : 'Aucun objectif');
 
-            const dataSnapshot = `
+            const dataSnapshotFr = `
 ---
 DONNÉES MARKETING DISPONIBLES (snapshot):
 
@@ -6788,6 +6813,32 @@ Business:
 ${topObjectives}
 ---
 `;
+            const dataSnapshotEn = `
+---
+AVAILABLE MARKETING DATA (snapshot):
+
+Campaigns: ${list.length}
+KPIs: CAC=${cac} DA | Avg ROI=${avgRoi}% | Leads=${totalLeads} | Total Budget=${Math.round(totalBudget)} DA | Spent=${Math.round(totalSpent)} DA
+Top campaigns (by ROI):
+${topCampaigns}
+
+Personas: ${(Array.isArray(personas) ? personas : []).length}
+${topPersonas}
+
+Content: ${(Array.isArray(content) ? content : []).length}
+${topContent}
+
+Business:
+- Model: ${businessSafe.model || 'Undefined'}
+- LTV: ${businessSafe.ltv || 0}
+- Churn: ${(businessSafe.churn || 0)}%
+- MRR: ${businessSafe.mrr || 0}
+- Objectives (top):
+${topObjectives}
+---
+`;
+
+            const dataSnapshot = isEn ? dataSnapshotEn : dataSnapshotFr;
 
             if (mode === 'summary') {
                 return truncateText(`${constraints}${moduleDoc}${dataSnapshot}`, 6000);
@@ -23387,6 +23438,49 @@ function showAddProjectModal() {
             if (existingOverlay) {
                 existingOverlay.remove();
             }
+
+            const lang = (typeof getAppLanguage === 'function' && getAppLanguage() === 'en') ? 'en' : 'fr';
+            const isEn = (lang === 'en');
+            
+            // UI Strings
+            const t = {
+                subtitle: isEn ? 'Growth Strategy & Customer Acquisition Center' : 'Centre de Stratégie de Croissance & Acquisition',
+                tabs: {
+                    dashboard: 'Dashboard',
+                    campaigns: isEn ? 'Campaigns' : 'Campagnes',
+                    personas: 'Personas',
+                    content: isEn ? 'Content' : 'Contenu',
+                    business: 'Business',
+                    analytics: 'Analytics',
+                    company: isEn ? 'Company' : 'Entreprise',
+                    agent: 'Agent mark'
+                },
+                kpi: {
+                    roi: isEn ? 'Avg ROI' : 'ROI Moyen',
+                    leads: isEn ? 'Leads Generated' : 'Leads Générés',
+                    churn: isEn ? 'Churn Rate' : 'Taux de Churn'
+                },
+                sections: {
+                    topCampaigns: isEn ? 'Top Campaigns Performance' : 'Top Campagnes Performance',
+                    objectives: isEn ? 'Priority Objectives' : 'Objectifs Prioritaires'
+                },
+                headers: {
+                    campaigns: isEn ? 'Marketing Campaigns' : 'Campagnes Marketing',
+                    newCampaign: isEn ? 'New Campaign' : 'Nouvelle Campagne',
+                    personas: 'Customer Personas',
+                    newPersona: isEn ? 'Create Persona' : 'Créer Persona',
+                    content: 'Content Marketing',
+                    newContent: isEn ? 'New Content' : 'Nouveau Contenu',
+                    business: isEn ? 'Business Strategy' : 'Stratégie Business',
+                    analytics: 'Analytics & Reporting',
+                    agent: 'Agent mark',
+                    agentDesc: isEn ? 'AI Assistant specialized in Digital Marketing and Growth' : 'Assistant IA spécialisé en Marketing Digital et Growth',
+                    clearChat: isEn ? 'Clear chat' : 'Effacer chat',
+                    chatPlaceholder: isEn ? 'Ask Agent mark a question...' : 'Posez votre question à Agent mark...',
+                    send: isEn ? 'Send' : 'Envoyer',
+                    clearChatTitle: isEn ? 'Clear chat history' : 'Effacer l\'historique du chat'
+                }
+            };
             
             // Créer l'overlay Marketing
             const overlay = document.createElement('div');
@@ -23418,6 +23512,9 @@ function showAddProjectModal() {
                         padding: 24px 40px;
                         border-bottom: 1px solid rgba(249, 115, 22, 0.3);
                         backdrop-filter: blur(10px);
+                        display: flex;
+                        justify-content: space-between;
+                        align-items: center;
                     }
                     
                     .mkt-title {
@@ -23589,9 +23686,9 @@ function showAddProjectModal() {
                     }
                     
                     .mkt-close-btn {
-                        position: absolute;
-                        top: 24px;
-                        right: 40px;
+                        position: static;
+                        top: auto;
+                        right: auto;
                         width: 40px;
                         height: 40px;
                         background: rgba(255, 255, 255, 0.1);
@@ -23693,20 +23790,44 @@ function showAddProjectModal() {
                         margin: 0 0 8px;
                         color: rgba(255, 255, 255, 0.7);
                     }
+                    
+                    .mkt-header-actions {
+                        display: flex;
+                        align-items: center;
+                        gap: 8px;
+                    }
+                    
+                    .mkt-help-btn {
+                        background: rgba(255, 255, 255, 0.1);
+                        border: 1px solid rgba(255, 255, 255, 0.2);
+                        width: 40px;
+                        height: 40px;
+                        border-radius: 8px;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        cursor: pointer;
+                        transition: all 0.3s ease;
+                    }
+                    
+                    .mkt-help-btn:hover {
+                        background: rgba(59, 130, 246, 0.4);
+                        border-color: rgba(59, 130, 246, 0.6);
+                    }
 
                     /* Responsive (mobile/tablette) */
                     @media (max-width: 1024px) {
                         .mkt-header { padding: 20px 24px; }
                         .mkt-tabs { padding: 16px 24px; }
                         .mkt-content { padding: 24px; }
-                        .mkt-close-btn { right: 24px; top: 20px; }
+                        .mkt-header-actions { margin-left: auto; }
                     }
 
                     @media (max-width: 768px) {
-                        .mkt-header { padding: 16px; }
+                        .mkt-header { padding: 16px; flex-direction: column; align-items: flex-start; gap: 16px; }
+                        .mkt-header-actions { position: absolute; top: 16px; right: 16px; }
                         .mkt-title { font-size: 22px; }
                         .mkt-subtitle { font-size: 12px; }
-                        .mkt-close-btn { right: 16px; top: 16px; width: 38px; height: 38px; }
 
                         .mkt-tabs { padding: 12px 16px; gap: 6px; }
                         .mkt-tab { padding: 10px 16px; font-size: 13px; }
@@ -23740,25 +23861,36 @@ function showAddProjectModal() {
                 
                 <div class="mkt-container">
                     <div class="mkt-header">
-                        <button class="mkt-close-btn" onclick="closeMarketing()">
-                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <line x1="18" y1="6" x2="6" y2="18"></line>
-                                <line x1="6" y1="6" x2="18" y2="18"></line>
-                            </svg>
-                        </button>
-                        <h1 class="mkt-title">Marketing & Business Hub</h1>
-                        <p class="mkt-subtitle">Growth Strategy & Customer Acquisition Center</p>
+                        <div>
+                            <h1 class="mkt-title">Marketing & Business Hub</h1>
+                            <p class="mkt-subtitle">${t.subtitle}</p>
+                        </div>
+                        <div class="mkt-header-actions">
+                            <button class="mkt-help-btn" onclick="showMarketingHelp()" title="Guide">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <circle cx="12" cy="12" r="10"></circle>
+                                    <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
+                                    <line x1="12" y1="17" x2="12.01" y2="17"></line>
+                                </svg>
+                            </button>
+                            <button class="mkt-close-btn" onclick="closeMarketing()">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <line x1="18" y1="6" x2="6" y2="18"></line>
+                                    <line x1="6" y1="6" x2="18" y2="18"></line>
+                                </svg>
+                            </button>
+                        </div>
                     </div>
                     
                     <div class="mkt-tabs">
-                        <button class="mkt-tab active" onclick="showMarketingTab('dashboard', this)">Dashboard</button>
-                        <button class="mkt-tab" onclick="showMarketingTab('campagnes', this)">Campagnes</button>
-                        <button class="mkt-tab" onclick="showMarketingTab('personas', this)">Personas</button>
-                        <button class="mkt-tab" onclick="showMarketingTab('contenu', this)">Contenu</button>
-                        <button class="mkt-tab" onclick="showMarketingTab('business', this)">Business</button>
-                        <button class="mkt-tab" onclick="showMarketingTab('analytics', this)">Analytics</button>
-                        <button class="mkt-tab" onclick="openCompanySettings()">Entreprise</button>
-                        <button class="mkt-tab" onclick="showMarketingTab('agent', this)">Agent mark</button>
+                        <button class="mkt-tab active" onclick="showMarketingTab('dashboard', this)">${t.tabs.dashboard}</button>
+                        <button class="mkt-tab" onclick="showMarketingTab('campagnes', this)">${t.tabs.campaigns}</button>
+                        <button class="mkt-tab" onclick="showMarketingTab('personas', this)">${t.tabs.personas}</button>
+                        <button class="mkt-tab" onclick="showMarketingTab('contenu', this)">${t.tabs.content}</button>
+                        <button class="mkt-tab" onclick="showMarketingTab('business', this)">${t.tabs.business}</button>
+                        <button class="mkt-tab" onclick="showMarketingTab('analytics', this)">${t.tabs.analytics}</button>
+                        <button class="mkt-tab" onclick="openCompanySettings()">${t.tabs.company}</button>
+                        <button class="mkt-tab" onclick="showMarketingTab('agent', this)">${t.tabs.agent}</button>
                     </div>
                     
                     <div class="mkt-content">
@@ -23775,15 +23907,15 @@ function showAddProjectModal() {
                                 </div>
                                 <div class="mkt-stat-card">
                                     <div class="mkt-stat-value" id="mktRoi">0%</div>
-                                    <div class="mkt-stat-label">ROI Moyen</div>
+                                    <div class="mkt-stat-label">${t.kpi.roi}</div>
                                 </div>
                                 <div class="mkt-stat-card">
                                     <div class="mkt-stat-value" id="mktLeads">0</div>
-                                    <div class="mkt-stat-label">Leads Générés</div>
+                                    <div class="mkt-stat-label">${t.kpi.leads}</div>
                                 </div>
                                 <div class="mkt-stat-card">
                                     <div class="mkt-stat-value" id="mktChurn">0%</div>
-                                    <div class="mkt-stat-label">Churn Rate</div>
+                                    <div class="mkt-stat-label">${t.kpi.churn}</div>
                                 </div>
                                 <div class="mkt-stat-card">
                                     <div class="mkt-stat-value" id="mktMrr">0</div>
@@ -23792,12 +23924,12 @@ function showAddProjectModal() {
                             </div>
                             
                             <div class="mkt-section">
-                                <div class="mkt-section-title">Top Campagnes Performance</div>
+                                <div class="mkt-section-title">${t.sections.topCampaigns}</div>
                                 <div id="mktTopCampaigns"></div>
                             </div>
                             
                             <div class="mkt-section">
-                                <div class="mkt-section-title">Objectifs Prioritaires</div>
+                                <div class="mkt-section-title">${t.sections.objectives}</div>
                                 <div id="mktObjectives"></div>
                             </div>
                         </div>
@@ -23805,8 +23937,8 @@ function showAddProjectModal() {
                         <!-- Campagnes -->
                         <div id="mktCampagnes" class="mkt-tab-content" style="display: none;">
                             <div class="mkt-toolbar">
-                                <h2 style="margin: 0; font-size: 24px; color: white;">Campagnes Marketing</h2>
-                                <button class="mkt-btn" onclick="showAddCampaignModal()">Nouvelle Campagne</button>
+                                <h2 style="margin: 0; font-size: 24px; color: white;">${t.headers.campaigns}</h2>
+                                <button class="mkt-btn" onclick="showAddCampaignModal()">${t.headers.newCampaign}</button>
                             </div>
                             <div id="mktCampaignsList"></div>
                         </div>
@@ -23814,8 +23946,8 @@ function showAddProjectModal() {
                         <!-- Personas -->
                         <div id="mktPersonas" class="mkt-tab-content" style="display: none;">
                             <div class="mkt-toolbar">
-                                <h2 style="margin: 0; font-size: 24px; color: white;">Customer Personas</h2>
-                                <button class="mkt-btn" onclick="showAddPersonaModal()">Créer Persona</button>
+                                <h2 style="margin: 0; font-size: 24px; color: white;">${t.headers.personas}</h2>
+                                <button class="mkt-btn" onclick="showAddPersonaModal()">${t.headers.newPersona}</button>
                             </div>
                             <div id="mktPersonasList"></div>
                         </div>
@@ -23823,21 +23955,21 @@ function showAddProjectModal() {
                         <!-- Contenu -->
                         <div id="mktContenu" class="mkt-tab-content" style="display: none;">
                             <div class="mkt-toolbar">
-                                <h2 style="margin: 0; font-size: 24px; color: white;">Content Marketing</h2>
-                                <button class="mkt-btn" onclick="showAddContentModal()">Nouveau Contenu</button>
+                                <h2 style="margin: 0; font-size: 24px; color: white;">${t.headers.content}</h2>
+                                <button class="mkt-btn" onclick="showAddContentModal()">${t.headers.newContent}</button>
                             </div>
                             <div id="mktContentList"></div>
                         </div>
                         
                         <!-- Business -->
                         <div id="mktBusiness" class="mkt-tab-content" style="display: none;">
-                            <h2 style="margin: 0 0 24px; font-size: 24px; color: white;">Stratégie Business</h2>
+                            <h2 style="margin: 0 0 24px; font-size: 24px; color: white;">${t.headers.business}</h2>
                             <div id="mktBusinessContent"></div>
                         </div>
                         
                         <!-- Analytics -->
                         <div id="mktAnalytics" class="mkt-tab-content" style="display: none;">
-                            <h2 style="margin: 0 0 24px; font-size: 24px; color: white;">Analytics & Reporting</h2>
+                            <h2 style="margin: 0 0 24px; font-size: 24px; color: white;">${t.headers.analytics}</h2>
                             <div id="mktAnalyticsContent"></div>
                         </div>
                         
@@ -23846,17 +23978,17 @@ function showAddProjectModal() {
                             <div style="margin-bottom: 24px;">
                                 <div style="display: flex; justify-content: space-between; align-items: start; gap: 12px;">
                                     <div style="flex: 1; min-width: 0;">
-                                        <h2 style="margin: 0 0 8px; font-size: 24px; color: white;">Agent mark</h2>
-                                        <p style="margin: 0; color: rgba(255, 255, 255, 0.6); font-size: 14px;">Assistant IA spécialisé en Marketing Digital et Growth</p>
+                                        <h2 style="margin: 0 0 8px; font-size: 24px; color: white;">${t.headers.agent}</h2>
+                                        <p style="margin: 0; color: rgba(255, 255, 255, 0.6); font-size: 14px;">${t.headers.agentDesc}</p>
                                     </div>
-                                    <button onclick="clearMarketingChatHistory()" title="Effacer l'historique du chat" style="padding: 10px 16px; background: rgba(239, 68, 68, 0.2); border: 1px solid rgba(239, 68, 68, 0.4); border-radius: 8px; color: #fca5a5; cursor: pointer; font-size: 13px; font-weight: 600; display: flex; align-items: center; gap: 6px; transition: all 0.2s;" onmouseover="this.style.background='rgba(239, 68, 68, 0.3)'" onmouseout="this.style.background='rgba(239, 68, 68, 0.2)'">
+                                    <button onclick="clearMarketingChatHistory()" title="${t.headers.clearChatTitle}" style="padding: 10px 16px; background: rgba(239, 68, 68, 0.2); border: 1px solid rgba(239, 68, 68, 0.4); border-radius: 8px; color: #fca5a5; cursor: pointer; font-size: 13px; font-weight: 600; display: flex; align-items: center; gap: 6px; transition: all 0.2s;" onmouseover="this.style.background='rgba(239, 68, 68, 0.3)'" onmouseout="this.style.background='rgba(239, 68, 68, 0.2)'">
                                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                             <polyline points="3 6 5 6 21 6"></polyline>
                                             <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
                                             <line x1="10" y1="11" x2="10" y2="17"></line>
                                             <line x1="14" y1="11" x2="14" y2="17"></line>
                                         </svg>
-                                        Effacer chat
+                                        ${t.headers.clearChat}
                                     </button>
                                 </div>
                             </div>
@@ -23864,8 +23996,8 @@ function showAddProjectModal() {
                             <div class="mkt-chat-container">
                                 <div class="mkt-chat-messages" id="mktChatMessages"></div>
                                 <div class="mkt-chat-input">
-                                    <input type="text" class="mkt-input" id="mktChatInput" placeholder="Posez votre question à Agent mark..." onkeypress="if(event.key==='Enter') sendMarketingMessage()">
-                                    <button class="mkt-btn" onclick="sendMarketingMessage()">Envoyer</button>
+                                    <input type="text" class="mkt-input" id="mktChatInput" placeholder="${t.headers.chatPlaceholder}" onkeypress="if(event.key==='Enter') sendMarketingMessage()">
+                                    <button class="mkt-btn" onclick="sendMarketingMessage()">${t.headers.send}</button>
                                 </div>
                             </div>
                         </div>
@@ -23887,6 +24019,153 @@ function showAddProjectModal() {
             }
         }
         
+        function showMarketingHelp() {
+            const lang = (typeof getAppLanguage === 'function' && getAppLanguage() === 'en') ? 'en' : 'fr';
+            const isEn = (lang === 'en');
+            
+            const existingHelp = document.getElementById('marketing-help-modal');
+            if (existingHelp) existingHelp.remove();
+            
+            const helpModal = document.createElement('div');
+            helpModal.id = 'marketing-help-modal';
+            helpModal.style.cssText = `
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: rgba(0, 0, 0, 0.85);
+                z-index: 10002;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                padding: 20px;
+                backdrop-filter: blur(5px);
+                animation: fadeIn 0.2s ease-out;
+            `;
+            
+            const title = isEn ? 'Agent Mark User Guide' : 'Guide Complet Agent Mark';
+            const subtitle = isEn ? 'Master the Marketing & Business Hub' : 'Maîtriser le Marketing & Business Hub';
+            const closeText = isEn ? 'Close Guide' : 'Fermer le guide';
+            
+            const contentFr = `
+                <h3>1. Introduction</h3>
+                <p><strong>Agent Mark</strong> est votre assistant spécialisé en marketing digital, stratégie de croissance et analyse business.</p>
+                
+                <h3>2. Fonctionnalités Clés</h3>
+                <ul>
+                    <li><strong>Campagnes :</strong> Création, suivi ROI, gestion budget et leads.</li>
+                    <li><strong>Personas :</strong> Définition des cibles clients et leurs objectifs.</li>
+                    <li><strong>Contenu :</strong> Calendrier éditorial et idées de posts.</li>
+                    <li><strong>Business :</strong> Modélisation, métriques SaaS (LTV, CAC, Churn) et objectifs stratégiques.</li>
+                </ul>
+                
+                <h3>3. Commandes Utiles</h3>
+                <ul>
+                    <li><code>/analyse</code> : Analyse des performances actuelles.</li>
+                    <li><code>/campagne [sujet]</code> : Crée une ébauche de campagne.</li>
+                    <li><code>/roi</code> : Calcule le retour sur investissement des actions récentes.</li>
+                </ul>
+                
+                <h3>4. Astuces</h3>
+                <p>Connectez vos données réelles pour des analyses plus précises. Agent Mark utilise le contexte de l'application pour répondre.</p>
+            `;
+            
+            const contentEn = `
+                <h3>1. Introduction</h3>
+                <p><strong>Agent Mark</strong> is your specialized assistant for digital marketing, growth strategy, and business analysis.</p>
+                
+                <h3>2. Key Features</h3>
+                <ul>
+                    <li><strong>Campaigns:</strong> Creation, ROI tracking, budget & lead management.</li>
+                    <li><strong>Personas:</strong> Customer target definitions and goals.</li>
+                    <li><strong>Content:</strong> Editorial calendar and post ideas.</li>
+                    <li><strong>Business:</strong> Modeling, SaaS metrics (LTV, CAC, Churn), and strategic goals.</li>
+                </ul>
+                
+                <h3>3. Useful Commands</h3>
+                <ul>
+                    <li><code>/analyse</code> : Analyze current performance.</li>
+                    <li><code>/campaign [topic]</code> : Draft a new campaign.</li>
+                    <li><code>/roi</code> : Calculate Return on Investment for recent actions.</li>
+                </ul>
+                
+                <h3>4. Tips</h3>
+                <p>Connect your real data for more accurate analysis. Agent Mark uses the application context to respond.</p>
+            `;
+
+            helpModal.innerHTML = `
+                <div style="
+                    background: #1e293b;
+                    width: 100%;
+                    max-width: 700px;
+                    max-height: 85vh;
+                    border-radius: 16px;
+                    border: 1px solid rgba(249, 115, 22, 0.3);
+                    display: flex;
+                    flex-direction: column;
+                    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+                    overflow: hidden;
+                ">
+                    <div style="
+                        padding: 24px;
+                        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+                        background: rgba(249, 115, 22, 0.1);
+                        display: flex;
+                        justify-content: space-between;
+                        align-items: start;
+                    ">
+                        <div>
+                            <h2 style="margin: 0; font-size: 24px; color: white;">${title}</h2>
+                            <p style="margin: 4px 0 0; color: rgba(255, 255, 255, 0.7); font-size: 14px;">${subtitle}</p>
+                        </div>
+                        <button onclick="document.getElementById('marketing-help-modal').remove()" style="
+                            background: none;
+                            border: none;
+                            color: rgba(255, 255, 255, 0.6);
+                            cursor: pointer;
+                            padding: 4px;
+                        ">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                        </button>
+                    </div>
+                    
+                    <div style="
+                        padding: 32px;
+                        overflow-y: auto;
+                        color: rgba(255, 255, 255, 0.9);
+                        line-height: 1.6;
+                        font-size: 15px;
+                    ">
+                        ${isEn ? contentEn : contentFr}
+                    </div>
+                    
+                    <div style="
+                        padding: 20px 32px;
+                        border-top: 1px solid rgba(255, 255, 255, 0.1);
+                        display: flex;
+                        justify-content: flex-end;
+                        background: #0f172a;
+                    ">
+                        <button onclick="document.getElementById('marketing-help-modal').remove()" style="
+                            padding: 10px 24px;
+                            background: #f97316;
+                            color: white;
+                            border: none;
+                            border-radius: 8px;
+                            font-weight: 600;
+                            cursor: pointer;
+                            transition: background 0.2s;
+                        " onmouseover="this.style.background='#ea580c'" onmouseout="this.style.background='#f97316'">
+                            ${closeText}
+                        </button>
+                    </div>
+                </div>
+            `;
+            
+            document.body.appendChild(helpModal);
+        }
+
         function showMarketingTab(tabName, tabButton) {
             // Hide all tabs
             document.querySelectorAll('.mkt-tab-content').forEach(tab => {
@@ -24135,11 +24414,25 @@ function showAddProjectModal() {
         }
         
         function renderCampaignsList() {
+            const lang = (typeof getAppLanguage === 'function' && getAppLanguage() === 'en') ? 'en' : 'fr';
+            const t = {
+                emptyTitle: lang === 'en' ? 'No campaign created' : 'Aucune campagne créée',
+                emptyDesc: lang === 'en' ? 'Launch your first marketing campaign' : 'Lancez votre première campagne marketing',
+                defaultName: lang === 'en' ? 'Campaign' : 'Campagne',
+                roi: 'ROI',
+                budget: lang === 'en' ? 'Budget' : 'Budget',
+                spent: lang === 'en' ? 'Spent' : 'Dépensé',
+                leads: lang === 'en' ? 'Leads' : 'Leads',
+                edit: lang === 'en' ? 'Edit' : 'Modifier',
+                delete: lang === 'en' ? 'Delete' : 'Supprimer',
+                undefinedDate: '—'
+            };
+
             const campaigns = mktLoad(MARKETING_STORAGE_KEYS.campaigns, []);
             const container = document.getElementById('mktCampaignsList');
             
             if (campaigns.length === 0) {
-                container.innerHTML = '<div class="mkt-empty"><div class="mkt-empty-title">Aucune campagne créée</div><p>Lancez votre première campagne marketing</p></div>';
+                container.innerHTML = `<div class="mkt-empty"><div class="mkt-empty-title">${t.emptyTitle}</div><p>${t.emptyDesc}</p></div>`;
                 return;
             }
             
@@ -24160,7 +24453,7 @@ function showAddProjectModal() {
                     <div class="mkt-item">
                         <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 12px; gap: 12px;">
                             <div style="min-width: 0;">
-                                <h3 style="margin: 0 0 6px; font-size: 18px; color: white; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${name || 'Campagne'}</h3>
+                                <h3 style="margin: 0 0 6px; font-size: 18px; color: white; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${name || t.defaultName}</h3>
                                 <div style="display:flex; flex-wrap:wrap; gap: 8px; align-items:center;">
                                     <span class="mkt-badge mkt-badge-${badgeClass}">${status}</span>
                                     <span style="font-size: 12px; color: rgba(255,255,255,0.55);">${type}</span>
@@ -24168,19 +24461,19 @@ function showAddProjectModal() {
                             </div>
 
                             <div style="text-align: right; flex: 0 0 auto;">
-                                <div style="font-size: 12px; color: rgba(255, 255, 255, 0.5);">ROI</div>
+                                <div style="font-size: 12px; color: rgba(255, 255, 255, 0.5);">${t.roi}</div>
                                 <div style="font-size: 20px; color: #6ee7b7; font-weight: 600;">${roi}%</div>
                             </div>
                         </div>
 
                         <p style="margin: 0 0 10px; color: rgba(255, 255, 255, 0.75); font-size: 14px;">
-                            Budget: ${mktFormatMoney(budget)} • Dépensé: ${mktFormatMoney(spent)} • Leads: ${leads}
+                            ${t.budget}: ${mktFormatMoney(budget)} • ${t.spent}: ${mktFormatMoney(spent)} • ${t.leads}: ${leads}
                         </p>
                         <div style="display:flex; justify-content:space-between; align-items:center; gap: 10px; flex-wrap: wrap;">
-                            <div style="font-size: 12px; color: rgba(255, 255, 255, 0.5);">${startDate || '—'} - ${endDate || '—'}</div>
+                            <div style="font-size: 12px; color: rgba(255, 255, 255, 0.5);">${startDate || t.undefinedDate} - ${endDate || t.undefinedDate}</div>
                             <div style="display:flex; gap: 8px;">
-                                <button class="mkt-btn" style="padding: 10px 12px; font-size: 12px; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.18);" onclick="showAddCampaignModal('${id}')">Modifier</button>
-                                <button class="mkt-btn" style="padding: 10px 12px; font-size: 12px; background: rgba(239, 68, 68, 0.22); border: 1px solid rgba(239, 68, 68, 0.35);" onclick="deleteMarketingCampaign('${id}')">Supprimer</button>
+                                <button class="mkt-btn" style="padding: 10px 12px; font-size: 12px; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.18);" onclick="showAddCampaignModal('${id}')">${t.edit}</button>
+                                <button class="mkt-btn" style="padding: 10px 12px; font-size: 12px; background: rgba(239, 68, 68, 0.22); border: 1px solid rgba(239, 68, 68, 0.35);" onclick="deleteMarketingCampaign('${id}')">${t.delete}</button>
                             </div>
                         </div>
                     </div>
@@ -24189,11 +24482,26 @@ function showAddProjectModal() {
         }
         
         function renderPersonasList() {
+            const lang = (typeof getAppLanguage === 'function' && getAppLanguage() === 'en') ? 'en' : 'fr';
+            const t = {
+                emptyTitle: lang === 'en' ? 'No persona defined' : 'Aucun persona défini',
+                emptyDesc: lang === 'en' ? 'Create your customer personas' : 'Créez vos customer personas',
+                defaultName: lang === 'en' ? 'Persona' : 'Persona',
+                ageSuffix: lang === 'en' ? 'years' : 'ans',
+                ageUndefined: lang === 'en' ? 'Age —' : 'Âge —',
+                professionUndefined: lang === 'en' ? 'Profession —' : 'Profession —',
+                goals: lang === 'en' ? 'Goals' : 'Objectifs',
+                notDefined: lang === 'en' ? 'Not defined' : 'Non définis',
+                painPoints: 'Pain points',
+                edit: lang === 'en' ? 'Edit' : 'Modifier',
+                delete: lang === 'en' ? 'Delete' : 'Supprimer'
+            };
+            
             const personas = mktLoad(MARKETING_STORAGE_KEYS.personas, []);
             const container = document.getElementById('mktPersonasList');
             
             if (personas.length === 0) {
-                container.innerHTML = '<div class="mkt-empty"><div class="mkt-empty-title">Aucun persona défini</div><p>Créez vos customer personas</p></div>';
+                container.innerHTML = `<div class="mkt-empty"><div class="mkt-empty-title">${t.emptyTitle}</div><p>${t.emptyDesc}</p></div>`;
                 return;
             }
             
@@ -24209,14 +24517,14 @@ function showAddProjectModal() {
                     <div class="mkt-item">
                         <div style="display:flex; justify-content:space-between; align-items:start; gap: 12px;">
                             <div style="min-width:0;">
-                                <h3 style="margin: 0 0 8px; font-size: 18px; color: white; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${name || 'Persona'}</h3>
-                                <p style="margin: 0 0 10px; color: rgba(255, 255, 255, 0.75); font-size: 14px;">${age ? `${age} ans` : 'Âge —'} • ${profession || 'Profession —'}</p>
-                                <div style="font-size: 12px; color: rgba(255, 255, 255, 0.55);">Objectifs: ${goals.length ? goals.join(', ') : 'Non définis'}</div>
-                                ${painPoints.length ? `<div style="margin-top: 6px; font-size: 12px; color: rgba(255, 255, 255, 0.55);">Pain points: ${painPoints.join(', ')}</div>` : ''}
+                                <h3 style="margin: 0 0 8px; font-size: 18px; color: white; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${name || t.defaultName}</h3>
+                                <p style="margin: 0 0 10px; color: rgba(255, 255, 255, 0.75); font-size: 14px;">${age ? `${age} ${t.ageSuffix}` : t.ageUndefined} • ${profession || t.professionUndefined}</p>
+                                <div style="font-size: 12px; color: rgba(255, 255, 255, 0.55);">${t.goals}: ${goals.length ? goals.join(', ') : t.notDefined}</div>
+                                ${painPoints.length ? `<div style="margin-top: 6px; font-size: 12px; color: rgba(255, 255, 255, 0.55);">${t.painPoints}: ${painPoints.join(', ')}</div>` : ''}
                             </div>
                             <div style="display:flex; gap: 8px; flex: 0 0 auto;">
-                                <button class="mkt-btn" style="padding: 10px 12px; font-size: 12px; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.18);" onclick="showAddPersonaModal('${id}')">Modifier</button>
-                                <button class="mkt-btn" style="padding: 10px 12px; font-size: 12px; background: rgba(239, 68, 68, 0.22); border: 1px solid rgba(239, 68, 68, 0.35);" onclick="deleteMarketingPersona('${id}')">Supprimer</button>
+                                <button class="mkt-btn" style="padding: 10px 12px; font-size: 12px; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.18);" onclick="showAddPersonaModal('${id}')">${t.edit}</button>
+                                <button class="mkt-btn" style="padding: 10px 12px; font-size: 12px; background: rgba(239, 68, 68, 0.22); border: 1px solid rgba(239, 68, 68, 0.35);" onclick="deleteMarketingPersona('${id}')">${t.delete}</button>
                             </div>
                         </div>
                     </div>
@@ -24225,11 +24533,22 @@ function showAddProjectModal() {
         }
         
         function renderContentList() {
+            const lang = (typeof getAppLanguage === 'function' && getAppLanguage() === 'en') ? 'en' : 'fr';
+            const t = {
+                emptyTitle: lang === 'en' ? 'No scheduled content' : 'Aucun contenu planifié',
+                emptyDesc: lang === 'en' ? 'Create your editorial calendar' : 'Créez votre calendrier éditorial',
+                defaultTitle: lang === 'en' ? 'Content' : 'Contenu',
+                type: 'type',
+                notScheduled: lang === 'en' ? 'Not scheduled' : 'Non planifié',
+                edit: lang === 'en' ? 'Edit' : 'Modifier',
+                delete: lang === 'en' ? 'Delete' : 'Supprimer'
+            };
+
             const content = mktLoad(MARKETING_STORAGE_KEYS.content, []);
             const container = document.getElementById('mktContentList');
             
             if (content.length === 0) {
-                container.innerHTML = '<div class="mkt-empty"><div class="mkt-empty-title">Aucun contenu planifié</div><p>Créez votre calendrier éditorial</p></div>';
+                container.innerHTML = `<div class="mkt-empty"><div class="mkt-empty-title">${t.emptyTitle}</div><p>${t.emptyDesc}</p></div>`;
                 return;
             }
             
@@ -24245,18 +24564,18 @@ function showAddProjectModal() {
                     <div class="mkt-item">
                         <div style="display:flex; justify-content:space-between; align-items:start; gap: 12px;">
                             <div style="min-width:0;">
-                                <h3 style="margin: 0 0 6px; font-size: 18px; color: white; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${title || 'Contenu'}</h3>
+                                <h3 style="margin: 0 0 6px; font-size: 18px; color: white; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${title || t.defaultTitle}</h3>
                                 <div style="display:flex; flex-wrap:wrap; gap: 8px; align-items:center;">
-                                    <span class="mkt-badge mkt-badge-${badgeClass}">${mktEscapeHtml(type || 'type')}</span>
+                                    <span class="mkt-badge mkt-badge-${badgeClass}">${mktEscapeHtml(type || t.type)}</span>
                                     <span style="font-size: 12px; color: rgba(255,255,255,0.55);">${status}</span>
                                     ${channel ? `<span style="font-size: 12px; color: rgba(255,255,255,0.55);">• ${channel}</span>` : ''}
                                 </div>
                             </div>
                             <div style="text-align:right; flex: 0 0 auto;">
-                                <div style="font-size: 12px; color: rgba(255, 255, 255, 0.5);">${publishDate || 'Non planifié'}</div>
+                                <div style="font-size: 12px; color: rgba(255, 255, 255, 0.5);">${publishDate || t.notScheduled}</div>
                                 <div style="display:flex; gap: 8px; justify-content:flex-end; margin-top: 10px;">
-                                    <button class="mkt-btn" style="padding: 10px 12px; font-size: 12px; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.18);" onclick="showAddContentModal('${id}')">Modifier</button>
-                                    <button class="mkt-btn" style="padding: 10px 12px; font-size: 12px; background: rgba(239, 68, 68, 0.22); border: 1px solid rgba(239, 68, 68, 0.35);" onclick="deleteMarketingContent('${id}')">Supprimer</button>
+                                    <button class="mkt-btn" style="padding: 10px 12px; font-size: 12px; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.18);" onclick="showAddContentModal('${id}')">${t.edit}</button>
+                                    <button class="mkt-btn" style="padding: 10px 12px; font-size: 12px; background: rgba(239, 68, 68, 0.22); border: 1px solid rgba(239, 68, 68, 0.35);" onclick="deleteMarketingContent('${id}')">${t.delete}</button>
                                 </div>
                             </div>
                         </div>
@@ -24266,12 +24585,25 @@ function showAddProjectModal() {
         }
         
         function renderBusinessContent() {
+            const lang = (typeof getAppLanguage === 'function' && getAppLanguage() === 'en') ? 'en' : 'fr';
+            const t = {
+                sectionSettings: lang === 'en' ? 'Business Settings' : 'Paramètres Business',
+                model: lang === 'en' ? 'Business Model' : 'Modèle économique',
+                pricing: lang === 'en' ? 'Pricing Strategy' : 'Stratégie pricing',
+                save: lang === 'en' ? 'Save' : 'Enregistrer',
+                sectionObjectives: lang === 'en' ? 'Objectives' : 'Objectifs',
+                emptyObjectives: lang === 'en' ? 'No objective defined' : 'Aucun objectif défini',
+                addObjective: lang === 'en' ? 'Add objective' : 'Ajouter un objectif',
+                defaultObjectiveTitle: lang === 'en' ? 'Objective' : 'Objectif',
+                delete: lang === 'en' ? 'Delete' : 'Supprimer'
+            };
+
             const business = mktLoad(MARKETING_STORAGE_KEYS.business, {});
             const container = document.getElementById('mktBusinessContent');
             
             container.innerHTML = `
                 <div class="mkt-section">
-                    <div class="mkt-section-title">Paramètres Business</div>
+                    <div class="mkt-section-title">${t.sectionSettings}</div>
                     <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px;">
                         <div>
                             <label style="display:block; font-size: 12px; color: rgba(255,255,255,0.6); margin-bottom: 6px;">LTV (${mktCurrencyLabel()})</label>
@@ -24288,24 +24620,24 @@ function showAddProjectModal() {
                     </div>
 
                     <div style="margin-top: 14px;">
-                        <label style="display:block; font-size: 12px; color: rgba(255,255,255,0.6); margin-bottom: 6px;">Modèle économique</label>
+                        <label style="display:block; font-size: 12px; color: rgba(255,255,255,0.6); margin-bottom: 6px;">${t.model}</label>
                         <textarea id="mktBusinessModel" class="mkt-input" rows="3" style="width:100%; resize: vertical;">${mktEscapeHtml(business.model || '')}</textarea>
                     </div>
 
                     <div style="margin-top: 14px;">
-                        <label style="display:block; font-size: 12px; color: rgba(255,255,255,0.6); margin-bottom: 6px;">Stratégie pricing</label>
+                        <label style="display:block; font-size: 12px; color: rgba(255,255,255,0.6); margin-bottom: 6px;">${t.pricing}</label>
                         <textarea id="mktBusinessPricing" class="mkt-input" rows="3" style="width:100%; resize: vertical;">${mktEscapeHtml(business.pricing || '')}</textarea>
                     </div>
 
                     <div style="display:flex; justify-content:flex-end; margin-top: 14px;">
-                        <button class="mkt-btn" type="button" onclick="saveMarketingBusiness()">Enregistrer</button>
+                        <button class="mkt-btn" type="button" onclick="saveMarketingBusiness()">${t.save}</button>
                     </div>
                 </div>
                 <div class="mkt-section">
-                    <div class="mkt-section-title">Objectifs</div>
+                    <div class="mkt-section-title">${t.sectionObjectives}</div>
                     <div id="mktObjectivesList"></div>
                     <div style="display:flex; justify-content:flex-end; margin-top: 14px;">
-                        <button class="mkt-btn" type="button" onclick="showAddObjectiveModal()">Ajouter un objectif</button>
+                        <button class="mkt-btn" type="button" onclick="showAddObjectiveModal()">${t.addObjective}</button>
                     </div>
                 </div>
             `;
@@ -24315,19 +24647,19 @@ function showAddProjectModal() {
             const objectives = Array.isArray(business.objectives) ? business.objectives : [];
             if (list) {
                 if (objectives.length === 0) {
-                    list.innerHTML = '<div class="mkt-empty"><p>Aucun objectif défini</p></div>';
+                    list.innerHTML = `<div class="mkt-empty"><p>${t.emptyObjectives}</p></div>`;
                 } else {
                     list.innerHTML = objectives.map((obj, idx) => {
-                        const t = mktEscapeHtml(obj?.title || 'Objectif');
+                        const title = mktEscapeHtml(obj?.title || t.defaultObjectiveTitle);
                         const target = mktEscapeHtml(obj?.target || '');
                         return `
                             <div style="padding: 14px; border: 1px solid rgba(249, 115, 22, 0.18); border-radius: 12px; background: rgba(0,0,0,0.25); margin-bottom: 12px;">
                                 <div style="display:flex; justify-content:space-between; gap: 12px; align-items:start;">
                                     <div style="min-width:0;">
-                                        <div style="color: white; font-weight: 700;">${t}</div>
+                                        <div style="color: white; font-weight: 700;">${title}</div>
                                         <div style="margin-top: 6px; font-size: 12px; color: rgba(255,255,255,0.6);">${target || '—'}</div>
                                     </div>
-                                    <button class="mkt-btn" style="padding: 10px 12px; font-size: 12px; background: rgba(239, 68, 68, 0.22); border: 1px solid rgba(239, 68, 68, 0.35);" type="button" onclick="deleteMarketingObjective(${idx})">Supprimer</button>
+                                    <button class="mkt-btn" style="padding: 10px 12px; font-size: 12px; background: rgba(239, 68, 68, 0.22); border: 1px solid rgba(239, 68, 68, 0.35);" type="button" onclick="deleteMarketingObjective(${idx})">${t.delete}</button>
                                 </div>
                             </div>
                         `;
@@ -24337,6 +24669,27 @@ function showAddProjectModal() {
         }
         
         function renderAnalyticsContent() {
+            const lang = (typeof getAppLanguage === 'function' && getAppLanguage() === 'en') ? 'en' : 'fr';
+            const t = {
+                emptyTitle: lang === 'en' ? 'No data' : 'Aucune donnée',
+                emptyDesc: lang === 'en' ? 'Create campaigns/personas/content to populate analytics.' : 'Créez des campagnes/personas/contenus pour alimenter les analytics.',
+                defaultCampaignName: lang === 'en' ? 'Campaign' : 'Campagne',
+                avgRoi: lang === 'en' ? 'Avg ROI' : 'ROI Moyen',
+                cac: 'CAC',
+                budgetBurn: lang === 'en' ? 'Budget Burn Rate' : 'Budget consommé',
+                mrr: 'MRR',
+                campaignsResume: lang === 'en' ? 'Campaigns (summary)' : 'Campagnes (résumé)',
+                contentPipeline: lang === 'en' ? 'Content (pipeline)' : 'Contenu (pipeline)',
+                name: lang === 'en' ? 'Name' : 'Nom',
+                type: 'Type',
+                spent: lang === 'en' ? 'Spent' : 'Dépensé',
+                leads: 'Leads',
+                roi: 'ROI',
+                noCampaign: lang === 'en' ? 'No campaign' : 'Aucune campagne',
+                noContent: lang === 'en' ? 'No content' : 'Aucun contenu',
+                items: lang === 'en' ? 'items' : 'élément(s)'
+            };
+
             const container = document.getElementById('mktAnalyticsContent');
             const campaigns = mktLoad(MARKETING_STORAGE_KEYS.campaigns, []);
             const content = mktLoad(MARKETING_STORAGE_KEYS.content, []);
@@ -24360,14 +24713,14 @@ function showAddProjectModal() {
             if (!container) return;
 
             if (campaigns.length === 0 && content.length === 0) {
-                container.innerHTML = '<div class="mkt-empty"><div class="mkt-empty-title">Aucune donnée</div><p>Créez des campagnes/personas/contenus pour alimenter les analytics.</p></div>';
+                container.innerHTML = `<div class="mkt-empty"><div class="mkt-empty-title">${t.emptyTitle}</div><p>${t.emptyDesc}</p></div>`;
                 return;
             }
 
             const rows = campaigns.slice().sort((a, b) => (mktToNumber(b?.roi, 0) - mktToNumber(a?.roi, 0))).map(c => {
                 return `
                     <tr>
-                        <td style="padding: 10px 8px; border-bottom: 1px solid rgba(249,115,22,0.15); color: rgba(255,255,255,0.92);">${mktEscapeHtml(c?.name || 'Campagne')}</td>
+                        <td style="padding: 10px 8px; border-bottom: 1px solid rgba(249,115,22,0.15); color: rgba(255,255,255,0.92);">${mktEscapeHtml(c?.name || t.defaultCampaignName)}</td>
                         <td style="padding: 10px 8px; border-bottom: 1px solid rgba(249,115,22,0.15); color: rgba(255,255,255,0.7);">${mktEscapeHtml(c?.type || '')}</td>
                         <td style="padding: 10px 8px; border-bottom: 1px solid rgba(249,115,22,0.15); color: rgba(255,255,255,0.7); text-align:right;">${mktEscapeHtml(mktFormatMoney(mktToNumber(c?.spent, 0)))}</td>
                         <td style="padding: 10px 8px; border-bottom: 1px solid rgba(249,115,22,0.15); color: rgba(255,255,255,0.7); text-align:right;">${mktToNumber(c?.leads, 0)}</td>
@@ -24378,37 +24731,37 @@ function showAddProjectModal() {
 
             container.innerHTML = `
                 <div class="mkt-dashboard" style="margin-bottom: 24px;">
-                    <div class="mkt-stat-card"><div class="mkt-stat-value">${avgRoi}%</div><div class="mkt-stat-label">ROI Moyen</div></div>
-                    <div class="mkt-stat-card"><div class="mkt-stat-value">${mktEscapeHtml(mktFormatMoney(cac))}</div><div class="mkt-stat-label">CAC (${currencyLabel})</div></div>
-                    <div class="mkt-stat-card"><div class="mkt-stat-value">${burnRate}%</div><div class="mkt-stat-label">Budget consommé</div></div>
-                    <div class="mkt-stat-card"><div class="mkt-stat-value">${mktEscapeHtml(mktFormatMoney(mktToNumber(business.mrr, 0)))}</div><div class="mkt-stat-label">MRR (${currencyLabel})</div></div>
+                    <div class="mkt-stat-card"><div class="mkt-stat-value">${avgRoi}%</div><div class="mkt-stat-label">${t.avgRoi}</div></div>
+                    <div class="mkt-stat-card"><div class="mkt-stat-value">${mktEscapeHtml(mktFormatMoney(cac))}</div><div class="mkt-stat-label">${t.cac} (${currencyLabel})</div></div>
+                    <div class="mkt-stat-card"><div class="mkt-stat-value">${burnRate}%</div><div class="mkt-stat-label">${t.budgetBurn}</div></div>
+                    <div class="mkt-stat-card"><div class="mkt-stat-value">${mktEscapeHtml(mktFormatMoney(mktToNumber(business.mrr, 0)))}</div><div class="mkt-stat-label">${t.mrr} (${currencyLabel})</div></div>
                 </div>
 
                 <div class="mkt-section">
-                    <div class="mkt-section-title">Campagnes (résumé)</div>
+                    <div class="mkt-section-title">${t.campaignsResume}</div>
                     <div style="overflow:auto; border-radius: 12px; border: 1px solid rgba(249,115,22,0.18);">
                         <table style="width:100%; border-collapse: collapse; min-width: 560px;">
                             <thead>
                                 <tr style="background: rgba(0,0,0,0.25);">
-                                    <th style="text-align:left; padding: 10px 8px; color: rgba(255,255,255,0.7); font-size: 12px;">Nom</th>
-                                    <th style="text-align:left; padding: 10px 8px; color: rgba(255,255,255,0.7); font-size: 12px;">Type</th>
-                                    <th style="text-align:right; padding: 10px 8px; color: rgba(255,255,255,0.7); font-size: 12px;">Dépensé (${currencyLabel})</th>
-                                    <th style="text-align:right; padding: 10px 8px; color: rgba(255,255,255,0.7); font-size: 12px;">Leads</th>
-                                    <th style="text-align:right; padding: 10px 8px; color: rgba(255,255,255,0.7); font-size: 12px;">ROI</th>
+                                    <th style="text-align:left; padding: 10px 8px; color: rgba(255,255,255,0.7); font-size: 12px;">${t.name}</th>
+                                    <th style="text-align:left; padding: 10px 8px; color: rgba(255,255,255,0.7); font-size: 12px;">${t.type}</th>
+                                    <th style="text-align:right; padding: 10px 8px; color: rgba(255,255,255,0.7); font-size: 12px;">${t.spent} (${currencyLabel})</th>
+                                    <th style="text-align:right; padding: 10px 8px; color: rgba(255,255,255,0.7); font-size: 12px;">${t.leads}</th>
+                                    <th style="text-align:right; padding: 10px 8px; color: rgba(255,255,255,0.7); font-size: 12px;">${t.roi}</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                ${rows || '<tr><td colspan="5" style="padding: 12px; color: rgba(255,255,255,0.6);">Aucune campagne</td></tr>'}
+                                ${rows || `<tr><td colspan="5" style="padding: 12px; color: rgba(255,255,255,0.6);">${t.noCampaign}</td></tr>`}
                             </tbody>
                         </table>
                     </div>
                 </div>
 
                 <div class="mkt-section">
-                    <div class="mkt-section-title">Contenu (pipeline)</div>
+                    <div class="mkt-section-title">${t.contentPipeline}</div>
                     <div style="display:flex; flex-wrap:wrap; gap: 10px;">
-                        ${Object.keys(contentByStatus).length === 0 ? '<div class="mkt-empty"><p>Aucun contenu</p></div>' : Object.entries(contentByStatus).map(([k, v]) => {
-                            return `<div style="padding: 12px 14px; border: 1px solid rgba(249,115,22,0.18); border-radius: 12px; background: rgba(0,0,0,0.25); color: rgba(255,255,255,0.85);"><div style="font-weight:700;">${mktEscapeHtml(k)}</div><div style="margin-top: 6px; color: rgba(255,255,255,0.6); font-size: 12px;">${v} élément(s)</div></div>`;
+                        ${Object.keys(contentByStatus).length === 0 ? `<div class="mkt-empty"><p>${t.noContent}</p></div>` : Object.entries(contentByStatus).map(([k, v]) => {
+                            return `<div style="padding: 12px 14px; border: 1px solid rgba(249,115,22,0.18); border-radius: 12px; background: rgba(0,0,0,0.25); color: rgba(255,255,255,0.85);"><div style="font-weight:700;">${mktEscapeHtml(k)}</div><div style="margin-top: 6px; color: rgba(255,255,255,0.6); font-size: 12px;">${v} ${t.items}</div></div>`;
                         }).join('')}
                     </div>
                 </div>
@@ -24416,11 +24769,17 @@ function showAddProjectModal() {
         }
         
         function renderDashboardTopCampaigns() {
+            const lang = (typeof getAppLanguage === 'function' && getAppLanguage() === 'en') ? 'en' : 'fr';
+            const t = {
+                empty: lang === 'en' ? 'No campaign' : 'Aucune campagne',
+                defaultName: lang === 'en' ? 'Campaign' : 'Campagne'
+            };
+            
             const campaigns = mktLoad(MARKETING_STORAGE_KEYS.campaigns, []);
             const container = document.getElementById('mktTopCampaigns');
             
             if (campaigns.length === 0) {
-                container.innerHTML = '<div class="mkt-empty"><p>Aucune campagne</p></div>';
+                container.innerHTML = `<div class="mkt-empty"><p>${t.empty}</p></div>`;
                 return;
             }
             
@@ -24428,7 +24787,7 @@ function showAddProjectModal() {
             container.innerHTML = topCampaigns.map(campaign => `
                 <div style="padding: 12px 0; border-bottom: 1px solid rgba(249, 115, 22, 0.2);">
                     <div style="display: flex; justify-content: space-between; align-items: center;">
-                        <span style="color: white; font-weight: 600;">${mktEscapeHtml(campaign.name || 'Campagne')}</span>
+                        <span style="color: white; font-weight: 600;">${mktEscapeHtml(campaign.name || t.defaultName)}</span>
                         <span style="color: #6ee7b7; font-weight: 600;">${mktToNumber(campaign.roi, 0)}% ROI</span>
                     </div>
                 </div>
@@ -24436,11 +24795,16 @@ function showAddProjectModal() {
         }
         
         function renderDashboardObjectives() {
+            const lang = (typeof getAppLanguage === 'function' && getAppLanguage() === 'en') ? 'en' : 'fr';
+            const t = {
+                empty: lang === 'en' ? 'No objective defined' : 'Aucun objectif défini'
+            };
+
             const business = mktLoad(MARKETING_STORAGE_KEYS.business, {});
             const container = document.getElementById('mktObjectives');
             
             if (!business.objectives || business.objectives.length === 0) {
-                container.innerHTML = '<div class="mkt-empty"><p>Aucun objectif défini</p></div>';
+                container.innerHTML = `<div class="mkt-empty"><p>${t.empty}</p></div>`;
                 return;
             }
             
@@ -25151,51 +25515,73 @@ N'inclus des actions QUE si l'utilisateur demande explicitement de modifier/ajou
         // CAMPAGNES (CRUD)
         // ====================================
         function showAddCampaignModal(campaignId) {
+            const lang = (typeof getAppLanguage === 'function' && getAppLanguage() === 'en') ? 'en' : 'fr';
+            const t = {
+                titleEdit: lang === 'en' ? 'Edit Campaign' : 'Modifier la campagne',
+                titleNew: lang === 'en' ? 'New Campaign' : 'Nouvelle campagne',
+                subtitle: lang === 'en' ? 'Fill in main fields. KPIs are calculated automatically.' : 'Renseignez les champs principaux. Les KPIs se recalculent automatiquement.',
+                primaryEdit: lang === 'en' ? 'Update' : 'Mettre à jour',
+                primaryNew: lang === 'en' ? 'Create' : 'Créer',
+                name: lang === 'en' ? 'Name *' : 'Nom *',
+                type: 'Type',
+                placeholderType: lang === 'en' ? 'ex: Ads, SEO, Email' : 'ex: Ads, SEO, Email',
+                status: 'Status',
+                budget: lang === 'en' ? 'Budget' : 'Budget',
+                spent: lang === 'en' ? 'Spent' : 'Dépensé',
+                leads: 'Leads',
+                roi: 'ROI',
+                start: lang === 'en' ? 'Start' : 'Début',
+                end: lang === 'en' ? 'End' : 'Fin',
+                toastName: lang === 'en' ? 'Campaign name required.' : 'Nom de campagne requis.',
+                toastUpdate: lang === 'en' ? 'Campaign updated.' : 'Campagne mise à jour.',
+                toastCreate: lang === 'en' ? 'Campaign created.' : 'Campagne créée.'
+            };
+
             const campaigns = mktLoad(MARKETING_STORAGE_KEYS.campaigns, []);
             const existing = campaignId ? campaigns.find(c => String(c.id) === String(campaignId)) : null;
 
             mktOpenModal({
-                title: existing ? 'Modifier la campagne' : 'Nouvelle campagne',
-                subtitle: 'Renseignez les champs principaux. Les KPIs se recalculent automatiquement.',
-                primaryLabel: existing ? 'Mettre à jour' : 'Créer',
+                title: existing ? t.titleEdit : t.titleNew,
+                subtitle: t.subtitle,
+                primaryLabel: existing ? t.primaryEdit : t.primaryNew,
                 bodyHtml: `
                     <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px;">
                         <div>
-                            <label style="display:block; font-size:12px; color: rgba(255,255,255,0.65); margin-bottom:6px;">Nom *</label>
+                            <label style="display:block; font-size:12px; color: rgba(255,255,255,0.65); margin-bottom:6px;">${t.name}</label>
                             <input name="name" class="mkt-input" required value="${mktEscapeHtml(existing?.name || '')}" />
                         </div>
                         <div>
-                            <label style="display:block; font-size:12px; color: rgba(255,255,255,0.65); margin-bottom:6px;">Type</label>
-                            <input name="type" class="mkt-input" placeholder="ex: Ads, SEO, Email" value="${mktEscapeHtml(existing?.type || '')}" />
+                            <label style="display:block; font-size:12px; color: rgba(255,255,255,0.65); margin-bottom:6px;">${t.type}</label>
+                            <input name="type" class="mkt-input" placeholder="${t.placeholderType}" value="${mktEscapeHtml(existing?.type || '')}" />
                         </div>
                         <div>
-                            <label style="display:block; font-size:12px; color: rgba(255,255,255,0.65); margin-bottom:6px;">Statut</label>
+                            <label style="display:block; font-size:12px; color: rgba(255,255,255,0.65); margin-bottom:6px;">${t.status}</label>
                             <select name="status" class="mkt-input">
                                 ${['draft','active','paused','completed'].map(s => `<option value="${s}" ${String(existing?.status||'draft')===s?'selected':''}>${s}</option>`).join('')}
                             </select>
                         </div>
                         <div>
-                            <label style="display:block; font-size:12px; color: rgba(255,255,255,0.65); margin-bottom:6px;">Budget (${mktCurrencyLabel()})</label>
+                            <label style="display:block; font-size:12px; color: rgba(255,255,255,0.65); margin-bottom:6px;">${t.budget} (${mktCurrencyLabel()})</label>
                             <input name="budget" type="number" min="0" step="1" class="mkt-input" value="${mktEscapeHtml(existing?.budget ?? 0)}" />
                         </div>
                         <div>
-                            <label style="display:block; font-size:12px; color: rgba(255,255,255,0.65); margin-bottom:6px;">Dépensé (${mktCurrencyLabel()})</label>
+                            <label style="display:block; font-size:12px; color: rgba(255,255,255,0.65); margin-bottom:6px;">${t.spent} (${mktCurrencyLabel()})</label>
                             <input name="spent" type="number" min="0" step="1" class="mkt-input" value="${mktEscapeHtml(existing?.spent ?? 0)}" />
                         </div>
                         <div>
-                            <label style="display:block; font-size:12px; color: rgba(255,255,255,0.65); margin-bottom:6px;">Leads</label>
+                            <label style="display:block; font-size:12px; color: rgba(255,255,255,0.65); margin-bottom:6px;">${t.leads}</label>
                             <input name="leads" type="number" min="0" step="1" class="mkt-input" value="${mktEscapeHtml(existing?.leads ?? 0)}" />
                         </div>
                         <div>
-                            <label style="display:block; font-size:12px; color: rgba(255,255,255,0.65); margin-bottom:6px;">ROI (%)</label>
+                            <label style="display:block; font-size:12px; color: rgba(255,255,255,0.65); margin-bottom:6px;">${t.roi} (%)</label>
                             <input name="roi" type="number" step="1" class="mkt-input" value="${mktEscapeHtml(existing?.roi ?? 0)}" />
                         </div>
                         <div>
-                            <label style="display:block; font-size:12px; color: rgba(255,255,255,0.65); margin-bottom:6px;">Début</label>
+                            <label style="display:block; font-size:12px; color: rgba(255,255,255,0.65); margin-bottom:6px;">${t.start}</label>
                             <input name="startDate" type="date" class="mkt-input" value="${mktEscapeHtml(existing?.startDate || '')}" />
                         </div>
                         <div>
-                            <label style="display:block; font-size:12px; color: rgba(255,255,255,0.65); margin-bottom:6px;">Fin</label>
+                            <label style="display:block; font-size:12px; color: rgba(255,255,255,0.65); margin-bottom:6px;">${t.end}</label>
                             <input name="endDate" type="date" class="mkt-input" value="${mktEscapeHtml(existing?.endDate || '')}" />
                         </div>
                     </div>
@@ -25217,7 +25603,7 @@ N'inclus des actions QUE si l'utilisateur demande explicitement de modifier/ajou
                     };
 
                     if (!next.name) {
-                        showToast('Nom de campagne requis.', 'error');
+                        showToast(t.toastName, 'error');
                         return;
                     }
 
@@ -25231,61 +25617,87 @@ N'inclus des actions QUE si l'utilisateur demande explicitement de modifier/ajou
                     mktSave(MARKETING_STORAGE_KEYS.campaigns, campaigns);
                     mktCloseModal();
                     refreshMarketingUI();
-                    showToast(existing ? 'Campagne mise à jour.' : 'Campagne créée.', 'success');
+                    showToast(existing ? t.toastUpdate : t.toastCreate, 'success');
                 }
             });
         }
 
         function deleteMarketingCampaign(campaignId) {
+            const lang = (typeof getAppLanguage === 'function' && getAppLanguage() === 'en') ? 'en' : 'fr';
+            const t = {
+                confirm: lang === 'en' ? 'Delete campaign' : 'Supprimer la campagne',
+                defaultName: lang === 'en' ? 'Campaign' : 'Campagne',
+                toast: lang === 'en' ? 'Campaign deleted.' : 'Campagne supprimée.'
+            };
+            
             const campaigns = mktLoad(MARKETING_STORAGE_KEYS.campaigns, []);
             const existing = campaigns.find(c => String(c.id) === String(campaignId));
             if (!existing) return;
-            if (!confirm(`Supprimer la campagne "${existing.name || 'Campagne'}" ?`)) return;
+            if (!confirm(`${t.confirm} "${existing.name || t.defaultName}" ?`)) return;
             const next = campaigns.filter(c => String(c.id) !== String(campaignId));
             mktSave(MARKETING_STORAGE_KEYS.campaigns, next);
             refreshMarketingUI();
-            showToast('Campagne supprimée.', 'success');
+            showToast(t.toast, 'success');
         }
 
         // ====================================
         // PERSONAS (CRUD)
         // ====================================
         function showAddPersonaModal(personaId) {
+             const lang = (typeof getAppLanguage === 'function' && getAppLanguage() === 'en') ? 'en' : 'fr';
+             const t = {
+                titleEdit: lang === 'en' ? 'Edit Persona' : 'Modifier le persona',
+                titleNew: lang === 'en' ? 'Create Persona' : 'Créer un persona',
+                subtitle: lang === 'en' ? 'Describe your ideal customer. Use comma separated lists.' : 'Décrivez votre client idéal. Utilisez des listes séparées par des virgules.',
+                primaryEdit: lang === 'en' ? 'Update' : 'Mettre à jour',
+                primaryNew: lang === 'en' ? 'Create' : 'Créer',
+                name: lang === 'en' ? 'Name *' : 'Nom *',
+                age: lang === 'en' ? 'Age' : 'Âge',
+                profession: lang === 'en' ? 'Profession' : 'Profession',
+                goals: lang === 'en' ? 'Goals (comma separated)' : 'Objectifs (séparés par des virgules)',
+                goalsPlaceholder: lang === 'en' ? 'ex: save time, reduce costs' : 'ex: gagner du temps, réduire les coûts',
+                painPoints: lang === 'en' ? 'Pain points (comma separated)' : 'Pain points (séparés par des virgules)',
+                painPointsPlaceholder: lang === 'en' ? 'ex: lack of visibility, limited budget' : 'ex: manque de visibilité, budget limité',
+                toastName: lang === 'en' ? 'Persona name required.' : 'Nom du persona requis.',
+                toastUpdate: lang === 'en' ? 'Persona updated.' : 'Persona mis à jour.',
+                toastCreate: lang === 'en' ? 'Persona created.' : 'Persona créé.'
+             };
+
             const personas = mktLoad(MARKETING_STORAGE_KEYS.personas, []);
             const existing = personaId ? personas.find(p => String(p.id) === String(personaId)) : null;
 
             mktOpenModal({
-                title: existing ? 'Modifier le persona' : 'Créer un persona',
-                subtitle: 'Décrivez votre client idéal. Utilisez des listes séparées par des virgules.',
-                primaryLabel: existing ? 'Mettre à jour' : 'Créer',
+                title: existing ? t.titleEdit : t.titleNew,
+                subtitle: t.subtitle,
+                primaryLabel: existing ? t.primaryEdit : t.primaryNew,
                 bodyHtml: `
                     <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px;">
                         <div>
-                            <label style="display:block; font-size:12px; color: rgba(255,255,255,0.65); margin-bottom:6px;">Nom *</label>
+                            <label style="display:block; font-size:12px; color: rgba(255,255,255,0.65); margin-bottom:6px;">${t.name}</label>
                             <input name="name" class="mkt-input" required value="${mktEscapeHtml(existing?.name || '')}" />
                         </div>
                         <div>
-                            <label style="display:block; font-size:12px; color: rgba(255,255,255,0.65); margin-bottom:6px;">Âge</label>
+                            <label style="display:block; font-size:12px; color: rgba(255,255,255,0.65); margin-bottom:6px;">${t.age}</label>
                             <input name="age" type="number" min="0" step="1" class="mkt-input" value="${mktEscapeHtml(existing?.age ?? '')}" />
                         </div>
                         <div style="grid-column: 1 / -1;">
-                            <label style="display:block; font-size:12px; color: rgba(255,255,255,0.65); margin-bottom:6px;">Profession</label>
+                            <label style="display:block; font-size:12px; color: rgba(255,255,255,0.65); margin-bottom:6px;">${t.profession}</label>
                             <input name="profession" class="mkt-input" value="${mktEscapeHtml(existing?.profession || '')}" />
                         </div>
                         <div style="grid-column: 1 / -1;">
-                            <label style="display:block; font-size:12px; color: rgba(255,255,255,0.65); margin-bottom:6px;">Objectifs (séparés par des virgules)</label>
-                            <input name="goals" class="mkt-input" placeholder="ex: gagner du temps, réduire les coûts" value="${mktEscapeHtml((existing?.goals || []).join(', '))}" />
+                            <label style="display:block; font-size:12px; color: rgba(255,255,255,0.65); margin-bottom:6px;">${t.goals}</label>
+                            <input name="goals" class="mkt-input" placeholder="${t.goalsPlaceholder}" value="${mktEscapeHtml((existing?.goals || []).join(', '))}" />
                         </div>
                         <div style="grid-column: 1 / -1;">
-                            <label style="display:block; font-size:12px; color: rgba(255,255,255,0.65); margin-bottom:6px;">Pain points (séparés par des virgules)</label>
-                            <input name="painPoints" class="mkt-input" placeholder="ex: manque de visibilité, budget limité" value="${mktEscapeHtml((existing?.painPoints || []).join(', '))}" />
+                            <label style="display:block; font-size:12px; color: rgba(255,255,255,0.65); margin-bottom:6px;">${t.painPoints}</label>
+                            <input name="painPoints" class="mkt-input" placeholder="${t.painPointsPlaceholder}" value="${mktEscapeHtml((existing?.painPoints || []).join(', '))}" />
                         </div>
                     </div>
                 `,
                 onSubmit: (fd) => {
                     const name = String(fd.get('name') || '').trim();
                     if (!name) {
-                        showToast('Nom de persona requis.', 'error');
+                        showToast(t.toastName, 'error');
                         return;
                     }
 
@@ -25316,57 +25728,82 @@ N'inclus des actions QUE si l'utilisateur demande explicitement de modifier/ajou
                     mktSave(MARKETING_STORAGE_KEYS.personas, personas);
                     mktCloseModal();
                     refreshMarketingUI();
-                    showToast(existing ? 'Persona mis à jour.' : 'Persona créé.', 'success');
+                    showToast(existing ? t.toastUpdate : t.toastCreate, 'success');
                 }
             });
         }
 
         function deleteMarketingPersona(personaId) {
+            const lang = (typeof getAppLanguage === 'function' && getAppLanguage() === 'en') ? 'en' : 'fr';
+            const t = {
+               confirm: lang === 'en' ? 'Delete persona' : 'Supprimer le persona',
+               defaultName: lang === 'en' ? 'Persona' : 'Persona',
+               toast: lang === 'en' ? 'Persona deleted.' : 'Persona supprimé.'
+            };
+            
             const personas = mktLoad(MARKETING_STORAGE_KEYS.personas, []);
             const existing = personas.find(p => String(p.id) === String(personaId));
             if (!existing) return;
-            if (!confirm(`Supprimer le persona "${existing.name || 'Persona'}" ?`)) return;
+            if (!confirm(`${t.confirm} "${existing.name || t.defaultName}" ?`)) return;
             const next = personas.filter(p => String(p.id) !== String(personaId));
             mktSave(MARKETING_STORAGE_KEYS.personas, next);
             refreshMarketingUI();
-            showToast('Persona supprimé.', 'success');
+            showToast(t.toast, 'success');
         }
 
         // ====================================
         // CONTENU (CRUD)
         // ====================================
         function showAddContentModal(contentId) {
+             const lang = (typeof getAppLanguage === 'function' && getAppLanguage() === 'en') ? 'en' : 'fr';
+             const t = {
+                titleEdit: lang === 'en' ? 'Edit Content' : 'Modifier le contenu',
+                titleNew: lang === 'en' ? 'New Content' : 'Nouveau contenu',
+                subtitle: lang === 'en' ? 'Plan your production (type, status, date).' : 'Planifiez votre production (type, statut, date).',
+                primaryEdit: lang === 'en' ? 'Update' : 'Mettre à jour',
+                primaryNew: lang === 'en' ? 'Create' : 'Créer',
+                titleLabel: lang === 'en' ? 'Title *' : 'Titre *',
+                type: 'Type',
+                status: 'Status',
+                channel: lang === 'en' ? 'Channel' : 'Canal',
+                channelPlaceholder: lang === 'en' ? 'ex: LinkedIn, Blog' : 'ex: LinkedIn, Blog',
+                date: 'Date',
+                toastTitle: lang === 'en' ? 'Title required.' : 'Titre requis.',
+                toastUpdate: lang === 'en' ? 'Content updated.' : 'Contenu mis à jour.',
+                toastCreate: lang === 'en' ? 'Content created.' : 'Contenu créé.'
+             };
+
             const items = mktLoad(MARKETING_STORAGE_KEYS.content, []);
             const existing = contentId ? items.find(i => String(i.id) === String(contentId)) : null;
 
             mktOpenModal({
-                title: existing ? 'Modifier le contenu' : 'Nouveau contenu',
-                subtitle: 'Planifiez votre production (type, statut, date).',
-                primaryLabel: existing ? 'Mettre à jour' : 'Créer',
+                title: existing ? t.titleEdit : t.titleNew,
+                subtitle: t.subtitle,
+                primaryLabel: existing ? t.primaryEdit : t.primaryNew,
                 bodyHtml: `
                     <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px;">
                         <div style="grid-column: 1 / -1;">
-                            <label style="display:block; font-size:12px; color: rgba(255,255,255,0.65); margin-bottom:6px;">Titre *</label>
+                            <label style="display:block; font-size:12px; color: rgba(255,255,255,0.65); margin-bottom:6px;">${t.titleLabel}</label>
                             <input name="title" class="mkt-input" required value="${mktEscapeHtml(existing?.title || '')}" />
                         </div>
                         <div>
-                            <label style="display:block; font-size:12px; color: rgba(255,255,255,0.65); margin-bottom:6px;">Type</label>
+                            <label style="display:block; font-size:12px; color: rgba(255,255,255,0.65); margin-bottom:6px;">${t.type}</label>
                             <select name="type" class="mkt-input">
-                                ${['blog','social','email','landing','video','other'].map(t => `<option value="${t}" ${String(existing?.type||'blog')===t?'selected':''}>${t}</option>`).join('')}
+                                ${['blog','social','email','landing','video','other'].map(type => `<option value="${type}" ${String(existing?.type||'blog')===type?'selected':''}>${type}</option>`).join('')}
                             </select>
                         </div>
                         <div>
-                            <label style="display:block; font-size:12px; color: rgba(255,255,255,0.65); margin-bottom:6px;">Statut</label>
+                            <label style="display:block; font-size:12px; color: rgba(255,255,255,0.65); margin-bottom:6px;">${t.status}</label>
                             <select name="status" class="mkt-input">
                                 ${['draft','scheduled','published'].map(s => `<option value="${s}" ${String(existing?.status||'draft')===s?'selected':''}>${s}</option>`).join('')}
                             </select>
                         </div>
                         <div>
-                            <label style="display:block; font-size:12px; color: rgba(255,255,255,0.65); margin-bottom:6px;">Canal</label>
-                            <input name="channel" class="mkt-input" placeholder="ex: LinkedIn, Blog" value="${mktEscapeHtml(existing?.channel || '')}" />
+                            <label style="display:block; font-size:12px; color: rgba(255,255,255,0.65); margin-bottom:6px;">${t.channel}</label>
+                            <input name="channel" class="mkt-input" placeholder="${t.channelPlaceholder}" value="${mktEscapeHtml(existing?.channel || '')}" />
                         </div>
                         <div>
-                            <label style="display:block; font-size:12px; color: rgba(255,255,255,0.65); margin-bottom:6px;">Date</label>
+                            <label style="display:block; font-size:12px; color: rgba(255,255,255,0.65); margin-bottom:6px;">${t.date}</label>
                             <input name="publishDate" type="date" class="mkt-input" value="${mktEscapeHtml(existing?.publishDate || '')}" />
                         </div>
                     </div>
@@ -25374,7 +25811,7 @@ N'inclus des actions QUE si l'utilisateur demande explicitement de modifier/ajou
                 onSubmit: (fd) => {
                     const title = String(fd.get('title') || '').trim();
                     if (!title) {
-                        showToast('Titre requis.', 'error');
+                        showToast(t.toastTitle, 'error');
                         return;
                     }
 
@@ -25399,26 +25836,38 @@ N'inclus des actions QUE si l'utilisateur demande explicitement de modifier/ajou
                     mktSave(MARKETING_STORAGE_KEYS.content, items);
                     mktCloseModal();
                     refreshMarketingUI();
-                    showToast(existing ? 'Contenu mis à jour.' : 'Contenu créé.', 'success');
+                    showToast(existing ? t.toastUpdate : t.toastCreate, 'success');
                 }
             });
         }
 
         function deleteMarketingContent(contentId) {
+            const lang = (typeof getAppLanguage === 'function' && getAppLanguage() === 'en') ? 'en' : 'fr';
+            const t = {
+               confirm: lang === 'en' ? 'Delete content' : 'Supprimer le contenu',
+               defaultTitle: lang === 'en' ? 'Content' : 'Contenu',
+               toast: lang === 'en' ? 'Content deleted.' : 'Contenu supprimé.'
+            };
+            
             const items = mktLoad(MARKETING_STORAGE_KEYS.content, []);
             const existing = items.find(i => String(i.id) === String(contentId));
             if (!existing) return;
-            if (!confirm(`Supprimer le contenu "${existing.title || 'Contenu'}" ?`)) return;
+            if (!confirm(`${t.confirm} "${existing.title || t.defaultTitle}" ?`)) return;
             const next = items.filter(i => String(i.id) !== String(contentId));
             mktSave(MARKETING_STORAGE_KEYS.content, next);
             refreshMarketingUI();
-            showToast('Contenu supprimé.', 'success');
+            showToast(t.toast, 'success');
         }
 
         // ====================================
         // BUSINESS (édition)
         // ====================================
         function saveMarketingBusiness() {
+            const lang = (typeof getAppLanguage === 'function' && getAppLanguage() === 'en') ? 'en' : 'fr';
+            const t = {
+                toast: lang === 'en' ? 'Business settings updated.' : 'Business mis à jour.'
+            };
+            
             const model = document.getElementById('mktBusinessModel');
             const pricing = document.getElementById('mktBusinessPricing');
             const ltv = document.getElementById('mktBusinessLtv');
@@ -25438,23 +25887,35 @@ N'inclus des actions QUE si l'utilisateur demande explicitement de modifier/ajou
             };
             mktSave(MARKETING_STORAGE_KEYS.business, next);
             refreshMarketingUI();
-            showToast('Business mis à jour.', 'success');
+            showToast(t.toast, 'success');
         }
 
         function showAddObjectiveModal() {
+            const lang = (typeof getAppLanguage === 'function' && getAppLanguage() === 'en') ? 'en' : 'fr';
+            const t = {
+                title: lang === 'en' ? 'Add Objective' : 'Ajouter un objectif',
+                subtitle: lang === 'en' ? `Ex: "+200 leads" / "MRR 1M ${mktCurrencyLabel()}".` : `Ex: “+200 leads” / “MRR 1M ${mktCurrencyLabel()}”.`,
+                primary: lang === 'en' ? 'Add' : 'Ajouter',
+                titleLabel: lang === 'en' ? 'Title *' : 'Titre *',
+                targetLabel: lang === 'en' ? 'Target' : 'Cible',
+                targetPlaceholder: lang === 'en' ? 'ex: Q1 2026, 10% churn max' : 'ex: Q1 2026, 10% churn max',
+                toastTitle: lang === 'en' ? 'Title required.' : 'Titre requis.',
+                toastSuccess: lang === 'en' ? 'Objective added.' : 'Objectif ajouté.'
+            };
+            
             mktOpenModal({
-                title: 'Ajouter un objectif',
-                subtitle: `Ex: “+200 leads” / “MRR 1M ${mktCurrencyLabel()}”.`,
-                primaryLabel: 'Ajouter',
+                title: t.title,
+                subtitle: t.subtitle,
+                primaryLabel: t.primary,
                 bodyHtml: `
                     <div style="display:grid; grid-template-columns: 1fr; gap: 12px;">
                         <div>
-                            <label style="display:block; font-size:12px; color: rgba(255,255,255,0.65); margin-bottom:6px;">Titre *</label>
+                            <label style="display:block; font-size:12px; color: rgba(255,255,255,0.65); margin-bottom:6px;">${t.titleLabel}</label>
                             <input name="title" class="mkt-input" required />
                         </div>
                         <div>
-                            <label style="display:block; font-size:12px; color: rgba(255,255,255,0.65); margin-bottom:6px;">Cible</label>
-                            <input name="target" class="mkt-input" placeholder="ex: Q1 2026, 10% churn max" />
+                            <label style="display:block; font-size:12px; color: rgba(255,255,255,0.65); margin-bottom:6px;">${t.targetLabel}</label>
+                            <input name="target" class="mkt-input" placeholder="${t.targetPlaceholder}" />
                         </div>
                     </div>
                 `,
@@ -25462,7 +25923,7 @@ N'inclus des actions QUE si l'utilisateur demande explicitement de modifier/ajou
                     const title = String(fd.get('title') || '').trim();
                     const target = String(fd.get('target') || '').trim();
                     if (!title) {
-                        showToast('Titre requis.', 'error');
+                        showToast(t.toastTitle, 'error');
                         return;
                     }
                     const business = mktLoad(MARKETING_STORAGE_KEYS.business, {});
@@ -25471,20 +25932,26 @@ N'inclus des actions QUE si l'utilisateur demande explicitement de modifier/ajou
                     mktSave(MARKETING_STORAGE_KEYS.business, { ...business, objectives, updatedAt: new Date().toISOString() });
                     mktCloseModal();
                     refreshMarketingUI();
-                    showToast('Objectif ajouté.', 'success');
+                    showToast(t.toastSuccess, 'success');
                 }
             });
         }
 
         function deleteMarketingObjective(index) {
+            const lang = (typeof getAppLanguage === 'function' && getAppLanguage() === 'en') ? 'en' : 'fr';
+            const t = {
+                confirm: lang === 'en' ? 'Delete this objective?' : 'Supprimer cet objectif ?',
+                toast: lang === 'en' ? 'Objective deleted.' : 'Objectif supprimé.'
+            };
+
             const business = mktLoad(MARKETING_STORAGE_KEYS.business, {});
             const objectives = Array.isArray(business.objectives) ? business.objectives : [];
             if (index < 0 || index >= objectives.length) return;
-            if (!confirm('Supprimer cet objectif ?')) return;
+            if (!confirm(t.confirm)) return;
             objectives.splice(index, 1);
             mktSave(MARKETING_STORAGE_KEYS.business, { ...business, objectives, updatedAt: new Date().toISOString() });
             refreshMarketingUI();
-            showToast('Objectif supprimé.', 'success');
+            showToast(t.toast, 'success');
         }
         
         function showHRTab(tabName) {
