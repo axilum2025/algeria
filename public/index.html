@@ -19644,6 +19644,163 @@ ${persona}
         // R&D MANAGEMENT SYSTEM
         // ====================================
         
+        function showRnDHelp() {
+            const lang = (typeof getAppLanguage === 'function' && getAppLanguage() === 'en') ? 'en' : 'fr';
+            const isEn = (lang === 'en');
+            
+            const existingHelp = document.getElementById('rnd-help-modal');
+            if (existingHelp) existingHelp.remove();
+            
+            const helpModal = document.createElement('div');
+            helpModal.id = 'rnd-help-modal';
+            helpModal.style.cssText = `
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: rgba(0, 0, 0, 0.85);
+                z-index: 10002;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                padding: 20px;
+                backdrop-filter: blur(5px);
+                animation: fadeIn 0.2s ease-out;
+            `;
+            
+            const title = isEn ? 'Agent Dev User Guide' : 'Guide Complet Agent Dev';
+            const subtitle = isEn ? 'Master the Research & Development Hub' : 'Maîtriser le R&D Hub';
+            const closeText = isEn ? 'Close Guide' : 'Fermer le guide';
+            
+            const contentFr = `
+                <h3>1. Introduction</h3>
+                <p><strong>Agent Dev</strong> est votre assistant spécialisé en Recherche & Développement, Innovation et gestion de projets techniques.</p>
+                
+                <h3>2. Fonctionnalités Clés</h3>
+                <ul>
+                    <li><strong>Projets :</strong> Suivi des projets de recherche, budgets et ressources.</li>
+                    <li><strong>Jalons :</strong> Gestion des étapes clés (Milestones) et KPIs.</li>
+                    <li><strong>Documents :</strong> Centralisation de la documentation technique et spécifications.</li>
+                    <li><strong>Risques :</strong> Analyse et mitigation des risques projets.</li>
+                </ul>
+                
+                <h3>3. Commandes Utiles</h3>
+                <ul>
+                    <li><code>/projet [nom]</code> : Créer ou analyser un projet.</li>
+                    <li><code>/risque</code> : Identifier les risques potentiels.</li>
+                    <li><code>/roadmap</code> : Générer une roadmap de développement.</li>
+                </ul>
+                
+                <h3>4. Astuces</h3>
+                <p>Utilisez l'Agent Dev pour générer des spécifications techniques ou analyser la faisabilité de nouvelles idées.</p>
+            `;
+            
+            const contentEn = `
+                <h3>1. Introduction</h3>
+                <p><strong>Agent Dev</strong> is your specialized assistant for Research & Development, Innovation, and technical project management.</p>
+                
+                <h3>2. Key Features</h3>
+                <ul>
+                    <li><strong>Projects:</strong> Track research projects, budgets, and resources.</li>
+                    <li><strong>Milestones:</strong> Manage key milestones and KPIs.</li>
+                    <li><strong>Documents:</strong> Centralize technical documentation and specs.</li>
+                    <li><strong>Risks:</strong> Analyze and mitigate project risks.</li>
+                </ul>
+                
+                <h3>3. Useful Commands</h3>
+                <ul>
+                    <li><code>/project [name]</code> : Create or analyze a project.</li>
+                    <li><code>/risk</code> : Identify potential risks.</li>
+                    <li><code>/roadmap</code> : Generate a development roadmap.</li>
+                </ul>
+                
+                <h3>4. Tips</h3>
+                <p>Use Agent Dev to generate technical specifications or analyze the feasibility of new ideas.</p>
+            `;
+
+            helpModal.innerHTML = `
+                <div style="
+                    background: #1e1b4b;
+                    width: 100%;
+                    max-width: 700px;
+                    max-height: 85vh;
+                    border-radius: 16px;
+                    border: 1px solid rgba(99, 102, 241, 0.3);
+                    display: flex;
+                    flex-direction: column;
+                    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+                    overflow: hidden;
+                ">
+                    <div style="
+                        padding: 24px;
+                        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+                        background: rgba(99, 102, 241, 0.1);
+                        display: flex;
+                        justify-content: space-between;
+                        align-items: start;
+                    ">
+                        <div>
+                            <h2 style="margin: 0; font-size: 24px; color: white;">${title}</h2>
+                            <p style="margin: 4px 0 0; color: rgba(255, 255, 255, 0.6);">${subtitle}</p>
+                        </div>
+                        <button onclick="document.getElementById('rnd-help-modal').remove()" style="
+                            background: none;
+                            border: none;
+                            color: rgba(255, 255, 255, 0.5);
+                            cursor: pointer;
+                            padding: 4px;
+                        ">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                        </button>
+                    </div>
+                    <div style="
+                        padding: 32px;
+                        overflow-y: auto;
+                        color: rgba(255, 255, 255, 0.9);
+                        line-height: 1.6;
+                        font-family: inherit;
+                    ">
+                        <style>
+                            #rnd-help-modal h3 { color: #818cf8; margin-top: 24px; margin-bottom: 12px; font-size: 18px; }
+                            #rnd-help-modal h3:first-child { margin-top: 0; }
+                            #rnd-help-modal ul { padding-left: 20px; margin-bottom: 16px; }
+                            #rnd-help-modal li { margin-bottom: 8px; }
+                            #rnd-help-modal code { background: rgba(255, 255, 255, 0.1); padding: 2px 6px; border-radius: 4px; font-family: monospace; color: #a5b4fc; }
+                            #rnd-help-modal p { margin-bottom: 16px; }
+                        </style>
+                        ${isEn ? contentEn : contentFr}
+                    </div>
+                    <div style="
+                        padding: 20px 24px;
+                        border-top: 1px solid rgba(255, 255, 255, 0.1);
+                        background: rgba(0, 0, 0, 0.2);
+                        display: flex;
+                        justify-content: flex-end;
+                    ">
+                        <button onclick="document.getElementById('rnd-help-modal').remove()" style="
+                            padding: 10px 20px;
+                            background: linear-gradient(135deg, #6366f1, #8b5cf6);
+                            border: none;
+                            border-radius: 8px;
+                            color: white;
+                            font-weight: 600;
+                            cursor: pointer;
+                        ">${closeText}</button>
+                    </div>
+                </div>
+            `;
+            
+            document.body.appendChild(helpModal);
+            
+            // Close on click outside
+            helpModal.addEventListener('click', (e) => {
+                if (e.target === helpModal) {
+                    helpModal.remove();
+                }
+            });
+        }
+
         // Chargement modulaire du module R&D
         let rndModuleLoaded = false;
         
@@ -20011,6 +20168,28 @@ ${persona}
                         border-color: rgba(239, 68, 68, 0.5);
                         transform: rotate(90deg);
                     }
+
+                    .rnd-help-btn {
+                        position: absolute;
+                        top: 24px;
+                        right: 92px;
+                        width: 40px;
+                        height: 40px;
+                        background: rgba(255, 255, 255, 0.1);
+                        border: 1px solid rgba(255, 255, 255, 0.2);
+                        border-radius: 8px;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        cursor: pointer;
+                        transition: all 0.3s ease;
+                    }
+                    
+                    .rnd-help-btn:hover {
+                         background: rgba(99, 102, 241, 0.2);
+                         border-color: rgba(99, 102, 241, 0.5);
+                         box-shadow: 0 0 15px rgba(99, 102, 241, 0.3);
+                    }
                     
                     .rnd-chat-container {
                         background: rgba(0, 0, 0, 0.3);
@@ -20134,6 +20313,9 @@ ${persona}
                         .rnd-close-btn {
                             right: 30px;
                         }
+                        .rnd-help-btn {
+                            right: 82px;
+                        }
                         .rnd-dashboard {
                             grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
                         }
@@ -20152,6 +20334,12 @@ ${persona}
                         .rnd-close-btn {
                             top: 16px;
                             right: 20px;
+                            width: 36px;
+                            height: 36px;
+                        }
+                        .rnd-help-btn {
+                            top: 16px;
+                            right: 68px;
                             width: 36px;
                             height: 36px;
                         }
@@ -20921,6 +21109,13 @@ ${persona}
                 
                 <div class="rnd-container">
                     <div class="rnd-header">
+                        <button class="rnd-help-btn" onclick="showRnDHelp()" title="Guide">
+                             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <circle cx="12" cy="12" r="10"></circle>
+                                <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
+                                <line x1="12" y1="17" x2="12.01" y2="17"></line>
+                            </svg>
+                        </button>
                         <button class="rnd-close-btn" onclick="closeRnD()">
                             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                 <line x1="18" y1="6" x2="6" y2="18"></line>
