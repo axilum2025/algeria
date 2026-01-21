@@ -19651,6 +19651,12 @@ ${persona}
             // 🎯 Tracking: Utilisateur ouvre Research & Development
             AxilumContext.updateActivity('Research & Development Hub', 'Agent dev', 'Ouverture du module');
             
+            const lang = (typeof getAppLanguage === 'function' && getAppLanguage() === 'en') ? 'en' : 'fr';
+            const t = {
+                errorOpen: lang === 'en' ? 'Error opening AI R&D' : 'Erreur lors de l\'ouverture d\'AI R&D',
+                errorLoad: lang === 'en' ? 'Error loading AI R&D. Please try again.' : 'Erreur lors du chargement d\'AI R&D. Veuillez réessayer.'
+            };
+
             // Si le module est déjà chargé et les fonctions disponibles
             if (rndModuleLoaded && typeof openRnD === 'function') {
                 openRnD();
@@ -19668,7 +19674,7 @@ ${persona}
                     openRnD();
                 } else {
                     console.error('openRnD non disponible');
-                    alert('Erreur lors de l\'ouverture d\'AI R&D');
+                    alert(t.errorOpen);
                 }
             };
             script.onerror = function() {
@@ -19677,7 +19683,7 @@ ${persona}
                 if (typeof openRnD === 'function') {
                     openRnD();
                 } else {
-                    alert('Erreur lors du chargement d\'AI R&D. Veuillez réessayer.');
+                    alert(t.errorLoad);
                 }
             };
             document.head.appendChild(script);
@@ -19689,6 +19695,40 @@ ${persona}
             if (excelAiOverlay) {
                 excelAiOverlay.remove();
             }
+
+            const lang = (typeof getAppLanguage === 'function' && getAppLanguage() === 'en') ? 'en' : 'fr';
+            const t = {
+                title: 'Research & Development Hub',
+                subtitle: 'Innovation & Technology Center',
+                tabDashboard: 'Dashboard',
+                tabProjects: lang === 'en' ? 'R&D Projects' : 'Projets R&D',
+                tabMilestones: lang === 'en' ? 'Milestones & KPIs' : 'Jalons & KPIs',
+                tabDocs: lang === 'en' ? 'Docs & Risks' : 'Documentation & Risques',
+                tabCompany: lang === 'en' ? 'Company' : 'Entreprise',
+                tabAgent: 'Agent dev',
+                statsProjects: lang === 'en' ? 'Active Projects' : 'Projets Actifs',
+                statsMilestones: lang === 'en' ? 'Upcoming Milestones' : 'Jalons à Venir',
+                statsDocs: lang === 'en' ? 'Documents' : 'Documents',
+                statsRisks: lang === 'en' ? 'Active Risks' : 'Risques Actifs',
+                actionsReady: lang === 'en' ? 'Agent dev actions ready' : 'Actions Agent dev prêtes',
+                actionsPending: lang === 'en' ? 'action(s) pending. Click to apply.' : 'action(s) en attente. Cliquez pour appliquer au dashboard.',
+                applyActions: lang === 'en' ? 'Apply to dashboard' : 'Appliquer au dashboard',
+                priorityProjects: lang === 'en' ? 'Priority Projects' : 'Projets Prioritaires',
+                titleMilestones: lang === 'en' ? 'Milestones & Performance Indicators' : 'Jalons & Indicateurs de Performance',
+                btnAddMilestone: lang === 'en' ? 'Add Milestone' : 'Ajouter Jalon',
+                titleDocs: lang === 'en' ? 'Project Documents' : 'Documents Projet',
+                btnAddDoc: lang === 'en' ? 'Add Document' : 'Ajouter Document',
+                titleRisks: lang === 'en' ? 'Risk Management' : 'Gestion des Risques',
+                btnAddRisk: lang === 'en' ? 'Add Risk' : 'Ajouter Risque',
+                titleProjects: lang === 'en' ? 'Research Projects' : 'Projets de Recherche',
+                btnAddProject: lang === 'en' ? 'Create Project' : 'Créer Projet',
+                titleAgent: 'Agent dev',
+                agentSub: lang === 'en' ? 'AI Assistant specialized in R&D and multi-domain innovation' : 'Assistant IA spécialisé en R&D et innovation multi-domaines',
+                clearChatTitle: lang === 'en' ? 'Clear chat history' : 'Effacer l\'historique du chat',
+                btnClearChat: lang === 'en' ? 'Clear chat' : 'Effacer chat',
+                chatPlaceholder: lang === 'en' ? 'Ask a question to Agent dev...' : 'Posez votre question à Agent dev...',
+                sendBtn: lang === 'en' ? 'Send' : 'Envoyer'
+            };
             
             // Fermer HR Management s'il est ouvert
             const hrOverlay = document.getElementById('hrManagementOverlay');
@@ -20887,17 +20927,17 @@ ${persona}
                                 <line x1="6" y1="6" x2="18" y2="18"></line>
                             </svg>
                         </button>
-                        <h1 class="rnd-title">Research & Development Hub</h1>
-                        <p class="rnd-subtitle">Innovation & Technology Center</p>
+                        <h1 class="rnd-title">${t.title}</h1>
+                        <p class="rnd-subtitle">${t.subtitle}</p>
                     </div>
                     
                     <div class="rnd-tabs">
-                        <button class="rnd-tab active" onclick="showRnDTab('dashboard')">Dashboard</button>
-                        <button class="rnd-tab" onclick="showRnDTab('projets')">Projets R&D</button>
-                        <button class="rnd-tab" onclick="showRnDTab('jalons')">Jalons & KPIs</button>
-                        <button class="rnd-tab" onclick="showRnDTab('docs')">Documentation & Risques</button>
-                        <button class="rnd-tab" onclick="openCompanySettings()">Entreprise</button>
-                        <button class="rnd-tab" onclick="showRnDTab('agent')">Agent dev</button>
+                        <button class="rnd-tab active" onclick="showRnDTab('dashboard')">${t.tabDashboard}</button>
+                        <button class="rnd-tab" onclick="showRnDTab('projets')">${t.tabProjects}</button>
+                        <button class="rnd-tab" onclick="showRnDTab('jalons')">${t.tabMilestones}</button>
+                        <button class="rnd-tab" onclick="showRnDTab('docs')">${t.tabDocs}</button>
+                        <button class="rnd-tab" onclick="openCompanySettings()">${t.tabCompany}</button>
+                        <button class="rnd-tab" onclick="showRnDTab('agent')">${t.tabAgent}</button>
                     </div>
                     
                     <div class="rnd-content">
@@ -20906,36 +20946,36 @@ ${persona}
                             <div class="rnd-dashboard">
                                 <div class="rnd-stat-card">
                                     <div class="rnd-stat-value" id="rndProjectsCount">0</div>
-                                    <div class="rnd-stat-label">Projets Actifs</div>
+                                    <div class="rnd-stat-label">${t.statsProjects}</div>
                                 </div>
                                 <div class="rnd-stat-card">
                                     <div class="rnd-stat-value" id="rndMilestonesCount">0</div>
-                                    <div class="rnd-stat-label">Jalons à Venir</div>
+                                    <div class="rnd-stat-label">${t.statsMilestones}</div>
                                 </div>
                                 <div class="rnd-stat-card">
                                     <div class="rnd-stat-value" id="rndDocsCount">0</div>
-                                    <div class="rnd-stat-label">Documents</div>
+                                    <div class="rnd-stat-label">${t.statsDocs}</div>
                                 </div>
                                 <div class="rnd-stat-card">
                                     <div class="rnd-stat-value" id="rndRisksCount">0</div>
-                                    <div class="rnd-stat-label">Risques Actifs</div>
+                                    <div class="rnd-stat-label">${t.statsRisks}</div>
                                 </div>
                             </div>
 
                             <div id="rndActionsPanel" style="display:none; background: rgba(0,0,0,0.22); border: 1px solid rgba(99, 102, 241, 0.25); border-radius: 16px; padding: 16px 18px; margin: 0 0 24px;">
                                 <div style="display:flex; align-items:center; justify-content: space-between; gap: 12px; flex-wrap: wrap;">
                                     <div>
-                                        <div style="color: rgba(255,255,255,0.92); font-weight: 700;">Actions Agent dev prêtes</div>
+                                        <div style="color: rgba(255,255,255,0.92); font-weight: 700;">${t.actionsReady}</div>
                                         <div style="margin-top: 4px; color: rgba(255,255,255,0.65); font-size: 12px;">
-                                            <span id="rndActionsCount">0</span> action(s) en attente. Cliquez pour appliquer au dashboard.
+                                            <span id="rndActionsCount">0</span> ${t.actionsPending}
                                         </div>
                                     </div>
-                                    <button id="rndApplyActionsBtn" class="rnd-btn" type="button" onclick="applyRnDLatestActionBatch()">Appliquer au dashboard</button>
+                                    <button id="rndApplyActionsBtn" class="rnd-btn" type="button" onclick="applyRnDLatestActionBatch()">${t.applyActions}</button>
                                 </div>
                             </div>
                             
                             <div class="rnd-section">
-                                <div class="rnd-section-title">Projets Prioritaires</div>
+                                <div class="rnd-section-title">${t.priorityProjects}</div>
                                 <div id="rndPriorityContainer"></div>
                             </div>
                         </div>
@@ -20943,8 +20983,8 @@ ${persona}
                         <!-- Jalons & KPIs -->
                         <div id="rndJalons" class="rnd-tab-content" style="display: none;">
                             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
-                                <h2 style="margin: 0; font-size: 24px; color: white;">Jalons & Indicateurs de Performance</h2>
-                                <button class="rnd-btn" onclick="showAddMilestoneModal()">Ajouter Jalon</button>
+                                <h2 style="margin: 0; font-size: 24px; color: white;">${t.titleMilestones}</h2>
+                                <button class="rnd-btn" onclick="showAddMilestoneModal()">${t.btnAddMilestone}</button>
                             </div>
                             <div id="rndMilestonesList"></div>
                         </div>
@@ -20953,15 +20993,15 @@ ${persona}
                         <div id="rndDocs" class="rnd-tab-content" style="display: none;">
                             <div style="margin-bottom: 32px;">
                                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
-                                    <h2 style="margin: 0; font-size: 24px; color: white;">Documents Projet</h2>
-                                    <button class="rnd-btn" onclick="showAddDocumentModal()">Ajouter Document</button>
+                                    <h2 style="margin: 0; font-size: 24px; color: white;">${t.titleDocs}</h2>
+                                    <button class="rnd-btn" onclick="showAddDocumentModal()">${t.btnAddDoc}</button>
                                 </div>
                                 <div id="rndDocsList"></div>
                             </div>
                             <div>
                                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
-                                    <h2 style="margin: 0; font-size: 24px; color: white;">Gestion des Risques</h2>
-                                    <button class="rnd-btn" onclick="showAddRiskModal()">Ajouter Risque</button>
+                                    <h2 style="margin: 0; font-size: 24px; color: white;">${t.titleRisks}</h2>
+                                    <button class="rnd-btn" onclick="showAddRiskModal()">${t.btnAddRisk}</button>
                                 </div>
                                 <div id="rndRisksList"></div>
                             </div>
@@ -20970,8 +21010,8 @@ ${persona}
                         <!-- Projets R&D -->
                         <div id="rndProjets" class="rnd-tab-content" style="display: none;">
                             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
-                                <h2 style="margin: 0; font-size: 24px; color: white;">Projets de Recherche</h2>
-                                <button class="rnd-btn" onclick="showAddProjectModal()">Créer Projet</button>
+                                <h2 style="margin: 0; font-size: 24px; color: white;">${t.titleProjects}</h2>
+                                <button class="rnd-btn" onclick="showAddProjectModal()">${t.btnAddProject}</button>
                             </div>
                             <div id="rndProjectsList"></div>
                         </div>
@@ -20981,17 +21021,17 @@ ${persona}
                             <div style="margin-bottom: 24px;">
                                 <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 12px;">
                                     <div style="flex: 1;">
-                                        <h2 style="margin: 0 0 8px; font-size: 24px; color: white;">Agent dev</h2>
-                                        <p style="margin: 0 0 12px; color: rgba(255, 255, 255, 0.6); font-size: 14px;">Assistant IA spécialisé en R&D et innovation multi-domaines</p>
+                                        <h2 style="margin: 0 0 8px; font-size: 24px; color: white;">${t.titleAgent}</h2>
+                                        <p style="margin: 0 0 12px; color: rgba(255, 255, 255, 0.6); font-size: 14px;">${t.agentSub}</p>
                                     </div>
-                                    <button onclick="clearRnDChatHistory()" title="Effacer l'historique du chat" style="padding: 10px 16px; background: rgba(239, 68, 68, 0.2); border: 1px solid rgba(239, 68, 68, 0.4); border-radius: 8px; color: #fca5a5; cursor: pointer; font-size: 13px; font-weight: 600; display: flex; align-items: center; gap: 6px; transition: all 0.2s;" onmouseover="this.style.background='rgba(239, 68, 68, 0.3)'" onmouseout="this.style.background='rgba(239, 68, 68, 0.2)'">
+                                    <button onclick="clearRnDChatHistory()" title="${t.clearChatTitle}" style="padding: 10px 16px; background: rgba(239, 68, 68, 0.2); border: 1px solid rgba(239, 68, 68, 0.4); border-radius: 8px; color: #fca5a5; cursor: pointer; font-size: 13px; font-weight: 600; display: flex; align-items: center; gap: 6px; transition: all 0.2s;" onmouseover="this.style.background='rgba(239, 68, 68, 0.3)'" onmouseout="this.style.background='rgba(239, 68, 68, 0.2)'">
                                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                             <polyline points="3 6 5 6 21 6"></polyline>
-                                            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                                            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
                                             <line x1="10" y1="11" x2="10" y2="17"></line>
                                             <line x1="14" y1="11" x2="14" y2="17"></line>
                                         </svg>
-                                        Effacer chat
+                                        ${t.btnClearChat}
                                     </button>
                                 </div>
                             </div>
@@ -20999,8 +21039,8 @@ ${persona}
                             <div class="rnd-chat-container">
                                 <div class="rnd-chat-messages" id="rndChatMessages"></div>
                                 <div class="rnd-chat-input">
-                                    <input type="text" class="rnd-input" id="rndChatInput" placeholder="Posez votre question à Agent dev..." onkeypress="if(event.key==='Enter') sendRnDMessage()">
-                                    <button class="rnd-btn" onclick="sendRnDMessage()">Envoyer</button>
+                                    <input type="text" class="rnd-input" id="rndChatInput" placeholder="${t.chatPlaceholder}" onkeypress="if(event.key==='Enter') sendRnDMessage()">
+                                    <button class="rnd-btn" onclick="sendRnDMessage()">${t.sendBtn}</button>
                                 </div>
                             </div>
                         </div>
@@ -21081,6 +21121,19 @@ ${persona}
         }
         
         function renderMilestonesList() {
+            const lang = (typeof getAppLanguage === 'function' && getAppLanguage() === 'en') ? 'en' : 'fr';
+            const t = {
+                emptyTitle: lang === 'en' ? 'No milestones defined' : 'Aucun jalon défini',
+                emptyDesc: lang === 'en' ? 'Add milestones to track your project progress' : "Ajoutez des jalons pour suivre l'avancement de vos projets",
+                project: lang === 'en' ? 'Project:' : 'Projet:',
+                complete: lang === 'en' ? 'Complete (mark as done)' : 'Effectuer (marquer comme complété)',
+                delete: lang === 'en' ? 'Delete milestone' : 'Supprimer le jalon',
+                statusCompleted: lang === 'en' ? '✓ Completed' : '✓ Complété',
+                statusDelayed: lang === 'en' ? '⚠ Delayed' : '⚠ Retard',
+                statusUpcoming: lang === 'en' ? '⏳ Upcoming' : '⏳ À venir',
+                kpis: lang === 'en' ? 'Associated KPIs:' : 'KPIs Associés:'
+            };
+
             const milestones = JSON.parse(localStorage.getItem('rndMilestones') || '[]');
             const container = document.getElementById('rndMilestonesList');
             
@@ -21089,8 +21142,8 @@ ${persona}
             if (milestones.length === 0) {
                 container.innerHTML = `
                     <div class="rnd-empty">
-                        <div class="rnd-empty-title">Aucun jalon défini</div>
-                        <p>Ajoutez des jalons pour suivre l'avancement de vos projets</p>
+                        <div class="rnd-empty-title">${t.emptyTitle}</div>
+                        <p>${t.emptyDesc}</p>
                     </div>
                 `;
                 return;
@@ -21109,19 +21162,19 @@ ${persona}
                         <div style="flex: 1;">
                             <h3 style="margin: 0 0 4px; font-size: 18px; color: white;">${milestone.titre}</h3>
                             <p style="margin: 0 0 8px; color: rgba(255, 255, 255, 0.7); font-size: 14px;">${milestone.description}</p>
-                            ${project ? `<div style="font-size: 12px; color: rgba(99, 102, 241, 0.9);">Projet: ${project.titre}</div>` : ''}
+                            ${project ? `<div style="font-size: 12px; color: rgba(99, 102, 241, 0.9);">${t.project} ${project.titre}</div>` : ''}
                         </div>
                         <div style="text-align: right;">
 
                             <div style="display: flex; gap: 6px; justify-content: flex-end; margin-bottom: 8px;">
                                 ${milestone.statut !== 'complété' ? `
-                                    <button class="rnd-icon-btn" onclick="completeMilestone(${milestone.id})" title="Effectuer (marquer comme complété)">
+                                    <button class="rnd-icon-btn" onclick="completeMilestone(${milestone.id})" title="${t.complete}">
                                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                             <path d="M20 6L9 17l-5-5" />
                                         </svg>
                                     </button>
                                 ` : ''}
-                                <button class="rnd-icon-btn delete" onclick="deleteMilestone(${milestone.id})" title="Supprimer le jalon">
+                                <button class="rnd-icon-btn delete" onclick="deleteMilestone(${milestone.id})" title="${t.delete}">
                                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                         <polyline points="3 6 5 6 21 6" />
                                         <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
@@ -21132,16 +21185,16 @@ ${persona}
                                 </button>
                             </div>
                             <span class="rnd-badge rnd-badge-${milestone.statut === 'complété' ? 'high' : isPast ? 'error' : 'medium'}">
-                                ${milestone.statut === 'complété' ? '✓ Complété' : isPast ? '⚠ Retard' : '⏳ À venir'}
+                                ${milestone.statut === 'complété' ? t.statusCompleted : isPast ? t.statusDelayed : t.statusUpcoming}
                             </span>
                             <div style="margin-top: 8px; font-size: 14px; color: rgba(255, 255, 255, 0.9); font-weight: 600;">
-                                ${new Date(milestone.date).toLocaleDateString(getLocale(), { day: 'numeric', month: 'long', year: 'numeric' })}
+                                ${new Date(milestone.date).toLocaleDateString(typeof getLocale === 'function' ? getLocale() : 'en-US', { day: 'numeric', month: 'long', year: 'numeric' })}
                             </div>
                         </div>
                     </div>
                     ${milestone.kpis && milestone.kpis.length > 0 ? `
                         <div style="margin-top: 12px; padding-top: 12px; border-top: 1px solid rgba(255, 255, 255, 0.1);">
-                            <div style="font-size: 12px; color: rgba(255, 255, 255, 0.6); margin-bottom: 8px;">KPIs Associés:</div>
+                            <div style="font-size: 12px; color: rgba(255, 255, 255, 0.6); margin-bottom: 8px;">${t.kpis}</div>
                             <div style="display: flex; flex-wrap: wrap; gap: 8px;">
                                 ${milestone.kpis.map(kpi => `
                                     <div style="background: rgba(99, 102, 241, 0.1); padding: 6px 12px; border-radius: 6px; font-size: 12px;">
@@ -21158,6 +21211,15 @@ ${persona}
         }
         
         function renderDocsList() {
+            const lang = (typeof getAppLanguage === 'function' && getAppLanguage() === 'en') ? 'en' : 'fr';
+            const t = {
+                 emptyTitle: lang === 'en' ? 'No documents' : 'Aucun document',
+                 emptyDesc: lang === 'en' ? 'Add important documents for your projects' : 'Ajoutez des documents importants pour vos projets',
+                 projLabel: lang === 'en' ? 'Project:' : 'Projet:',
+                 addedOn: lang === 'en' ? 'Added on' : 'Ajouté le',
+                 viewDoc: lang === 'en' ? '🔗 View document' : '🔗 Voir le document'
+            };
+
             const documents = JSON.parse(localStorage.getItem('rndDocuments') || '[]');
             const container = document.getElementById('rndDocsList');
             
@@ -21166,8 +21228,8 @@ ${persona}
             if (documents.length === 0) {
                 container.innerHTML = `
                     <div class="rnd-empty">
-                        <div class="rnd-empty-title">Aucun document</div>
-                        <p>Ajoutez des documents importants pour vos projets</p>
+                        <div class="rnd-empty-title">${t.emptyTitle}</div>
+                        <p>${t.emptyDesc}</p>
                     </div>
                 `;
                 return;
@@ -21193,14 +21255,14 @@ ${persona}
                             <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 8px;">
                                 <div>
                                     <h3 style="margin: 0 0 4px; font-size: 18px; color: white;">${doc.titre}</h3>
-                                    ${project ? `<div style="font-size: 12px; color: rgba(99, 102, 241, 0.9);">Projet: ${project.titre}</div>` : ''}
+                                    ${project ? `<div style="font-size: 12px; color: rgba(99, 102, 241, 0.9);">${t.projLabel} ${project.titre}</div>` : ''}
                                 </div>
                                 <span class="rnd-badge rnd-badge-low">${doc.type}</span>
                             </div>
                             <p style="margin: 0 0 8px; color: rgba(255, 255, 255, 0.7); font-size: 14px;">${doc.description}</p>
                             <div style="display: flex; gap: 16px; align-items: center; font-size: 12px; color: rgba(255, 255, 255, 0.5);">
-                                <span>Ajouté le ${new Date(doc.created).toLocaleDateString(getLocale())}</span>
-                                ${doc.url ? `<a href="${doc.url}" target="_blank" style="color: rgba(99, 102, 241, 0.9); text-decoration: none;">🔗 Voir le document</a>` : ''}
+                                <span>${t.addedOn} ${new Date(doc.created).toLocaleDateString(getLocale())}</span>
+                                ${doc.url ? `<a href="${doc.url}" target="_blank" style="color: rgba(99, 102, 241, 0.9); text-decoration: none;">${t.viewDoc}</a>` : ''}
                             </div>
                         </div>
                     </div>
@@ -21210,6 +21272,26 @@ ${persona}
         }
         
         function renderRisksList() {
+            const lang = (typeof getAppLanguage === 'function' && getAppLanguage() === 'en') ? 'en' : 'fr';
+            const t = {
+                emptyTitle: lang === 'en' ? 'No risks identified' : 'Aucun risque identifié',
+                emptyDesc: lang === 'en' ? 'Identify and track your project risks' : 'Identifiez et suivez les risques de vos projets',
+                mitigation: lang === 'en' ? 'Mitigation Plan:' : 'Plan d\'atténuation:',
+                projLabel: lang === 'en' ? 'Project:' : 'Projet:',
+                resolved: lang === 'en' ? '✓ Resolved' : '✓ Résolu',
+                ongoing: lang === 'en' ? '🔄 Ongoing' : '🔄 En cours',
+                active: lang === 'en' ? '⚠ Active' : '⚠ Actif',
+                impactLabel: lang === 'en' ? 'Impact:' : 'Impact:',
+                delete: lang === 'en' ? 'Delete risk' : 'Supprimer le risque'
+            };
+
+            const critDisplay = {
+                'critique': lang === 'en' ? 'Critical' : 'Critique',
+                'élevée': lang === 'en' ? 'High' : 'Élevée',
+                'moyenne': lang === 'en' ? 'Medium' : 'Moyenne',
+                'faible': lang === 'en' ? 'Low' : 'Faible'
+            };
+
             const risks = JSON.parse(localStorage.getItem('rndRisks') || '[]');
             const container = document.getElementById('rndRisksList');
             
@@ -21218,8 +21300,8 @@ ${persona}
             if (risks.length === 0) {
                 container.innerHTML = `
                     <div class="rnd-empty">
-                        <div class="rnd-empty-title">Aucun risque identifié</div>
-                        <p>Identifiez et suivez les risques de vos projets</p>
+                        <div class="rnd-empty-title">${t.emptyTitle}</div>
+                        <p>${t.emptyDesc}</p>
                     </div>
                 `;
                 return;
@@ -21228,6 +21310,7 @@ ${persona}
             // Trier par criticité
             const sortedRisks = [...risks].sort((a, b) => {
                 const critOrder = { 'critique': 3, 'élevée': 2, 'moyenne': 1, 'faible': 0 };
+                // Keep keys 'critique' etc for data compatibility, assume storage is internal/fixed for now or handle later
                 return (critOrder[b.criticite] || 0) - (critOrder[a.criticite] || 0);
             });
             
@@ -21246,13 +21329,13 @@ ${persona}
                         <div style="flex: 1;">
                             <div style="display: flex; gap: 8px; align-items: center; margin-bottom: 8px;">
                                 <h3 style="margin: 0; font-size: 18px; color: white;">${risk.titre}</h3>
-                                <span class="rnd-badge rnd-badge-${critColors[risk.criticite]}">${risk.criticite}</span>
+                                <span class="rnd-badge rnd-badge-${critColors[risk.criticite]}">${critDisplay[risk.criticite] || risk.criticite}</span>
                             </div>
-                            ${project ? `<div style="font-size: 12px; color: rgba(99, 102, 241, 0.9); margin-bottom: 8px;">Projet: ${project.titre}</div>` : ''}
+                            ${project ? `<div style="font-size: 12px; color: rgba(99, 102, 241, 0.9); margin-bottom: 8px;">${t.projLabel} ${project.titre}</div>` : ''}
                             <p style="margin: 0 0 8px; color: rgba(255, 255, 255, 0.7); font-size: 14px;">${risk.description}</p>
                             ${risk.mitigation ? `
                                 <div style="background: rgba(16, 185, 129, 0.1); padding: 8px 12px; border-radius: 6px; margin-top: 8px;">
-                                    <div style="font-size: 12px; color: rgba(16, 185, 129, 0.9); font-weight: 600; margin-bottom: 4px;">Plan d'atténuation:</div>
+                                    <div style="font-size: 12px; color: rgba(16, 185, 129, 0.9); font-weight: 600; margin-bottom: 4px;">${t.mitigation}</div>
                                     <div style="font-size: 13px; color: rgba(255, 255, 255, 0.8);">${risk.mitigation}</div>
                                 </div>
                             ` : ''}
@@ -21260,7 +21343,7 @@ ${persona}
                         <div style="text-align: right; min-width: 100px;">
 
                             <div style="display: flex; justify-content: flex-end; margin-bottom: 8px;">
-                                <button class="rnd-icon-btn delete" onclick="deleteRisk(${risk.id})" title="Supprimer le risque">
+                                <button class="rnd-icon-btn delete" onclick="deleteRisk(${risk.id})" title="${t.delete}">
                                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                         <polyline points="3 6 5 6 21 6" />
                                         <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
@@ -21271,10 +21354,10 @@ ${persona}
                                 </button>
                             </div>
                             <span class="rnd-badge rnd-badge-${risk.statut === 'résolu' ? 'high' : risk.statut === 'en-cours' ? 'medium' : 'low'}">
-                                ${risk.statut === 'résolu' ? '✓ Résolu' : risk.statut === 'en-cours' ? '🔄 En cours' : '⚠ Actif'}
+                                ${risk.statut === 'résolu' ? t.resolved : risk.statut === 'en-cours' ? t.ongoing : t.active}
                             </span>
                             <div style="margin-top: 8px; font-size: 12px; color: rgba(255, 255, 255, 0.5);">
-                                Impact: ${risk.impact}%
+                                ${t.impactLabel} ${risk.impact}%
                             </div>
                         </div>
                     </div>
@@ -21284,6 +21367,38 @@ ${persona}
         }
         
         function renderProjectsList() {
+            const lang = (typeof getAppLanguage === 'function' && getAppLanguage() === 'en') ? 'en' : 'fr';
+            const t = {
+                emptyTitle: lang === 'en' ? 'No R&D projects' : 'Aucun projet R&D',
+                emptyDesc: lang === 'en' ? 'Start your first research project' : 'Lancez votre premier projet de recherche',
+                budget: lang === 'en' ? 'Budget' : 'Budget',
+                progress: lang === 'en' ? 'Progress' : 'Progression',
+                createdOn: lang === 'en' ? 'Created on' : 'Créé le'
+            };
+            
+            const phasesDisplay = {
+                'découverte': lang === 'en' ? 'Discovery' : 'Découverte',
+                'idéation': lang === 'en' ? 'Ideation' : 'Idéation',
+                'expérimentation': lang === 'en' ? 'Experimentation' : 'Expérimentation',
+                'validation': lang === 'en' ? 'Validation' : 'Validation',
+                'déploiement': lang === 'en' ? 'Deployment' : 'Déploiement',
+                'opérationnel': lang === 'en' ? 'Operational' : 'Opérationnel'
+            };
+
+            const domainsDisplay = {
+                'technologie': lang === 'en' ? 'Technology' : 'Technologie',
+                'santé': lang === 'en' ? 'Health' : 'Santé',
+                'éducation': lang === 'en' ? 'Education' : 'Éducation',
+                'agriculture': lang === 'en' ? 'Agriculture' : 'Agriculture',
+                'environnement': lang === 'en' ? 'Environment' : 'Environnement',
+                'business': lang === 'en' ? 'Business' : 'Business',
+                'arts': lang === 'en' ? 'Arts' : 'Arts',
+                'sciences': lang === 'en' ? 'Science' : 'Sciences',
+                'énergie': lang === 'en' ? 'Energy' : 'Énergie',
+                'social': lang === 'en' ? 'Social' : 'Social',
+                'autre': lang === 'en' ? 'Other' : 'Autre'
+            };
+
             const projects = JSON.parse(localStorage.getItem('rndProjects') || '[]');
             const container = document.getElementById('rndProjectsList');
             
@@ -21292,8 +21407,8 @@ ${persona}
             if (projects.length === 0) {
                 container.innerHTML = `
                     <div class="rnd-empty">
-                        <div class="rnd-empty-title">Aucun projet R&D</div>
-                        <p>Lancez votre premier projet de recherche</p>
+                        <div class="rnd-empty-title">${t.emptyTitle}</div>
+                        <p>${t.emptyDesc}</p>
                     </div>
                 `;
                 return;
@@ -21313,18 +21428,18 @@ ${persona}
                         <div>
                             <h3 style="margin: 0 0 4px; font-size: 18px; color: white;">${project.titre}</h3>
                             <div class="rnd-project-badges">
-                                <span class="rnd-badge rnd-badge-${phaseColors[project.phase] || 'low'}">${project.phase.charAt(0).toUpperCase() + project.phase.slice(1)}</span>
-                                <span class="rnd-badge rnd-badge-medium">${project.domaine}</span>
+                                <span class="rnd-badge rnd-badge-${phaseColors[project.phase] || 'low'}">${phasesDisplay[project.phase] || project.phase}</span>
+                                <span class="rnd-badge rnd-badge-medium">${domainsDisplay[project.domaine] || project.domaine}</span>
                             </div>
                         </div>
                         <div style="text-align: right;">
-                            <div style="font-size: 12px; color: rgba(255, 255, 255, 0.5);">Budget</div>
+                            <div style="font-size: 12px; color: rgba(255, 255, 255, 0.5);">${t.budget}</div>
                             <div style="font-size: 16px; color: #6ee7b7; font-weight: 600;">${project.budget.prevu.toLocaleString(getLocale())} ${project.budget.devise}</div>
                         </div>
                     </div>
                     <div style="margin-bottom: 8px;">
                         <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
-                            <span style="font-size: 12px; color: rgba(255, 255, 255, 0.7);">Progression</span>
+                            <span style="font-size: 12px; color: rgba(255, 255, 255, 0.7);">${t.progress}</span>
                             <span style="font-size: 12px; color: #6ee7b7; font-weight: 600;">${project.avancement}%</span>
                         </div>
                         <div style="background: rgba(255, 255, 255, 0.1); height: 6px; border-radius: 3px; overflow: hidden;">
@@ -21332,13 +21447,25 @@ ${persona}
                         </div>
                     </div>
                     <div style="font-size: 12px; color: rgba(255, 255, 255, 0.5);">
-                        Créé le ${new Date(project.created).toLocaleDateString(getLocale(), { day: 'numeric', month: 'long', year: 'numeric' })}
+                        ${t.createdOn} ${new Date(project.created).toLocaleDateString(getLocale(), { day: 'numeric', month: 'long', year: 'numeric' })}
                     </div>
                 </div>
             `).join('');
         }
         
         function renderDashboardMetrics() {
+            const lang = (typeof getAppLanguage === 'function' && getAppLanguage() === 'en') ? 'en' : 'fr';
+            const t = {
+                empty: lang === 'en' ? 'No active projects to display metrics' : 'Aucun projet actif pour afficher les métriques',
+                globalView: lang === 'en' ? 'Global View - All Projects' : 'Vue Globale - Tous les Projets',
+                phaseDist: lang === 'en' ? 'Phase Distribution' : 'Distribution des Phases',
+                avgProgress: lang === 'en' ? 'Average Progress' : 'Progression Moyenne',
+                projects: lang === 'en' ? 'projects' : 'projets',
+                totalBudget: lang === 'en' ? 'Total Budget' : 'Budget Total',
+                upcomingMilestones: lang === 'en' ? 'Upcoming Milestones' : 'Jalons à Venir',
+                activeRisks: lang === 'en' ? 'Active Risks' : 'Risques Actifs'
+            };
+
             const projects = JSON.parse(localStorage.getItem('rndProjects') || '[]');
             const milestones = JSON.parse(localStorage.getItem('rndMilestones') || '[]');
             const risks = JSON.parse(localStorage.getItem('rndRisks') || '[]');
@@ -21349,7 +21476,7 @@ ${persona}
             const activeProjects = projects.filter(p => p.statut === 'actif');
             
             if (activeProjects.length === 0) {
-                container.innerHTML = '<div class="rnd-empty"><p>Aucun projet actif pour afficher les métriques</p></div>';
+                container.innerHTML = `<div class="rnd-empty"><p>${t.empty}</p></div>`;
                 return;
             }
             
@@ -21369,13 +21496,13 @@ ${persona}
             container.innerHTML = `
                 <!-- Graphique Global -->
                 <div style="background: linear-gradient(135deg, rgba(99, 102, 241, 0.1), rgba(139, 92, 246, 0.05)); border: 1px solid rgba(99, 102, 241, 0.3); border-radius: 16px; padding: 24px; margin-bottom: 24px;">
-                    <h3 style="margin: 0 0 20px; color: white; font-size: 20px; font-weight: 700;">Vue Globale - Tous les Projets</h3>
+                    <h3 style="margin: 0 0 20px; color: white; font-size: 20px; font-weight: 700;">${t.globalView}</h3>
                     
                     <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 24px;">
                         
                         <!-- Distribution des Phases -->
                         <div>
-                            <div style="color: rgba(255, 255, 255, 0.8); font-size: 13px; font-weight: 600; margin-bottom: 16px; text-transform: uppercase; letter-spacing: 1px;">Distribution des Phases</div>
+                            <div style="color: rgba(255, 255, 255, 0.8); font-size: 13px; font-weight: 600; margin-bottom: 16px; text-transform: uppercase; letter-spacing: 1px;">${t.phaseDist}</div>
                             <svg width="100%" height="200" viewBox="0 0 300 200">
                                 <defs>
                                     <linearGradient id="grad1" x1="0%" y1="0%" x2="0%" y2="100%">
@@ -21420,7 +21547,7 @@ ${persona}
                         
                         <!-- Progression Globale (Jauge circulaire) -->
                         <div>
-                            <div style="color: rgba(255, 255, 255, 0.8); font-size: 13px; font-weight: 600; margin-bottom: 16px; text-transform: uppercase; letter-spacing: 1px;">Progression Moyenne</div>
+                            <div style="color: rgba(255, 255, 255, 0.8); font-size: 13px; font-weight: 600; margin-bottom: 16px; text-transform: uppercase; letter-spacing: 1px;">${t.avgProgress}</div>
                             <svg width="100%" height="200" viewBox="0 0 200 200">
                                 <defs>
                                     <linearGradient id="circleGrad" x1="0%" y1="0%" x2="100%" y2="100%">
@@ -21444,22 +21571,22 @@ ${persona}
                                 </circle>
                                 <!-- Texte central -->
                                 <text x="100" y="95" fill="white" font-size="36" font-weight="bold" text-anchor="middle">${avgProgress}%</text>
-                                <text x="100" y="115" fill="rgba(255,255,255,0.6)" font-size="12" text-anchor="middle">${activeProjects.length} projets</text>
+                                <text x="100" y="115" fill="rgba(255,255,255,0.6)" font-size="12" text-anchor="middle">${activeProjects.length} ${t.projects}</text>
                             </svg>
                         </div>
                         
                         <!-- Métriques Rapides -->
                         <div style="display: flex; flex-direction: column; gap: 16px; justify-content: center;">
                             <div style="background: rgba(99, 102, 241, 0.1); border-left: 4px solid #6366f1; padding: 16px; border-radius: 8px;">
-                                <div style="color: rgba(255, 255, 255, 0.6); font-size: 11px; margin-bottom: 4px;">Budget Total</div>
+                                <div style="color: rgba(255, 255, 255, 0.6); font-size: 11px; margin-bottom: 4px;">${t.totalBudget}</div>
                                 <div style="color: white; font-size: 24px; font-weight: 700;">${totalBudget.toLocaleString()} DA</div>
                             </div>
                             <div style="background: rgba(16, 185, 129, 0.1); border-left: 4px solid #10b981; padding: 16px; border-radius: 8px;">
-                                <div style="color: rgba(255, 255, 255, 0.6); font-size: 11px; margin-bottom: 4px;">Jalons à Venir</div>
+                                <div style="color: rgba(255, 255, 255, 0.6); font-size: 11px; margin-bottom: 4px;">${t.upcomingMilestones}</div>
                                 <div style="color: white; font-size: 24px; font-weight: 700;">${milestones.filter(m => new Date(m.date) >= new Date() && m.statut !== 'complété').length}</div>
                             </div>
                             <div style="background: rgba(239, 68, 68, 0.1); border-left: 4px solid #ef4444; padding: 16px; border-radius: 8px;">
-                                <div style="color: rgba(255, 255, 255, 0.6); font-size: 11px; margin-bottom: 4px;">Risques Actifs</div>
+                                <div style="color: rgba(255, 255, 255, 0.6); font-size: 11px; margin-bottom: 4px;">${t.activeRisks}</div>
                                 <div style="color: white; font-size: 24px; font-weight: 700;">${totalRisks}</div>
                             </div>
                         </div>
@@ -21470,13 +21597,18 @@ ${persona}
         }
         
         function renderDashboardPriority() {
+            const lang = (typeof getAppLanguage === 'function' && getAppLanguage() === 'en') ? 'en' : 'fr';
+            const t = {
+                empty: lang === 'en' ? 'No priority projects' : 'Aucun projet prioritaire'
+            };
+
             const projects = JSON.parse(localStorage.getItem('rndProjects') || '[]');
             const container = document.getElementById('rndPriorityContainer');
             
             if (!container) return;
             
             if (projects.length === 0) {
-                container.innerHTML = '<div class="rnd-empty"><p>Aucun projet prioritaire</p></div>';
+                container.innerHTML = `<div class="rnd-empty"><p>${t.empty}</p></div>`;
                 return;
             }
             
@@ -21634,12 +21766,19 @@ ${persona}
         }
 
         function applyRnDActionBatch(batchId) {
+            const lang = (typeof getAppLanguage === 'function' && getAppLanguage() === 'en') ? 'en' : 'fr';
+            const t = {
+                confirm: lang === 'en' ? 'Apply {count} action(s) to R&D dashboard?' : 'Appliquer {count} action(s) au dashboard R&D ?',
+                appliedTitle: lang === 'en' ? '✅ Actions applied' : '✅ Actions appliquées',
+                appliedDetails: lang === 'en' ? 'Applied: {applied} • Skipped: {skipped}' : 'Appliquées: {applied} • Ignorées: {skipped}',
+                toast: lang === 'en' ? '✅ Actions applied: {applied} • Skipped: {skipped}' : '✅ Actions appliquées: {applied} • Ignorées: {skipped}'
+            };
+
             const batch = rndPendingActionBatches[String(batchId)];
             if (!batch || batch.applied || batch.discarded) return;
             if (!Array.isArray(batch.actions) || batch.actions.length === 0) return;
 
-            const template = (typeof t === 'function') ? t('rnd.applyActionsConfirm') : 'Appliquer {count} action(s) au dashboard R&D ?';
-            const ok = confirm(String(template).replace('{count}', String(batch.actions.length)));
+            const ok = confirm(t.confirm.replace('{count}', String(batch.actions.length)));
             if (!ok) return;
 
             const result = rndApplyAgentActions(batch.actions);
@@ -21650,15 +21789,21 @@ ${persona}
             const el = document.getElementById(`rndActionsCard_${batchId}`);
             if (el) {
                 el.innerHTML = `
-                    <div style="color: rgba(255,255,255,0.92); font-weight: 700;">✅ Actions appliquées</div>
-                    <div style="margin-top: 6px; color: rgba(255,255,255,0.65); font-size: 12px;">Appliquées: ${result.applied} • Ignorées: ${result.skipped}</div>
+                    <div style="color: rgba(255,255,255,0.92); font-weight: 700;">${t.appliedTitle}</div>
+                    <div style="margin-top: 6px; color: rgba(255,255,255,0.65); font-size: 12px;">${t.appliedDetails.replace('{applied}', result.applied).replace('{skipped}', result.skipped)}</div>
                 `;
             }
 
-            showToast(`✅ Actions appliquées: ${result.applied} • Ignorées: ${result.skipped}`, 'success');
+            showToast(t.toast.replace('{applied}', result.applied).replace('{skipped}', result.skipped), 'success');
         }
 
         function discardRnDActionBatch(batchId) {
+            const lang = (typeof getAppLanguage === 'function' && getAppLanguage() === 'en') ? 'en' : 'fr';
+            const t = {
+                ignoredTitle: lang === 'en' ? '⏸️ Actions ignored' : '⏸️ Actions ignorées',
+                ignoredDesc: lang === 'en' ? 'No changes were applied.' : 'Aucune modification n’a été appliquée.'
+            };
+
             const batch = rndPendingActionBatches[String(batchId)];
             if (!batch || batch.applied || batch.discarded) return;
             batch.discarded = true;
@@ -21668,8 +21813,8 @@ ${persona}
             const el = document.getElementById(`rndActionsCard_${batchId}`);
             if (el) {
                 el.innerHTML = `
-                    <div style="color: rgba(255,255,255,0.85); font-weight: 700;">⏸️ Actions ignorées</div>
-                    <div style="margin-top: 6px; color: rgba(255,255,255,0.6); font-size: 12px;">Aucune modification n’a été appliquée.</div>
+                    <div style="color: rgba(255,255,255,0.85); font-weight: 700;">${t.ignoredTitle}</div>
+                    <div style="margin-top: 6px; color: rgba(255,255,255,0.6); font-size: 12px;">${t.ignoredDesc}</div>
                 `;
             }
         }
@@ -21978,6 +22123,7 @@ ${persona}
         }
         
         function loadRnDChatHistory() {
+            const lang = (typeof getAppLanguage === 'function' && getAppLanguage() === 'en') ? 'en' : 'fr';
             const messagesContainer = document.getElementById('rndChatMessages');
             if (!messagesContainer) return;
             
@@ -21986,11 +22132,15 @@ ${persona}
             
             // Afficher l'historique sauvegardé
             if (rndChatHistory.length === 0) {
+                const welcomeMsg = lang === 'en' 
+                    ? '👋 Hello! I am Agent dev, your AI assistant specialized in R&D and multi-domain innovation.<br><br>I can help you with:<br>• Research project advice<br>• Trend and innovation analysis<br>• Innovation methodologies<br>• R&D risk management<br>• Process optimization<br><br>How can I assist you today?' 
+                    : '👋 Bonjour! Je suis Agent dev, votre assistant IA spécialisé en R&D et innovation multi-domaines.<br><br>Je peux vous aider avec :<br>• Conseils sur vos projets de recherche<br>• Analyse de tendances et innovations<br>• Méthodologies d\'innovation<br>• Gestion des risques R&D<br>• Optimisation de processus<br><br>Comment puis-je vous accompagner aujourd\'hui?';
+
                 // Message de bienvenue si pas d'historique
                 messagesContainer.innerHTML = `
                     <div style="margin-bottom: 16px;">
                         <div style="display: inline-block; background: rgba(255, 255, 255, 0.1); padding: 12px 16px; border-radius: 12px; max-width: 70%; border: 1px solid rgba(99, 102, 241, 0.3); overflow-wrap: anywhere; word-break: break-word;">
-                            <p style="margin: 0; color: white; font-size: 14px; line-height: 1.6;">👋 Bonjour! Je suis Agent dev, votre assistant IA spécialisé en R&D et innovation multi-domaines.<br><br>Je peux vous aider avec :<br>• Conseils sur vos projets de recherche<br>• Analyse de tendances et innovations<br>• Méthodologies d'innovation<br>• Gestion des risques R&D<br>• Optimisation de processus<br><br>Comment puis-je vous accompagner aujourd'hui?</p>
+                            <p style="margin: 0; color: white; font-size: 14px; line-height: 1.6;">${welcomeMsg}</p>
                         </div>
                     </div>
                 `;
@@ -22021,8 +22171,13 @@ ${persona}
         }
         
         function clearRnDChatHistory() {
-            const confirmMsg = (typeof t === 'function') ? t('rnd.clearChatConfirm') : '⚠️ Êtes-vous sûr de vouloir effacer tout l\'historique des conversations avec Agent dev?\n\nCette action est irréversible.';
-            if (!confirm(confirmMsg)) return;
+            const lang = (typeof getAppLanguage === 'function' && getAppLanguage() === 'en') ? 'en' : 'fr';
+            const t = {
+                confirm: lang === 'en' ? '⚠️ Are you sure you want to clear the entire conversation history with Agent dev?\n\nThis action cannot be undone.' : '⚠️ Êtes-vous sûr de vouloir effacer tout l\'historique des conversations avec Agent dev?\n\nCette action est irréversible.',
+                cleared: lang === 'en' ? '🗑️ Chat history cleared successfully' : '🗑️ Historique du chat effacé avec succès'
+            };
+
+            if (!confirm(t.confirm)) return;
             
             // Effacer l'historique
             rndChatHistory = [];
@@ -22049,7 +22204,7 @@ ${persona}
                     z-index: 10003;
                     animation: slideIn 0.3s ease;
                 `;
-                toast.textContent = (typeof t === 'function') ? t('chat.historyCleared') : '🗑️ Historique du chat effacé avec succès';
+                toast.textContent = t.cleared;
                 overlay.appendChild(toast);
                 
                 setTimeout(() => {
@@ -22240,10 +22395,24 @@ N'inclus des actions QUE si l'utilisateur demande explicitement de modifier/ajou
         
         // Modal stubs (to be implemented)
         function showAddMilestoneModal() {
+            const lang = (typeof getAppLanguage === 'function' && getAppLanguage() === 'en') ? 'en' : 'fr';
+            const t = {
+                noProject: lang === 'en' ? 'Create a project first.' : 'Créez d\'abord un projet avant d\'ajouter des jalons.',
+                title: lang === 'en' ? 'Add Milestone' : 'Ajouter un Jalon',
+                project: lang === 'en' ? 'Project *' : 'Projet *',
+                select: lang === 'en' ? '-- Select --' : '-- Sélectionner --',
+                milestoneTitle: lang === 'en' ? 'Title *' : 'Titre *',
+                desc: lang === 'en' ? 'Description' : 'Description',
+                descPlace: lang === 'en' ? 'Milestone description' : 'Description du jalon',
+                targetDate: lang === 'en' ? 'Target Date *' : 'Date cible *',
+                cancel: lang === 'en' ? 'Cancel' : 'Annuler',
+                add: lang === 'en' ? 'Add' : 'Ajouter'
+            };
+
             const projects = JSON.parse(localStorage.getItem('rndProjects') || '[]');
             
             if (projects.length === 0) {
-                alert('Créez d\'abord un projet avant d\'ajouter des jalons.');
+                alert(t.noProject);
                 return;
             }
             
@@ -22266,30 +22435,30 @@ N'inclus des actions QUE si l'utilisateur demande explicitement de modifier/ajou
             
             modal.innerHTML = `
                 <div style="background: linear-gradient(135deg, #1a1a2e, #16213e); border: 1px solid rgba(99, 102, 241, 0.3); border-radius: 16px; padding: 32px; width: 90%; max-width: 600px; box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);">
-                    <h2 style="margin: 0 0 24px; font-size: 24px; color: white;">Ajouter un Jalon</h2>
+                    <h2 style="margin: 0 0 24px; font-size: 24px; color: white;">${t.title}</h2>
                     <form id="milestoneForm" onsubmit="saveMilestone(event)">
                         <div style="margin-bottom: 16px;">
-                            <label style="display: block; color: rgba(255, 255, 255, 0.9); font-size: 14px; margin-bottom: 8px;">Projet *</label>
+                            <label style="display: block; color: rgba(255, 255, 255, 0.9); font-size: 14px; margin-bottom: 8px;">${t.project}</label>
                             <select id="milestoneProject" required style="width: 100%; padding: 12px; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(99, 102, 241, 0.3); border-radius: 8px; color: white; font-size: 14px;">
-                                <option value="">-- Sélectionner --</option>
+                                <option value="">${t.select}</option>
                                 ${projects.map(p => `<option value="${p.id}">${p.titre}</option>`).join('')}
                             </select>
                         </div>
                         <div style="margin-bottom: 16px;">
-                            <label style="display: block; color: rgba(255, 255, 255, 0.9); font-size: 14px; margin-bottom: 8px;">Titre *</label>
+                            <label style="display: block; color: rgba(255, 255, 255, 0.9); font-size: 14px; margin-bottom: 8px;">${t.milestoneTitle}</label>
                             <input type="text" id="milestoneTitle" required placeholder="Ex: MVP Ready" style="width: 100%; padding: 12px; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(99, 102, 241, 0.3); border-radius: 8px; color: white; font-size: 14px;">
                         </div>
                         <div style="margin-bottom: 16px;">
-                            <label style="display: block; color: rgba(255, 255, 255, 0.9); font-size: 14px; margin-bottom: 8px;">Description</label>
-                            <textarea id="milestoneDescription" rows="2" placeholder="Description du jalon" style="width: 100%; padding: 12px; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(99, 102, 241, 0.3); border-radius: 8px; color: white; font-size: 14px; resize: vertical;"></textarea>
+                            <label style="display: block; color: rgba(255, 255, 255, 0.9); font-size: 14px; margin-bottom: 8px;">${t.desc}</label>
+                            <textarea id="milestoneDescription" rows="2" placeholder="${t.descPlace}" style="width: 100%; padding: 12px; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(99, 102, 241, 0.3); border-radius: 8px; color: white; font-size: 14px; resize: vertical;"></textarea>
                         </div>
                         <div style="margin-bottom: 16px;">
-                            <label style="display: block; color: rgba(255, 255, 255, 0.9); font-size: 14px; margin-bottom: 8px;">Date cible *</label>
+                            <label style="display: block; color: rgba(255, 255, 255, 0.9); font-size: 14px; margin-bottom: 8px;">${t.targetDate}</label>
                             <input type="date" id="milestoneDate" required style="width: 100%; padding: 12px; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(99, 102, 241, 0.3); border-radius: 8px; color: white; font-size: 14px;">
                         </div>
                         <div style="display: flex; gap: 12px; justify-content: flex-end;">
-                            <button type="button" onclick="closeMilestoneModal()" style="padding: 12px 24px; background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 8px; color: white; cursor: pointer;">Annuler</button>
-                            <button type="submit" style="padding: 12px 24px; background: linear-gradient(135deg, #6366f1, #8b5cf6); border: none; border-radius: 8px; color: white; cursor: pointer; box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4);">Ajouter</button>
+                            <button type="button" onclick="closeMilestoneModal()" style="padding: 12px 24px; background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 8px; color: white; cursor: pointer;">${t.cancel}</button>
+                            <button type="submit" style="padding: 12px 24px; background: linear-gradient(135deg, #6366f1, #8b5cf6); border: none; border-radius: 8px; color: white; cursor: pointer; box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4);">${t.add}</button>
                         </div>
                     </form>
                 </div>
@@ -22305,6 +22474,7 @@ N'inclus des actions QUE si l'utilisateur demande explicitement de modifier/ajou
         
         function saveMilestone(event) {
             event.preventDefault();
+            const lang = (typeof getAppLanguage === 'function' && getAppLanguage() === 'en') ? 'en' : 'fr';
             
             const milestone = {
                 id: Date.now(),
@@ -22324,12 +22494,13 @@ N'inclus des actions QUE si l'utilisateur demande explicitement de modifier/ajou
             closeMilestoneModal();
             initializeRnDData();
             renderMilestonesList();
-            alert('✅ Jalon ajouté avec succès');
+            alert(lang === 'en' ? '✅ Milestone added successfully' : '✅ Jalon ajouté avec succès');
         }
         
         
         function deleteMilestone(id) {
-            if (!confirm('Supprimer ce jalon ?')) return;
+            const lang = (typeof getAppLanguage === 'function' && getAppLanguage() === 'en') ? 'en' : 'fr';
+            if (!confirm(lang === 'en' ? 'Delete this milestone?' : 'Supprimer ce jalon ?')) return;
             const milestones = JSON.parse(localStorage.getItem('rndMilestones') || '[]');
             const next = milestones.filter(m => m.id !== id);
             localStorage.setItem('rndMilestones', JSON.stringify(next));
@@ -22348,10 +22519,34 @@ N'inclus des actions QUE si l'utilisateur demande explicitement de modifier/ajou
         }
 
 function showAddDocumentModal() {
+            const lang = (typeof getAppLanguage === 'function' && getAppLanguage() === 'en') ? 'en' : 'fr';
+            const t = {
+                noProject: lang === 'en' ? 'Create a project first before adding documents.' : 'Créez d\'abord un projet avant d\'ajouter des documents.',
+                title: lang === 'en' ? 'Add Document' : 'Ajouter un Document',
+                project: lang === 'en' ? 'Project *' : 'Projet *',
+                select: lang === 'en' ? '-- Select --' : '-- Sélectionner --',
+                docTitle: lang === 'en' ? 'Title *' : 'Titre *',
+                docTitlePlace: lang === 'en' ? 'Ex: Technical Specifications' : 'Ex: Spécifications techniques',
+                type: lang === 'en' ? 'Type *' : 'Type *',
+                desc: lang === 'en' ? 'Description' : 'Description',
+                descPlace: lang === 'en' ? 'Document description' : 'Description du document',
+                url: lang === 'en' ? 'URL or link' : 'URL ou lien',
+                cancel: lang === 'en' ? 'Cancel' : 'Annuler',
+                add: lang === 'en' ? 'Add' : 'Ajouter',
+                types: {
+                    specs: lang === 'en' ? 'Specifications' : 'Spécifications',
+                    architecture: lang === 'en' ? 'Architecture' : 'Architecture',
+                    rapport: lang === 'en' ? 'Report' : 'Rapport',
+                    presentation: lang === 'en' ? 'Presentation' : 'Présentation',
+                    contrat: lang === 'en' ? 'Contract' : 'Contrat',
+                    autre: lang === 'en' ? 'Other' : 'Autre'
+                }
+            };
+            
             const projects = JSON.parse(localStorage.getItem('rndProjects') || '[]');
             
             if (projects.length === 0) {
-                alert('Créez d\'abord un projet avant d\'ajouter des documents.');
+                alert(t.noProject);
                 return;
             }
             
@@ -22374,41 +22569,41 @@ function showAddDocumentModal() {
             
             modal.innerHTML = `
                 <div style="background: linear-gradient(135deg, #1a1a2e, #16213e); border: 1px solid rgba(99, 102, 241, 0.3); border-radius: 16px; padding: 32px; width: 90%; max-width: 600px; box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);">
-                    <h2 style="margin: 0 0 24px; font-size: 24px; color: white;">Ajouter un Document</h2>
+                    <h2 style="margin: 0 0 24px; font-size: 24px; color: white;">${t.title}</h2>
                     <form id="documentForm" onsubmit="saveDocument(event)">
                         <div style="margin-bottom: 16px;">
-                            <label style="display: block; color: rgba(255, 255, 255, 0.9); font-size: 14px; margin-bottom: 8px;">Projet *</label>
+                            <label style="display: block; color: rgba(255, 255, 255, 0.9); font-size: 14px; margin-bottom: 8px;">${t.project}</label>
                             <select id="documentProject" required style="width: 100%; padding: 12px; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(99, 102, 241, 0.3); border-radius: 8px; color: white; font-size: 14px;">
-                                <option value="">-- Sélectionner --</option>
+                                <option value="">${t.select}</option>
                                 ${projects.map(p => `<option value="${p.id}">${p.titre}</option>`).join('')}
                             </select>
                         </div>
                         <div style="margin-bottom: 16px;">
-                            <label style="display: block; color: rgba(255, 255, 255, 0.9); font-size: 14px; margin-bottom: 8px;">Titre *</label>
-                            <input type="text" id="documentTitle" required placeholder="Ex: Spécifications techniques" style="width: 100%; padding: 12px; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(99, 102, 241, 0.3); border-radius: 8px; color: white; font-size: 14px;">
+                            <label style="display: block; color: rgba(255, 255, 255, 0.9); font-size: 14px; margin-bottom: 8px;">${t.docTitle}</label>
+                            <input type="text" id="documentTitle" required placeholder="${t.docTitlePlace}" style="width: 100%; padding: 12px; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(99, 102, 241, 0.3); border-radius: 8px; color: white; font-size: 14px;">
                         </div>
                         <div style="margin-bottom: 16px;">
-                            <label style="display: block; color: rgba(255, 255, 255, 0.9); font-size: 14px; margin-bottom: 8px;">Type *</label>
+                            <label style="display: block; color: rgba(255, 255, 255, 0.9); font-size: 14px; margin-bottom: 8px;">${t.type}</label>
                             <select id="documentType" required style="width: 100%; padding: 12px; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(99, 102, 241, 0.3); border-radius: 8px; color: white; font-size: 14px;">
-                                <option value="specs">Spécifications</option>
-                                <option value="architecture">Architecture</option>
-                                <option value="rapport">Rapport</option>
-                                <option value="presentation">Présentation</option>
-                                <option value="contrat">Contrat</option>
-                                <option value="autre">Autre</option>
+                                <option value="specs">${t.types.specs}</option>
+                                <option value="architecture">${t.types.architecture}</option>
+                                <option value="rapport">${t.types.rapport}</option>
+                                <option value="presentation">${t.types.presentation}</option>
+                                <option value="contrat">${t.types.contrat}</option>
+                                <option value="autre">${t.types.autre}</option>
                             </select>
                         </div>
                         <div style="margin-bottom: 16px;">
-                            <label style="display: block; color: rgba(255, 255, 255, 0.9); font-size: 14px; margin-bottom: 8px;">Description</label>
-                            <textarea id="documentDescription" rows="2" placeholder="Description du document" style="width: 100%; padding: 12px; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(99, 102, 241, 0.3); border-radius: 8px; color: white; font-size: 14px; resize: vertical;"></textarea>
+                            <label style="display: block; color: rgba(255, 255, 255, 0.9); font-size: 14px; margin-bottom: 8px;">${t.desc}</label>
+                            <textarea id="documentDescription" rows="2" placeholder="${t.descPlace}" style="width: 100%; padding: 12px; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(99, 102, 241, 0.3); border-radius: 8px; color: white; font-size: 14px; resize: vertical;"></textarea>
                         </div>
                         <div style="margin-bottom: 16px;">
-                            <label style="display: block; color: rgba(255, 255, 255, 0.9); font-size: 14px; margin-bottom: 8px;">URL ou lien</label>
+                            <label style="display: block; color: rgba(255, 255, 255, 0.9); font-size: 14px; margin-bottom: 8px;">${t.url}</label>
                             <input type="url" id="documentUrl" placeholder="https://..." style="width: 100%; padding: 12px; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(99, 102, 241, 0.3); border-radius: 8px; color: white; font-size: 14px;">
                         </div>
                         <div style="display: flex; gap: 12px; justify-content: flex-end;">
-                            <button type="button" onclick="closeDocumentModal()" style="padding: 12px 24px; background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 8px; color: white; cursor: pointer;">Annuler</button>
-                            <button type="submit" style="padding: 12px 24px; background: linear-gradient(135deg, #6366f1, #8b5cf6); border: none; border-radius: 8px; color: white; cursor: pointer; box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4);">Ajouter</button>
+                            <button type="button" onclick="closeDocumentModal()" style="padding: 12px 24px; background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 8px; color: white; cursor: pointer;">${t.cancel}</button>
+                            <button type="submit" style="padding: 12px 24px; background: linear-gradient(135deg, #6366f1, #8b5cf6); border: none; border-radius: 8px; color: white; cursor: pointer; box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4);">${t.add}</button>
                         </div>
                     </form>
                 </div>
@@ -22424,6 +22619,7 @@ function showAddDocumentModal() {
         
         function saveDocument(event) {
             event.preventDefault();
+            const lang = (typeof getAppLanguage === 'function' && getAppLanguage() === 'en') ? 'en' : 'fr';
             
             const newDoc = {
                 id: Date.now(),
@@ -22442,14 +22638,38 @@ function showAddDocumentModal() {
             closeDocumentModal();
             initializeRnDData();
             renderDocsList();
-            alert('✅ Document ajouté avec succès');
+            alert(lang === 'en' ? '✅ Document added successfully' : '✅ Document ajouté avec succès');
         }
         
         function showAddRiskModal() {
+            const lang = (typeof getAppLanguage === 'function' && getAppLanguage() === 'en') ? 'en' : 'fr';
+            const t = {
+                noProject: lang === 'en' ? 'Create a project first before adding risks.' : 'Créez d\'abord un projet avant d\'ajouter des risques.',
+                title: lang === 'en' ? 'Add Risk' : 'Ajouter un Risque',
+                project: lang === 'en' ? 'Project *' : 'Projet *',
+                select: lang === 'en' ? '-- Select --' : '-- Sélectionner --',
+                riskTitle: lang === 'en' ? 'Title *' : 'Titre *',
+                riskTitlePlace: lang === 'en' ? 'Ex: Tech dependency' : 'Ex: Dépendance technologique',
+                desc: lang === 'en' ? 'Description' : 'Description',
+                descPlace: lang === 'en' ? 'Risk description' : 'Description du risque',
+                criticality: lang === 'en' ? 'Criticality *' : 'Criticité *',
+                impact: lang === 'en' ? 'Impact (%) *' : 'Impact (%) *',
+                mitigation: lang === 'en' ? 'Mitigation Plan' : 'Plan d\'atténuation',
+                mitigationPlace: lang === 'en' ? 'Actions to reduce risk' : 'Actions pour réduire le risque',
+                cancel: lang === 'en' ? 'Cancel' : 'Annuler',
+                add: lang === 'en' ? 'Add' : 'Ajouter',
+                levels: {
+                    low: lang === 'en' ? 'Low' : 'Faible',
+                    medium: lang === 'en' ? 'Medium' : 'Moyenne',
+                    high: lang === 'en' ? 'High' : 'Élevée',
+                    critical: lang === 'en' ? 'Critical' : 'Critique'
+                }
+            };
+            
             const projects = JSON.parse(localStorage.getItem('rndProjects') || '[]');
             
             if (projects.length === 0) {
-                alert('Créez d\'abord un projet avant d\'ajouter des risques.');
+                alert(t.noProject);
                 return;
             }
             
@@ -22472,45 +22692,45 @@ function showAddDocumentModal() {
             
             modal.innerHTML = `
                 <div style="background: linear-gradient(135deg, #1a1a2e, #16213e); border: 1px solid rgba(99, 102, 241, 0.3); border-radius: 16px; padding: 32px; width: 90%; max-width: 600px; box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);">
-                    <h2 style="margin: 0 0 24px; font-size: 24px; color: white;">Ajouter un Risque</h2>
+                    <h2 style="margin: 0 0 24px; font-size: 24px; color: white;">${t.title}</h2>
                     <form id="riskForm" onsubmit="saveRisk(event)">
                         <div style="margin-bottom: 16px;">
-                            <label style="display: block; color: rgba(255, 255, 255, 0.9); font-size: 14px; margin-bottom: 8px;">Projet *</label>
+                            <label style="display: block; color: rgba(255, 255, 255, 0.9); font-size: 14px; margin-bottom: 8px;">${t.project}</label>
                             <select id="riskProject" required style="width: 100%; padding: 12px; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(99, 102, 241, 0.3); border-radius: 8px; color: white; font-size: 14px;">
-                                <option value="">-- Sélectionner --</option>
+                                <option value="">${t.select}</option>
                                 ${projects.map(p => `<option value="${p.id}">${p.titre}</option>`).join('')}
                             </select>
                         </div>
                         <div style="margin-bottom: 16px;">
-                            <label style="display: block; color: rgba(255, 255, 255, 0.9); font-size: 14px; margin-bottom: 8px;">Titre *</label>
-                            <input type="text" id="riskTitle" required placeholder="Ex: Dépendance technologique" style="width: 100%; padding: 12px; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(99, 102, 241, 0.3); border-radius: 8px; color: white; font-size: 14px;">
+                            <label style="display: block; color: rgba(255, 255, 255, 0.9); font-size: 14px; margin-bottom: 8px;">${t.riskTitle}</label>
+                            <input type="text" id="riskTitle" required placeholder="${t.riskTitlePlace}" style="width: 100%; padding: 12px; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(99, 102, 241, 0.3); border-radius: 8px; color: white; font-size: 14px;">
                         </div>
                         <div style="margin-bottom: 16px;">
-                            <label style="display: block; color: rgba(255, 255, 255, 0.9); font-size: 14px; margin-bottom: 8px;">Description</label>
-                            <textarea id="riskDescription" rows="2" placeholder="Description du risque" style="width: 100%; padding: 12px; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(99, 102, 241, 0.3); border-radius: 8px; color: white; font-size: 14px; resize: vertical;"></textarea>
+                            <label style="display: block; color: rgba(255, 255, 255, 0.9); font-size: 14px; margin-bottom: 8px;">${t.desc}</label>
+                            <textarea id="riskDescription" rows="2" placeholder="${t.descPlace}" style="width: 100%; padding: 12px; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(99, 102, 241, 0.3); border-radius: 8px; color: white; font-size: 14px; resize: vertical;"></textarea>
                         </div>
                         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px;">
                             <div>
-                                <label style="display: block; color: rgba(255, 255, 255, 0.9); font-size: 14px; margin-bottom: 8px;">Criticité *</label>
+                                <label style="display: block; color: rgba(255, 255, 255, 0.9); font-size: 14px; margin-bottom: 8px;">${t.criticality}</label>
                                 <select id="riskCriticality" required style="width: 100%; padding: 12px; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(99, 102, 241, 0.3); border-radius: 8px; color: white; font-size: 14px;">
-                                    <option value="faible">Faible</option>
-                                    <option value="moyenne">Moyenne</option>
-                                    <option value="élevée">Élevée</option>
-                                    <option value="critique">Critique</option>
+                                    <option value="faible">${t.levels.low}</option>
+                                    <option value="moyenne">${t.levels.medium}</option>
+                                    <option value="élevée">${t.levels.high}</option>
+                                    <option value="critique">${t.levels.critical}</option>
                                 </select>
                             </div>
                             <div>
-                                <label style="display: block; color: rgba(255, 255, 255, 0.9); font-size: 14px; margin-bottom: 8px;">Impact (%) *</label>
+                                <label style="display: block; color: rgba(255, 255, 255, 0.9); font-size: 14px; margin-bottom: 8px;">${t.impact}</label>
                                 <input type="number" id="riskImpact" required min="0" max="100" value="50" style="width: 100%; padding: 12px; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(99, 102, 241, 0.3); border-radius: 8px; color: white; font-size: 14px;">
                             </div>
                         </div>
                         <div style="margin-bottom: 16px;">
-                            <label style="display: block; color: rgba(255, 255, 255, 0.9); font-size: 14px; margin-bottom: 8px;">Plan d'atténuation</label>
-                            <textarea id="riskMitigation" rows="2" placeholder="Actions pour réduire le risque" style="width: 100%; padding: 12px; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(99, 102, 241, 0.3); border-radius: 8px; color: white; font-size: 14px; resize: vertical;"></textarea>
+                            <label style="display: block; color: rgba(255, 255, 255, 0.9); font-size: 14px; margin-bottom: 8px;">${t.mitigation}</label>
+                            <textarea id="riskMitigation" rows="2" placeholder="${t.mitigationPlace}" style="width: 100%; padding: 12px; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(99, 102, 241, 0.3); border-radius: 8px; color: white; font-size: 14px; resize: vertical;"></textarea>
                         </div>
                         <div style="display: flex; gap: 12px; justify-content: flex-end;">
-                            <button type="button" onclick="closeRiskModal()" style="padding: 12px 24px; background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 8px; color: white; cursor: pointer;">Annuler</button>
-                            <button type="submit" style="padding: 12px 24px; background: linear-gradient(135deg, #6366f1, #8b5cf6); border: none; border-radius: 8px; color: white; cursor: pointer; box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4);">Ajouter</button>
+                            <button type="button" onclick="closeRiskModal()" style="padding: 12px 24px; background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 8px; color: white; cursor: pointer;">${t.cancel}</button>
+                            <button type="submit" style="padding: 12px 24px; background: linear-gradient(135deg, #6366f1, #8b5cf6); border: none; border-radius: 8px; color: white; cursor: pointer; box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4);">${t.add}</button>
                         </div>
                     </form>
                 </div>
@@ -22526,6 +22746,7 @@ function showAddDocumentModal() {
         
         function saveRisk(event) {
             event.preventDefault();
+            const lang = (typeof getAppLanguage === 'function' && getAppLanguage() === 'en') ? 'en' : 'fr';
             
             const risk = {
                 id: Date.now(),
@@ -22546,12 +22767,13 @@ function showAddDocumentModal() {
             closeRiskModal();
             initializeRnDData();
             renderRisksList();
-            alert('✅ Risque ajouté avec succès');
+            alert(lang === 'en' ? '✅ Risk added successfully' : '✅ Risque ajouté avec succès');
         }
         
         
         function deleteRisk(id) {
-            if (!confirm('Supprimer ce risque ?')) return;
+            const lang = (typeof getAppLanguage === 'function' && getAppLanguage() === 'en') ? 'en' : 'fr';
+            if (!confirm(lang === 'en' ? 'Delete this risk?' : 'Supprimer ce risque ?')) return;
             const risks = JSON.parse(localStorage.getItem('rndRisks') || '[]');
             const next = risks.filter(r => r.id !== id);
             localStorage.setItem('rndRisks', JSON.stringify(next));
@@ -22560,13 +22782,51 @@ function showAddDocumentModal() {
         }
 
 function showAddProjectModal() {
+            const lang = (typeof getAppLanguage === 'function' && getAppLanguage() === 'en') ? 'en' : 'fr';
+            const t = {
+                limitTitle: lang === 'en' ? 'Limit reached' : 'Limite atteinte',
+                limitMsg: lang === 'en' ? 'FREE plan allows max 3 active projects.\n\nUpgrade to PRO for more.' : 'Le plan FREE permet 3 projets actifs maximum.\\n\\nPassez au plan PRO pour créer plus de projets.',
+                createTitle: lang === 'en' ? 'Create R&D Project' : 'Créer un Projet R&D',
+                title: lang === 'en' ? 'Project Title *' : 'Titre du projet *',
+                titlePlace: lang === 'en' ? 'Ex: Rural Telemedicine Platform' : 'Ex: Plateforme de télémédecine rurale',
+                domain: lang === 'en' ? 'Innovation Domain *' : 'Domaine d\'innovation *',
+                select: lang === 'en' ? '-- Select --' : '-- Sélectionner --',
+                desc: lang === 'en' ? 'Description *' : 'Description *',
+                descPlace: lang === 'en' ? 'Describe your project...' : 'Décrivez votre projet...',
+                problem: lang === 'en' ? 'Problem to Solve *' : 'Problème à résoudre *',
+                problemPlace: lang === 'en' ? 'Ex: Lack of healthcare access' : 'Ex: Manque d\'accès aux soins en zone rurale',
+                budget: lang === 'en' ? 'Budget' : 'Budget',
+                duration: lang === 'en' ? 'Duration (months)' : 'Durée (mois)',
+                team: lang === 'en' ? 'Team (comma separated)' : 'Équipe (séparés par virgules)',
+                teamPlace: lang === 'en' ? 'John, Mary, Ahmed' : 'Jean, Marie, Ahmed',
+                tech: lang === 'en' ? 'Technologies Used' : 'Technologies utilisées',
+                techPlace: lang === 'en' ? 'React, Azure, IoT' : 'React, Azure, IoT',
+                target: lang === 'en' ? 'Target Audience' : 'Public cible',
+                targetPlace: lang === 'en' ? 'Rural population, SMBs...' : 'Population rurale, PME...',
+                cancel: lang === 'en' ? 'Cancel' : 'Annuler',
+                create: lang === 'en' ? 'Create Project' : 'Créer le projet',
+                domains: {
+                    tech: lang === 'en' ? 'Technology & Digital' : 'Technologie & Digital',
+                    health: lang === 'en' ? 'Health & Biotech' : 'Santé & Biotechnologie',
+                    edu: lang === 'en' ? 'Education & Training' : 'Éducation & Formation',
+                    agri: lang === 'en' ? 'Agriculture & Food' : 'Agriculture & Agroalimentaire',
+                    env: lang === 'en' ? 'Environment & Sustainability' : 'Environnement & Dév. Durable',
+                    biz: lang === 'en' ? 'Business & Entrepreneurship' : 'Business & Entrepreneuriat',
+                    arts: lang === 'en' ? 'Arts & Culture' : 'Arts & Culture',
+                    science: lang === 'en' ? 'Science & Research' : 'Sciences & Recherche',
+                    energy: lang === 'en' ? 'Energy & Infrastructure' : 'Énergie & Infrastructure',
+                    social: lang === 'en' ? 'Social & Impact' : 'Social & Impact',
+                    other: lang === 'en' ? 'Other' : 'Autre'
+                }
+            };
+            
             // Vérifier la limite FREE (3 projets max)
             const currentPlan = localStorage.getItem('selectedPlan') || 'FREE';
             const projects = JSON.parse(localStorage.getItem('rndProjects') || '[]');
             const activeProjects = projects.filter(p => p.statut !== 'archivé');
             
             if (currentPlan === 'FREE' && activeProjects.length >= 3) {
-                alert('Limite atteinte : Le plan FREE permet 3 projets actifs maximum.\\n\\nPassez au plan PRO pour créer plus de projets.');
+                alert(t.limitMsg);
                 return;
             }
             
@@ -22592,48 +22852,48 @@ function showAddProjectModal() {
                 <div style="background: linear-gradient(135deg, #1a1a2e, #16213e); border: 1px solid rgba(99, 102, 241, 0.3); border-radius: 16px; padding: 32px; width: 90%; max-width: 800px; max-height: 90vh; overflow-y: auto; box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
                         <h2 style="margin: 0; font-size: 28px; color: white; background: linear-gradient(135deg, #6366f1, #8b5cf6); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
-                            Créer un Projet R&D
+                            ${t.createTitle}
                         </h2>
                         <button onclick="closeProjectModal()" style="background: none; border: none; color: rgba(255, 255, 255, 0.6); font-size: 28px; cursor: pointer; padding: 0; width: 32px; height: 32px; line-height: 1;">×</button>
                     </div>
                     
                     <form id="rndProjectForm" onsubmit="saveNewProject(event)">
                         <div style="margin-bottom: 20px;">
-                            <label style="display: block; color: rgba(255, 255, 255, 0.9); font-size: 14px; font-weight: 600; margin-bottom: 8px;">Titre du projet *</label>
-                            <input type="text" id="projectTitle" required placeholder="Ex: Plateforme de télémédecine rurale" style="width: 100%; padding: 12px; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(99, 102, 241, 0.3); border-radius: 8px; color: white; font-size: 14px;">
+                            <label style="display: block; color: rgba(255, 255, 255, 0.9); font-size: 14px; font-weight: 600; margin-bottom: 8px;">${t.title}</label>
+                            <input type="text" id="projectTitle" required placeholder="${t.titlePlace}" style="width: 100%; padding: 12px; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(99, 102, 241, 0.3); border-radius: 8px; color: white; font-size: 14px;">
                         </div>
                         
                         <div style="margin-bottom: 20px;">
-                            <label style="display: block; color: rgba(255, 255, 255, 0.9); font-size: 14px; font-weight: 600; margin-bottom: 8px;">Domaine d'innovation *</label>
+                            <label style="display: block; color: rgba(255, 255, 255, 0.9); font-size: 14px; font-weight: 600; margin-bottom: 8px;">${t.domain}</label>
                             <select id="projectDomain" required style="width: 100%; padding: 12px; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(99, 102, 241, 0.3); border-radius: 8px; color: white; font-size: 14px;">
-                                <option value="">-- Sélectionner --</option>
-                                <option value="technologie">Technologie & Digital</option>
-                                <option value="santé">Santé & Biotechnologie</option>
-                                <option value="éducation">Éducation & Formation</option>
-                                <option value="agriculture">Agriculture & Agroalimentaire</option>
-                                <option value="environnement">Environnement & Dév. Durable</option>
-                                <option value="business">Business & Entrepreneuriat</option>
-                                <option value="arts">Arts & Culture</option>
-                                <option value="sciences">Sciences & Recherche</option>
-                                <option value="énergie">Énergie & Infrastructure</option>
-                                <option value="social">Social & Impact</option>
-                                <option value="autre">Autre</option>
+                                <option value="">${t.select}</option>
+                                <option value="technologie">${t.domains.tech}</option>
+                                <option value="santé">${t.domains.health}</option>
+                                <option value="éducation">${t.domains.edu}</option>
+                                <option value="agriculture">${t.domains.agri}</option>
+                                <option value="environnement">${t.domains.env}</option>
+                                <option value="business">${t.domains.biz}</option>
+                                <option value="arts">${t.domains.arts}</option>
+                                <option value="sciences">${t.domains.science}</option>
+                                <option value="énergie">${t.domains.energy}</option>
+                                <option value="social">${t.domains.social}</option>
+                                <option value="autre">${t.domains.other}</option>
                             </select>
                         </div>
                         
                         <div style="margin-bottom: 20px;">
-                            <label style="display: block; color: rgba(255, 255, 255, 0.9); font-size: 14px; font-weight: 600; margin-bottom: 8px;">Description *</label>
-                            <textarea id="projectDescription" required rows="3" placeholder="Décrivez votre projet..." style="width: 100%; padding: 12px; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(99, 102, 241, 0.3); border-radius: 8px; color: white; font-size: 14px; resize: vertical;"></textarea>
+                            <label style="display: block; color: rgba(255, 255, 255, 0.9); font-size: 14px; font-weight: 600; margin-bottom: 8px;">${t.desc}</label>
+                            <textarea id="projectDescription" required rows="3" placeholder="${t.descPlace}" style="width: 100%; padding: 12px; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(99, 102, 241, 0.3); border-radius: 8px; color: white; font-size: 14px; resize: vertical;"></textarea>
                         </div>
                         
                         <div style="margin-bottom: 20px;">
-                            <label style="display: block; color: rgba(255, 255, 255, 0.9); font-size: 14px; font-weight: 600; margin-bottom: 8px;">Problème à résoudre *</label>
-                            <textarea id="projectProblem" required rows="2" placeholder="Ex: Manque d'accès aux soins en zone rurale" style="width: 100%; padding: 12px; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(99, 102, 241, 0.3); border-radius: 8px; color: white; font-size: 14px; resize: vertical;"></textarea>
+                            <label style="display: block; color: rgba(255, 255, 255, 0.9); font-size: 14px; font-weight: 600; margin-bottom: 8px;">${t.problem}</label>
+                            <textarea id="projectProblem" required rows="2" placeholder="${t.problemPlace}" style="width: 100%; padding: 12px; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(99, 102, 241, 0.3); border-radius: 8px; color: white; font-size: 14px; resize: vertical;"></textarea>
                         </div>
                         
                         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 20px;">
                             <div>
-                                <label style="display: block; color: rgba(255, 255, 255, 0.9); font-size: 14px; font-weight: 600; margin-bottom: 8px;">Budget</label>
+                                <label style="display: block; color: rgba(255, 255, 255, 0.9); font-size: 14px; font-weight: 600; margin-bottom: 8px;">${t.budget}</label>
                                 <div style="display: flex; gap: 8px;">
                                     <input type="number" id="projectBudget" min="0" step="1000" placeholder="500000" style="flex: 1; padding: 12px; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(99, 102, 241, 0.3); border-radius: 8px; color: white; font-size: 14px;">
                                     <select id="projectCurrency" style="padding: 12px; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(99, 102, 241, 0.3); border-radius: 8px; color: white; font-size: 14px; min-width: 90px;">
@@ -22646,29 +22906,29 @@ function showAddProjectModal() {
                                 </div>
                             </div>
                             <div>
-                                <label style="display: block; color: rgba(255, 255, 255, 0.9); font-size: 14px; font-weight: 600; margin-bottom: 8px;">Durée (mois)</label>
+                                <label style="display: block; color: rgba(255, 255, 255, 0.9); font-size: 14px; font-weight: 600; margin-bottom: 8px;">${t.duration}</label>
                                 <input type="number" id="projectDuration" min="1" max="60" placeholder="12" style="width: 100%; padding: 12px; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(99, 102, 241, 0.3); border-radius: 8px; color: white; font-size: 14px;">
                             </div>
                         </div>
                         
                         <div style="margin-bottom: 20px;">
-                            <label style="display: block; color: rgba(255, 255, 255, 0.9); font-size: 14px; font-weight: 600; margin-bottom: 8px;">Équipe (séparés par virgules)</label>
-                            <input type="text" id="projectTeam" placeholder="Jean, Marie, Ahmed" style="width: 100%; padding: 12px; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(99, 102, 241, 0.3); border-radius: 8px; color: white; font-size: 14px;">
+                            <label style="display: block; color: rgba(255, 255, 255, 0.9); font-size: 14px; font-weight: 600; margin-bottom: 8px;">${t.team}</label>
+                            <input type="text" id="projectTeam" placeholder="${t.teamPlace}" style="width: 100%; padding: 12px; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(99, 102, 241, 0.3); border-radius: 8px; color: white; font-size: 14px;">
                         </div>
                         
                         <div style="margin-bottom: 20px;">
-                            <label style="display: block; color: rgba(255, 255, 255, 0.9); font-size: 14px; font-weight: 600; margin-bottom: 8px;">Technologies utilisées</label>
-                            <input type="text" id="projectTech" placeholder="React, Azure, IoT" style="width: 100%; padding: 12px; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(99, 102, 241, 0.3); border-radius: 8px; color: white; font-size: 14px;">
+                            <label style="display: block; color: rgba(255, 255, 255, 0.9); font-size: 14px; font-weight: 600; margin-bottom: 8px;">${t.tech}</label>
+                            <input type="text" id="projectTech" placeholder="${t.techPlace}" style="width: 100%; padding: 12px; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(99, 102, 241, 0.3); border-radius: 8px; color: white; font-size: 14px;">
                         </div>
                         
                         <div style="margin-bottom: 24px;">
-                            <label style="display: block; color: rgba(255, 255, 255, 0.9); font-size: 14px; font-weight: 600; margin-bottom: 8px;">Public cible</label>
-                            <input type="text" id="projectTarget" placeholder="Population rurale, PME..." style="width: 100%; padding: 12px; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(99, 102, 241, 0.3); border-radius: 8px; color: white; font-size: 14px;">
+                            <label style="display: block; color: rgba(255, 255, 255, 0.9); font-size: 14px; font-weight: 600; margin-bottom: 8px;">${t.target}</label>
+                            <input type="text" id="projectTarget" placeholder="${t.targetPlace}" style="width: 100%; padding: 12px; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(99, 102, 241, 0.3); border-radius: 8px; color: white; font-size: 14px;">
                         </div>
                         
                         <div style="display: flex; gap: 12px; justify-content: flex-end;">
-                            <button type="button" onclick="closeProjectModal()" style="padding: 12px 24px; background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 8px; color: white; font-size: 14px; cursor: pointer; font-weight: 600;">Annuler</button>
-                            <button type="submit" style="padding: 12px 24px; background: linear-gradient(135deg, #6366f1, #8b5cf6); border: none; border-radius: 8px; color: white; font-size: 14px; cursor: pointer; font-weight: 600; box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4);">Créer le projet</button>
+                            <button type="button" onclick="closeProjectModal()" style="padding: 12px 24px; background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 8px; color: white; font-size: 14px; cursor: pointer; font-weight: 600;">${t.cancel}</button>
+                            <button type="submit" style="padding: 12px 24px; background: linear-gradient(135deg, #6366f1, #8b5cf6); border: none; border-radius: 8px; color: white; font-size: 14px; cursor: pointer; font-weight: 600; box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4);">${t.create}</button>
                         </div>
                     </form>
                 </div>
@@ -22687,6 +22947,7 @@ function showAddProjectModal() {
         
         function saveNewProject(event) {
             event.preventDefault();
+            const lang = (typeof getAppLanguage === 'function' && getAppLanguage() === 'en') ? 'en' : 'fr';
             
             const projectData = {
                 id: Date.now(),
@@ -22722,16 +22983,50 @@ function showAddProjectModal() {
             renderProjectsList();
             initializeRnDData();
             
-            alert(`Projet "${projectData.titre}" créé avec succès !\\n\\nPhase actuelle : Découverte (5%)`);
+            alert(lang === 'en' ? 
+                `Project "${projectData.titre}" created successfully!\n\nCurrent Phase: Discovery (5%)` : 
+                `Projet "${projectData.titre}" créé avec succès !\\n\\nPhase actuelle : Découverte (5%)`);
         }
         
         function viewProjectDetails(projectId) {
+            const lang = (typeof getAppLanguage === 'function' && getAppLanguage() === 'en') ? 'en' : 'fr';
+            const t = {
+                progress: lang === 'en' ? 'Project Progress' : 'Progression du Projet',
+                globalProgress: lang === 'en' ? 'Overall Progress' : 'Avancement Global',
+                budget: lang === 'en' ? 'BUDGET' : 'BUDGET',
+                spent: lang === 'en' ? 'Spent:' : 'Dépensé:',
+                team: lang === 'en' ? 'TEAM' : 'ÉQUIPE',
+                members: lang === 'en' ? 'members' : 'membres',
+                none: lang === 'en' ? 'No members' : 'Aucun membre',
+                tech: lang === 'en' ? 'TECHNOLOGIES' : 'TECHNOLOGIES',
+                technos: lang === 'en' ? 'technologies' : 'technos',
+                noneTech: lang === 'en' ? 'None' : 'Aucune',
+                duration: lang === 'en' ? 'DURATION' : 'DURÉE',
+                months: lang === 'en' ? 'months' : 'mois',
+                started: lang === 'en' ? 'Started' : 'Démarré il y a',
+                daysAgo: lang === 'en' ? 'days ago' : 'jours',
+                desc: lang === 'en' ? 'DESCRIPTION' : 'DESCRIPTION',
+                problem: lang === 'en' ? 'PROBLEM TO SOLVE' : 'PROBLÈME À RÉSOUDRE',
+                target: lang === 'en' ? 'TARGET AUDIENCE' : 'PUBLIC CIBLE',
+                delete: lang === 'en' ? 'Delete' : 'Supprimer',
+                edit: lang === 'en' ? 'Edit' : 'Modifier',
+                nextPhase: lang === 'en' ? 'Next Phase' : 'Phase Suivante'
+            };
+
             const projects = JSON.parse(localStorage.getItem('rndProjects') || '[]');
             const project = projects.find(p => p.id === projectId);
             if (!project) return;
             
             // Calculer les métriques
             const phasesList = ['découverte', 'idéation', 'expérimentation', 'validation', 'déploiement', 'opérationnel'];
+            const phasesDisplay = {
+                'découverte': lang === 'en' ? 'Discovery' : 'Découverte',
+                'idéation': lang === 'en' ? 'Ideation' : 'Idéation',
+                'expérimentation': lang === 'en' ? 'Experimentation' : 'Expérimentation',
+                'validation': lang === 'en' ? 'Validation' : 'Validation',
+                'déploiement': lang === 'en' ? 'Deployment' : 'Déploiement',
+                'opérationnel': lang === 'en' ? 'Operational' : 'Opérationnel'
+            };
             const currentPhaseIndex = phasesList.indexOf(project.phase);
             const budgetPercent = project.budget.prevu > 0 ? Math.min((project.budget.depense / project.budget.prevu) * 100, 100) : 0;
             const teamSize = project.equipe.length || 0;
@@ -22899,8 +23194,8 @@ function showAddProjectModal() {
                             <h2 style="margin: 0 0 8px; font-size: 28px; background: linear-gradient(135deg, #a78bfa, #6366f1); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; font-weight: 700;">${project.titre}</h2>
                             <div style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap;">
                                 <span style="background: rgba(99, 102, 241, 0.2); padding: 6px 12px; border-radius: 6px; font-size: 13px; color: rgba(167, 139, 250, 0.9); font-weight: 600; display: flex; align-items: center; gap: 6px; border: 1px solid rgba(99, 102, 241, 0.3);">${svgIcons.folder} ${project.domaine}</span>
-                                <span style="background: rgba(99, 102, 241, 0.2); padding: 6px 12px; border-radius: 6px; font-size: 13px; color: rgba(167, 139, 250, 0.9); font-weight: 600; display: flex; align-items: center; gap: 6px; border: 1px solid rgba(99, 102, 241, 0.3);">${svgIcons.refresh} ${project.phase.charAt(0).toUpperCase() + project.phase.slice(1)}</span>
-                                <span style="background: rgba(99, 102, 241, 0.2); padding: 6px 12px; border-radius: 6px; font-size: 13px; color: rgba(167, 139, 250, 0.9); font-weight: 600; display: flex; align-items: center; gap: 6px; border: 1px solid rgba(99, 102, 241, 0.3);">${svgIcons.time} ${daysElapsed}j</span>
+                                <span style="background: rgba(99, 102, 241, 0.2); padding: 6px 12px; border-radius: 6px; font-size: 13px; color: rgba(167, 139, 250, 0.9); font-weight: 600; display: flex; align-items: center; gap: 6px; border: 1px solid rgba(99, 102, 241, 0.3);">${svgIcons.refresh} ${phasesDisplay[project.phase]}</span>
+                                <span style="background: rgba(99, 102, 241, 0.2); padding: 6px 12px; border-radius: 6px; font-size: 13px; color: rgba(167, 139, 250, 0.9); font-weight: 600; display: flex; align-items: center; gap: 6px; border: 1px solid rgba(99, 102, 241, 0.3);">${svgIcons.time} ${daysElapsed} ${t.daysAgo}</span>
                             </div>
                         </div>
                         <button class="close-button" onclick="closeProjectDetailsModal()">×</button>
@@ -22910,7 +23205,7 @@ function showAddProjectModal() {
                         
                         <!-- Progression Visuelle des 5 Phases -->
                         <div style="background: rgba(99, 102, 241, 0.05); border: 1px solid rgba(99, 102, 241, 0.2); border-radius: 16px; padding: 24px; margin-bottom: 24px;">
-                            <h3 style="margin: 0 0 20px; font-size: 18px; color: white; font-weight: 600; display: flex; align-items: center; gap: 8px;">${svgIcons.chart} Progression du Projet</h3>
+                            <h3 style="margin: 0 0 20px; font-size: 18px; color: white; font-weight: 600; display: flex; align-items: center; gap: 8px;">${svgIcons.chart} ${t.progress}</h3>
                             
                             <!-- Timeline 6 phases -->
                             <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; position: relative;">
@@ -22924,7 +23219,7 @@ function showAddProjectModal() {
                                             <div class="phase-circle" style="width: 50px; height: 50px; margin: 0 auto 8px; border-radius: 50%; background: ${isActive ? 'linear-gradient(135deg, #6366f1, #8b5cf6)' : isPassed ? 'linear-gradient(135deg, #10b981, #059669)' : 'rgba(255, 255, 255, 0.1)'}; display: flex; align-items: center; justify-content: center; border: 3px solid ${isActive ? '#8b5cf6' : isPassed ? '#10b981' : 'rgba(255, 255, 255, 0.2)'}; box-shadow: ${isActive ? '0 0 20px rgba(139, 92, 246, 0.6)' : 'none'};">
                                                 ${[svgIcons.search, svgIcons.bulb, svgIcons.flask, svgIcons.check, svgIcons.rocket, svgIcons.trophy][index]}
                                             </div>
-                                            <div class="phase-label" style="font-size: 12px; color: ${isActive ? '#a78bfa' : isPassed ? '#6ee7b7' : 'rgba(255, 255, 255, 0.5)'}; font-weight: ${isActive ? '700' : '600'}; text-transform: capitalize;">${phase}</div>
+                                            <div class="phase-label" style="font-size: 12px; color: ${isActive ? '#a78bfa' : isPassed ? '#6ee7b7' : 'rgba(255, 255, 255, 0.5)'}; font-weight: ${isActive ? '700' : '600'}; text-transform: capitalize;">${phasesDisplay[phase]}</div>
                                         </div>
                                         ${index < 5 ? `<div class="phase-connector" style="flex: 1; height: 4px; background: ${index < currentPhaseIndex ? 'linear-gradient(90deg, #10b981, #059669)' : 'rgba(255, 255, 255, 0.1)'}; margin: 0 -10px; margin-bottom: 30px; border-radius: 2px;"></div>` : ''}
                                     `;
@@ -22934,7 +23229,7 @@ function showAddProjectModal() {
                             <!-- Barre de progression globale -->
                             <div style="margin-top: 24px;">
                                 <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
-                                    <span style="font-size: 14px; color: rgba(255, 255, 255, 0.8); font-weight: 600;">Avancement Global</span>
+                                    <span style="font-size: 14px; color: rgba(255, 255, 255, 0.8); font-weight: 600;">${t.globalProgress}</span>
                                     <span style="font-size: 16px; color: #6ee7b7; font-weight: 700;">${project.avancement}%</span>
                                 </div>
                                 <div style="background: rgba(255, 255, 255, 0.1); height: 12px; border-radius: 6px; overflow: hidden; position: relative;">
@@ -22950,10 +23245,10 @@ function showAddProjectModal() {
                             <div style="background: linear-gradient(135deg, rgba(16, 185, 129, 0.1), rgba(5, 150, 105, 0.05)); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 12px; padding: 20px;">
                                 <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
                                     <div style="width: 40px; height: 40px; display: flex; align-items: center; justify-content: center;">${svgIcons.money}</div>
-                                    <span style="font-size: 12px; color: rgba(255, 255, 255, 0.6); font-weight: 600;">BUDGET</span>
+                                    <span style="font-size: 12px; color: rgba(255, 255, 255, 0.6); font-weight: 600;">${t.budget}</span>
                                 </div>
                                 <div style="font-size: 24px; color: #6ee7b7; font-weight: 700; margin-bottom: 8px;">${project.budget.prevu.toLocaleString()} ${project.budget.devise}</div>
-                                <div style="font-size: 13px; color: rgba(255, 255, 255, 0.7); margin-bottom: 12px;">Dépensé: ${project.budget.depense.toLocaleString()} ${project.budget.devise}</div>
+                                <div style="font-size: 13px; color: rgba(255, 255, 255, 0.7); margin-bottom: 12px;">${t.spent} ${project.budget.depense.toLocaleString()} ${project.budget.devise}</div>
                                 <div style="background: rgba(255, 255, 255, 0.1); height: 6px; border-radius: 3px; overflow: hidden;">
                                     <div style="background: linear-gradient(90deg, #10b981, #059669); height: 100%; width: ${budgetPercent}%; transition: width 0.5s ease;"></div>
                                 </div>
@@ -22963,30 +23258,30 @@ function showAddProjectModal() {
                             <div style="background: linear-gradient(135deg, rgba(99, 102, 241, 0.1), rgba(139, 92, 246, 0.05)); border: 1px solid rgba(99, 102, 241, 0.3); border-radius: 12px; padding: 20px;">
                                 <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
                                     <div style="width: 40px; height: 40px; display: flex; align-items: center; justify-content: center;">${svgIcons.users}</div>
-                                    <span style="font-size: 12px; color: rgba(255, 255, 255, 0.6); font-weight: 600;">ÉQUIPE</span>
+                                    <span style="font-size: 12px; color: rgba(255, 255, 255, 0.6); font-weight: 600;">${t.team}</span>
                                 </div>
-                                <div style="font-size: 24px; color: #a78bfa; font-weight: 700; margin-bottom: 8px;">${teamSize} membres</div>
-                                <div style="font-size: 13px; color: rgba(255, 255, 255, 0.7);">${project.equipe.join(', ') || 'Aucun membre'}</div>
+                                <div style="font-size: 24px; color: #a78bfa; font-weight: 700; margin-bottom: 8px;">${teamSize} ${t.members}</div>
+                                <div style="font-size: 13px; color: rgba(255, 255, 255, 0.7);">${project.equipe.join(', ') || t.none}</div>
                             </div>
                             
                             <!-- Technologies -->
                             <div style="background: linear-gradient(135deg, rgba(251, 191, 36, 0.1), rgba(245, 158, 11, 0.05)); border: 1px solid rgba(251, 191, 36, 0.3); border-radius: 12px; padding: 20px;">
                                 <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
                                     <div style="width: 40px; height: 40px; display: flex; align-items: center; justify-content: center;">${svgIcons.zap}</div>
-                                    <span style="font-size: 12px; color: rgba(255, 255, 255, 0.6); font-weight: 600;">TECHNOLOGIES</span>
+                                    <span style="font-size: 12px; color: rgba(255, 255, 255, 0.6); font-weight: 600;">${t.tech}</span>
                                 </div>
-                                <div style="font-size: 24px; color: #fbbf24; font-weight: 700; margin-bottom: 8px;">${techCount} technos</div>
-                                <div style="font-size: 13px; color: rgba(255, 255, 255, 0.7);">${project.technologies.join(', ') || 'Aucune'}</div>
+                                <div style="font-size: 24px; color: #fbbf24; font-weight: 700; margin-bottom: 8px;">${techCount} ${t.technos}</div>
+                                <div style="font-size: 13px; color: rgba(255, 255, 255, 0.7);">${project.technologies.join(', ') || t.noneTech}</div>
                             </div>
                             
                             <!-- Durée -->
                             <div style="background: linear-gradient(135deg, rgba(236, 72, 153, 0.1), rgba(219, 39, 119, 0.05)); border: 1px solid rgba(236, 72, 153, 0.3); border-radius: 12px; padding: 20px;">
                                 <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
                                     <div style="width: 40px; height: 40px; display: flex; align-items: center; justify-content: center;">${svgIcons.clock}</div>
-                                    <span style="font-size: 12px; color: rgba(255, 255, 255, 0.6); font-weight: 600;">DURÉE</span>
+                                    <span style="font-size: 12px; color: rgba(255, 255, 255, 0.6); font-weight: 600;">${t.duration}</span>
                                 </div>
-                                <div style="font-size: 24px; color: #ec4899; font-weight: 700; margin-bottom: 8px;">${project.duree} mois</div>
-                                <div style="font-size: 13px; color: rgba(255, 255, 255, 0.7);">Démarré il y a ${daysElapsed} jours</div>
+                                <div style="font-size: 24px; color: #ec4899; font-weight: 700; margin-bottom: 8px;">${project.duree} ${t.months}</div>
+                                <div style="font-size: 13px; color: rgba(255, 255, 255, 0.7);">${t.started} ${daysElapsed} ${t.daysAgo}</div>
                             </div>
                             
                         </div>
@@ -22994,11 +23289,11 @@ function showAddProjectModal() {
                         <!-- Description & Problème -->
                         <div class="description-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 24px;">
                             <div style="background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 12px; padding: 20px;">
-                                <h4 style="margin: 0 0 12px; font-size: 14px; color: rgba(255, 255, 255, 0.6); font-weight: 600; text-transform: uppercase; display: flex; align-items: center; gap: 8px;">${svgIcons.file} Description</h4>
+                                <h4 style="margin: 0 0 12px; font-size: 14px; color: rgba(255, 255, 255, 0.6); font-weight: 600; text-transform: uppercase; display: flex; align-items: center; gap: 8px;">${svgIcons.file} ${t.desc}</h4>
                                 <p style="margin: 0; color: rgba(255, 255, 255, 0.85); font-size: 14px; line-height: 1.6;">${project.description}</p>
                             </div>
                             <div style="background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 12px; padding: 20px;">
-                                <h4 style="margin: 0 0 12px; font-size: 14px; color: rgba(255, 255, 255, 0.6); font-weight: 600; text-transform: uppercase; display: flex; align-items: center; gap: 8px;">${svgIcons.target} Problème à Résoudre</h4>
+                                <h4 style="margin: 0 0 12px; font-size: 14px; color: rgba(255, 255, 255, 0.6); font-weight: 600; text-transform: uppercase; display: flex; align-items: center; gap: 8px;">${svgIcons.target} ${t.problem}</h4>
                                 <p style="margin: 0; color: rgba(255, 255, 255, 0.85); font-size: 14px; line-height: 1.6;">${project.probleme}</p>
                             </div>
                         </div>
@@ -23006,7 +23301,7 @@ function showAddProjectModal() {
                         <!-- Public Cible -->
                         ${project.cible ? `
                         <div style="background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 12px; padding: 20px; margin-bottom: 24px;">
-                            <h4 style="margin: 0 0 12px; font-size: 14px; color: rgba(255, 255, 255, 0.6); font-weight: 600; text-transform: uppercase; display: flex; align-items: center; gap: 8px;">${svgIcons.target} Public Cible</h4>
+                            <h4 style="margin: 0 0 12px; font-size: 14px; color: rgba(255, 255, 255, 0.6); font-weight: 600; text-transform: uppercase; display: flex; align-items: center; gap: 8px;">${svgIcons.target} ${t.target}</h4>
                             <p style="margin: 0; color: rgba(255, 255, 255, 0.85); font-size: 14px;">${project.cible}</p>
                         </div>
                         ` : ''}
@@ -23017,10 +23312,10 @@ function showAddProjectModal() {
                                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                                     <path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2M10 11v6M14 11v6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                                 </svg>
-                                Supprimer
+                                ${t.delete}
                             </button>
-                            <button onclick="editProject(${project.id})" style="padding: 12px 24px; background: rgba(99, 102, 241, 0.2); border: 1px solid rgba(99, 102, 241, 0.4); border-radius: 8px; color: #a78bfa; font-size: 14px; cursor: pointer; font-weight: 600; transition: background 0.2s; display: inline-flex; align-items: center; gap: 8px;">${svgIcons.edit} Modifier</button>
-                            <button onclick="advanceProjectPhase(${project.id})" style="padding: 12px 24px; background: linear-gradient(135deg, #6366f1, #8b5cf6); border: none; border-radius: 8px; color: white; font-size: 14px; cursor: pointer; font-weight: 600; box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4); transition: transform 0.2s; display: inline-flex; align-items: center; gap: 8px;">${svgIcons.arrow} Phase Suivante</button>
+                            <button onclick="editProject(${project.id})" style="padding: 12px 24px; background: rgba(99, 102, 241, 0.2); border: 1px solid rgba(99, 102, 241, 0.4); border-radius: 8px; color: #a78bfa; font-size: 14px; cursor: pointer; font-weight: 600; transition: background 0.2s; display: inline-flex; align-items: center; gap: 8px;">${svgIcons.edit} ${t.edit}</button>
+                            <button onclick="advanceProjectPhase(${project.id})" style="padding: 12px 24px; background: linear-gradient(135deg, #6366f1, #8b5cf6); border: none; border-radius: 8px; color: white; font-size: 14px; cursor: pointer; font-weight: 600; box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4); transition: transform 0.2s; display: inline-flex; align-items: center; gap: 8px;">${svgIcons.arrow} ${t.nextPhase}</button>
                         </div>
                         
                     </div>
@@ -23041,6 +23336,37 @@ function showAddProjectModal() {
         
         function editProject(projectId) {
             closeProjectDetailsModal();
+            const lang = (typeof getAppLanguage === 'function' && getAppLanguage() === 'en') ? 'en' : 'fr';
+            const t = {
+                title: lang === 'en' ? 'Edit Project' : 'Modifier le Projet',
+                projectTitle: lang === 'en' ? 'Project Title *' : 'Titre du projet *',
+                innovationField: lang === 'en' ? 'Innovation Field *' : 'Domaine d\'innovation *',
+                select: lang === 'en' ? '-- Select --' : '-- Sélectionner --',
+                desc: lang === 'en' ? 'Description *' : 'Description *',
+                descPlace: lang === 'en' ? 'Describe your project...' : 'Décrivez votre projet...',
+                problem: lang === 'en' ? 'Problem to Solve *' : 'Problème à résoudre *',
+                problemPlace: lang === 'en' ? 'Ex: Lack of access...' : 'Ex: Manque d\'accès aux soins en zone rurale',
+                budget: lang === 'en' ? 'Budget' : 'Budget',
+                duration: lang === 'en' ? 'Duration (months)' : 'Durée (mois)',
+                team: lang === 'en' ? 'Team (comma separated)' : 'Équipe (séparés par virgules)',
+                tech: lang === 'en' ? 'Technologies Used' : 'Technologies utilisées',
+                target: lang === 'en' ? 'Target Audience' : 'Public cible',
+                cancel: lang === 'en' ? 'Cancel' : 'Annuler',
+                save: lang === 'en' ? 'Save' : 'Enregistrer',
+                fields: {
+                    tech: lang === 'en' ? 'Technology & Digital' : 'Technologie & Digital',
+                    health: lang === 'en' ? 'Health & Biotech' : 'Santé & Biotechnologie',
+                    edu: lang === 'en' ? 'Education & Training' : 'Éducation & Formation',
+                    agri: lang === 'en' ? 'Agriculture & Food' : 'Agriculture & Agroalimentaire',
+                    env: lang === 'en' ? 'Environment & Sustainability' : 'Environnement & Dév. Durable',
+                    biz: lang === 'en' ? 'Business & Entrepreneurship' : 'Business & Entrepreneuriat',
+                    arts: lang === 'en' ? 'Arts & Culture' : 'Arts & Culture',
+                    science: lang === 'en' ? 'Science & Research' : 'Sciences & Recherche',
+                    energy: lang === 'en' ? 'Energy & Infrastructure' : 'Énergie & Infrastructure',
+                    social: lang === 'en' ? 'Social & Impact' : 'Social & Impact',
+                    other: lang === 'en' ? 'Other' : 'Autre'
+                }
+            };
             
             const projects = JSON.parse(localStorage.getItem('rndProjects') || '[]');
             const project = projects.find(p => p.id === projectId);
@@ -23068,48 +23394,48 @@ function showAddProjectModal() {
                 <div style="background: linear-gradient(135deg, #1a1a2e, #16213e); border: 1px solid rgba(99, 102, 241, 0.3); border-radius: 16px; padding: 32px; width: 90%; max-width: 800px; max-height: 90vh; overflow-y: auto; box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
                         <h2 style="margin: 0; font-size: 28px; color: white; background: linear-gradient(135deg, #6366f1, #8b5cf6); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
-                            Modifier le Projet
+                            ${t.title}
                         </h2>
                         <button onclick="closeEditModal()" style="background: none; border: none; color: rgba(255, 255, 255, 0.6); font-size: 28px; cursor: pointer; padding: 0; width: 32px; height: 32px; line-height: 1;">×</button>
                     </div>
                     
                     <form id="rndEditForm" onsubmit="saveEditedProject(event, ${projectId})">
                         <div style="margin-bottom: 20px;">
-                            <label style="display: block; color: rgba(255, 255, 255, 0.9); font-size: 14px; font-weight: 600; margin-bottom: 8px;">Titre du projet *</label>
+                            <label style="display: block; color: rgba(255, 255, 255, 0.9); font-size: 14px; font-weight: 600; margin-bottom: 8px;">${t.projectTitle}</label>
                             <input type="text" id="editProjectTitle" required value="${project.titre.replace(/"/g, '&quot;')}" placeholder="Ex: Plateforme de télémédecine rurale" style="width: 100%; padding: 12px; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(99, 102, 241, 0.3); border-radius: 8px; color: white; font-size: 14px;">
                         </div>
                         
                         <div style="margin-bottom: 20px;">
-                            <label style="display: block; color: rgba(255, 255, 255, 0.9); font-size: 14px; font-weight: 600; margin-bottom: 8px;">Domaine d'innovation *</label>
+                            <label style="display: block; color: rgba(255, 255, 255, 0.9); font-size: 14px; font-weight: 600; margin-bottom: 8px;">${t.innovationField}</label>
                             <select id="editProjectDomain" required style="width: 100%; padding: 12px; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(99, 102, 241, 0.3); border-radius: 8px; color: white; font-size: 14px;">
-                                <option value="">-- Sélectionner --</option>
-                                <option value="technologie" ${project.domaine === 'technologie' ? 'selected' : ''}>Technologie & Digital</option>
-                                <option value="santé" ${project.domaine === 'santé' ? 'selected' : ''}>Santé & Biotechnologie</option>
-                                <option value="éducation" ${project.domaine === 'éducation' ? 'selected' : ''}>Éducation & Formation</option>
-                                <option value="agriculture" ${project.domaine === 'agriculture' ? 'selected' : ''}>Agriculture & Agroalimentaire</option>
-                                <option value="environnement" ${project.domaine === 'environnement' ? 'selected' : ''}>Environnement & Dév. Durable</option>
-                                <option value="business" ${project.domaine === 'business' ? 'selected' : ''}>Business & Entrepreneuriat</option>
-                                <option value="arts" ${project.domaine === 'arts' ? 'selected' : ''}>Arts & Culture</option>
-                                <option value="sciences" ${project.domaine === 'sciences' ? 'selected' : ''}>Sciences & Recherche</option>
-                                <option value="énergie" ${project.domaine === 'énergie' ? 'selected' : ''}>Énergie & Infrastructure</option>
-                                <option value="social" ${project.domaine === 'social' ? 'selected' : ''}>Social & Impact</option>
-                                <option value="autre" ${project.domaine === 'autre' ? 'selected' : ''}>Autre</option>
+                                <option value="">${t.select}</option>
+                                <option value="technologie" ${project.domaine === 'technologie' ? 'selected' : ''}>${t.fields.tech}</option>
+                                <option value="santé" ${project.domaine === 'santé' ? 'selected' : ''}>${t.fields.health}</option>
+                                <option value="éducation" ${project.domaine === 'éducation' ? 'selected' : ''}>${t.fields.edu}</option>
+                                <option value="agriculture" ${project.domaine === 'agriculture' ? 'selected' : ''}>${t.fields.agri}</option>
+                                <option value="environnement" ${project.domaine === 'environnement' ? 'selected' : ''}>${t.fields.env}</option>
+                                <option value="business" ${project.domaine === 'business' ? 'selected' : ''}>${t.fields.biz}</option>
+                                <option value="arts" ${project.domaine === 'arts' ? 'selected' : ''}>${t.fields.arts}</option>
+                                <option value="sciences" ${project.domaine === 'sciences' ? 'selected' : ''}>${t.fields.science}</option>
+                                <option value="énergie" ${project.domaine === 'énergie' ? 'selected' : ''}>${t.fields.energy}</option>
+                                <option value="social" ${project.domaine === 'social' ? 'selected' : ''}>${t.fields.social}</option>
+                                <option value="autre" ${project.domaine === 'autre' ? 'selected' : ''}>${t.fields.other}</option>
                             </select>
                         </div>
                         
                         <div style="margin-bottom: 20px;">
-                            <label style="display: block; color: rgba(255, 255, 255, 0.9); font-size: 14px; font-weight: 600; margin-bottom: 8px;">Description *</label>
-                            <textarea id="editProjectDescription" required rows="3" placeholder="Décrivez votre projet..." style="width: 100%; padding: 12px; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(99, 102, 241, 0.3); border-radius: 8px; color: white; font-size: 14px; resize: vertical;">${project.description}</textarea>
+                            <label style="display: block; color: rgba(255, 255, 255, 0.9); font-size: 14px; font-weight: 600; margin-bottom: 8px;">${t.desc}</label>
+                            <textarea id="editProjectDescription" required rows="3" placeholder="${t.descPlace}" style="width: 100%; padding: 12px; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(99, 102, 241, 0.3); border-radius: 8px; color: white; font-size: 14px; resize: vertical;">${project.description}</textarea>
                         </div>
                         
                         <div style="margin-bottom: 20px;">
-                            <label style="display: block; color: rgba(255, 255, 255, 0.9); font-size: 14px; font-weight: 600; margin-bottom: 8px;">Problème à résoudre *</label>
-                            <textarea id="editProjectProblem" required rows="2" placeholder="Ex: Manque d'accès aux soins en zone rurale" style="width: 100%; padding: 12px; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(99, 102, 241, 0.3); border-radius: 8px; color: white; font-size: 14px; resize: vertical;">${project.probleme}</textarea>
+                            <label style="display: block; color: rgba(255, 255, 255, 0.9); font-size: 14px; font-weight: 600; margin-bottom: 8px;">${t.problem}</label>
+                            <textarea id="editProjectProblem" required rows="2" placeholder="${t.problemPlace}" style="width: 100%; padding: 12px; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(99, 102, 241, 0.3); border-radius: 8px; color: white; font-size: 14px; resize: vertical;">${project.probleme}</textarea>
                         </div>
                         
                         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 20px;">
                             <div>
-                                <label style="display: block; color: rgba(255, 255, 255, 0.9); font-size: 14px; font-weight: 600; margin-bottom: 8px;">Budget</label>
+                                <label style="display: block; color: rgba(255, 255, 255, 0.9); font-size: 14px; font-weight: 600; margin-bottom: 8px;">${t.budget}</label>
                                 <div style="display: flex; gap: 8px;">
                                     <input type="number" id="editProjectBudget" min="0" step="1000" value="${project.budget?.prevu || 0}" placeholder="500000" style="flex: 1; padding: 12px; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(99, 102, 241, 0.3); border-radius: 8px; color: white; font-size: 14px;">
                                     <select id="editProjectCurrency" style="padding: 12px; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(99, 102, 241, 0.3); border-radius: 8px; color: white; font-size: 14px; min-width: 90px;">
@@ -23122,29 +23448,29 @@ function showAddProjectModal() {
                                 </div>
                             </div>
                             <div>
-                                <label style="display: block; color: rgba(255, 255, 255, 0.9); font-size: 14px; font-weight: 600; margin-bottom: 8px;">Durée (mois)</label>
+                                <label style="display: block; color: rgba(255, 255, 255, 0.9); font-size: 14px; font-weight: 600; margin-bottom: 8px;">${t.duration}</label>
                                 <input type="number" id="editProjectDuration" min="1" max="60" value="${project.duree || 12}" placeholder="12" style="width: 100%; padding: 12px; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(99, 102, 241, 0.3); border-radius: 8px; color: white; font-size: 14px;">
                             </div>
                         </div>
                         
                         <div style="margin-bottom: 20px;">
-                            <label style="display: block; color: rgba(255, 255, 255, 0.9); font-size: 14px; font-weight: 600; margin-bottom: 8px;">Équipe (séparés par virgules)</label>
+                            <label style="display: block; color: rgba(255, 255, 255, 0.9); font-size: 14px; font-weight: 600; margin-bottom: 8px;">${t.team}</label>
                             <input type="text" id="editProjectTeam" value="${project.equipe?.join(', ') || ''}" placeholder="Jean, Marie, Ahmed" style="width: 100%; padding: 12px; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(99, 102, 241, 0.3); border-radius: 8px; color: white; font-size: 14px;">
                         </div>
                         
                         <div style="margin-bottom: 20px;">
-                            <label style="display: block; color: rgba(255, 255, 255, 0.9); font-size: 14px; font-weight: 600; margin-bottom: 8px;">Technologies utilisées</label>
+                            <label style="display: block; color: rgba(255, 255, 255, 0.9); font-size: 14px; font-weight: 600; margin-bottom: 8px;">${t.tech}</label>
                             <input type="text" id="editProjectTech" value="${project.technologies?.join(', ') || ''}" placeholder="React, Azure, IoT" style="width: 100%; padding: 12px; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(99, 102, 241, 0.3); border-radius: 8px; color: white; font-size: 14px;">
                         </div>
                         
                         <div style="margin-bottom: 24px;">
-                            <label style="display: block; color: rgba(255, 255, 255, 0.9); font-size: 14px; font-weight: 600; margin-bottom: 8px;">Public cible</label>
+                            <label style="display: block; color: rgba(255, 255, 255, 0.9); font-size: 14px; font-weight: 600; margin-bottom: 8px;">${t.target}</label>
                             <input type="text" id="editProjectTarget" value="${project.cible || ''}" placeholder="Population rurale, PME..." style="width: 100%; padding: 12px; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(99, 102, 241, 0.3); border-radius: 8px; color: white; font-size: 14px;">
                         </div>
                         
                         <div style="display: flex; gap: 12px; justify-content: flex-end;">
-                            <button type="button" onclick="closeEditModal()" style="padding: 12px 24px; background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 8px; color: white; font-size: 14px; cursor: pointer; font-weight: 600;">Annuler</button>
-                            <button type="submit" style="padding: 12px 24px; background: linear-gradient(135deg, #6366f1, #8b5cf6); border: none; border-radius: 8px; color: white; font-size: 14px; cursor: pointer; font-weight: 600; box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4);">Enregistrer</button>
+                            <button type="button" onclick="closeEditModal()" style="padding: 12px 24px; background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 8px; color: white; font-size: 14px; cursor: pointer; font-weight: 600;">${t.cancel}</button>
+                            <button type="submit" style="padding: 12px 24px; background: linear-gradient(135deg, #6366f1, #8b5cf6); border: none; border-radius: 8px; color: white; font-size: 14px; cursor: pointer; font-weight: 600; box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4);">${t.save}</button>
                         </div>
                     </form>
                 </div>
@@ -23163,6 +23489,7 @@ function showAddProjectModal() {
         
         function saveEditedProject(event, projectId) {
             event.preventDefault();
+            const lang = (typeof getAppLanguage === 'function' && getAppLanguage() === 'en') ? 'en' : 'fr';
             
             const projects = JSON.parse(localStorage.getItem('rndProjects') || '[]');
             const projectIndex = projects.findIndex(p => p.id === projectId);
@@ -23194,16 +23521,18 @@ function showAddProjectModal() {
             initializeRnDData();
             
             setTimeout(() => {
-                alert(`✅ Projet "${projects[projectIndex].titre}" mis à jour avec succès.`);
+                alert(lang === 'en' ? `✅ Project "${projects[projectIndex].titre}" updated successfully.` : `✅ Projet "${projects[projectIndex].titre}" mis à jour avec succès.`);
             }, 300);
         }
         
         function deleteProject(projectId) {
+            const lang = (typeof getAppLanguage === 'function' && getAppLanguage() === 'en') ? 'en' : 'fr';
             const projects = JSON.parse(localStorage.getItem('rndProjects') || '[]');
             const project = projects.find(p => p.id === projectId);
             if (!project) return;
             
-            if (confirm(`⚠️ Supprimer le projet "${project.titre}" ?\\n\\nCette action est irréversible.`)) {
+            const confirmMsg = lang === 'en' ? `⚠️ Delete project "${project.titre}"?\\n\\nThis action cannot be undone.` : `⚠️ Supprimer le projet "${project.titre}" ?\\n\\nCette action est irréversible.`;
+            if (confirm(confirmMsg)) {
                 const updatedProjects = projects.filter(p => p.id !== projectId);
                 localStorage.setItem('rndProjects', JSON.stringify(updatedProjects));
                 
@@ -23212,12 +23541,13 @@ function showAddProjectModal() {
                 initializeRnDData();
                 
                 setTimeout(() => {
-                    alert(`✅ Projet "${project.titre}" supprimé avec succès.`);
+                    alert(lang === 'en' ? `✅ Project "${project.titre}" deleted successfully.` : `✅ Projet "${project.titre}" supprimé avec succès.`);
                 }, 300);
             }
         }
         
         function advanceProjectPhase(projectId) {
+            const lang = (typeof getAppLanguage === 'function' && getAppLanguage() === 'en') ? 'en' : 'fr';
             const projects = JSON.parse(localStorage.getItem('rndProjects') || '[]');
             const project = projects.find(p => p.id === projectId);
             if (!project) return;
@@ -23237,7 +23567,7 @@ function showAddProjectModal() {
                 
                 setTimeout(() => viewProjectDetails(projectId), 300);
             } else {
-                alert('🎉 Projet terminé ! Félicitations pour le déploiement réussi !');
+                alert(lang === 'en' ? '🎉 Project completed! Congratulations on the successful deployment!' : '🎉 Projet terminé ! Félicitations pour le déploiement réussi !');
             }
         }
         
@@ -23346,7 +23676,8 @@ function showAddProjectModal() {
                     openFinanceAI();
                 } else {
                     console.error('openFinanceAI non disponible');
-                    alert('Erreur lors de l\'ouverture d\'AI Finance');
+                    const lang = (typeof getAppLanguage === 'function' && getAppLanguage() === 'en') ? 'en' : 'fr';
+                    alert(lang === 'en' ? 'Error opening AI Finance' : 'Erreur lors de l\'ouverture d\'AI Finance');
                 }
             };
             script.onerror = function() {
@@ -23355,7 +23686,8 @@ function showAddProjectModal() {
                 if (typeof openFinanceAI === 'function') {
                     openFinanceAI();
                 } else {
-                    alert('Erreur lors du chargement d\'AI Finance. Veuillez réessayer.');
+                    const lang = (typeof getAppLanguage === 'function' && getAppLanguage() === 'en') ? 'en' : 'fr';
+                    alert(lang === 'en' ? 'Error loading AI Finance. Please try again.' : 'Erreur lors du chargement d\'AI Finance. Veuillez réessayer.');
                 }
             };
             document.head.appendChild(script);
@@ -23373,8 +23705,10 @@ function showAddProjectModal() {
         };
         
         function openVisionPro() {
+            const lang = (typeof getAppLanguage === 'function' && getAppLanguage() === 'en') ? 'en' : 'fr';
+
             if (typeof AXILUM_DEFERRED_TOOLS_DISABLED !== 'undefined' && AXILUM_DEFERRED_TOOLS_DISABLED) {
-                try { showToast('Ce module est désactivé pour le moment.', 'error'); } catch (_) {}
+                try { showToast(lang === 'en' ? 'This module is currently disabled.' : 'Ce module est désactivé pour le moment.', 'error'); } catch (_) {}
                 return;
             }
 
@@ -23382,7 +23716,7 @@ function showAddProjectModal() {
             const currentPlan = localStorage.getItem('selectedPlan') || 'FREE';
             
             if (currentPlan !== 'PRO' && currentPlan !== 'ENTERPRISE') {
-                showToast('AI Vision PRO est réservé aux utilisateurs PRO/ENTREPRISE. Passez au plan PRO pour accéder à cette fonctionnalité.', 'error');
+                showToast(lang === 'en' ? 'AI Vision PRO is reserved for PRO/ENTERPRISE users. Upgrade to PRO to access this feature.' : 'AI Vision PRO est réservé aux utilisateurs PRO/ENTREPRISE. Passez au plan PRO pour accéder à cette fonctionnalité.', 'error');
                 return;
             }
             
