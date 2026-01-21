@@ -32542,7 +32542,24 @@ ${recruitmentInfo}
 
         function openFinanceHelpModal() {
             const modal = document.getElementById("financeHelpModal");
-            if (modal) modal.style.display = "flex";
+            if (modal) {
+                modal.style.display = "flex";
+                
+                // Toggle lang
+                const lang = (typeof getAppLanguage === 'function') ? getAppLanguage() : 'fr';
+                const fr = document.getElementById('financeHelpContentFr');
+                const en = document.getElementById('financeHelpContentEn');
+                
+                if (fr && en) {
+                    if (lang === 'en') {
+                        fr.style.display = 'none';
+                        en.style.display = 'block';
+                    } else {
+                        fr.style.display = 'block';
+                        en.style.display = 'none';
+                    }
+                }
+            }
         }
         function closeFinanceHelpModal() {
             const modal = document.getElementById("financeHelpModal");
@@ -33294,6 +33311,7 @@ ${recruitmentInfo}
               <p id="financeHelpSubtitle">Découvrez toutes les fonctionnalités et capacités</p>
           </div>
           <div class="rgpd-modal-body">
+            <div id="financeHelpContentFr">
               <div class="rgpd-section">
                   <h3>🤖 Agent Alex - Intelligence Artificielle Financière</h3>
                   <p><strong>Alex</strong> est votre expert-comptable virtuel alimenté par l'IA. Ses capacités incluent :</p>
@@ -33416,6 +33434,133 @@ ${recruitmentInfo}
               <div class="rgpd-section rgpd-contact">
                   <p><strong>🚀 Pour commencer :</strong> Renseignez vos paramètres entreprise, puis posez votre première question à Alex !</p>
               </div>
+            </div><!-- End FR -->
+
+            <div id="financeHelpContentEn" style="display:none">
+              <div class="rgpd-section">
+                  <h3>🤖 Agent Alex - Financial AI</h3>
+                  <p><strong>Alex</strong> is your AI-powered virtual accountant. His capabilities include:</p>
+                  <ul>
+                      <li><strong>Document Analysis</strong> - Automated reading and extraction of invoices, bank statements, quotes, and contracts</li>
+                      <li><strong>Assisted Accounting</strong> - Help with bookkeeping, lettering, bank reconciliation</li>
+                      <li><strong>Tax Advice</strong> - VAT optimization, tax calculations, filing deadlines</li>
+                      <li><strong>Smart Reporting</strong> - Generation of dashboards, charts, and comparative analyses</li>
+                      <li><strong>Anomaly Detection</strong> - Identification of duplicates, unusual variances, and fraud risks</li>
+                      <li><strong>Web Search</strong> - Access to market data, stock prices, and real-time economic news</li>
+                  </ul>
+                  <p style="margin-top: 10px; background: rgba(52,211,153,0.1); padding: 10px; border-radius: 8px; border-left: 3px solid #34d399;">
+                      <strong>💡 Tip:</strong> The more company settings you fill (sector, turnover, tax regime), the more Alex personalizes his recommendations.
+                  </p>
+              </div>
+
+              <div class="rgpd-section">
+                  <h3>📊 Budget KPIs - Financial Dashboard</h3>
+                  <p>Ask Alex to analyze your key performance indicators:</p>
+                  <ul>
+                      <li><strong>Gross Margin</strong> - (Revenue - COGS) / Revenue × 100 → Profitability of your core activity</li>
+                      <li><strong>Net Margin</strong> - Net Income / Revenue × 100 → Overall profitability after all expenses</li>
+                      <li><strong>EBITDA</strong> - Earnings Before Interest, Taxes, Depreciation, and Amortization → Pure operational performance</li>
+                      <li><strong>Working Capital</strong> - Inventory + Receivables - Payables → Cash needed for operating cycle</li>
+                      <li><strong>Current Ratio</strong> - Current Assets / Current Liabilities → Ability to pay short-term debts</li>
+                      <li><strong>DSO (Days Sales Outstanding)</strong> - (Receivables / Revenue) × 365 → Average days to collect payment</li>
+                      <li><strong>DPO (Days Payable Outstanding)</strong> - (Payables / COGS) × 365 → Average days to pay suppliers</li>
+                      <li><strong>Burn Rate</strong> - Average monthly cash spend → For startups, remaining cash runway</li>
+                  </ul>
+                  <p style="font-style: italic; color: #94a3b8;">Example: "Alex, calculate my Working Capital and DSO for the last 3 months"</p>
+              </div>
+
+              <div class="rgpd-section">
+                  <h3>🔍 Market Research - Competitive Analysis</h3>
+                  <p>Alex can perform real-time market research:</p>
+                  <ul>
+                      <li><strong>Stock Prices</strong> - Share prices, indices (S&P500), cryptocurrencies with variations</li>
+                      <li><strong>Sector Analysis</strong> - Industry trends, competitive benchmarks</li>
+                      <li><strong>Economic Monitoring</strong> - Financial news, central bank rates, inflation</li>
+                      <li><strong>Company Data</strong> - Competitor key figures (if public), market share</li>
+                      <li><strong>Forecasts</strong> - Economic projections, financial expert analyses</li>
+                  </ul>
+                  <p style="font-style: italic; color: #94a3b8;">Example questions:</p>
+                  <ul style="color: #94a3b8; font-size: 12px;">
+                      <li>"What is Apple's stock price today?"</li>
+                      <li>"Analyze the restaurant sector in France in 2025"</li>
+                      <li>"Compare average margins of e-commerce vs traditional retail"</li>
+                      <li>"What are the inflation forecasts for 2026?"</li>
+                  </ul>
+              </div>
+
+              <div class="rgpd-section">
+                  <h3>📅 Monthly Closing - Automated Process</h3>
+                  <p>Alex guides you through your monthly accounting closing:</p>
+                  <ul>
+                      <li><strong>Closing Checklist</strong> - List of tasks to complete before closing the month</li>
+                      <li><strong>Bank Reconciliation</strong> - Verifying accounting balance = bank balance</li>
+                      <li><strong>Account Audit</strong> - Balance verification, anomaly detection</li>
+                      <li><strong>Accruals</strong> - Calculation of provisions (vacation pay, accrued expenses)</li>
+                      <li><strong>Adjustments</strong> - Prepaid expenses, deferred revenue</li>
+                      <li><strong>Reporting</strong> - Generation of P&L and monthly balance sheet</li>
+                      <li><strong>Variance Analysis</strong> - Budget vs Actual with explanations of variations</li>
+                  </ul>
+                  <p style="margin-top: 10px; background: rgba(59,130,246,0.1); padding: 10px; border-radius: 8px; border-left: 3px solid #60a5fa;">
+                      <strong>🗓️ Reminder:</strong> "Alex, generate my closing checklist for January" or "Compare my expenses January vs December"
+                  </p>
+              </div>
+
+              <div class="rgpd-section">
+                  <h3>⚡ Automation Tools (Left Panel)</h3>
+                  <ul>
+                      <li><strong>📄 Auto Invoice Reading</strong> - AI OCR: upload a photo/PDF, instant extraction of amounts, dates, VAT, vendor, invoice number</li>
+                      <li><strong>🛡️ Fraud Detection</strong> - Multi-criteria analysis: duplicates, abnormal amounts, suspicious vendors, unusual patterns</li>
+                      <li><strong>📊 Cash Flow Forecast</strong> - Cash flow projection over 3-12 months based on history and seasonality</li>
+                      <li><strong>📈 Market Analysis</strong> - Direct access to prices, indices, and sector analyses</li>
+                  </ul>
+              </div>
+
+              <div class="rgpd-section">
+                  <h3>💬 Quick Commands for Alex</h3>
+                  <table style="width: 100%; font-size: 12px; border-collapse: collapse;">
+                      <tr style="background: rgba(255,255,255,0.05);">
+                          <td style="padding: 8px; border-bottom: 1px solid rgba(148,163,184,0.2);"><strong>Invoices</strong></td>
+                          <td style="padding: 8px; border-bottom: 1px solid rgba(148,163,184,0.2);">"Analyze this invoice" + attached image</td>
+                      </tr>
+                      <tr>
+                          <td style="padding: 8px; border-bottom: 1px solid rgba(148,163,184,0.2);"><strong>VAT</strong></td>
+                          <td style="padding: 8px; border-bottom: 1px solid rgba(148,163,184,0.2);">"Calculate VAT on 2500€ net" / "Get net amount from 1500€ gross"</td>
+                      </tr>
+                      <tr style="background: rgba(255,255,255,0.05);">
+                          <td style="padding: 8px; border-bottom: 1px solid rgba(148,163,184,0.2);"><strong>Reporting</strong></td>
+                          <td style="padding: 8px; border-bottom: 1px solid rgba(148,163,184,0.2);">"Summarize my expenses for the month" / "Compare expenses vs revenue"</td>
+                      </tr>
+                      <tr>
+                          <td style="padding: 8px; border-bottom: 1px solid rgba(148,163,184,0.2);"><strong>KPIs</strong></td>
+                          <td style="padding: 8px; border-bottom: 1px solid rgba(148,163,184,0.2);">"Calculate my gross margin" / "What is my working capital?"</td>
+                      </tr>
+                      <tr style="background: rgba(255,255,255,0.05);">
+                          <td style="padding: 8px; border-bottom: 1px solid rgba(148,163,184,0.2);"><strong>Market</strong></td>
+                          <td style="padding: 8px; border-bottom: 1px solid rgba(148,163,184,0.2);">"Price of S&P500" / "Analyze the tech sector in 2025"</td>
+                      </tr>
+                      <tr>
+                          <td style="padding: 8px;"><strong>Closing</strong></td>
+                          <td style="padding: 8px;">"December closing checklist" / "Generate my monthly P&L"</td>
+                      </tr>
+                  </table>
+              </div>
+
+              <div class="rgpd-section">
+                  <h3>🔘 Header Buttons</h3>
+                  <ul>
+                      <li><strong>⚙️ Tools</strong> - Automated tools panel (OCR, fraud, forecasts)</li>
+                      <li><strong>🕐 History</strong> - Find your saved conversations</li>
+                      <li><strong>❓ Help</strong> - This guide (you are here!)</li>
+                      <li><strong>⚙️ Settings</strong> - Configure your company info</li>
+                      <li><strong>🛡️ GDPR</strong> - Data protection and retention</li>
+                  </ul>
+              </div>
+
+              <div class="rgpd-section rgpd-contact">
+                  <p><strong>🚀 To start:</strong> Fill in your company settings, then ask Alex your first question!</p>
+              </div>
+            </div><!-- End EN -->
+
           </div>
       </div>
   </div>
