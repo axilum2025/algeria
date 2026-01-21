@@ -20498,9 +20498,13 @@ ${persona}
                     @media (max-width: 768px) {
                         .rnd-header {
                             padding: 16px 20px;
+                            padding-right: 110px; /* Espace pour les boutons close/help */
                         }
                         .rnd-title {
                             font-size: 24px;
+                            max-width: 100%;
+                            overflow: hidden;
+                            text-overflow: ellipsis;
                         }
                         .rnd-subtitle {
                             font-size: 12px;
@@ -20513,7 +20517,7 @@ ${persona}
                         }
                         .rnd-help-btn {
                             top: 16px;
-                            right: 68px;
+                            right: 70px; /* Alignement précis à côté du bouton fermeture */
                             width: 36px;
                             height: 36px;
                         }
