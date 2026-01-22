@@ -4260,6 +4260,7 @@
                         <div style="display:flex; gap: 10px; flex-wrap: wrap;">
                             <button type="button" class="settings-plan-btn" onclick="toggleDocsSearch()" style="min-width: 180px;">Activer/Désactiver</button>
                             <button type="button" class="settings-plan-btn" onclick="attachFile()" style="min-width: 180px;">Indexer un fichier</button>
+                            <button type="button" class="settings-plan-btn" onclick="clearAllIndexedDocs()" style="min-width: 210px; border-color: rgba(239, 68, 68, 0.45);">Supprimer tous mes docs</button>
                         </div>
                     </div>
                 </div>
@@ -5813,6 +5814,40 @@ RÈGLES IMPORTANTES:
                 resultsEl.style.whiteSpace = 'pre-line';
             } catch (e) {
                 resultsEl.textContent = `Erreur: ${e && e.message ? e.message : String(e)}`;
+            }
+        }
+
+        async function clearAllIndexedDocs() {
+            if (!(typeof getAuthToken === 'function') || !getAuthToken()) {
+                try { showToast('🔒 Connectez-vous pour supprimer vos documents', 'info'); } catch (_) {}
+                return;
+            }
+            const ok = confirm('Supprimer tous vos documents indexés ? Cette action est irréversible.');
+            if (!ok) return;
+
+            const resultsEl = document.getElementById('docsModalResults');
+            if (resultsEl) resultsEl.textContent = 'Suppression…';
+
+            try {
+                const res = await apiFetch('/api/elastic/clear', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({})
+                });
+                const data = await res.json().catch(() => ({}));
+                if (!res.ok || !data || !data.ok) {
+                    const err = (data && (data.error || data.details)) ? String(data.error || data.details) : `Erreur ${res.status}`;
+                    if (resultsEl) resultsEl.textContent = `Erreur: ${err}`;
+                    try { showToast('❌ Suppression échouée', 'error'); } catch (_) {}
+                    return;
+                }
+
+                clearDocsIndexedMeta();
+                if (resultsEl) resultsEl.textContent = `✅ Suppression OK (${Number(data.deleted || 0)} éléments supprimés).`;
+                try { showToast('✅ Documents supprimés', 'success'); } catch (_) {}
+            } catch (e) {
+                if (resultsEl) resultsEl.textContent = `Erreur: ${e && e.message ? e.message : String(e)}`;
+                try { showToast('❌ Suppression échouée', 'error'); } catch (_) {}
             }
         }
 

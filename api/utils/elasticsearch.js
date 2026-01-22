@@ -179,6 +179,24 @@ async function searchVector({ indexName, tenantId, vector, topK = 5 }) {
   return elasticRequest(`/${encodeURIComponent(index)}/_search`, { method: 'POST', body });
 }
 
+async function deleteByTenant({ indexName, tenantId }) {
+  const index = String(indexName || '').trim();
+  const uid = String(tenantId || '').trim();
+  if (!index) throw new Error('Index Elasticsearch vide');
+  if (!uid) throw new Error('tenantId vide');
+
+  const body = {
+    query: {
+      term: { tenantId: uid }
+    }
+  };
+
+  return elasticRequest(`/${encodeURIComponent(index)}/_delete_by_query?refresh=true&conflicts=proceed`, {
+    method: 'POST',
+    body
+  });
+}
+
 function rrfMerge({ textHits = [], vectorHits = [], k = 60, limit = 10 }) {
   const scores = new Map();
 
@@ -208,5 +226,6 @@ module.exports = {
   bulkIndex,
   searchText,
   searchVector,
+  deleteByTenant,
   rrfMerge
 };
