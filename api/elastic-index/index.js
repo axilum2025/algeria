@@ -35,6 +35,7 @@ module.exports = async function (context, req) {
 
     const body = req.body || {};
     const documents = Array.isArray(body.documents) ? body.documents : null;
+    const useEmbeddings = body.useEmbeddings === false ? false : true;
 
     if (!documents || documents.length === 0) {
       setCors(context, 'POST, OPTIONS');
@@ -69,17 +70,31 @@ module.exports = async function (context, req) {
         overlap: Number(body.overlap || 150) || 150
       }).slice(0, maxChunksPerDoc);
 
-      const embedded = await embedTexts(chunks, { userId, route: 'elastic/index', dims: vectorDims, preferAzure: true });
-      const vectors = embedded && Array.isArray(embedded.vectors) ? embedded.vectors : [];
+      let vectors = [];
+      let embeddingsOk = false;
+      if (useEmbeddings) {
+        try {
+          const embedded = await embedTexts(chunks, { userId, route: 'elastic/index', dims: vectorDims, preferAzure: true });
+          vectors = embedded && Array.isArray(embedded.vectors) ? embedded.vectors : [];
+          embeddingsOk = true;
+        } catch (e) {
+          // Si Azure embeddings est rate-limité, on indexe quand même en texte (sans vector) au lieu d'échouer.
+          if (e && (e.status === 429 || e.status === 503)) {
+            vectors = [];
+            embeddingsOk = false;
+          } else {
+            throw e;
+          }
+        }
+      }
 
       for (let chunkId = 0; chunkId < chunks.length; chunkId++) {
         const chunk = chunks[chunkId];
         const id = `${userId}:${documentId}:${chunkId}`;
         const vector = vectors[chunkId] || null;
-        if (!vector) continue;
 
         ndjson += JSON.stringify({ index: { _id: id } }) + '\n';
-        ndjson += JSON.stringify({
+        const docBody = {
           tenantId: userId,
           documentId,
           chunkId,
@@ -88,9 +103,12 @@ module.exports = async function (context, req) {
           source,
           url: urlValue,
           tags,
-          createdAt,
-          content_vector: vector
-        }) + '\n';
+          createdAt
+        };
+        if (useEmbeddings && embeddingsOk && vector) {
+          docBody.content_vector = vector;
+        }
+        ndjson += JSON.stringify(docBody) + '\n';
       }
 
       indexed.push({ documentId, chunks: chunks.length, title: title || pickSnippet(content) });

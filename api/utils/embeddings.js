@@ -48,6 +48,28 @@ function normalizeVectorToDims(vector, dims) {
   return out;
 }
 
+function sleep(ms) {
+  return new Promise((resolve) => setTimeout(resolve, Math.max(0, Number(ms) || 0)));
+}
+
+function parseRetryAfterMs(resp) {
+  try {
+    if (!resp || !resp.headers) return null;
+    const ra = resp.headers.get('retry-after');
+    if (!ra) return null;
+    const s = Number(ra);
+    if (Number.isFinite(s) && s > 0) return Math.min(30_000, Math.floor(s * 1000));
+    const t = Date.parse(ra);
+    if (Number.isFinite(t)) {
+      const delta = t - Date.now();
+      if (delta > 0) return Math.min(30_000, delta);
+    }
+    return null;
+  } catch {
+    return null;
+  }
+}
+
 async function assertUserHasCreditForEstimate({ userId, modelId, estimatedPromptTokens }) {
   if (!isCreditEnforced()) return { enforced: false };
 
@@ -91,31 +113,41 @@ async function embedTextsWithAzure(texts, { userId = '', route = '', dims = null
   const estimatedPromptTokens = cleaned.reduce((acc, t) => acc + estimateTokensForEmbeddingText(t), 0);
   await assertUserHasCreditForEstimate({ userId, modelId: cfg.modelId, estimatedPromptTokens });
 
-  const start = Date.now();
   const url = `${cfg.endpoint.replace(/\/$/, '')}/openai/deployments/${encodeURIComponent(cfg.deployment)}/embeddings?api-version=${encodeURIComponent(cfg.apiVersion)}`;
 
-  const resp = await fetch(url, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'api-key': cfg.apiKey
-    },
-    body: JSON.stringify({ input: cleaned })
-  });
-
-  const latencyMs = Date.now() - start;
-  const rawText = await resp.text();
+  const maxAttempts = Math.max(1, Math.min(5, Number(process.env.AZURE_OPENAI_EMBEDDINGS_RETRY || 3) || 3));
+  let lastErr = null;
   let data = null;
-  try {
-    data = rawText ? JSON.parse(rawText) : null;
-  } catch (_) {
-    data = null;
-  }
+  let latencyMs = 0;
 
-  if (!resp.ok) {
+  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+    const start = Date.now();
+    const resp = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'api-key': cfg.apiKey
+      },
+      body: JSON.stringify({ input: cleaned })
+    });
+
+    latencyMs = Date.now() - start;
+    const rawText = await resp.text();
+    try {
+      data = rawText ? JSON.parse(rawText) : null;
+    } catch (_) {
+      data = null;
+    }
+
+    if (resp.ok) {
+      lastErr = null;
+      break;
+    }
+
     const err = new Error(`Azure OpenAI embeddings error ${resp.status}`);
     err.status = resp.status;
     err.details = data || rawText;
+    lastErr = err;
 
     // Enregistre aussi l'échec (best-effort)
     try {
@@ -130,8 +162,15 @@ async function embedTextsWithAzure(texts, { userId = '', route = '', dims = null
       });
     } catch (_) {}
 
-    throw err;
+    const isRetriable = resp.status === 429 || resp.status === 503;
+    if (!isRetriable || attempt >= maxAttempts) break;
+
+    const retryAfterMs = parseRetryAfterMs(resp);
+    const backoffMs = Math.min(10_000, 750 * attempt * attempt);
+    await sleep(retryAfterMs != null ? retryAfterMs : backoffMs);
   }
+
+  if (lastErr) throw lastErr;
 
   const rows = Array.isArray(data?.data) ? data.data : [];
   const vectors = rows
@@ -171,24 +210,39 @@ async function embedTexts(texts, { userId = '', route = '', dims = null, preferA
 
   if (preferAzure && isAzureEmbeddingsConfigured()) {
     // Batching simple pour limiter taille requête
-    const batchSize = Math.max(1, Math.min(32, Number(process.env.AZURE_OPENAI_EMBEDDINGS_BATCH || 16) || 16));
+    const batchSize = Math.max(1, Math.min(64, Number(process.env.AZURE_OPENAI_EMBEDDINGS_BATCH || 32) || 32));
     const allVectors = [];
     let totalUsage = { prompt_tokens: 0, completion_tokens: 0, total_tokens: 0 };
     let lastMeta = { provider: 'azure-openai', model: getAzureEmbeddingsConfig().modelId, latencyMs: null };
+    let usedFallback = false;
 
     for (let i = 0; i < arr.length; i += batchSize) {
       const batch = arr.slice(i, i + batchSize);
-      const out = await embedTextsWithAzure(batch, { userId, route, dims });
-      lastMeta = { provider: out.provider, model: out.model, latencyMs: out.latencyMs };
-      out.vectors.forEach((v) => allVectors.push(v));
-      totalUsage.prompt_tokens += Number(out.usage?.prompt_tokens || 0);
-      totalUsage.completion_tokens += Number(out.usage?.completion_tokens || 0);
-      totalUsage.total_tokens += Number(out.usage?.total_tokens || 0);
+      try {
+        const out = await embedTextsWithAzure(batch, { userId, route, dims });
+        lastMeta = { provider: out.provider, model: out.model, latencyMs: out.latencyMs };
+        out.vectors.forEach((v) => allVectors.push(v));
+        totalUsage.prompt_tokens += Number(out.usage?.prompt_tokens || 0);
+        totalUsage.completion_tokens += Number(out.usage?.completion_tokens || 0);
+        totalUsage.total_tokens += Number(out.usage?.total_tokens || 0);
+      } catch (e) {
+        // Si Azure est rate-limité, fallback local pour éviter de casser l'expérience.
+        if (e && (e.status === 429 || e.status === 503)) {
+          usedFallback = true;
+          const fb = batch
+            .map((t) => generateSimpleEmbedding(String(t || ''), dims || 100))
+            .map((v) => normalizeVectorToDims(v, dims));
+          fb.forEach((v) => allVectors.push(v));
+          lastMeta = { provider: 'simple', model: 'simple', latencyMs: 0 };
+          continue;
+        }
+        throw e;
+      }
     }
 
     return {
-      provider: lastMeta.provider,
-      model: lastMeta.model,
+      provider: usedFallback ? 'mixed' : lastMeta.provider,
+      model: usedFallback ? `${getAzureEmbeddingsConfig().modelId}+simple` : lastMeta.model,
       vectors: allVectors,
       usage: totalUsage,
       latencyMs: lastMeta.latencyMs

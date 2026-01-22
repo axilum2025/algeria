@@ -76,16 +76,16 @@ module.exports = async function (context, req) {
     }
 
     if (mode === 'vector' || mode === 'hybrid') {
-      const embedded = await embedTexts([q], { userId, route: 'elastic/search', dims: vectorDims, preferAzure: true });
-      const vector = embedded && Array.isArray(embedded.vectors) && embedded.vectors[0] ? embedded.vectors[0] : null;
-      if (!vector) {
-        setCors(context, 'POST, OPTIONS');
-        context.res.status = 500;
-        context.res.headers['Content-Type'] = 'application/json';
-        context.res.body = { error: 'Embedding indisponible' };
-        return;
+      try {
+        const embedded = await embedTexts([q], { userId, route: 'elastic/search', dims: vectorDims, preferAzure: true });
+        const vector = embedded && Array.isArray(embedded.vectors) && embedded.vectors[0] ? embedded.vectors[0] : null;
+        if (vector) {
+          vectorResp = await searchVector({ indexName: index, tenantId: userId, vector, topK });
+        }
+      } catch (e) {
+        // Azure embeddings peut être rate-limité -> on laisse tomber la partie vectorielle.
+        if (!(e && (e.status === 429 || e.status === 503))) throw e;
       }
-      vectorResp = await searchVector({ indexName: index, tenantId: userId, vector, topK });
     }
 
     const textHits = textResp?.hits?.hits || [];
