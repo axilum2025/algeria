@@ -5929,13 +5929,13 @@ RÈGLES IMPORTANTES:
 
             if (res.status === 401) {
                 try { showToast('🔒 Connectez-vous pour indexer vos documents', 'info'); } catch (_) {}
-                return { ok: false, skipped: true, reason: 'no-auth' };
+                return { ok: false, skipped: true, reason: 'no-auth', status: 401 };
             }
 
             const data = await res.json().catch(() => ({}));
             if (!res.ok || !data || !data.ok) {
                 const err = (data && (data.error || data.details)) ? String(data.error || data.details) : `Erreur ${res.status}`;
-                return { ok: false, error: err };
+                return { ok: false, error: err, status: res.status };
             }
             return { ok: true, indexed: data.indexed || [] };
         }
@@ -5963,8 +5963,10 @@ RÈGLES IMPORTANTES:
                     } catch (_) {}
                     try { showToast('✅ Document indexé', 'success'); } catch (_) {}
                 } else if (r && r.error) {
-                    // Ne pas spammer en cas de config ES absente
-                    try { showToast('⚠️ Indexation impossible (config Elasticsearch)', 'info'); } catch (_) {}
+                    const rawErr = String(r.error || '').trim();
+                    const shortErr = rawErr.length > 180 ? (rawErr.slice(0, 180) + '…') : rawErr;
+                    const prefix = (typeof r.status === 'number') ? `⚠️ Indexation impossible (HTTP ${r.status})` : '⚠️ Indexation impossible';
+                    try { showToast(shortErr ? `${prefix}: ${shortErr}` : prefix, 'info'); } catch (_) {}
                 }
             } catch (_) {
                 // silencieux
