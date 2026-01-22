@@ -17605,19 +17605,11 @@ ${persona}
                         min-height: 0;
                         -webkit-overflow-scrolling: touch;
                         overscroll-behavior: contain;
-                        display: flex;
-                        flex-direction: column;
                     }
                     
-                    /* Quand l'agent est actif, le contenu doit remplir l'espace */
+                    /* Agent RH: comportement standard (comme RND) */
                     #hrContentAgent {
                         display: none;
-                        flex-direction: column;
-                        flex: 1;
-                        min-height: 0;
-                    }
-                    #hrContentAgent[style*="display: flex"] {
-                        flex: 1;
                     }
                     
                     .hr-stat-card {
@@ -26864,8 +26856,7 @@ N'inclus des actions QUE si l'utilisateur demande explicitement de modifier/ajou
             // Show selected content
             const selectedContent = document.getElementById(`hrContent${tabName.charAt(0).toUpperCase() + tabName.slice(1)}`);
             if (selectedContent) {
-                // Agent RH nécessite display: flex pour le layout du chat
-                selectedContent.style.display = (tabName === 'agent') ? 'flex' : 'block';
+                selectedContent.style.display = 'block';
             }
 
             // Revenir en haut à l'ouverture de chaque onglet (desktop/mobile)
