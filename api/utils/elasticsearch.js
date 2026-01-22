@@ -1,10 +1,12 @@
 function getElasticConfig() {
-  const url = String(process.env.ELASTICSEARCH_URL || '').trim();
-  const apiKey = String(process.env.ELASTICSEARCH_API_KEY || '').trim();
-  const username = String(process.env.ELASTICSEARCH_USERNAME || '').trim();
-  const password = String(process.env.ELASTICSEARCH_PASSWORD || '').trim();
-  const index = String(process.env.ELASTICSEARCH_INDEX || 'axilum-user-docs').trim();
-  const vectorDims = Math.max(8, Number(process.env.ELASTICSEARCH_VECTOR_DIMS || 100) || 100);
+  // Azure App Service / Functions injecte souvent les app settings aussi sous forme APPSETTING_*.
+  const url = String(process.env.ELASTICSEARCH_URL || process.env.APPSETTING_ELASTICSEARCH_URL || '').trim();
+  const apiKey = String(process.env.ELASTICSEARCH_API_KEY || process.env.APPSETTING_ELASTICSEARCH_API_KEY || '').trim();
+  const username = String(process.env.ELASTICSEARCH_USERNAME || process.env.APPSETTING_ELASTICSEARCH_USERNAME || '').trim();
+  const password = String(process.env.ELASTICSEARCH_PASSWORD || process.env.APPSETTING_ELASTICSEARCH_PASSWORD || '').trim();
+  const index = String(process.env.ELASTICSEARCH_INDEX || process.env.APPSETTING_ELASTICSEARCH_INDEX || 'axilum-user-docs').trim();
+  const vectorDimsRaw = process.env.ELASTICSEARCH_VECTOR_DIMS || process.env.APPSETTING_ELASTICSEARCH_VECTOR_DIMS || 100;
+  const vectorDims = Math.max(8, Number(vectorDimsRaw) || 100);
 
   return { url, apiKey, username, password, index, vectorDims };
 }
