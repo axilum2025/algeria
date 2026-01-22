@@ -5809,10 +5809,6 @@ RÈGLES IMPORTANTES:
         }
 
         async function clearAllIndexedDocs() {
-            if (!(typeof getAuthToken === 'function') || !getAuthToken()) {
-                try { showToast('🔒 Connectez-vous pour supprimer vos documents', 'info'); } catch (_) {}
-                return;
-            }
             const ok = confirm('Supprimer tous vos documents indexés ? Cette action est irréversible.');
             if (!ok) return;
 
@@ -5826,6 +5822,11 @@ RÈGLES IMPORTANTES:
                     body: JSON.stringify({})
                 });
                 const data = await res.json().catch(() => ({}));
+                if (res.status === 401) {
+                    try { showToast('🔒 Connectez-vous pour supprimer vos documents', 'info'); } catch (_) {}
+                    if (resultsEl) resultsEl.textContent = 'Non authentifié.';
+                    return;
+                }
                 if (!res.ok || !data || !data.ok) {
                     const err = (data && (data.error || data.details)) ? String(data.error || data.details) : `Erreur ${res.status}`;
                     if (resultsEl) resultsEl.textContent = `Erreur: ${err}`;
@@ -5902,12 +5903,6 @@ RÈGLES IMPORTANTES:
         }
 
         async function indexDocsFromText({ title, content, source = 'upload', documentId = null, tags = null } = {}) {
-            const token = (typeof getAuthToken === 'function') ? getAuthToken() : null;
-            if (!token) {
-                try { showToast('🔒 Connectez-vous pour indexer vos documents', 'info'); } catch (_) {}
-                return { ok: false, skipped: true, reason: 'no-auth' };
-            }
-
             const maxChars = 220_000;
             const text = String(content || '').trim();
             if (!text) return { ok: false, skipped: true, reason: 'empty' };
@@ -5932,6 +5927,11 @@ RÈGLES IMPORTANTES:
                 body: JSON.stringify(payload)
             });
 
+            if (res.status === 401) {
+                try { showToast('🔒 Connectez-vous pour indexer vos documents', 'info'); } catch (_) {}
+                return { ok: false, skipped: true, reason: 'no-auth' };
+            }
+
             const data = await res.json().catch(() => ({}));
             if (!res.ok || !data || !data.ok) {
                 const err = (data && (data.error || data.details)) ? String(data.error || data.details) : `Erreur ${res.status}`;
@@ -5942,9 +5942,6 @@ RÈGLES IMPORTANTES:
 
         async function maybeAutoIndexUploadedText({ fileName, text, source }) {
             if (!getDocsSearchEnabled()) return;
-            const token = (typeof getAuthToken === 'function') ? getAuthToken() : null;
-            if (!token) return;
-
             const t = String(text || '').trim();
             if (t.length < 40) return;
 
