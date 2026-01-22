@@ -4114,9 +4114,12 @@
                                     <div style="font-weight: 800; color: var(--text-primary);">Embeddings (recherche sémantique)</div>
                                     <div style="margin-top: 4px; color: var(--text-secondary); font-size: 13px; line-height: 1.4;">Active la recherche vectorielle/hybride dans vos documents (plus pertinent, plus coûteux).</div>
                                 </div>
-                                <div class="settings-plan-toggle" id="docsEmbToggle" aria-label="Embeddings (docs)">
-                                    <button type="button" class="settings-plan-btn" id="docsEmbOff" title="Embeddings désactivés">OFF</button>
-                                    <button type="button" class="settings-plan-btn" id="docsEmbOn" title="Embeddings activés">ON</button>
+                                <div style="display:flex; align-items:center; gap: 10px; flex-wrap: wrap;">
+                                    <div class="settings-plan-toggle" id="docsEmbToggle" aria-label="Embeddings (docs)">
+                                        <button type="button" class="settings-plan-btn" id="docsEmbOff" title="Embeddings désactivés">OFF</button>
+                                        <button type="button" class="settings-plan-btn" id="docsEmbOn" title="Embeddings activés">ON</button>
+                                    </div>
+                                    <button type="button" class="settings-plan-btn" id="docsUiOpenBtn" onclick="openDocsModal()" title="Ouvrir mes documents" style="min-width: 160px;">Mes documents</button>
                                 </div>
                             </div>
                         </div>
@@ -4225,6 +4228,57 @@
                             <strong>Build :</strong> Production
                         </p>
                     </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Docs Modal (Paramètres > Mes documents) -->
+    <div class="modal" id="docsModal" style="display:none;">
+        <div class="modal-content" style="max-width: 760px;">
+            <div class="modal-header">
+                <div class="modal-title" style="display:flex; align-items:center; gap:10px;">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" style="width:20px; height:20px; flex:0 0 auto;">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7V4a2 2 0 012-2h6a2 2 0 012 2v3" />
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 6h6" />
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 7h12a2 2 0 012 2v4a5 5 0 01-5 5H9a5 5 0 01-5-5V9a2 2 0 012-2z" />
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 16l4 4" />
+                        <circle cx="14" cy="14" r="3" stroke-width="2" />
+                    </svg>
+                    <span>Mes documents</span>
+                </div>
+                <button class="close-modal" onclick="closeDocsModal()">×</button>
+            </div>
+
+            <div style="padding: 20px;">
+                <div style="background: var(--bg-secondary); padding: 14px; border-radius: 10px; border: 1px solid var(--border-color);">
+                    <div style="display:flex; align-items:center; justify-content:space-between; gap: 10px; flex-wrap: wrap;">
+                        <div>
+                            <div style="font-weight: 800; color: var(--text-primary);">Recherche docs</div>
+                            <div id="docsModalStatus" style="margin-top: 4px; color: var(--text-secondary); font-size: 13px; line-height: 1.4;">—</div>
+                        </div>
+                        <div style="display:flex; gap: 10px; flex-wrap: wrap;">
+                            <button type="button" class="settings-plan-btn" onclick="toggleDocsSearch()" style="min-width: 180px;">Activer/Désactiver</button>
+                            <button type="button" class="settings-plan-btn" onclick="attachFile()" style="min-width: 180px;">Indexer un fichier</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div style="margin-top: 12px; background: var(--bg-secondary); padding: 14px; border-radius: 10px; border: 1px solid var(--border-color);">
+                    <div style="font-weight: 800; color: var(--text-primary); margin-bottom: 8px;">Rechercher dans mes documents</div>
+                    <div style="display:flex; gap: 10px; align-items:center; flex-wrap: wrap;">
+                        <input id="docsModalQuery" type="text" placeholder="Tapez une question ou un mot-clé…" style="flex: 1; min-width: 240px; padding: 10px; border: 1px solid var(--border-color); border-radius: 10px; background: var(--bg-primary); color: var(--text-primary);" />
+                        <button type="button" class="settings-plan-btn" onclick="runDocsModalSearch()" style="min-width: 160px;">Rechercher</button>
+                    </div>
+                    <div id="docsModalResults" style="margin-top: 10px; color: var(--text-secondary); font-size: 13px; line-height: 1.5;">Aucun résultat.</div>
+                </div>
+
+                <div style="margin-top: 12px; background: var(--bg-secondary); padding: 14px; border-radius: 10px; border: 1px solid var(--border-color);">
+                    <div style="display:flex; align-items:center; justify-content:space-between; gap: 10px; flex-wrap: wrap;">
+                        <div style="font-weight: 800; color: var(--text-primary);">Derniers documents indexés (local)</div>
+                        <button type="button" class="settings-plan-btn" onclick="clearDocsIndexedMeta()" style="min-width: 200px;">Effacer la liste</button>
+                    </div>
+                    <div id="docsModalIndexed" style="margin-top: 10px; color: var(--text-secondary); font-size: 13px; line-height: 1.5;">—</div>
                 </div>
             </div>
         </div>
@@ -5608,6 +5662,160 @@ RÈGLES IMPORTANTES:
             refreshDocsEmbeddingsUi();
         }
 
+        function getDocsIndexedMetaStorageKey() {
+            let userKey = 'guest';
+            try {
+                if (typeof getActiveUserKey === 'function') {
+                    userKey = getActiveUserKey() || 'guest';
+                }
+            } catch (_) {}
+            return `axilum_docs_indexed_meta_${userKey}`;
+        }
+
+        function loadDocsIndexedMeta() {
+            try {
+                const raw = localStorage.getItem(getDocsIndexedMetaStorageKey());
+                const parsed = raw ? JSON.parse(raw) : [];
+                return Array.isArray(parsed) ? parsed : [];
+            } catch (_) {
+                return [];
+            }
+        }
+
+        function saveDocsIndexedMeta(items) {
+            try {
+                localStorage.setItem(getDocsIndexedMetaStorageKey(), JSON.stringify(Array.isArray(items) ? items : []));
+            } catch (_) {}
+        }
+
+        function upsertDocsIndexedMeta(indexedItems) {
+            const current = loadDocsIndexedMeta();
+            const byId = new Map();
+            for (const it of current) {
+                if (it && it.documentId) byId.set(it.documentId, it);
+            }
+            for (const it of (Array.isArray(indexedItems) ? indexedItems : [])) {
+                const docId = it && (it.documentId || it.id);
+                if (!docId) continue;
+                const prev = byId.get(docId) || {};
+                byId.set(docId, {
+                    ...prev,
+                    ...it,
+                    documentId: docId,
+                    lastIndexedAt: new Date().toISOString()
+                });
+            }
+            const merged = Array.from(byId.values())
+                .sort((a, b) => String(b.lastIndexedAt || '').localeCompare(String(a.lastIndexedAt || '')))
+                .slice(0, 200);
+            saveDocsIndexedMeta(merged);
+            return merged;
+        }
+
+        function renderDocsModalStatus() {
+            const el = document.getElementById('docsModalStatus');
+            if (!el) return;
+            const enabled = getDocsSearchEnabled();
+            const emb = getDocsEmbeddingsEnabled();
+            el.textContent = `Docs: ${enabled ? 'activé' : 'désactivé'} • Mode: ${emb ? 'hybride (embeddings ON)' : 'texte (embeddings OFF)'}`;
+        }
+
+        function renderDocsModalIndexed() {
+            const el = document.getElementById('docsModalIndexed');
+            if (!el) return;
+            const items = loadDocsIndexedMeta();
+            if (!items.length) {
+                el.textContent = 'Aucun document indexé (liste locale vide).';
+                return;
+            }
+            const lines = items.slice(0, 15).map((it) => {
+                const title = String(it.title || it.source || it.documentId || 'Document');
+                const when = it.lastIndexedAt ? new Date(it.lastIndexedAt).toLocaleString() : '';
+                const chunks = (typeof it.chunks === 'number') ? ` • ${it.chunks} chunks` : '';
+                return `• ${title}${chunks}${when ? ` • ${when}` : ''}`;
+            });
+            el.textContent = lines.join('\n');
+            el.style.whiteSpace = 'pre-line';
+        }
+
+        function clearDocsIndexedMeta() {
+            saveDocsIndexedMeta([]);
+            renderDocsModalIndexed();
+        }
+
+        function openDocsModal() {
+            const modal = document.getElementById('docsModal');
+            if (!modal) return;
+            modal.style.display = 'block';
+            renderDocsModalStatus();
+            renderDocsModalIndexed();
+            const q = document.getElementById('docsModalQuery');
+            if (q) {
+                q.focus();
+                q.onkeydown = (ev) => {
+                    if (ev && ev.key === 'Enter') {
+                        ev.preventDefault();
+                        runDocsModalSearch();
+                    }
+                };
+            }
+        }
+
+        function closeDocsModal() {
+            const modal = document.getElementById('docsModal');
+            if (!modal) return;
+            modal.style.display = 'none';
+        }
+
+        async function runDocsModalSearch() {
+            const resultsEl = document.getElementById('docsModalResults');
+            const queryEl = document.getElementById('docsModalQuery');
+            if (!resultsEl || !queryEl) return;
+
+            const q = String(queryEl.value || '').trim();
+            if (!q) {
+                resultsEl.textContent = 'Entrez une requête.';
+                return;
+            }
+            if (!(typeof getAuthToken === 'function') || !getAuthToken()) {
+                resultsEl.textContent = 'Connectez-vous pour rechercher dans vos documents.';
+                return;
+            }
+
+            resultsEl.textContent = 'Recherche…';
+            try {
+                const mode = getDocsEmbeddingsEnabled() ? 'hybrid' : 'text';
+                const res = await apiFetch('/api/elastic/search', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ q, mode, topK: 5 })
+                });
+                const data = await res.json().catch(() => ({}));
+                if (!res.ok || !data || !data.ok) {
+                    const err = (data && (data.error || data.details)) ? String(data.error || data.details) : `Erreur ${res.status}`;
+                    resultsEl.textContent = `Erreur: ${err}`;
+                    return;
+                }
+
+                const hits = Array.isArray(data.hits) ? data.hits : [];
+                if (!hits.length) {
+                    resultsEl.textContent = 'Aucun résultat.';
+                    return;
+                }
+
+                const lines = hits.slice(0, 5).map((h, idx) => {
+                    const title = String(h.title || h.source || h.documentId || `Résultat ${idx + 1}`);
+                    const score = (typeof h.score === 'number') ? ` (score ${h.score.toFixed(3)})` : '';
+                    const snippet = String(h.snippet || h.content || '').replace(/\s+/g, ' ').trim();
+                    return `• ${title}${score}\n  ${snippet}`;
+                });
+                resultsEl.textContent = lines.join('\n');
+                resultsEl.style.whiteSpace = 'pre-line';
+            } catch (e) {
+                resultsEl.textContent = `Erreur: ${e && e.message ? e.message : String(e)}`;
+            }
+        }
+
         function refreshDocsSearchUi() {
             try {
                 const btn = document.getElementById('docsSearchBtn');
@@ -5616,6 +5824,7 @@ RÈGLES IMPORTANTES:
                 btn.classList.toggle('active', !!on);
                 btn.title = on ? 'Recherche dans mes documents (activée)' : 'Recherche dans mes documents';
             } catch (_) {}
+            try { renderDocsModalStatus(); } catch (_) {}
         }
 
         function refreshDocsEmbeddingsUi() {
@@ -5626,6 +5835,7 @@ RÈGLES IMPORTANTES:
                 if (offBtn) offBtn.classList.toggle('active', !on);
                 if (onBtn) onBtn.classList.toggle('active', !!on);
             } catch (_) {}
+            try { renderDocsModalStatus(); } catch (_) {}
         }
 
         function formatDocsContextFromHits(hits, max = 4) {
@@ -5716,6 +5926,18 @@ RÈGLES IMPORTANTES:
                 try { showToast('📚 Indexation du document…', 'info'); } catch (_) {}
                 const r = await indexDocsFromText({ title: fileName, content: t, source: source || 'upload' });
                 if (r && r.ok) {
+                    try {
+                        const indexed = Array.isArray(r.indexed) ? r.indexed : [];
+                        if (indexed.length) {
+                            upsertDocsIndexedMeta(indexed.map(it => ({
+                                documentId: it.documentId,
+                                title: it.title || fileName,
+                                source: source || 'upload',
+                                chunks: (typeof it.chunks === 'number') ? it.chunks : undefined
+                            })));
+                            renderDocsModalIndexed();
+                        }
+                    } catch (_) {}
                     try { showToast('✅ Document indexé', 'success'); } catch (_) {}
                 } else if (r && r.error) {
                     // Ne pas spammer en cas de config ES absente
@@ -5747,6 +5969,8 @@ RÈGLES IMPORTANTES:
                     }
                 } catch (_) {}
             }
+
+            try { renderDocsModalStatus(); } catch (_) {}
         }
 
         function getConversationLastTs(conv) {
