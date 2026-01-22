@@ -5934,8 +5934,18 @@ RÈGLES IMPORTANTES:
 
             const data = await res.json().catch(() => ({}));
             if (!res.ok || !data || !data.ok) {
-                const err = (data && (data.error || data.details)) ? String(data.error || data.details) : `Erreur ${res.status}`;
-                return { ok: false, error: err, status: res.status };
+                let err = '';
+                try {
+                    if (data && data.details != null) {
+                        err = (typeof data.details === 'string') ? data.details : JSON.stringify(data.details);
+                    } else if (data && data.error != null) {
+                        err = String(data.error);
+                    }
+                } catch (_) {
+                    err = '';
+                }
+                err = String(err || '').trim();
+                return { ok: false, error: err || `Erreur ${res.status}`, status: res.status };
             }
             return { ok: true, indexed: data.indexed || [] };
         }

@@ -71,15 +71,40 @@ async function ensureIndex(indexName, vectorDims) {
   const index = String(indexName || '').trim();
   if (!index) throw new Error('Index Elasticsearch vide');
 
+  const dims = Math.max(8, Number(vectorDims) || 100);
+
   // HEAD index
   try {
     await elasticRequest(`/${encodeURIComponent(index)}`, { method: 'HEAD' });
+
+    // Si l'index existe déjà, vérifier (best-effort) que les dims du champ dense_vector correspondent.
+    // Sinon, l'indexation échouera avec un 400 du cluster.
+    try {
+      const mapping = await elasticRequest(`/${encodeURIComponent(index)}/_mapping`, { method: 'GET' });
+      const props = mapping && mapping[index] && mapping[index].mappings && mapping[index].mappings.properties;
+      const existingDims = props && props.content_vector && props.content_vector.dims;
+      const existing = Number(existingDims);
+      if (Number.isFinite(existing) && existing > 0 && existing !== dims) {
+        const err = new Error(`ELASTICSEARCH_VECTOR_DIMS mismatch: index=${index} mapping.dims=${existing} config.dims=${dims}`);
+        err.status = 400;
+        err.code = 'ELASTIC_DIMS_MISMATCH';
+        err.details = {
+          hint: 'Supprimez et recréez l\'index (ou changez ELASTICSEARCH_VECTOR_DIMS pour correspondre). Un dense_vector ne peut pas changer de dims après création.',
+          index,
+          mappingDims: existing,
+          configDims: dims
+        };
+        throw err;
+      }
+    } catch (e) {
+      // Si la lecture du mapping échoue (droits, version), on n'empêche pas l'app de continuer.
+      // L'erreur réelle de bulk index sera renvoyée plus bas.
+      if (e && e.code === 'ELASTIC_DIMS_MISMATCH') throw e;
+    }
     return { created: false, index };
   } catch (e) {
     if (e && e.status !== 404) throw e;
   }
-
-  const dims = Math.max(8, Number(vectorDims) || 100);
 
   const mapping = {
     settings: {
