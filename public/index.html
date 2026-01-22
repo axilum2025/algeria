@@ -5665,6 +5665,67 @@ RÈGLES IMPORTANTES:
             }
         }
 
+        async function indexDocsFromText({ title, content, source = 'upload', documentId = null, tags = null } = {}) {
+            const token = (typeof getAuthToken === 'function') ? getAuthToken() : null;
+            if (!token) {
+                try { showToast('🔒 Connectez-vous pour indexer vos documents', 'info'); } catch (_) {}
+                return { ok: false, skipped: true, reason: 'no-auth' };
+            }
+
+            const maxChars = 220_000;
+            const text = String(content || '').trim();
+            if (!text) return { ok: false, skipped: true, reason: 'empty' };
+
+            const safeContent = text.length > maxChars ? text.slice(0, maxChars) : text;
+            const payload = {
+                documents: [
+                    {
+                        documentId: documentId || undefined,
+                        title: title || undefined,
+                        content: safeContent,
+                        source: source || 'upload',
+                        tags: Array.isArray(tags) ? tags : undefined,
+                        createdAt: new Date().toISOString()
+                    }
+                ]
+            };
+
+            const res = await apiFetch('/api/elastic/index', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+
+            const data = await res.json().catch(() => ({}));
+            if (!res.ok || !data || !data.ok) {
+                const err = (data && (data.error || data.details)) ? String(data.error || data.details) : `Erreur ${res.status}`;
+                return { ok: false, error: err };
+            }
+            return { ok: true, indexed: data.indexed || [] };
+        }
+
+        async function maybeAutoIndexUploadedText({ fileName, text, source }) {
+            if (!getDocsSearchEnabled()) return;
+            const token = (typeof getAuthToken === 'function') ? getAuthToken() : null;
+            if (!token) return;
+
+            const t = String(text || '').trim();
+            if (t.length < 40) return;
+
+            try {
+                try { showToast('📚 Indexation du document…', 'info'); } catch (_) {}
+                const r = await indexDocsFromText({ title: fileName, content: t, source: source || 'upload' });
+                if (r && r.ok) {
+                    try { showToast('✅ Document indexé', 'success'); } catch (_) {}
+                } else if (r && r.error) {
+                    // Ne pas spammer en cas de config ES absente
+                    try { showToast('⚠️ Indexation impossible (config Elasticsearch)', 'info'); } catch (_) {}
+                }
+            } catch (_) {
+                // silencieux
+            }
+        }
+
         async function toggleDocsSearch() {
             const next = !getDocsSearchEnabled();
             setDocsSearchEnabled(next);
@@ -9992,6 +10053,26 @@ ${persona}
                         lastUploadedImageByConversation[currentConversationId] = base64;
                         lastUploadedImageNameByConversation[currentConversationId] = file.name;
 
+                        // 📚 Auto-indexation (OCR local) si recherche docs activée
+                        try {
+                            const token = (typeof getAuthToken === 'function') ? getAuthToken() : null;
+                            if (token && typeof getDocsSearchEnabled === 'function' && getDocsSearchEnabled()) {
+                                (async () => {
+                                    try {
+                                        showToast('📄 OCR (pour indexation)…', 'info');
+                                        const ocrText = await withTimeout(
+                                            extractTextFromImageBase64(base64),
+                                            30000,
+                                            'OCR trop long'
+                                        );
+                                        await maybeAutoIndexUploadedText({ fileName: file.name, text: ocrText, source: 'image-ocr' });
+                                    } catch (_) {
+                                        // OCR peut échouer selon la qualité
+                                    }
+                                })();
+                            }
+                        } catch (_) {}
+
                         // Réinitialiser le cache OCR pour cette nouvelle image
                         delete lastUploadedOcrTextByConversation[currentConversationId];
                         delete lastUploadedOcrImageSigByConversation[currentConversationId];
@@ -10129,6 +10210,9 @@ ${persona}
                         const input = document.getElementById('userInput');
                         input.value = `Contenu du fichier ${file.name}:\n\n${text.substring(0, 3000)}${text.length > 3000 ? '...' : ''}`;
                         showToast('✅ Fichier texte chargé', 'success');
+
+                        // Auto-indexation (si recherche docs activée)
+                        try { maybeAutoIndexUploadedText({ fileName: file.name, text, source: 'text' }); } catch (_) {}
                     };
                     reader.readAsText(file);
                     
@@ -10160,6 +10244,9 @@ ${persona}
                             const preview = fullText.trim().substring(0, 4000);
                             input.value = `Contenu du PDF ${file.name} (aperçu):\n\n${preview}${fullText.length > 4000 ? '\n\n...' : ''}`;
                             showToast('✅ Texte du PDF extrait', 'success');
+
+                            // Auto-indexation (si recherche docs activée)
+                            try { await maybeAutoIndexUploadedText({ fileName: file.name, text: fullText, source: 'pdf' }); } catch (_) {}
                         };
                         reader.readAsArrayBuffer(file);
                     } catch (e) {
@@ -10179,6 +10266,9 @@ ${persona}
                             const preview = String(text || '').trim().substring(0, 5000);
                             input.value = `Contenu du CSV ${file.name} (aperçu):\n\n${preview}${text.length > 5000 ? '\n\n...' : ''}`;
                             showToast('✅ CSV chargé', 'success');
+
+                            // Auto-indexation (si recherche docs activée)
+                            try { await maybeAutoIndexUploadedText({ fileName: file.name, text, source: 'csv' }); } catch (_) {}
                             return;
                         }
 
@@ -10228,12 +10318,18 @@ ${persona}
 
                             showToast(t('excelReport.processingToast'), 'info');
                             await runExcelReportFromUploadedFile();
+
+                            // Auto-indexation (si recherche docs activée)
+                            try { await maybeAutoIndexUploadedText({ fileName: file.name, text: csv, source: 'excel' }); } catch (_) {}
                             return;
                         }
 
                         const preview = String(csv || '').trim().substring(0, 5000);
                         input.value = `Contenu Excel ${file.name} — Feuille: ${firstSheetName} (aperçu CSV):\n\n${preview}${csv.length > 5000 ? '\n\n...' : ''}`;
                         showToast('✅ Excel chargé (aperçu prêt)', 'success');
+
+                        // Auto-indexation (si recherche docs activée)
+                        try { await maybeAutoIndexUploadedText({ fileName: file.name, text: csv, source: 'excel' }); } catch (_) {}
                     } catch (e) {
                         console.error('Excel/CSV import error:', e);
                         const input = document.getElementById('userInput');
