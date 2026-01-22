@@ -1098,6 +1098,11 @@
             color: var(--text-primary);
         }
 
+        .input-icon-btn.active {
+            background: color-mix(in srgb, var(--accent) 14%, transparent);
+            color: var(--accent);
+        }
+
         .input-icon-btn svg {
             width: 20px;
             height: 20px;
@@ -3413,6 +3418,15 @@
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"/>
                     </svg>
                 </button>
+                <button class="input-icon-btn" id="docsSearchBtn" onclick="toggleDocsSearch()" title="Recherche dans mes documents">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7V4a2 2 0 012-2h6a2 2 0 012 2v3" />
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 6h6" />
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 7h12a2 2 0 012 2v4a5 5 0 01-5 5H9a5 5 0 01-5-5V9a2 2 0 012-2z" />
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 16l4 4" />
+                        <circle cx="14" cy="14" r="3" stroke-width="2" />
+                    </svg>
+                </button>
                 <textarea id="userInput" placeholder="Écrivez votre message..." rows="1"></textarea>
                 <button class="agent-btn" id="agentBtn" onclick="toggleAgentPicker()" title="Choisir un agent">Agent</button>
                 <button class="input-icon-btn send-btn" id="sendBtn" onclick="sendMessage()">
@@ -4093,6 +4107,19 @@
                             </select>
                         </div>
                         <div id="aiModelHelp" class="ai-model-help" style="margin-top:10px; color: var(--text-secondary); font-size: 13px; line-height: 1.4;"></div>
+
+                        <div style="margin-top: 12px; padding-top: 12px; border-top: 1px dashed var(--border-color);">
+                            <div style="display:flex; align-items:center; justify-content:space-between; gap: 12px; flex-wrap: wrap;">
+                                <div style="min-width: 240px;">
+                                    <div style="font-weight: 800; color: var(--text-primary);">Embeddings (recherche sémantique)</div>
+                                    <div style="margin-top: 4px; color: var(--text-secondary); font-size: 13px; line-height: 1.4;">Active la recherche vectorielle/hybride dans vos documents (plus pertinent, plus coûteux).</div>
+                                </div>
+                                <div class="settings-plan-toggle" id="docsEmbToggle" aria-label="Embeddings (docs)">
+                                    <button type="button" class="settings-plan-btn" id="docsEmbOff" title="Embeddings désactivés">OFF</button>
+                                    <button type="button" class="settings-plan-btn" id="docsEmbOn" title="Embeddings activés">ON</button>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
@@ -5556,6 +5583,109 @@ RÈGLES IMPORTANTES:
             const token = getAuthToken();
             if (token) headers['Authorization'] = `Bearer ${token}`;
             return fetch(apiUrl(path), Object.assign({}, options, { headers }));
+        }
+
+        // ================================
+        // 📚 Docs Search (Elasticsearch)
+        // ================================
+        function getDocsSearchEnabled() {
+            return String(localStorage.getItem('axilum_docs_search_enabled') || '') === '1';
+        }
+
+        function setDocsSearchEnabled(enabled) {
+            const v = enabled ? '1' : '0';
+            localStorage.setItem('axilum_docs_search_enabled', v);
+            refreshDocsSearchUi();
+        }
+
+        function getDocsEmbeddingsEnabled() {
+            return String(localStorage.getItem('axilum_docs_embeddings_enabled') || '') === '1';
+        }
+
+        function setDocsEmbeddingsEnabled(enabled) {
+            const v = enabled ? '1' : '0';
+            localStorage.setItem('axilum_docs_embeddings_enabled', v);
+            refreshDocsEmbeddingsUi();
+        }
+
+        function refreshDocsSearchUi() {
+            try {
+                const btn = document.getElementById('docsSearchBtn');
+                if (!btn) return;
+                const on = getDocsSearchEnabled();
+                btn.classList.toggle('active', !!on);
+                btn.title = on ? 'Recherche dans mes documents (activée)' : 'Recherche dans mes documents';
+            } catch (_) {}
+        }
+
+        function refreshDocsEmbeddingsUi() {
+            try {
+                const on = getDocsEmbeddingsEnabled();
+                const offBtn = document.getElementById('docsEmbOff');
+                const onBtn = document.getElementById('docsEmbOn');
+                if (offBtn) offBtn.classList.toggle('active', !on);
+                if (onBtn) onBtn.classList.toggle('active', !!on);
+            } catch (_) {}
+        }
+
+        function formatDocsContextFromHits(hits, max = 4) {
+            const arr = Array.isArray(hits) ? hits : [];
+            const top = arr.slice(0, max);
+            if (!top.length) return '';
+            let out = '';
+            top.forEach((h, i) => {
+                const title = (h && h.title) ? String(h.title) : (h && h.documentId ? String(h.documentId) : 'document');
+                const where = (h && (h.url || h.source)) ? ` (${h.url || h.source})` : '';
+                const snippet = (h && (h.snippet || h.content)) ? String(h.snippet || h.content) : '';
+                out += `- [${i + 1}] ${title}${where}: ${snippet}\n`;
+            });
+            return out.trim();
+        }
+
+        async function fetchDocsContextForQuery(query) {
+            const q = String(query || '').trim();
+            if (!q) return '';
+            if (!getDocsSearchEnabled()) return '';
+
+            const mode = getDocsEmbeddingsEnabled() ? 'hybrid' : 'text';
+            try {
+                const res = await apiFetch('/api/elastic/search', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ q, mode, topK: 5 })
+                });
+                if (!res.ok) return '';
+                const data = await res.json().catch(() => null);
+                const hits = data && Array.isArray(data.hits) ? data.hits : [];
+                const ctx = formatDocsContextFromHits(hits, 4);
+                if (!ctx) return '';
+                return `Contexte (vos documents - Elasticsearch ${mode}):\n${ctx}`;
+            } catch (_) {
+                return '';
+            }
+        }
+
+        async function toggleDocsSearch() {
+            const next = !getDocsSearchEnabled();
+            setDocsSearchEnabled(next);
+
+            if (typeof showToast === 'function') {
+                showToast(next ? '📚 Recherche docs activée' : '📚 Recherche docs désactivée', 'info');
+            }
+
+            // Si on active et qu'il y a déjà du texte, faire une prévisualisation rapide dans le chat.
+            if (next) {
+                try {
+                    const input = document.getElementById('userInput');
+                    const q = input ? String(input.value || '').trim() : '';
+                    if (!q) return;
+                    const ctx = await fetchDocsContextForQuery(q);
+                    if (!ctx) return;
+                    if (typeof addMessage === 'function') {
+                        addMessage(ctx, 'system');
+                    }
+                } catch (_) {}
+            }
         }
 
         function getConversationLastTs(conv) {
@@ -8041,6 +8171,23 @@ ${persona}
             
             switchToPlan(currentPlan);
 
+            // Docs search UI init
+            try {
+                refreshDocsSearchUi();
+                refreshDocsEmbeddingsUi();
+
+                const offBtn = document.getElementById('docsEmbOff');
+                const onBtn = document.getElementById('docsEmbOn');
+                if (offBtn) offBtn.addEventListener('click', () => {
+                    setDocsEmbeddingsEnabled(false);
+                    try { showToast('Embeddings désactivés', 'info'); } catch (_) {}
+                });
+                if (onBtn) onBtn.addEventListener('click', () => {
+                    setDocsEmbeddingsEnabled(true);
+                    try { showToast('Embeddings activés', 'success'); } catch (_) {}
+                });
+            } catch (_) {}
+
             // Si un paiement/activation change le plan via localStorage (plus tard), refléter l'état
             window.addEventListener('storage', (e) => {
                 try {
@@ -8730,7 +8877,16 @@ ${persona}
                     });
                 }
 
-                const contextPrefix = baseContext + agentDevExtraContext + agentHRExtraContext + agentMarketingExtraContext + agentExcelExtraContext + agentTodoExtraContext + agentFinanceExtraContext + agentAlexExtraContext + agentWebSearchExtraContext + agentTonyExtraContext;
+                let contextPrefix = baseContext + agentDevExtraContext + agentHRExtraContext + agentMarketingExtraContext + agentExcelExtraContext + agentTodoExtraContext + agentFinanceExtraContext + agentAlexExtraContext + agentWebSearchExtraContext + agentTonyExtraContext;
+
+                // 📚 Docs RAG: injecter un contexte court issu d'Elasticsearch (vos documents)
+                try {
+                    const docsCtx = await fetchDocsContextForQuery(message);
+                    if (docsCtx) {
+                        contextPrefix = contextPrefix + `\n\n${docsCtx}`;
+                    }
+                } catch (_) {}
+
                 let messageForBackend = contextPrefix + '\n\nUtilisateur: ' + message;
 
                 // Force Agent Alex language in EN mode (some base contexts are FR-heavy).
