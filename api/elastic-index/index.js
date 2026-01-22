@@ -2,7 +2,7 @@ const crypto = require('crypto');
 const { requireAuth, setCors } = require('../utils/auth');
 const { getElasticConfig, ensureIndex, bulkIndex } = require('../utils/elasticsearch');
 const { chunkText } = require('../utils/textChunking');
-const { generateSimpleEmbedding } = require('../utils/simpleEmbedding');
+const { embedTexts } = require('../utils/embeddings');
 
 function pickSnippet(text, max = 120) {
   const t = String(text || '').replace(/\s+/g, ' ').trim();
@@ -69,9 +69,14 @@ module.exports = async function (context, req) {
         overlap: Number(body.overlap || 150) || 150
       }).slice(0, maxChunksPerDoc);
 
-      chunks.forEach((chunk, chunkId) => {
+      const embedded = await embedTexts(chunks, { userId, route: 'elastic/index', dims: vectorDims, preferAzure: true });
+      const vectors = embedded && Array.isArray(embedded.vectors) ? embedded.vectors : [];
+
+      for (let chunkId = 0; chunkId < chunks.length; chunkId++) {
+        const chunk = chunks[chunkId];
         const id = `${userId}:${documentId}:${chunkId}`;
-        const vector = generateSimpleEmbedding(chunk, vectorDims);
+        const vector = vectors[chunkId] || null;
+        if (!vector) continue;
 
         ndjson += JSON.stringify({ index: { _id: id } }) + '\n';
         ndjson += JSON.stringify({
@@ -86,7 +91,7 @@ module.exports = async function (context, req) {
           createdAt,
           content_vector: vector
         }) + '\n';
-      });
+      }
 
       indexed.push({ documentId, chunks: chunks.length, title: title || pickSnippet(content) });
     }

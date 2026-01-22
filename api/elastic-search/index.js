@@ -1,6 +1,6 @@
 const { requireAuth, setCors } = require('../utils/auth');
 const { getElasticConfig, ensureIndex, searchText, searchVector, rrfMerge } = require('../utils/elasticsearch');
-const { generateSimpleEmbedding } = require('../utils/simpleEmbedding');
+const { embedTexts } = require('../utils/embeddings');
 
 function normalizeMode(mode) {
   const m = String(mode || '').toLowerCase().trim();
@@ -76,7 +76,15 @@ module.exports = async function (context, req) {
     }
 
     if (mode === 'vector' || mode === 'hybrid') {
-      const vector = generateSimpleEmbedding(q, vectorDims);
+      const embedded = await embedTexts([q], { userId, route: 'elastic/search', dims: vectorDims, preferAzure: true });
+      const vector = embedded && Array.isArray(embedded.vectors) && embedded.vectors[0] ? embedded.vectors[0] : null;
+      if (!vector) {
+        setCors(context, 'POST, OPTIONS');
+        context.res.status = 500;
+        context.res.headers['Content-Type'] = 'application/json';
+        context.res.body = { error: 'Embedding indisponible' };
+        return;
+      }
       vectorResp = await searchVector({ indexName: index, tenantId: userId, vector, topK });
     }
 
