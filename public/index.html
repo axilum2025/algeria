@@ -1118,7 +1118,7 @@
         }
 
         #docsSearchBtn.active svg {
-            animation: pulse-rotate 6s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+            animation: pulse-rotate 12s cubic-bezier(0.4, 0, 0.6, 1) infinite;
         }
 
         @keyframes pulse-rotate {
@@ -1126,9 +1126,17 @@
                 transform: rotate(0deg);
                 opacity: 1;
             }
+            20% {
+                transform: rotate(180deg);
+                opacity: 0.85;
+            }
             50% {
                 transform: rotate(180deg);
                 opacity: 0.85;
+            }
+            70% {
+                transform: rotate(360deg);
+                opacity: 1;
             }
         }
 
