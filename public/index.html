@@ -3819,6 +3819,33 @@
                     </div>
                 </div>
 
+                <!-- Embeddings & RAG -->
+                <div class="about-section">
+                    <h3>
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01" />
+                        </svg>
+                        Recherche documentaire (Embeddings &amp; RAG)
+                    </h3>
+                    <p style="margin: 8px 0 12px; color: var(--text-secondary); font-size: 13px; line-height: 1.55;">
+                        Axilum AI peut enrichir ses réponses avec vos documents (mode Docs). Le système indexe les contenus, retrouve les passages pertinents, puis les injecte au modèle pour obtenir des réponses plus factuelles et mieux ancrées dans vos sources.
+                    </p>
+                    <div class="about-features">
+                        <div class="feature-card">
+                            <h4>Embeddings (recherche sémantique)</h4>
+                            <p>
+                                Les <strong>embeddings</strong> transforment un texte (phrase, paragraphe, document) en <strong>vecteur</strong>. Cela permet de faire une <strong>recherche par similarité</strong> (sens) plutôt que par mots-clés, utile pour retrouver rapidement les passages les plus proches de votre question.
+                            </p>
+                        </div>
+                        <div class="feature-card">
+                            <h4>RAG (Retrieval‑Augmented Generation)</h4>
+                            <p>
+                                Le <strong>RAG</strong> combine <strong>recherche</strong> + <strong>génération</strong> : Axilum AI récupère d’abord des extraits pertinents (via la recherche sémantique), puis génère une réponse en s’appuyant sur ces éléments. Résultat : moins d’hallucinations et un meilleur alignement sur vos documents.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- Métriques HI/CHR -->
                 <div class="about-section">
                     <h3>
@@ -3881,6 +3908,11 @@
                         </svg>
                         Stack Technique
                     </h3>
+                    <p style="margin: 8px 0 12px; color: var(--text-secondary); font-size: 13px; line-height: 1.55;">
+                        Inclut une couche IA avec <strong>embeddings</strong> (recherche sémantique) et <strong>RAG</strong> (réponses augmentées par vos sources), en plus des modules métier, du routage d’agents et des services Azure.
+                        <br><strong>Embeddings</strong> : conversion des textes en <strong>vecteurs</strong> pour retrouver des passages <strong>par similarité de sens</strong>.
+                        <br><strong>RAG</strong> : <strong>retrieval + generation</strong> — récupération d’extraits pertinents, puis génération d’une réponse plus <strong>factuelle</strong> et mieux ancrée dans vos documents.
+                    </p>
                     <div class="tech-badges">
                         <span class="tech-badge">Azure OpenAI</span>
                         <span class="tech-badge">Azure Functions</span>
@@ -3904,6 +3936,8 @@
                         <span class="tech-badge">PDFKit</span>
                         <span class="tech-badge">Axios</span>
                         <span class="tech-badge">Cheerio</span>
+                        <span class="tech-badge">Embeddings (vector search)</span>
+                        <span class="tech-badge">RAG (Docs)</span>
                         <span class="tech-badge">Orchestrator (Team Auto)</span>
                         <span class="tech-badge">Agent routing</span>
                         <span class="tech-badge">Multi-provider AI (Groq/OpenAI/Qwen…)</span>
@@ -12931,6 +12965,33 @@ ${persona}
                 </div>
             </div>
 
+            <!-- Embeddings & RAG -->
+            <div class="about-section">
+                <h3>
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01" />
+                    </svg>
+                    Document search (Embeddings &amp; RAG)
+                </h3>
+                <p style="margin: 8px 0 12px; color: var(--text-secondary); font-size: 13px; line-height: 1.55;">
+                    Axilum AI can enrich its answers with your documents (Docs mode). The system indexes content, retrieves the most relevant passages, then injects them into the model context to produce more grounded and factual responses.
+                </p>
+                <div class="about-features">
+                    <div class="feature-card">
+                        <h4>Embeddings (semantic search)</h4>
+                        <p>
+                            <strong>Embeddings</strong> transform text (sentence, paragraph, document) into a <strong>vector</strong>. This enables <strong>similarity search</strong> based on meaning (not just keywords) to quickly find the passages closest to your question.
+                        </p>
+                    </div>
+                    <div class="feature-card">
+                        <h4>RAG (Retrieval‑Augmented Generation)</h4>
+                        <p>
+                            <strong>RAG</strong> combines <strong>retrieval</strong> + <strong>generation</strong>: Axilum AI first retrieves relevant snippets (via semantic search), then generates an answer grounded on those sources. Result: fewer hallucinations and better alignment with your documents.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
             <!-- Reliability Metrics -->
             <div class="about-section">
                 <h3>
@@ -12993,6 +13054,11 @@ ${persona}
                     </svg>
                     Tech Stack
                 </h3>
+                <p style="margin: 8px 0 12px; color: var(--text-secondary); font-size: 13px; line-height: 1.55;">
+                    Includes an AI layer with <strong>embeddings</strong> (semantic search) and <strong>RAG</strong> (source-augmented answers), on top of business modules, agent routing, and Azure services.
+                    <br><strong>Embeddings</strong>: transform text into <strong>vectors</strong> to retrieve relevant passages by <strong>semantic similarity</strong>.
+                    <br><strong>RAG</strong>: <strong>retrieval + generation</strong> — retrieve snippets first, then generate an answer grounded in your documents for more <strong>factual</strong> outputs.
+                </p>
                 <div class="tech-badges">
                     <span class="tech-badge">Azure OpenAI</span>
                     <span class="tech-badge">Azure Functions</span>
@@ -13012,6 +13078,8 @@ ${persona}
                     <span class="tech-badge">PDFKit</span>
                     <span class="tech-badge">Axios</span>
                     <span class="tech-badge">Cheerio</span>
+                    <span class="tech-badge">Embeddings (vector search)</span>
+                    <span class="tech-badge">RAG (Docs)</span>
                     <span class="tech-badge">Orchestrator (Team Auto)</span>
                     <span class="tech-badge">Agent routing</span>
                     <span class="tech-badge">Multi-provider AI (Groq/OpenAI/Qwen…)</span>
