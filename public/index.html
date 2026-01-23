@@ -1108,6 +1108,30 @@
             height: 20px;
         }
 
+        /* Style moderne Copilot pour l'icône loop */
+        #docsSearchBtn svg {
+            transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s;
+        }
+
+        #docsSearchBtn:hover svg {
+            transform: rotate(180deg);
+        }
+
+        #docsSearchBtn.active svg {
+            animation: pulse-rotate 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+
+        @keyframes pulse-rotate {
+            0%, 100% {
+                transform: rotate(0deg);
+                opacity: 1;
+            }
+            50% {
+                transform: rotate(180deg);
+                opacity: 0.85;
+            }
+        }
+
         .agent-btn {
             border: 1px solid var(--border-color);
             background: var(--bg-secondary);
@@ -3419,11 +3443,8 @@
                     </svg>
                 </button>
                 <button class="input-icon-btn" id="docsSearchBtn" onclick="toggleDocsSearch()" title="Docs (RAG) : utiliser mes documents">
-                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 6v6h-6" />
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 18v-6h6" />
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12a8 8 0 00-14.657-4.657L4 9" />
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 12a8 8 0 0014.657 4.657L20 15" />
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.2"/>
                     </svg>
                 </button>
                 <textarea id="userInput" placeholder="Écrivez votre message..." rows="1"></textarea>
