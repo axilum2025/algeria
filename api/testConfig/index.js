@@ -1,6 +1,8 @@
 // Test de configuration Azure (admin only)
 const { getAuthEmail } = require('../utils/auth');
 const { getRoles } = require('../utils/userStorage');
+const { getElasticConfig, ensureIndex, getIndexVectorDims } = require('../utils/elasticsearch');
+const { getAzureEmbeddingsConfig, isAzureEmbeddingsConfigured } = require('../utils/embeddings');
 
 function corsJsonHeaders(extra = {}) {
     return {
@@ -28,6 +30,83 @@ async function isAdminEmail(email) {
     if (!email) return false;
     const roles = await getRoles(String(email).toLowerCase()).catch(() => []);
     return Array.isArray(roles) && roles.includes('admin');
+}
+
+function safeHost(url) {
+    try {
+        const u = new URL(String(url || '').trim());
+        return u.host || null;
+    } catch {
+        return null;
+    }
+}
+
+async function pingAzureEmbeddings() {
+    const cfg = getAzureEmbeddingsConfig();
+    const configured = Boolean(cfg.endpoint && cfg.apiKey && cfg.deployment);
+    if (!configured) {
+        return { configured: false, ok: false, status: null, vectorLength: null, error: 'Azure embeddings non configuré' };
+    }
+
+    const url = `${cfg.endpoint.replace(/\/$/, '')}/openai/deployments/${encodeURIComponent(cfg.deployment)}/embeddings?api-version=${encodeURIComponent(cfg.apiVersion)}`;
+
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 6000);
+
+    try {
+        const resp = await fetch(url, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'api-key': cfg.apiKey
+            },
+            body: JSON.stringify({ input: ['ping'] }),
+            signal: controller.signal
+        });
+
+        const rawText = await resp.text();
+        let data = null;
+        try {
+            data = rawText ? JSON.parse(rawText) : null;
+        } catch {
+            data = null;
+        }
+
+        if (!resp.ok) {
+            const details = typeof rawText === 'string' ? rawText.slice(0, 500) : null;
+            return {
+                configured: true,
+                ok: false,
+                status: resp.status,
+                vectorLength: null,
+                error: data?.error?.message || details || `HTTP ${resp.status}`
+            };
+        }
+
+        const vec = data?.data?.[0]?.embedding;
+        const vectorLength = Array.isArray(vec) ? vec.length : null;
+
+        return {
+            configured: true,
+            ok: true,
+            status: resp.status,
+            vectorLength,
+            modelId: cfg.modelId,
+            deployment: cfg.deployment,
+            apiVersion: cfg.apiVersion,
+            endpointHost: safeHost(cfg.endpoint)
+        };
+    } catch (e) {
+        return {
+            configured: true,
+            ok: false,
+            status: null,
+            vectorLength: null,
+            error: e?.name === 'AbortError' ? 'Timeout embeddings (6s)' : (e?.message || String(e))
+        };
+    } finally {
+        clearTimeout(timeout);
+    }
 }
 
 module.exports = async function (context, req) {
@@ -58,14 +137,65 @@ module.exports = async function (context, req) {
         }
     }
 
+    const elasticCfg = getElasticConfig();
+    let elastic = {
+        configured: Boolean(elasticCfg.url),
+        urlHost: safeHost(elasticCfg.url),
+        index: elasticCfg.index || null,
+        configVectorDims: Number(elasticCfg.vectorDims) || null,
+        mappingVectorDims: null,
+        ensureIndex: null,
+        error: null
+    };
+
+    if (elastic.configured && elastic.index) {
+        try {
+            const ensured = await ensureIndex(elastic.index, elasticCfg.vectorDims);
+            const mappingDims = await getIndexVectorDims(elastic.index).catch(() => null);
+            elastic = {
+                ...elastic,
+                mappingVectorDims: mappingDims,
+                ensureIndex: ensured,
+                error: null
+            };
+        } catch (e) {
+            elastic = {
+                ...elastic,
+                error: {
+                    message: e?.message || String(e),
+                    code: e?.code || null,
+                    status: e?.status || null,
+                    details: e?.details || null
+                }
+            };
+        }
+    }
+
+    const embeddingsCfg = getAzureEmbeddingsConfig();
+    const embeddings = {
+        azureConfigured: isAzureEmbeddingsConfigured(),
+        endpointHost: safeHost(embeddingsCfg.endpoint),
+        deployment: embeddingsCfg.deployment || null,
+        apiVersion: embeddingsCfg.apiVersion || null,
+        modelId: embeddingsCfg.modelId || null,
+        ping: await pingAzureEmbeddings()
+    };
+
     const config = {
+        // Compat (ancien)
         azureAiKeyExists: !!process.env.AZURE_AI_API_KEY,
         azureAiKeyLength: process.env.AZURE_AI_API_KEY ? process.env.AZURE_AI_API_KEY.length : 0,
         groqKeyExists: !!process.env.GROQ_API_KEY,
-        // Ne pas exposer la liste des env vars ni un preview de secret.
         endpointConfigured: !!process.env.AZURE_OPENAI_ENDPOINT || !!process.env.AZURE_AI_ENDPOINT,
         deploymentConfigured: !!process.env.AZURE_OPENAI_DEPLOYMENT || !!process.env.AZURE_AI_DEPLOYMENT,
-        apiVersion: process.env.AZURE_OPENAI_API_VERSION || process.env.AZURE_AI_API_VERSION || null
+        apiVersion: process.env.AZURE_OPENAI_API_VERSION || process.env.AZURE_AI_API_VERSION || null,
+
+        // Nouveaux checks (RAG/embeddings/Elastic)
+        azureOpenaiKeyExists: !!process.env.AZURE_OPENAI_API_KEY || !!process.env.AZURE_AI_API_KEY,
+        azureOpenaiEndpointConfigured: !!process.env.AZURE_OPENAI_ENDPOINT,
+        embeddings,
+        elastic,
+        now: new Date().toISOString()
     };
 
     context.res = {

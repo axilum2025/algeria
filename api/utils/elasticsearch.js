@@ -220,6 +220,17 @@ async function deleteByTenant({ indexName, tenantId }) {
   });
 }
 
+async function getIndexVectorDims(indexName) {
+  const index = String(indexName || '').trim();
+  if (!index) throw new Error('Index Elasticsearch vide');
+
+  const mapping = await elasticRequest(`/${encodeURIComponent(index)}/_mapping`, { method: 'GET' });
+  const props = mapping && mapping[index] && mapping[index].mappings && mapping[index].mappings.properties;
+  const dims = props && props.content_vector && props.content_vector.dims;
+  const n = Number(dims);
+  return Number.isFinite(n) && n > 0 ? n : null;
+}
+
 function rrfMerge({ textHits = [], vectorHits = [], k = 60, limit = 10 }) {
   const scores = new Map();
 
@@ -250,5 +261,6 @@ module.exports = {
   searchText,
   searchVector,
   deleteByTenant,
-  rrfMerge
+  rrfMerge,
+  getIndexVectorDims
 };
