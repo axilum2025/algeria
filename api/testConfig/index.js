@@ -48,65 +48,81 @@ async function pingAzureEmbeddings() {
         return { configured: false, ok: false, status: null, vectorLength: null, error: 'Azure embeddings non configuré' };
     }
 
-    const url = `${cfg.endpoint.replace(/\/$/, '')}/openai/deployments/${encodeURIComponent(cfg.deployment)}/embeddings?api-version=${encodeURIComponent(cfg.apiVersion)}`;
+    const apiVersions = Array.from(new Set([String(cfg.apiVersion || '').trim(), '2024-02-15-preview', '2024-06-01'].filter(Boolean)));
 
-    const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 6000);
+    for (const apiVersion of apiVersions) {
+        const url = `${cfg.endpoint.replace(/\/$/, '')}/openai/deployments/${encodeURIComponent(cfg.deployment)}/embeddings?api-version=${encodeURIComponent(apiVersion)}`;
 
-    try {
-        const resp = await fetch(url, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'api-key': cfg.apiKey
-            },
-            body: JSON.stringify({ input: ['ping'] }),
-            signal: controller.signal
-        });
+        const controller = new AbortController();
+        const timeout = setTimeout(() => controller.abort(), 6000);
 
-        const rawText = await resp.text();
-        let data = null;
         try {
-            data = rawText ? JSON.parse(rawText) : null;
-        } catch {
-            data = null;
-        }
+            const resp = await fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'api-key': cfg.apiKey
+                },
+                body: JSON.stringify({ input: ['ping'] }),
+                signal: controller.signal
+            });
 
-        if (!resp.ok) {
-            const details = typeof rawText === 'string' ? rawText.slice(0, 500) : null;
+            const rawText = await resp.text();
+            let data = null;
+            try {
+                data = rawText ? JSON.parse(rawText) : null;
+            } catch {
+                data = null;
+            }
+
+            if (!resp.ok) {
+                const msg = String(data?.error?.message || rawText || '').toLowerCase();
+                const details = typeof rawText === 'string' ? rawText.slice(0, 500) : null;
+                const err = {
+                    configured: true,
+                    ok: false,
+                    status: resp.status,
+                    vectorLength: null,
+                    apiVersionTried: apiVersion,
+                    error: data?.error?.message || details || `HTTP ${resp.status}`
+                };
+
+                // Si 404 Resource not found, tenter une autre api-version
+                if (resp.status === 404 && msg.includes('resource not found')) {
+                    continue;
+                }
+
+                return err;
+            }
+
+            const vec = data?.data?.[0]?.embedding;
+            const vectorLength = Array.isArray(vec) ? vec.length : null;
+
+            return {
+                configured: true,
+                ok: true,
+                status: resp.status,
+                vectorLength,
+                modelId: cfg.modelId,
+                deployment: cfg.deployment,
+                apiVersion,
+                endpointHost: safeHost(cfg.endpoint)
+            };
+        } catch (e) {
             return {
                 configured: true,
                 ok: false,
-                status: resp.status,
+                status: null,
                 vectorLength: null,
-                error: data?.error?.message || details || `HTTP ${resp.status}`
+                apiVersionTried: apiVersion,
+                error: e?.name === 'AbortError' ? 'Timeout embeddings (6s)' : (e?.message || String(e))
             };
+        } finally {
+            clearTimeout(timeout);
         }
-
-        const vec = data?.data?.[0]?.embedding;
-        const vectorLength = Array.isArray(vec) ? vec.length : null;
-
-        return {
-            configured: true,
-            ok: true,
-            status: resp.status,
-            vectorLength,
-            modelId: cfg.modelId,
-            deployment: cfg.deployment,
-            apiVersion: cfg.apiVersion,
-            endpointHost: safeHost(cfg.endpoint)
-        };
-    } catch (e) {
-        return {
-            configured: true,
-            ok: false,
-            status: null,
-            vectorLength: null,
-            error: e?.name === 'AbortError' ? 'Timeout embeddings (6s)' : (e?.message || String(e))
-        };
-    } finally {
-        clearTimeout(timeout);
     }
+
+    return { configured: true, ok: false, status: 404, vectorLength: null, error: 'Resource not found (toutes api-versions testées)' };
 }
 
 module.exports = async function (context, req) {

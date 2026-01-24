@@ -26,6 +26,26 @@ function getAzureEmbeddingsConfig() {
   return { endpoint, apiKey, deployment, apiVersion, modelId };
 }
 
+function uniqueStrings(arr) {
+  const out = [];
+  const seen = new Set();
+  for (const v of (Array.isArray(arr) ? arr : [])) {
+    const s = String(v || '').trim();
+    if (!s) continue;
+    if (seen.has(s)) continue;
+    seen.add(s);
+    out.push(s);
+  }
+  return out;
+}
+
+function buildAzureEmbeddingsUrl({ endpoint, deployment, apiVersion }) {
+  const ep = String(endpoint || '').trim().replace(/\/$/, '');
+  const dep = String(deployment || '').trim();
+  const ver = String(apiVersion || '').trim();
+  return `${ep}/openai/deployments/${encodeURIComponent(dep)}/embeddings?api-version=${encodeURIComponent(ver)}`;
+}
+
 function isAzureEmbeddingsConfigured() {
   const c = getAzureEmbeddingsConfig();
   return Boolean(c.endpoint && c.apiKey && c.deployment);
@@ -113,64 +133,102 @@ async function embedTextsWithAzure(texts, { userId = '', route = '', dims = null
   const estimatedPromptTokens = cleaned.reduce((acc, t) => acc + estimateTokensForEmbeddingText(t), 0);
   await assertUserHasCreditForEstimate({ userId, modelId: cfg.modelId, estimatedPromptTokens });
 
-  const url = `${cfg.endpoint.replace(/\/$/, '')}/openai/deployments/${encodeURIComponent(cfg.deployment)}/embeddings?api-version=${encodeURIComponent(cfg.apiVersion)}`;
+  // Azure peut répondre 404 "Resource not found" si l'api-version est invalide sur ce cluster
+  // (ou si le deployment n'existe pas). On tente quelques versions connues en fallback.
+  const apiVersionsToTry = uniqueStrings([
+    cfg.apiVersion,
+    '2024-02-15-preview',
+    '2024-06-01'
+  ]);
 
   const maxAttempts = Math.max(1, Math.min(5, Number(process.env.AZURE_OPENAI_EMBEDDINGS_RETRY || 3) || 3));
   let lastErr = null;
   let data = null;
   let latencyMs = 0;
+  let apiVersionUsed = cfg.apiVersion;
 
-  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
-    const start = Date.now();
-    const resp = await fetch(url, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'api-key': cfg.apiKey
-      },
-      body: JSON.stringify({ input: cleaned })
-    });
+  for (const apiVersion of apiVersionsToTry) {
+    apiVersionUsed = apiVersion;
+    const url = buildAzureEmbeddingsUrl({ endpoint: cfg.endpoint, deployment: cfg.deployment, apiVersion });
 
-    latencyMs = Date.now() - start;
-    const rawText = await resp.text();
-    try {
-      data = rawText ? JSON.parse(rawText) : null;
-    } catch (_) {
-      data = null;
-    }
+    for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+      const start = Date.now();
+      const resp = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'api-key': cfg.apiKey
+        },
+        body: JSON.stringify({ input: cleaned })
+      });
 
-    if (resp.ok) {
-      lastErr = null;
+      latencyMs = Date.now() - start;
+      const rawText = await resp.text();
+      try {
+        data = rawText ? JSON.parse(rawText) : null;
+      } catch (_) {
+        data = null;
+      }
+
+      if (resp.ok) {
+        lastErr = null;
+        break;
+      }
+
+      const err = new Error(`Azure OpenAI embeddings error ${resp.status}`);
+      err.status = resp.status;
+      err.details = data || rawText;
+      lastErr = err;
+
+      // Enregistre aussi l'échec (best-effort)
+      try {
+        await recordUsage({
+          provider: 'AzureOpenAI',
+          model: cfg.modelId,
+          route,
+          userId,
+          usage: { prompt_tokens: 0, completion_tokens: 0, total_tokens: 0 },
+          latencyMs,
+          ok: false
+        });
+      } catch (_) {}
+
+      const isRetriable = resp.status === 429 || resp.status === 503;
+      if (isRetriable && attempt < maxAttempts) {
+        const retryAfterMs = parseRetryAfterMs(resp);
+        const backoffMs = Math.min(10_000, 750 * attempt * attempt);
+        await sleep(retryAfterMs != null ? retryAfterMs : backoffMs);
+        continue;
+      }
+
+      // 404 Resource not found: essayer une autre api-version (si disponible)
+      const msg = String(data?.error?.message || rawText || '').toLowerCase();
+      if (resp.status === 404 && msg.includes('resource not found')) {
+        break;
+      }
+
       break;
     }
 
-    const err = new Error(`Azure OpenAI embeddings error ${resp.status}`);
-    err.status = resp.status;
-    err.details = data || rawText;
-    lastErr = err;
-
-    // Enregistre aussi l'échec (best-effort)
-    try {
-      await recordUsage({
-        provider: 'AzureOpenAI',
-        model: cfg.modelId,
-        route,
-        userId,
-        usage: { prompt_tokens: 0, completion_tokens: 0, total_tokens: 0 },
-        latencyMs,
-        ok: false
-      });
-    } catch (_) {}
-
-    const isRetriable = resp.status === 429 || resp.status === 503;
-    if (!isRetriable || attempt >= maxAttempts) break;
-
-    const retryAfterMs = parseRetryAfterMs(resp);
-    const backoffMs = Math.min(10_000, 750 * attempt * attempt);
-    await sleep(retryAfterMs != null ? retryAfterMs : backoffMs);
+    if (!lastErr) break;
   }
 
-  if (lastErr) throw lastErr;
+  if (lastErr) {
+    // Donner un hint non sensible pour accélérer le debug (sans exposer de secret)
+    try {
+      lastErr.details = Object.assign(
+        {},
+        (typeof lastErr.details === 'object' && lastErr.details) ? lastErr.details : { raw: String(lastErr.details || '') },
+        {
+          hint: 'Vérifiez AZURE_OPENAI_ENDPOINT, AZURE_OPENAI_EMBEDDINGS_DEPLOYMENT et AZURE_OPENAI_EMBEDDINGS_API_VERSION. Un 404 "Resource not found" indique souvent une api-version non supportée ou un deployment introuvable.',
+          endpointHost: (() => { try { return new URL(cfg.endpoint).host; } catch { return null; } })(),
+          deployment: cfg.deployment,
+          apiVersionTried: apiVersionUsed
+        }
+      );
+    } catch (_) {}
+    throw lastErr;
+  }
 
   const rows = Array.isArray(data?.data) ? data.data : [];
   const vectors = rows
