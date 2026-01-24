@@ -1,6 +1,6 @@
 const { InsufficientCreditError, getCredit } = require('./userCredits');
 const { assertWithinBudget, computeCostFromUsage, eurosToCents, recordUsage } = require('./aiUsageBudget');
-const { isCreditEnforced, PricingMissingError } = require('./aiCreditGuard');
+const { isCreditEnforced, PricingMissingError, debitAfterUsage } = require('./aiCreditGuard');
 const { generateSimpleEmbedding } = require('./simpleEmbedding');
 
 function getAzureEmbeddingsConfig() {
@@ -195,6 +195,13 @@ async function embedTextsWithAzure(texts, { userId = '', route = '', dims = null
       ok: true
     });
   } catch (_) {}
+
+  // Débiter le crédit sur le coût réel (si enforcement activé)
+  try {
+    await debitAfterUsage({ userId, model: cfg.modelId, usage });
+  } catch (_) {
+    // best-effort: ne pas casser le flux embeddings si le débit échoue (ex: pricing manquant)
+  }
 
   return {
     provider: 'azure-openai',
