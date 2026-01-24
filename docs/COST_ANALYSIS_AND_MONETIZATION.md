@@ -639,6 +639,7 @@ async function getCachedResponse(message) {
 - **Auth** : Azure AD B2C (natif Azure, RGPD compliant)
 - **Paiement** : Stripe (standard industrie, facile)
 - **Base de données** : Azure Table Storage (ultra low-cost)
+- **Docs / RAG** : embeddings + recherche vectorielle (indexation + retrieval) pour des réponses ancrées sur vos documents
 - **Monitoring** : Application Insights (inclus avec Azure)
 
 ### Timeline Réaliste

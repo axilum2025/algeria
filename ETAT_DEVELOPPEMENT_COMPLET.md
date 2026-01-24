@@ -27,6 +27,8 @@
 │  - /api/translate (Traduction multilingue) │
 │  - /api/taskManager (Gestion tâches)       │
 │  - /api/vision (Analyse d'images)          │
+│  - /api/elastic-index (Indexation Docs/RAG)│
+│  - /api/elastic-search (Recherche Docs/RAG)│
 └─────────────────────────────────────────────┘
                     ↓
 ┌─────────────────────────────────────────────┐
@@ -44,8 +46,14 @@
 │  - Microsoft Graph (Calendar)               │
 │  - Azure Communication Services / SendGrid   │
 │  - Azure Storage (Table + Blob)             │
+│  - Embeddings + Vector Search (Docs/RAG)     │
 └─────────────────────────────────────────────┘
 ```
+
+**Focus Embeddings & RAG (Docs)**
+
+- **Embeddings** : conversion de textes en vecteurs pour faire une recherche sémantique (similarité) et retrouver les passages pertinents.
+- **RAG** : pipeline « retrieval + generation » : Axilum AI récupère d’abord des extraits (indexation/recherche), puis les injecte comme contexte pour générer une réponse plus factuelle et réduire les hallucinations.
 
 ---
 
