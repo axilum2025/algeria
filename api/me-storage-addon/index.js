@@ -59,7 +59,11 @@ module.exports = async function (context, req) {
       context.res = {
         status: 403,
         headers: { 'Content-Type': 'application/json' },
-        body: { ok: false, error: 'Non autorisé' }
+        body: {
+          ok: false,
+          error: 'Fonctionnalité non activée',
+          details: 'Ajout de stockage désactivé: rôle admin requis, ou AXILUM_ALLOW_SELF_SERVICE_STORAGE_ADDON=1 en développement.'
+        }
       };
       return;
     }
