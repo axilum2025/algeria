@@ -30,6 +30,7 @@ const DEFAULT_CONTAINERS = [
   { name: 'invoices', prefixType: 'users' },
   { name: 'reports', prefixType: 'users' },
   { name: 'chat-images', prefixType: 'direct' },
+  { name: 'chat-files', prefixType: 'direct' },
   { name: 'chat-sync', prefixType: 'direct' }
 ];
 

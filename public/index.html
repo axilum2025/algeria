@@ -6143,6 +6143,71 @@ RÈGLES IMPORTANTES:
             }
         }
 
+        function makeRemoteFileId() {
+            return (typeof crypto !== 'undefined' && crypto.randomUUID)
+                ? crypto.randomUUID()
+                : (Date.now() + '_' + Math.random().toString(36).slice(2));
+        }
+
+        function fileToDataUrl(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = () => resolve(reader.result);
+                reader.onerror = () => reject(reader.error || new Error('Conversion fichier -> base64 échouée'));
+                reader.readAsDataURL(file);
+            });
+        }
+
+        async function uploadChatFileToServer(remoteFileId, file) {
+            const token = getAuthToken();
+            if (!token || !currentUser || !currentUser.email) return false;
+            try {
+                const dataUrl = await fileToDataUrl(file);
+                const res = await apiFetch('/api/chat-file-upload', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        remoteFileId,
+                        fileName: file && file.name ? file.name : '',
+                        mimeType: file && file.type ? file.type : '',
+                        fileBase64: dataUrl
+                    })
+                });
+                return res.ok;
+            } catch {
+                return false;
+            }
+        }
+
+        async function fetchRemoteFileUrl(remoteFileId) {
+            const res = await apiFetch('/api/chat-file-url', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ remoteFileId })
+            });
+            if (!res.ok) return null;
+            const data = await res.json().catch(() => null);
+            if (!data || !data.url) return null;
+            return String(data.url);
+        }
+
+        async function openRemoteChatFile(remoteFileId) {
+            try {
+                if (!getAuthToken() || !currentUser || !currentUser.email) {
+                    showToast('🔒 Connectez-vous pour réouvrir le fichier', 'info');
+                    return;
+                }
+                const url = await fetchRemoteFileUrl(remoteFileId);
+                if (!url) {
+                    showToast('❌ Fichier introuvable', 'error');
+                    return;
+                }
+                window.open(url, '_blank');
+            } catch (_) {
+                showToast('❌ Ouverture du fichier échouée', 'error');
+            }
+        }
+
         async function fetchRemoteImageAsBlob(remoteImageId) {
             const res = await apiFetch('/api/chat-image-url', {
                 method: 'POST',
@@ -6991,12 +7056,13 @@ RÈGLES IMPORTANTES:
             return `${n.toFixed(d)} ${units[i]}`;
         }
 
-        function appendUploadedFileCardToChat({ fileName, objectUrl, mimeType, sizeBytes, subtitle }) {
+        function appendUploadedFileCardToChat({ fileName, objectUrl, remoteFileId, mimeType, sizeBytes, subtitle }) {
             const chatMessages = document.getElementById('chatMessages');
             if (!chatMessages) return;
 
             const safeName = String(fileName || 'fichier');
             const safeUrl = objectUrl ? String(objectUrl) : '';
+            const safeRemoteId = remoteFileId ? String(remoteFileId) : '';
             const safeMime = String(mimeType || 'application/octet-stream');
             const meta = subtitle ? String(subtitle) : `${humanFileSize(sizeBytes)} • ${safeMime}`;
 
@@ -7013,7 +7079,12 @@ RÈGLES IMPORTANTES:
                     <span class="message-time">${time}</span>
                 </div>
                 <div class="message-content">
-                    ${safeUrl ? `
+                    ${safeRemoteId ? `
+                        <a href="#" onclick="openRemoteChatFile('${safeRemoteId}'); return false;" title="${escapeHtmlLite(meta)}" style="display:inline-flex; align-items:center; gap:6px; font-weight:700; font-size:12px; color: var(--text-primary); text-decoration: underline; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">
+                            <span aria-hidden="true" style="font-size:14px; line-height:1;">📄</span>
+                            <span style="min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${escapeHtmlLite(safeName)}</span>
+                        </a>
+                    ` : (safeUrl ? `
                         <a href="${safeUrl}" target="_blank" rel="noopener" title="${escapeHtmlLite(meta)}" style="display:inline-flex; align-items:center; gap:6px; font-weight:700; font-size:12px; color: var(--text-primary); text-decoration: underline; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">
                             <span aria-hidden="true" style="font-size:14px; line-height:1;">📄</span>
                             <span style="min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${escapeHtmlLite(safeName)}</span>
@@ -7023,7 +7094,7 @@ RÈGLES IMPORTANTES:
                             <span aria-hidden="true" style="font-size:14px; line-height:1;">📄</span>
                             <span style="min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${escapeHtmlLite(safeName)}</span>
                         </span>
-                    `}
+                    `)}
                 </div>
             `;
 
@@ -10425,6 +10496,93 @@ ${persona}
                 || lowerName.endsWith('.xls');
             
             showToast(`📎 Fichier reçu: ${file.name}`, 'info');
+
+            const persistAndRenderFileAttachment = async ({ subtitle = '', extractedText = null } = {}) => {
+                // Option: sauvegarde persistante (Cloud) + fallback objectUrl (session)
+                let remoteFileId = null;
+                try {
+                    const storageMode = getStorageMode();
+                    let wantsCloud = storageMode === 'cloud';
+                    if (storageMode === 'ask') {
+                        wantsCloud = confirm(`Sauvegarder ce fichier dans le cloud sécurisé (ré-ouverture même après fermeture) ?\n\nOK = Oui (Cloud)\nAnnuler = Non (lien session uniquement)\n\n${file.name}`);
+                    }
+
+                    if (wantsCloud) {
+                        if (getAuthToken() && currentUser && currentUser.email) {
+                            remoteFileId = makeRemoteFileId();
+                            try { showToast('☁️ Sauvegarde du fichier…', 'info'); } catch (_) {}
+                            const ok = await uploadChatFileToServer(remoteFileId, file);
+                            if (!ok) remoteFileId = null;
+                        } else {
+                            try { showToast('🔒 Connectez-vous pour sauvegarder (Cloud). Lien session utilisé.', 'info'); } catch (_) {}
+                        }
+                    }
+                } catch (_) {
+                    remoteFileId = null;
+                }
+
+                let objectUrl = '';
+                if (!remoteFileId) {
+                    try {
+                        const prev = pendingUploadedDocByConversation[currentConversationId];
+                        if (prev && prev.objectUrl) {
+                            try { URL.revokeObjectURL(prev.objectUrl); } catch (_) {}
+                        }
+                        objectUrl = trackObjectUrl(URL.createObjectURL(file));
+                    } catch (_) {
+                        objectUrl = '';
+                    }
+                }
+
+                // Afficher le lien compact
+                try {
+                    appendUploadedFileCardToChat({
+                        fileName: file.name,
+                        objectUrl,
+                        remoteFileId,
+                        mimeType: file.type,
+                        sizeBytes: file.size,
+                        subtitle: subtitle || `${humanFileSize(file.size)} • ${file.type || 'application/octet-stream'}`
+                    });
+                } catch (_) {}
+
+                // Persister l'attachement dans la conversation (réouverture ultérieure)
+                try {
+                    const conv = conversations.find(c => c.id === currentConversationId);
+                    if (conv) {
+                        conv.messages.push({
+                            timestamp: Date.now(),
+                            file: {
+                                name: file.name,
+                                mimeType: file.type,
+                                sizeBytes: file.size,
+                                remoteFileId: remoteFileId || undefined
+                            }
+                        });
+                        if (conv.messages.length === 1) {
+                            conv.title = String(file.name || 'Fichier').substring(0, 30) + (String(file.name || '').length > 30 ? '...' : '');
+                        }
+                        saveConversations();
+                        loadConversations();
+                    }
+                } catch (_) {}
+
+                // Optionnel: stocker le texte extrait pour injection ONE-SHOT + indexation
+                if (typeof extractedText === 'string' && extractedText.length) {
+                    try {
+                        pendingUploadedDocByConversation[currentConversationId] = {
+                            fileName: file.name,
+                            mimeType: file.type,
+                            extractedText,
+                            objectUrl,
+                            remoteFileId,
+                            createdAt: Date.now()
+                        };
+                    } catch (_) {}
+                }
+
+                return { remoteFileId, objectUrl };
+            };
             
             try {
                 if (isImage) {
@@ -10596,19 +10754,22 @@ ${persona}
                     reader.readAsDataURL(file);
                     
                 } else if (isText) {
-                    // Lire le fichier texte
-                    const reader = new FileReader();
-                    reader.onload = (e) => {
-                        const text = e.target.result;
-                        const input = document.getElementById('userInput');
-                        input.value = `Contenu du fichier ${file.name}:\n\n${text.substring(0, 3000)}${text.length > 3000 ? '...' : ''}`;
-                        showToast('✅ Fichier texte chargé', 'success');
+                    // Lire le fichier texte + créer un lien persistant
+                    const text = await file.text();
+                    await persistAndRenderFileAttachment({
+                        subtitle: `${humanFileSize(file.size)} • texte`,
+                        extractedText: text
+                    });
 
-                        // Auto-indexation (si recherche docs activée)
-                        try { maybeAutoIndexUploadedText({ fileName: file.name, text, source: 'text' }); } catch (_) {}
-                    };
-                    reader.readAsText(file);
-                    
+                    const input = document.getElementById('userInput');
+                    if (input) {
+                        input.value = `Contenu du fichier ${file.name}:\n\n${String(text || '').substring(0, 3000)}${text.length > 3000 ? '...' : ''}`;
+                    }
+                    showToast('✅ Fichier texte chargé', 'success');
+
+                    // Auto-indexation (si recherche docs activée)
+                    try { await maybeAutoIndexUploadedText({ fileName: file.name, text, source: 'text' }); } catch (_) {}
+
                 } else if (isPDF) {
                     showToast('📄 PDF détecté - extraction du texte...', 'info');
                     try {
@@ -10633,27 +10794,73 @@ ${persona}
                                 const strings = content.items.map(item => item.str);
                                 fullText += strings.join(' ') + '\n\n';
                             }
-                            // Créer un lien (object URL) pour réouvrir le fichier sans uploader.
-                            // Note: valide uniquement pour cette session navigateur.
-                            let objectUrl = '';
+                            // Option: sauvegarde persistante (comme ChatGPT/Gemini) via Azure Blob (chat-files)
+                            let remoteFileId = null;
                             try {
-                                const prev = pendingUploadedDocByConversation[currentConversationId];
-                                if (prev && prev.objectUrl) {
-                                    try { URL.revokeObjectURL(prev.objectUrl); } catch (_) {}
+                                const storageMode = getStorageMode();
+                                let wantsCloud = storageMode === 'cloud';
+                                if (storageMode === 'ask') {
+                                    wantsCloud = confirm("Sauvegarder ce PDF dans le cloud sécurisé (ré-ouverture même après fermeture) ?\n\nOK = Oui (Cloud)\nAnnuler = Non (lien session uniquement)");
                                 }
-                                objectUrl = URL.createObjectURL(file);
+
+                                if (wantsCloud) {
+                                    if (getAuthToken() && currentUser && currentUser.email) {
+                                        remoteFileId = makeRemoteFileId();
+                                        try { showToast('☁️ Sauvegarde du PDF…', 'info'); } catch (_) {}
+                                        const ok = await uploadChatFileToServer(remoteFileId, file);
+                                        if (!ok) remoteFileId = null;
+                                    } else {
+                                        try { showToast('🔒 Connectez-vous pour sauvegarder (Cloud). Lien session utilisé.', 'info'); } catch (_) {}
+                                    }
+                                }
                             } catch (_) {
-                                objectUrl = '';
+                                remoteFileId = null;
+                            }
+
+                            // Fallback: lien session (object URL)
+                            let objectUrl = '';
+                            if (!remoteFileId) {
+                                try {
+                                    const prev = pendingUploadedDocByConversation[currentConversationId];
+                                    if (prev && prev.objectUrl) {
+                                        try { URL.revokeObjectURL(prev.objectUrl); } catch (_) {}
+                                    }
+                                    objectUrl = trackObjectUrl(URL.createObjectURL(file));
+                                } catch (_) {
+                                    objectUrl = '';
+                                }
                             }
 
                             // Afficher une carte fichier compacte (style ChatGPT/Gemini)
                             appendUploadedFileCardToChat({
                                 fileName: file.name,
                                 objectUrl,
+                                remoteFileId,
                                 mimeType: file.type,
                                 sizeBytes: file.size,
                                 subtitle: `${pdf.numPages} page(s) • ${humanFileSize(file.size)}`
                             });
+
+                            // Persister l'attachement fichier dans la conversation (pour réouvrir plus tard)
+                            try {
+                                const conv = conversations.find(c => c.id === currentConversationId);
+                                if (conv) {
+                                    conv.messages.push({
+                                        timestamp: Date.now(),
+                                        file: {
+                                            name: file.name,
+                                            mimeType: file.type,
+                                            sizeBytes: file.size,
+                                            remoteFileId: remoteFileId || undefined
+                                        }
+                                    });
+                                    if (conv.messages.length === 1) {
+                                        conv.title = String(file.name || 'Fichier').substring(0, 30) + (String(file.name || '').length > 30 ? '...' : '');
+                                    }
+                                    saveConversations();
+                                    loadConversations();
+                                }
+                            } catch (_) {}
 
                             // Stocker le texte extrait pour l'envoyer UNE fois au backend si besoin
                             pendingUploadedDocByConversation[currentConversationId] = {
@@ -10661,6 +10868,7 @@ ${persona}
                                 mimeType: file.type,
                                 extractedText: fullText,
                                 objectUrl,
+                                remoteFileId,
                                 createdAt: Date.now()
                             };
 
@@ -10692,6 +10900,10 @@ ${persona}
 
                         if (isCSV) {
                             const text = await file.text();
+                            await persistAndRenderFileAttachment({
+                                subtitle: `${humanFileSize(file.size)} • CSV`,
+                                extractedText: text
+                            });
                             const preview = String(text || '').trim().substring(0, 5000);
                             input.value = `Contenu du CSV ${file.name} (aperçu):\n\n${preview}${text.length > 5000 ? '\n\n...' : ''}`;
                             showToast('✅ CSV chargé', 'success');
@@ -10718,6 +10930,11 @@ ${persona}
 
                         const sheet = wb.Sheets[firstSheetName];
                         const csv = window.XLSX.utils.sheet_to_csv(sheet);
+
+                        await persistAndRenderFileAttachment({
+                            subtitle: `${humanFileSize(file.size)} • Excel`,
+                            extractedText: csv
+                        });
 
                         // Extraire aussi en tableau (header:1) pour alimenter le contexte de l'agent Excel
                         let jsonData = [];
@@ -10777,7 +10994,18 @@ ${persona}
                         } catch (_) {}
                     }
                 } else {
-                    showToast('❌ Type de fichier non supporté', 'error');
+                    // Autres types (doc/docx/etc): lien persistant + invite courte
+                    await persistAndRenderFileAttachment({
+                        subtitle: `${humanFileSize(file.size)} • ${file.type || 'fichier'}`
+                    });
+
+                    const input = document.getElementById('userInput');
+                    if (input) {
+                        input.value = `J'ai uploadé un fichier : ${file.name}. Peux-tu l'analyser ?`;
+                        try { adjustTextareaHeight(); } catch (_) {}
+                    }
+
+                    showToast('✅ Fichier ajouté', 'success');
                 }
                 
             } catch (error) {
@@ -11844,6 +12072,23 @@ ${persona}
             }
             
             for (const msg of (conv.messages || [])) {
+                // Restaurer un fichier uploadé (lien persistant via remoteFileId)
+                if (msg && msg.file && (msg.file.name || msg.file.fileName)) {
+                    try {
+                        appendUploadedFileCardToChat({
+                            fileName: msg.file.name || msg.file.fileName,
+                            remoteFileId: msg.file.remoteFileId || null,
+                            objectUrl: null,
+                            mimeType: msg.file.mimeType || msg.file.type || 'application/octet-stream',
+                            sizeBytes: msg.file.sizeBytes || msg.file.size || 0,
+                            subtitle: ''
+                        });
+                    } catch (_) {
+                        // no-op
+                    }
+                    continue;
+                }
+
                 // Restaurer l'image envoyée par l'utilisateur si associée à ce message
                 if (msg && !msg.imageGenerated && (msg.imageUrl || msg.imageId || msg.remoteImageId)) {
                     const userImgUrl = await ensureLocalImageUrlForMessage(msg);
