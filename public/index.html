@@ -12565,6 +12565,36 @@ ${persona}
                 'hr.notifications.title': 'Notifications',
                 'hr.notifications.empty': 'Aucune notification',
                 'hr.notifications.uptodate': 'Tout est à jour',
+
+                'hr.btn.back': 'Retour',
+                'hr.filters.title': 'Filtres de recherche',
+                'hr.filters.allDepartments': 'Tous les départements',
+                'hr.filters.allStatus': 'Tous les statuts',
+
+                'hr.employees.subtitle': 'Gestion complète du personnel',
+                'hr.employees.empty.title': 'Aucun employé',
+                'hr.employees.empty.desc': 'Commencez par ajouter votre premier employé à la liste',
+
+                'hr.leaves.subtitle': 'Suivi et validation des demandes',
+                'hr.leaves.calendarBtn': 'Calendrier',
+                'hr.leaves.stat.approved': 'Approuvées',
+                'hr.leaves.stat.pending': 'En attente',
+                'hr.leaves.stat.rejected': 'Refusées',
+                'hr.leaves.stat.today': 'Absents aujourd\'hui',
+                'hr.leaves.searchPlaceholder': 'Rechercher par nom d\'employé...',
+                'hr.leaves.filter.allTypes': 'Tous les types',
+                'hr.leaves.empty.title': 'Aucune demande de congé',
+                'hr.leaves.empty.desc': 'Commencez par créer votre première demande de congé',
+
+                'hr.payroll.subtitle': 'Bulletins de salaire et masse salariale',
+                'hr.payroll.stat.totalMass': 'Masse Salariale Totale',
+                'hr.payroll.stat.monthSlips': 'Bulletins du Mois',
+                'hr.payroll.stat.pending': 'En Attente',
+                'hr.payroll.stat.paidEmployees': 'Employés Payés',
+                'hr.payroll.filtersActions': 'Filtres et actions',
+                'hr.payroll.filter.allMonths': 'Tous les mois',
+                'hr.payroll.generateAllBtn': 'Générer Tous',
+                'hr.payroll.newSlipBtn': 'Nouveau Bulletin',
                 
                 'hr.agent.title': 'Agent RH',
                 'hr.agent.desc': 'Assistant IA pour la gestion RH (employés, congés, paie, recrutement, évaluations)',
@@ -13169,6 +13199,36 @@ ${persona}
                 'hr.notifications.title': 'Notifications',
                 'hr.notifications.empty': 'No notifications',
                 'hr.notifications.uptodate': 'Everything is up to date',
+
+                'hr.btn.back': 'Back',
+                'hr.filters.title': 'Search filters',
+                'hr.filters.allDepartments': 'All departments',
+                'hr.filters.allStatus': 'All statuses',
+
+                'hr.employees.subtitle': 'Complete personnel management',
+                'hr.employees.empty.title': 'No employees',
+                'hr.employees.empty.desc': 'Start by adding your first employee to the list',
+
+                'hr.leaves.subtitle': 'Request tracking and validation',
+                'hr.leaves.calendarBtn': 'Calendar',
+                'hr.leaves.stat.approved': 'Approved',
+                'hr.leaves.stat.pending': 'Pending',
+                'hr.leaves.stat.rejected': 'Rejected',
+                'hr.leaves.stat.today': 'Absent Today',
+                'hr.leaves.searchPlaceholder': 'Search by employee name...',
+                'hr.leaves.filter.allTypes': 'All types',
+                'hr.leaves.empty.title': 'No leave requests',
+                'hr.leaves.empty.desc': 'Start by creating your first leave request',
+
+                'hr.payroll.subtitle': 'Payslips and payroll mass',
+                'hr.payroll.stat.totalMass': 'Total Payroll Mass',
+                'hr.payroll.stat.monthSlips': 'Slips of the Month',
+                'hr.payroll.stat.pending': 'Pending',
+                'hr.payroll.stat.paidEmployees': 'Paid Employees',
+                'hr.payroll.filtersActions': 'Filters and actions',
+                'hr.payroll.filter.allMonths': 'All months',
+                'hr.payroll.generateAllBtn': 'Generate All',
+                'hr.payroll.newSlipBtn': 'New Slips',
 
                 'hr.agent.title': 'HR Agent',
                 'hr.agent.desc': 'AI Assistant for HR management (employees, leaves, payroll, recruitment, reviews)',
@@ -20488,16 +20548,16 @@ ${persona}
                                     <!-- Header -->
                                     <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 30px;">
                                         <div>
-                                            <h2 style="margin: 0 0 8px; font-size: 28px; font-weight: 700; background: linear-gradient(135deg, #10b981 0%, #06b6d4 50%, #3b82f6 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">Liste des Employés</h2>
-                                            <p style="margin: 0; font-size: 14px; color: rgba(255,255,255,0.6);">Gestion complète du personnel</p>
+                                            <h2 style="margin: 0 0 8px; font-size: 28px; font-weight: 700; background: linear-gradient(135deg, #10b981 0%, #06b6d4 50%, #3b82f6 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">${t('hr.employees.title')}</h2>
+                                            <p style="margin: 0; font-size: 14px; color: rgba(255,255,255,0.6);">${t('hr.employees.subtitle')}</p>
                                         </div>
                                         <div style="display: flex; gap: 12px;">
                                             <button onclick="closeEmployeesModal()" style="padding: 12px 24px; background: rgba(255,255,255,0.1); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 12px; color: white; cursor: pointer; display: flex; align-items: center; gap: 8px; transition: all 0.3s; backdrop-filter: blur(10px); font-size: 14px; font-weight: 600;" onmouseover="this.style.background='rgba(16, 185, 129, 0.3)'; this.style.borderColor='#10b981'" onmouseout="this.style.background='rgba(255,255,255,0.1)'; this.style.borderColor='rgba(16, 185, 129, 0.3)'">
                                                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
-                                                <span>Retour</span>
+                                                <span>${t('hr.btn.back')}</span>
                                             </button>
                                             <button onclick="showAddEmployeeModal()" class="hr-btn" style="padding: 12px 24px; font-size: 14px;">
-                                                + Nouvel Employé
+                                                + ${t('hr.employees.addBtn')}
                                             </button>
                                         </div>
                                     </div>
@@ -20505,12 +20565,12 @@ ${persona}
                                     <!-- Filters -->
                                     <div style="background: rgba(255,255,255,0.05); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 16px; padding: 24px; margin-bottom: 24px;">
                                         <h3 style="margin: 0 0 16px; font-size: 16px; font-weight: 600; color: rgba(255, 255, 255, 0.9);">
-                                            Filtres de recherche
+                                            ${t('hr.filters.title')}
                                         </h3>
                                         <div style="display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 14px;">
-                                            <input type="text" id="employeeSearch" placeholder="Rechercher un employé..." style="width: 100%; padding: 12px 16px; background: rgba(255,255,255,0.08); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 12px; font-size: 14px; color: white; transition: all 0.3s;" onfocus="this.style.borderColor='#10b981'; this.style.background='rgba(255,255,255,0.12)'" onblur="this.style.borderColor='rgba(16, 185, 129, 0.3)'; this.style.background='rgba(255,255,255,0.08)'">
+                                            <input type="text" id="employeeSearch" placeholder="${t('hr.employees.searchPlaceholder')}" style="width: 100%; padding: 12px 16px; background: rgba(255,255,255,0.08); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 12px; font-size: 14px; color: white; transition: all 0.3s;" onfocus="this.style.borderColor='#10b981'; this.style.background='rgba(255,255,255,0.12)'" onblur="this.style.borderColor='rgba(16, 185, 129, 0.3)'; this.style.background='rgba(255,255,255,0.08)'">
                                             <select id="departmentFilter" style="width: 100%; padding: 12px 16px; background: rgba(255,255,255,0.08); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 12px; font-size: 14px; color: white; cursor: pointer; transition: all 0.3s;" onfocus="this.style.borderColor='#10b981'; this.style.background='rgba(255,255,255,0.12)'" onblur="this.style.borderColor='rgba(16, 185, 129, 0.3)'; this.style.background='rgba(255,255,255,0.08)'">
-                                                <option value="" style="background: #1e3a8a; color: white;">Tous les départements</option>
+                                                <option value="" style="background: #1e3a8a; color: white;">${t('hr.filters.allDepartments')}</option>
                                                 <option value="IT" style="background: #1e3a8a; color: white;">IT</option>
                                                 <option value="RH" style="background: #1e3a8a; color: white;">RH</option>
                                                 <option value="Finance" style="background: #1e3a8a; color: white;">Finance</option>
@@ -20519,9 +20579,9 @@ ${persona}
                                                 <option value="Operations" style="background: #1e3a8a; color: white;">Opérations</option>
                                             </select>
                                             <select id="statusFilter" style="width: 100%; padding: 12px 16px; background: rgba(255,255,255,0.08); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 12px; font-size: 14px; color: white; cursor: pointer; transition: all 0.3s;" onfocus="this.style.borderColor='#10b981'; this.style.background='rgba(255,255,255,0.12)'" onblur="this.style.borderColor='rgba(16, 185, 129, 0.3)'; this.style.background='rgba(255,255,255,0.08)'">
-                                                <option value="" style="background: #1e3a8a; color: white;">Tous les statuts</option>
-                                                <option value="active" style="background: #1e3a8a; color: white;">Actif</option>
-                                                <option value="onLeave" style="background: #1e3a8a; color: white;">En congé</option>
+                                                <option value="" style="background: #1e3a8a; color: white;">${t('hr.filters.allStatus')}</option>
+                                                <option value="active" style="background: #1e3a8a; color: white;">${t('hr.employees.status.active')}</option>
+                                                <option value="onLeave" style="background: #1e3a8a; color: white;">${t('hr.employees.status.onLeave')}</option>
                                                 <option value="terminated" style="background: #1e3a8a; color: white;">Terminé</option>
                                             </select>
                                         </div>
@@ -20534,10 +20594,10 @@ ${persona}
                                             <div style="width: 80px; height: 80px; background: rgba(16, 185, 129, 0.2); border-radius: 16px; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px;">
                                                 <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
                                             </div>
-                                            <h3 style="margin: 0 0 12px; font-size: 20px; font-weight: 600; color: white;">Aucun employé</h3>
-                                            <p style="margin: 0 0 24px; font-size: 14px; color: rgba(255,255,255,0.6);">Commencez par ajouter votre premier employé à la liste</p>
+                                            <h3 style="margin: 0 0 12px; font-size: 20px; font-weight: 600; color: white;">${t('hr.employees.empty.title')}</h3>
+                                            <p style="margin: 0 0 24px; font-size: 14px; color: rgba(255,255,255,0.6);">${t('hr.employees.empty.desc')}</p>
                                             <button onclick="showAddEmployeeModal()" class="hr-btn" style="padding: 12px 24px; font-size: 14px;">
-                                                Ajouter un Employé
+                                                ${t('hr.employees.addBtn')}
                                             </button>
                                         </div>
                                     </div>
@@ -20554,21 +20614,21 @@ ${persona}
                                 <!-- Header avec actions -->
                                 <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 30px;">
                                     <div>
-                                        <h2 style="margin: 0 0 8px; font-size: 28px; font-weight: 700; background: linear-gradient(135deg, #10b981 0%, #06b6d4 50%, #3b82f6 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">Gestion des Congés</h2>
-                                        <p style="margin: 0; font-size: 14px; color: rgba(255,255,255,0.6);">Suivi et validation des demandes</p>
+                                        <h2 style="margin: 0 0 8px; font-size: 28px; font-weight: 700; background: linear-gradient(135deg, #10b981 0%, #06b6d4 50%, #3b82f6 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">${t('hr.leaves.title')}</h2>
+                                        <p style="margin: 0; font-size: 14px; color: rgba(255,255,255,0.6);">${t('hr.leaves.subtitle')}</p>
                                     </div>
                                     <div style="display: flex; gap: 12px;">
                                         <button onclick="closeLeavesModal()" style="padding: 12px 24px; background: rgba(255,255,255,0.1); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 12px; color: white; cursor: pointer; display: flex; align-items: center; gap: 8px; transition: all 0.3s; backdrop-filter: blur(10px); font-size: 14px; font-weight: 600;" onmouseover="this.style.background='rgba(16, 185, 129, 0.3)'; this.style.borderColor='#10b981'" onmouseout="this.style.background='rgba(255,255,255,0.1)'; this.style.borderColor='rgba(16, 185, 129, 0.3)'">
                                             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
-                                            <span>Retour</span>
+                                            <span>${t('hr.btn.back')}</span>
                                         </button>
                                         <button onclick="showLeaveCalendar()" style="padding: 12px 20px; background: rgba(255,255,255,0.1); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 12px; color: white; font-weight: 600; cursor: pointer; transition: all 0.3s; display: flex; align-items: center; gap: 8px; backdrop-filter: blur(10px);" onmouseover="this.style.background='rgba(16, 185, 129, 0.3)'; this.style.borderColor='#10b981'" onmouseout="this.style.background='rgba(255,255,255,0.1)'; this.style.borderColor='rgba(16, 185, 129, 0.3)'">
                                             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/><path d="M8 14h.01"/><path d="M12 14h.01"/><path d="M16 14h.01"/><path d="M8 18h.01"/><path d="M12 18h.01"/><path d="M16 18h.01"/></svg>
-                                            Calendrier
+                                            ${t('hr.leaves.calendarBtn')}
                                         </button>
                                         <button onclick="showAddLeaveModal()" class="hr-btn" style="padding: 12px 24px; font-size: 14px; display: flex; align-items: center; gap: 8px;">
                                             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
-                                            Nouvelle Demande
+                                            ${t('hr.leaves.newRequestBtn')}
                                         </button>
                                     </div>
                                 </div>
@@ -20580,7 +20640,7 @@ ${persona}
                                             <div style="width: 40px; height: 40px; background: rgba(16,185,129,0.2); border-radius: 10px; display: flex; align-items: center; justify-content: center; border: 1px solid rgba(16,185,129,0.3);">
                                                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
                                             </div>
-                                            <span style="font-size: 13px; color: rgba(255,255,255,0.7); font-weight: 600;">Approuvées</span>
+                                            <span style="font-size: 13px; color: rgba(255,255,255,0.7); font-weight: 600;">${t('hr.leaves.stat.approved')}</span>
                                         </div>
                                         <div id="leavesApprovedCount" style="font-size: 28px; font-weight: 700; color: #10b981;">0</div>
                                     </div>
@@ -20590,7 +20650,7 @@ ${persona}
                                             <div style="width: 40px; height: 40px; background: rgba(245,158,11,0.2); border-radius: 10px; display: flex; align-items: center; justify-content: center; border: 1px solid rgba(245,158,11,0.3);">
                                                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10 2h4"/><path d="M12 14v-4"/><path d="M4 13a8 8 0 0 1 7.5-8.37"/><path d="M20 13a8 8 0 1 1-5.5-7.37"/></svg>
                                             </div>
-                                            <span style="font-size: 13px; color: rgba(255,255,255,0.7); font-weight: 600;">En attente</span>
+                                            <span style="font-size: 13px; color: rgba(255,255,255,0.7); font-weight: 600;">${t('hr.leaves.stat.pending')}</span>
                                         </div>
                                         <div id="leavesPendingCount" style="font-size: 28px; font-weight: 700; color: #f59e0b;">0</div>
                                     </div>
@@ -20600,7 +20660,7 @@ ${persona}
                                             <div style="width: 40px; height: 40px; background: rgba(239,68,68,0.2); border-radius: 10px; display: flex; align-items: center; justify-content: center; border: 1px solid rgba(239,68,68,0.3);">
                                                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
                                             </div>
-                                            <span style="font-size: 13px; color: rgba(255,255,255,0.7); font-weight: 600;">Refusées</span>
+                                            <span style="font-size: 13px; color: rgba(255,255,255,0.7); font-weight: 600;">${t('hr.leaves.stat.rejected')}</span>
                                         </div>
                                         <div id="leavesRejectedCount" style="font-size: 28px; font-weight: 700; color: #ef4444;">0</div>
                                     </div>
@@ -20610,7 +20670,7 @@ ${persona}
                                             <div style="width: 40px; height: 40px; background: rgba(99,102,241,0.2); border-radius: 10px; display: flex; align-items: center; justify-content: center; border: 1px solid rgba(99,102,241,0.3);">
                                                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#6366F1" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
                                             </div>
-                                            <span style="font-size: 13px; color: rgba(255,255,255,0.7); font-weight: 600;">Absents aujourd'hui</span>
+                                            <span style="font-size: 13px; color: rgba(255,255,255,0.7); font-weight: 600;">${t('hr.leaves.stat.today')}</span>
                                         </div>
                                         <div id="leavesTodayCount" style="font-size: 28px; font-weight: 700; color: #6366F1;">0</div>
                                     </div>
@@ -20619,12 +20679,12 @@ ${persona}
                                 <!-- Filtres -->
                                 <div style="background: rgba(255,255,255,0.05); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 16px; padding: 24px; margin-bottom: 24px; backdrop-filter: blur(10px);">
                                     <h3 style="margin: 0 0 16px; font-size: 16px; font-weight: 600; color: rgba(255, 255, 255, 0.9);">
-                                        Filtres de recherche
+                                        ${t('hr.filters.title')}
                                     </h3>
                                     <div style="display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 14px;">
-                                        <input type="text" id="leaveSearch" placeholder="Rechercher par nom d'employé..." style="width: 100%; padding: 12px 16px; background: rgba(255,255,255,0.08); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 12px; font-size: 14px; color: white; transition: all 0.3s;" onfocus="this.style.borderColor='#10b981'; this.style.background='rgba(255,255,255,0.12)'" onblur="this.style.borderColor='rgba(16, 185, 129, 0.3)'; this.style.background='rgba(255,255,255,0.08)'" oninput="filterLeaves()">
+                                        <input type="text" id="leaveSearch" placeholder="${t('hr.leaves.searchPlaceholder')}" style="width: 100%; padding: 12px 16px; background: rgba(255,255,255,0.08); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 12px; font-size: 14px; color: white; transition: all 0.3s;" onfocus="this.style.borderColor='#10b981'; this.style.background='rgba(255,255,255,0.12)'" onblur="this.style.borderColor='rgba(16, 185, 129, 0.3)'; this.style.background='rgba(255,255,255,0.08)'" oninput="filterLeaves()">
                                         <select id="leaveTypeFilter" style="width: 100%; padding: 12px 16px; background: rgba(255,255,255,0.08); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 12px; font-size: 14px; color: white; cursor: pointer; transition: all 0.3s;" onfocus="this.style.borderColor='#10b981'; this.style.background='rgba(255,255,255,0.12)'" onblur="this.style.borderColor='rgba(16, 185, 129, 0.3)'; this.style.background='rgba(255,255,255,0.08)'" onchange="filterLeaves()">
-                                            <option value="" style="background: #1e3a8a; color: white;">Tous les types</option>
+                                            <option value="" style="background: #1e3a8a; color: white;">${t('hr.leaves.filter.allTypes')}</option>
                                             <option value="paid" style="background: #1e3a8a; color: white;">Congé payé</option>
                                             <option value="sick" style="background: #1e3a8a; color: white;">Maladie</option>
                                             <option value="unpaid" style="background: #1e3a8a; color: white;">Sans solde</option>
@@ -20632,10 +20692,10 @@ ${persona}
                                             <option value="other" style="background: #1e3a8a; color: white;">Autre</option>
                                         </select>
                                         <select id="leaveStatusFilter" style="width: 100%; padding: 12px 16px; background: rgba(255,255,255,0.08); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 12px; font-size: 14px; color: white; cursor: pointer; transition: all 0.3s;" onfocus="this.style.borderColor='#10b981'; this.style.background='rgba(255,255,255,0.12)'" onblur="this.style.borderColor='rgba(16, 185, 129, 0.3)'; this.style.background='rgba(255,255,255,0.08)'" onchange="filterLeaves()">
-                                            <option value="" style="background: #1e3a8a; color: white;">Tous les statuts</option>
-                                            <option value="pending" style="background: #1e3a8a; color: white;">En attente</option>
-                                            <option value="approved" style="background: #1e3a8a; color: white;">Approuvée</option>
-                                            <option value="rejected" style="background: #1e3a8a; color: white;">Refusée</option>
+                                            <option value="" style="background: #1e3a8a; color: white;">${t('hr.filters.allStatus')}</option>
+                                            <option value="pending" style="background: #1e3a8a; color: white;">${t('hr.leaves.status.pending')}</option>
+                                            <option value="approved" style="background: #1e3a8a; color: white;">${t('hr.leaves.status.approved')}</option>
+                                            <option value="rejected" style="background: #1e3a8a; color: white;">${t('hr.leaves.status.rejected')}</option>
                                         </select>
                                     </div>
                                 </div>
@@ -20647,10 +20707,10 @@ ${persona}
                                         <div style="width: 80px; height: 80px; background: rgba(16, 185, 129, 0.2); border-radius: 16px; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px; border: 1px solid rgba(16, 185, 129, 0.3);">
                                             <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
                                         </div>
-                                        <h3 style="margin: 0 0 12px; font-size: 20px; font-weight: 600; color: white;">Aucune demande de congé</h3>
-                                        <p style="margin: 0 0 24px; font-size: 14px; color: rgba(255,255,255,0.6);">Commencez par créer votre première demande de congé</p>
+                                        <h3 style="margin: 0 0 12px; font-size: 20px; font-weight: 600; color: white;">${t('hr.leaves.empty.title')}</h3>
+                                        <p style="margin: 0 0 24px; font-size: 14px; color: rgba(255,255,255,0.6);">${t('hr.leaves.empty.desc')}</p>
                                         <button onclick="showAddLeaveModal()" class="hr-btn" style="padding: 12px 24px; font-size: 14px;">
-                                            Nouvelle Demande
+                                            ${t('hr.leaves.newRequestBtn')}
                                         </button>
                                     </div>
                                 </div>
