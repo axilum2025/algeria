@@ -5684,6 +5684,13 @@ RÈGLES IMPORTANTES:
             return fetch(apiUrl(path), Object.assign({}, options, { headers }));
         }
 
+        function withAuthHeaders(headers = {}) {
+            const out = Object.assign({}, headers || {});
+            const token = getAuthToken();
+            if (token) out['Authorization'] = `Bearer ${token}`;
+            return out;
+        }
+
         // ================================
         // 📚 Docs Search (Elasticsearch)
         // ================================
@@ -8848,7 +8855,7 @@ ${persona}
 
                     const response = await fetch(endpoint, {
                         method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
+                        headers: withAuthHeaders({ 'Content-Type': 'application/json' }),
                         body: JSON.stringify({
                             model: selectedModel,
                             message: message,
@@ -8959,7 +8966,7 @@ ${persona}
 
                     const response = await fetch(endpoint, {
                         method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
+                        headers: withAuthHeaders({ 'Content-Type': 'application/json' }),
                         body: JSON.stringify({
                             model: selectedModel,
                             message: question,
@@ -9579,7 +9586,7 @@ ${persona}
                 
                 const response = await fetch(endpoint, {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: withAuthHeaders({ 'Content-Type': 'application/json' }),
                     body: JSON.stringify({ 
                         model: selectedModel,
                         message: messageForBackend,  // 🎯 Connaissance app + contexte + message (ou OCR)
@@ -14500,7 +14507,7 @@ ${persona}
 
                 const res = await fetch(endpoint, {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: withAuthHeaders({ 'Content-Type': 'application/json' }),
                     body: JSON.stringify({ prompt, model: getSelectedAiModel() })
                 });
 
@@ -23836,7 +23843,7 @@ N'inclus des actions QUE si l'utilisateur demande explicitement de modifier/ajou
 
                 const response = await fetch(endpoint, {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: withAuthHeaders({ 'Content-Type': 'application/json' }),
                     body: JSON.stringify({
                         message: baseContext + companyContext + '\n\n' + rndContext + rndActionsContract + '\n\nUtilisateur: ' + message,
                         conversationId: 'rnd-agent',
@@ -27297,7 +27304,7 @@ N'inclus des actions QUE si l'utilisateur demande explicitement de modifier/ajou
                 
                 const response = await fetch(endpoint, {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: withAuthHeaders({ 'Content-Type': 'application/json' }),
                     body: JSON.stringify({
                         message: baseContext + '\n\n' + mktContext + '\n\nUtilisateur: ' + message,
                         conversationId: 'marketing-agent',
@@ -29795,7 +29802,7 @@ ${recruitmentInfo}
                 
                 const response = await fetch(endpoint, {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: withAuthHeaders({ 'Content-Type': 'application/json' }),
                     body: JSON.stringify({ 
                         message: baseContext + "\n\n" + hrContext + "\n\nUtilisateur: " + message,
                         conversationId: 'hr-management',
@@ -36493,7 +36500,7 @@ ${recruitmentInfo}
 
                     fetch(endpoint, {
                         method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
+                        headers: withAuthHeaders({ 'Content-Type': 'application/json' }),
                         body: JSON.stringify({
                             message: `${systemPrompt}\nQuestion: ${message}`,
                             conversationId: financeConversationId,
@@ -37155,7 +37162,7 @@ ${hasBalance ? '✅' : '⬜'} Calculer résultat du mois
                 const weshPrompt = buildMarketWeshPrompt(draft);
                 const weshResp = await fetch(endpoint, {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: withAuthHeaders({ 'Content-Type': 'application/json' }),
                     body: JSON.stringify({
                         model: selectedModel,
                         message: weshPrompt,
@@ -38782,7 +38789,7 @@ ${hasBalance ? '✅' : '⬜'} Calculer résultat du mois
                 
                 const response = await fetch(endpoint, {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: withAuthHeaders({ 'Content-Type': 'application/json' }),
                     body: JSON.stringify({ 
                         message: message,  // Message simple sans contexte
                         conversationId: 'ai-management',
@@ -39117,7 +39124,7 @@ Si aucun problème: réponds "Aucun problème détecté"`;
                 const endpoint = getEndpoint();
                 const response = await fetch(endpoint, {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: withAuthHeaders({ 'Content-Type': 'application/json' }),
                     body: JSON.stringify({
                         message: prompt,
                         conversationId: 'ai-management',
@@ -39495,7 +39502,7 @@ Réponds UNIQUEMENT dans ce format JSON:
                 const endpoint = getEndpoint();
                 const response = await fetch(endpoint, {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: withAuthHeaders({ 'Content-Type': 'application/json' }),
                     body: JSON.stringify({
                         message: prompt,
                         conversationId: 'ai-management',
@@ -39797,7 +39804,7 @@ Réponds UNIQUEMENT dans ce format JSON:
                 const endpoint = getEndpoint();
                 const response = await fetch(endpoint, {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: withAuthHeaders({ 'Content-Type': 'application/json' }),
                     body: JSON.stringify({
                         message: prompt,
                         conversationId: 'ai-management',
@@ -40116,7 +40123,7 @@ Réponds UNIQUEMENT dans ce format JSON:
                 const endpoint = getEndpoint();
                 const response = await fetch(endpoint, {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: withAuthHeaders({ 'Content-Type': 'application/json' }),
                     body: JSON.stringify({
                         message: prompt,
                         conversationId: 'ai-management',
