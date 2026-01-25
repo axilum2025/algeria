@@ -12574,6 +12574,61 @@ ${persona}
                 'hr.employees.subtitle': 'Gestion complète du personnel',
                 'hr.employees.empty.title': 'Aucun employé',
                 'hr.employees.empty.desc': 'Commencez par ajouter votre premier employé à la liste',
+                'hr.employees.empty.addBtn': 'Ajouter un Employé',
+                'hr.employees.list.header.employee': 'Employé',
+                'hr.employees.list.header.position': 'Poste',
+                'hr.employees.list.header.department': 'Département',
+                'hr.employees.list.header.email': 'Email',
+                'hr.employees.list.header.status': 'Statut',
+                'hr.employees.list.header.actions': 'Actions',
+                'hr.employees.status.active': 'Actif',
+                'hr.employees.status.onLeave': 'En congé',
+                'hr.employees.status.terminated': 'Terminé',
+                'hr.employees.action.view': 'Voir',
+                'hr.employees.action.delete': 'Supprimer',
+                
+                'hr.employees.modal.title': 'Nouvel Employé',
+                'hr.employees.modal.subtitle': 'Ajouter un nouveau membre à l\'équipe',
+                'hr.employees.modal.section.personal': 'Informations personnelles',
+                'hr.employees.modal.label.firstName': 'Prénom *',
+                'hr.employees.modal.placeholder.firstName': 'Ex: Ahmed',
+                'hr.employees.modal.label.lastName': 'Nom *',
+                'hr.employees.modal.placeholder.lastName': 'Ex: Benali',
+                'hr.employees.modal.label.email': 'Email *',
+                'hr.employees.modal.placeholder.email': 'ahmed.benali@company.dz',
+                'hr.employees.modal.label.phone': 'Téléphone',
+                'hr.employees.modal.placeholder.phone': '+213 555 123 456',
+                'hr.employees.modal.label.birthDate': 'Date de naissance *',
+                'hr.employees.modal.label.address': 'Adresse *',
+                'hr.employees.modal.placeholder.address': 'Ex: 123 Rue de la Liberté, Alger',
+                'hr.employees.modal.section.professional': 'Informations professionnelles',
+                'hr.employees.modal.label.position': 'Poste *',
+                'hr.employees.modal.placeholder.position': 'Ex: Développeur Full Stack',
+                'hr.employees.modal.label.department': 'Département *',
+                'hr.employees.modal.placeholder.select': 'Sélectionner...',
+                'hr.employees.modal.label.hireDate': 'Date d\'embauche *',
+                'hr.employees.modal.label.contractType': 'Type de contrat *',
+                'hr.employees.modal.label.baseSalary': 'Salaire *',
+                'hr.employees.modal.placeholder.baseSalary': 'Ex: 3600000',
+                'hr.employees.modal.btn.cancel': 'Annuler',
+                'hr.employees.modal.btn.submit': '✓ Ajouter l\'Employé',
+                'hr.employees.toast.success': '✅ Employé ajouté avec succès',
+                'hr.employees.toast.deleted': '❌ Employé supprimé',
+                
+                'hr.employees.details.label.id': 'ID Employé',
+                'hr.employees.details.notProvided': 'Non renseigné',
+                'hr.employees.details.label.seniority': 'Ancienneté',
+                'hr.employees.details.section.salary': 'Informations salariales',
+                'hr.employees.details.label.annualSalary': 'Salaire annuel',
+                'hr.employees.details.label.monthlySalary': 'Salaire mensuel',
+                'hr.employees.details.btn.close': 'Fermer',
+                'hr.employees.details.btn.certificate': 'Générer une attestation de travail',
+                
+                'hr.common.year': 'an',
+                'hr.common.years': 'ans',
+                'hr.common.month': 'mois',
+                'hr.common.months': 'mois',
+                'hr.common.and': 'et',
 
                 'hr.leaves.subtitle': 'Suivi et validation des demandes',
                 'hr.leaves.calendarBtn': 'Calendrier',
@@ -12622,7 +12677,171 @@ ${persona}
                 'hr.reviews.empty.title': 'Aucune évaluation',
                 'hr.reviews.empty.desc': 'Créez votre première évaluation pour commencer',
 
+                'hr.turnover.rgpd.title': 'Conformité RGPD - Données Sensibles',
+                'hr.turnover.rgpd.desc': 'Cette fonctionnalité analyse des données RH pour prédire les risques de départ. Toutes les données sont traitées dans le navigateur (localStorage).',
+                'hr.turnover.rgpd.badge.minimized': '✓ Données minimisées',
+                'hr.turnover.rgpd.badge.explainable': '✓ Explicabilité totale',
+                'hr.turnover.rgpd.badge.noSurveillance': '✓ Pas de surveillance',
+                'hr.turnover.rgpd.badge.consent': '✓ Consentement requis',
+                
+                'hr.turnover.risk.high': 'Risque élevé',
+                'hr.turnover.risk.medium': 'Risque moyen',
+                'hr.turnover.risk.low': 'Risque faible',
+                'hr.turnover.risk.highDesc': 'Score ≥ 70% - Action immédiate',
+                'hr.turnover.risk.mediumDesc': 'Score 40-69% - Surveillance',
+                'hr.turnover.risk.lowDesc': 'Score < 40% - Stable',
+                
+                'hr.turnover.btn.analyze': 'Analyser les risques',
+                'hr.turnover.btn.rgpdSettings': 'Paramètres RGPD',
+                'hr.turnover.btn.close': 'Fermer',
+                'hr.turnover.filter.allLevels': 'Tous les niveaux',
+                'hr.turnover.searchPlaceholder': 'Rechercher un employé...',
+                
+                'hr.turnover.empty.title': 'Aucune analyse disponible',
+                'hr.turnover.empty.desc': 'Cliquez sur "Analyser les risques" pour générer les prédictions',
+                'hr.turnover.empty.hint': "L'analyse nécessite des données d'employés, congés et évaluations",
+
+                // Recruitment
+                'hr.recruitment.rgpd.title': 'Conformité RGPD - CV Screening',
+                'hr.recruitment.rgpd.desc': 'Analyse des CV avec transparence et explicabilité. L\'humain reste décisionnaire.',
+                'hr.recruitment.rgpd.badge.minimized': '✓ Données minimisées',
+                'hr.recruitment.rgpd.badge.explainable': '✓ Scoring explicable',
+                'hr.recruitment.rgpd.badge.human': '✓ Humain décide',
+                'hr.recruitment.rgpd.badge.audit': '✓ Audit trail',
+                'hr.recruitment.rgpd.close': 'Fermer',
+
+                'hr.recruitment.stats.activeJobs': 'Offres actives',
+                'hr.recruitment.stats.activeJobsSub': 'Postes en recrutement',
+                'hr.recruitment.stats.cvs': 'CV reçus',
+                'hr.recruitment.stats.cvsSub': 'Tous candidats',
+                'hr.recruitment.stats.shortlist': 'Shortlist',
+                'hr.recruitment.stats.shortlistSub': 'Candidats qualifiés',
+                'hr.recruitment.stats.avgScore': 'Score moyen',
+                'hr.recruitment.stats.avgScoreSub': 'Match moyen / 100',
+
+                'hr.recruitment.backup.title': 'Sauvegarde / Restauration',
+                'hr.recruitment.backup.desc': 'Téléchargez ou restaurez toutes les données (offres, CV, analyses)',
+                'hr.recruitment.backup.save': 'Sauvegarder',
+                'hr.recruitment.backup.restore': 'Restaurer',
+
+                'hr.recruitment.actions.newJob': 'Nouvelle Offre',
+                'hr.recruitment.actions.uploadCV': 'Upload CV',
+                'hr.recruitment.filter.allJobs': 'Toutes les offres',
+                'hr.recruitment.actions.toggleShortlist': '⭐ Tout afficher',
+                'hr.recruitment.actions.scoringSettings': 'Scoring & Filtres',
+
+                'hr.recruitment.empty.title': 'Aucun CV analysé',
+                'hr.recruitment.empty.desc': 'Créez une offre d\'emploi et uploadez des CV pour commencer',
+                'hr.recruitment.empty.createJob': 'Créer une offre',
+                'hr.recruitment.empty.uploadCV': 'Upload CV',
+
+                // Modals Recruitment
+                'hr.recruitment.modal.addJob.title': '💼 Nouvelle Offre d\'Emploi',
+                'hr.recruitment.modal.addJob.subtitle': 'Créez une offre active pour analyser ensuite les CV.',
+                'hr.recruitment.modal.addJob.label.title': 'Titre du poste *',
+                'hr.recruitment.modal.addJob.placeholder.title': 'Ex: Développeur Full Stack Senior',
+                'hr.recruitment.modal.addJob.label.department': 'Département *',
+                'hr.recruitment.modal.addJob.placeholder.department': 'Ex: IT',
+                'hr.recruitment.modal.addJob.label.location': 'Localisation *',
+                'hr.recruitment.modal.addJob.placeholder.location': 'Ex: Lisbonne, Portugal',
+                'hr.recruitment.modal.addJob.label.description': 'Description du poste *',
+                'hr.recruitment.modal.addJob.placeholder.description': 'Missions principales, responsabilités...',
+                'hr.recruitment.modal.addJob.label.skills': 'Compétences requises * (séparées par virgule)',
+                'hr.recruitment.modal.addJob.placeholder.skills': 'Ex: React, Node.js, MongoDB, Docker, AWS',
+                'hr.recruitment.modal.addJob.label.minExperience': 'Expérience minimale (années) *',
+                'hr.recruitment.modal.addJob.label.language': 'Langue *',
+                'hr.recruitment.modal.addJob.placeholder.language': 'Ex: Français',
+                'hr.recruitment.modal.addJob.label.level': 'Niveau *',
+                'hr.recruitment.modal.addJob.btn.publish': 'Publier l\'Offre',
+                'hr.recruitment.modal.addJob.btn.cancel': 'Annuler',
+                'hr.recruitment.modal.addJob.label.mustHave': 'Critères must-have (optionnels)',
+                'hr.recruitment.modal.addJob.placeholder.mustHave': 'Ex: Permis B, Disponible immédiatement, Maîtrise anglais...',
+                'hr.recruitment.modal.addJob.hint.mustHave': 'Les CV sans ces critères seront automatiquement filtrés',
+
+                'hr.recruitment.modal.uploadCV.title': '📄 Analyser un CV avec IA',
+                'hr.recruitment.modal.uploadCV.subtitle': 'Parsing automatique via Azure Vision + Azure OpenAI. Aucune donnée sensible n’est prise en compte.',
+                'hr.recruitment.modal.uploadCV.hint': '✨ Upload un CV (PDF/JPG/PNG) et l\'IA extrait automatiquement les données',
+                'hr.recruitment.modal.uploadCV.btn.analyze': '🤖 Analyser avec IA',
+                'hr.recruitment.modal.uploadCV.btn.cancel': '❌ Annuler',
+                'hr.recruitment.toast.createJobFirst': 'Créez d\'abord une offre d\'emploi',
+                'hr.recruitment.modal.uploadCV.label.targetJob': 'Offre ciblée *',
+                'hr.recruitment.modal.uploadCV.placeholder.select': 'Sélectionner...',
+                'hr.recruitment.modal.uploadCV.label.file': 'Fichier CV * (PDF, JPG, PNG)',
+                'hr.recruitment.modal.uploadCV.hint.file': '💡 Pour de meilleurs résultats, utilisez un CV avec un texte clair et lisible',
+
+                'hr.recruitment.modal.scoring.title': '⚙️ Scoring & Filtres',
+                'hr.recruitment.modal.scoring.subtitle': 'Rappel des règles de scoring et du filtrage par offre (RGPD: explicable, décision finale humaine).',
+                'hr.recruitment.modal.scoring.section.weights': 'Scoring (pondérations)',
+                'hr.recruitment.modal.scoring.weight.skills': 'Compétences',
+                'hr.recruitment.modal.scoring.weight.experience': 'Expérience',
+                'hr.recruitment.modal.scoring.weight.languages': 'Langues',
+                'hr.recruitment.modal.scoring.weight.education': 'Diplôme',
+                'hr.recruitment.modal.scoring.weight.mustHave': 'Must-have',
+                'hr.recruitment.modal.scoring.mustHaveDesc': 'Si des critères must-have sont définis sur l’offre, un CV qui ne les remplit pas est marqué comme non conforme.',
+                'hr.recruitment.modal.scoring.section.thresholds': 'Seuils (recommandation)',
+                'hr.recruitment.modal.scoring.threshold.recommended': 'Recommandé',
+                'hr.recruitment.modal.scoring.threshold.shortlist': 'Shortlist',
+                'hr.recruitment.modal.scoring.section.filters': 'Filtres',
+                'hr.recruitment.modal.scoring.filtersDesc': 'Utilisez le filtre <strong>Toutes les offres</strong> pour afficher uniquement les candidats liés à une offre.',
+                'hr.recruitment.modal.scoring.btn.close': 'Fermer',
+
+                'hr.recruitment.toast.pdfGenerated': '✅ PDF téléchargé',
+                'hr.recruitment.toast.pdfFallback': '⚠️ PDF généré en mode local (fallback)',
+                'hr.recruitment.toast.pdfJsonFallback': '⚠️ PDF indisponible, sauvegarde JSON téléchargée',
+                'hr.recruitment.toast.saveError': '❌ Impossible de sauvegarder les données recrutement',
+                'hr.recruitment.toast.restoreSuccess': '✅ Restauration: {jobs} offres, {candidates} CV',
+                'hr.recruitment.toast.restoreError': '❌ Erreur: {error}',
+                'hr.recruitment.toast.confirmRestore': '📊 Restaurer les données?\n\nActuelles: {currentJobs} offres, {currentCandidates} CV\nFichier: {newJobs} offres, {newCandidates} CV\n\n⚠️ Les données actuelles seront remplacées!',
+                'hr.recruitment.toast.jobPublished': 'Offre publiée avec succès',
+                'hr.recruitment.toast.fileTooLarge': 'Fichier trop volumineux (max 10 MB)',
+                'hr.recruitment.toast.selectCV': 'Sélectionnez un fichier CV',
+                'hr.recruitment.toast.extractingText': '🔍 Extraction du texte avec Azure Vision...',
+                'hr.recruitment.toast.analyzingAI': '✨ CV analysé par Azure OpenAI...',
+                'hr.recruitment.toast.jobNotFound': 'Offre non trouvée',
+                'hr.recruitment.toast.analysisSuccess': '✅ CV analysé avec IA - Score: {score}%',
+                'hr.recruitment.toast.candidateNotFound': '❌ Candidat introuvable',
+                'hr.recruitment.toast.shortlistAdded': '⭐ Ajouté à la shortlist',
+                'hr.recruitment.toast.shortlistRemoved': '✅ Retiré de la shortlist',
+
+                'hr.recruitment.modal.details.scoreTitle': 'Score de compatibilité',
+                'hr.recruitment.modal.details.jobTitle': 'Candidature pour',
+                'hr.recruitment.modal.details.analysisTitle': '📊 Analyse détaillée',
+                'hr.recruitment.modal.details.profileTitle': '👤 Profil du candidat',
+                'hr.recruitment.modal.details.strengthsTitle': '✅ Points forts',
+                'hr.recruitment.modal.details.risksTitle': '⚠️ Points d\'attention',
+                'hr.recruitment.modal.details.missingKeywordsTitle': '❌ Compétences manquantes',
+                'hr.recruitment.modal.details.anomaliesTitle': '🔍 Anomalies détectées',
+                'hr.recruitment.modal.details.gdpr': 'ℹ️ Transparence RGPD : Ce scoring est calculé automatiquement selon les critères suivants : Compétences (40%), Expérience (30%), Langues (10%), Diplôme (10%), Critères must-have (10%). Aucune donnée sensible (origine, religion, santé) n\'est analysée. La décision finale reste humaine.',
+                'hr.recruitment.modal.details.btn.close': 'Fermer',
+                'hr.recruitment.modal.details.btn.removeFromShortlist': '⭐ Retirer de la shortlist',
+                'hr.recruitment.filter.allJobs': 'Toutes les offres',
+                'hr.recruitment.modal.details.btn.addToShortlist': '✅ Ajouter à la shortlist',
+                'hr.recruitment.card.matchLabel': 'Match',
+                'hr.recruitment.jobDeleted': 'Offre supprimée',
+                'hr.recruitment.modal.details.detailSkills': 'Compétences détaillées',
+                'hr.recruitment.modal.details.lastJob': 'Dernière expérience',
+                'hr.recruitment.modal.details.certifications': 'Certifications',
+
+                'hr.recruitment.analysis.strength.skills': 'Excellente adéquation des compétences techniques',
+                'hr.recruitment.analysis.risk.skills': 'Compétences techniques insuffisantes',
+                'hr.recruitment.analysis.strength.experience': '{years} ans d\'expérience supplémentaire au-delà du minimum',
+                'hr.recruitment.analysis.risk.experienceSlight': 'Légèrement en dessous de l\'expérience requise',
+                'hr.recruitment.analysis.risk.experienceGap': '{years} ans d\'expérience manquants',
+                'hr.recruitment.analysis.strength.education': 'Formation académique excellente',
+                'hr.recruitment.analysis.risk.language': 'Niveau de langue à vérifier',
+                'hr.recruitment.analysis.risk.mustHave': 'Critères must-have non satisfaits',
+                'hr.recruitment.analysis.anomaly.experienceHigh': '⚠️ Expérience exceptionnellement élevée (surqualification?)',
+                'hr.recruitment.analysis.anomaly.skillsLow': '⚠️ Peu de compétences listées',
+                'hr.recruitment.analysis.anomaly.lastJobMissing': '⚠️ Dernière expérience non renseignée',
+                'hr.recruitment.analysis.recommendation.excellent': '✅ RECOMMANDÉ - Excellent profil',
+                'hr.recruitment.analysis.recommendation.shortlist': '✅ SHORTLIST - Bon candidat à interviewer',
+                'hr.recruitment.analysis.recommendation.review': '⚠️ À ÉVALUER - Profil intéressant mais nécessite validation',
+                'hr.recruitment.analysis.recommendation.rejectedMustHave': '❌ REJETÉ - Critères must-have non satisfaits',
+                'hr.recruitment.analysis.recommendation.rejected': '❌ NON RECOMMANDÉ - Profil insuffisant',
+
                 'hr.payroll.subtitle': 'Bulletins de salaire et masse salariale',
+
+
                 'common.month.01': 'Janvier',
                 'common.month.02': 'Février',
                 'common.month.03': 'Mars',
@@ -13256,6 +13475,61 @@ ${persona}
                 'hr.employees.subtitle': 'Complete personnel management',
                 'hr.employees.empty.title': 'No employees',
                 'hr.employees.empty.desc': 'Start by adding your first employee to the list',
+                'hr.employees.empty.addBtn': 'Add Employee',
+                'hr.employees.list.header.employee': 'Employee',
+                'hr.employees.list.header.position': 'Position',
+                'hr.employees.list.header.department': 'Department',
+                'hr.employees.list.header.email': 'Email',
+                'hr.employees.list.header.status': 'Status',
+                'hr.employees.list.header.actions': 'Actions',
+                'hr.employees.status.active': 'Active',
+                'hr.employees.status.onLeave': 'On Leave',
+                'hr.employees.status.terminated': 'Terminated',
+                'hr.employees.action.view': 'View',
+                'hr.employees.action.delete': 'Delete',
+
+                'hr.employees.modal.title': 'New Employee',
+                'hr.employees.modal.subtitle': 'Add a new member to the team',
+                'hr.employees.modal.section.personal': 'Personal Information',
+                'hr.employees.modal.label.firstName': 'First Name *',
+                'hr.employees.modal.placeholder.firstName': 'Ex: Ahmed',
+                'hr.employees.modal.label.lastName': 'Last Name *',
+                'hr.employees.modal.placeholder.lastName': 'Ex: Benali',
+                'hr.employees.modal.label.email': 'Email *',
+                'hr.employees.modal.placeholder.email': 'ahmed.benali@company.dz',
+                'hr.employees.modal.label.phone': 'Phone',
+                'hr.employees.modal.placeholder.phone': '+213 555 123 456',
+                'hr.employees.modal.label.birthDate': 'Date of Birth *',
+                'hr.employees.modal.label.address': 'Address *',
+                'hr.employees.modal.placeholder.address': 'Ex: 123 Liberty Street, Algiers',
+                'hr.employees.modal.section.professional': 'Professional Information',
+                'hr.employees.modal.label.position': 'Position *',
+                'hr.employees.modal.placeholder.position': 'Ex: Full Stack Developer',
+                'hr.employees.modal.label.department': 'Department *',
+                'hr.employees.modal.placeholder.select': 'Select...',
+                'hr.employees.modal.label.hireDate': 'Hire Date *',
+                'hr.employees.modal.label.contractType': 'Contract Type *',
+                'hr.employees.modal.label.baseSalary': 'Salary *',
+                'hr.employees.modal.placeholder.baseSalary': 'Ex: 3600000',
+                'hr.employees.modal.btn.cancel': 'Cancel',
+                'hr.employees.modal.btn.submit': '✓ Add Employee',
+                'hr.employees.toast.success': '✅ Employee added successfully',
+                'hr.employees.toast.deleted': '❌ Employee deleted',
+
+                'hr.employees.details.label.id': 'Employee ID',
+                'hr.employees.details.notProvided': 'Not provided',
+                'hr.employees.details.label.seniority': 'Seniority',
+                'hr.employees.details.section.salary': 'Salary Information',
+                'hr.employees.details.label.annualSalary': 'Annual Salary',
+                'hr.employees.details.label.monthlySalary': 'Monthly Salary',
+                'hr.employees.details.btn.close': 'Close',
+                'hr.employees.details.btn.certificate': 'Generate Work Certificate',
+
+                'hr.common.year': 'year',
+                'hr.common.years': 'years',
+                'hr.common.month': 'month',
+                'hr.common.months': 'months',
+                'hr.common.and': 'and',
 
                 'hr.leaves.subtitle': 'Request tracking and validation',
                 'hr.leaves.calendarBtn': 'Calendar',
@@ -13366,7 +13640,172 @@ ${persona}
                 'hr.reviews.filter.search': '🔍 Search...',
                 'hr.reviews.empty.title': 'No reviews',
                 'hr.reviews.empty.desc': 'Create your first review to get started',
+
+                'hr.turnover.rgpd.title': 'GDPR Compliance - Sensitive Data',
+                'hr.turnover.rgpd.desc': 'This feature analyzes HR data to predict turnover risks. All data is processed in the browser (localStorage).',
+                'hr.turnover.rgpd.badge.minimized': '✓ Minimized Data',
+                'hr.turnover.rgpd.badge.explainable': '✓ Full Explainability',
+                'hr.turnover.rgpd.badge.noSurveillance': '✓ No Surveillance',
+                'hr.turnover.rgpd.badge.consent': '✓ Consent Required',
+                
+                'hr.turnover.risk.high': 'High Risk',
+                'hr.turnover.risk.medium': 'Medium Risk',
+                'hr.turnover.risk.low': 'Low Risk',
+                'hr.turnover.risk.highDesc': 'Score ≥ 70% - Immediate Action',
+                'hr.turnover.risk.mediumDesc': 'Score 40-69% - Monitoring',
+                'hr.turnover.risk.lowDesc': 'Score < 40% - Stable',
+                
+                'hr.turnover.btn.analyze': 'Analyze Risks',
+                'hr.turnover.btn.rgpdSettings': 'GDPR Settings',
+                'hr.turnover.btn.close': 'Close',
+                'hr.turnover.filter.allLevels': 'All Levels',
+                'hr.turnover.searchPlaceholder': 'Search employee...',
+                
+                'hr.turnover.empty.title': 'No analysis available',
+                'hr.turnover.empty.desc': 'Click "Analyze Risks" to generate predictions',
+                'hr.turnover.empty.hint': 'Analysis requires employee, leave, and review data',
+
+                // Recruitment
+                'hr.recruitment.rgpd.title': 'GDPR Compliance - CV Screening',
+                'hr.recruitment.rgpd.desc': 'CV analysis with transparency and explainability. Humans remain the decision makers.',
+                'hr.recruitment.rgpd.badge.minimized': '✓ Minimized Data',
+                'hr.recruitment.rgpd.badge.explainable': '✓ Explainable Scoring',
+                'hr.recruitment.rgpd.badge.human': '✓ Human Decides',
+                'hr.recruitment.rgpd.badge.audit': '✓ Audit Trail',
+                'hr.recruitment.rgpd.close': 'Close',
+
+                'hr.recruitment.stats.activeJobs': 'Active Jobs',
+                'hr.recruitment.stats.activeJobsSub': 'Open Positions',
+                'hr.recruitment.stats.cvs': 'CVs Received',
+                'hr.recruitment.stats.cvsSub': 'All Candidates',
+                'hr.recruitment.stats.shortlist': 'Shortlist',
+                'hr.recruitment.stats.shortlistSub': 'Qualified Candidates',
+                'hr.recruitment.stats.avgScore': 'Avg Score',
+                'hr.recruitment.stats.avgScoreSub': 'Avg Match / 100',
+
+                'hr.recruitment.backup.title': 'Backup / Restore',
+                'hr.recruitment.backup.desc': 'Download or restore all data (jobs, CVs, analysis)',
+                'hr.recruitment.backup.save': 'Save',
+                'hr.recruitment.backup.restore': 'Restore',
+
+                'hr.recruitment.actions.newJob': 'New Job',
+                'hr.recruitment.actions.uploadCV': 'Upload CV',
+                'hr.recruitment.filter.allJobs': 'All Jobs',
+                'hr.recruitment.actions.toggleShortlist': '⭐ Show All',
+                'hr.recruitment.actions.scoringSettings': 'Scoring & Filters',
+
+                'hr.recruitment.empty.title': 'No CVs Analyzed',
+                'hr.recruitment.empty.desc': 'Create a job offer and upload CVs to start',
+                'hr.recruitment.empty.createJob': 'Create Job',
+                'hr.recruitment.empty.uploadCV': 'Upload CV',
+
+                // Modals Recruitment
+                'hr.recruitment.modal.addJob.title': '💼 New Job Offer',
+                'hr.recruitment.modal.addJob.subtitle': 'Create an active job to then analyze CVs.',
+                'hr.recruitment.modal.addJob.label.title': 'Job Title *',
+                'hr.recruitment.modal.addJob.placeholder.title': 'Ex: Senior Full Stack Developer',
+                'hr.recruitment.modal.addJob.label.department': 'Department *',
+                'hr.recruitment.modal.addJob.placeholder.department': 'Ex: IT',
+                'hr.recruitment.modal.addJob.label.location': 'Location *',
+                'hr.recruitment.modal.addJob.placeholder.location': 'Ex: Lisbon, Portugal',
+                'hr.recruitment.modal.addJob.label.description': 'Job Description *',
+                'hr.recruitment.modal.addJob.placeholder.description': 'Main missions, responsibilities...',
+                'hr.recruitment.modal.addJob.label.skills': 'Required Skills * (comma separated)',
+                'hr.recruitment.modal.addJob.placeholder.skills': 'Ex: React, Node.js, MongoDB, Docker, AWS',
+                'hr.recruitment.modal.addJob.label.minExperience': 'Min Experience (years) *',
+                'hr.recruitment.modal.addJob.label.language': 'Language *',
+                'hr.recruitment.modal.addJob.placeholder.language': 'Ex: English',
+                'hr.recruitment.modal.addJob.label.level': 'Level *',
+                'hr.recruitment.modal.addJob.btn.publish': 'Publish Job',
+                'hr.recruitment.modal.addJob.btn.cancel': 'Cancel',
+                'hr.recruitment.modal.addJob.label.mustHave': 'Must-have criteria (optional)',
+                'hr.recruitment.modal.addJob.placeholder.mustHave': 'Ex: Driving license, Available immediately, English fluency...',
+                'hr.recruitment.modal.addJob.hint.mustHave': 'CVs without these criteria will be automatically filtered',
+
+                'hr.recruitment.modal.uploadCV.title': '📄 Analyze CV with AI',
+                'hr.recruitment.modal.uploadCV.subtitle': 'Automatic parsing via Azure Vision + Azure OpenAI. No sensitive data is taken into account.',
+                'hr.recruitment.modal.uploadCV.hint': '✨ Upload a CV (PDF/JPG/PNG) and AI automatically extracts data',
+                'hr.recruitment.modal.uploadCV.btn.analyze': '🤖 Analyze with AI',
+                'hr.recruitment.modal.uploadCV.btn.cancel': '❌ Cancel',
+                'hr.recruitment.toast.createJobFirst': 'Create a job offer first',
+                'hr.recruitment.modal.uploadCV.label.targetJob': 'Target Job *',
+                'hr.recruitment.modal.uploadCV.placeholder.select': 'Select...',
+                'hr.recruitment.modal.uploadCV.label.file': 'CV File * (PDF, JPG, PNG)',
+                'hr.recruitment.modal.uploadCV.hint.file': '💡 For best results, use a CV with clear and readable text',
+                
+                'hr.recruitment.modal.scoring.title': '⚙️ Scoring & Filters',
+                'hr.recruitment.modal.scoring.subtitle': 'Reminder of scoring rules and job filtering (GDPR: explainable, human final decision).',
+                'hr.recruitment.modal.scoring.section.weights': 'Scoring (weighting)',
+                'hr.recruitment.modal.scoring.weight.skills': 'Skills',
+                'hr.recruitment.modal.scoring.weight.experience': 'Experience',
+                'hr.recruitment.modal.scoring.weight.languages': 'Languages',
+                'hr.recruitment.modal.scoring.weight.education': 'Education',
+                'hr.recruitment.modal.scoring.weight.mustHave': 'Must-have',
+                'hr.recruitment.modal.scoring.mustHaveDesc': 'If must-have criteria are defined on the job, a CV that does not meet them is marked as non-compliant.',
+                'hr.recruitment.modal.scoring.section.thresholds': 'Thresholds (recommendation)',
+                'hr.recruitment.modal.scoring.threshold.recommended': 'Recommended',
+                'hr.recruitment.modal.scoring.threshold.shortlist': 'Shortlist',
+                'hr.recruitment.modal.scoring.section.filters': 'Filters',
+                'hr.recruitment.modal.scoring.filtersDesc': 'Use the <strong>All Jobs</strong> filter to display only candidates linked to a job.',
+                'hr.recruitment.modal.scoring.btn.close': 'Close',
+
+                'hr.recruitment.toast.pdfGenerated': '✅ PDF downloaded',
+
+                'hr.recruitment.modal.details.scoreTitle': 'Compatibility Score',
+                'hr.recruitment.modal.details.jobTitle': 'Application for',
+                'hr.recruitment.modal.details.analysisTitle': '📊 Detailed Analysis',
+                'hr.recruitment.modal.details.profileTitle': '👤 Candidate Profile',
+                'hr.recruitment.modal.details.strengthsTitle': '✅ Strengths',
+                'hr.recruitment.modal.details.risksTitle': '⚠️ Points of Attention',
+                'hr.recruitment.modal.details.missingKeywordsTitle': '❌ Missing Skills',
+                'hr.recruitment.modal.details.anomaliesTitle': '🔍 Anomalies Detected',
+                'hr.recruitment.modal.details.gdpr': 'ℹ️ GDPR Transparency: This score is calculated automatically based on: Skills (40%), Experience (30%), Languages (10%), Education (10%), Must-have (10%). No sensitive data (origin, religion, health) is analyzed. The final decision remains human.',
+                'hr.recruitment.modal.details.btn.close': 'Close',
+                'hr.recruitment.card.matchLabel': 'Match',
+                'hr.recruitment.jobDeleted': 'Job deleted',
+                'hr.recruitment.modal.details.btn.removeFromShortlist': '⭐ Remove from shortlist',
+                'hr.recruitment.filter.allJobs': 'All Jobs',
+                'hr.recruitment.modal.details.btn.addToShortlist': '✅ Add to shortlist',
+                'hr.recruitment.modal.details.detailSkills': 'Detailed Skills',
+                'hr.recruitment.modal.details.lastJob': 'Last Experience',
+                'hr.recruitment.modal.details.certifications': 'Certifications',
+
+                'hr.recruitment.analysis.strength.skills': 'Excellent technical skills match',
+                'hr.recruitment.analysis.risk.skills': 'Insufficient technical skills',
+                'hr.recruitment.analysis.strength.experience': '{years} years of additional experience beyond minimum',
+                'hr.recruitment.analysis.risk.experienceSlight': 'Slightly below required experience',
+                'hr.recruitment.analysis.risk.experienceGap': '{years} years of experience missing',
+                'hr.recruitment.analysis.strength.education': 'Excellent academic background',
+                'hr.recruitment.analysis.risk.language': 'Language level to verify',
+                'hr.recruitment.analysis.risk.mustHave': 'Must-have criteria not met',
+                'hr.recruitment.analysis.anomaly.experienceHigh': '⚠️ Exceptionally high experience (overqualified?)',
+                'hr.recruitment.analysis.anomaly.skillsLow': '⚠️ Few skills listed',
+                'hr.recruitment.analysis.anomaly.lastJobMissing': '⚠️ Last experience missing',
+                'hr.recruitment.analysis.recommendation.excellent': '✅ RECOMMENDED - Excellent profile',
+                'hr.recruitment.analysis.recommendation.shortlist': '✅ SHORTLIST - Good candidate to interview',
+                'hr.recruitment.analysis.recommendation.review': '⚠️ TO REVIEW - Interesting profile but needs validation',
+                'hr.recruitment.analysis.recommendation.rejectedMustHave': '❌ REJECTED - Must-have criteria not met',
+                'hr.recruitment.analysis.recommendation.rejected': '❌ NOT RECOMMENDED - Insufficient profile',
+                'hr.recruitment.toast.pdfFallback': '⚠️ PDF generated in local mode (fallback)',
+                'hr.recruitment.toast.pdfJsonFallback': '⚠️ PDF unavailable, JSON backup downloaded',
+                'hr.recruitment.toast.saveError': '❌ Unable to save recruitment data',
+                'hr.recruitment.toast.restoreSuccess': '✅ Restore: {jobs} jobs, {candidates} CVs',
+                'hr.recruitment.toast.restoreError': '❌ Error: {error}',
+                'hr.recruitment.toast.confirmRestore': '📊 Restore data?\n\nCurrent: {currentJobs} jobs, {currentCandidates} CVs\nFile: {newJobs} jobs, {newCandidates} CVs\n\n⚠️ Current data will be replaced!',
+                'hr.recruitment.toast.jobPublished': 'Job published successfully',
+                'hr.recruitment.toast.fileTooLarge': 'File too large (max 10 MB)',
+                'hr.recruitment.toast.selectCV': 'Select a CV file',
+                'hr.recruitment.toast.extractingText': '🔍 Extracting text with Azure Vision...',
+                'hr.recruitment.toast.analyzingAI': '✨ CV analyzed by Azure OpenAI...',
+                'hr.recruitment.toast.jobNotFound': 'Job not found',
+                'hr.recruitment.toast.analysisSuccess': '✅ CV analyzed with AI - Score: {score}%',
+                'hr.recruitment.toast.candidateNotFound': '❌ Candidate not found',
+                'hr.recruitment.toast.shortlistAdded': '⭐ Added to shortlist',
+                'hr.recruitment.toast.shortlistRemoved': '✅ Removed from shortlist',
+
                 'hr.payroll.validate': 'Validate',
+
+
                 'hr.payroll.markPaid': 'Mark as Paid',
                 'hr.payroll.view': 'View Slip',
                 'chat.historyCleared': '🗑️ Chat history cleared successfully',
@@ -21031,16 +21470,15 @@ ${persona}
                                         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
                                     </div>
                                     <div style="flex: 1;">
-                                        <h3 style="margin: 0 0 8px; font-size: 16px; font-weight: 700;">Conformité RGPD - Données Sensibles</h3>
+                                        <h3 style="margin: 0 0 8px; font-size: 16px; font-weight: 700;">${t('hr.turnover.rgpd.title')}</h3>
                                         <p style="margin: 0 0 12px; font-size: 13px; line-height: 1.6; opacity: 0.95;">
-                                            Cette fonctionnalité analyse des données RH pour prédire les risques de départ. Toutes les données sont traitées dans le navigateur (localStorage), aucune transmission externe. 
-                                            Les scores sont calculés de manière <strong>transparente</strong> et <strong>explicable</strong>.
+                                            ${t('hr.turnover.rgpd.desc')}
                                         </p>
                                         <div class="turnover-rgpd-badges" style="display: flex; gap: 8px; flex-wrap: wrap;">
-                                            <span style="background: rgba(255,255,255,0.2); padding: 6px 12px; border-radius: 6px; font-size: 11px; font-weight: 600;">✓ Données minimisées</span>
-                                            <span style="background: rgba(255,255,255,0.2); padding: 6px 12px; border-radius: 6px; font-size: 11px; font-weight: 600;">✓ Explicabilité totale</span>
-                                            <span style="background: rgba(255,255,255,0.2); padding: 6px 12px; border-radius: 6px; font-size: 11px; font-weight: 600;">✓ Pas de surveillance</span>
-                                            <span style="background: rgba(255,255,255,0.2); padding: 6px 12px; border-radius: 6px; font-size: 11px; font-weight: 600;">✓ Consentement requis</span>
+                                            <span style="background: rgba(255,255,255,0.2); padding: 6px 12px; border-radius: 6px; font-size: 11px; font-weight: 600;">${t('hr.turnover.rgpd.badge.minimized')}</span>
+                                            <span style="background: rgba(255,255,255,0.2); padding: 6px 12px; border-radius: 6px; font-size: 11px; font-weight: 600;">${t('hr.turnover.rgpd.badge.explainable')}</span>
+                                            <span style="background: rgba(255,255,255,0.2); padding: 6px 12px; border-radius: 6px; font-size: 11px; font-weight: 600;">${t('hr.turnover.rgpd.badge.noSurveillance')}</span>
+                                            <span style="background: rgba(255,255,255,0.2); padding: 6px 12px; border-radius: 6px; font-size: 11px; font-weight: 600;">${t('hr.turnover.rgpd.badge.consent')}</span>
                                         </div>
                                     </div>
                                 </div>
@@ -21051,40 +21489,40 @@ ${persona}
                                 <div style="background: rgba(255,255,255,0.05); border: 1px solid rgba(239, 68, 68, 0.4); border-radius: 16px; padding: 24px; backdrop-filter: blur(10px); transition: all 0.3s;" onmouseover="this.style.background='rgba(255,255,255,0.08)'; this.style.borderColor='#ef4444'; this.style.transform='translateY(-2px)'" onmouseout="this.style.background='rgba(255,255,255,0.05)'; this.style.borderColor='rgba(239, 68, 68, 0.4)'; this.style.transform='translateY(0)'">
                                     <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 16px;">
                                         <div>
-                                            <p style="margin: 0 0 8px; color: rgba(255,255,255,0.7); font-size: 13px; font-weight: 600;">Risque élevé</p>
+                                            <p style="margin: 0 0 8px; color: rgba(255,255,255,0.7); font-size: 13px; font-weight: 600;">${t('hr.turnover.risk.high')}</p>
                                             <h3 id="highRiskCount" style="margin: 0; font-size: 32px; font-weight: 700; color: #ef4444;">0</h3>
                                         </div>
                                         <div style="width: 48px; height: 48px; background: rgba(239,68,68,0.2); border-radius: 12px; display: flex; align-items: center; justify-content: center; border: 1px solid rgba(239,68,68,0.3);">
                                             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
                                         </div>
                                     </div>
-                                    <p style="margin: 0; font-size: 12px; color: rgba(255,255,255,0.6);">Score ≥ 70% - Action immédiate</p>
+                                    <p style="margin: 0; font-size: 12px; color: rgba(255,255,255,0.6);">${t('hr.turnover.risk.highDesc')}</p>
                                 </div>
                                 
                                 <div style="background: rgba(255,255,255,0.05); border: 1px solid rgba(245, 158, 11, 0.4); border-radius: 16px; padding: 24px; backdrop-filter: blur(10px); transition: all 0.3s;" onmouseover="this.style.background='rgba(255,255,255,0.08)'; this.style.borderColor='#f59e0b'; this.style.transform='translateY(-2px)'" onmouseout="this.style.background='rgba(255,255,255,0.05)'; this.style.borderColor='rgba(245, 158, 11, 0.4)'; this.style.transform='translateY(0)'">
                                     <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 16px;">
                                         <div>
-                                            <p style="margin: 0 0 8px; color: rgba(255,255,255,0.7); font-size: 13px; font-weight: 600;">Risque moyen</p>
+                                            <p style="margin: 0 0 8px; color: rgba(255,255,255,0.7); font-size: 13px; font-weight: 600;">${t('hr.turnover.risk.medium')}</p>
                                             <h3 id="mediumRiskCount" style="margin: 0; font-size: 32px; font-weight: 700; color: #f59e0b;">0</h3>
                                         </div>
                                         <div style="width: 48px; height: 48px; background: rgba(245,158,11,0.2); border-radius: 12px; display: flex; align-items: center; justify-content: center; border: 1px solid rgba(245,158,11,0.3);">
                                             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
                                         </div>
                                     </div>
-                                    <p style="margin: 0; font-size: 12px; color: rgba(255,255,255,0.6);">Score 40-69% - Surveillance</p>
+                                    <p style="margin: 0; font-size: 12px; color: rgba(255,255,255,0.6);">${t('hr.turnover.risk.mediumDesc')}</p>
                                 </div>
                                 
                                 <div style="background: rgba(255,255,255,0.05); border: 1px solid rgba(16, 185, 129, 0.4); border-radius: 16px; padding: 24px; backdrop-filter: blur(10px); transition: all 0.3s;" onmouseover="this.style.background='rgba(255,255,255,0.08)'; this.style.borderColor='#10b981'; this.style.transform='translateY(-2px)'" onmouseout="this.style.background='rgba(255,255,255,0.05)'; this.style.borderColor='rgba(16, 185, 129, 0.4)'; this.style.transform='translateY(0)'">
                                     <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 16px;">
                                         <div>
-                                            <p style="margin: 0 0 8px; color: rgba(255,255,255,0.7); font-size: 13px; font-weight: 600;">Risque faible</p>
+                                            <p style="margin: 0 0 8px; color: rgba(255,255,255,0.7); font-size: 13px; font-weight: 600;">${t('hr.turnover.risk.low')}</p>
                                             <h3 id="lowRiskCount" style="margin: 0; font-size: 32px; font-weight: 700; color: #10b981;">0</h3>
                                         </div>
                                         <div style="width: 48px; height: 48px; background: rgba(16,185,129,0.2); border-radius: 12px; display: flex; align-items: center; justify-content: center; border: 1px solid rgba(16,185,129,0.3);">
                                             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
                                         </div>
                                     </div>
-                                    <p style="margin: 0; font-size: 12px; color: rgba(255,255,255,0.6);">Score < 40% - Stable</p>
+                                    <p style="margin: 0; font-size: 12px; color: rgba(255,255,255,0.6);">${t('hr.turnover.risk.lowDesc')}</p>
                                 </div>
                             </div>
                             
@@ -21093,27 +21531,27 @@ ${persona}
                                 <div id="turnoverActionsLeft" style="display: flex; gap: 12px; flex-wrap: wrap;">
                                     <button onclick="analyzeTurnoverRisks()" class="hr-btn" style="display: flex; align-items: center; gap: 8px;">
                                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
-                                        Analyser les risques
+                                        ${t('hr.turnover.btn.analyze')}
                                     </button>
                                     
                                     <select id="turnoverRiskFilter" onchange="filterTurnoverList()" style="padding: 12px 16px; background: rgba(255,255,255,0.08); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 12px; font-size: 14px; font-weight: 600; cursor: pointer; color: white; transition: all 0.3s;" onfocus="this.style.borderColor='#10b981'; this.style.background='rgba(255,255,255,0.12)'" onblur="this.style.borderColor='rgba(16, 185, 129, 0.3)'; this.style.background='rgba(255,255,255,0.08)'">
-                                        <option value="">Tous les niveaux</option>
-                                        <option value="high">Risque élevé</option>
-                                        <option value="medium">Risque moyen</option>
-                                        <option value="low">Risque faible</option>
+                                        <option value="">${t('hr.turnover.filter.allLevels')}</option>
+                                        <option value="high">${t('hr.turnover.risk.high')}</option>
+                                        <option value="medium">${t('hr.turnover.risk.medium')}</option>
+                                        <option value="low">${t('hr.turnover.risk.low')}</option>
                                     </select>
 
-                                    <input id="turnoverEmployeeSearch" type="text" placeholder="Rechercher un employé (nom, poste, département...)" oninput="filterTurnoverList()" style="min-width: 260px; padding: 12px 16px; background: rgba(255,255,255,0.08); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 12px; font-size: 14px; font-weight: 600; color: white; transition: all 0.3s; outline: none;" onfocus="this.style.borderColor='#10b981'; this.style.background='rgba(255,255,255,0.12)'" onblur="this.style.borderColor='rgba(16, 185, 129, 0.3)'; this.style.background='rgba(255,255,255,0.08)'" />
+                                    <input id="turnoverEmployeeSearch" type="text" placeholder="${t('hr.turnover.searchPlaceholder')}" oninput="filterTurnoverList()" style="min-width: 260px; padding: 12px 16px; background: rgba(255,255,255,0.08); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 12px; font-size: 14px; font-weight: 600; color: white; transition: all 0.3s; outline: none;" onfocus="this.style.borderColor='#10b981'; this.style.background='rgba(255,255,255,0.12)'" onblur="this.style.borderColor='rgba(16, 185, 129, 0.3)'; this.style.background='rgba(255,255,255,0.08)'" />
                                 </div>
                                 
                                 <div id="turnoverActionsRight" style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
                                     <button onclick="showRGPDSettings()" style="padding: 12px 16px; background: rgba(255,255,255,0.1); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 12px; color: white; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 8px; font-size: 13px; transition: all 0.3s; backdrop-filter: blur(10px);" onmouseover="this.style.background='rgba(16, 185, 129, 0.3)'; this.style.borderColor='#10b981'" onmouseout="this.style.background='rgba(255,255,255,0.1)'; this.style.borderColor='rgba(16, 185, 129, 0.3)'">
                                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-                                        Paramètres RGPD
+                                        ${t('hr.turnover.btn.rgpdSettings')}
                                     </button>
                                     <button onclick="showHRTab('dashboard'); scheduleHRTabCleanup('turnover'); const area=document.querySelector('#hrManagementOverlay .hr-content-area'); if (area) area.scrollTop = 0;" style="padding: 12px 16px; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); border-radius: 12px; color: white; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 8px; font-size: 13px; transition: all 0.3s; backdrop-filter: blur(10px);" onmouseover="this.style.background='rgba(255,255,255,0.18)'; this.style.borderColor='rgba(255,255,255,0.35)'" onmouseout="this.style.background='rgba(255,255,255,0.1)'; this.style.borderColor='rgba(255,255,255,0.2)'">
                                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-                                        Fermer
+                                        ${t('hr.turnover.btn.close')}
                                     </button>
                                 </div>
                             </div>
@@ -21128,11 +21566,11 @@ ${persona}
                                 <div style="width: 80px; height: 80px; background: rgba(16, 185, 129, 0.2); border-radius: 16px; display: flex; align-items: center; justify-content: center; margin: 0 auto 16px; border: 1px solid rgba(16, 185, 129, 0.3);">
                                     <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
                                 </div>
-                                <h3 style="margin: 0 0 8px; font-size: 18px; font-weight: 600; color: white;">Aucune analyse disponible</h3>
-                                <p style="margin: 0 0 16px; font-size: 14px; color: rgba(255,255,255,0.6);">Cliquez sur "Analyser les risques" pour générer les prédictions</p>
+                                <h3 style="margin: 0 0 8px; font-size: 18px; font-weight: 600; color: white;">${t('hr.turnover.empty.title')}</h3>
+                                <p style="margin: 0 0 16px; font-size: 14px; color: rgba(255,255,255,0.6);">${t('hr.turnover.empty.desc')}</p>
                                 <p style="margin: 0; font-size: 12px; color: rgba(255,255,255,0.6); max-width: 500px; margin: 0 auto; display: inline-flex; align-items: center; gap: 6px;">
                                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: #10b981;"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
-                                    L'analyse nécessite des données d'employés, congés et évaluations
+                                    ${t('hr.turnover.empty.hint')}
                                 </p>
                             </div>
                         </div>
@@ -21147,19 +21585,19 @@ ${persona}
                                             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
                                         </div>
                                         <div style="flex: 1;">
-                                            <h3 style="margin: 0 0 8px; font-size: 16px; font-weight: 800;">Conformité RGPD - CV Screening</h3>
+                                            <h3 style="margin: 0 0 8px; font-size: 16px; font-weight: 800;">${t('hr.recruitment.rgpd.title')}</h3>
                                             <p style="margin: 0 0 12px; font-size: 13px; line-height: 1.6; opacity: 0.95;">
-                                                Analyse des CV avec <strong>transparence</strong> et <strong>explicabilité</strong>. L'humain reste décisionnaire.
+                                                ${t('hr.recruitment.rgpd.desc')}
                                             </p>
                                             <div class="hr-recruitment-rgpd-badges" style="display: flex; gap: 8px; flex-wrap: wrap;">
-                                                <span style="background: rgba(255,255,255,0.2); padding: 6px 12px; border-radius: 6px; font-size: 11px; font-weight: 700;">✓ Données minimisées</span>
-                                                <span style="background: rgba(255,255,255,0.2); padding: 6px 12px; border-radius: 6px; font-size: 11px; font-weight: 700;">✓ Scoring explicable</span>
-                                                <span style="background: rgba(255,255,255,0.2); padding: 6px 12px; border-radius: 6px; font-size: 11px; font-weight: 700;">✓ Humain décide</span>
-                                                <span style="background: rgba(255,255,255,0.2); padding: 6px 12px; border-radius: 6px; font-size: 11px; font-weight: 700;">✓ Audit trail</span>
+                                                <span style="background: rgba(255,255,255,0.2); padding: 6px 12px; border-radius: 6px; font-size: 11px; font-weight: 700;">${t('hr.recruitment.rgpd.badge.minimized')}</span>
+                                                <span style="background: rgba(255,255,255,0.2); padding: 6px 12px; border-radius: 6px; font-size: 11px; font-weight: 700;">${t('hr.recruitment.rgpd.badge.explainable')}</span>
+                                                <span style="background: rgba(255,255,255,0.2); padding: 6px 12px; border-radius: 6px; font-size: 11px; font-weight: 700;">${t('hr.recruitment.rgpd.badge.human')}</span>
+                                                <span style="background: rgba(255,255,255,0.2); padding: 6px 12px; border-radius: 6px; font-size: 11px; font-weight: 700;">${t('hr.recruitment.rgpd.badge.audit')}</span>
                                             </div>
                                         </div>
                                         <button class="hr-btn" type="button" onclick="closeRecruitmentModal()" style="background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.3); flex-shrink: 0;">
-                                            Fermer
+                                            ${t('hr.recruitment.rgpd.close')}
                                         </button>
                                     </div>
                                 </div>
@@ -21167,44 +21605,44 @@ ${persona}
                                 <!-- Stats Cards (cohérence HR) -->
                                 <div class="hr-recruitment-stats" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; margin-bottom: 24px;">
                                     <div class="hr-stat-card">
-                                        <div class="hr-stat-label">Offres actives</div>
+                                        <div class="hr-stat-label">${t('hr.recruitment.stats.activeJobs')}</div>
                                         <div id="activeJobsCount" class="hr-stat-value">0</div>
-                                        <div style="font-size: 12px; color: rgba(255, 255, 255, 0.55); margin-top: 4px;">Postes en recrutement</div>
+                                        <div style="font-size: 12px; color: rgba(255, 255, 255, 0.55); margin-top: 4px;">${t('hr.recruitment.stats.activeJobsSub')}</div>
                                     </div>
 
                                     <div class="hr-stat-card">
-                                        <div class="hr-stat-label">CV reçus</div>
+                                        <div class="hr-stat-label">${t('hr.recruitment.stats.cvs')}</div>
                                         <div id="totalCVsCount" class="hr-stat-value">0</div>
-                                        <div style="font-size: 12px; color: rgba(255, 255, 255, 0.55); margin-top: 4px;">Tous candidats</div>
+                                        <div style="font-size: 12px; color: rgba(255, 255, 255, 0.55); margin-top: 4px;">${t('hr.recruitment.stats.cvsSub')}</div>
                                     </div>
 
                                     <div class="hr-stat-card">
-                                        <div class="hr-stat-label">Shortlist</div>
+                                        <div class="hr-stat-label">${t('hr.recruitment.stats.shortlist')}</div>
                                         <div id="shortlistCount" class="hr-stat-value">0</div>
-                                        <div style="font-size: 12px; color: rgba(255, 255, 255, 0.55); margin-top: 4px;">Candidats qualifiés</div>
+                                        <div style="font-size: 12px; color: rgba(255, 255, 255, 0.55); margin-top: 4px;">${t('hr.recruitment.stats.shortlistSub')}</div>
                                     </div>
 
                                     <div class="hr-stat-card">
-                                        <div class="hr-stat-label">Score moyen</div>
+                                        <div class="hr-stat-label">${t('hr.recruitment.stats.avgScore')}</div>
                                         <div id="avgMatchScore" style="font-size: 32px; font-weight: 800; color: #f59e0b;">0</div>
-                                        <div style="font-size: 12px; color: rgba(255, 255, 255, 0.55); margin-top: 4px;">Match moyen / 100</div>
+                                        <div style="font-size: 12px; color: rgba(255, 255, 255, 0.55); margin-top: 4px;">${t('hr.recruitment.stats.avgScoreSub')}</div>
                                     </div>
                                 </div>
 
                                 <!-- Sauvegarde / Restauration -->
                                 <div class="hr-section hr-recruitment-backup" style="margin-bottom: 24px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
                                     <div>
-                                        <div class="hr-section-title" style="margin-bottom: 4px;">Sauvegarde / Restauration</div>
-                                        <p style="margin: 0; font-size: 12px; color: rgba(255,255,255,0.65);">Téléchargez ou restaurez toutes les données (offres, CV, analyses)</p>
+                                        <div class="hr-section-title" style="margin-bottom: 4px;">${t('hr.recruitment.backup.title')}</div>
+                                        <p style="margin: 0; font-size: 12px; color: rgba(255,255,255,0.65);">${t('hr.recruitment.backup.desc')}</p>
                                     </div>
                                     <div style="display: flex; gap: 10px; flex-wrap: wrap;">
                                         <button onclick="saveRecruitmentData()" class="hr-btn" style="padding: 12px 16px; font-size: 13px; display: inline-flex; align-items: center; gap: 8px;">
                                             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-                                            Sauvegarder
+                                            ${t('hr.recruitment.backup.save')}
                                         </button>
                                         <button onclick="restoreRecruitmentData()" class="hr-btn" style="padding: 12px 16px; font-size: 13px; display: inline-flex; align-items: center; gap: 8px; background: rgba(255,255,255,0.12); border: 1px solid rgba(255,255,255,0.2);">
                                             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-                                            Restaurer
+                                            ${t('hr.recruitment.backup.restore')}
                                         </button>
                                     </div>
                                 </div>
@@ -21212,21 +21650,21 @@ ${persona}
                                 <!-- Actions Bar -->
                                 <div class="hr-recruitment-actions" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; flex-wrap: wrap; gap: 16px;">
                                     <div class="hr-recruitment-actions-left" style="display: flex; gap: 12px; flex-wrap: wrap; flex: 1; min-width: 280px;">
-                                        <button onclick="showAddJobModal()" class="hr-btn" style="padding: 12px 18px; font-size: 14px;">Nouvelle Offre</button>
-                                        <button onclick="showUploadCVModal()" class="hr-btn" style="padding: 12px 18px; font-size: 14px; background: rgba(255,255,255,0.12); border: 1px solid rgba(16, 185, 129, 0.3);">Upload CV</button>
+                                        <button onclick="showAddJobModal()" class="hr-btn" style="padding: 12px 18px; font-size: 14px;">${t('hr.recruitment.actions.newJob')}</button>
+                                        <button onclick="showUploadCVModal()" class="hr-btn" style="padding: 12px 18px; font-size: 14px; background: rgba(255,255,255,0.12); border: 1px solid rgba(16, 185, 129, 0.3);">${t('hr.recruitment.actions.uploadCV')}</button>
 
                                         <select id="jobFilterSelect" onchange="filterCandidatesByJob()" style="padding: 12px 16px; background: rgba(255,255,255,0.08); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 12px; font-size: 14px; font-weight: 700; cursor: pointer; color: white; transition: all 0.3s;" onfocus="this.style.borderColor='#10b981'; this.style.background='rgba(255,255,255,0.12)'" onblur="this.style.borderColor='rgba(16, 185, 129, 0.3)'; this.style.background='rgba(255,255,255,0.08)'">
-                                            <option value="" style="background: #1e3a8a; color: white;">Toutes les offres</option>
+                                            <option value="" style="background: #1e3a8a; color: white;">${t('hr.recruitment.filter.allJobs')}</option>
                                         </select>
                                     </div>
 
                                     <div class="hr-recruitment-actions-right" style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
                                         <button id="recruitmentShortlistFilterBtn" onclick="toggleRecruitmentShortlistOnly()" style="padding: 12px 16px; background: rgba(255,255,255,0.1); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 12px; color: white; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; font-size: 13px; transition: all 0.3s; backdrop-filter: blur(10px);" onmouseover="this.style.borderColor='#10b981'" onmouseout="this.style.borderColor='rgba(16, 185, 129, 0.3)'">
-                                            ⭐ Tout afficher
+                                            ${t('hr.recruitment.actions.toggleShortlist')}
                                         </button>
                                         <button onclick="showRecruitmentSettings()" style="padding: 12px 16px; background: rgba(255,255,255,0.1); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 12px; color: white; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; font-size: 13px; transition: all 0.3s; backdrop-filter: blur(10px);" onmouseover="this.style.background='rgba(16, 185, 129, 0.3)'; this.style.borderColor='#10b981'" onmouseout="this.style.background='rgba(255,255,255,0.1)'; this.style.borderColor='rgba(16, 185, 129, 0.3)'">
                                             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 1v6m0 6v6m6-12l-3 3m-6 6l-3 3m12 0l-3-3m-6-6l-3-3"/></svg>
-                                            Scoring & Filtres
+                                            ${t('hr.recruitment.actions.scoringSettings')}
                                         </button>
                                     </div>
                                 </div>
@@ -21241,11 +21679,11 @@ ${persona}
                                     <div style="width: 80px; height: 80px; background: rgba(16,185,129,0.2); border-radius: 16px; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px; border: 1px solid rgba(16, 185, 129, 0.3);">
                                         <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
                                     </div>
-                                    <p class="hr-empty-title">Aucun CV analysé</p>
-                                    <p style="margin: 0 0 18px; font-size: 14px; color: rgba(255,255,255,0.65);">Créez une offre d'emploi et uploadez des CV pour commencer</p>
+                                    <p class="hr-empty-title">${t('hr.recruitment.empty.title')}</p>
+                                    <p style="margin: 0 0 18px; font-size: 14px; color: rgba(255,255,255,0.65);">${t('hr.recruitment.empty.desc')}</p>
                                     <div class="hr-recruitment-empty-actions" style="display: flex; gap: 12px; justify-content: center; flex-wrap: wrap;">
-                                        <button onclick="showAddJobModal()" class="hr-btn" style="padding: 12px 18px; font-size: 14px;">Créer une offre</button>
-                                        <button onclick="showUploadCVModal()" class="hr-btn" style="padding: 12px 18px; font-size: 14px; background: rgba(255,255,255,0.12); border: 1px solid rgba(16, 185, 129, 0.3);">Upload CV</button>
+                                        <button onclick="showAddJobModal()" class="hr-btn" style="padding: 12px 18px; font-size: 14px;">${t('hr.recruitment.empty.createJob')}</button>
+                                        <button onclick="showUploadCVModal()" class="hr-btn" style="padding: 12px 18px; font-size: 14px; background: rgba(255,255,255,0.12); border: 1px solid rgba(16, 185, 129, 0.3);">${t('hr.recruitment.empty.uploadCV')}</button>
                                     </div>
                                 </div>
                                 <!-- Safe Area Spacer for Android Navigation Bar -->
@@ -28326,10 +28764,10 @@ N'inclus des actions QUE si l'utilisateur demande explicitement de modifier/ajou
                         <div style="width: 80px; height: 80px; background: rgba(99,102,241,0.1); border-radius: 20px; display: flex; align-items: center; justify-content: center; margin: 0 auto 16px;">
                             <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#6366F1" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
                         </div>
-                        <h3 style="margin: 0 0 8px; font-size: 18px; font-weight: 600; color: #1a1a1a;">Aucun employé</h3>
-                        <p style="margin: 0; font-size: 14px;">Commencez par ajouter votre premier employé</p>
+                        <h3 style="margin: 0 0 8px; font-size: 18px; font-weight: 600; color: #1a1a1a;">${t('hr.employees.empty.title')}</h3>
+                        <p style="margin: 0; font-size: 14px;">${t('hr.employees.empty.desc')}</p>
                         <button onclick="showAddEmployeeModal()" style="margin-top: 24px; padding: 12px 24px; background: #6366F1; border: none; border-radius: 12px; color: white; font-weight: 600; cursor: pointer;">
-                            Ajouter un Employé
+                            ${t('hr.employees.empty.addBtn')}
                         </button>
                     </div>
                 `;
@@ -28341,12 +28779,12 @@ N'inclus des actions QUE si l'utilisateur demande explicitement de modifier/ajou
                     <table style="width: 100%; border-collapse: collapse;">
                         <thead>
                             <tr style="border-bottom: 2px solid #e5e7eb;">
-                                <th style="padding: 12px; text-align: left; font-size: 12px; font-weight: 700; color: #6b7280; text-transform: uppercase;">Employé</th>
-                                <th style="padding: 12px; text-align: left; font-size: 12px; font-weight: 700; color: #6b7280; text-transform: uppercase;">Poste</th>
-                                <th style="padding: 12px; text-align: left; font-size: 12px; font-weight: 700; color: #6b7280; text-transform: uppercase;">Département</th>
-                                <th style="padding: 12px; text-align: left; font-size: 12px; font-weight: 700; color: #6b7280; text-transform: uppercase;">Email</th>
-                                <th style="padding: 12px; text-align: left; font-size: 12px; font-weight: 700; color: #6b7280; text-transform: uppercase;">Statut</th>
-                                <th style="padding: 12px; text-align: center; font-size: 12px; font-weight: 700; color: #6b7280; text-transform: uppercase;">Actions</th>
+                                <th style="padding: 12px; text-align: left; font-size: 12px; font-weight: 700; color: #6b7280; text-transform: uppercase;">${t('hr.employees.list.header.employee')}</th>
+                                <th style="padding: 12px; text-align: left; font-size: 12px; font-weight: 700; color: #6b7280; text-transform: uppercase;">${t('hr.employees.list.header.position')}</th>
+                                <th style="padding: 12px; text-align: left; font-size: 12px; font-weight: 700; color: #6b7280; text-transform: uppercase;">${t('hr.employees.list.header.department')}</th>
+                                <th style="padding: 12px; text-align: left; font-size: 12px; font-weight: 700; color: #6b7280; text-transform: uppercase;">${t('hr.employees.list.header.email')}</th>
+                                <th style="padding: 12px; text-align: left; font-size: 12px; font-weight: 700; color: #6b7280; text-transform: uppercase;">${t('hr.employees.list.header.status')}</th>
+                                <th style="padding: 12px; text-align: center; font-size: 12px; font-weight: 700; color: #6b7280; text-transform: uppercase;">${t('hr.employees.list.header.actions')}</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -28358,9 +28796,9 @@ N'inclus des actions QUE si l'utilisateur demande explicitement de modifier/ajou
                 terminated: '#ef4444'
             };
             const statusLabels = {
-                active: 'Actif',
-                onLeave: 'En congé',
-                terminated: 'Terminé'
+                active: t('hr.employees.status.active'),
+                onLeave: t('hr.employees.status.onLeave'),
+                terminated: t('hr.employees.status.terminated')
             };
 
             employees.forEach(emp => {
@@ -28387,10 +28825,10 @@ N'inclus des actions QUE si l'utilisateur demande explicitement de modifier/ajou
                         </td>
                         <td style="padding: 16px; text-align: center;">
                             <button onclick="viewEmployee('${emp.id}')" style="padding: 6px 12px; background: #6366F1; border: none; border-radius: 8px; color: white; cursor: pointer; font-size: 12px; font-weight: 600; margin-right: 4px;">
-                                Voir
+                                ${t('hr.employees.action.view')}
                             </button>
                             <button onclick="deleteEmployee('${emp.id}')" style="padding: 6px 12px; background: #ef4444; border: none; border-radius: 8px; color: white; cursor: pointer; font-size: 12px; font-weight: 600;">
-                                Supprimer
+                                ${t('hr.employees.action.delete')}
                             </button>
                         </td>
                     </tr>
@@ -28515,8 +28953,8 @@ N'inclus des actions QUE si l'utilisateur demande explicitement de modifier/ajou
                     <!-- Header -->
                     <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 32px; padding-bottom: 20px; border-bottom: 1px solid rgba(16, 185, 129, 0.2);">
                         <div>
-                            <h2 style="margin: 0 0 8px; font-size: 28px; font-weight: 700; background: linear-gradient(135deg, #10b981 0%, #06b6d4 50%, #3b82f6 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">Nouvel Employé</h2>
-                            <p style="margin: 0; font-size: 14px; color: rgba(255, 255, 255, 0.6);">Ajouter un nouveau membre à l'équipe</p>
+                            <h2 style="margin: 0 0 8px; font-size: 28px; font-weight: 700; background: linear-gradient(135deg, #10b981 0%, #06b6d4 50%, #3b82f6 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">${t('hr.employees.modal.title')}</h2>
+                            <p style="margin: 0; font-size: 14px; color: rgba(255, 255, 255, 0.6);">${t('hr.employees.modal.subtitle')}</p>
                         </div>
                         <button onclick="closeAddEmployeeModal()" style="width: 40px; height: 40px; background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 12px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.3s;" onmouseover="this.style.background='rgba(239, 68, 68, 0.2)'; this.style.borderColor='#ef4444'; this.style.transform='rotate(90deg)'" onmouseout="this.style.background='rgba(255, 255, 255, 0.1)'; this.style.borderColor='rgba(16, 185, 129, 0.3)'; this.style.transform='rotate(0)'">
                             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
@@ -28528,34 +28966,34 @@ N'inclus des actions QUE si l'utilisateur demande explicitement de modifier/ajou
                         <div style="background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(16, 185, 129, 0.2); border-radius: 16px; padding: 24px;">
                             <h3 style="margin: 0 0 20px; font-size: 16px; font-weight: 600; color: #10b981; display: flex; align-items: center; gap: 8px;">
                                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-                                Informations personnelles
+                                ${t('hr.employees.modal.section.personal')}
                             </h3>
                             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
                                 <div>
-                                    <label style="display: block; margin-bottom: 8px; font-size: 13px; font-weight: 600; color: rgba(255, 255, 255, 0.9);">Prénom *</label>
-                                    <input type="text" name="firstName" required style="width: 100%; padding: 12px 16px; background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 10px; font-size: 14px; color: white; transition: all 0.3s;" onfocus="this.style.borderColor='#10b981'; this.style.background='rgba(255, 255, 255, 0.15)'" onblur="this.style.borderColor='rgba(16, 185, 129, 0.3)'; this.style.background='rgba(255, 255, 255, 0.1)'" placeholder="Ex: Ahmed">
+                                    <label style="display: block; margin-bottom: 8px; font-size: 13px; font-weight: 600; color: rgba(255, 255, 255, 0.9);">${t('hr.employees.modal.label.firstName')}</label>
+                                    <input type="text" name="firstName" required style="width: 100%; padding: 12px 16px; background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 10px; font-size: 14px; color: white; transition: all 0.3s;" onfocus="this.style.borderColor='#10b981'; this.style.background='rgba(255, 255, 255, 0.15)'" onblur="this.style.borderColor='rgba(16, 185, 129, 0.3)'; this.style.background='rgba(255, 255, 255, 0.1)'" placeholder="${t('hr.employees.modal.placeholder.firstName')}">
                                 </div>
                                 <div>
-                                    <label style="display: block; margin-bottom: 8px; font-size: 13px; font-weight: 600; color: rgba(255, 255, 255, 0.9);">Nom *</label>
-                                    <input type="text" name="lastName" required style="width: 100%; padding: 12px 16px; background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 10px; font-size: 14px; color: white; transition: all 0.3s;" onfocus="this.style.borderColor='#10b981'; this.style.background='rgba(255, 255, 255, 0.15)'" onblur="this.style.borderColor='rgba(16, 185, 129, 0.3)'; this.style.background='rgba(255, 255, 255, 0.1)'" placeholder="Ex: Benali">
+                                    <label style="display: block; margin-bottom: 8px; font-size: 13px; font-weight: 600; color: rgba(255, 255, 255, 0.9);">${t('hr.employees.modal.label.lastName')}</label>
+                                    <input type="text" name="lastName" required style="width: 100%; padding: 12px 16px; background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 10px; font-size: 14px; color: white; transition: all 0.3s;" onfocus="this.style.borderColor='#10b981'; this.style.background='rgba(255, 255, 255, 0.15)'" onblur="this.style.borderColor='rgba(16, 185, 129, 0.3)'; this.style.background='rgba(255, 255, 255, 0.1)'" placeholder="${t('hr.employees.modal.placeholder.lastName')}">
                                 </div>
                             </div>
                             <div style="margin-top: 20px;">
-                                <label style="display: block; margin-bottom: 8px; font-size: 13px; font-weight: 600; color: rgba(255, 255, 255, 0.9);">Email *</label>
-                                <input type="email" name="email" required style="width: 100%; padding: 12px 16px; background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 10px; font-size: 14px; color: white; transition: all 0.3s;" onfocus="this.style.borderColor='#10b981'; this.style.background='rgba(255, 255, 255, 0.15)'" onblur="this.style.borderColor='rgba(16, 185, 129, 0.3)'; this.style.background='rgba(255, 255, 255, 0.1)'" placeholder="ahmed.benali@company.dz">
+                                <label style="display: block; margin-bottom: 8px; font-size: 13px; font-weight: 600; color: rgba(255, 255, 255, 0.9);">${t('hr.employees.modal.label.email')}</label>
+                                <input type="email" name="email" required style="width: 100%; padding: 12px 16px; background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 10px; font-size: 14px; color: white; transition: all 0.3s;" onfocus="this.style.borderColor='#10b981'; this.style.background='rgba(255, 255, 255, 0.15)'" onblur="this.style.borderColor='rgba(16, 185, 129, 0.3)'; this.style.background='rgba(255, 255, 255, 0.1)'" placeholder="${t('hr.employees.modal.placeholder.email')}">
                             </div>
                             <div style="margin-top: 20px;">
-                                <label style="display: block; margin-bottom: 8px; font-size: 13px; font-weight: 600; color: rgba(255, 255, 255, 0.9);">Téléphone</label>
-                                <input type="tel" name="phone" style="width: 100%; padding: 12px 16px; background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 10px; font-size: 14px; color: white; transition: all 0.3s;" onfocus="this.style.borderColor='#10b981'; this.style.background='rgba(255, 255, 255, 0.15)'" onblur="this.style.borderColor='rgba(16, 185, 129, 0.3)'; this.style.background='rgba(255, 255, 255, 0.1)'" placeholder="+213 555 123 456">
+                                <label style="display: block; margin-bottom: 8px; font-size: 13px; font-weight: 600; color: rgba(255, 255, 255, 0.9);">${t('hr.employees.modal.label.phone')}</label>
+                                <input type="tel" name="phone" style="width: 100%; padding: 12px 16px; background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 10px; font-size: 14px; color: white; transition: all 0.3s;" onfocus="this.style.borderColor='#10b981'; this.style.background='rgba(255, 255, 255, 0.15)'" onblur="this.style.borderColor='rgba(16, 185, 129, 0.3)'; this.style.background='rgba(255, 255, 255, 0.1)'" placeholder="${t('hr.employees.modal.placeholder.phone')}">
                             </div>
                             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 20px;">
                                 <div>
-                                    <label style="display: block; margin-bottom: 8px; font-size: 13px; font-weight: 600; color: rgba(255, 255, 255, 0.9);">Date de naissance *</label>
+                                    <label style="display: block; margin-bottom: 8px; font-size: 13px; font-weight: 600; color: rgba(255, 255, 255, 0.9);">${t('hr.employees.modal.label.birthDate')}</label>
                                     <input type="date" name="birthDate" required style="width: 100%; padding: 12px 16px; background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 10px; font-size: 14px; color: white; transition: all 0.3s; color-scheme: dark;" onfocus="this.style.borderColor='#10b981'; this.style.background='rgba(255, 255, 255, 0.15)'" onblur="this.style.borderColor='rgba(16, 185, 129, 0.3)'; this.style.background='rgba(255, 255, 255, 0.1)'">
                                 </div>
                                 <div>
-                                    <label style="display: block; margin-bottom: 8px; font-size: 13px; font-weight: 600; color: rgba(255, 255, 255, 0.9);">Adresse *</label>
-                                    <input type="text" name="address" required style="width: 100%; padding: 12px 16px; background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 10px; font-size: 14px; color: white; transition: all 0.3s;" onfocus="this.style.borderColor='#10b981'; this.style.background='rgba(255, 255, 255, 0.15)'" onblur="this.style.borderColor='rgba(16, 185, 129, 0.3)'; this.style.background='rgba(255, 255, 255, 0.1)'" placeholder="Ex: 123 Rue de la Liberté, Alger">
+                                    <label style="display: block; margin-bottom: 8px; font-size: 13px; font-weight: 600; color: rgba(255, 255, 255, 0.9);">${t('hr.employees.modal.label.address')}</label>
+                                    <input type="text" name="address" required style="width: 100%; padding: 12px 16px; background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 10px; font-size: 14px; color: white; transition: all 0.3s;" onfocus="this.style.borderColor='#10b981'; this.style.background='rgba(255, 255, 255, 0.15)'" onblur="this.style.borderColor='rgba(16, 185, 129, 0.3)'; this.style.background='rgba(255, 255, 255, 0.1)'" placeholder="${t('hr.employees.modal.placeholder.address')}">
                                 </div>
                             </div>
                         </div>
@@ -28564,17 +29002,17 @@ N'inclus des actions QUE si l'utilisateur demande explicitement de modifier/ajou
                         <div style="background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(16, 185, 129, 0.2); border-radius: 16px; padding: 24px;">
                             <h3 style="margin: 0 0 20px; font-size: 16px; font-weight: 600; color: #06b6d4; display: flex; align-items: center; gap: 8px;">
                                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>
-                                Informations professionnelles
+                                ${t('hr.employees.modal.section.professional')}
                             </h3>
                             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
                                 <div>
-                                    <label style="display: block; margin-bottom: 8px; font-size: 13px; font-weight: 600; color: rgba(255, 255, 255, 0.9);">Poste *</label>
-                                    <input type="text" name="position" required style="width: 100%; padding: 12px 16px; background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 10px; font-size: 14px; color: white; transition: all 0.3s;" onfocus="this.style.borderColor='#06b6d4'; this.style.background='rgba(255, 255, 255, 0.15)'" onblur="this.style.borderColor='rgba(16, 185, 129, 0.3)'; this.style.background='rgba(255, 255, 255, 0.1)'" placeholder="Ex: Développeur Full Stack">
+                                    <label style="display: block; margin-bottom: 8px; font-size: 13px; font-weight: 600; color: rgba(255, 255, 255, 0.9);">${t('hr.employees.modal.label.position')}</label>
+                                    <input type="text" name="position" required style="width: 100%; padding: 12px 16px; background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 10px; font-size: 14px; color: white; transition: all 0.3s;" onfocus="this.style.borderColor='#06b6d4'; this.style.background='rgba(255, 255, 255, 0.15)'" onblur="this.style.borderColor='rgba(16, 185, 129, 0.3)'; this.style.background='rgba(255, 255, 255, 0.1)'" placeholder="${t('hr.employees.modal.placeholder.position')}">
                                 </div>
                                 <div>
-                                    <label style="display: block; margin-bottom: 8px; font-size: 13px; font-weight: 600; color: rgba(255, 255, 255, 0.9);">Département *</label>
+                                    <label style="display: block; margin-bottom: 8px; font-size: 13px; font-weight: 600; color: rgba(255, 255, 255, 0.9);">${t('hr.employees.modal.label.department')}</label>
                                     <select name="department" required style="width: 100%; padding: 12px 16px; background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 10px; font-size: 14px; color: white; cursor: pointer; transition: all 0.3s;" onfocus="this.style.borderColor='#06b6d4'; this.style.background='rgba(255, 255, 255, 0.15)'" onblur="this.style.borderColor='rgba(16, 185, 129, 0.3)'; this.style.background='rgba(255, 255, 255, 0.1)'">
-                                        <option value="" style="background: #1e3a8a; color: white;">Sélectionner...</option>
+                                        <option value="" style="background: #1e3a8a; color: white;">${t('hr.employees.modal.placeholder.select')}</option>
                                         <option value="IT" style="background: #1e3a8a; color: white;">IT</option>
                                         <option value="RH" style="background: #1e3a8a; color: white;">RH</option>
                                         <option value="Finance" style="background: #1e3a8a; color: white;">Finance</option>
@@ -28586,13 +29024,13 @@ N'inclus des actions QUE si l'utilisateur demande explicitement de modifier/ajou
                             </div>
                             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 20px;">
                                 <div>
-                                    <label style="display: block; margin-bottom: 8px; font-size: 13px; font-weight: 600; color: rgba(255, 255, 255, 0.9);">Date d'embauche *</label>
+                                    <label style="display: block; margin-bottom: 8px; font-size: 13px; font-weight: 600; color: rgba(255, 255, 255, 0.9);">${t('hr.employees.modal.label.hireDate')}</label>
                                     <input type="date" name="hireDate" required style="width: 100%; padding: 12px 16px; background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 10px; font-size: 14px; color: white; transition: all 0.3s; color-scheme: dark;" onfocus="this.style.borderColor='#06b6d4'; this.style.background='rgba(255, 255, 255, 0.15)'" onblur="this.style.borderColor='rgba(16, 185, 129, 0.3)'; this.style.background='rgba(255, 255, 255, 0.1)'">
                                 </div>
                                 <div>
-                                    <label style="display: block; margin-bottom: 8px; font-size: 13px; font-weight: 600; color: rgba(255, 255, 255, 0.9);">Type de contrat *</label>
+                                    <label style="display: block; margin-bottom: 8px; font-size: 13px; font-weight: 600; color: rgba(255, 255, 255, 0.9);">${t('hr.employees.modal.label.contractType')}</label>
                                     <select name="contractType" required style="width: 100%; padding: 12px 16px; background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 10px; font-size: 14px; color: white; cursor: pointer; transition: all 0.3s;" onfocus="this.style.borderColor='#06b6d4'; this.style.background='rgba(255, 255, 255, 0.15)'" onblur="this.style.borderColor='rgba(16, 185, 129, 0.3)'; this.style.background='rgba(255, 255, 255, 0.1)'">
-                                        <option value="" style="background: #1e3a8a; color: white;">Sélectionner...</option>
+                                        <option value="" style="background: #1e3a8a; color: white;">${t('hr.employees.modal.placeholder.select')}</option>
                                         <option value="CDI" style="background: #1e3a8a; color: white;">CDI</option>
                                         <option value="CDD" style="background: #1e3a8a; color: white;">CDD</option>
                                         <option value="Stage" style="background: #1e3a8a; color: white;">Stage</option>
@@ -28601,18 +29039,18 @@ N'inclus des actions QUE si l'utilisateur demande explicitement de modifier/ajou
                                 </div>
                             </div>
                             <div style="margin-top: 20px;">
-                                <label style="display: block; margin-bottom: 8px; font-size: 13px; font-weight: 600; color: rgba(255, 255, 255, 0.9);">Salaire *</label>
-                                <input type="number" name="baseSalary" required min="0" step="any" style="width: 100%; padding: 12px 16px; background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 10px; font-size: 14px; color: white; transition: all 0.3s;" onfocus="this.style.borderColor='#06b6d4'; this.style.background='rgba(255, 255, 255, 0.15)'" onblur="this.style.borderColor='rgba(16, 185, 129, 0.3)'; this.style.background='rgba(255, 255, 255, 0.1)'" placeholder="Ex: 3600000">
+                                <label style="display: block; margin-bottom: 8px; font-size: 13px; font-weight: 600; color: rgba(255, 255, 255, 0.9);">${t('hr.employees.modal.label.baseSalary')}</label>
+                                <input type="number" name="baseSalary" required min="0" step="any" style="width: 100%; padding: 12px 16px; background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 10px; font-size: 14px; color: white; transition: all 0.3s;" onfocus="this.style.borderColor='#06b6d4'; this.style.background='rgba(255, 255, 255, 0.15)'" onblur="this.style.borderColor='rgba(16, 185, 129, 0.3)'; this.style.background='rgba(255, 255, 255, 0.1)'" placeholder="${t('hr.employees.modal.placeholder.baseSalary')}">
                             </div>
                         </div>
                         
                         <!-- Action Buttons -->
                         <div style="display: flex; gap: 12px; margin-top: 12px;">
                             <button type="button" onclick="closeAddEmployeeModal()" style="flex: 1; padding: 14px 24px; background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 12px; color: white; font-weight: 600; font-size: 15px; cursor: pointer; transition: all 0.3s;" onmouseover="this.style.background='rgba(239, 68, 68, 0.2)'; this.style.borderColor='#ef4444'; this.style.transform='translateY(-2px)'" onmouseout="this.style.background='rgba(255, 255, 255, 0.1)'; this.style.borderColor='rgba(16, 185, 129, 0.3)'; this.style.transform='translateY(0)'">
-                                Annuler
+                                ${t('hr.employees.modal.btn.cancel')}
                             </button>
                             <button type="submit" style="flex: 1; padding: 14px 24px; background: linear-gradient(135deg, #10b981 0%, #06b6d4 100%); border: none; border-radius: 12px; color: white; font-weight: 600; font-size: 15px; cursor: pointer; transition: all 0.3s; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 8px 20px rgba(16, 185, 129, 0.4)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 12px rgba(16, 185, 129, 0.3)'">
-                                ✓ Ajouter l'Employé
+                                ${t('hr.employees.modal.btn.submit')}
                             </button>
                         </div>
                     </form>
@@ -28680,6 +29118,14 @@ N'inclus des actions QUE si l'utilisateur demande explicitement de modifier/ajou
         }
         
         function viewEmployee(id) {
+            const lang = (typeof getAppLanguage === 'function' ? getAppLanguage() : 'fr');
+            const t = (key) => {
+                if (typeof I18N_STRINGS !== 'undefined' && I18N_STRINGS[lang] && I18N_STRINGS[lang][key]) {
+                    return I18N_STRINGS[lang][key];
+                }
+                return key;
+            };
+
             const employees = getHRData('hrEmployees');
             const employee = employees.find(e => e.id === id);
             if (!employee) return;
@@ -28724,26 +29170,26 @@ N'inclus des actions QUE si l'utilisateur demande explicitement de modifier/ajou
                     <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 24px; margin-bottom: 32px;">
                         <!-- Informations personnelles -->
                         <div style="background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(16, 185, 129, 0.2); border-radius: 16px; padding: 24px;">
-                            <h3 style="margin: 0 0 20px; font-size: 18px; font-weight: 600; color: #10b981;">Informations personnelles</h3>
+                            <h3 style="margin: 0 0 20px; font-size: 18px; font-weight: 600; color: #10b981;">${t('hr.employees.modal.section.personal')}</h3>
                             <div style="display: flex; flex-direction: column; gap: 14px;">
                                 <div>
-                                    <div style="font-size: 12px; color: rgba(255, 255, 255, 0.5); margin-bottom: 4px;">Email</div>
+                                    <div style="font-size: 12px; color: rgba(255, 255, 255, 0.5); margin-bottom: 4px;">${t('hr.employees.modal.label.email')}</div>
                                     <div style="font-size: 15px; color: white; font-weight: 500;">${employee.email}</div>
                                 </div>
                                 <div>
-                                    <div style="font-size: 12px; color: rgba(255, 255, 255, 0.5); margin-bottom: 4px;">Téléphone</div>
-                                    <div style="font-size: 15px; color: white; font-weight: 500;">${employee.phone || 'Non renseigné'}</div>
+                                    <div style="font-size: 12px; color: rgba(255, 255, 255, 0.5); margin-bottom: 4px;">${t('hr.employees.modal.label.phone')}</div>
+                                    <div style="font-size: 15px; color: white; font-weight: 500;">${employee.phone || t('hr.employees.details.notProvided')}</div>
                                 </div>
                                 <div>
-                                    <div style="font-size: 12px; color: rgba(255, 255, 255, 0.5); margin-bottom: 4px;">Date de naissance</div>
-                                    <div style="font-size: 15px; color: white; font-weight: 500;">${employee.birthDate ? new Date(employee.birthDate).toLocaleDateString(getLocale()) : 'Non renseignée'}</div>
+                                    <div style="font-size: 12px; color: rgba(255, 255, 255, 0.5); margin-bottom: 4px;">${t('hr.employees.modal.label.birthDate')}</div>
+                                    <div style="font-size: 15px; color: white; font-weight: 500;">${employee.birthDate ? new Date(employee.birthDate).toLocaleDateString(getLocale()) : t('hr.employees.details.notProvided')}</div>
                                 </div>
                                 <div>
-                                    <div style="font-size: 12px; color: rgba(255, 255, 255, 0.5); margin-bottom: 4px;">Adresse</div>
-                                    <div style="font-size: 15px; color: white; font-weight: 500;">${employee.address || 'Non renseignée'}</div>
+                                    <div style="font-size: 12px; color: rgba(255, 255, 255, 0.5); margin-bottom: 4px;">${t('hr.employees.modal.label.address')}</div>
+                                    <div style="font-size: 15px; color: white; font-weight: 500;">${employee.address || t('hr.employees.details.notProvided')}</div>
                                 </div>
                                 <div>
-                                    <div style="font-size: 12px; color: rgba(255, 255, 255, 0.5); margin-bottom: 4px;">ID Employé</div>
+                                    <div style="font-size: 12px; color: rgba(255, 255, 255, 0.5); margin-bottom: 4px;">${t('hr.employees.details.label.id')}</div>
                                     <div style="font-size: 13px; color: rgba(255, 255, 255, 0.7); font-family: monospace;">${employee.id}</div>
                                 </div>
                             </div>
@@ -28751,22 +29197,22 @@ N'inclus des actions QUE si l'utilisateur demande explicitement de modifier/ajou
                         
                         <!-- Informations professionnelles -->
                         <div style="background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(16, 185, 129, 0.2); border-radius: 16px; padding: 24px;">
-                            <h3 style="margin: 0 0 20px; font-size: 18px; font-weight: 600; color: #06b6d4;">Informations professionnelles</h3>
+                            <h3 style="margin: 0 0 20px; font-size: 18px; font-weight: 600; color: #06b6d4;">${t('hr.employees.modal.section.professional')}</h3>
                             <div style="display: flex; flex-direction: column; gap: 14px;">
                                 <div>
-                                    <div style="font-size: 12px; color: rgba(255, 255, 255, 0.5); margin-bottom: 4px;">Département</div>
+                                    <div style="font-size: 12px; color: rgba(255, 255, 255, 0.5); margin-bottom: 4px;">${t('hr.employees.modal.label.department')}</div>
                                     <div style="font-size: 15px; color: white; font-weight: 500;">${employee.department}</div>
                                 </div>
                                 <div>
-                                    <div style="font-size: 12px; color: rgba(255, 255, 255, 0.5); margin-bottom: 4px;">Type de contrat</div>
+                                    <div style="font-size: 12px; color: rgba(255, 255, 255, 0.5); margin-bottom: 4px;">${t('hr.employees.modal.label.contractType')}</div>
                                     <div style="font-size: 15px; color: white; font-weight: 500;">${employee.contractType}</div>
                                 </div>
                                 <div>
-                                    <div style="font-size: 12px; color: rgba(255, 255, 255, 0.5); margin-bottom: 4px;">Date d'embauche</div>
+                                    <div style="font-size: 12px; color: rgba(255, 255, 255, 0.5); margin-bottom: 4px;">${t('hr.employees.modal.label.hireDate')}</div>
                                     <div style="font-size: 15px; color: white; font-weight: 500;">${new Date(employee.hireDate).toLocaleDateString(getLocale())}</div>
                                 </div>
                                 <div>
-                                    <div style="font-size: 12px; color: rgba(255, 255, 255, 0.5); margin-bottom: 4px;">Ancienneté</div>
+                                    <div style="font-size: 12px; color: rgba(255, 255, 255, 0.5); margin-bottom: 4px;">${t('hr.employees.details.label.seniority')}</div>
                                     <div style="font-size: 15px; color: white; font-weight: 500;">${calculateSeniority(employee.hireDate)}</div>
                                 </div>
                             </div>
@@ -28775,20 +29221,20 @@ N'inclus des actions QUE si l'utilisateur demande explicitement de modifier/ajou
                     
                     <!-- Informations salariales -->
                     <div style="background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(16, 185, 129, 0.2); border-radius: 16px; padding: 24px; margin-bottom: 32px;">
-                        <h3 style="margin: 0 0 20px; font-size: 18px; font-weight: 600; color: #3b82f6;">Informations salariales</h3>
+                        <h3 style="margin: 0 0 20px; font-size: 18px; font-weight: 600; color: #3b82f6;">${t('hr.employees.details.section.salary')}</h3>
                         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 20px;">
                             <div>
-                                <div style="font-size: 12px; color: rgba(255, 255, 255, 0.5); margin-bottom: 4px;">Salaire annuel</div>
+                                <div style="font-size: 12px; color: rgba(255, 255, 255, 0.5); margin-bottom: 4px;">${t('hr.employees.details.label.annualSalary')}</div>
                                 <div style="font-size: 20px; color: white; font-weight: 700;">${new Intl.NumberFormat('fr-DZ').format(employee.baseSalary)} ${currency}</div>
                             </div>
                             <div>
-                                <div style="font-size: 12px; color: rgba(255, 255, 255, 0.5); margin-bottom: 4px;">Salaire mensuel</div>
+                                <div style="font-size: 12px; color: rgba(255, 255, 255, 0.5); margin-bottom: 4px;">${t('hr.employees.details.label.monthlySalary')}</div>
                                 <div style="font-size: 20px; color: white; font-weight: 700;">${new Intl.NumberFormat('fr-DZ').format(employee.baseSalary / 12)} ${currency}</div>
                             </div>
                             <div>
-                                <div style="font-size: 12px; color: rgba(255, 255, 255, 0.5); margin-bottom: 4px;">Statut</div>
+                                <div style="font-size: 12px; color: rgba(255, 255, 255, 0.5); margin-bottom: 4px;">${t('hr.employees.list.header.status')}</div>
                                 <div style="display: inline-block; padding: 6px 12px; background: ${employee.status === 'active' ? 'rgba(16, 185, 129, 0.2)' : 'rgba(239, 68, 68, 0.2)'}; border: 1px solid ${employee.status === 'active' ? '#10b981' : '#ef4444'}; border-radius: 8px; color: white; font-size: 13px; font-weight: 600;">
-                                    ${employee.status === 'active' ? 'Actif' : employee.status === 'onLeave' ? 'En congé' : 'Terminé'}
+                                    ${employee.status === 'active' ? t('hr.employees.status.active') : employee.status === 'onLeave' ? t('hr.employees.status.onLeave') : t('hr.employees.status.terminated')}
                                 </div>
                             </div>
                         </div>
@@ -28797,11 +29243,11 @@ N'inclus des actions QUE si l'utilisateur demande explicitement de modifier/ajou
                     <!-- Action Buttons -->
                     <div style="display: flex; gap: 12px;">
                         <button onclick="closeViewEmployeeModal()" style="flex: 1; padding: 14px 24px; background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 12px; color: white; font-weight: 600; font-size: 15px; cursor: pointer; transition: all 0.3s;" onmouseover="this.style.background='rgba(255, 255, 255, 0.15)'; this.style.transform='translateY(-2px)'" onmouseout="this.style.background='rgba(255, 255, 255, 0.1)'; this.style.transform='translateY(0)'">
-                            Fermer
+                            ${t('hr.employees.details.btn.close')}
                         </button>
                         <button onclick="generateWorkCertificate('${employee.id}')" style="flex: 2; padding: 14px 24px; background: linear-gradient(135deg, #10b981 0%, #06b6d4 100%); border: none; border-radius: 12px; color: white; font-weight: 600; font-size: 15px; cursor: pointer; transition: all 0.3s; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3); display: flex; align-items: center; justify-content: center; gap: 8px;" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 8px 20px rgba(16, 185, 129, 0.4)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 12px rgba(16, 185, 129, 0.3)'">
                             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/></svg>
-                            Générer une attestation de travail
+                            ${t('hr.employees.details.btn.certificate')}
                         </button>
                     </div>
                 </div>
@@ -28816,6 +29262,14 @@ N'inclus des actions QUE si l'utilisateur demande explicitement de modifier/ajou
         }
         
         function calculateSeniority(hireDate) {
+            const lang = (typeof getAppLanguage === 'function' ? getAppLanguage() : 'fr');
+            const t = (key) => {
+                if (typeof I18N_STRINGS !== 'undefined' && I18N_STRINGS[lang] && I18N_STRINGS[lang][key]) {
+                    return I18N_STRINGS[lang][key];
+                }
+                return key;
+            };
+
             const start = new Date(hireDate);
             const now = new Date();
             const years = now.getFullYear() - start.getFullYear();
@@ -28825,10 +29279,13 @@ N'inclus des actions QUE si l'utilisateur demande explicitement de modifier/ajou
             const years_final = Math.floor(totalMonths / 12);
             const months_final = totalMonths % 12;
             
+            const txtYear = years_final > 1 ? t('hr.common.years') : t('hr.common.year');
+            const txtMonth = months_final > 1 ? t('hr.common.months') : t('hr.common.month');
+
             if (years_final > 0) {
-                return `${years_final} an${years_final > 1 ? 's' : ''} ${months_final > 0 ? `et ${months_final} mois` : ''}`;
+                return `${years_final} ${txtYear} ${months_final > 0 ? `${t('hr.common.and')} ${months_final} ${txtMonth}` : ''}`;
             } else {
-                return `${months_final} mois`;
+                return `${months_final} ${txtMonth}`;
             }
         }
         
@@ -28998,7 +29455,15 @@ N'inclus des actions QUE si l'utilisateur demande explicitement de modifier/ajou
         }
         
         function deleteEmployee(id) {
-            if (!confirm('Êtes-vous sûr de vouloir supprimer cet employé ?')) return;
+            const lang = (typeof getAppLanguage === 'function' ? getAppLanguage() : 'fr');
+            const t = (key) => {
+                if (typeof I18N_STRINGS !== 'undefined' && I18N_STRINGS[lang] && I18N_STRINGS[lang][key]) {
+                    return I18N_STRINGS[lang][key];
+                }
+                return key;
+            };
+
+            if (!confirm(t('hr.employees.deleteConfirm'))) return;
             
             let employees = getHRData('hrEmployees');
             const employee = employees.find(e => e.id === id);
@@ -29016,7 +29481,7 @@ N'inclus des actions QUE si l'utilisateur demande explicitement de modifier/ajou
                     const systemMessage = `ℹ️ Employé supprimé: ${employee.firstName} ${employee.lastName} - ${employee.position}`;
                     addHRChatMessage(systemMessage, 'system');
                 }
-                showToast(`❌ Employé ${employee.firstName} ${employee.lastName} supprimé`, 'info');
+                showToast(t('hr.employees.toast.deleted'), 'info');
             }
         }
         
@@ -33778,12 +34243,12 @@ ${recruitmentInfo}
                 document.body.removeChild(link);
                 URL.revokeObjectURL(url);
 
-                showToast('✅ PDF téléchargé', 'success');
+                showToast(t('hr.recruitment.toast.pdfGenerated'), 'success');
             } catch (error) {
                 console.error('Erreur sauvegarde PDF:', error);
                 try {
                     await downloadRecruitmentPdfFallback(data, dateLabel);
-                    showToast('⚠️ PDF généré en mode local (fallback)', 'warning');
+                    showToast(t('hr.recruitment.toast.pdfFallback'), 'warning');
                     return;
                 } catch (fallbackPdfError) {
                     console.error('Erreur fallback PDF local:', fallbackPdfError);
@@ -33801,10 +34266,10 @@ ${recruitmentInfo}
                     document.body.removeChild(link);
                     URL.revokeObjectURL(fallbackUrl);
 
-                    showToast('⚠️ PDF indisponible, sauvegarde JSON téléchargée', 'warning');
+                    showToast(t('hr.recruitment.toast.pdfJsonFallback'), 'warning');
                 } catch (fallbackError) {
                     console.error('Erreur fallback JSON:', fallbackError);
-                    showToast('❌ Impossible de sauvegarder les données recrutement', 'error');
+                    showToast(t('hr.recruitment.toast.saveError'), 'error');
                 }
             }
         }
@@ -33833,10 +34298,11 @@ ${recruitmentInfo}
                     const currentJobs = getHRData('recruitmentJobs');
                     const currentCandidates = getHRData('recruitmentCandidates');
                     
-                    let confirmMsg = '📊 Restaurer les données?\n\n';
-                    confirmMsg += 'Actuelles: ' + currentJobs.length + ' offres, ' + currentCandidates.length + ' CV\n';
-                    confirmMsg += 'Fichier: ' + data.statistics.totalJobs + ' offres, ' + data.statistics.totalCandidates + ' CV\n\n';
-                    confirmMsg += '⚠️ Les données actuelles seront remplacées!';
+                    const confirmMsg = t('hr.recruitment.toast.confirmRestore')
+                        .replace('{currentJobs}', currentJobs.length)
+                        .replace('{currentCandidates}', currentCandidates.length)
+                        .replace('{newJobs}', data.statistics.totalJobs)
+                        .replace('{newCandidates}', data.statistics.totalCandidates);
                     
                     if (!confirm(confirmMsg)) return;
                     
@@ -33847,11 +34313,13 @@ ${recruitmentInfo}
                     updateRecruitmentStats(data.jobs, data.candidates);
                     populateJobFilter(data.jobs);
                     
-                    showToast('✅ Restauration: ' + data.jobs.length + ' offres, ' + data.candidates.length + ' CV', 'success');
+                    showToast(t('hr.recruitment.toast.restoreSuccess')
+                        .replace('{jobs}', data.jobs.length)
+                        .replace('{candidates}', data.candidates.length), 'success');
                     
                 } catch (error) {
                     console.error('Erreur restauration:', error);
-                    showToast('❌ Erreur: ' + error.message, 'error');
+                    showToast(t('hr.recruitment.toast.restoreError').replace('{error}', error.message), 'error');
                 }
             };
             
@@ -33863,7 +34331,7 @@ ${recruitmentInfo}
             if (!select) return;
 
             const safeJobs = Array.isArray(jobs) ? jobs : [];
-            
+            `<option value="">${t('hr.recruitment.filter.allJobs')}</option>`
             select.innerHTML = '<option value="">Toutes les offres</option>' + 
                 safeJobs.filter(isRecruitmentJobActive).map(job => 
                     `<option value="${job.id}">${job.title}</option>`
@@ -33878,49 +34346,49 @@ ${recruitmentInfo}
             modal.innerHTML = `
                 <div class="hr-modal">
                     <div style="margin-bottom: 22px;">
-                        <h2 class="hr-modal-title">💼 Nouvelle Offre d'Emploi</h2>
-                        <p class="hr-modal-subtitle">Créez une offre active pour analyser ensuite les CV.</p>
+                        <h2 class="hr-modal-title">${t('hr.recruitment.modal.addJob.title')}</h2>
+                        <p class="hr-modal-subtitle">${t('hr.recruitment.modal.addJob.subtitle')}</p>
                     </div>
                     
                     <form onsubmit="handleAddJob(event)">
                         <div style="margin-bottom: 20px;">
-                            <label style="display: block; margin-bottom: 6px; font-size: 13px; font-weight: 700; color: rgba(255,255,255,0.85);">Titre du poste *</label>
-                            <input class="hr-input" type="text" name="title" placeholder="Ex: Développeur Full Stack Senior" required>
+                            <label style="display: block; margin-bottom: 6px; font-size: 13px; font-weight: 700; color: rgba(255,255,255,0.85);">${t('hr.recruitment.modal.addJob.label.title')}</label>
+                            <input class="hr-input" type="text" name="title" placeholder="${t('hr.recruitment.modal.addJob.placeholder.title')}" required>
                         </div>
                         
                         <div class="hr-form-grid-2" style="margin-bottom: 20px;">
                             <div>
-                                <label style="display: block; margin-bottom: 6px; font-size: 13px; font-weight: 700; color: rgba(255,255,255,0.85);">Département *</label>
-                                <input class="hr-input" type="text" name="department" placeholder="Ex: IT" required>
+                                <label style="display: block; margin-bottom: 6px; font-size: 13px; font-weight: 700; color: rgba(255,255,255,0.85);">${t('hr.recruitment.modal.addJob.label.department')}</label>
+                                <input class="hr-input" type="text" name="department" placeholder="${t('hr.recruitment.modal.addJob.placeholder.department')}" required>
                             </div>
                             <div>
-                                <label style="display: block; margin-bottom: 6px; font-size: 13px; font-weight: 700; color: rgba(255,255,255,0.85);">Localisation *</label>
-                                <input class="hr-input" type="text" name="location" placeholder="Ex: Lisbonne, Portugal" required>
+                                <label style="display: block; margin-bottom: 6px; font-size: 13px; font-weight: 700; color: rgba(255,255,255,0.85);">${t('hr.recruitment.modal.addJob.label.location')}</label>
+                                <input class="hr-input" type="text" name="location" placeholder="${t('hr.recruitment.modal.addJob.placeholder.location')}" required>
                             </div>
                         </div>
                         
                         <div style="margin-bottom: 20px;">
-                            <label style="display: block; margin-bottom: 6px; font-size: 13px; font-weight: 700; color: rgba(255,255,255,0.85);">Description du poste *</label>
-                            <textarea class="hr-textarea" name="description" rows="4" placeholder="Missions principales, responsabilités..." required></textarea>
+                            <label style="display: block; margin-bottom: 6px; font-size: 13px; font-weight: 700; color: rgba(255,255,255,0.85);">${t('hr.recruitment.modal.addJob.label.description')}</label>
+                            <textarea class="hr-textarea" name="description" rows="4" placeholder="${t('hr.recruitment.modal.addJob.placeholder.description')}" required></textarea>
                         </div>
                         
                         <div style="margin-bottom: 20px;">
-                            <label style="display: block; margin-bottom: 6px; font-size: 13px; font-weight: 700; color: rgba(255,255,255,0.85);">Compétences requises * (séparées par virgule)</label>
-                            <textarea class="hr-textarea" name="skills" rows="2" placeholder="Ex: React, Node.js, MongoDB, Docker, AWS" required></textarea>
+                            <label style="display: block; margin-bottom: 6px; font-size: 13px; font-weight: 700; color: rgba(255,255,255,0.85);">${t('hr.recruitment.modal.addJob.label.skills')}</label>
+                            <textarea class="hr-textarea" name="skills" rows="2" placeholder="${t('hr.recruitment.modal.addJob.placeholder.skills')}" required></textarea>
                         </div>
                         
                         <div class="hr-form-grid-2" style="margin-bottom: 20px;">
                             <div>
-                                <label style="display: block; margin-bottom: 6px; font-size: 13px; font-weight: 700; color: rgba(255,255,255,0.85);">Expérience minimale (années) *</label>
+                                <label style="display: block; margin-bottom: 6px; font-size: 13px; font-weight: 700; color: rgba(255,255,255,0.85);">${t('hr.recruitment.modal.addJob.label.minExperience')}</label>
                                 <input class="hr-input" type="number" name="minExperience" min="0" placeholder="Ex: 3" required>
                             </div>
                             <div>
                                 <div style="margin-bottom: 12px;">
-                                    <label style="display: block; margin-bottom: 6px; font-size: 13px; font-weight: 700; color: rgba(255,255,255,0.85);">Langue *</label>
-                                    <input class="hr-input" type="text" name="language" placeholder="Ex: Français" required>
+                                    <label style="display: block; margin-bottom: 6px; font-size: 13px; font-weight: 700; color: rgba(255,255,255,0.85);">${t('hr.recruitment.modal.addJob.label.language')}</label>
+                                    <input class="hr-input" type="text" name="language" placeholder="${t('hr.recruitment.modal.addJob.placeholder.language')}" required>
                                 </div>
                                 <div>
-                                    <label style="display: block; margin-bottom: 6px; font-size: 13px; font-weight: 700; color: rgba(255,255,255,0.85);">Niveau *</label>
+                                    <label style="display: block; margin-bottom: 6px; font-size: 13px; font-weight: 700; color: rgba(255,255,255,0.85);">${t('hr.recruitment.modal.addJob.label.level')}</label>
                                     <select class="hr-select" name="languageLevel" required>
                                         <option value="A2">A2 - Élémentaire</option>
                                         <option value="B1">B1 - Intermédiaire</option>
@@ -33933,17 +34401,17 @@ ${recruitmentInfo}
                         </div>
                         
                         <div style="margin-bottom: 20px;">
-                            <label style="display: block; margin-bottom: 6px; font-size: 13px; font-weight: 700; color: rgba(255,255,255,0.85);">Critères must-have (optionnels)</label>
-                            <textarea class="hr-textarea" name="mustHave" rows="2" placeholder="Ex: Permis B, Disponible immédiatement, Maîtrise anglais..."></textarea>
-                            <p style="margin: 6px 0 0; font-size: 11px; color: rgba(255,255,255,0.6);">Les CV sans ces critères seront automatiquement filtrés</p>
+                            <label style="display: block; margin-bottom: 6px; font-size: 13px; font-weight: 700; color: rgba(255,255,255,0.85);">${t('hr.recruitment.modal.addJob.label.mustHave')}</label>
+                            <textarea class="hr-textarea" name="mustHave" rows="2" placeholder="${t('hr.recruitment.modal.addJob.placeholder.mustHave')}"></textarea>
+                            <p style="margin: 6px 0 0; font-size: 11px; color: rgba(255,255,255,0.6);">${t('hr.recruitment.modal.addJob.hint.mustHave')}</p>
                         </div>
                         
                         <div style="display: flex; gap: 12px; flex-wrap: wrap;">
                             <button type="button" onclick="closeAddJobModal()" class="hr-btn hr-btn-secondary" style="flex: 1; min-width: 180px;">
-                                Annuler
+                                ${t('hr.recruitment.modal.addJob.btn.cancel')}
                             </button>
                             <button type="submit" class="hr-btn" style="flex: 1; min-width: 180px;">
-                                Publier l'Offre
+                                ${t('hr.recruitment.modal.addJob.btn.publish')}
                             </button>
                         </div>
                     </form>
@@ -33993,7 +34461,7 @@ ${recruitmentInfo}
             jobs.push(job);
             setHRData('recruitmentJobs', jobs);
             
-            showToast('Offre publiée avec succès', 'success');
+            showToast(t('hr.recruitment.toast.jobPublished'), 'success');
             closeAddJobModal();
             
             const candidates = getHRData('recruitmentCandidates');
@@ -34006,7 +34474,7 @@ ${recruitmentInfo}
             const activeJobs = jobs.filter(isRecruitmentJobActive);
             
             if (activeJobs.length === 0) {
-                showToast('Créez d\'abord une offre d\'emploi', 'warning');
+                showToast(t('hr.recruitment.toast.createJobFirst'), 'warning');
                 return;
             }
             
@@ -34021,36 +34489,36 @@ ${recruitmentInfo}
                     </button>
 
                     <div style="margin-bottom: 18px; padding-right: 56px;">
-                        <h2 class="hr-modal-title">📄 Analyser un CV avec IA</h2>
-                        <p class="hr-modal-subtitle">Parsing automatique via Azure Vision + Azure OpenAI. Aucune donnée sensible n’est prise en compte.</p>
+                        <h2 class="hr-modal-title">${t('hr.recruitment.modal.uploadCV.title')}</h2>
+                        <p class="hr-modal-subtitle">${t('hr.recruitment.modal.uploadCV.subtitle')}</p>
                     </div>
                     
                     <div class="hr-section" style="margin-bottom: 18px; padding: 16px; border-radius: 14px;">
                         <div style="font-size: 12px; color: rgba(255,255,255,0.75); line-height: 1.6; text-align: center; font-weight: 700;">
-                            ✨ Upload un CV (PDF/JPG/PNG) et l'IA extrait automatiquement les données
+                            ${t('hr.recruitment.modal.uploadCV.hint')}
                         </div>
                     </div>
                     
                     <div style="display: flex; gap: 12px; margin-bottom: 18px; flex-wrap: wrap;">
                         <button type="button" onclick="closeUploadCVModal()" class="hr-btn hr-btn-secondary" style="flex: 1; min-width: 180px;">
-                            ❌ Annuler
+                            ${t('hr.recruitment.modal.uploadCV.btn.cancel')}
                         </button>
                         <button type="submit" id="submitCVBtn" form="cvUploadForm" class="hr-btn" style="flex: 1; min-width: 180px;">
-                            🤖 Analyser avec IA
+                            ${t('hr.recruitment.modal.uploadCV.btn.analyze')}
                         </button>
                     </div>
                     
                     <form onsubmit="handleUploadCVWithAI(event)" id="cvUploadForm">
                         <div style="margin-bottom: 20px;">
-                            <label style="display: block; margin-bottom: 6px; font-size: 13px; font-weight: 700; color: rgba(255,255,255,0.85);">Offre ciblée *</label>
+                            <label style="display: block; margin-bottom: 6px; font-size: 13px; font-weight: 700; color: rgba(255,255,255,0.85);">${t('hr.recruitment.modal.uploadCV.label.targetJob')}</label>
                             <select name="jobId" id="cvJobSelect" required class="hr-select">
-                                <option value="" style="background: #0a4d3c; color: white;">Sélectionner...</option>
+                                <option value="" style="background: #0a4d3c; color: white;">${t('hr.recruitment.modal.uploadCV.placeholder.select')}</option>
                                 ${activeJobs.map(job => `<option value="${job.id}">${job.title} - ${job.location}</option>`).join('')}
                             </select>
                         </div>
                         
                         <div style="margin-bottom: 20px;">
-                            <label style="display: block; margin-bottom: 6px; font-size: 13px; font-weight: 700; color: rgba(255,255,255,0.85);">Fichier CV * (PDF, JPG, PNG)</label>
+                            <label style="display: block; margin-bottom: 6px; font-size: 13px; font-weight: 700; color: rgba(255,255,255,0.85);">${t('hr.recruitment.modal.uploadCV.label.file')}</label>
                             <div style="position: relative;">
                                 <input type="file" 
                                        name="cvFile" 
@@ -34061,7 +34529,7 @@ ${recruitmentInfo}
                                        onchange="handleCVFileSelect(event)">
                             </div>
                             <p style="margin: 8px 0 0; font-size: 11px; color: rgba(255,255,255,0.6);">
-                                💡 Pour de meilleurs résultats, utilisez un CV avec un texte clair et lisible
+                                ${t('hr.recruitment.modal.uploadCV.hint.file')}
                             </p>
                         </div>
                         
@@ -34100,7 +34568,7 @@ ${recruitmentInfo}
             
             const fileSize = (file.size / 1024 / 1024).toFixed(2);
             if (fileSize > 10) {
-                showToast('Fichier trop volumineux (max 10 MB)', 'warning');
+                showToast(t('hr.recruitment.toast.fileTooLarge'), 'warning');
                 event.target.value = '';
                 return;
             }
@@ -34129,7 +34597,7 @@ ${recruitmentInfo}
             const cvFile = form.cvFile.files[0];
             
             if (!cvFile) {
-                showToast('Sélectionnez un fichier CV', 'warning');
+                showToast(t('hr.recruitment.toast.selectCV'), 'warning');
                 return;
             }
             
@@ -34142,7 +34610,7 @@ ${recruitmentInfo}
                 const base64 = await fileToBase64(cvFile);
                 const fileType = cvFile.type.includes('pdf') ? 'pdf' : 'image';
                 
-                showToast('🔍 Extraction du texte avec Azure Vision...', 'info');
+                showToast(t('hr.recruitment.toast.extractingText'), 'info');
                 
                 // 2. Appeler l'API de parsing
                 const response = await fetch('/api/parseCV', {
@@ -34176,14 +34644,14 @@ ${recruitmentInfo}
                     throw new Error(result.error || 'Erreur lors du parsing du CV');
                 }
                 
-                showToast('✨ CV analysé par Azure OpenAI...', 'success');
+                showToast(t('hr.recruitment.toast.analyzingAI'), 'success');
                 
                 // 3. Afficher les données parsées pour validation
                 displayParsedData(result.data, result.rawText, result.stats, jobId);
                 
             } catch (error) {
                 console.error('Erreur parsing CV:', error);
-                showToast('❌ Erreur: ' + error.message, 'error');
+                showToast(t('hr.recruitment.toast.restoreError').replace('{error}', error.message), 'error');
                 submitBtn.disabled = false;
                 submitBtn.innerHTML = '🤖 Analyser avec IA';
             }
@@ -34300,7 +34768,7 @@ ${recruitmentInfo}
             const job = jobs.find(j => j.id === candidate.jobId);
             
             if (!job) {
-                showToast('Offre non trouvée', 'error');
+                showToast(t('hr.recruitment.toast.jobNotFound'), 'error');
                 return;
             }
             
@@ -34320,7 +34788,7 @@ ${recruitmentInfo}
             candidates.push(candidate);
             setHRData('recruitmentCandidates', candidates);
             
-            showToast('✅ CV analysé avec IA - Score: ' + analysis.overallScore + '%', 'success');
+            showToast(t('hr.recruitment.toast.analysisSuccess').replace('{score}', analysis.overallScore), 'success');
             closeUploadCVModal();
             renderCandidatesList(candidates);
             updateRecruitmentStats(jobs, candidates);
@@ -34350,7 +34818,7 @@ ${recruitmentInfo}
             const job = jobs.find(j => j.id === candidate.jobId);
             
             if (!job) {
-                showToast('Offre non trouvée', 'error');
+                showToast(t('hr.recruitment.toast.jobNotFound'), 'error');
                 return;
             }
             
@@ -34370,7 +34838,7 @@ ${recruitmentInfo}
             candidates.push(candidate);
             setHRData('recruitmentCandidates', candidates);
             
-            showToast('CV analysé avec succès - Score: ' + analysis.overallScore + '%', 'success');
+            showToast(t('hr.recruitment.toast.analysisSuccess').replace('{score}', analysis.overallScore), 'success');
             closeUploadCVModal();
             renderCandidatesList(candidates);
             updateRecruitmentStats(jobs, candidates);
@@ -34396,9 +34864,9 @@ ${recruitmentInfo}
             overallScore += breakdown.skillsScore * 0.4;
             
             if (breakdown.skillsScore >= 80) {
-                strengths.push('Excellente adéquation des compétences techniques');
+                strengths.push(t('hr.recruitment.analysis.strength.skills'));
             } else if (breakdown.skillsScore < 50) {
-                risks.push('Compétences techniques insuffisantes');
+                risks.push(t('hr.recruitment.analysis.risk.skills'));
                 requiredSkills.forEach(skill => {
                     if (!matchedSkills.includes(skill)) {
                         missingKeywords.push(skill);
@@ -34410,15 +34878,15 @@ ${recruitmentInfo}
             const expGap = candidate.experience - job.minExperience;
             if (expGap >= 3) {
                 breakdown.experienceScore = 100;
-                strengths.push(`${expGap} ans d'expérience supplémentaire au-delà du minimum`);
+                strengths.push(t('hr.recruitment.analysis.strength.experience').replace('{years}', expGap));
             } else if (expGap >= 0) {
                 breakdown.experienceScore = 80 + (expGap * 6.67); // 80-100
             } else if (expGap >= -1) {
                 breakdown.experienceScore = 60;
-                risks.push('Légèrement en dessous de l\'expérience requise');
+                risks.push(t('hr.recruitment.analysis.risk.experienceSlight'));
             } else {
                 breakdown.experienceScore = Math.max(30, 60 + (expGap * 15));
-                risks.push(`${Math.abs(expGap)} ans d'expérience manquants`);
+                risks.push(t('hr.recruitment.analysis.risk.experienceGap').replace('{years}', Math.abs(expGap)));
             }
             overallScore += breakdown.experienceScore * 0.3;
             
@@ -34434,7 +34902,7 @@ ${recruitmentInfo}
             overallScore += breakdown.degreeScore * 0.1;
             
             if (breakdown.degreeScore >= 90) {
-                strengths.push('Formation académique excellente');
+                strengths.push(t('hr.recruitment.analysis.strength.education'));
             }
             
             // 4. Langues (10%)
@@ -34447,7 +34915,7 @@ ${recruitmentInfo}
             overallScore += breakdown.languageScore * 0.1;
             
             if (breakdown.languageScore < 80) {
-                risks.push('Niveau de langue à vérifier');
+                risks.push(t('hr.recruitment.analysis.risk.language'));
             }
             
             // 5. Must-Have (10%)
@@ -34467,7 +34935,7 @@ ${recruitmentInfo}
                 } else {
                     mustHaveCheck.missing = job.mustHave;
                     breakdown.mustHaveScore = 0;
-                    risks.push('Critères must-have non satisfaits');
+                    risks.push(t('hr.recruitment.analysis.risk.mustHave'));
                 }
             } else {
                 breakdown.mustHaveScore = 100;
@@ -34476,29 +34944,29 @@ ${recruitmentInfo}
             
             // Détection d'anomalies
             if (candidate.experience > 20) {
-                anomalies.push('⚠️ Expérience exceptionnellement élevée (surqualification?)');
+                anomalies.push(t('hr.recruitment.analysis.anomaly.experienceHigh'));
             }
             
             if (candidate.skills.length < 3) {
-                anomalies.push('⚠️ Peu de compétences listées');
+                anomalies.push(t('hr.recruitment.analysis.anomaly.skillsLow'));
             }
             
             if (!candidate.lastJob || candidate.lastJob.length < 10) {
-                anomalies.push('⚠️ Dernière expérience non renseignée');
+                anomalies.push(t('hr.recruitment.analysis.anomaly.lastJobMissing'));
             }
             
             // Recommandation finale
             let recommendation = '';
             if (overallScore >= 80 && risks.length === 0) {
-                recommendation = '✅ RECOMMANDÉ - Excellent profil';
+                recommendation = t('hr.recruitment.analysis.recommendation.excellent');
             } else if (overallScore >= 70 && breakdown.mustHaveScore === 100) {
-                recommendation = '✅ SHORTLIST - Bon candidat à interviewer';
+                recommendation = t('hr.recruitment.analysis.recommendation.shortlist');
             } else if (overallScore >= 60) {
-                recommendation = '⚠️ À ÉVALUER - Profil intéressant mais nécessite validation';
+                recommendation = t('hr.recruitment.analysis.recommendation.review');
             } else if (breakdown.mustHaveScore === 0) {
-                recommendation = '❌ REJETÉ - Critères must-have non satisfaits';
+                recommendation = t('hr.recruitment.analysis.recommendation.rejectedMustHave');
             } else {
-                recommendation = '❌ NON RECOMMANDÉ - Profil insuffisant';
+                recommendation = t('hr.recruitment.analysis.recommendation.rejected');
             }
             
             return {
@@ -34545,7 +35013,7 @@ ${recruitmentInfo}
 
             container.innerHTML = filtered.map(candidate => {
                 const job = jobs.find(j => j.id === candidate.jobId);
-                const jobTitle = job ? job.title : 'Offre supprimée';
+                const jobTitle = job ? job.title : t('hr.recruitment.jobDeleted');
                 
                 let badgeClass = 'hr-badge hr-badge-danger';
                 let scoreIcon = '❌';
@@ -34578,32 +35046,32 @@ ${recruitmentInfo}
                             </div>
                             <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 8px;">
                                 <span class="${badgeClass}" style="display: inline-flex; align-items: center; gap: 6px;">${scoreIcon} ${cMatchScore}%</span>
-                                ${candidate.shortlisted === true ? `<span class="hr-badge hr-badge-success" style="display: inline-flex; align-items: center; gap: 6px;">⭐ Shortlist</span>` : ''}
-                                <span style="font-size: 11px; color: rgba(255,255,255,0.55); text-transform: uppercase; letter-spacing: 0.5px; font-weight: 700;">Match</span>
+                                ${candidate.shortlisted === true ? `<span class="hr-badge hr-badge-success" style="display: inline-flex; align-items: center; gap: 6px;">⭐ ${t('hr.recruitment.modal.scoring.threshold.shortlist')}</span>` : ''}
+                                <span style="font-size: 11px; color: rgba(255,255,255,0.55); text-transform: uppercase; letter-spacing: 0.5px; font-weight: 700;">${t('hr.recruitment.card.matchLabel')}</span>
                             </div>
                         </div>
 
                         <div class="hr-candidate-job">
-                            <div class="hr-candidate-job-label">Candidature pour</div>
+                            <div class="hr-candidate-job-label">${t('hr.recruitment.modal.details.jobTitle')}</div>
                             <div class="hr-candidate-job-title">${jobTitle}</div>
                         </div>
 
                         <div class="hr-candidate-metrics">
                             <div class="hr-candidate-metric">
                                 <div class="hr-candidate-metric-value" style="color: ${metricColor(((candidate.scoreBreakdown || {}).skillsScore || 0))};">${((candidate.scoreBreakdown || {}).skillsScore || 0)}%</div>
-                                <div class="hr-candidate-metric-label">Compétences</div>
+                                <div class="hr-candidate-metric-label">${t('hr.recruitment.modal.scoring.weight.skills')}</div>
                             </div>
                             <div class="hr-candidate-metric">
                                 <div class="hr-candidate-metric-value" style="color: ${metricColor(((candidate.scoreBreakdown || {}).experienceScore || 0))};">${((candidate.scoreBreakdown || {}).experienceScore || 0)}%</div>
-                                <div class="hr-candidate-metric-label">Expérience</div>
+                                <div class="hr-candidate-metric-label">${t('hr.recruitment.modal.scoring.weight.experience')}</div>
                             </div>
                             <div class="hr-candidate-metric">
                                 <div class="hr-candidate-metric-value" style="color: ${metricColor(((candidate.scoreBreakdown || {}).languageScore || 0))};">${((candidate.scoreBreakdown || {}).languageScore || 0)}%</div>
-                                <div class="hr-candidate-metric-label">Langues</div>
+                                <div class="hr-candidate-metric-label">${t('hr.recruitment.modal.scoring.weight.languages')}</div>
                             </div>
                             <div class="hr-candidate-metric">
                                 <div class="hr-candidate-metric-value" style="color: ${metricColor(((candidate.scoreBreakdown || {}).degreeScore || 0))};">${((candidate.scoreBreakdown || {}).degreeScore || 0)}%</div>
-                                <div class="hr-candidate-metric-label">Diplôme</div>
+                                <div class="hr-candidate-metric-label">${t('hr.recruitment.modal.scoring.weight.education')}</div>
                             </div>
                         </div>
 
@@ -34620,7 +35088,7 @@ ${recruitmentInfo}
             const jobs = getHRData('recruitmentJobs');
             const idx = candidates.findIndex(c => c.id === candidateId);
             if (idx === -1) {
-                showToast('❌ Candidat introuvable', 'error');
+                showToast(t('hr.recruitment.toast.candidateNotFound'), 'error');
                 return;
             }
 
@@ -34639,7 +35107,7 @@ ${recruitmentInfo}
             const modal = document.getElementById('candidateDetailsModal');
             if (modal) modal.remove();
 
-            showToast(nextShortlisted ? '⭐ Ajouté à la shortlist' : '✅ Retiré de la shortlist', 'success');
+            showToast(nextShortlisted ? t('hr.recruitment.toast.shortlistAdded') : t('hr.recruitment.toast.shortlistRemoved'), 'success');
         }
 
         function filterCandidatesByJob() {
@@ -34658,61 +35126,61 @@ ${recruitmentInfo}
                     </button>
 
                     <div style="margin-bottom: 18px; padding-right: 56px;">
-                        <h2 class="hr-modal-title">⚙️ Scoring & Filtres</h2>
-                        <p class="hr-modal-subtitle">Rappel des règles de scoring et du filtrage par offre (RGPD: explicable, décision finale humaine).</p>
+                        <h2 class="hr-modal-title">${t('hr.recruitment.modal.scoring.title')}</h2>
+                        <p class="hr-modal-subtitle">${t('hr.recruitment.modal.scoring.subtitle')}</p>
                     </div>
 
                     <div class="hr-section" style="margin-bottom: 16px;">
-                        <div class="hr-section-title" style="margin-bottom: 10px;">Scoring (pondérations)</div>
+                        <div class="hr-section-title" style="margin-bottom: 10px;">${t('hr.recruitment.modal.scoring.section.weights')}</div>
                         <div style="display: grid; gap: 10px;">
                             <div class="hr-item" style="margin: 0; padding: 14px;">
                                 <div style="display: flex; justify-content: space-between; gap: 10px; align-items: center;">
-                                    <div style="font-weight: 800; color: rgba(255,255,255,0.9);">Compétences</div>
+                                    <div style="font-weight: 800; color: rgba(255,255,255,0.9);">${t('hr.recruitment.modal.scoring.weight.skills')}</div>
                                     <span class="hr-badge hr-badge-info">40%</span>
                                 </div>
                             </div>
                             <div class="hr-item" style="margin: 0; padding: 14px;">
                                 <div style="display: flex; justify-content: space-between; gap: 10px; align-items: center;">
-                                    <div style="font-weight: 800; color: rgba(255,255,255,0.9);">Expérience</div>
+                                    <div style="font-weight: 800; color: rgba(255,255,255,0.9);">${t('hr.recruitment.modal.scoring.weight.experience')}</div>
                                     <span class="hr-badge hr-badge-info">30%</span>
                                 </div>
                             </div>
                             <div class="hr-item" style="margin: 0; padding: 14px;">
                                 <div style="display: flex; justify-content: space-between; gap: 10px; align-items: center;">
-                                    <div style="font-weight: 800; color: rgba(255,255,255,0.9);">Langues</div>
+                                    <div style="font-weight: 800; color: rgba(255,255,255,0.9);">${t('hr.recruitment.modal.scoring.weight.languages')}</div>
                                     <span class="hr-badge hr-badge-info">10%</span>
                                 </div>
                             </div>
                             <div class="hr-item" style="margin: 0; padding: 14px;">
                                 <div style="display: flex; justify-content: space-between; gap: 10px; align-items: center;">
-                                    <div style="font-weight: 800; color: rgba(255,255,255,0.9);">Diplôme</div>
+                                    <div style="font-weight: 800; color: rgba(255,255,255,0.9);">${t('hr.recruitment.modal.scoring.weight.education')}</div>
                                     <span class="hr-badge hr-badge-info">10%</span>
                                 </div>
                             </div>
                             <div class="hr-item" style="margin: 0; padding: 14px;">
                                 <div style="display: flex; justify-content: space-between; gap: 10px; align-items: center;">
-                                    <div style="font-weight: 800; color: rgba(255,255,255,0.9);">Must-have</div>
+                                    <div style="font-weight: 800; color: rgba(255,255,255,0.9);">${t('hr.recruitment.modal.scoring.weight.mustHave')}</div>
                                     <span class="hr-badge hr-badge-info">10%</span>
                                 </div>
                                 <div style="margin-top: 8px; font-size: 12px; color: rgba(255,255,255,0.65); line-height: 1.6;">
-                                    Si des critères must-have sont définis sur l’offre, un CV qui ne les remplit pas est marqué comme non conforme.
+                                    ${t('hr.recruitment.modal.scoring.mustHaveDesc')}
                                 </div>
                             </div>
                         </div>
                     </div>
 
                     <div class="hr-section" style="margin-bottom: 16px;">
-                        <div class="hr-section-title" style="margin-bottom: 10px;">Seuils (recommandation)</div>
+                        <div class="hr-section-title" style="margin-bottom: 10px;">${t('hr.recruitment.modal.scoring.section.thresholds')}</div>
                         <div style="display: grid; gap: 10px;">
                             <div class="hr-item" style="margin: 0; padding: 14px;">
                                 <div style="display: flex; justify-content: space-between; gap: 10px; align-items: center;">
-                                    <div style="font-weight: 800; color: rgba(255,255,255,0.9);">Recommandé</div>
+                                    <div style="font-weight: 800; color: rgba(255,255,255,0.9);">${t('hr.recruitment.modal.scoring.threshold.recommended')}</div>
                                     <span class="hr-badge hr-badge-success">≥ 80%</span>
                                 </div>
                             </div>
                             <div class="hr-item" style="margin: 0; padding: 14px;">
                                 <div style="display: flex; justify-content: space-between; gap: 10px; align-items: center;">
-                                    <div style="font-weight: 800; color: rgba(255,255,255,0.9);">Shortlist</div>
+                                    <div style="font-weight: 800; color: rgba(255,255,255,0.9);">${t('hr.recruitment.modal.scoring.threshold.shortlist')}</div>
                                     <span class="hr-badge hr-badge-warning">≥ 70%</span>
                                 </div>
                             </div>
@@ -34720,14 +35188,14 @@ ${recruitmentInfo}
                     </div>
 
                     <div class="hr-section" style="margin-bottom: 16px;">
-                        <div class="hr-section-title" style="margin-bottom: 10px;">Filtres</div>
+                        <div class="hr-section-title" style="margin-bottom: 10px;">${t('hr.recruitment.modal.scoring.section.filters')}</div>
                         <div style="font-size: 13px; color: rgba(255,255,255,0.75); line-height: 1.7;">
-                            Utilisez le filtre <strong>Toutes les offres</strong> pour afficher uniquement les candidats liés à une offre.
+                            ${t('hr.recruitment.modal.scoring.filtersDesc')}
                         </div>
                     </div>
 
                     <button class="hr-btn" onclick="this.closest('#recruitmentSettingsModal').remove()" style="width: 100%;">
-                        Fermer
+                        ${t('hr.recruitment.modal.scoring.btn.close')}
                     </button>
                 </div>
             `;
@@ -34771,7 +35239,7 @@ ${recruitmentInfo}
 
                     <div class="hr-section" style="margin-bottom: 16px;">
                         <div style="text-align: center;">
-                            <div class="hr-stat-label" style="margin-bottom: 8px;">Score de compatibilité</div>
+                            <div class="hr-stat-label" style="margin-bottom: 8px;">${t('hr.recruitment.modal.details.scoreTitle')}</div>
                             <div style="font-size: 64px; font-weight: 900; line-height: 1; background: linear-gradient(135deg, #10b981, #06b6d4, #3b82f6); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
                                 ${vMatchScore}%
                             </div>
@@ -34780,21 +35248,22 @@ ${recruitmentInfo}
                     </div>
 
                     <div class="hr-section" style="margin-bottom: 16px;">
-                        <div class="hr-section-title" style="margin-bottom: 10px;">Candidature pour</div>
-                        <div style="font-size: 16px; font-weight: 800; color: rgba(255,255,255,0.92);">${job ? job.title : 'Offre supprimée'}</div>
+                        <div class="hr-section-title" style="margin-bottom: 10px;">${t('hr.recruitment.modal.details.jobTitle')}</div>
+                        <div style="font-size: 16px; font-weight: 800; color: rgba(255,255,255,0.92);">${job ? job.title : t('hr.recruitment.toast.jobNotFound')}</div>
                         ${job ? `<div style="font-size: 13px; color: rgba(255,255,255,0.65); margin-top: 6px;">📍 ${job.location} • ${job.department}</div>` : ''}
                     </div>
 
                     <div class="hr-section" style="margin-bottom: 16px;">
-                        <div class="hr-section-title" style="margin-bottom: 10px;">📊 Analyse détaillée</div>
+                        <div class="hr-section-title" style="margin-bottom: 10px;">${t('hr.recruitment.modal.details.analysisTitle')}</div>
                         <div style="display: grid; gap: 12px;">
                             ${Object.entries({
-                                'Compétences': {score: ((candidate.scoreBreakdown || {}).skillsScore || 0), weight: '40%', icon: '💻'},
-                                'Expérience': {score: ((candidate.scoreBreakdown || {}).experienceScore || 0), weight: '30%', icon: '📊'},
-                                'Langues': {score: ((candidate.scoreBreakdown || {}).languageScore || 0), weight: '10%', icon: '🌍'},
-                                'Diplôme': {score: ((candidate.scoreBreakdown || {}).degreeScore || 0), weight: '10%', icon: '🎓'},
-                                'Must-Have': {score: ((candidate.scoreBreakdown || {}).mustHaveScore || 0), weight: '10%', icon: '✅'}
-                            }).map(([label, data]) => {
+                                [t('hr.recruitment.modal.scoring.weight.skills')]: {score: ((candidate.scoreBreakdown || {}).skillsScore || 0), weight: '40%', icon: '💻'},
+                                [t('hr.recruitment.modal.scoring.weight.experience')]: {score: ((candidate.scoreBreakdown || {}).experienceScore || 0), weight: '30%', icon: '📊'},
+                                [t('hr.recruitment.modal.scoring.weight.languages')]: {score: ((candidate.scoreBreakdown || {}).languageScore || 0), weight: '10%', icon: '🌍'},
+                                [t('hr.recruitment.modal.scoring.weight.education')]: {score: ((candidate.scoreBreakdown || {}).degreeScore || 0), weight: '10%', icon: '🎓'},
+                                [t('hr.recruitment.modal.scoring.weight.mustHave')]: {score: ((candidate.scoreBreakdown || {}).mustHaveScore || 0), weight: '10%', icon: '✅'}
+                            })
+                            .map(([label, data]) => {
                                 const color = data.score >= 80 ? '#10b981' : data.score >= 60 ? '#f59e0b' : '#ef4444';
                                 return `
                                     <div class="hr-item" style="margin: 0; padding: 16px;">
@@ -34815,29 +35284,29 @@ ${recruitmentInfo}
                     </div>
 
                     <div class="hr-section" style="margin-bottom: 16px;">
-                        <div class="hr-section-title" style="margin-bottom: 10px;">👤 Profil du candidat</div>
+                        <div class="hr-section-title" style="margin-bottom: 10px;">${t('hr.recruitment.modal.details.profileTitle')}</div>
                         <div class="hr-form-grid-2" style="margin-bottom: 14px;">
                             <div class="hr-item" style="margin: 0; padding: 14px;">
-                                <div style="font-size: 12px; color: rgba(255,255,255,0.6); font-weight: 700; margin-bottom: 4px;">Expérience</div>
+                                <div style="font-size: 12px; color: rgba(255,255,255,0.6); font-weight: 700; margin-bottom: 4px;">${t('hr.recruitment.modal.scoring.weight.experience')}</div>
                                 <div style="font-size: 15px; font-weight: 900; color: rgba(255,255,255,0.92);">${candidate.experience} ans</div>
                             </div>
                             <div class="hr-item" style="margin: 0; padding: 14px;">
-                                <div style="font-size: 12px; color: rgba(255,255,255,0.6); font-weight: 700; margin-bottom: 4px;">Diplôme</div>
+                                <div style="font-size: 12px; color: rgba(255,255,255,0.6); font-weight: 700; margin-bottom: 4px;">${t('hr.recruitment.modal.scoring.weight.education')}</div>
                                 <div style="font-size: 15px; font-weight: 900; color: rgba(255,255,255,0.92);">${candidate.degree}</div>
                             </div>
                             <div class="hr-item" style="margin: 0; padding: 14px;">
-                                <div style="font-size: 12px; color: rgba(255,255,255,0.6); font-weight: 700; margin-bottom: 4px;">Niveau langues</div>
+                                <div style="font-size: 12px; color: rgba(255,255,255,0.6); font-weight: 700; margin-bottom: 4px;">${t('hr.recruitment.modal.scoring.weight.languages')}</div>
                                 <div style="font-size: 15px; font-weight: 900; color: rgba(255,255,255,0.92);">${candidate.languages}</div>
                             </div>
                             <div class="hr-item" style="margin: 0; padding: 14px;">
-                                <div style="font-size: 12px; color: rgba(255,255,255,0.6); font-weight: 700; margin-bottom: 4px;">Compétences</div>
+                                <div style="font-size: 12px; color: rgba(255,255,255,0.6); font-weight: 700; margin-bottom: 4px;">${t('hr.recruitment.modal.scoring.weight.skills')}</div>
                                 <div style="font-size: 15px; font-weight: 900; color: rgba(255,255,255,0.92);">${candidate.skills.length} listées</div>
                             </div>
                         </div>
 
                         ${candidate.skills.length > 0 ? `
                             <div style="margin-bottom: 14px;">
-                                <div style="font-size: 12px; color: rgba(255,255,255,0.6); font-weight: 800; margin-bottom: 10px;">Compétences détaillées</div>
+                                <div style="font-size: 12px; color: rgba(255,255,255,0.6); font-weight: 800; margin-bottom: 10px;">${t('hr.recruitment.modal.details.detailSkills')}</div>
                                 <div style="display: flex; flex-wrap: wrap; gap: 8px;">
                                     ${candidate.skills.map(skill => `
                                         <span class="hr-badge hr-badge-info" style="padding: 6px 12px; border-radius: 999px;">${skill}</span>
@@ -34848,14 +35317,14 @@ ${recruitmentInfo}
 
                         ${candidate.lastJob ? `
                             <div class="hr-item" style="margin: 0; padding: 14px;">
-                                <div style="font-size: 12px; color: rgba(255,255,255,0.6); font-weight: 800; margin-bottom: 6px;">Dernière expérience</div>
+                                <div style="font-size: 12px; color: rgba(255,255,255,0.6); font-weight: 800; margin-bottom: 6px;">${t('hr.recruitment.modal.details.lastJob')}</div>
                                 <div style="font-size: 13px; color: rgba(255,255,255,0.85);">${candidate.lastJob}</div>
                             </div>
                         ` : ''}
 
                         ${candidate.certifications && candidate.certifications.length > 0 ? `
                             <div style="margin-top: 14px;">
-                                <div style="font-size: 12px; color: rgba(255,255,255,0.6); font-weight: 800; margin-bottom: 10px;">Certifications</div>
+                                <div style="font-size: 12px; color: rgba(255,255,255,0.6); font-weight: 800; margin-bottom: 10px;">${t('hr.recruitment.modal.details.certifications')}</div>
                                 <div style="display: flex; flex-wrap: wrap; gap: 8px;">
                                     ${candidate.certifications.map(cert => `
                                         <span class="hr-badge hr-badge-success" style="padding: 6px 12px; border-radius: 999px;">🏆 ${cert}</span>
@@ -34867,7 +35336,7 @@ ${recruitmentInfo}
 
                     ${candidate.strengths && candidate.strengths.length > 0 ? `
                         <div class="hr-section" style="margin-bottom: 16px;">
-                            <div class="hr-section-title" style="margin-bottom: 10px;">✅ Points forts</div>
+                            <div class="hr-section-title" style="margin-bottom: 10px;">${t('hr.recruitment.modal.details.strengthsTitle')}</div>
                             <div style="display: grid; gap: 10px;">
                                 ${candidate.strengths.map(strength => `
                                     <div class="hr-item" style="margin: 0; padding: 14px; border-color: rgba(16,185,129,0.28);">• ${strength}</div>
@@ -34878,7 +35347,7 @@ ${recruitmentInfo}
 
                     ${candidate.risks && candidate.risks.length > 0 ? `
                         <div class="hr-section" style="margin-bottom: 16px;">
-                            <div class="hr-section-title" style="margin-bottom: 10px;">⚠️ Points d'attention</div>
+                            <div class="hr-section-title" style="margin-bottom: 10px;">${t('hr.recruitment.modal.details.risksTitle')}</div>
                             <div style="display: grid; gap: 10px;">
                                 ${candidate.risks.map(risk => `
                                     <div class="hr-item" style="margin: 0; padding: 14px; border-color: rgba(251,191,36,0.30);">• ${risk}</div>
@@ -34889,7 +35358,7 @@ ${recruitmentInfo}
 
                     ${candidate.missingKeywords && candidate.missingKeywords.length > 0 ? `
                         <div class="hr-section" style="margin-bottom: 16px;">
-                            <div class="hr-section-title" style="margin-bottom: 10px;">❌ Compétences manquantes</div>
+                            <div class="hr-section-title" style="margin-bottom: 10px;">${t('hr.recruitment.modal.details.missingKeywordsTitle')}</div>
                             <div style="display: flex; flex-wrap: wrap; gap: 8px;">
                                 ${candidate.missingKeywords.map(keyword => `
                                     <span class="hr-badge hr-badge-danger" style="padding: 6px 12px; border-radius: 999px;">${keyword}</span>
@@ -34900,7 +35369,7 @@ ${recruitmentInfo}
 
                     ${candidate.anomalies && candidate.anomalies.length > 0 ? `
                         <div class="hr-section" style="margin-bottom: 16px;">
-                            <div class="hr-section-title" style="margin-bottom: 10px;">🔍 Anomalies détectées</div>
+                            <div class="hr-section-title" style="margin-bottom: 10px;">${t('hr.recruitment.modal.details.anomaliesTitle')}</div>
                             <div style="display: grid; gap: 10px;">
                                 ${candidate.anomalies.map(anomaly => `
                                     <div class="hr-item" style="margin: 0; padding: 14px; border-color: rgba(239,68,68,0.30);">${anomaly}</div>
@@ -34911,18 +35380,16 @@ ${recruitmentInfo}
 
                     <div class="hr-section" style="margin-bottom: 16px;">
                         <div style="font-size: 12px; color: rgba(255,255,255,0.7); line-height: 1.7;">
-                            <strong style="color: rgba(255,255,255,0.9);">ℹ️ Transparence RGPD :</strong> Ce scoring est calculé automatiquement selon les critères suivants :
-                            Compétences (40%), Expérience (30%), Langues (10%), Diplôme (10%), Critères must-have (10%).
-                            Aucune donnée sensible (origine, religion, santé) n'est analysée. La décision finale reste humaine.
+                            <strong style="color: rgba(255,255,255,0.9);">${t('hr.recruitment.modal.details.gdpr')}</strong>
                         </div>
                     </div>
 
                     <div style="display: flex; gap: 12px; flex-wrap: wrap;">
                         <button class="hr-btn hr-btn-secondary" style="flex: 1; min-width: 200px;" onclick="this.closest('#candidateDetailsModal').remove()">
-                            Fermer
+                            ${t('hr.recruitment.modal.details.btn.close')}
                         </button>
                         <button class="hr-btn" style="flex: 1; min-width: 200px;" onclick="toggleCandidateShortlist('${candidate.id}')">
-                            ${candidate.shortlisted === true ? '⭐ Retirer de la shortlist' : '✅ Ajouter à la shortlist'}
+                            ${candidate.shortlisted === true ? t('hr.recruitment.modal.details.btn.removeFromShortlist') : t('hr.recruitment.modal.details.btn.addToShortlist')}
                         </button>
                     </div>
                 </div>
