@@ -90,7 +90,14 @@ module.exports = async function (context, req) {
     context.log('💎 PRO PLAN - Llama 3.3 70B Request (Groq + Azure Functions + RAG)');
 
     if (req.method === 'OPTIONS') {
-        context.res = { status: 200, headers: { 'Access-Control-Allow-Origin': '*', 'Access-Control-Allow-Methods': 'POST, OPTIONS', 'Access-Control-Allow-Headers': 'Content-Type' } };
+        context.res = {
+            status: 200,
+            headers: {
+                'Access-Control-Allow-Origin': '*',
+                'Access-Control-Allow-Methods': 'POST, OPTIONS',
+                'Access-Control-Allow-Headers': 'Content-Type, Authorization'
+            }
+        };
         return;
     }
 
