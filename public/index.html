@@ -7056,6 +7056,43 @@ RÈGLES IMPORTANTES:
             return `${n.toFixed(d)} ${units[i]}`;
         }
 
+        function getFileDisplayMeta(fileName, mimeType) {
+            const name = String(fileName || 'fichier');
+            const lowerName = name.toLowerCase();
+            const lowerMime = String(mimeType || '').toLowerCase();
+
+            const extMatch = lowerName.match(/\.([a-z0-9]{1,8})$/);
+            const ext = extMatch ? extMatch[1] : '';
+            const extLabel = ext ? ext.toUpperCase() : '';
+
+            const isImage = lowerMime.startsWith('image/') || /\.(png|jpg|jpeg|gif|webp|bmp|svg)$/.test(lowerName);
+            const isPdf = lowerMime === 'application/pdf' || lowerName.endsWith('.pdf');
+            const isText = lowerMime === 'text/plain' || lowerName.endsWith('.txt');
+            const isCsv = lowerMime === 'text/csv' || lowerName.endsWith('.csv');
+            const isExcel = lowerMime === 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+                || lowerMime === 'application/vnd.ms-excel'
+                || /\.(xlsx|xls)$/.test(lowerName);
+            const isDoc = /\.(docx|doc)$/.test(lowerName) || lowerMime.includes('word');
+            const isZip = /\.(zip|rar|7z|tar|gz)$/.test(lowerName) || lowerMime.includes('zip');
+            const isAudio = lowerMime.startsWith('audio/') || /\.(mp3|wav|m4a|ogg|flac)$/.test(lowerName);
+            const isVideo = lowerMime.startsWith('video/') || /\.(mp4|mov|mkv|webm|avi)$/.test(lowerName);
+
+            let icon = '📎';
+            let typeLabel = extLabel || (mimeType ? String(mimeType) : '');
+
+            if (isPdf) { icon = '📄'; typeLabel = 'PDF'; }
+            else if (isExcel) { icon = '📊'; typeLabel = extLabel || 'EXCEL'; }
+            else if (isCsv) { icon = '📊'; typeLabel = 'CSV'; }
+            else if (isText) { icon = '📝'; typeLabel = 'TXT'; }
+            else if (isImage) { icon = '🖼️'; typeLabel = extLabel || 'IMAGE'; }
+            else if (isDoc) { icon = '📄'; typeLabel = extLabel || 'DOC'; }
+            else if (isZip) { icon = '🗜️'; typeLabel = extLabel || 'ARCHIVE'; }
+            else if (isAudio) { icon = '🔊'; typeLabel = extLabel || 'AUDIO'; }
+            else if (isVideo) { icon = '🎞️'; typeLabel = extLabel || 'VIDÉO'; }
+
+            return { icon, typeLabel };
+        }
+
         function appendUploadedFileCardToChat({ fileName, objectUrl, remoteFileId, mimeType, sizeBytes, subtitle }) {
             const chatMessages = document.getElementById('chatMessages');
             if (!chatMessages) return;
@@ -7064,7 +7101,8 @@ RÈGLES IMPORTANTES:
             const safeUrl = objectUrl ? String(objectUrl) : '';
             const safeRemoteId = remoteFileId ? String(remoteFileId) : '';
             const safeMime = String(mimeType || 'application/octet-stream');
-            const meta = subtitle ? String(subtitle) : `${humanFileSize(sizeBytes)} • ${safeMime}`;
+            const disp = getFileDisplayMeta(safeName, safeMime);
+            const meta = subtitle ? String(subtitle) : `${humanFileSize(sizeBytes)} • ${(disp && disp.typeLabel) ? disp.typeLabel : safeMime}`;
 
             const messageWrapper = document.createElement('div');
             messageWrapper.className = 'message-wrapper user file-message';
@@ -7081,17 +7119,17 @@ RÈGLES IMPORTANTES:
                 <div class="message-content">
                     ${safeRemoteId ? `
                         <a href="#" onclick="openRemoteChatFile('${safeRemoteId}'); return false;" title="${escapeHtmlLite(meta)}" style="display:inline-flex; align-items:center; gap:6px; font-weight:700; font-size:12px; color: var(--text-primary); text-decoration: underline; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">
-                            <span aria-hidden="true" style="font-size:14px; line-height:1;">📄</span>
+                            <span aria-hidden="true" style="font-size:14px; line-height:1;">${escapeHtmlLite((disp && disp.icon) ? disp.icon : '📎')}</span>
                             <span style="min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${escapeHtmlLite(safeName)}</span>
                         </a>
                     ` : (safeUrl ? `
                         <a href="${safeUrl}" target="_blank" rel="noopener" title="${escapeHtmlLite(meta)}" style="display:inline-flex; align-items:center; gap:6px; font-weight:700; font-size:12px; color: var(--text-primary); text-decoration: underline; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">
-                            <span aria-hidden="true" style="font-size:14px; line-height:1;">📄</span>
+                            <span aria-hidden="true" style="font-size:14px; line-height:1;">${escapeHtmlLite((disp && disp.icon) ? disp.icon : '📎')}</span>
                             <span style="min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${escapeHtmlLite(safeName)}</span>
                         </a>
                     ` : `
                         <span title="${escapeHtmlLite(meta)}" style="display:inline-flex; align-items:center; gap:6px; font-weight:700; font-size:12px; color: var(--text-primary); overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">
-                            <span aria-hidden="true" style="font-size:14px; line-height:1;">📄</span>
+                            <span aria-hidden="true" style="font-size:14px; line-height:1;">${escapeHtmlLite((disp && disp.icon) ? disp.icon : '📎')}</span>
                             <span style="min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${escapeHtmlLite(safeName)}</span>
                         </span>
                     `)}
