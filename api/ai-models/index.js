@@ -69,13 +69,18 @@ module.exports = async function (context, req) {
   const pricingCurrency = String(process.env.AI_PRICING_CURRENCY || 'EUR').trim().toUpperCase() || 'EUR';
   const purpose = String(req.query?.purpose || '').trim().toLowerCase();
 
+  // Fusionner pricing (env) avec MODEL_META (hardcodé) pour afficher tous les modèles connus
+  const allModelIds = new Set([
+    ...Object.keys(MODEL_META),
+    ...(pricing && typeof pricing === 'object' ? Object.keys(pricing) : [])
+  ]);
+
   const models = [];
-  if (pricing && typeof pricing === 'object') {
-    Object.keys(pricing).forEach((id) => {
-      const row = pricing[id] && typeof pricing[id] === 'object' ? pricing[id] : {};
-      const cleanId = String(id || '').trim();
-      if (!cleanId) return;
-      const meta = MODEL_META[cleanId] || {};
+  allModelIds.forEach((id) => {
+    const cleanId = String(id || '').trim();
+    if (!cleanId) return;
+    const row = (pricing && pricing[cleanId] && typeof pricing[cleanId] === 'object') ? pricing[cleanId] : {};
+    const meta = MODEL_META[cleanId] || {};
 
       // UI: enlever le modèle "Text" / "Texte" / embeddings de la liste Modèle IA (chat)
       const lowerCleanId = cleanId.toLowerCase();
@@ -96,7 +101,6 @@ module.exports = async function (context, req) {
         description: meta.description || null
       });
     });
-  }
 
   models.sort((a, b) => String(a.id).localeCompare(String(b.id)));
 
