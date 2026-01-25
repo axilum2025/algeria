@@ -77,6 +77,9 @@ module.exports = async function (context, req) {
       if (!cleanId) return;
       const meta = MODEL_META[cleanId] || {};
 
+      // UI: enlever le modèle "Text" de la liste Modèle IA (chat)
+      if (purpose === 'chat' && cleanId.toLowerCase() === 'text') return;
+
       const kind = inferModelKind(cleanId, meta);
       // For the chat model dropdown, hide non-chat models.
       if (purpose === 'chat' && kind !== 'chat') return;
