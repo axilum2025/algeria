@@ -27,7 +27,7 @@ function summarizeOldHistory(history) {
     // Résumer les anciens
     const old = history.slice(0, -5);
     const summary = `[Résumé conversation précédente: ${old.length} échanges sur ${extractTopics(old)}]`;
-    
+
     return [
         { type: 'system', content: summary },
         ...recent
