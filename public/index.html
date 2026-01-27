@@ -12674,6 +12674,17 @@ ${persona}
 
                 'hr.leaves.subtitle': 'Suivi et validation des demandes',
     'hr.leaves.modal.title': 'Nouvelle Demande de Congé',
+        'hr.leaves.modal.label.employee': 'Employé *',
+        'hr.leaves.modal.placeholder.selectEmployee': 'Sélectionner un employé...',
+        'hr.leaves.modal.label.type': 'Type de congé *',
+        'hr.leaves.modal.placeholder.selectType': 'Sélectionner...',
+        'hr.leaves.modal.label.startDate': 'Date de début *',
+        'hr.leaves.modal.label.endDate': 'Date de fin *',
+        'hr.leaves.modal.label.reason': 'Motif (optionnel)',
+        'hr.leaves.modal.placeholder.reason': 'Raison de la demande de congé...',
+        'hr.leaves.modal.button.cancel': 'Annuler',
+        'hr.leaves.modal.button.create': 'Créer la Demande',
+
     'hr.leaves.modal.subtitle': 'Remplissez les informations ci-dessous',
     'hr.leaves.calendar.title': 'Planning des Congés',
     'hr.leaves.calendar.subtitle': 'Vue mensuelle avec suivi des chevauchements',
@@ -13696,6 +13707,17 @@ ${persona}
                 'hr.leaves.title': 'Leave Management',
                 'hr.leaves.newRequestBtn': 'New Request',
     'hr.leaves.modal.title': 'New Leave Request',
+        'hr.leaves.modal.label.employee': 'Employee *',
+        'hr.leaves.modal.placeholder.selectEmployee': 'Select an employee...',
+        'hr.leaves.modal.label.type': 'Leave Type *',
+        'hr.leaves.modal.placeholder.selectType': 'Select...',
+        'hr.leaves.modal.label.startDate': 'Start Date *',
+        'hr.leaves.modal.label.endDate': 'End Date *',
+        'hr.leaves.modal.label.reason': 'Reason (optional)',
+        'hr.leaves.modal.placeholder.reason': 'Reason for leave request...',
+        'hr.leaves.modal.button.cancel': 'Cancel',
+        'hr.leaves.modal.button.create': 'Create Request',
+
     'hr.leaves.modal.subtitle': 'Fill in the information below',
     'hr.leaves.calendar.title': 'Leave Planning',
     'hr.leaves.calendar.subtitle': 'Monthly view with overlap tracking',
@@ -31293,11 +31315,11 @@ ${recruitmentInfo}
                             <label style="display: block; margin-bottom: 8px; font-size: 13px; font-weight: 600; color: rgba(255,255,255,0.9);">
                                 <span style="display: flex; align-items: center; gap: 6px;">
                                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
-                                    Employé *
+                                    ${t('hr.leaves.modal.label.employee')}
                                 </span>
                             </label>
                             <select name="employeeId" required style="width: 100%; padding: 12px 16px; background: rgba(255,255,255,0.08); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 12px; font-size: 14px; color: white; cursor: pointer; transition: all 0.3s;" onfocus="this.style.borderColor='#10b981'; this.style.background='rgba(255,255,255,0.12)'" onblur="this.style.borderColor='rgba(16, 185, 129, 0.3)'; this.style.background='rgba(255,255,255,0.08)'">
-                                <option value="" style="background: #1e3a8a; color: white;">Sélectionner un employé...</option>
+                                <option value="" style="background: #1e3a8a; color: white;">${t('hr.leaves.modal.placeholder.selectEmployee')}</option>
                                 ${employeeOptions}
                             </select>
                         </div>
@@ -31306,16 +31328,16 @@ ${recruitmentInfo}
                             <label style="display: block; margin-bottom: 8px; font-size: 13px; font-weight: 600; color: rgba(255,255,255,0.9);">
                                 <span style="display: flex; align-items: center; gap: 6px;">
                                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
-                                    Type de congé *
+                                    ${t('hr.leaves.modal.label.type')}
                                 </span>
                             </label>
                             <select name="type" required style="width: 100%; padding: 12px 16px; background: rgba(255,255,255,0.08); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 12px; font-size: 14px; color: white; cursor: pointer; transition: all 0.3s;" onfocus="this.style.borderColor='#10b981'; this.style.background='rgba(255,255,255,0.12)'" onblur="this.style.borderColor='rgba(16, 185, 129, 0.3)'; this.style.background='rgba(255,255,255,0.08)'">
-                                <option value="" style="background: #1e3a8a; color: white;">Sélectionner...</option>
-                                <option value="paid" style="background: #1e3a8a; color: white;">☀️ Congé payé</option>
-                                <option value="sick" style="background: #1e3a8a; color: white;">⚕️ Maladie</option>
-                                <option value="unpaid" style="background: #1e3a8a; color: white;">💼 Sans solde</option>
-                                <option value="parental" style="background: #1e3a8a; color: white;">👪 Parental</option>
-                                <option value="other" style="background: #1e3a8a; color: white;">📋 Autre</option>
+                                <option value="" style="background: #1e3a8a; color: white;">${t('hr.leaves.modal.placeholder.selectType')}</option>
+                                <option value="paid" style="background: #1e3a8a; color: white;">☀️ ${t('hr.leaves.type.paid')}</option>
+                                <option value="sick" style="background: #1e3a8a; color: white;">⚕️ ${t('hr.leaves.type.sick')}</option>
+                                <option value="unpaid" style="background: #1e3a8a; color: white;">💼 ${t('hr.leaves.type.unpaid')}</option>
+                                <option value="parental" style="background: #1e3a8a; color: white;">👪 ${t('hr.leaves.type.parental')}</option>
+                                <option value="other" style="background: #1e3a8a; color: white;">📋 ${t('hr.leaves.type.other')}</option>
                             </select>
                         </div>
                         
@@ -31324,7 +31346,7 @@ ${recruitmentInfo}
                                 <label style="display: block; margin-bottom: 8px; font-size: 13px; font-weight: 600; color: rgba(255,255,255,0.9);">
                                     <span style="display: flex; align-items: center; gap: 6px;">
                                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
-                                        Date de début *
+                                        ${t('hr.leaves.modal.label.startDate')}
                                     </span>
                                 </label>
                                 <input type="date" name="startDate" required style="width: 100%; padding: 12px 16px; background: rgba(255,255,255,0.08); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 12px; font-size: 14px; color: white; transition: all 0.3s; color-scheme: dark;" onfocus="this.style.borderColor='#10b981'; this.style.background='rgba(255,255,255,0.12)'" onblur="this.style.borderColor='rgba(16, 185, 129, 0.3)'; this.style.background='rgba(255,255,255,0.08)'">
@@ -31333,7 +31355,7 @@ ${recruitmentInfo}
                                 <label style="display: block; margin-bottom: 8px; font-size: 13px; font-weight: 600; color: rgba(255,255,255,0.9);">
                                     <span style="display: flex; align-items: center; gap: 6px;">
                                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
-                                        Date de fin *
+                                        ${t('hr.leaves.modal.label.endDate')}
                                     </span>
                                 </label>
                                 <input type="date" name="endDate" required style="width: 100%; padding: 12px 16px; background: rgba(255,255,255,0.08); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 12px; font-size: 14px; color: white; transition: all 0.3s; color-scheme: dark;" onfocus="this.style.borderColor='#10b981'; this.style.background='rgba(255,255,255,0.12)'" onblur="this.style.borderColor='rgba(16, 185, 129, 0.3)'; this.style.background='rgba(255,255,255,0.08)'">
@@ -31344,19 +31366,19 @@ ${recruitmentInfo}
                             <label style="display: block; margin-bottom: 8px; font-size: 13px; font-weight: 600; color: rgba(255,255,255,0.9);">
                                 <span style="display: flex; align-items: center; gap: 6px;">
                                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
-                                    Motif (optionnel)
+                                    ${t('hr.leaves.modal.label.reason')}
                                 </span>
                             </label>
-                            <textarea name="reason" rows="3" style="width: 100%; padding: 12px 16px; background: rgba(255,255,255,0.08); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 12px; font-size: 14px; color: white; font-family: inherit; resize: vertical; transition: all 0.3s;" placeholder="Raison de la demande de congé..." onfocus="this.style.borderColor='#10b981'; this.style.background='rgba(255,255,255,0.12)'" onblur="this.style.borderColor='rgba(16, 185, 129, 0.3)'; this.style.background='rgba(255,255,255,0.08)'"></textarea>
+                            <textarea name="reason" rows="3" style="width: 100%; padding: 12px 16px; background: rgba(255,255,255,0.08); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 12px; font-size: 14px; color: white; font-family: inherit; resize: vertical; transition: all 0.3s;" placeholder="${t('hr.leaves.modal.placeholder.reason')}" onfocus="this.style.borderColor='#10b981'; this.style.background='rgba(255,255,255,0.12)'" onblur="this.style.borderColor='rgba(16, 185, 129, 0.3)'; this.style.background='rgba(255,255,255,0.08)'"></textarea>
                         </div>
                         
                         <div style="display: flex; gap: 12px; margin-top: 8px;">
                             <button type="button" onclick="closeAddLeaveModal()" style="flex: 1; padding: 14px; background: rgba(255,255,255,0.1); border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 12px; color: white; font-weight: 600; cursor: pointer; transition: all 0.2s; font-size: 14px;" onmouseover="this.style.background='rgba(255,255,255,0.15)'; this.style.transform='translateY(-1px)'" onmouseout="this.style.background='rgba(255,255,255,0.1)'; this.style.transform='translateY(0)'">
-                                Annuler
+                                ${t('hr.leaves.modal.button.cancel')}
                             </button>
                             <button type="submit" class="hr-btn" style="flex: 1; padding: 14px; font-size: 14px; display: flex; align-items: center; justify-content: center; gap: 8px;">
                                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
-                                Créer la Demande
+                                ${t('hr.leaves.modal.button.create')}
                             </button>
                         </div>
                     </form>
