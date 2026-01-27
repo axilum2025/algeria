@@ -12936,6 +12936,7 @@ ${persona}
                 'hr.payroll.filter.allMonths': 'Tous les mois',
                 'hr.payroll.generateAllBtn': 'Générer Tous',
                 'hr.payroll.newSlipBtn': 'Nouveau Bulletin',
+    'hr.payroll.modal.newTitle': 'Nouveau Bulletin de Paie',
                 
                 'hr.agent.title': 'Agent RH',
                 'hr.agent.desc': 'Assistant IA pour la gestion RH (employés, congés, paie, recrutement, évaluations)',
@@ -13682,6 +13683,7 @@ ${persona}
                 'hr.payroll.filter.allMonths': 'All months',
                 'hr.payroll.generateAllBtn': 'Generate All',
                 'hr.payroll.newSlipBtn': 'New Slips',
+    'hr.payroll.modal.newTitle': 'New Payslip',
 
                 'hr.agent.title': 'HR Agent',
                 'hr.agent.desc': 'AI Assistant for HR management (employees, leaves, payroll, recruitment, reviews)',
@@ -32031,7 +32033,7 @@ ${recruitmentInfo}
             modal.innerHTML = `
                 <div style="background: rgba(255,255,255,0.05); backdrop-filter: blur(10px); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 20px; padding: 32px; max-width: 600px; width: 100%; max-height: 90vh; overflow-y: auto;">
                     <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px;">
-                        <h2 style="margin: 0; font-size: 24px; font-weight: 700; background: linear-gradient(135deg, #10b981 0%, #06b6d4 50%, #3b82f6 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">Nouveau Bulletin de Paie</h2>
+                        <h2 style="margin: 0; font-size: 24px; font-weight: 700; background: linear-gradient(135deg, #10b981 0%, #06b6d4 50%, #3b82f6 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">${t("hr.payroll.modal.newTitle")}</h2>
                         <button onclick="closeAddPayrollModal()" style="width: 36px; height: 36px; background: rgba(255,255,255,0.1); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 10px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.15)'" onmouseout="this.style.background='rgba(255,255,255,0.1)'">
                             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
                         </button>
