@@ -12727,7 +12727,8 @@ ${persona}
                 'hr.recruitment.actions.newJob': 'Nouvelle Offre',
                 'hr.recruitment.actions.uploadCV': 'Upload CV',
                 'hr.recruitment.filter.allJobs': 'Toutes les offres',
-                'hr.recruitment.actions.toggleShortlist': '⭐ Tout afficher',
+                'hr.recruitment.actions.toggleShortlist': 'Tout afficher',
+                'hr.recruitment.actions.toggleShortlistOnly': 'Shortlist uniquement',
                 'hr.recruitment.actions.scoringSettings': 'Scoring & Filtres',
 
                 'hr.recruitment.empty.title': 'Aucun CV analysé',
@@ -13703,7 +13704,8 @@ ${persona}
                 'hr.recruitment.actions.newJob': 'New Job',
                 'hr.recruitment.actions.uploadCV': 'Upload CV',
                 'hr.recruitment.filter.allJobs': 'All Jobs',
-                'hr.recruitment.actions.toggleShortlist': '⭐ Show All',
+                'hr.recruitment.actions.toggleShortlist': 'Show All',
+                'hr.recruitment.actions.toggleShortlistOnly': 'Shortlist Only',
                 'hr.recruitment.actions.scoringSettings': 'Scoring & Filters',
 
                 'hr.recruitment.empty.title': 'No CVs Analyzed',
@@ -21684,7 +21686,7 @@ ${persona}
 
                                     <div class="hr-recruitment-actions-right" style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
                                         <button id="recruitmentShortlistFilterBtn" onclick="toggleRecruitmentShortlistOnly()" style="padding: 12px 16px; background: rgba(255,255,255,0.1); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 12px; color: white; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; font-size: 13px; transition: all 0.3s; backdrop-filter: blur(10px);" onmouseover="this.style.borderColor='#10b981'" onmouseout="this.style.borderColor='rgba(16, 185, 129, 0.3)'">
-                                            ${t('hr.recruitment.actions.toggleShortlist')}
+                                            ⭐ ${t('hr.recruitment.actions.toggleShortlist')}
                                         </button>
                                         <button onclick="showRecruitmentSettings()" style="padding: 12px 16px; background: rgba(255,255,255,0.1); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 12px; color: white; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; font-size: 13px; transition: all 0.3s; backdrop-filter: blur(10px);" onmouseover="this.style.background='rgba(16, 185, 129, 0.3)'; this.style.borderColor='#10b981'" onmouseout="this.style.background='rgba(255,255,255,0.1)'; this.style.borderColor='rgba(16, 185, 129, 0.3)'">
                                             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 1v6m0 6v6m6-12l-3 3m-6 6l-3 3m12 0l-3-3m-6-6l-3-3"/></svg>
@@ -34078,11 +34080,11 @@ ${recruitmentInfo}
             if (!btn) return;
 
             if (recruitmentShowShortlistOnly) {
-                btn.textContent = '⭐ Shortlist uniquement';
+                btn.textContent = `⭐ ${t('hr.recruitment.actions.toggleShortlistOnly')}`;
                 btn.style.background = 'rgba(16, 185, 129, 0.26)';
                 btn.style.borderColor = '#10b981';
             } else {
-                btn.textContent = '⭐ Tout afficher';
+                btn.textContent = `⭐ ${t('hr.recruitment.actions.toggleShortlist')}`;
                 btn.style.background = 'rgba(255,255,255,0.10)';
                 btn.style.borderColor = 'rgba(16, 185, 129, 0.3)';
             }
@@ -34356,7 +34358,7 @@ ${recruitmentInfo}
 
             const safeJobs = Array.isArray(jobs) ? jobs : [];
             `<option value="">${t('hr.recruitment.filter.allJobs')}</option>`
-            select.innerHTML = '<option value="">Toutes les offres</option>' + 
+            select.innerHTML = `<option value="">${t('hr.recruitment.filter.allJobs')}</option>` + 
                 safeJobs.filter(isRecruitmentJobActive).map(job => 
                     `<option value="${job.id}">${job.title}</option>`
                 ).join('');
