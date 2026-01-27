@@ -13727,6 +13727,11 @@ ${persona}
     'hr.leaves.calendar.allDepts': 'All Departments',
                 'hr.leaves.calendar.legend': 'Legend',
                 'hr.leaves.calendar.today': 'Today',
+    'hr.leaves.calendar.noOverlap': 'No critical overlap detected',
+    'hr.leaves.calendar.allPresent': 'All present today',
+    'hr.leaves.legend.pending': 'Pending',
+    'hr.summary.noLeaves': 'No leave requests at the moment.',
+    'hr.summary.noOffers': 'No job offers or applications in progress. Start by creating an offer!',
                 'hr.leaves.table.employee': 'Employee',
                 'hr.leaves.table.type': 'Type',
                 'hr.leaves.table.dates': 'Dates',
@@ -30516,7 +30521,7 @@ ${approvedLeaves.slice(-5).map(l => {
     const emp = employees.find(e => e.id === l.employeeId);
     return `  • ${emp ? emp.firstName + ' ' + emp.lastName : 'Employé inconnu'}: ${l.days} jours (${l.startDate} → ${l.endDate})`;
 }).join('\n')}` : ''}
-` : '📅 CONGÉS : Aucune demande de congé pour le moment.';
+` : '📅 CONGÉS : ' + t('hr.summary.noLeaves') + '';
 
                 // ========== PAIES ==========
                 const totalPayroll = currentMonthPayrolls.reduce((sum, p) => sum + (p.netSalary || 0), 0);
@@ -31144,11 +31149,9 @@ ${recruitmentInfo}
                         <div style="width: 80px; height: 80px; background: rgba(16, 185, 129, 0.2); border-radius: 16px; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px; border: 1px solid rgba(16, 185, 129, 0.3);">
                             <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
                         </div>
-                        <h3 style="margin: 0 0 12px; font-size: 20px; font-weight: 600; color: white;">Aucune demande de congé</h3>
-                        <p style="margin: 0 0 24px; font-size: 14px; color: rgba(255,255,255,0.6);">Commencez par créer votre première demande de congé</p>
-                        <button onclick="showAddLeaveModal()" class="hr-btn" style="padding: 12px 24px; font-size: 14px;">
-                            Nouvelle Demande
-                        </button>
+                        <h3 style="margin: 0 0 12px; font-size: 20px; font-weight: 600; color: white;">${t('hr.leaves.empty.title')}</h3>
+                        <p style="margin: 0 0 24px; font-size: 14px; color: rgba(255,255,255,0.6);">${t('hr.leaves.empty.desc')}</p>
+                        <button onclick="showAddLeaveModal()" class="hr-btn" style="padding: 12px 24px; font-size: 14px;">${t('hr.leaves.newRequestBtn')}</button>
                     </div>
                 `;
                 return;
@@ -31162,9 +31165,9 @@ ${recruitmentInfo}
             const employeesById = new Map(employees.map(e => [e.id, e]));
             
             const statusColors = {
-                pending: { color: '#f59e0b', label: 'En attente' },
-                approved: { color: '#10b981', label: 'Approuvée' },
-                rejected: { color: '#ef4444', label: 'Refusée' }
+                pending: { color: '#f59e0b', label: t('hr.leaves.status.pending') },
+                approved: { color: '#10b981', label: t('hr.leaves.status.approved') },
+                rejected: { color: '#ef4444', label: t('hr.leaves.status.rejected') }
             };
             
             const leaveTypes = {
@@ -31585,7 +31588,7 @@ ${recruitmentInfo}
                             </div>
                             <div style="display: flex; align-items: center; gap: 8px; background: rgba(255,255,255,0.05); padding: 8px 12px; border-radius: 8px; border: 1px solid rgba(245, 158, 11, 0.3);">
                                 <div style="width: 20px; height: 20px; background: rgba(255,255,255,0.05); border-radius: 4px; border: 2px dashed #f59e0b;"></div>
-                                <span style="font-size: 13px; color: rgba(255,255,255,0.9);">En attente</span>
+                                <span style="font-size: 13px; color: rgba(255,255,255,0.9);">${t('hr.leaves.legend.pending')}</span>
                             </div>
                         </div>
                     </div>
@@ -31667,7 +31670,7 @@ ${recruitmentInfo}
                     <div style="background: #D1FAE5; border-left: 4px solid #10B981; padding: 12px 16px; border-radius: 8px;">
                         <div style="display: flex; align-items: center; gap: 8px;">
                             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
-                            <span style="color: #065F46; font-size: 14px; font-weight: 600;">✅ Aucun chevauchement critique détecté</span>
+                            <span style="color: #065F46; font-size: 14px; font-weight: 600;">✅ ${t('hr.leaves.calendar.noOverlap')}</span>
                         </div>
                     </div>
                 `;
@@ -31826,7 +31829,7 @@ ${recruitmentInfo}
             );
             
             if (todayLeaves.length === 0) {
-                widget.innerHTML = '<span style="font-size: 13px; color: #10B981; font-weight: 600;">✅ Tous présents aujourd\'hui</span>';
+                widget.innerHTML = '<span style="font-size: 13px; color: #10B981; font-weight: 600;">✅ ' + t('hr.leaves.calendar.allPresent') + '</span>';
             } else {
                 const names = todayLeaves.map(l => {
                     const emp = employees.find(e => e.id === l.employeeId);
@@ -31895,9 +31898,9 @@ ${recruitmentInfo}
                 if (!employee) return;
                 
                 const statusColors = {
-                    'pending': { bg: 'rgba(251, 191, 36, 0.2)', text: '#fbbf24', label: 'En attente' },
-                    'validated': { bg: 'rgba(59, 130, 246, 0.2)', text: '#3b82f6', label: 'Validé' },
-                    'paid': { bg: 'rgba(16, 185, 129, 0.2)', text: '#10b981', label: 'Payé' }
+                    'pending': { bg: 'rgba(251, 191, 36, 0.2)', text: '#fbbf24', label: t('hr.payroll.status.pending') },
+                    'validated': { bg: 'rgba(59, 130, 246, 0.2)', text: '#3b82f6', label: t('hr.payroll.status.validated') },
+                    'paid': { bg: 'rgba(16, 185, 129, 0.2)', text: '#10b981', label: t('hr.payroll.status.paid') }
                 };
                 
                 const status = statusColors[payroll.status] || statusColors.pending;
