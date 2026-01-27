@@ -50,41 +50,41 @@
     let lastTranslatedText = '';
     
     // Définition des modes de traduction
-    const translationModes = {
+        const translationModes = {
         general: {
-            name: 'Général',
-            description: 'Traduction standard polyvalente',
-            prompt: 'Tu es un traducteur professionnel généraliste.'
+            get name() { return getAppLanguage() === 'en' ? 'General' : 'Général'; },
+            get description() { return getAppLanguage() === 'en' ? 'Standard versatile translation' : 'Traduction standard polyvalente'; },
+            get prompt() { return getAppLanguage() === 'en' ? 'You are a professional generalist translator.' : 'Tu es un traducteur professionnel généraliste.'; }
         },
         academic: {
-            name: 'Académique',
-            description: 'Style formel pour travaux universitaires',
-            prompt: 'Tu es un traducteur académique spécialisé. Utilise un style formel, précis et respectueux des normes universitaires. Privilégie la clarté et la rigueur scientifique.'
+            get name() { return getAppLanguage() === 'en' ? 'Academic' : 'Académique'; },
+            get description() { return getAppLanguage() === 'en' ? 'Formal style for academic work' : 'Style formel pour travaux universitaires'; },
+            get prompt() { return getAppLanguage() === 'en' ? 'You are a specialized academic translator. Use a formal, precise style respecting university standards. Prioritize clarity and scientific rigor.' : 'Tu es un traducteur académique spécialisé. Utilise un style formel, précis et respectueux des normes universitaires. Privilégie la clarté et la rigueur scientifique.'; }
         },
         scientific: {
-            name: 'Scientifique',
-            description: 'Terminologie scientifique et technique',
-            prompt: 'Tu es un traducteur scientifique expert. Utilise la terminologie scientifique précise, respecte les conventions de notation et préserve l\'exactitude des concepts techniques.'
+            get name() { return getAppLanguage() === 'en' ? 'Scientific' : 'Scientifique'; },
+            get description() { return getAppLanguage() === 'en' ? 'Scientific and technical terminology' : 'Terminologie scientifique et technique'; },
+            get prompt() { return getAppLanguage() === 'en' ? 'You are an expert scientific translator. Use precise scientific terminology, respect notation conventions, and preserve the accuracy of technical concepts.' : 'Tu es un traducteur scientifique expert. Utilise la terminologie scientifique précise, respecte les conventions de notation et préserve l\'exactitude des concepts techniques.'; }
         },
         legal: {
-            name: 'Juridique',
-            description: 'Vocabulaire juridique et contractuel',
-            prompt: 'Tu es un traducteur juridique spécialisé. Utilise le vocabulaire juridique approprié, respecte les formulations légales et maintiens la précision contractuelle.'
+            get name() { return getAppLanguage() === 'en' ? 'Legal' : 'Juridique'; },
+            get description() { return getAppLanguage() === 'en' ? 'Legal and contractual vocabulary' : 'Vocabulaire juridique et contractuel'; },
+            get prompt() { return getAppLanguage() === 'en' ? 'You are a specialized legal translator. Use appropriate legal vocabulary, respect legal formulations, and maintain contractual precision.' : 'Tu es un traducteur juridique spécialisé. Utilise le vocabulaire juridique approprié, respecte les formulations légales et maintiens la précision contractuelle.'; }
         },
         medical: {
-            name: 'Médical',
-            description: 'Termes médicaux et pharmaceutiques',
-            prompt: 'Tu es un traducteur médical expert. Utilise la terminologie médicale et pharmaceutique correcte, respecte les noms de pathologies et de traitements.'
+            get name() { return getAppLanguage() === 'en' ? 'Medical' : 'Médical'; },
+            get description() { return getAppLanguage() === 'en' ? 'Medical and pharmaceutical terms' : 'Termes médicaux et pharmaceutiques'; },
+            get prompt() { return getAppLanguage() === 'en' ? 'You are an expert medical translator. Use correct medical and pharmaceutical terminology, respect names of pathologies and treatments.' : 'Tu es un traducteur médical expert. Utilise la terminologie médicale et pharmaceutique correcte, respecte les noms de pathologies et de traitements.'; }
         },
         technical: {
-            name: 'Technique',
-            description: 'Jargon IT, ingénierie et technologie',
-            prompt: 'Tu es un traducteur technique spécialisé en IT et ingénierie. Utilise le jargon technique approprié, respecte les termes informatiques et technologiques.'
+            get name() { return getAppLanguage() === 'en' ? 'Technical' : 'Technique'; },
+            get description() { return getAppLanguage() === 'en' ? 'IT, engineering, and technology jargon' : 'Jargon IT, ingénierie et technologie'; },
+            get prompt() { return getAppLanguage() === 'en' ? 'You are a technical translator specialized in IT and engineering. Use appropriate technical jargon, respect computing and technological terms.' : 'Tu es un traducteur technique spécialisé en IT et ingénierie. Utilise le jargon technique approprié, respecte les termes informatiques et technologiques.'; }
         },
         business: {
-            name: 'Business',
-            description: 'Langage professionnel et commercial',
-            prompt: 'Tu es un traducteur business spécialisé. Utilise un langage professionnel, adapté au monde des affaires, avec un ton approprié pour la communication d\'entreprise.'
+            get name() { return getAppLanguage() === 'en' ? 'Business' : 'Business'; },
+            get description() { return getAppLanguage() === 'en' ? 'Professional and commercial language' : 'Langage professionnel et commercial'; },
+            get prompt() { return getAppLanguage() === 'en' ? 'You are a specialized business translator. Use professional language adapted to the business world, with a tone appropriate for corporate communication.' : 'Tu es un traducteur business spécialisé. Utilise un langage professionnel, adapté au monde des affaires, avec un ton approprié pour la communication d\'entreprise.'; }
         }
     };
     
@@ -235,7 +235,29 @@
                 window.updateTranslationLanguages();
                 
                 // Ajouter le message d'accueil
-                const welcomeMessage = `Bienvenue dans AI Text Pro
+                
+                const lang = getAppLanguage();
+                const welcomeMessage = (lang === 'en') ? `Welcome to AI Text Pro
+Your intelligent text processing and translation assistant.
+
+CORE CAPABILITIES
+• Professional translation in 7 languages
+• 7 specialized modes: General, Academic, Scientific, Legal, Medical, Technical, Business
+• Spelling and grammar correction
+• Document summary and synthesis
+• Rewriting and style optimization
+• Content analysis and structuring
+
+AVAILABLE TOOLS
+• Source/Target Comparison View
+• Multi-format export (PDF, TXT, DOCX)
+• Instant copy
+• Text-to-speech and Dictation
+• Real-time voice translation
+• File import
+• Word and character counter
+
+To start, select your languages in the sidebar and enter your text.` : `Bienvenue dans AI Text Pro
 Votre assistant intelligent de traitement et traduction de texte.
 
 CAPACITÉS PRINCIPALES

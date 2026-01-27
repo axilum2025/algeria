@@ -4983,7 +4983,7 @@
         function activateTeamAutoMode() {
             try { setChatType('team-auto'); } catch (_) {}
             try { closeAgentPicker(); } catch (_) {}
-            try { showToast('🤝 Team Auto activé', 'info'); } catch (_) {}
+            try { showToast(t('toast.teamAutoActivated'), 'info'); } catch (_) {}
             try {
                 addMessage('🤝 Team Auto activé. Posez votre question et je la route vers l’orchestrator.', 'bot');
             } catch (_) {}
@@ -5883,23 +5883,23 @@ RÈGLES IMPORTANTES:
                 });
                 const data = await res.json().catch(() => ({}));
                 if (res.status === 401) {
-                    try { showToast('🔒 Connectez-vous pour supprimer vos documents', 'info'); } catch (_) {}
+                    try { showToast(t('toast.loginToDelete'), 'info'); } catch (_) {}
                     if (resultsEl) resultsEl.textContent = 'Non authentifié.';
                     return;
                 }
                 if (!res.ok || !data || !data.ok) {
                     const err = (data && (data.error || data.details)) ? String(data.error || data.details) : `Erreur ${res.status}`;
                     if (resultsEl) resultsEl.textContent = `Erreur: ${err}`;
-                    try { showToast('❌ Suppression échouée', 'error'); } catch (_) {}
+                    try { showToast(t('toast.deleteFailed'), 'error'); } catch (_) {}
                     return;
                 }
 
                 clearDocsIndexedMeta();
                 if (resultsEl) resultsEl.textContent = `✅ Suppression OK (${Number(data.deleted || 0)} éléments supprimés).`;
-                try { showToast('✅ Documents supprimés', 'success'); } catch (_) {}
+                try { showToast(t('toast.documentsDeleted'), 'success'); } catch (_) {}
             } catch (e) {
                 if (resultsEl) resultsEl.textContent = `Erreur: ${e && e.message ? e.message : String(e)}`;
-                try { showToast('❌ Suppression échouée', 'error'); } catch (_) {}
+                try { showToast(t('toast.deleteFailed'), 'error'); } catch (_) {}
             }
         }
 
@@ -5990,7 +5990,7 @@ RÈGLES IMPORTANTES:
             });
 
             if (res.status === 401) {
-                try { showToast('🔒 Connectez-vous pour indexer vos documents', 'info'); } catch (_) {}
+                try { showToast(t('toast.loginToIndex'), 'info'); } catch (_) {}
                 return { ok: false, skipped: true, reason: 'no-auth', status: 401 };
             }
 
@@ -6018,7 +6018,7 @@ RÈGLES IMPORTANTES:
             if (t.length < 40) return;
 
             try {
-                try { showToast('📚 Indexation du document…', 'info'); } catch (_) {}
+                try { showToast(t('toast.indexingInProgress'), 'info'); } catch (_) {}
                 const r = await indexDocsFromText({ title: fileName, content: t, source: source || 'upload' });
                 if (r && r.ok) {
                     try {
@@ -6033,7 +6033,7 @@ RÈGLES IMPORTANTES:
                             renderDocsModalIndexed();
                         }
                     } catch (_) {}
-                    try { showToast('✅ Document indexé', 'success'); } catch (_) {}
+                    try { showToast(t('toast.documentIndexed'), 'success'); } catch (_) {}
                 } else if (r && r.error) {
                     const rawErr = String(r.error || '').trim();
                     const shortErr = rawErr.length > 180 ? (rawErr.slice(0, 180) + '…') : rawErr;
@@ -12223,6 +12223,38 @@ ${persona}
         // ========== I18N (FR/EN) ==========
         const I18N_STRINGS = {
             fr: {
+
+        'companySettings.title': 'Paramètres Entreprise',
+        'companySettings.subtitle': 'Informations de votre entreprise',
+        'companySettings.menu': 'MENU',
+        'companySettings.nav.general': 'Général',
+        'companySettings.nav.contact': 'Contact',
+        'companySettings.nav.currency': 'Devise',
+        'companySettings.nav.legal': 'Légal',
+        'companySettings.sectionTitle.general': 'Général',
+        'companySettings.sectionTitle.contact': 'Contact',
+        'companySettings.sectionTitle.currency': 'Devise',
+        'companySettings.sectionTitle.legal': 'Légal',
+        'companySettings.label.companyName': "Nom de l'entreprise *",
+        'companySettings.label.activity': "Domaine d'activité *",
+        'companySettings.label.address': "Adresse complète *",
+        'companySettings.label.phone': "Téléphone *",
+        'companySettings.label.email': "Email *",
+        'companySettings.label.currency': "Devise *",
+        'companySettings.label.registration': "Numéro SIRET/RC (optionnel)",
+        'companySettings.placeholder.companyName': 'Ex: Axilum',
+        'companySettings.placeholder.activity': 'Ex: Technologies, Commerce, Services...',
+        'companySettings.placeholder.address': 'Rue, ville, code postal, pays...',
+        'companySettings.placeholder.phone': '+213 XXX XXX XXX',
+        'companySettings.placeholder.email': 'contact@entreprise.com',
+        'companySettings.placeholder.registration': "Numéro d'enregistrement",
+        'companySettings.button.cancel': 'Annuler',
+        'companySettings.button.save': 'Enregistrer',
+        'companySettings.currency.eur': 'Euro (€)',
+        'companySettings.currency.usd': 'Dollar US ($)',
+        'companySettings.currency.mad': 'Dirham Marocain (MAD)',
+        'companySettings.currency.tnd': 'Dinar Tunisien (TND)',
+
                 'ui.newConversation': 'Nouvelle Conversation',
                 'ui.sessions': 'Sessions',
                 'ui.settings': 'Paramètres',
@@ -13161,6 +13193,13 @@ ${persona}
                 'ai.help.hint': "Astuce : survolez un modèle dans la liste pour voir son identifiant complet."
             },
             en: {
+                'toast.teamAutoActivated': '🤝 Team Auto activated',
+                'toast.loginToDelete': '🔒 Log in to delete your documents',
+                'toast.deleteFailed': '❌ Deletion failed',
+                'toast.documentsDeleted': '✅ Documents deleted',
+                'toast.loginToIndex': '🔒 Log in to index your documents',
+                'toast.indexingInProgress': '📚 Indexing document...',
+                'toast.documentIndexed': '✅ Document indexed',
                 'ui.newConversation': 'New Conversation',
                 'ui.sessions': 'Sessions',
                 'ui.settings': 'Settings',
@@ -13962,6 +14001,37 @@ ${persona}
                 'tts.stop': 'Stop playback',
                 'toast.transcriptionDone': '✅ Transcription complete',
                 'toast.voiceError': '❌ Voice recognition error',
+        'companySettings.title': 'Company Settings',
+        'companySettings.subtitle': 'Company Information',
+        'companySettings.menu': 'MENU',
+        'companySettings.nav.general': 'General',
+        'companySettings.nav.contact': 'Contact',
+        'companySettings.nav.currency': 'Currency',
+        'companySettings.nav.legal': 'Legal',
+        'companySettings.sectionTitle.general': 'General',
+        'companySettings.sectionTitle.contact': 'Contact',
+        'companySettings.sectionTitle.currency': 'Currency',
+        'companySettings.sectionTitle.legal': 'Legal',
+        'companySettings.label.companyName': 'Company Name *',
+        'companySettings.label.activity': 'Activity Field *',
+        'companySettings.label.address': 'Full Address *',
+        'companySettings.label.phone': 'Phone *',
+        'companySettings.label.email': 'Email *',
+        'companySettings.label.currency': 'Currency *',
+        'companySettings.label.registration': 'Registration Number (optional)',
+        'companySettings.placeholder.companyName': 'Ex: Axilum',
+        'companySettings.placeholder.activity': 'Ex: Technology, Commerce, Services...',
+        'companySettings.placeholder.address': 'Street, city, zip code, country...',
+        'companySettings.placeholder.phone': '+1 234 567 890',
+        'companySettings.placeholder.email': 'contact@company.com',
+        'companySettings.placeholder.registration': 'Registration Number',
+        'companySettings.button.cancel': 'Cancel',
+        'companySettings.button.save': 'Save',
+        'companySettings.currency.eur': 'Euro (€)',
+        'companySettings.currency.usd': 'US Dollar ($)',
+        'companySettings.currency.mad': 'Moroccan Dirham (MAD)',
+        'companySettings.currency.tnd': 'Tunisian Dinar (TND)',
+
                 'toast.noTextToRead': 'No text to read',
                 'voice.listening': "I'm listening...",
                 'voice.thinking': "Thinking...",
@@ -30746,53 +30816,52 @@ ${recruitmentInfo}
                 return;
             }
 
-            const lang = (typeof getAppLanguage === 'function' && getAppLanguage() === 'en') ? 'en' : 'fr';
-            const isEn = (lang === 'en');
             
-            const t = {
-                title: isEn ? 'Company Settings' : 'Paramètres Entreprise',
-                subtitle: isEn ? 'Company Information' : 'Informations de votre entreprise',
-                menu: 'MENU',
+            const loc = {
+                title: t('companySettings.title'),
+                subtitle: t('companySettings.subtitle'),
+                menu: t('companySettings.menu'),
                 nav: {
-                    general: isEn ? 'General' : 'Général',
-                    contact: isEn ? 'Contact' : 'Contact',
-                    currency: isEn ? 'Currency' : 'Devise',
-                    legal: isEn ? 'Legal' : 'Légal'
+                    general: t('companySettings.nav.general'),
+                    contact: t('companySettings.nav.contact'),
+                    currency: t('companySettings.nav.currency'),
+                    legal: t('companySettings.nav.legal')
                 },
                 sectionTitles: {
-                    general: isEn ? 'General' : 'Général',
-                    contact: isEn ? 'Contact' : 'Contact',
-                    currency: isEn ? 'Currency' : 'Devise',
-                    legal: isEn ? 'Legal' : 'Légal'
+                    general: t('companySettings.sectionTitle.general'),
+                    contact: t('companySettings.sectionTitle.contact'),
+                    currency: t('companySettings.sectionTitle.currency'),
+                    legal: t('companySettings.sectionTitle.legal')
                 },
                 labels: {
-                    companyName: isEn ? 'Company Name *' : "Nom de l'entreprise *",
-                    activity: isEn ? 'Activity Field *' : "Domaine d'activité *",
-                    address: isEn ? 'Full Address *' : "Adresse complète *",
-                    phone: isEn ? 'Phone *' : "Téléphone *",
-                    email: isEn ? 'Email *' : "Email *",
-                    currency: isEn ? 'Currency *' : "Devise *",
-                    registration: isEn ? 'Registration Number (optional)' : "Numéro SIRET/RC (optionnel)"
+                    companyName: t('companySettings.label.companyName'),
+                    activity: t('companySettings.label.activity'),
+                    address: t('companySettings.label.address'),
+                    phone: t('companySettings.label.phone'),
+                    email: t('companySettings.label.email'),
+                    currency: t('companySettings.label.currency'),
+                    registration: t('companySettings.label.registration')
                 },
                 placeholders: {
-                    companyName: isEn ? 'Ex: Axilum' : 'Ex: Axilum',
-                    activity: isEn ? 'Ex: Technology, Commerce, Services...' : 'Ex: Technologies, Commerce, Services...',
-                    address: isEn ? 'Street, city, zip code, country...' : 'Rue, ville, code postal, pays...',
-                    phone: isEn ? '+1 234 567 890' : '+213 XXX XXX XXX',
-                    email: isEn ? 'contact@company.com' : 'contact@entreprise.com',
-                    registration: isEn ? 'Registration Number' : "Numéro d'enregistrement"
+                    companyName: t('companySettings.placeholder.companyName'),
+                    activity: t('companySettings.placeholder.activity'),
+                    address: t('companySettings.placeholder.address'),
+                    phone: t('companySettings.placeholder.phone'),
+                    email: t('companySettings.placeholder.email'),
+                    registration: t('companySettings.placeholder.registration')
                 },
                 buttons: {
-                    cancel: isEn ? 'Cancel' : 'Annuler',
-                    save: isEn ? 'Save' : 'Enregistrer'
+                    cancel: t('companySettings.button.cancel'),
+                    save: t('companySettings.button.save')
                 },
                 currencies: {
-                    eur: isEn ? 'Euro (€)' : 'Euro (€)',
-                    usd: isEn ? 'US Dollar ($)' : 'Dollar US ($)',
-                    mad: isEn ? 'Moroccan Dirham (MAD)' : 'Dirham Marocain (MAD)',
-                    tnd: isEn ? 'Tunisian Dinar (TND)' : 'Dinar Tunisien (TND)'
+                    eur: t('companySettings.currency.eur'),
+                    usd: t('companySettings.currency.usd'),
+                    mad: t('companySettings.currency.mad'),
+                    tnd: t('companySettings.currency.tnd')
                 }
             };
+
             
             // Créer le panneau
             panel = document.createElement('div');
@@ -30817,17 +30886,17 @@ ${recruitmentInfo}
             panel.innerHTML = `
                 <div style="padding: 24px; border-bottom: 1px solid #e5e7eb;">
                     <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
-                        <h2 style="margin: 0; font-size: 20px; font-weight: 700; color: #1a1a1a;">${t.title}</h2>
+                        <h2 style="margin: 0; font-size: 20px; font-weight: 700; color: #1a1a1a;">${loc.title}</h2>
                         <button onclick="closeCompanySettings()" style="width: 36px; height: 36px; background: #f3f4f6; border: none; border-radius: 10px; cursor: pointer; display: flex; align-items: center; justify-content: center;" onmouseover="this.style.background='#e5e7eb'" onmouseout="this.style.background='#f3f4f6'">
                             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#1a1a1a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
                         </button>
                     </div>
-                    <p style="margin: 0; color: #6b7280; font-size: 13px;">${t.subtitle}</p>
+                    <p style="margin: 0; color: #6b7280; font-size: 13px;">${loc.subtitle}</p>
                 </div>
 
                 <div style="display:flex; height: calc(100vh - 98px);">
                     <div style="width: 170px; border-right: 1px solid #e5e7eb; padding: 14px; background: #f9fafb;">
-                        <div style="font-size: 12px; font-weight: 700; color: #6b7280; letter-spacing: .04em; text-transform: uppercase; margin: 2px 0 10px;">${t.menu}</div>
+                        <div style="font-size: 12px; font-weight: 700; color: #6b7280; letter-spacing: .04em; text-transform: uppercase; margin: 2px 0 10px;">${loc.menu}</div>
 
                         <button type="button" id="companySettingsNav_general" onclick="showCompanySettingsSection('general')" style="width: 100%; text-align: left; padding: 10px 12px; border-radius: 10px; border: 1px solid #e5e7eb; background: white; cursor: pointer; font-size: 13px; font-weight: 600; color: #111827; margin-bottom: 10px;">
                             ${t.nav.general}
