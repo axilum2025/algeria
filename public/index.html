@@ -7279,7 +7279,7 @@ RÈGLES IMPORTANTES:
             const payrollStatus = byStatus(payrolls, 'status');
 
             const topEmployees = (Array.isArray(employees) ? employees : []).slice(0, 5).map(e => {
-                const fullName = [e?.firstName, e?.lastName].filter(Boolean).join(' ').trim() || 'Employé';
+                const fullName = [e?.firstName, e?.lastName].filter(Boolean).join(' ').trim() || t('hr.employee.defaultPosition');
                 const dept = e?.department ? ` | Département: ${e.department}` : '';
                 const pos = e?.position ? ` | Poste: ${e.position}` : '';
                 const status = e?.status ? ` | Statut: ${e.status}` : '';
@@ -12937,6 +12937,22 @@ ${persona}
                 'hr.payroll.generateAllBtn': 'Générer Tous',
                 'hr.payroll.newSlipBtn': 'Nouveau Bulletin',
     'hr.payroll.modal.newTitle': 'Nouveau Bulletin de Paie',
+    'hr.payroll.modal.employee': 'Employé',
+    'hr.payroll.modal.selectEmployee': 'Sélectionner un employé...',
+    'hr.payroll.modal.period': 'Période',
+    'hr.payroll.modal.baseSalary': 'Salaire de base',
+    'hr.payroll.modal.bonuses': 'Primes',
+    'hr.payroll.modal.overtime': 'Heures sup. (h)',
+    'hr.payroll.modal.bonusesAndBonus': 'Primes & Bonus',
+    'hr.payroll.modal.addBtn': 'Ajouter',
+    'hr.payroll.modal.bonusTip': 'Ajoutez des primes, bonus ou indemnités supplémentaires',
+    'hr.payroll.modal.deductions': 'Déductions',
+    'hr.payroll.modal.grossSalary': 'Salaire brut',
+    'hr.payroll.modal.netSalary': 'Salaire net',
+    'hr.payroll.modal.cancel': 'Annuler',
+    'hr.payroll.modal.create': 'Créer le Bulletin',
+    'hr.payroll.modal.noEmployees': 'Veuillez d\'abord créer des employés',
+    'hr.employee.defaultPosition': 'Employé',
                 
                 'hr.agent.title': 'Agent RH',
                 'hr.agent.desc': 'Assistant IA pour la gestion RH (employés, congés, paie, recrutement, évaluations)',
@@ -13684,6 +13700,22 @@ ${persona}
                 'hr.payroll.generateAllBtn': 'Generate All',
                 'hr.payroll.newSlipBtn': 'New Slips',
     'hr.payroll.modal.newTitle': 'New Payslip',
+    'hr.payroll.modal.employee': 'Employee',
+    'hr.payroll.modal.selectEmployee': 'Select an employee...',
+    'hr.payroll.modal.period': 'Period',
+    'hr.payroll.modal.baseSalary': 'Base Salary',
+    'hr.payroll.modal.bonuses': 'Bonuses',
+    'hr.payroll.modal.overtime': 'Overtime (h)',
+    'hr.payroll.modal.bonusesAndBonus': 'Bonuses & Premiums',
+    'hr.payroll.modal.addBtn': 'Add',
+    'hr.payroll.modal.bonusTip': 'Add bonuses, premiums or additional allowances',
+    'hr.payroll.modal.deductions': 'Deductions',
+    'hr.payroll.modal.grossSalary': 'Gross Salary',
+    'hr.payroll.modal.netSalary': 'Net Salary',
+    'hr.payroll.modal.cancel': 'Cancel',
+    'hr.payroll.modal.create': 'Create Payslip',
+    'hr.payroll.modal.noEmployees': 'Please create employees first',
+    'hr.employee.defaultPosition': 'Employee',
 
                 'hr.agent.title': 'HR Agent',
                 'hr.agent.desc': 'AI Assistant for HR management (employees, leaves, payroll, recruitment, reviews)',
@@ -27133,7 +27165,7 @@ function showAddProjectModal() {
                     <form id="mktModalForm" style="padding: 16px 18px 18px;">
                         ${bodyHtml}
                         <div style="display:flex; justify-content:flex-end; gap: 10px; margin-top: 14px;">
-                            <button type="button" class="mkt-btn" style="padding: 12px 16px; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.18);" onclick="mktCloseModal()">Annuler</button>
+                            <button type="button" class="mkt-btn" style="padding: 12px 16px; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.18);" onclick="mktCloseModal()">\${t('hr.payroll.modal.cancel')}</button>
                             <button type="submit" class="mkt-btn" style="padding: 12px 16px;">${mktEscapeHtml(primaryLabel)}</button>
                         </div>
                     </form>
@@ -31921,7 +31953,7 @@ ${recruitmentInfo}
                                 </div>
                                 <div>
                                     <div style="font-weight: 600; color: white;">${employee.firstName} ${employee.lastName}</div>
-                                    <div style="font-size: 12px; color: rgba(255, 255, 255, 0.6);">${employee.position || 'Employé'}</div>
+                                    <div style="font-size: 12px; color: rgba(255, 255, 255, 0.6);">${employee.position || t('hr.employee.defaultPosition')}</div>
                                 </div>
                             </div>
                         </td>
@@ -32018,12 +32050,12 @@ ${recruitmentInfo}
             const employees = getHRData('hrEmployees');
             
             if (employees.length === 0) {
-                showToast('Veuillez d\'abord créer des employés', 'warning');
+                showToast(t('hr.payroll.modal.noEmployees'), 'warning');
                 return;
             }
             
             const employeeOptions = employees.map(emp => 
-                `<option value="${emp.id}" style="background: #1e3a8a; color: white;">${emp.firstName} ${emp.lastName} - ${emp.position || 'Employé'}</option>`
+                `<option value="${emp.id}" style="background: #1e3a8a; color: white;">${emp.firstName} ${emp.lastName} - ${emp.position || t('hr.employee.defaultPosition')}</option>`
             ).join('');
             
             const modal = document.createElement('div');
@@ -32041,59 +32073,55 @@ ${recruitmentInfo}
                     
                     <form id="addPayrollForm" onsubmit="handleAddPayroll(event); return false;" style="display: flex; flex-direction: column; gap: 16px;">
                         <div>
-                            <label style="display: block; margin-bottom: 6px; font-size: 14px; font-weight: 600; color: rgba(255, 255, 255, 0.9);">Employé *</label>
+                            <label style="display: block; margin-bottom: 6px; font-size: 14px; font-weight: 600; color: rgba(255, 255, 255, 0.9);">\${t('hr.payroll.modal.employee')} *</label>
                             <select id="payrollEmployeeSelect" name="employeeId" required onchange="fillEmployeeSalary()" style="width: 100%; padding: 12px; background: rgba(255,255,255,0.08); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 10px; font-size: 14px; color: white; cursor: pointer; transition: all 0.2s;" onfocus="this.style.borderColor='#10b981'; this.style.background='rgba(255,255,255,0.12)'" onblur="this.style.borderColor='rgba(16, 185, 129, 0.3)'; this.style.background='rgba(255,255,255,0.08)'">
-                                <option value="" style="background: #1e3a8a; color: white;">Sélectionner un employé...</option>
+                                <option value="" style="background: #1e3a8a; color: white;">\${t('hr.payroll.modal.selectEmployee')}</option>
                                 ${employeeOptions}
                             </select>
                         </div>
                         
                         <div>
-                            <label style="display: block; margin-bottom: 6px; font-size: 14px; font-weight: 600; color: rgba(255, 255, 255, 0.9);">Période *</label>
+                            <label style="display: block; margin-bottom: 6px; font-size: 14px; font-weight: 600; color: rgba(255, 255, 255, 0.9);">\${t('hr.payroll.modal.period')} *</label>
                             <input type="month" name="period" required value="${new Date().toISOString().slice(0, 7)}" style="width: 100%; padding: 12px; background: rgba(255,255,255,0.08); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 10px; font-size: 14px; color: white; transition: all 0.2s;" onfocus="this.style.borderColor='#10b981'; this.style.background='rgba(255,255,255,0.12)'" onblur="this.style.borderColor='rgba(16, 185, 129, 0.3)'; this.style.background='rgba(255,255,255,0.08)'">
                         </div>
                         
                         <div>
-                            <label style="display: block; margin-bottom: 6px; font-size: 14px; font-weight: 600; color: rgba(255, 255, 255, 0.9);">Salaire de base *</label>
+                            <label style="display: block; margin-bottom: 6px; font-size: 14px; font-weight: 600; color: rgba(255, 255, 255, 0.9);">\${t('hr.payroll.modal.baseSalary')} *</label>
                             <input type="number" id="payrollBaseSalary" name="baseSalary" required min="0" step="0.01" placeholder="45000" style="width: 100%; padding: 12px; background: rgba(255,255,255,0.08); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 10px; font-size: 14px; color: white; transition: all 0.2s;" onfocus="this.style.borderColor='#10b981'; this.style.background='rgba(255,255,255,0.12)'" onblur="this.style.borderColor='rgba(16, 185, 129, 0.3)'; this.style.background='rgba(255,255,255,0.08)'" oninput="calculatePayroll()">
                         </div>
                         
                         <!-- Section Primes/Bonus personnalisés -->
                         <div style="background: rgba(16, 185, 129, 0.1); border-radius: 12px; padding: 16px; border: 1px solid rgba(16, 185, 129, 0.3); overflow: hidden;">
                             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
-                                <h4 style="margin: 0; font-size: 14px; font-weight: 700; color: #10b981;">➕ Primes & Bonus</h4>
+                                <h4 style="margin: 0; font-size: 14px; font-weight: 700; color: #10b981;">➕ \${t('hr.payroll.modal.bonusesAndBonus')}</h4>
                                 <button type="button" onclick="addBonusRow()" style="padding: 6px 12px; background: rgba(16, 185, 129, 0.2); border: 1px solid rgba(16, 185, 129, 0.4); border-radius: 8px; color: #10b981; font-size: 12px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 4px; transition: all 0.2s;" onmouseover="this.style.background='rgba(16, 185, 129, 0.3)'" onmouseout="this.style.background='rgba(16, 185, 129, 0.2)'">
-                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-                                    Ajouter
-                                </button>
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>${t('hr.payroll.modal.addBtn')}</button>
                             </div>
                             
                             <div id="bonusesContainer" style="margin-bottom: 8px; overflow: visible;">
                                 <!-- Bonus dynamiques -->
                             </div>
                             
-                            <p style="margin: 0; font-size: 11px; color: rgba(16, 185, 129, 0.8); font-style: italic;">💡 Ajoutez des primes, bonus ou indemnités supplémentaires</p>
+                            <p style="margin: 0; font-size: 11px; color: rgba(16, 185, 129, 0.8); font-style: italic;">💡 \${t('hr.payroll.modal.bonusTip')}</p>
                         </div>
                         
                         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
                             <div>
-                                <label style="display: block; margin-bottom: 6px; font-size: 14px; font-weight: 600; color: rgba(255, 255, 255, 0.9);">Primes</label>
+                                <label style="display: block; margin-bottom: 6px; font-size: 14px; font-weight: 600; color: rgba(255, 255, 255, 0.9);">\${t('hr.payroll.modal.bonuses')}</label>
                                 <input type="number" name="bonuses" min="0" step="0.01" value="0" placeholder="0" style="width: 100%; padding: 12px; background: rgba(255,255,255,0.08); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 10px; font-size: 14px; color: white; transition: all 0.2s;" onfocus="this.style.borderColor='#10b981'; this.style.background='rgba(255,255,255,0.12)'" onblur="this.style.borderColor='rgba(16, 185, 129, 0.3)'; this.style.background='rgba(255,255,255,0.08)'" oninput="calculatePayroll()">
                             </div>
                             
                             <div>
-                                <label style="display: block; margin-bottom: 6px; font-size: 14px; font-weight: 600; color: rgba(255, 255, 255, 0.9);">Heures sup. (h)</label>
+                                <label style="display: block; margin-bottom: 6px; font-size: 14px; font-weight: 600; color: rgba(255, 255, 255, 0.9);">\${t('hr.payroll.modal.overtime')}</label>
                                 <input type="number" name="overtime" min="0" step="0.5" value="0" placeholder="0" style="width: 100%; padding: 12px; background: rgba(255,255,255,0.08); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 10px; font-size: 14px; color: white; transition: all 0.2s;" onfocus="this.style.borderColor='#10b981'; this.style.background='rgba(255,255,255,0.12)'" onblur="this.style.borderColor='rgba(16, 185, 129, 0.3)'; this.style.background='rgba(255,255,255,0.08)'" oninput="calculatePayroll()">
                             </div>
                         </div>
                         
                         <div style="background: rgba(255,255,255,0.05); border-radius: 12px; padding: 16px; border: 1px solid rgba(16, 185, 129, 0.3);">
                             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
-                                <h4 style="margin: 0; font-size: 14px; font-weight: 700; color: rgba(255, 255, 255, 0.9);">Déductions</h4>
+                                <h4 style="margin: 0; font-size: 14px; font-weight: 700; color: rgba(255, 255, 255, 0.9);">\${t('hr.payroll.modal.deductions')}</h4>
                                 <button type="button" onclick="addDeductionRow()" style="padding: 6px 12px; background: rgba(99, 102, 241, 0.2); border: 1px solid rgba(99, 102, 241, 0.4); border-radius: 8px; color: #6366F1; font-size: 12px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 4px; transition: all 0.2s;" onmouseover="this.style.background='rgba(99, 102, 241, 0.3)'" onmouseout="this.style.background='rgba(99, 102, 241, 0.2)'">
-                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-                                    Ajouter
-                                </button>
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>${t('hr.payroll.modal.addBtn')}</button>
                             </div>
                             
                             <div id="deductionsContainer" style="margin-bottom: 12px;">
@@ -32102,7 +32130,7 @@ ${recruitmentInfo}
                             
                             <div style="background: rgba(255,255,255,0.08); border-radius: 8px; padding: 12px; margin-bottom: 12px; backdrop-filter: blur(10px);">
                                 <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
-                                    <span style="font-size: 13px; color: rgba(255, 255, 255, 0.7);">Salaire brut</span>
+                                    <span style="font-size: 13px; color: rgba(255, 255, 255, 0.7);">\${t('hr.payroll.modal.grossSalary')}</span>
                                     <span id="calculatedGrossSalary" style="font-size: 13px; color: white; font-weight: 600;">0</span>
                                 </div>
                                 <div id="bonusesSummary" style="margin-bottom: 8px;">
@@ -32114,18 +32142,14 @@ ${recruitmentInfo}
                             </div>
                             
                             <div style="border-top: 1px solid rgba(16, 185, 129, 0.3); padding-top: 12px; display: flex; justify-content: space-between;">
-                                <span style="font-size: 14px; color: rgba(255, 255, 255, 0.9); font-weight: 700;">💰 Salaire net</span>
+                                <span style="font-size: 14px; color: rgba(255, 255, 255, 0.9); font-weight: 700;">💰 \${t('hr.payroll.modal.netSalary')}</span>
                                 <span id="calculatedNetSalary" style="font-size: 16px; color: #10b981; font-weight: 700;">0</span>
                             </div>
                         </div>
                         
                         <div style="display: flex; gap: 12px; margin-top: 8px;">
-                            <button type="button" onclick="closeAddPayrollModal()" style="flex: 1; padding: 12px; background: rgba(255,255,255,0.1); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 10px; color: white; font-weight: 600; cursor: pointer; transition: all 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.15)'" onmouseout="this.style.background='rgba(255,255,255,0.1)'">
-                                Annuler
-                            </button>
-                            <button type="submit" class="hr-btn" style="flex: 1; padding: 12px; font-size: 14px; font-weight: 600;">
-                                Créer le Bulletin
-                            </button>
+                            <button type="button" onclick="closeAddPayrollModal()" style="flex: 1; padding: 12px; background: rgba(255,255,255,0.1); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 10px; color: white; font-weight: 600; cursor: pointer; transition: all 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.15)'" onmouseout="this.style.background='rgba(255,255,255,0.1)'">${t('hr.payroll.modal.cancel')}</button>
+                            <button type="submit" class="hr-btn" style="flex: 1; padding: 12px; font-size: 14px; font-weight: 600;">${t('hr.payroll.modal.create')}</button>
                         </div>
                     </form>
                 </div>
@@ -32536,7 +32560,7 @@ ${recruitmentInfo}
                             }
                             <div>
                                 <h3 style="margin: 0 0 4px; font-size: 20px; font-weight: 700; color: white;">${employee.firstName} ${employee.lastName}</h3>
-                                <p style="margin: 0; font-size: 14px; color: rgba(255, 255, 255, 0.8);">${employee.position || 'Employé'}</p>
+                                <p style="margin: 0; font-size: 14px; color: rgba(255, 255, 255, 0.8);">${employee.position || t('hr.employee.defaultPosition')}</p>
                             </div>
                         </div>
                     </div>
@@ -32571,7 +32595,7 @@ ${recruitmentInfo}
                         : ''}
                         
                         <div style="display: flex; justify-content: space-between; margin-bottom: 16px; padding-bottom: 16px; border-bottom: 1px solid rgba(16, 185, 129, 0.2);">
-                            <span style="font-size: 14px; color: rgba(255, 255, 255, 0.7); font-weight: 600;">Salaire brut</span>
+                            <span style="font-size: 14px; color: rgba(255, 255, 255, 0.7); font-weight: 600;">\${t('hr.payroll.modal.grossSalary')}</span>
                             <span style="font-size: 16px; color: white; font-weight: 700;">${payroll.grossSalary.toLocaleString()} ${currency}</span>
                         </div>
                         
@@ -32772,7 +32796,7 @@ ${recruitmentInfo}
                                 }
                                 <div style="flex: 1;">
                                     <h4 style="margin: 0 0 4px; font-size: 16px; font-weight: 700; color: white;">${employee.firstName} ${employee.lastName}</h4>
-                                    <p style="margin: 0; font-size: 13px; color: rgba(255,255,255,0.7);">${employee.position || 'Employé'}</p>
+                                    <p style="margin: 0; font-size: 13px; color: rgba(255,255,255,0.7);">${employee.position || t('hr.employee.defaultPosition')}</p>
                                 </div>
                             </div>
                             
@@ -32910,17 +32934,17 @@ ${recruitmentInfo}
                     <form onsubmit="handleAddReview(event)">
                         <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; margin-bottom: 20px;">
                             <div>
-                                <label style="display: block; margin-bottom: 6px; font-size: 13px; font-weight: 700; color: rgba(255,255,255,0.85);">Employé *</label>
+                                <label style="display: block; margin-bottom: 6px; font-size: 13px; font-weight: 700; color: rgba(255,255,255,0.85);">\${t('hr.payroll.modal.employee')} *</label>
                                 <select name="employeeId" required style="width: 100%; padding: 12px 14px; background: rgba(255,255,255,0.08); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 12px; font-size: 14px; color: white; cursor: pointer;" onfocus="this.style.borderColor='#10b981'; this.style.background='rgba(255,255,255,0.12)'" onblur="this.style.borderColor='rgba(16, 185, 129, 0.3)'; this.style.background='rgba(255,255,255,0.08)'">
                                     <option value="">Sélectionner...</option>
                                     ${employees.map(emp => 
-                                        `<option value="${emp.id}" style="background: #1e3a8a; color: white;">${emp.firstName} ${emp.lastName} - ${emp.position || 'Employé'}</option>`
+                                        `<option value="${emp.id}" style="background: #1e3a8a; color: white;">${emp.firstName} ${emp.lastName} - ${emp.position || t('hr.employee.defaultPosition')}</option>`
                                     ).join('')}
                                 </select>
                             </div>
                             
                             <div>
-                                <label style="display: block; margin-bottom: 6px; font-size: 13px; font-weight: 700; color: rgba(255,255,255,0.85);">Période *</label>
+                                <label style="display: block; margin-bottom: 6px; font-size: 13px; font-weight: 700; color: rgba(255,255,255,0.85);">\${t('hr.payroll.modal.period')} *</label>
                                 <input type="text" name="period" placeholder="Ex: Q4 2025, Annuelle 2025" required style="width: 100%; padding: 12px 14px; background: rgba(255,255,255,0.08); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 12px; font-size: 14px; color: white;" onfocus="this.style.borderColor='#10b981'; this.style.background='rgba(255,255,255,0.12)'" onblur="this.style.borderColor='rgba(16, 185, 129, 0.3)'; this.style.background='rgba(255,255,255,0.08)'">
                             </div>
                             
@@ -33053,9 +33077,7 @@ ${recruitmentInfo}
                         </div>
                         
                         <div style="display: flex; gap: 12px;">
-                            <button type="button" onclick="closeAddReviewModal()" style="flex: 1; padding: 12px; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); border-radius: 12px; font-weight: 700; cursor: pointer; color: white; transition: all 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.18)'" onmouseout="this.style.background='rgba(255,255,255,0.1)'">
-                                Annuler
-                            </button>
+                            <button type="button" onclick="closeAddReviewModal()" style="flex: 1; padding: 12px; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); border-radius: 12px; font-weight: 700; cursor: pointer; color: white; transition: all 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.18)'" onmouseout="this.style.background='rgba(255,255,255,0.1)'">${t('hr.payroll.modal.cancel')}</button>
                             <button type="submit" class="hr-btn" style="flex: 1; padding: 12px; font-weight: 700; border-radius: 12px;">
                                 Créer l'Évaluation
                             </button>
@@ -33214,7 +33236,7 @@ ${recruitmentInfo}
                             }
                             <div style="flex: 1;">
                                 <h3 style="margin: 0 0 4px; font-size: 20px; font-weight: 700;">${employee.firstName} ${employee.lastName}</h3>
-                                <p style="margin: 0; font-size: 14px; opacity: 0.85;">${employee.position || 'Employé'}</p>
+                                <p style="margin: 0; font-size: 14px; opacity: 0.85;">${employee.position || t('hr.employee.defaultPosition')}</p>
                             </div>
                             <div style="text-align: center;">
                                 <div style="font-size: 48px; font-weight: 700; margin-bottom: 4px;">${overallRating}</div>
@@ -33814,7 +33836,7 @@ ${recruitmentInfo}
                                 }
                                 <div style="flex: 1;">
                                     <h4 style="margin: 0 0 4px; font-size: 16px; font-weight: 700; color: white;">${employee.firstName} ${employee.lastName}</h4>
-                                    <p style="margin: 0; font-size: 13px; color: rgba(255,255,255,0.6);">${employee.position || 'Employé'}</p>
+                                    <p style="margin: 0; font-size: 13px; color: rgba(255,255,255,0.6);">${employee.position || t('hr.employee.defaultPosition')}</p>
                                 </div>
                             </div>
                             
@@ -33988,7 +34010,7 @@ ${recruitmentInfo}
                             }
                             <div style="flex: 1;">
                                 <h3 style="margin: 0 0 4px; font-size: 20px; font-weight: 700;">${employee.firstName} ${employee.lastName}</h3>
-                                <p style="margin: 0; font-size: 14px; opacity: 0.9;">${employee.position || 'Employé'}</p>
+                                <p style="margin: 0; font-size: 14px; opacity: 0.9;">${employee.position || t('hr.employee.defaultPosition')}</p>
                             </div>
                             <div class="turnover-modal-score" style="text-align: center;">
                                 <div class="turnover-modal-score-value" style="font-size: 48px; font-weight: 700; margin-bottom: 4px;">${analysis.riskScore}%</div>
@@ -40147,9 +40169,7 @@ Si aucun problème: réponds "Aucun problème détecté"`;
                     </div>
                     
                     <div id="cleanActions" style="display: flex; gap: 12px; justify-content: flex-end;">
-                        <button onclick="closeCleanPreview()" style="padding: 12px 24px; background: white; border: 2px solid var(--border-color); border-radius: 10px; color: var(--text-primary); cursor: pointer; font-weight: 600; font-size: 14px; transition: all 0.2s;" onmouseover="this.style.background='#F3F4F6'" onmouseout="this.style.background='white'">
-                            Annuler
-                        </button>
+                        <button onclick="closeCleanPreview()" style="padding: 12px 24px; background: white; border: 2px solid var(--border-color); border-radius: 10px; color: var(--text-primary); cursor: pointer; font-weight: 600; font-size: 14px; transition: all 0.2s;" onmouseover="this.style.background='#F3F4F6'" onmouseout="this.style.background='white'">${t('hr.payroll.modal.cancel')}</button>
                         <button onclick="applyCleanData()" style="padding: 12px 24px; background: linear-gradient(135deg, #10B981, #059669); border: none; border-radius: 10px; color: white; cursor: pointer; font-weight: 600; font-size: 14px; transition: all 0.2s; box-shadow: 0 4px 12px rgba(16,185,129,0.3);" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 20px rgba(16,185,129,0.4)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 12px rgba(16,185,129,0.3)'">
                             Appliquer le nettoyage
                         </button>
@@ -40335,9 +40355,7 @@ Si aucun problème: réponds "Aucun problème détecté"`;
                     </div>
                     
                     <div style="display: flex; gap: 12px; justify-content: flex-end;">
-                        <button onclick="closeDuplicatesPreview()" style="padding: 12px 24px; background: white; border: 2px solid var(--border-color); border-radius: 10px; color: var(--text-primary); cursor: pointer; font-weight: 600; font-size: 14px; transition: all 0.2s;" onmouseover="this.style.background='#F3F4F6'" onmouseout="this.style.background='white'">
-                            Annuler
-                        </button>
+                        <button onclick="closeDuplicatesPreview()" style="padding: 12px 24px; background: white; border: 2px solid var(--border-color); border-radius: 10px; color: var(--text-primary); cursor: pointer; font-weight: 600; font-size: 14px; transition: all 0.2s;" onmouseover="this.style.background='#F3F4F6'" onmouseout="this.style.background='white'">${t('hr.payroll.modal.cancel')}</button>
                         <button onclick="applyRemoveDuplicates()" style="padding: 12px 24px; background: linear-gradient(135deg, #EF4444, #DC2626); border: none; border-radius: 10px; color: white; cursor: pointer; font-weight: 600; font-size: 14px; transition: all 0.2s; box-shadow: 0 4px 12px rgba(239,68,68,0.3);" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 20px rgba(239,68,68,0.4)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 12px rgba(239,68,68,0.3)'">
                             Supprimer les doublons
                         </button>
@@ -40642,9 +40660,7 @@ Réponds UNIQUEMENT dans ce format JSON:
                     </div>
                     
                     <div style="display: flex; gap: 12px; justify-content: flex-end;">
-                        <button onclick="closeKPIPreview()" style="padding: 12px 24px; background: white; border: 2px solid var(--border-color); border-radius: 10px; color: var(--text-primary); cursor: pointer; font-weight: 600; font-size: 14px; transition: all 0.2s;" onmouseover="this.style.background='#F3F4F6'" onmouseout="this.style.background='white'">
-                            Annuler
-                        </button>
+                        <button onclick="closeKPIPreview()" style="padding: 12px 24px; background: white; border: 2px solid var(--border-color); border-radius: 10px; color: var(--text-primary); cursor: pointer; font-weight: 600; font-size: 14px; transition: all 0.2s;" onmouseover="this.style.background='#F3F4F6'" onmouseout="this.style.background='white'">${t('hr.payroll.modal.cancel')}</button>
                         <button onclick="applyKPI()" style="padding: 12px 24px; background: linear-gradient(135deg, #6366F1, #8B5CF6); border: none; border-radius: 10px; color: white; cursor: pointer; font-weight: 600; font-size: 14px; transition: all 0.2s; box-shadow: 0 4px 12px rgba(99,102,241,0.3);" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 20px rgba(99,102,241,0.4)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 12px rgba(99,102,241,0.3)'">
                             Ajouter les KPI
                         </button>
@@ -40947,9 +40963,7 @@ Réponds UNIQUEMENT dans ce format JSON:
                     </div>
                     
                     <div style="display: flex; gap: 12px; justify-content: flex-end;">
-                        <button onclick="closeFormulasPreview()" style="padding: 12px 24px; background: white; border: 2px solid var(--border-color); border-radius: 10px; color: var(--text-primary); cursor: pointer; font-weight: 600; font-size: 14px; transition: all 0.2s;" onmouseover="this.style.background='#F3F4F6'" onmouseout="this.style.background='white'">
-                            Annuler
-                        </button>
+                        <button onclick="closeFormulasPreview()" style="padding: 12px 24px; background: white; border: 2px solid var(--border-color); border-radius: 10px; color: var(--text-primary); cursor: pointer; font-weight: 600; font-size: 14px; transition: all 0.2s;" onmouseover="this.style.background='#F3F4F6'" onmouseout="this.style.background='white'">${t('hr.payroll.modal.cancel')}</button>
                         <button onclick="applyFormulas()" style="padding: 12px 24px; background: linear-gradient(135deg, #10B981, #059669); border: none; border-radius: 10px; color: white; cursor: pointer; font-weight: 600; font-size: 14px; transition: all 0.2s; box-shadow: 0 4px 12px rgba(16,185,129,0.3);" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 20px rgba(16,185,129,0.4)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 12px rgba(16,185,129,0.3)'">
                             Ajouter la ligne TOTAUX
                         </button>
@@ -41310,9 +41324,7 @@ Réponds UNIQUEMENT dans ce format JSON:
                     </div>
                     
                     <div style="display: flex; gap: 12px; justify-content: flex-end;">
-                        <button onclick="closeChartsPreview()" style="padding: 12px 24px; background: white; border: 2px solid var(--border-color); border-radius: 10px; color: var(--text-primary); cursor: pointer; font-weight: 600; font-size: 14px; transition: all 0.2s;" onmouseover="this.style.background='#F3F4F6'" onmouseout="this.style.background='white'">
-                            Annuler
-                        </button>
+                        <button onclick="closeChartsPreview()" style="padding: 12px 24px; background: white; border: 2px solid var(--border-color); border-radius: 10px; color: var(--text-primary); cursor: pointer; font-weight: 600; font-size: 14px; transition: all 0.2s;" onmouseover="this.style.background='#F3F4F6'" onmouseout="this.style.background='white'">${t('hr.payroll.modal.cancel')}</button>
                         <button onclick="applyChartsToSheet()" style="padding: 12px 24px; background: linear-gradient(135deg, #EC4899, #DB2777); border: none; border-radius: 10px; color: white; cursor: pointer; font-weight: 600; font-size: 14px; transition: all 0.2s; box-shadow: 0 4px 12px rgba(236,72,153,0.3);" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 20px rgba(236,72,153,0.4)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 12px rgba(236,72,153,0.3)'">
                             📊 Ajouter à la feuille
                         </button>
