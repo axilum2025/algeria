@@ -12624,6 +12624,16 @@ ${persona}
                 'hr.employees.details.btn.close': 'Fermer',
                 'hr.employees.details.btn.certificate': 'Générer une attestation de travail',
                 
+                
+    // Common HR
+    'hr.common.employee': 'Employé',
+    'hr.common.type': 'Type',
+    'hr.common.startDate': 'Date Début',
+    'hr.common.endDate': 'Date Fin',
+    'hr.common.duration': 'Durée',
+    'hr.common.status': 'Statut',
+    'hr.common.actions': 'Actions',
+    'hr.common.date': 'Date',
                 'hr.common.year': 'an',
                 'hr.common.years': 'ans',
                 'hr.common.month': 'mois',
@@ -12906,6 +12916,14 @@ ${persona}
                 'hr.employees.deleteConfirm': 'Supprimer cet employé ?',
 
                 'hr.leaves.title': 'Gestion des Congés',
+
+    // Payroll
+    'hr.payroll.period': 'Période',
+    'hr.payroll.grossSalary': 'Salaire Brut',
+    'hr.payroll.netSalary': 'Salaire Net',
+
+    'hr.reviews.recommendedActions': 'Actions recommandées',
+    'hr.reviews.preventiveActions': 'Actions préventives recommandées',
                 'hr.leaves.newRequestBtn': 'Nouvelle demande',
                 'hr.leaves.table.employee': 'Employé',
                 'hr.leaves.table.type': 'Type',
@@ -13544,7 +13562,25 @@ ${persona}
                 'hr.employees.details.btn.close': 'Close',
                 'hr.employees.details.btn.certificate': 'Generate Work Certificate',
 
-                'hr.common.year': 'year',
+                
+    // Common HR
+    'hr.common.employee': 'Employee',
+    'hr.common.type': 'Type',
+    'hr.common.startDate': 'Start Date',
+    'hr.common.endDate': 'End Date',
+    'hr.common.duration': 'Duration',
+    'hr.common.status': 'Status',
+    'hr.common.actions': 'Actions',
+    'hr.common.date': 'Date',
+'hr.common.year': 'year',
+
+    // Payroll
+    'hr.payroll.period': 'Period',
+    'hr.payroll.grossSalary': 'Gross Salary',
+    'hr.payroll.netSalary': 'Net Salary',
+
+    'hr.reviews.recommendedActions': 'Recommended Actions',
+    'hr.reviews.preventiveActions': 'Preventive Actions',
                 'hr.common.years': 'years',
                 'hr.common.month': 'month',
                 'hr.common.months': 'months',
@@ -31049,13 +31085,13 @@ ${recruitmentInfo}
                     <table style="width: 100%; border-collapse: collapse;">
                         <thead>
                             <tr style="border-bottom: 2px solid rgba(16, 185, 129, 0.3);">
-                                <th style="padding: 12px; text-align: left; font-size: 12px; font-weight: 700; color: rgba(255,255,255,0.7); text-transform: uppercase;">Employé</th>
-                                <th style="padding: 12px; text-align: left; font-size: 12px; font-weight: 700; color: rgba(255,255,255,0.7); text-transform: uppercase;">Type</th>
-                                <th style="padding: 12px; text-align: left; font-size: 12px; font-weight: 700; color: rgba(255,255,255,0.7); text-transform: uppercase;">Date Début</th>
-                                <th style="padding: 12px; text-align: left; font-size: 12px; font-weight: 700; color: rgba(255,255,255,0.7); text-transform: uppercase;">Date Fin</th>
-                                <th style="padding: 12px; text-align: left; font-size: 12px; font-weight: 700; color: rgba(255,255,255,0.7); text-transform: uppercase;">Durée</th>
-                                <th style="padding: 12px; text-align: left; font-size: 12px; font-weight: 700; color: rgba(255,255,255,0.7); text-transform: uppercase;">Statut</th>
-                                <th style="padding: 12px; text-align: center; font-size: 12px; font-weight: 700; color: rgba(255,255,255,0.7); text-transform: uppercase;">Actions</th>
+                                <th style="padding: 12px; text-align: left; font-size: 12px; font-weight: 700; color: rgba(255,255,255,0.7); text-transform: uppercase;">${t('hr.common.employee')}</th>
+                                <th style="padding: 12px; text-align: left; font-size: 12px; font-weight: 700; color: rgba(255,255,255,0.7); text-transform: uppercase;">${t('hr.common.type')}</th>
+                                <th style="padding: 12px; text-align: left; font-size: 12px; font-weight: 700; color: rgba(255,255,255,0.7); text-transform: uppercase;">${t('hr.common.startDate')}</th>
+                                <th style="padding: 12px; text-align: left; font-size: 12px; font-weight: 700; color: rgba(255,255,255,0.7); text-transform: uppercase;">${t('hr.common.endDate')}</th>
+                                <th style="padding: 12px; text-align: left; font-size: 12px; font-weight: 700; color: rgba(255,255,255,0.7); text-transform: uppercase;">${t('hr.common.duration')}</th>
+                                <th style="padding: 12px; text-align: left; font-size: 12px; font-weight: 700; color: rgba(255,255,255,0.7); text-transform: uppercase;">${t('hr.common.status')}</th>
+                                <th style="padding: 12px; text-align: center; font-size: 12px; font-weight: 700; color: rgba(255,255,255,0.7); text-transform: uppercase;">${t('hr.common.actions')}</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -31748,12 +31784,12 @@ ${recruitmentInfo}
                     <table style="width: 100%; border-collapse: collapse;">
                         <thead>
                             <tr style="border-bottom: 2px solid rgba(16, 185, 129, 0.3);">
-                                <th style="padding: 12px; text-align: left; font-size: 12px; font-weight: 700; color: rgba(255,255,255,0.7); text-transform: uppercase;">Employé</th>
-                                <th style="padding: 12px; text-align: left; font-size: 12px; font-weight: 700; color: rgba(255,255,255,0.7); text-transform: uppercase;">Période</th>
-                                <th style="padding: 12px; text-align: left; font-size: 12px; font-weight: 700; color: rgba(255,255,255,0.7); text-transform: uppercase;">Salaire Brut</th>
-                                <th style="padding: 12px; text-align: left; font-size: 12px; font-weight: 700; color: rgba(255,255,255,0.7); text-transform: uppercase;">Salaire Net</th>
-                                <th style="padding: 12px; text-align: left; font-size: 12px; font-weight: 700; color: rgba(255,255,255,0.7); text-transform: uppercase;">Statut</th>
-                                <th style="padding: 12px; text-align: center; font-size: 12px; font-weight: 700; color: rgba(255,255,255,0.7); text-transform: uppercase;">Actions</th>
+                                <th style="padding: 12px; text-align: left; font-size: 12px; font-weight: 700; color: rgba(255,255,255,0.7); text-transform: uppercase;">${t('hr.common.employee')}</th>
+                                <th style="padding: 12px; text-align: left; font-size: 12px; font-weight: 700; color: rgba(255,255,255,0.7); text-transform: uppercase;">${t('hr.payroll.period')}</th>
+                                <th style="padding: 12px; text-align: left; font-size: 12px; font-weight: 700; color: rgba(255,255,255,0.7); text-transform: uppercase;">${t('hr.payroll.grossSalary')}</th>
+                                <th style="padding: 12px; text-align: left; font-size: 12px; font-weight: 700; color: rgba(255,255,255,0.7); text-transform: uppercase;">${t('hr.payroll.netSalary')}</th>
+                                <th style="padding: 12px; text-align: left; font-size: 12px; font-weight: 700; color: rgba(255,255,255,0.7); text-transform: uppercase;">${t('hr.common.status')}</th>
+                                <th style="padding: 12px; text-align: center; font-size: 12px; font-weight: 700; color: rgba(255,255,255,0.7); text-transform: uppercase;">${t('hr.common.actions')}</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -33168,7 +33204,7 @@ ${recruitmentInfo}
                             <div style="font-size: 14px; font-weight: 800; color: white;">${review.evaluator}</div>
                         </div>
                         <div style="text-align: right;">
-                            <div style="font-size: 12px; color: rgba(255,255,255,0.65); margin-bottom: 2px;">Date</div>
+                            <div style="font-size: 12px; color: rgba(255,255,255,0.65); margin-bottom: 2px;">${t('hr.common.date')}</div>
                                 <div style="font-size: 14px; font-weight: 800; color: white;">${new Date(review.date).toLocaleDateString(getLocale())}</div>
                         </div>
                     </div>
@@ -33707,7 +33743,7 @@ ${recruitmentInfo}
                         </div>
                         
                         <div>
-                            <h5 style="margin: 0 0 12px; font-size: 13px; font-weight: 700; color: rgba(255,255,255,0.9); display: flex; align-items: center; gap: 8px;">${getTurnoverIcon('spark', { size: 16, stroke: 'rgba(255,255,255,0.75)' })}Actions recommandées (${analysis.suggestedActions.length})</h5>
+                            <h5 style="margin: 0 0 12px; font-size: 13px; font-weight: 700; color: rgba(255,255,255,0.9); display: flex; align-items: center; gap: 8px;">${getTurnoverIcon('spark', { size: 16, stroke: 'rgba(255,255,255,0.75)' })}${t('hr.reviews.recommendedActions')} (${analysis.suggestedActions.length})</h5>
                             <div style="display: flex; gap: 8px; flex-wrap: wrap;">
                                 ${analysis.suggestedActions.map(action => `
                                     <span style="background: rgba(255,255,255,0.08); color: rgba(255,255,255,0.85); padding: 6px 12px; border-radius: 10px; font-size: 11px; font-weight: 600; border: 1px solid rgba(255,255,255,0.12);">
@@ -33906,7 +33942,7 @@ ${recruitmentInfo}
                     
                     <!-- Actions recommandées -->
                     <div style="background: rgba(16, 185, 129, 0.08); border-radius: 16px; padding: 24px; margin-bottom: 24px; border: 1px solid rgba(16, 185, 129, 0.18);">
-                        <h3 style="margin: 0 0 16px; font-size: 18px; font-weight: 700; color: #064e3b; display: flex; align-items: center; gap: 10px;">${getTurnoverIcon('spark', { size: 18, stroke: '#10b981' })}Actions préventives recommandées</h3>
+                        <h3 style="margin: 0 0 16px; font-size: 18px; font-weight: 700; color: #064e3b; display: flex; align-items: center; gap: 10px;">${getTurnoverIcon('spark', { size: 18, stroke: '#10b981' })}${t('hr.reviews.preventiveActions')}</h3>
                         ${analysis.suggestedActions.map(action => `
                             <div style="background: white; border-radius: 12px; padding: 16px; margin-bottom: 12px; border-left: 4px solid ${action.priority === 'high' ? '#EF4444' : '#6366F1'};">
                                 <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 8px;">
