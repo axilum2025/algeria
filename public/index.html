@@ -12728,6 +12728,35 @@ ${persona}
                 'hr.reviews.stat.completed': 'Terminées',
                 'hr.reviews.stat.averageScore': 'Score Moyen',
                 'hr.reviews.btn.new': 'Nouvelle Évaluation',
+    'hr.reviews.modal.title': 'Nouvelle Évaluation',
+    'hr.reviews.modal.subtitle': 'Renseignez la période, l\'évaluateur et les critères',
+    'hr.reviews.modal.employee': 'Employé',
+    'hr.reviews.modal.selectEmployee': 'Sélectionner...',
+    'hr.reviews.modal.period': 'Période',
+    'hr.reviews.modal.periodPlaceholder': 'Ex: Q4 2025, Annuelle 2025',
+    'hr.reviews.modal.type': 'Type d\'évaluation',
+    'hr.reviews.modal.typeAnnual': 'Annuelle',
+    'hr.reviews.modal.typeSemiannual': 'Semestrielle',
+    'hr.reviews.modal.typeQuarterly': 'Trimestrielle',
+    'hr.reviews.modal.typeProbation': 'Période d\'essai',
+    'hr.reviews.modal.evaluator': 'Évaluateur',
+    'hr.reviews.modal.evaluatorPlaceholder': 'Ex: Jean Dupont',
+    'hr.reviews.modal.criteria': 'Critères d\'évaluation',
+    'hr.reviews.modal.technical': 'Compétences Techniques',
+    'hr.reviews.modal.behavioral': 'Compétences Comportementales',
+    'hr.reviews.modal.performance': 'Performance & Productivité',
+    'hr.reviews.modal.development': 'Développement & Apprentissage',
+    'hr.reviews.modal.strengths': 'Points forts',
+    'hr.reviews.modal.strengthsPlaceholder': 'Ex: Excellente communication, leadership naturel...',
+    'hr.reviews.modal.improvements': 'Axes d\'amélioration',
+    'hr.reviews.modal.improvementsPlaceholder': 'Ex: Gestion du temps, compétences techniques spécifiques...',
+    'hr.reviews.modal.objectives': 'Objectifs pour la prochaine période',
+    'hr.reviews.modal.objectivesPlaceholder': 'Ex: Suivre une formation en management, augmenter la productivité de 15%...',
+    'hr.reviews.modal.comments': 'Commentaires généraux',
+    'hr.reviews.modal.commentsPlaceholder': 'Commentaires additionnels...',
+    'hr.reviews.modal.cancel': 'Annuler',
+    'hr.reviews.modal.create': 'Créer l\'Évaluation',
+    'hr.reviews.modal.noEmployees': 'Aucun employé trouvé. Ajoutez des employés d\'abord.',
                 'hr.reviews.stat.completedLabel': 'Évaluations réalisées',
                 'hr.reviews.stat.scoreLabel': 'Sur 5 étoiles',
                 'hr.reviews.stat.excellent': 'Excellent',
@@ -13796,6 +13825,35 @@ ${persona}
                 'hr.reviews.stat.completed': 'Completed',
                 'hr.reviews.stat.averageScore': 'Average Score',
                 'hr.reviews.btn.new': 'New Review',
+    'hr.reviews.modal.title': 'New Review',
+    'hr.reviews.modal.subtitle': 'Enter the period, evaluator and criteria',
+    'hr.reviews.modal.employee': 'Employee',
+    'hr.reviews.modal.selectEmployee': 'Select...',
+    'hr.reviews.modal.period': 'Period',
+    'hr.reviews.modal.periodPlaceholder': 'Ex: Q4 2025, Annual 2025',
+    'hr.reviews.modal.type': 'Review Type',
+    'hr.reviews.modal.typeAnnual': 'Annual',
+    'hr.reviews.modal.typeSemiannual': 'Semi-annual',
+    'hr.reviews.modal.typeQuarterly': 'Quarterly',
+    'hr.reviews.modal.typeProbation': 'Probation Period',
+    'hr.reviews.modal.evaluator': 'Evaluator',
+    'hr.reviews.modal.evaluatorPlaceholder': 'Ex: John Smith',
+    'hr.reviews.modal.criteria': 'Evaluation Criteria',
+    'hr.reviews.modal.technical': 'Technical Skills',
+    'hr.reviews.modal.behavioral': 'Behavioral Skills',
+    'hr.reviews.modal.performance': 'Performance & Productivity',
+    'hr.reviews.modal.development': 'Development & Learning',
+    'hr.reviews.modal.strengths': 'Strengths',
+    'hr.reviews.modal.strengthsPlaceholder': 'Ex: Excellent communication, natural leadership...',
+    'hr.reviews.modal.improvements': 'Areas for Improvement',
+    'hr.reviews.modal.improvementsPlaceholder': 'Ex: Time management, specific technical skills...',
+    'hr.reviews.modal.objectives': 'Objectives for Next Period',
+    'hr.reviews.modal.objectivesPlaceholder': 'Ex: Attend management training, increase productivity by 15%...',
+    'hr.reviews.modal.comments': 'General Comments',
+    'hr.reviews.modal.commentsPlaceholder': 'Additional comments...',
+    'hr.reviews.modal.cancel': 'Cancel',
+    'hr.reviews.modal.create': 'Create Review',
+    'hr.reviews.modal.noEmployees': 'No employees found. Add employees first.',
                 'hr.reviews.stat.completedLabel': 'Completed reviews',
                 'hr.reviews.stat.scoreLabel': 'Out of 5 stars',
                 'hr.reviews.stat.excellent': 'Excellent',
@@ -32866,7 +32924,7 @@ ${recruitmentInfo}
             
             const employees = getHRData('hrEmployees');
             
-            select.innerHTML = '<option value="">Tous les employés</option>' + 
+            select.innerHTML = '<option value="">' + t('hr.reviews.filter.allEmployees') + '</option>' + 
                 employees.map(emp => 
                     `<option value="${emp.id}">${emp.firstName} ${emp.lastName}</option>`
                 ).join('');
@@ -32904,7 +32962,7 @@ ${recruitmentInfo}
             const employees = getHRData('hrEmployees');
             
             if (employees.length === 0) {
-                showToast('Aucun employé trouvé. Ajoutez des employés d\'abord.', 'warning');
+                showToast(t('hr.reviews.modal.noEmployees'), 'warning');
                 return;
             }
             
@@ -32926,17 +32984,17 @@ ${recruitmentInfo}
                                     <path d="M17 16v-6"/>
                                 </svg>
                             </span>
-                            <span style="background: linear-gradient(135deg, #10b981 0%, #06b6d4 50%, #3b82f6 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">Nouvelle Évaluation</span>
+                            <span style="background: linear-gradient(135deg, #10b981 0%, #06b6d4 50%, #3b82f6 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">${t('hr.reviews.modal.title')}</span>
                         </h2>
-                        <p style="margin: 0; font-size: 13px; color: rgba(255,255,255,0.6); font-weight: 600;">Renseignez la période, l'évaluateur et les critères</p>
+                        <p style="margin: 0; font-size: 13px; color: rgba(255,255,255,0.6); font-weight: 600;">${t('hr.reviews.modal.subtitle')}</p>
                     </div>
                     
                     <form onsubmit="handleAddReview(event)">
                         <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; margin-bottom: 20px;">
                             <div>
-                                <label style="display: block; margin-bottom: 6px; font-size: 13px; font-weight: 700; color: rgba(255,255,255,0.85);">${t('hr.payroll.modal.employee')} *</label>
+                                <label style="display: block; margin-bottom: 6px; font-size: 13px; font-weight: 700; color: rgba(255,255,255,0.85);">${t('hr.reviews.modal.employee')} *</label>
                                 <select name="employeeId" required style="width: 100%; padding: 12px 14px; background: rgba(255,255,255,0.08); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 12px; font-size: 14px; color: white; cursor: pointer;" onfocus="this.style.borderColor='#10b981'; this.style.background='rgba(255,255,255,0.12)'" onblur="this.style.borderColor='rgba(16, 185, 129, 0.3)'; this.style.background='rgba(255,255,255,0.08)'">
-                                    <option value="">Sélectionner...</option>
+                                    <option value="">${t('hr.reviews.modal.selectEmployee')}</option>
                                     ${employees.map(emp => 
                                         `<option value="${emp.id}" style="background: #1e3a8a; color: white;">${emp.firstName} ${emp.lastName} - ${emp.position || t('hr.employee.defaultPosition')}</option>`
                                     ).join('')}
@@ -32944,23 +33002,23 @@ ${recruitmentInfo}
                             </div>
                             
                             <div>
-                                <label style="display: block; margin-bottom: 6px; font-size: 13px; font-weight: 700; color: rgba(255,255,255,0.85);">${t('hr.payroll.modal.period')} *</label>
-                                <input type="text" name="period" placeholder="Ex: Q4 2025, Annuelle 2025" required style="width: 100%; padding: 12px 14px; background: rgba(255,255,255,0.08); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 12px; font-size: 14px; color: white;" onfocus="this.style.borderColor='#10b981'; this.style.background='rgba(255,255,255,0.12)'" onblur="this.style.borderColor='rgba(16, 185, 129, 0.3)'; this.style.background='rgba(255,255,255,0.08)'">
+                                <label style="display: block; margin-bottom: 6px; font-size: 13px; font-weight: 700; color: rgba(255,255,255,0.85);">${t('hr.reviews.modal.period')} *</label>
+                                <input type="text" name="period" placeholder="${t('hr.reviews.modal.periodPlaceholder')}" required style="width: 100%; padding: 12px 14px; background: rgba(255,255,255,0.08); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 12px; font-size: 14px; color: white;" onfocus="this.style.borderColor='#10b981'; this.style.background='rgba(255,255,255,0.12)'" onblur="this.style.borderColor='rgba(16, 185, 129, 0.3)'; this.style.background='rgba(255,255,255,0.08)'">
                             </div>
                             
                             <div>
-                                <label style="display: block; margin-bottom: 6px; font-size: 13px; font-weight: 700; color: rgba(255,255,255,0.85);">Type d'évaluation *</label>
+                                <label style="display: block; margin-bottom: 6px; font-size: 13px; font-weight: 700; color: rgba(255,255,255,0.85);">${t('hr.reviews.modal.type')} *</label>
                                 <select name="type" required style="width: 100%; padding: 12px 14px; background: rgba(255,255,255,0.08); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 12px; font-size: 14px; color: white; cursor: pointer;" onfocus="this.style.borderColor='#10b981'; this.style.background='rgba(255,255,255,0.12)'" onblur="this.style.borderColor='rgba(16, 185, 129, 0.3)'; this.style.background='rgba(255,255,255,0.08)'">
-                                    <option value="Annuelle" style="background: #1e3a8a; color: white;">Annuelle</option>
-                                    <option value="Semestrielle" style="background: #1e3a8a; color: white;">Semestrielle</option>
-                                    <option value="Trimestrielle" style="background: #1e3a8a; color: white;">Trimestrielle</option>
-                                    <option value="Probation" style="background: #1e3a8a; color: white;">Période d'essai</option>
+                                    <option value="Annuelle" style="background: #1e3a8a; color: white;">${t('hr.reviews.modal.typeAnnual')}</option>
+                                    <option value="Semestrielle" style="background: #1e3a8a; color: white;">${t('hr.reviews.modal.typeSemiannual')}</option>
+                                    <option value="Trimestrielle" style="background: #1e3a8a; color: white;">${t('hr.reviews.modal.typeQuarterly')}</option>
+                                    <option value="Probation" style="background: #1e3a8a; color: white;">${t('hr.reviews.modal.typeProbation')}</option>
                                 </select>
                             </div>
                             
                             <div>
-                                <label style="display: block; margin-bottom: 6px; font-size: 13px; font-weight: 700; color: rgba(255,255,255,0.85);">Évaluateur *</label>
-                                <input type="text" name="evaluator" placeholder="Ex: Jean Dupont" required style="width: 100%; padding: 12px 14px; background: rgba(255,255,255,0.08); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 12px; font-size: 14px; color: white;" onfocus="this.style.borderColor='#10b981'; this.style.background='rgba(255,255,255,0.12)'" onblur="this.style.borderColor='rgba(16, 185, 129, 0.3)'; this.style.background='rgba(255,255,255,0.08)'">
+                                <label style="display: block; margin-bottom: 6px; font-size: 13px; font-weight: 700; color: rgba(255,255,255,0.85);">${t('hr.reviews.modal.evaluator')} *</label>
+                                <input type="text" name="evaluator" placeholder="${t('hr.reviews.modal.evaluatorPlaceholder')}" required style="width: 100%; padding: 12px 14px; background: rgba(255,255,255,0.08); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 12px; font-size: 14px; color: white;" onfocus="this.style.borderColor='#10b981'; this.style.background='rgba(255,255,255,0.12)'" onblur="this.style.borderColor='rgba(16, 185, 129, 0.3)'; this.style.background='rgba(255,255,255,0.08)'">
                             </div>
                         </div>
                         
@@ -32980,7 +33038,7 @@ ${recruitmentInfo}
                             </h3>
                             
                             <div style="margin-bottom: 16px;">
-                                <label style="display: block; margin-bottom: 8px; font-size: 13px; font-weight: 700; color: rgba(255,255,255,0.85);">Compétences Techniques</label>
+                                <label style="display: block; margin-bottom: 8px; font-size: 13px; font-weight: 700; color: rgba(255,255,255,0.85);">${t('hr.reviews.modal.technical')}</label>
                                 <div style="display: flex; gap: 8px; align-items: center;">
                                     ${[1,2,3,4,5].map(n => `
                                         <label style="flex: 1; cursor: pointer;">
@@ -32994,7 +33052,7 @@ ${recruitmentInfo}
                             </div>
                             
                             <div style="margin-bottom: 16px;">
-                                <label style="display: block; margin-bottom: 8px; font-size: 13px; font-weight: 700; color: rgba(255,255,255,0.85);">Compétences Comportementales</label>
+                                <label style="display: block; margin-bottom: 8px; font-size: 13px; font-weight: 700; color: rgba(255,255,255,0.85);">${t('hr.reviews.modal.behavioral')}</label>
                                 <div style="display: flex; gap: 8px; align-items: center;">
                                     ${[1,2,3,4,5].map(n => `
                                         <label style="flex: 1; cursor: pointer;">
@@ -33008,7 +33066,7 @@ ${recruitmentInfo}
                             </div>
                             
                             <div style="margin-bottom: 16px;">
-                                <label style="display: block; margin-bottom: 8px; font-size: 13px; font-weight: 700; color: rgba(255,255,255,0.85);">Performance & Productivité</label>
+                                <label style="display: block; margin-bottom: 8px; font-size: 13px; font-weight: 700; color: rgba(255,255,255,0.85);">${t('hr.reviews.modal.performance')}</label>
                                 <div style="display: flex; gap: 8px; align-items: center;">
                                     ${[1,2,3,4,5].map(n => `
                                         <label style="flex: 1; cursor: pointer;">
@@ -33022,7 +33080,7 @@ ${recruitmentInfo}
                             </div>
                             
                             <div>
-                                <label style="display: block; margin-bottom: 8px; font-size: 13px; font-weight: 700; color: rgba(255,255,255,0.85);">Développement & Apprentissage</label>
+                                <label style="display: block; margin-bottom: 8px; font-size: 13px; font-weight: 700; color: rgba(255,255,255,0.85);">${t('hr.reviews.modal.development')}</label>
                                 <div style="display: flex; gap: 8px; align-items: center;">
                                     ${[1,2,3,4,5].map(n => `
                                         <label style="flex: 1; cursor: pointer;">
@@ -33043,7 +33101,7 @@ ${recruitmentInfo}
                                 </span>
                                 Points forts
                             </label>
-                            <textarea name="strengths" rows="3" placeholder="Ex: Excellente communication, leadership naturel..." style="width: 100%; padding: 12px 14px; background: rgba(255,255,255,0.08); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 12px; font-size: 14px; font-family: inherit; resize: vertical; color: white;" onfocus="this.style.borderColor='#10b981'; this.style.background='rgba(255,255,255,0.12)'" onblur="this.style.borderColor='rgba(16, 185, 129, 0.3)'; this.style.background='rgba(255,255,255,0.08)'"></textarea>
+                            <textarea name="strengths" rows="3" placeholder="${t('hr.reviews.modal.strengthsPlaceholder')}" style="width: 100%; padding: 12px 14px; background: rgba(255,255,255,0.08); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 12px; font-size: 14px; font-family: inherit; resize: vertical; color: white;" onfocus="this.style.borderColor='#10b981'; this.style.background='rgba(255,255,255,0.12)'" onblur="this.style.borderColor='rgba(16, 185, 129, 0.3)'; this.style.background='rgba(255,255,255,0.08)'"></textarea>
                         </div>
                         
                         <div style="margin-bottom: 20px;">
@@ -33053,7 +33111,7 @@ ${recruitmentInfo}
                                 </span>
                                 Axes d'amélioration
                             </label>
-                            <textarea name="areasForImprovement" rows="3" placeholder="Ex: Gestion du temps, compétences techniques spécifiques..." style="width: 100%; padding: 12px 14px; background: rgba(255,255,255,0.08); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 12px; font-size: 14px; font-family: inherit; resize: vertical; color: white;" onfocus="this.style.borderColor='#10b981'; this.style.background='rgba(255,255,255,0.12)'" onblur="this.style.borderColor='rgba(16, 185, 129, 0.3)'; this.style.background='rgba(255,255,255,0.08)'"></textarea>
+                            <textarea name="areasForImprovement" rows="3" placeholder="${t('hr.reviews.modal.improvementsPlaceholder')}" style="width: 100%; padding: 12px 14px; background: rgba(255,255,255,0.08); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 12px; font-size: 14px; font-family: inherit; resize: vertical; color: white;" onfocus="this.style.borderColor='#10b981'; this.style.background='rgba(255,255,255,0.12)'" onblur="this.style.borderColor='rgba(16, 185, 129, 0.3)'; this.style.background='rgba(255,255,255,0.08)'"></textarea>
                         </div>
                         
                         <div style="margin-bottom: 20px;">
@@ -33063,7 +33121,7 @@ ${recruitmentInfo}
                                 </span>
                                 Objectifs pour la prochaine période
                             </label>
-                            <textarea name="objectives" rows="3" placeholder="Ex: Suivre une formation en management, augmenter la productivité de 15%..." style="width: 100%; padding: 12px 14px; background: rgba(255,255,255,0.08); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 12px; font-size: 14px; font-family: inherit; resize: vertical; color: white;" onfocus="this.style.borderColor='#10b981'; this.style.background='rgba(255,255,255,0.12)'" onblur="this.style.borderColor='rgba(16, 185, 129, 0.3)'; this.style.background='rgba(255,255,255,0.08)'"></textarea>
+                            <textarea name="objectives" rows="3" placeholder="${t('hr.reviews.modal.objectivesPlaceholder')}" style="width: 100%; padding: 12px 14px; background: rgba(255,255,255,0.08); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 12px; font-size: 14px; font-family: inherit; resize: vertical; color: white;" onfocus="this.style.borderColor='#10b981'; this.style.background='rgba(255,255,255,0.12)'" onblur="this.style.borderColor='rgba(16, 185, 129, 0.3)'; this.style.background='rgba(255,255,255,0.08)'"></textarea>
                         </div>
                         
                         <div style="margin-bottom: 20px;">
@@ -33073,14 +33131,12 @@ ${recruitmentInfo}
                                 </span>
                                 Commentaires généraux
                             </label>
-                            <textarea name="comments" rows="4" placeholder="Commentaires additionnels..." style="width: 100%; padding: 12px 14px; background: rgba(255,255,255,0.08); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 12px; font-size: 14px; font-family: inherit; resize: vertical; color: white;" onfocus="this.style.borderColor='#10b981'; this.style.background='rgba(255,255,255,0.12)'" onblur="this.style.borderColor='rgba(16, 185, 129, 0.3)'; this.style.background='rgba(255,255,255,0.08)'"></textarea>
+                            <textarea name="comments" rows="4" placeholder="${t('hr.reviews.modal.commentsPlaceholder')}" style="width: 100%; padding: 12px 14px; background: rgba(255,255,255,0.08); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 12px; font-size: 14px; font-family: inherit; resize: vertical; color: white;" onfocus="this.style.borderColor='#10b981'; this.style.background='rgba(255,255,255,0.12)'" onblur="this.style.borderColor='rgba(16, 185, 129, 0.3)'; this.style.background='rgba(255,255,255,0.08)'"></textarea>
                         </div>
                         
                         <div style="display: flex; gap: 12px;">
                             <button type="button" onclick="closeAddReviewModal()" style="flex: 1; padding: 12px; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); border-radius: 12px; font-weight: 700; cursor: pointer; color: white; transition: all 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.18)'" onmouseout="this.style.background='rgba(255,255,255,0.1)'">${t('hr.payroll.modal.cancel')}</button>
-                            <button type="submit" class="hr-btn" style="flex: 1; padding: 12px; font-weight: 700; border-radius: 12px;">
-                                Créer l'Évaluation
-                            </button>
+                            <button type="submit" class="hr-btn" style="flex: 1; padding: 12px; font-weight: 700; border-radius: 12px;">${t('hr.reviews.modal.create')}</button>
                         </div>
                     </form>
                 </div>
