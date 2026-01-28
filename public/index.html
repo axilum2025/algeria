@@ -12746,13 +12746,13 @@ ${persona}
     'hr.reviews.modal.behavioral': 'Compétences Comportementales',
     'hr.reviews.modal.performance': 'Performance & Productivité',
     'hr.reviews.modal.development': 'Développement & Apprentissage',
-    'hr.reviews.modal.strengths': 'Points forts',
+    'hr.reviews.modal.strengths': '${t('hr.reviews.modal.strengths')}',
     'hr.reviews.modal.strengthsPlaceholder': 'Ex: Excellente communication, leadership naturel...',
     'hr.reviews.modal.improvements': 'Axes d\'amélioration',
     'hr.reviews.modal.improvementsPlaceholder': 'Ex: Gestion du temps, compétences techniques spécifiques...',
-    'hr.reviews.modal.objectives': 'Objectifs pour la prochaine période',
+    'hr.reviews.modal.objectives': '${t('hr.reviews.modal.objectives')}',
     'hr.reviews.modal.objectivesPlaceholder': 'Ex: Suivre une formation en management, augmenter la productivité de 15%...',
-    'hr.reviews.modal.comments': 'Commentaires généraux',
+    'hr.reviews.modal.comments': '${t('hr.reviews.modal.comments')}',
     'hr.reviews.modal.commentsPlaceholder': 'Commentaires additionnels...',
     'hr.reviews.modal.cancel': 'Annuler',
     'hr.reviews.modal.create': 'Créer l\'Évaluation',
@@ -12898,7 +12898,7 @@ ${persona}
                 'hr.recruitment.modal.details.jobTitle': 'Candidature pour',
                 'hr.recruitment.modal.details.analysisTitle': '📊 Analyse détaillée',
                 'hr.recruitment.modal.details.profileTitle': '👤 Profil du candidat',
-                'hr.recruitment.modal.details.strengthsTitle': '✅ Points forts',
+                'hr.recruitment.modal.details.strengthsTitle': '✅ ${t('hr.reviews.modal.strengths')}',
                 'hr.recruitment.modal.details.risksTitle': '⚠️ Points d\'attention',
                 'hr.recruitment.modal.details.missingKeywordsTitle': '❌ Compétences manquantes',
                 'hr.recruitment.modal.details.anomaliesTitle': '🔍 Anomalies détectées',
@@ -27251,7 +27251,7 @@ function showAddProjectModal() {
                     <form id="mktModalForm" style="padding: 16px 18px 18px;">
                         ${bodyHtml}
                         <div style="display:flex; justify-content:flex-end; gap: 10px; margin-top: 14px;">
-                            <button type="button" class="mkt-btn" style="padding: 12px 16px; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.18);" onclick="mktCloseModal()">${t('hr.payroll.modal.cancel')}</button>
+                            <button type="button" class="mkt-btn" style="padding: 12px 16px; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.18);" onclick="mktCloseModal()">${t('hr.reviews.modal.cancel')}</button>
                             <button type="submit" class="mkt-btn" style="padding: 12px 16px;">${mktEscapeHtml(primaryLabel)}</button>
                         </div>
                     </form>
@@ -30749,7 +30749,7 @@ ${topCandidates.slice(0, 10).map(c => {
     ${c.phone ? 'Tél: ' + c.phone : ''}
     ${c.lastJob ? 'Dernier poste: ' + c.lastJob : ''}
     ${c.certifications && c.certifications.length > 0 ? 'Certifications: ' + c.certifications.join(', ') : ''}
-    Points forts: ${c.strengths ? c.strengths.slice(0, 3).join(', ') : 'N/A'}
+    ${t('hr.reviews.modal.strengths')}: ${c.strengths ? c.strengths.slice(0, 3).join(', ') : 'N/A'}
     Risques: ${c.risks && c.risks.length > 0 ? c.risks.slice(0, 2).join(', ') : 'Aucun'}
     ${c.anomalies && c.anomalies.length > 0 ? '⚠️ Anomalies: ' + c.anomalies.join(', ') : ''}
     Date upload: ${c.uploadedAt ? new Date(c.uploadedAt).toLocaleDateString() : 'N/A'}
@@ -32253,7 +32253,7 @@ ${recruitmentInfo}
                         </div>
                         
                         <div style="display: flex; gap: 12px; margin-top: 8px;">
-                            <button type="button" onclick="closeAddPayrollModal()" style="flex: 1; padding: 12px; background: rgba(255,255,255,0.1); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 10px; color: white; font-weight: 600; cursor: pointer; transition: all 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.15)'" onmouseout="this.style.background='rgba(255,255,255,0.1)'">${t('hr.payroll.modal.cancel')}</button>
+                            <button type="button" onclick="closeAddPayrollModal()" style="flex: 1; padding: 12px; background: rgba(255,255,255,0.1); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 10px; color: white; font-weight: 600; cursor: pointer; transition: all 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.15)'" onmouseout="this.style.background='rgba(255,255,255,0.1)'">${t('hr.reviews.modal.cancel')}</button>
                             <button type="submit" class="hr-btn" style="flex: 1; padding: 12px; font-size: 14px; font-weight: 600;">${t('hr.payroll.modal.create')}</button>
                         </div>
                     </form>
@@ -33081,7 +33081,7 @@ ${recruitmentInfo}
                                         <path d="M22 12h-2"/>
                                     </svg>
                                 </span>
-                                Critères d'évaluation
+                                ${t('hr.reviews.modal.criteria')}
                             </h3>
                             
                             <div style="margin-bottom: 16px;">
@@ -33146,7 +33146,7 @@ ${recruitmentInfo}
                                 <span style="width: 22px; height: 22px; border-radius: 10px; background: rgba(16,185,129,0.14); border: 1px solid rgba(16,185,129,0.18); display: inline-flex; align-items: center; justify-content: center; color: #6ee7b7;">
                                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6L9 17l-5-5"/></svg>
                                 </span>
-                                Points forts
+                                ${t('hr.reviews.modal.strengths')}
                             </label>
                             <textarea name="strengths" rows="3" placeholder="${t('hr.reviews.modal.strengthsPlaceholder')}" style="width: 100%; padding: 12px 14px; background: rgba(255,255,255,0.08); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 12px; font-size: 14px; font-family: inherit; resize: vertical; color: white;" onfocus="this.style.borderColor='#10b981'; this.style.background='rgba(255,255,255,0.12)'" onblur="this.style.borderColor='rgba(16, 185, 129, 0.3)'; this.style.background='rgba(255,255,255,0.08)'"></textarea>
                         </div>
@@ -33156,7 +33156,7 @@ ${recruitmentInfo}
                                 <span style="width: 22px; height: 22px; border-radius: 10px; background: rgba(245,158,11,0.14); border: 1px solid rgba(245,158,11,0.18); display: inline-flex; align-items: center; justify-content: center; color: #fcd34d;">
                                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 17l6-6 4 4 8-8"/><path d="M14 7h7v7"/></svg>
                                 </span>
-                                Axes d'amélioration
+                                ${t('hr.reviews.modal.improvements')}
                             </label>
                             <textarea name="areasForImprovement" rows="3" placeholder="${t('hr.reviews.modal.improvementsPlaceholder')}" style="width: 100%; padding: 12px 14px; background: rgba(255,255,255,0.08); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 12px; font-size: 14px; font-family: inherit; resize: vertical; color: white;" onfocus="this.style.borderColor='#10b981'; this.style.background='rgba(255,255,255,0.12)'" onblur="this.style.borderColor='rgba(16, 185, 129, 0.3)'; this.style.background='rgba(255,255,255,0.08)'"></textarea>
                         </div>
@@ -33166,7 +33166,7 @@ ${recruitmentInfo}
                                 <span style="width: 22px; height: 22px; border-radius: 10px; background: rgba(99,102,241,0.14); border: 1px solid rgba(99,102,241,0.18); display: inline-flex; align-items: center; justify-content: center; color: #c7d2fe;">
                                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 3v18"/><path d="M5 3h11l-1 4H5"/><path d="M5 11h12l-1 4H5"/></svg>
                                 </span>
-                                Objectifs pour la prochaine période
+                                ${t('hr.reviews.modal.objectives')}
                             </label>
                             <textarea name="objectives" rows="3" placeholder="${t('hr.reviews.modal.objectivesPlaceholder')}" style="width: 100%; padding: 12px 14px; background: rgba(255,255,255,0.08); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 12px; font-size: 14px; font-family: inherit; resize: vertical; color: white;" onfocus="this.style.borderColor='#10b981'; this.style.background='rgba(255,255,255,0.12)'" onblur="this.style.borderColor='rgba(16, 185, 129, 0.3)'; this.style.background='rgba(255,255,255,0.08)'"></textarea>
                         </div>
@@ -33176,13 +33176,13 @@ ${recruitmentInfo}
                                 <span style="width: 22px; height: 22px; border-radius: 10px; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.16); display: inline-flex; align-items: center; justify-content: center; color: rgba(255,255,255,0.85);">
                                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15a4 4 0 0 1-4 4H8l-5 3V7a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4z"/></svg>
                                 </span>
-                                Commentaires généraux
+                                ${t('hr.reviews.modal.comments')}
                             </label>
                             <textarea name="comments" rows="4" placeholder="${t('hr.reviews.modal.commentsPlaceholder')}" style="width: 100%; padding: 12px 14px; background: rgba(255,255,255,0.08); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 12px; font-size: 14px; font-family: inherit; resize: vertical; color: white;" onfocus="this.style.borderColor='#10b981'; this.style.background='rgba(255,255,255,0.12)'" onblur="this.style.borderColor='rgba(16, 185, 129, 0.3)'; this.style.background='rgba(255,255,255,0.08)'"></textarea>
                         </div>
                         
                         <div style="display: flex; gap: 12px;">
-                            <button type="button" onclick="closeAddReviewModal()" style="flex: 1; padding: 12px; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); border-radius: 12px; font-weight: 700; cursor: pointer; color: white; transition: all 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.18)'" onmouseout="this.style.background='rgba(255,255,255,0.1)'">${t('hr.payroll.modal.cancel')}</button>
+                            <button type="button" onclick="closeAddReviewModal()" style="flex: 1; padding: 12px; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); border-radius: 12px; font-weight: 700; cursor: pointer; color: white; transition: all 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.18)'" onmouseout="this.style.background='rgba(255,255,255,0.1)'">${t('hr.reviews.modal.cancel')}</button>
                             <button type="submit" class="hr-btn" style="flex: 1; padding: 12px; font-weight: 700; border-radius: 12px;">${t('hr.reviews.modal.create')}</button>
                         </div>
                     </form>
@@ -33381,7 +33381,7 @@ ${recruitmentInfo}
                             <span style="width: 22px; height: 22px; border-radius: 10px; background: rgba(16,185,129,0.14); border: 1px solid rgba(16,185,129,0.18); display: inline-flex; align-items: center; justify-content: center; color: #6ee7b7;">
                                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6L9 17l-5-5"/></svg>
                             </span>
-                            Points forts
+                            ${t('hr.reviews.modal.strengths')}
                         </h4>
                         <p style="margin: 0; color: rgba(255,255,255,0.85); font-size: 14px; line-height: 1.6;">${review.strengths}</p>
                     </div>
@@ -33393,7 +33393,7 @@ ${recruitmentInfo}
                             <span style="width: 22px; height: 22px; border-radius: 10px; background: rgba(245,158,11,0.14); border: 1px solid rgba(245,158,11,0.18); display: inline-flex; align-items: center; justify-content: center; color: #fcd34d;">
                                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 17l6-6 4 4 8-8"/><path d="M14 7h7v7"/></svg>
                             </span>
-                            Axes d'amélioration
+                            ${t('hr.reviews.modal.improvements')}
                         </h4>
                         <p style="margin: 0; color: rgba(255,255,255,0.85); font-size: 14px; line-height: 1.6;">${review.areasForImprovement}</p>
                     </div>
@@ -33405,7 +33405,7 @@ ${recruitmentInfo}
                             <span style="width: 22px; height: 22px; border-radius: 10px; background: rgba(99,102,241,0.14); border: 1px solid rgba(99,102,241,0.18); display: inline-flex; align-items: center; justify-content: center; color: #c7d2fe;">
                                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 3v18"/><path d="M5 3h11l-1 4H5"/><path d="M5 11h12l-1 4H5"/></svg>
                             </span>
-                            Objectifs pour la prochaine période
+                            ${t('hr.reviews.modal.objectives')}
                         </h4>
                         <p style="margin: 0; color: rgba(255,255,255,0.85); font-size: 14px; line-height: 1.6;">${review.objectives}</p>
                     </div>
@@ -33417,7 +33417,7 @@ ${recruitmentInfo}
                             <span style="width: 22px; height: 22px; border-radius: 10px; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.16); display: inline-flex; align-items: center; justify-content: center; color: rgba(255,255,255,0.85);">
                                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15a4 4 0 0 1-4 4H8l-5 3V7a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4z"/></svg>
                             </span>
-                            Commentaires généraux
+                            ${t('hr.reviews.modal.comments')}
                         </h4>
                         <p style="margin: 0; color: rgba(255,255,255,0.75); font-size: 14px; line-height: 1.6;">${review.comments}</p>
                     </div>
@@ -40272,7 +40272,7 @@ Si aucun problème: réponds "Aucun problème détecté"`;
                     </div>
                     
                     <div id="cleanActions" style="display: flex; gap: 12px; justify-content: flex-end;">
-                        <button onclick="closeCleanPreview()" style="padding: 12px 24px; background: white; border: 2px solid var(--border-color); border-radius: 10px; color: var(--text-primary); cursor: pointer; font-weight: 600; font-size: 14px; transition: all 0.2s;" onmouseover="this.style.background='#F3F4F6'" onmouseout="this.style.background='white'">${t('hr.payroll.modal.cancel')}</button>
+                        <button onclick="closeCleanPreview()" style="padding: 12px 24px; background: white; border: 2px solid var(--border-color); border-radius: 10px; color: var(--text-primary); cursor: pointer; font-weight: 600; font-size: 14px; transition: all 0.2s;" onmouseover="this.style.background='#F3F4F6'" onmouseout="this.style.background='white'">${t('hr.reviews.modal.cancel')}</button>
                         <button onclick="applyCleanData()" style="padding: 12px 24px; background: linear-gradient(135deg, #10B981, #059669); border: none; border-radius: 10px; color: white; cursor: pointer; font-weight: 600; font-size: 14px; transition: all 0.2s; box-shadow: 0 4px 12px rgba(16,185,129,0.3);" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 20px rgba(16,185,129,0.4)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 12px rgba(16,185,129,0.3)'">
                             Appliquer le nettoyage
                         </button>
@@ -40458,7 +40458,7 @@ Si aucun problème: réponds "Aucun problème détecté"`;
                     </div>
                     
                     <div style="display: flex; gap: 12px; justify-content: flex-end;">
-                        <button onclick="closeDuplicatesPreview()" style="padding: 12px 24px; background: white; border: 2px solid var(--border-color); border-radius: 10px; color: var(--text-primary); cursor: pointer; font-weight: 600; font-size: 14px; transition: all 0.2s;" onmouseover="this.style.background='#F3F4F6'" onmouseout="this.style.background='white'">${t('hr.payroll.modal.cancel')}</button>
+                        <button onclick="closeDuplicatesPreview()" style="padding: 12px 24px; background: white; border: 2px solid var(--border-color); border-radius: 10px; color: var(--text-primary); cursor: pointer; font-weight: 600; font-size: 14px; transition: all 0.2s;" onmouseover="this.style.background='#F3F4F6'" onmouseout="this.style.background='white'">${t('hr.reviews.modal.cancel')}</button>
                         <button onclick="applyRemoveDuplicates()" style="padding: 12px 24px; background: linear-gradient(135deg, #EF4444, #DC2626); border: none; border-radius: 10px; color: white; cursor: pointer; font-weight: 600; font-size: 14px; transition: all 0.2s; box-shadow: 0 4px 12px rgba(239,68,68,0.3);" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 20px rgba(239,68,68,0.4)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 12px rgba(239,68,68,0.3)'">
                             Supprimer les doublons
                         </button>
@@ -40763,7 +40763,7 @@ Réponds UNIQUEMENT dans ce format JSON:
                     </div>
                     
                     <div style="display: flex; gap: 12px; justify-content: flex-end;">
-                        <button onclick="closeKPIPreview()" style="padding: 12px 24px; background: white; border: 2px solid var(--border-color); border-radius: 10px; color: var(--text-primary); cursor: pointer; font-weight: 600; font-size: 14px; transition: all 0.2s;" onmouseover="this.style.background='#F3F4F6'" onmouseout="this.style.background='white'">${t('hr.payroll.modal.cancel')}</button>
+                        <button onclick="closeKPIPreview()" style="padding: 12px 24px; background: white; border: 2px solid var(--border-color); border-radius: 10px; color: var(--text-primary); cursor: pointer; font-weight: 600; font-size: 14px; transition: all 0.2s;" onmouseover="this.style.background='#F3F4F6'" onmouseout="this.style.background='white'">${t('hr.reviews.modal.cancel')}</button>
                         <button onclick="applyKPI()" style="padding: 12px 24px; background: linear-gradient(135deg, #6366F1, #8B5CF6); border: none; border-radius: 10px; color: white; cursor: pointer; font-weight: 600; font-size: 14px; transition: all 0.2s; box-shadow: 0 4px 12px rgba(99,102,241,0.3);" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 20px rgba(99,102,241,0.4)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 12px rgba(99,102,241,0.3)'">
                             Ajouter les KPI
                         </button>
@@ -41066,7 +41066,7 @@ Réponds UNIQUEMENT dans ce format JSON:
                     </div>
                     
                     <div style="display: flex; gap: 12px; justify-content: flex-end;">
-                        <button onclick="closeFormulasPreview()" style="padding: 12px 24px; background: white; border: 2px solid var(--border-color); border-radius: 10px; color: var(--text-primary); cursor: pointer; font-weight: 600; font-size: 14px; transition: all 0.2s;" onmouseover="this.style.background='#F3F4F6'" onmouseout="this.style.background='white'">${t('hr.payroll.modal.cancel')}</button>
+                        <button onclick="closeFormulasPreview()" style="padding: 12px 24px; background: white; border: 2px solid var(--border-color); border-radius: 10px; color: var(--text-primary); cursor: pointer; font-weight: 600; font-size: 14px; transition: all 0.2s;" onmouseover="this.style.background='#F3F4F6'" onmouseout="this.style.background='white'">${t('hr.reviews.modal.cancel')}</button>
                         <button onclick="applyFormulas()" style="padding: 12px 24px; background: linear-gradient(135deg, #10B981, #059669); border: none; border-radius: 10px; color: white; cursor: pointer; font-weight: 600; font-size: 14px; transition: all 0.2s; box-shadow: 0 4px 12px rgba(16,185,129,0.3);" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 20px rgba(16,185,129,0.4)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 12px rgba(16,185,129,0.3)'">
                             Ajouter la ligne TOTAUX
                         </button>
@@ -41427,7 +41427,7 @@ Réponds UNIQUEMENT dans ce format JSON:
                     </div>
                     
                     <div style="display: flex; gap: 12px; justify-content: flex-end;">
-                        <button onclick="closeChartsPreview()" style="padding: 12px 24px; background: white; border: 2px solid var(--border-color); border-radius: 10px; color: var(--text-primary); cursor: pointer; font-weight: 600; font-size: 14px; transition: all 0.2s;" onmouseover="this.style.background='#F3F4F6'" onmouseout="this.style.background='white'">${t('hr.payroll.modal.cancel')}</button>
+                        <button onclick="closeChartsPreview()" style="padding: 12px 24px; background: white; border: 2px solid var(--border-color); border-radius: 10px; color: var(--text-primary); cursor: pointer; font-weight: 600; font-size: 14px; transition: all 0.2s;" onmouseover="this.style.background='#F3F4F6'" onmouseout="this.style.background='white'">${t('hr.reviews.modal.cancel')}</button>
                         <button onclick="applyChartsToSheet()" style="padding: 12px 24px; background: linear-gradient(135deg, #EC4899, #DB2777); border: none; border-radius: 10px; color: white; cursor: pointer; font-weight: 600; font-size: 14px; transition: all 0.2s; box-shadow: 0 4px 12px rgba(236,72,153,0.3);" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 20px rgba(236,72,153,0.4)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 12px rgba(236,72,153,0.3)'">
                             📊 Ajouter à la feuille
                         </button>
