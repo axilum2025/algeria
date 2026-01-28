@@ -12982,6 +12982,18 @@ ${persona}
     'hr.payroll.modal.create': 'Créer le Bulletin',
     'hr.payroll.modal.noEmployees': 'Veuillez d\'abord créer des employés',
     'hr.employee.defaultPosition': 'Employé',
+    'common.months.jan': 'Janvier',
+    'common.months.feb': 'Février',
+    'common.months.mar': 'Mars',
+    'common.months.apr': 'Avril',
+    'common.months.may': 'Mai',
+    'common.months.jun': 'Juin',
+    'common.months.jul': 'Juillet',
+    'common.months.aug': 'Août',
+    'common.months.sep': 'Septembre',
+    'common.months.oct': 'Octobre',
+    'common.months.nov': 'Novembre',
+    'common.months.dec': 'Décembre',
                 
                 'hr.agent.title': 'Agent RH',
                 'hr.agent.desc': 'Assistant IA pour la gestion RH (employés, congés, paie, recrutement, évaluations)',
@@ -13745,6 +13757,18 @@ ${persona}
     'hr.payroll.modal.create': 'Create Payslip',
     'hr.payroll.modal.noEmployees': 'Please create employees first',
     'hr.employee.defaultPosition': 'Employee',
+    'common.months.jan': 'January',
+    'common.months.feb': 'February',
+    'common.months.mar': 'March',
+    'common.months.apr': 'April',
+    'common.months.may': 'May',
+    'common.months.jun': 'June',
+    'common.months.jul': 'July',
+    'common.months.aug': 'August',
+    'common.months.sep': 'September',
+    'common.months.oct': 'October',
+    'common.months.nov': 'November',
+    'common.months.dec': 'December',
 
                 'hr.agent.title': 'HR Agent',
                 'hr.agent.desc': 'AI Assistant for HR management (employees, leaves, payroll, recruitment, reviews)',
@@ -32140,7 +32164,26 @@ ${recruitmentInfo}
                         
                         <div>
                             <label style="display: block; margin-bottom: 6px; font-size: 14px; font-weight: 600; color: rgba(255, 255, 255, 0.9);">${t('hr.payroll.modal.period')} *</label>
-                            <input type="month" name="period" required value="${new Date().toISOString().slice(0, 7)}" style="width: 100%; padding: 12px; background: rgba(255,255,255,0.08); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 10px; font-size: 14px; color: white; transition: all 0.2s;" onfocus="this.style.borderColor='#10b981'; this.style.background='rgba(255,255,255,0.12)'" onblur="this.style.borderColor='rgba(16, 185, 129, 0.3)'; this.style.background='rgba(255,255,255,0.08)'">
+                            <div style="display: flex; gap: 8px;">
+                                <select id="payrollMonth" name="periodMonth" required style="flex: 1; padding: 12px; background: rgba(255,255,255,0.08); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 10px; font-size: 14px; color: white; cursor: pointer;">
+                                    <option value="01" style="background: #1e3a8a;">${t('common.months.jan')}</option>
+                                    <option value="02" style="background: #1e3a8a;">${t('common.months.feb')}</option>
+                                    <option value="03" style="background: #1e3a8a;">${t('common.months.mar')}</option>
+                                    <option value="04" style="background: #1e3a8a;">${t('common.months.apr')}</option>
+                                    <option value="05" style="background: #1e3a8a;">${t('common.months.may')}</option>
+                                    <option value="06" style="background: #1e3a8a;">${t('common.months.jun')}</option>
+                                    <option value="07" style="background: #1e3a8a;">${t('common.months.jul')}</option>
+                                    <option value="08" style="background: #1e3a8a;">${t('common.months.aug')}</option>
+                                    <option value="09" style="background: #1e3a8a;">${t('common.months.sep')}</option>
+                                    <option value="10" style="background: #1e3a8a;">${t('common.months.oct')}</option>
+                                    <option value="11" style="background: #1e3a8a;">${t('common.months.nov')}</option>
+                                    <option value="12" style="background: #1e3a8a;">${t('common.months.dec')}</option>
+                                </select>
+                                <select id="payrollYear" name="periodYear" required style="width: 100px; padding: 12px; background: rgba(255,255,255,0.08); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 10px; font-size: 14px; color: white; cursor: pointer;">
+                                    ${[2024, 2025, 2026, 2027, 2028].map(y => `<option value="${y}" style="background: #1e3a8a;"${y === new Date().getFullYear() ? ' selected' : ''}>${y}</option>`).join('')}
+                                </select>
+                                <input type="hidden" name="period" id="payrollPeriodHidden">
+                            </div>
                         </div>
                         
                         <div>
