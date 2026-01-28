@@ -3655,7 +3655,7 @@
                 <div style="margin-top: 20px;">
                     <a id="verificationResendLink" href="#" onclick="resendVerificationCode(); return false;" style="color: var(--accent); text-decoration: none; font-size: 14px; font-weight: 500;">Renvoyer le code</a>
                     <span style="margin: 0 8px; color: var(--text-secondary);">•</span>
-                    <a id="verificationCancelLink" href="#" onclick="cancelVerification(); return false;" style="color: var(--text-secondary); text-decoration: none; font-size: 14px;">Annuler</a>
+                    <a id="verificationCancelLink" href="#" onclick="cancelVerification(); return false;" style="color: var(--text-secondary); text-decoration: none; font-size: 14px;">${t('ui.cancel')}</a>
                 </div>
             </div>
         </div>
@@ -12256,6 +12256,8 @@ ${persona}
         'companySettings.currency.tnd': 'Dinar Tunisien (TND)',
 
                 'ui.newConversation': 'Nouvelle Conversation',
+            'ui.close': 'Fermer',
+            'ui.cancel': 'Annuler',
                 'ui.sessions': 'Sessions',
                 'ui.settings': 'Paramètres',
                 'ui.languageSection': 'Langue',
@@ -13274,6 +13276,8 @@ ${persona}
                 'toast.indexingInProgress': '📚 Indexing document...',
                 'toast.documentIndexed': '✅ Document indexed',
                 'ui.newConversation': 'New Conversation',
+            'ui.close': 'Close',
+            'ui.cancel': 'Cancel',
                 'ui.sessions': 'Sessions',
                 'ui.settings': 'Settings',
                 'ui.languageSection': 'Language',
@@ -15528,7 +15532,7 @@ ${persona}
                     <textarea id=\"translationInput\" rows=\"6\" placeholder=\"Texte à traduire...\" style=\"width:100%; padding:10px; border:1px solid var(--border-color); border-radius:10px; background:var(--bg-secondary); color:var(--text-primary);\"></textarea>
                     <div style=\"display:flex; gap:8px;\">
                         <button class=\"new-chat-btn\" onclick=\"runTranslation('${plan}')\">Traduire (${plan})</button>
-                        <button class=\"new-chat-btn\" style=\"background: var(--bg-secondary); color: var(--text-primary);\" onclick=\"closeToolsModal()\">Fermer</button>
+                        <button class=\"new-chat-btn\" style=\"background: var(--bg-secondary); color: var(--text-primary);\" onclick=\"closeToolsModal()\">${t('ui.close')}</button>
                     </div>
                 </div>
             `;
@@ -27244,7 +27248,7 @@ function showAddProjectModal() {
                                 <div style="font-size: 18px; font-weight: 700; color: white;">${mktEscapeHtml(title)}</div>
                                 ${subtitle ? `<div style="margin-top: 6px; color: rgba(255,255,255,0.65); font-size: 13px;">${mktEscapeHtml(subtitle)}</div>` : ''}
                             </div>
-                            <button type="button" class="mkt-btn" style="padding: 10px 14px; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.18);" onclick="mktCloseModal()">Fermer</button>
+                            <button type="button" class="mkt-btn" style="padding: 10px 14px; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.18);" onclick="mktCloseModal()">${t('ui.close')}</button>
                         </div>
                     </div>
 
@@ -38979,7 +38983,7 @@ ${hasBalance ? '✅' : '⬜'} Calculer résultat du mois
                     <div class="list-title">Liste ${container === 'invoices' ? 'Factures' : 'Rapports'}</div>
                     <div class="list-actions">
                         <button class="list-btn" onclick="renderFinanceList('${container}')">Rafraîchir</button>
-                        <button class="list-btn" onclick="document.getElementById('financeListPanel').style.display='none'">Fermer</button>
+                        <button class="list-btn" onclick="document.getElementById('financeListPanel').style.display='none'">${t('ui.close')}</button>
                     </div>
                 </div>
                 <div class="list-search">
@@ -41904,7 +41908,7 @@ Réponds UNIQUEMENT dans ce format JSON:
                     <textarea id="ttsInput" rows="4" placeholder="Texte à lire à voix haute..." style="width:100%; padding:10px; border:1px solid var(--border-color); border-radius:10px; background:var(--bg-secondary); color:var(--text-primary);"></textarea>
                     <div style="display:flex; gap:8px;">
                         <button class="new-chat-btn" onclick="runTTS()">Lire</button>
-                        <button class="new-chat-btn" style="background: var(--bg-secondary); color: var(--text-primary);" onclick="closeToolsModal()">Fermer</button>
+                        <button class="new-chat-btn" style="background: var(--bg-secondary); color: var(--text-primary);" onclick="closeToolsModal()">${t('ui.close')}</button>
                     </div>
                 </div>
             `;
