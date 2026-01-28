@@ -12790,6 +12790,13 @@ ${persona}
                 'hr.turnover.risk.highDesc': 'Score ≥ 70% - Action immédiate',
                 'hr.turnover.risk.mediumDesc': 'Score 40-69% - Surveillance',
                 'hr.turnover.risk.lowDesc': 'Score < 40% - Stable',
+
+                'hr.turnover.label.confidence': 'Confidence',
+                'hr.turnover.label.factors': 'Risk factors',
+                'hr.turnover.label.recommendedActions': 'Recommended actions',
+                'hr.turnover.label.otherFactors': 'more factors...',
+                'hr.turnover.priority.high': 'PRIORITY',
+                'hr.turnover.priority.recommended': 'Recommended',
                 
                 'hr.turnover.btn.analyze': 'Analyser les risques',
                 'hr.turnover.btn.rgpdSettings': 'Paramètres RGPD',
@@ -12800,6 +12807,9 @@ ${persona}
                 'hr.turnover.empty.title': 'Aucune analyse disponible',
                 'hr.turnover.empty.desc': 'Cliquez sur "Analyser les risques" pour générer les prédictions',
                 'hr.turnover.empty.hint': "L'analyse nécessite des données d'employés, congés et évaluations",
+
+                'hr.turnover.empty.filteredTitle': 'Aucun résultat',
+                'hr.turnover.empty.filteredDesc': 'Aucun employé ne correspond à vos filtres. Modifiez la recherche ou le niveau de risque.',
 
                 // Recruitment
                 'hr.recruitment.rgpd.title': 'Conformité RGPD - CV Screening',
@@ -13935,6 +13945,9 @@ ${persona}
                 'hr.turnover.empty.title': 'No analysis available',
                 'hr.turnover.empty.desc': 'Click "Analyze Risks" to generate predictions',
                 'hr.turnover.empty.hint': 'Analysis requires employee, leave, and review data',
+
+                'hr.turnover.empty.filteredTitle': 'No results',
+                'hr.turnover.empty.filteredDesc': 'No employees match your filters. Adjust the search or risk level.',
 
                 // Recruitment
                 'hr.recruitment.rgpd.title': 'GDPR Compliance - CV Screening',
@@ -33982,7 +33995,7 @@ ${recruitmentInfo}
                             `).join('')}
                             ${analysis.factors.length > 3 ? `
                                 <div style="text-align: center; padding-top: 8px;">
-                                    <span style="font-size: 11px; color: rgba(255,255,255,0.6);">+${analysis.factors.length - 3} autres facteurs...</span>
+                                    <span style="font-size: 11px; color: rgba(255,255,255,0.6);">+${analysis.factors.length - 3} ${t('hr.turnover.label.otherFactors')}</span>
                                 </div>
                             ` : ''}
                         </div>
@@ -34058,14 +34071,14 @@ ${recruitmentInfo}
                 const pEls = emptyState.querySelectorAll('p');
 
                 if ((filter || search) && titleEl) {
-                    titleEl.textContent = analyses.length === 0 ? 'Aucun résultat' : 'Aucune analyse disponible';
+                    titleEl.textContent = analyses.length === 0 ? t('hr.turnover.empty.filteredTitle') : t('hr.turnover.empty.title');
                     if (pEls && pEls[0]) {
-                        pEls[0].textContent = analyses.length === 0 ? 'Aucun employé ne correspond à vos filtres. Modifiez la recherche ou le niveau de risque.' : 'Cliquez sur "Analyser les risques" pour générer les prédictions';
+                        pEls[0].textContent = analyses.length === 0 ? t('hr.turnover.empty.filteredDesc') : t('hr.turnover.empty.desc');
                     }
                 } else if (titleEl) {
-                    titleEl.textContent = 'Aucune analyse disponible';
+                    titleEl.textContent = t('hr.turnover.empty.title');
                     if (pEls && pEls[0]) {
-                        pEls[0].textContent = 'Cliquez sur "Analyser les risques" pour générer les prédictions';
+                        pEls[0].textContent = t('hr.turnover.empty.desc');
                     }
                 }
             }
