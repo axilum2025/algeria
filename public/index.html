@@ -34111,13 +34111,15 @@ ${recruitmentInfo}
             const confidence = typeof analysis.confidence === 'number' ? Math.round(analysis.confidence) : null;
             const confidenceLabel = confidence === null ? '' : (analysis.confidenceLevel === 'high' ? 'Haute' : analysis.confidenceLevel === 'medium' ? 'Moyenne' : 'Faible');
             const windowMonths = analysis.dataCoverage?.windowMonths || 12;
+            const previouslyFocusedElement = document.activeElement;
             
             const modal = document.createElement('div');
             modal.className = 'turnover-modal turnover-modal-fullscreen';
             modal.style.cssText = 'position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: flex; align-items: stretch; justify-content: stretch; z-index: 10004; overflow: hidden; padding: 0;';
+            modal.tabIndex = -1;
             
             modal.innerHTML = `
-                <div class="turnover-modal-content" style="background: white; border-radius: 0; padding: 24px; max-width: 100vw; width: 100%; height: 100vh; max-height: 100vh; overflow-y: auto;">
+                <div class="turnover-modal-content" tabindex="-1" role="dialog" aria-modal="true" aria-label="Analyse de risque de turnover" style="background: white; border-radius: 0; padding: 24px; max-width: 100vw; width: 100%; height: 100vh; max-height: 100vh; overflow-y: auto;">
                     <div style="text-align: center; margin-bottom: 32px;">
                         <h2 class="turnover-modal-title" style="margin: 0 0 8px; font-size: 28px; font-weight: 700; color: #1a1a1a; display: inline-flex; align-items: center; gap: 10px;">${getTurnoverIcon('alert', { size: 22, stroke: '#EF4444' })}Analyse de risque de turnover</h2>
                         <p class="turnover-modal-subtitle" style="margin: 0; font-size: 14px; color: #6b7280;">Analyse conforme RGPD - Données explicables et transparentes</p>
@@ -34220,20 +34222,98 @@ ${recruitmentInfo}
                 </div>
             `;
             
+            const getFocusableElements = () => {
+                try {
+                    const selectors = [
+                        'a[href]',
+                        'area[href]',
+                        'button:not([disabled])',
+                        'input:not([disabled]):not([type="hidden"])',
+                        'select:not([disabled])',
+                        'textarea:not([disabled])',
+                        '[tabindex]:not([tabindex="-1"])'
+                    ].join(',');
+                    return Array.from(modal.querySelectorAll(selectors))
+                        .filter(el => {
+                            if (!el) return false;
+                            const style = window.getComputedStyle(el);
+                            return style.display !== 'none' && style.visibility !== 'hidden';
+                        });
+                } catch (_) {
+                    return [];
+                }
+            };
+
+            const onKeyDown = (e) => {
+                if (!e) return;
+                if (e.key === 'Escape') {
+                    e.preventDefault();
+                    modal.remove();
+                    return;
+                }
+                if (e.key !== 'Tab') return;
+                const focusables = getFocusableElements();
+                if (!focusables.length) {
+                    e.preventDefault();
+                    try { modal.focus(); } catch (_) {}
+                    return;
+                }
+                const first = focusables[0];
+                const last = focusables[focusables.length - 1];
+                const active = document.activeElement;
+                if (e.shiftKey) {
+                    if (active === first || active === modal) {
+                        e.preventDefault();
+                        try { last.focus(); } catch (_) {}
+                    }
+                } else {
+                    if (active === last) {
+                        e.preventDefault();
+                        try { first.focus(); } catch (_) {}
+                    }
+                }
+            };
+
+            const cleanup = () => {
+                try { modal.removeEventListener('keydown', onKeyDown, true); } catch (_) {}
+                try {
+                    if (previouslyFocusedElement && typeof previouslyFocusedElement.focus === 'function') {
+                        previouslyFocusedElement.focus();
+                    }
+                } catch (_) {}
+            };
+
+            const originalRemove = modal.remove.bind(modal);
+            modal.remove = () => {
+                cleanup();
+                originalRemove();
+            };
+
             document.body.appendChild(modal);
+            modal.addEventListener('keydown', onKeyDown, true);
             modal.onclick = (e) => {
                 if (e.target === modal) modal.remove();
             };
+
+            setTimeout(() => {
+                try {
+                    const dialog = modal.querySelector('.turnover-modal-content');
+                    if (dialog && typeof dialog.focus === 'function') dialog.focus();
+                    else modal.focus();
+                } catch (_) {}
+            }, 0);
         }
         
         function showRGPDSettings() {
             const currentConsent = getTurnoverConsent();
+            const previouslyFocusedElement = document.activeElement;
             const modal = document.createElement('div');
             modal.className = 'turnover-modal turnover-rgpd-modal turnover-modal-fullscreen';
             modal.style.cssText = 'position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: flex; align-items: stretch; justify-content: stretch; z-index: 10005; overflow: hidden; padding: 0;';
+            modal.tabIndex = -1;
             
             modal.innerHTML = `
-                <div class="turnover-rgpd-modal-content" style="background: white; border-radius: 0; padding: 24px; max-width: 100vw; width: 100%; height: 100vh; max-height: 100vh; overflow-y: auto; position: relative;">
+                <div class="turnover-rgpd-modal-content" tabindex="-1" role="dialog" aria-modal="true" aria-label="Paramètres RGPD" style="background: white; border-radius: 0; padding: 24px; max-width: 100vw; width: 100%; height: 100vh; max-height: 100vh; overflow-y: auto; position: relative;">
                     <div style="height: 3px; background: linear-gradient(90deg, #10b981, #06b6d4, #3b82f6); border-radius: 999px; margin: -12px 0 20px;"></div>
                     <div style="margin-bottom: 24px;">
                         <h2 class="turnover-rgpd-modal-title" style="margin: 0 0 8px; font-size: 24px; font-weight: 800; color: #0f172a; display: flex; align-items: center; gap: 10px;">
@@ -34324,10 +34404,86 @@ ${recruitmentInfo}
                 </div>
             `;
             
+            const getFocusableElements = () => {
+                try {
+                    const selectors = [
+                        'a[href]',
+                        'area[href]',
+                        'button:not([disabled])',
+                        'input:not([disabled]):not([type="hidden"])',
+                        'select:not([disabled])',
+                        'textarea:not([disabled])',
+                        '[tabindex]:not([tabindex="-1"])'
+                    ].join(',');
+                    return Array.from(modal.querySelectorAll(selectors))
+                        .filter(el => {
+                            if (!el) return false;
+                            const style = window.getComputedStyle(el);
+                            return style.display !== 'none' && style.visibility !== 'hidden';
+                        });
+                } catch (_) {
+                    return [];
+                }
+            };
+
+            const onKeyDown = (e) => {
+                if (!e) return;
+                if (e.key === 'Escape') {
+                    e.preventDefault();
+                    modal.remove();
+                    return;
+                }
+                if (e.key !== 'Tab') return;
+                const focusables = getFocusableElements();
+                if (!focusables.length) {
+                    e.preventDefault();
+                    try { modal.focus(); } catch (_) {}
+                    return;
+                }
+                const first = focusables[0];
+                const last = focusables[focusables.length - 1];
+                const active = document.activeElement;
+                if (e.shiftKey) {
+                    if (active === first || active === modal) {
+                        e.preventDefault();
+                        try { last.focus(); } catch (_) {}
+                    }
+                } else {
+                    if (active === last) {
+                        e.preventDefault();
+                        try { first.focus(); } catch (_) {}
+                    }
+                }
+            };
+
+            const cleanup = () => {
+                try { modal.removeEventListener('keydown', onKeyDown, true); } catch (_) {}
+                try {
+                    if (previouslyFocusedElement && typeof previouslyFocusedElement.focus === 'function') {
+                        previouslyFocusedElement.focus();
+                    }
+                } catch (_) {}
+            };
+
+            const originalRemove = modal.remove.bind(modal);
+            modal.remove = () => {
+                cleanup();
+                originalRemove();
+            };
+
             document.body.appendChild(modal);
+            modal.addEventListener('keydown', onKeyDown, true);
             modal.onclick = (e) => {
                 if (e.target === modal) modal.remove();
             };
+
+            setTimeout(() => {
+                try {
+                    const dialog = modal.querySelector('.turnover-rgpd-modal-content');
+                    if (dialog && typeof dialog.focus === 'function') dialog.focus();
+                    else modal.focus();
+                } catch (_) {}
+            }, 0);
 
             // Sauvegarde immédiate quand l'utilisateur coche/décoche
             setTimeout(() => {
