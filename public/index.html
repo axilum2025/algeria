@@ -33839,7 +33839,7 @@ ${recruitmentInfo}
                 });
             }
             
-            const hasPerformanceIssue = factors.some(f => f.name.includes('performance') || f.name.includes('Performance'));
+            const hasPerformanceIssue = factors.some(f => ['PERF_DROP_SIG', 'PERF_DROP_SLIGHT', 'PERF_UNSATISFACTORY', 'REVIEW_POOR'].includes(f.code));
             if (hasPerformanceIssue) {
                 actions.push({
                     type: 'training',
@@ -33849,7 +33849,7 @@ ${recruitmentInfo}
                 });
             }
             
-            const hasSalaryIssue = factors.some(f => f.name.includes('augmentation') || f.name.includes('Salaire'));
+            const hasSalaryIssue = factors.some(f => f.code === 'NO_RAISE');
             if (hasSalaryIssue) {
                 actions.push({
                     type: 'salary',
@@ -33859,7 +33859,7 @@ ${recruitmentInfo}
                 });
             }
             
-            const hasPromotionIssue = factors.some(f => f.name.includes('promotion'));
+            const hasPromotionIssue = factors.some(f => f.code === 'NO_PROMOTION');
             if (hasPromotionIssue) {
                 actions.push({
                     type: 'career',
@@ -33869,7 +33869,7 @@ ${recruitmentInfo}
                 });
             }
             
-            const hasWorkloadIssue = factors.some(f => f.name.includes('Surcharge'));
+            const hasWorkloadIssue = factors.some(f => f.code === 'OVERWORKED');
             if (hasWorkloadIssue) {
                 actions.push({
                     type: 'team',
