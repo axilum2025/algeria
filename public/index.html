@@ -34152,16 +34152,16 @@ ${recruitmentInfo}
                             </div>
                             <div class="turnover-modal-score" style="text-align: center;">
                                 <div class="turnover-modal-score-value" style="font-size: 48px; font-weight: 700; margin-bottom: 4px;">${analysis.riskScore}%</div>
-                                <div style="font-size: 12px; opacity: 0.9;">Score de risque</div>
+                                <div style="font-size: 12px; opacity: 0.9;">${t('hr.turnover.details.riskScore')}</div>
                             </div>
                         </div>
                         ${confidence === null ? '' : `
                         <div class="turnover-modal-meta" style="display:flex; gap: 20px; margin-top: 20px; flex-wrap: wrap; align-items: center; justify-content: center;">
                             <div class="turnover-modal-chip turnover-modal-chip-confidence" style="background: rgba(255,255,255,0.12); border: 1px solid rgba(255,255,255,0.2); border-radius: 999px; padding: 8px 14px; font-size: 12px; font-weight: 600; opacity: 0.95;">
-                                Confiance: ${confidence}%
+                                ${t('hr.turnover.label.confidence')}: ${confidence}%
                             </div>
                             <div class="turnover-modal-chip turnover-modal-chip-window" style="background: rgba(255,255,255,0.12); border: 1px solid rgba(255,255,255,0.2); border-radius: 999px; padding: 8px 14px; font-size: 12px; font-weight: 600; opacity: 0.95;">
-                                Fenêtre: ${windowMonths} derniers mois
+                                ${t('hr.turnover.details.window').replace('{0}', windowMonths)}
                             </div>
                         </div>
                         `}
