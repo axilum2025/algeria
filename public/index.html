@@ -33663,10 +33663,10 @@ ${recruitmentInfo}
             
             if (monthsWorked < 6) {
                 riskScore += 20;
-                factors.push({ name: 'Ancienneté < 6 mois', impact: 20, category: 'professional' });
+                factors.push({ code: 'TENURE_UNDER_6', key: 'hr.turnover.factor.tenureUnder6Months', args: [], impact: 20, category: 'professional' });
             } else if (monthsWorked >= 12 && monthsWorked < 24) {
                 riskScore += 10;
-                factors.push({ name: 'Ancienneté 1-2 ans (période critique)', impact: 10, category: 'professional' });
+                factors.push({ code: 'TENURE_1_2', key: 'hr.turnover.factor.tenure1to2Years', args: [], impact: 10, category: 'professional' });
             }
             
             // Salaire & évolutions (15% du score)
@@ -33695,7 +33695,7 @@ ${recruitmentInfo}
 
                 if (increase < 5 && monthsWorked > 12) {
                     riskScore += 15;
-                    factors.push({ name: `Aucune augmentation significative (sur ${windowMonths} mois)`, impact: 15, category: 'professional' });
+                    factors.push({ code: 'NO_RAISE', key: 'hr.turnover.factor.noRaise', args: [windowMonths], impact: 15, category: 'professional' });
                 }
             }
             
@@ -33714,10 +33714,10 @@ ${recruitmentInfo}
             
             if (absenceDays > 30 && monthsWorked > 6) {
                 riskScore += 20;
-                factors.push({ name: `Absentéisme élevé (${absenceDays} jours sur ${windowMonths} mois)`, impact: 20, category: 'behavioral' });
+                factors.push({ code: 'ABSENTEEISM_HIGH', key: 'hr.turnover.factor.highAbsenteeism', args: [absenceDays, windowMonths], impact: 20, category: 'behavioral' });
             } else if (absenceDays > 15 && monthsWorked > 6) {
                 riskScore += 10;
-                factors.push({ name: `Absentéisme modéré (${absenceDays} jours sur ${windowMonths} mois)`, impact: 10, category: 'behavioral' });
+                factors.push({ code: 'ABSENTEEISM_MODERATE', key: 'hr.turnover.factor.moderateAbsenteeism', args: [absenceDays, windowMonths], impact: 10, category: 'behavioral' });
             }
             
             // Baisse de performance (25% du score)
@@ -33746,20 +33746,20 @@ ${recruitmentInfo}
                     const drop = previousReview.overallRating - latestReview.overallRating;
                     if (drop >= 1) {
                         riskScore += 25;
-                        factors.push({ name: 'Baisse de performance significative', impact: 25, category: 'behavioral' });
+                        factors.push({ code: 'PERF_DROP_SIG', key: 'hr.turnover.factor.performanceDropSignificant', args: [], impact: 25, category: 'behavioral' });
                     } else if (drop >= 0.5) {
                         riskScore += 15;
-                        factors.push({ name: 'Légère baisse de performance', impact: 15, category: 'behavioral' });
+                        factors.push({ code: 'PERF_DROP_SLIGHT', key: 'hr.turnover.factor.performanceDropSlight', args: [], impact: 15, category: 'behavioral' });
                     }
                 }
                 
                 if (latestReview.overallRating < 3) {
                     riskScore += 20;
-                    factors.push({ name: 'Performance insatisfaisante', impact: 20, category: 'behavioral' });
+                    factors.push({ code: 'PERF_UNSATISFACTORY', key: 'hr.turnover.factor.performanceUnsatisfactory', args: [], impact: 20, category: 'behavioral' });
                 }
             } else if (empReviewsWindow.length === 1 && empReviewsWindow[0].overallRating < 3) {
                 riskScore += 15;
-                factors.push({ name: 'Évaluation médiocre', impact: 15, category: 'behavioral' });
+                factors.push({ code: 'REVIEW_POOR', key: 'hr.turnover.factor.reviewPoor', args: [], impact: 15, category: 'behavioral' });
             }
             
             // 3. DONNÉES CONTEXTUELLES
@@ -33767,7 +33767,7 @@ ${recruitmentInfo}
             // Pas de promotion/évolution (10% du score)
             if (monthsWorked > 24 && empReviewsAll.filter(r => r.overallRating >= 4).length > 0) {
                 riskScore += 10;
-                factors.push({ name: 'Pas de promotion malgré bonne performance', impact: 10, category: 'contextual' });
+                factors.push({ code: 'NO_PROMOTION', key: 'hr.turnover.factor.noPromotion', args: [], impact: 10, category: 'contextual' });
             }
             
             // Charge de travail (10% du score - basé sur heures sup)
@@ -33776,7 +33776,7 @@ ${recruitmentInfo}
             const avgOvertime = recentPayrolls.reduce((sum, p) => sum + (p.overtime || 0), 0) / Math.max(recentPayrolls.length, 1);
             if (avgOvertime > 15) {
                 riskScore += 10;
-                factors.push({ name: 'Surcharge de travail (' + Math.round(avgOvertime) + 'h sup/mois)', impact: 10, category: 'contextual' });
+                factors.push({ code: 'OVERWORKED', key: 'hr.turnover.factor.overworked', args: [Math.round(avgOvertime)], impact: 10, category: 'contextual' });
             }
 
             // Indice de confiance (non-ML) basé sur la couverture des données
