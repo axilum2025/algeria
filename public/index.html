@@ -20298,18 +20298,8 @@ ${persona}
                         }
                     }
 
-                    /* Mobile: forcer le scroll de l'overlay (iOS/Android) */
+                    /* Mobile: Standard layout (behavior patched) */
                     @media (max-width: 768px) {
-                        #hrManagementOverlay {
-                            height: 100dvh !important;
-                            overflow-y: auto !important;
-                            overflow-x: hidden !important;
-                            -webkit-overflow-scrolling: touch;
-                            touch-action: pan-y;
-                        }
-                        #hrManagementOverlay .hr-content-area {
-                            overflow-y: visible !important;
-                        }
 
                         /* Mobile: Agent RH - garder les tabs visibles (comme R&D) */
                         #hrContentAgent .hr-agent-header {
@@ -20333,16 +20323,6 @@ ${persona}
 
                     /* Paysage / faible hauteur: scroll global plus fiable */
                     @media (max-height: 520px) and (orientation: landscape) {
-                        #hrManagementOverlay {
-                            height: 100dvh !important;
-                            overflow-y: auto !important;
-                            overflow-x: hidden !important;
-                            -webkit-overflow-scrolling: touch;
-                            touch-action: pan-y;
-                        }
-                        #hrManagementOverlay .hr-content-area {
-                            overflow-y: visible !important;
-                        }
                     }
                     
                     @media (max-width: 480px) {
