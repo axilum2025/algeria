@@ -20687,9 +20687,8 @@ ${persona}
                     
                     /* Responsive pour le panneau Congés */
                     @media (max-width: 1200px) {
-                        #hrContentLeaves > div > div {
-                            max-width: 100% !important;
-                            padding-top: 10px !important;
+                        #hrContentLeaves {
+                            padding: 16px !important;
                         }
                         #hrContentLeaves h2 {
                             font-size: 24px !important;
@@ -20697,11 +20696,8 @@ ${persona}
                     }
                     
                     @media (max-width: 768px) {
-                        #hrContentLeaves > div {
-                            padding: 16px !important;
-                        }
-                        #hrContentLeaves > div > div {
-                            padding-top: 0 !important;
+                        #hrContentLeaves {
+                            padding: 12px !important;
                         }
                         #hrContentLeaves h2 {
                             font-size: 22px !important;
@@ -20709,25 +20705,27 @@ ${persona}
                         #hrContentLeaves p {
                             font-size: 13px !important;
                         }
-                        #hrContentLeaves > div > div > div:first-child {
+                        /* Header avec actions - empiler verticalement */
+                        #hrContentLeaves > div:first-child {
                             flex-direction: column !important;
                             align-items: flex-start !important;
                             gap: 16px !important;
                         }
-                        #hrContentLeaves > div > div > div:first-child > div:last-child {
+                        #hrContentLeaves > div:first-child > div:last-child {
                             width: 100% !important;
                             flex-wrap: wrap !important;
                         }
-                        #hrContentLeaves > div > div > div:first-child button {
+                        #hrContentLeaves > div:first-child button {
                             flex: 1 1 auto !important;
                             min-width: 120px !important;
                             justify-content: center !important;
                         }
-                        #hrContentLeaves > div > div > div:nth-child(2) {
-                            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)) !important;
+                        /* Stats Cards - grille adaptative */
+                        #hrContentLeaves > div:nth-child(2) {
+                            grid-template-columns: repeat(2, 1fr) !important;
                             gap: 12px !important;
                         }
-                        #hrContentLeaves > div > div > div:nth-child(2) > div {
+                        #hrContentLeaves > div:nth-child(2) > div {
                             padding: 16px !important;
                         }
                         #hrContentLeaves input,
@@ -20743,8 +20741,8 @@ ${persona}
                     }
                     
                     @media (max-width: 480px) {
-                        #hrContentLeaves > div {
-                            padding: 12px !important;
+                        #hrContentLeaves {
+                            padding: 10px !important;
                         }
                         #hrContentLeaves h2 {
                             font-size: 18px !important;
@@ -20755,26 +20753,74 @@ ${persona}
                         #hrContentLeaves p {
                             font-size: 12px !important;
                         }
-                        #hrContentLeaves > div > div > div:first-child > div:last-child {
+                        /* Header - boutons en colonne */
+                        #hrContentLeaves > div:first-child > div:last-child {
                             flex-direction: column !important;
                         }
-                        #hrContentLeaves > div > div > div:first-child button {
+                        #hrContentLeaves > div:first-child button {
                             width: 100% !important;
                             min-width: unset !important;
                         }
-                        #hrContentLeaves > div > div > div:nth-child(2) {
-                            grid-template-columns: 1fr !important;
+                        /* Stats Cards - 2 colonnes */
+                        #hrContentLeaves > div:nth-child(2) {
+                            grid-template-columns: 1fr 1fr !important;
                             gap: 10px !important;
                             margin-bottom: 20px !important;
                         }
-                        #hrContentLeaves > div > div > div:nth-child(2) > div {
+                        /* Cartes individuelles - padding et layout */
+                        #hrContentLeaves > div:nth-child(2) > div {
                             padding: 14px !important;
+                            display: flex !important;
+                            flex-direction: column !important;
                         }
-                        #hrContentLeaves > div > div > div:nth-child(2) span {
-                            font-size: 11px !important;
+                        /* Zone icône + label */
+                        #hrContentLeaves > div:nth-child(2) > div > div:first-child {
+                            margin-bottom: 10px !important;
+                            gap: 8px !important;
                         }
-                        #hrContentLeaves > div > div > div:nth-child(2) > div > div:last-child {
-                            font-size: 22px !important;
+                        /* Icône container */
+                        #hrContentLeaves > div:nth-child(2) > div > div:first-child > div:first-child {
+                            width: 32px !important;
+                            height: 32px !important;
+                            min-width: 32px !important;
+                            flex-shrink: 0 !important;
+                        }
+                        /* SVG dans icône */
+                        #hrContentLeaves > div:nth-child(2) > div > div:first-child > div:first-child svg {
+                            width: 16px !important;
+                            height: 16px !important;
+                        }
+                        /* Label texte */
+                        #hrContentLeaves > div:nth-child(2) span {
+                            font-size: 10px !important;
+                            line-height: 1.2 !important;
+                        }
+                        /* Nombre/valeur */
+                        #hrContentLeaves > div:nth-child(2) > div > div:last-child {
+                            font-size: 20px !important;
+                        }
+                        #hrContentLeaves input,
+                        #hrContentLeaves select,
+                        #hrContentLeaves textarea {
+                            font-size: 12px !important;
+                            padding: 8px 10px !important;
+                        }
+                        #hrContentLeaves button {
+                            padding: 8px 12px !important;
+                            font-size: 12px !important;
+                        }
+                        #hrContentLeaves button svg {
+                            width: 16px !important;
+                            height: 16px !important;
+                        }
+                    }
+                    
+                            font-size: 10px !important;
+                            line-height: 1.2 !important;
+                        }
+                        /* Nombre/valeur */
+                        #hrContentLeaves > div:nth-child(2) > div > div:last-child {
+                            font-size: 20px !important;
                         }
                         #hrContentLeaves input,
                         #hrContentLeaves select,
