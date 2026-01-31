@@ -32,7 +32,7 @@ const PORT = process.env.PORT || 8080;
 const corsOptions = {
   origin: '*',
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'x-user-id'],
   exposedHeaders: ['Retry-After'],
   optionsSuccessStatus: 204
 };
@@ -44,6 +44,28 @@ app.options('*', cors(corsOptions));
 // 10 MB côté client peut dépasser 5 MB côté serveur -> augmenter la limite.
 app.use(express.json({ limit: '20mb' }));
 app.use(express.urlencoded({ extended: true, limit: '20mb' }));
+
+// MCP Proxy Route
+const axios = require('axios');
+app.post('/mcp', async (req, res) => {
+    try {
+        console.log(`[Proxy] Forwarding request to MCP server:`, req.body);
+        const response = await axios.post('http://localhost:3001/mcp', req.body, {
+            headers: {
+                'Content-Type': 'application/json',
+                'x-user-id': req.headers['x-user-id'] || 'user_123'
+            }
+        });
+        res.json(response.data);
+    } catch (error) {
+        console.error('[Proxy] Error forwarding to MCP:', error.message);
+        if (error.response) {
+            res.status(error.response.status).json(error.response.data);
+        } else {
+            res.status(502).json({ error: "MCP Server Unreachable" });
+        }
+    }
+});
 
 // Serve static files from public
 const publicDir = path.join(__dirname, 'public');
