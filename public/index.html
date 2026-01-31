@@ -1,3 +1,4 @@
+<!-- MCP Active -->
 <!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -4176,6 +4177,72 @@
                                 </div>
                             </div>
                         </div>
+
+<!-- SECTION MCP (Protocol) -->
+<div style="margin-top: 12px; padding-top: 12px; border-top: 1px dashed var(--border-color);">
+    <div style="display:flex; align-items:center; justify-content:space-between; gap: 12px; flex-wrap: wrap;">
+        <div style="min-width: 240px;">
+            <div style="font-weight: 800; color: var(--text-primary);">Model Context Protocol (MCP)</div>
+            <div style="margin-top: 4px; color: var(--text-secondary); font-size: 13px; line-height: 1.4;">
+                Autorise l'IA à utiliser des outils externes (Recherche web, APIs, Actions).
+            </div>
+        </div>
+        <div style="display:flex; align-items:center; gap: 10px; flex-wrap: wrap;">
+            <div class="settings-plan-toggle" id="mcpToggle" aria-label="MCP Activation">
+                <button type="button" class="settings-plan-btn" id="mcpOff" title="MCP Désactivé">OFF</button>
+                <button type="button" class="settings-plan-btn" id="mcpOn" title="MCP Activé">ON</button>
+            </div>
+        </div>
+    </div>
+    <div id="mcpToolsContainer" style="display: none; margin-top: 15px; padding: 15px; background: var(--bg-secondary); border-radius: 12px; border: 1px solid var(--border-color);">
+        <div style="font-size: 13px; font-weight: 700; color: var(--text-secondary); margin-bottom: 10px; text-transform: uppercase; letter-spacing: 0.5px;">Outils connectés autorisés</div>
+        <div style="display: flex; flex-direction: column; gap: 10px;">
+            <div style="display: flex; align-items: center; justify-content: space-between; padding: 8px 12px; background: var(--bg-sidebar); border-radius: 8px; border: 1px solid var(--border-color);">
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <div style="font-size: 18px;">🌍</div>
+                    <div>
+                        <div style="font-weight: 600; font-size: 14px;">Recherche Web</div>
+                        <div style="font-size: 12px; color: var(--text-secondary);">Google / Bing Search</div>
+                    </div>
+                </div>
+                <label class="switch-toggle" style="position: relative; display: inline-block; width: 40px; height: 24px;">
+                    <input type="checkbox" id="mcpToolWeb" checked onchange="saveMcpPreferences()">
+                    <span class="slider round" style="position: absolute; top:0; left:0; right:0; bottom:0; background-color:#ccc; transition:.4s; border-radius:34px;"></span>
+                </label>
+            </div>
+            <div style="display: flex; align-items: center; justify-content: space-between; padding: 8px 12px; background: var(--bg-sidebar); border-radius: 8px; border: 1px solid var(--border-color);">
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <div style="font-size: 18px;">💱</div>
+                    <div>
+                        <div style="font-weight: 600; font-size: 14px;">Finance Live</div>
+                        <div style="font-size: 12px; color: var(--text-secondary);">Taux de change & Marchés</div>
+                    </div>
+                </div>
+                <label class="switch-toggle" style="position: relative; display: inline-block; width: 40px; height: 24px;">
+                    <input type="checkbox" id="mcpToolFinance" checked onchange="saveMcpPreferences()">
+                    <span class="slider round" style="position: absolute; top:0; left:0; right:0; bottom:0; background-color:#ccc; transition:.4s; border-radius:34px;"></span>
+                </label>
+            </div>
+            <div style="display: flex; align-items: center; justify-content: space-between; padding: 8px 12px; background: var(--bg-sidebar); border-radius: 8px; border: 1px solid var(--border-color);">
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <div style="font-size: 18px;">📧</div>
+                    <div>
+                        <div style="font-weight: 600; font-size: 14px;">Communication</div>
+                        <div style="font-size: 12px; color: var(--text-secondary);">Email & Slack Notifications</div>
+                    </div>
+                </div>
+                <label class="switch-toggle" style="position: relative; display: inline-block; width: 40px; height: 24px;">
+                    <input type="checkbox" id="mcpToolComm" onchange="saveMcpPreferences()">
+                    <span class="slider round" style="position: absolute; top:0; left:0; right:0; bottom:0; background-color:#ccc; transition:.4s; border-radius:34px;"></span>
+                </label>
+            </div>
+        </div>
+    </div>
+</div>
+<style>
+.switch-toggle input:checked + .slider { background-color: var(--accent); }
+</style>
+
                     </div>
                 </div>
 
@@ -29903,6 +29970,83 @@ N'inclus des actions QUE si l'utilisateur demande explicitement de modifier/ajou
     <div class="footer">
         Document généré automatiquement le ${today}
     </div>
+
+<script>
+// --- RESTORED CODE FOUND OUTSIDE HTML ---
+
+
+// ================================
+// 🛠️ MCP (Model Context Protocol) Management
+// ================================
+function getMcpEnabled() {
+    return String(localStorage.getItem('axilum_mcp_enabled') || '') === '1';
+}
+
+function setMcpEnabled(enabled) {
+    const v = enabled ? '1' : '0';
+    localStorage.setItem('axilum_mcp_enabled', v);
+    refreshMcpUi();
+}
+
+function getMcpPreferences() {
+    try {
+        const raw = localStorage.getItem('axilum_mcp_prefs');
+        return raw ? JSON.parse(raw) : { web: true, finance: true, comm: false };
+    } catch (_) {
+        return { web: true, finance: true, comm: false };
+    }
+}
+
+function saveMcpPreferences() {
+    const elWeb = document.getElementById('mcpToolWeb');
+    const elFin = document.getElementById('mcpToolFinance');
+    const elComm = document.getElementById('mcpToolComm');
+    
+    if (!elWeb) return; 
+
+    const web = elWeb.checked;
+    const finance = elFin.checked;
+    const comm = elComm.checked;
+    
+    const prefs = { web, finance, comm };
+    localStorage.setItem('axilum_mcp_prefs', JSON.stringify(prefs));
+}
+
+function refreshMcpUi() {
+    const enabled = getMcpEnabled();
+    const btnOn = document.getElementById('mcpOn');
+    const btnOff = document.getElementById('mcpOff');
+    const container = document.getElementById('mcpToolsContainer');
+    
+    if (btnOn && btnOff) {
+        btnOn.classList.toggle('active', enabled);
+        btnOff.classList.toggle('active', !enabled);
+        
+        // Re-bind to ensure click works
+        btnOn.onclick = () => setMcpEnabled(true);
+        btnOff.onclick = () => setMcpEnabled(false);
+    }
+    
+    if (container) {
+        container.style.display = enabled ? 'block' : 'none';
+    }
+
+    // Restore Checkboxes State if enabled
+    if (enabled) {
+        const prefs = getMcpPreferences();
+        const chkWeb = document.getElementById('mcpToolWeb');
+        const chkFin = document.getElementById('mcpToolFinance');
+        const chkComm = document.getElementById('mcpToolComm');
+        
+        if (chkWeb) { chkWeb.checked = !!prefs.web; chkWeb.onchange = saveMcpPreferences; }
+        if (chkFin) { chkFin.checked = !!prefs.finance; chkFin.onchange = saveMcpPreferences; }
+        if (chkComm) { chkComm.checked = !!prefs.comm; chkComm.onchange = saveMcpPreferences; }
+    }
+}
+
+// --- END RESTORED CODE ---
+</script>
+
 </body>
 </html>
             `;
