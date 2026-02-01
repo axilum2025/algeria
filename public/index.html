@@ -4176,6 +4176,41 @@
                                 </div>
                             </div>
                         </div>
+                        <!-- SECTION MCP (Protocol) -->
+                        <div style="margin-top: 12px; padding-top: 12px; border-top: 1px dashed var(--border-color);">
+                            <div style="display:flex; align-items:center; justify-content:space-between; gap: 12px; flex-wrap: wrap;">
+                                <div style="min-width: 240px;">
+                                    <div style="font-weight: 800; color: var(--text-primary);">Model Context Protocol (MCP)</div>
+                                    <div style="margin-top: 4px; color: var(--text-secondary); font-size: 13px; line-height: 1.4;">
+                                        Autorise l'IA à utiliser des outils externes (Recherche web, APIs, Actions).
+                                    </div>
+                                </div>
+                                <div style="display:flex; align-items:center; gap: 10px; flex-wrap: wrap;">
+                                    <div class="settings-plan-toggle" id="mcpToggle" aria-label="MCP Activation">
+                                        <button type="button" class="settings-plan-btn" id="mcpOff" title="MCP Désactivé">OFF</button>
+                                        <button type="button" class="settings-plan-btn" id="mcpOn" title="MCP Activé">ON</button>
+                                    </div>
+                                </div>
+                            </div>
+                            <div id="mcpToolsContainer" style="display: none; margin-top: 15px; padding: 15px; background: var(--bg-secondary); border-radius: 12px; border: 1px solid var(--border-color);">
+                                <div style="font-size: 13px; font-weight: 700; color: var(--text-secondary); margin-bottom: 10px; text-transform: uppercase; letter-spacing: 0.5px;">Outils autorisés</div>
+                                <div style="display: flex; flex-direction: column; gap: 8px;">
+                                    <label style="display: flex; align-items: center; gap: 10px; padding: 8px; background: var(--bg-sidebar); border-radius: 8px; cursor: pointer;">
+                                        <input type="checkbox" id="mcpToolWeb" checked onchange="saveMcpPreferences()" style="width: 18px; height: 18px; accent-color: var(--accent);">
+                                        <span>🌍 Recherche Web</span>
+                                    </label>
+                                    <label style="display: flex; align-items: center; gap: 10px; padding: 8px; background: var(--bg-sidebar); border-radius: 8px; cursor: pointer;">
+                                        <input type="checkbox" id="mcpToolFinance" checked onchange="saveMcpPreferences()" style="width: 18px; height: 18px; accent-color: var(--accent);">
+                                        <span>💱 Finance Live</span>
+                                    </label>
+                                    <label style="display: flex; align-items: center; gap: 10px; padding: 8px; background: var(--bg-sidebar); border-radius: 8px; cursor: pointer;">
+                                        <input type="checkbox" id="mcpToolComm" onchange="saveMcpPreferences()" style="width: 18px; height: 18px; accent-color: var(--accent);">
+                                        <span>📧 Communication (Email/Slack)</span>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+
                     </div>
                 </div>
 
@@ -5924,6 +5959,65 @@ RÈGLES IMPORTANTES:
             } catch (_) {}
             try { renderDocsModalStatus(); } catch (_) {}
         }
+        // ================================
+        // 🛠️ MCP (Model Context Protocol) Management
+        // ================================
+        function getMcpEnabled() {
+            return String(localStorage.getItem('axilum_mcp_enabled') || '') === '1';
+        }
+
+        function setMcpEnabled(enabled) {
+            localStorage.setItem('axilum_mcp_enabled', enabled ? '1' : '0');
+            refreshMcpUi();
+        }
+
+        function getMcpPreferences() {
+            try {
+                const raw = localStorage.getItem('axilum_mcp_prefs');
+                return raw ? JSON.parse(raw) : { web: true, finance: true, comm: false };
+            } catch (_) {
+                return { web: true, finance: true, comm: false };
+            }
+        }
+
+        function saveMcpPreferences() {
+            const prefs = {
+                web: document.getElementById('mcpToolWeb')?.checked ?? true,
+                finance: document.getElementById('mcpToolFinance')?.checked ?? true,
+                comm: document.getElementById('mcpToolComm')?.checked ?? false
+            };
+            localStorage.setItem('axilum_mcp_prefs', JSON.stringify(prefs));
+        }
+
+        function refreshMcpUi() {
+            const enabled = getMcpEnabled();
+            const btnOn = document.getElementById('mcpOn');
+            const btnOff = document.getElementById('mcpOff');
+            const container = document.getElementById('mcpToolsContainer');
+            
+            if (btnOn && btnOff) {
+                btnOn.classList.toggle('active', enabled);
+                btnOff.classList.toggle('active', !enabled);
+                btnOn.onclick = () => setMcpEnabled(true);
+                btnOff.onclick = () => setMcpEnabled(false);
+            }
+            
+            if (container) {
+                container.style.display = enabled ? 'block' : 'none';
+            }
+
+            if (enabled) {
+                const prefs = getMcpPreferences();
+                const chkWeb = document.getElementById('mcpToolWeb');
+                const chkFin = document.getElementById('mcpToolFinance');
+                const chkComm = document.getElementById('mcpToolComm');
+                if (chkWeb) chkWeb.checked = !!prefs.web;
+                if (chkFin) chkFin.checked = !!prefs.finance;
+                if (chkComm) chkComm.checked = !!prefs.comm;
+            }
+        }
+
+
 
         function formatDocsContextFromHits(hits, max = 4) {
             const arr = Array.isArray(hits) ? hits : [];
@@ -8879,7 +8973,70 @@ ${persona}
                 return;
             }
 
-            // 🤝 Orchestration multi-agents (sur demande)
+            
+            // 🛠️ MCP Tools (Direct Access)
+            // Usage: /mcp <tool_name> [args]
+            if (/^\/mcp\b/i.test(message)) {
+                if (typeof getMcpEnabled === 'function' && !getMcpEnabled()) {
+                    input.value = '';
+                    addMessage("⚠️ Le protocole MCP est désactivé. Allez dans **Paramètres > MCP** pour l'activer.", 'bot');
+                    return;
+                }
+
+                const raw = message.replace(/^\/mcp\b/i, '').trim();
+                input.value = '';
+                try { adjustTextareaHeight(); } catch (_) {}
+                
+                const parts = raw.split(/\s+/);
+                const toolName = parts[0];
+                const toolQuery = parts.slice(1).join(' ');
+
+                if (!toolName) {
+                    addMessage("❌ Usage: \`/mcp <outil> [params]\`\n\nOutils: \`get_employees\`, \`web_search\`, \`finance\`", 'bot');
+                    return;
+                }
+
+                let prefs = { web: true, finance: true, comm: false };
+                if (typeof getMcpPreferences === 'function') prefs = getMcpPreferences();
+
+                if ((toolName.includes('web') || toolName.includes('search')) && !prefs.web) {
+                    addMessage("⛔ L'outil **Web Search** n'est pas autorisé.", 'bot');
+                    return;
+                }
+                if ((toolName.includes('finance') || toolName.includes('currency')) && !prefs.finance) {
+                    addMessage("⛔ L'outil **Finance** n'est pas autorisé.", 'bot');
+                    return;
+                }
+                if ((toolName.includes('slack') || toolName.includes('mail')) && !prefs.comm) {
+                    addMessage("⛔ L'outil **Communication** n'est pas autorisé.", 'bot');
+                    return;
+                }
+
+                addMessage(message, 'user');
+                showTyping();
+
+                try {
+                    const response = await fetch('/mcp', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json', 'x-user-id': 'user_123' },
+                        body: JSON.stringify({ tool: toolName, params: { query: toolQuery } })
+                    });
+                    const data = await response.json();
+                    hideTyping();
+                    
+                    if (data.status === 'success') {
+                        addMessage(\`🛠️ **MCP (\${toolName})**\n\\\`\\\`\\\`json\n\${JSON.stringify(data.data, null, 2)}\n\\\`\\\`\\\`\`, 'bot');
+                    } else {
+                        addMessage(\`❌ **Erreur MCP**: \${data.error || JSON.stringify(data)}\`, 'bot');
+                    }
+                } catch (err) {
+                    hideTyping();
+                    addMessage("❌ Erreur connexion MCP: " + err.message, 'bot');
+                }
+                return;
+            }
+
+// 🤝 Orchestration multi-agents (sur demande)
             // Syntaxe fiable: /team dev marketing -- votre question
             if (/^\/team\b/i.test(message)) {
                 const raw = message.replace(/^\/team\b/i, '').trim();
