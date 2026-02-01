@@ -4180,6 +4180,32 @@
                 </div>
 
                 <!-- Mode -->
+                
+                        <!-- MCP Section -->
+                        <div style="margin-top:12px;padding-top:12px;border-top:1px dashed var(--border-color);">
+                            <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;">
+                                <div style="min-width:240px;">
+                                    <div style="font-weight:800;color:var(--text-primary);">Model Context Protocol (MCP)</div>
+                                    <div style="margin-top:4px;color:var(--text-secondary);font-size:13px;">Outils externes (APIs, Recherche).</div>
+                                </div>
+                                <div class="settings-plan-toggle" id="mcpToggle">
+                                    <button type="button" class="settings-plan-btn" id="mcpOff">OFF</button>
+                                    <button type="button" class="settings-plan-btn" id="mcpOn">ON</button>
+                                </div>
+                            </div>
+                            <div id="mcpToolsBox" style="display:none;margin-top:10px;padding:10px;background:var(--bg-secondary);border-radius:8px;">
+                                <label style="display:flex;align-items:center;gap:8px;margin:4px 0;cursor:pointer;">
+                                    <input type="checkbox" id="mcpWeb" checked> 🌍 Web Search
+                                </label>
+                                <label style="display:flex;align-items:center;gap:8px;margin:4px 0;cursor:pointer;">
+                                    <input type="checkbox" id="mcpFin" checked> 💱 Finance
+                                </label>
+                                <label style="display:flex;align-items:center;gap:8px;margin:4px 0;cursor:pointer;">
+                                    <input type="checkbox" id="mcpComm"> 📧 Communication
+                                </label>
+                            </div>
+                        </div>
+
                 <div class="about-section">
                     <h3>
                         <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -5711,7 +5737,7 @@ RÈGLES IMPORTANTES:
         function setDocsEmbeddingsEnabled(enabled) {
             const v = enabled ? '1' : '0';
             localStorage.setItem('axilum_docs_embeddings_enabled', v);
-            refreshDocsEmbeddingsUi();
+            refreshDocsEmbeddingsUi(); updMcpUi();
         }
 
         function getDocsIndexedMetaStorageKey() {
@@ -5924,6 +5950,23 @@ RÈGLES IMPORTANTES:
             } catch (_) {}
             try { renderDocsModalStatus(); } catch (_) {}
         }
+
+        // MCP Functions
+        function getMcpOn() { return localStorage.getItem('mcp_on') === '1'; }
+        function setMcpOn(v) { localStorage.setItem('mcp_on', v ? '1' : '0'); updMcpUi(); }
+        function getMcpPrefs() { try { return JSON.parse(localStorage.getItem('mcp_prefs') || '{}'); } catch(e) { return {}; } }
+        function saveMcpPrefs() {
+            var p = { web: document.getElementById('mcpWeb')?.checked, fin: document.getElementById('mcpFin')?.checked, comm: document.getElementById('mcpComm')?.checked };
+            localStorage.setItem('mcp_prefs', JSON.stringify(p));
+        }
+        function updMcpUi() {
+            var on = getMcpOn(), btnOn = document.getElementById('mcpOn'), btnOff = document.getElementById('mcpOff'), box = document.getElementById('mcpToolsBox');
+            if (btnOn) { btnOn.classList.toggle('active', on); btnOn.onclick = function() { setMcpOn(true); }; }
+            if (btnOff) { btnOff.classList.toggle('active', !on); btnOff.onclick = function() { setMcpOn(false); }; }
+            if (box) { box.style.display = on ? 'block' : 'none'; }
+            if (on) { var p = getMcpPrefs(); if (document.getElementById('mcpWeb')) document.getElementById('mcpWeb').checked = p.web !== false; if (document.getElementById('mcpFin')) document.getElementById('mcpFin').checked = p.fin !== false; if (document.getElementById('mcpComm')) document.getElementById('mcpComm').checked = !!p.comm; }
+        }
+
 
         function formatDocsContextFromHits(hits, max = 4) {
             const arr = Array.isArray(hits) ? hits : [];
@@ -8876,6 +8919,21 @@ ${persona}
                     hideTyping();
                     addMessage('❌ Erreur orchestration: ' + (err.message || String(err)), 'bot');
                 }
+                return;
+            }
+
+
+            // MCP Command
+            if (/^\/mcp\b/i.test(message)) {
+                if (typeof getMcpOn === 'function' && !getMcpOn()) { input.value = ''; addMessage('MCP désactivé. Activez-le dans Paramètres.', 'bot'); return; }
+                var raw = message.replace(/^\/mcp\b/i, '').trim(); input.value = '';
+                var parts = raw.split(/\s+/), tool = parts[0], query = parts.slice(1).join(' ');
+                if (!tool) { addMessage('Usage: /mcp <outil> [params]', 'bot'); return; }
+                addMessage(message, 'user'); showTyping();
+                fetch('/mcp', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ tool: tool, params: { query: query } }) })
+                    .then(function(r) { return r.json(); })
+                    .then(function(d) { hideTyping(); addMessage(d.status === 'success' ? JSON.stringify(d.data, null, 2) : ('Erreur: ' + (d.error || 'Unknown')), 'bot'); })
+                    .catch(function(e) { hideTyping(); addMessage('Erreur MCP: ' + e.message, 'bot'); });
                 return;
             }
 
