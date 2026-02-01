@@ -61,10 +61,22 @@ const authAndQuotaMiddleware = (req, res, next) => {
 // --- DÉFINITION DES OUTILS (TOOLS) ---
 
 const tools = {
-    // Outil 1 : INTERNE (Lecture données RH)
+    // ========================================
+    // OUTIL 1: Liste des outils disponibles
+    // ========================================
+    list_tools: async (params) => {
+        return {
+            tools: Object.keys(tools).map(name => ({
+                name,
+                description: toolDescriptions[name] || 'Outil disponible'
+            }))
+        };
+    },
+
+    // ========================================
+    // OUTIL 2: Lecture données RH (Employés)
+    // ========================================
     get_employees: async (params) => {
-        // En vrai: Lire depuis api/employees/all.json ou Base de Données
-        // Ici on simule une lecture sécurisée
         const filePath = path.join(__dirname, 'api', 'employees', 'all.json');
         
         if (fs.existsSync(filePath)) {
@@ -72,29 +84,150 @@ const tools = {
             const employees = JSON.parse(data);
             return { 
                 count: employees.length, 
-                sample: employees.slice(0, 3).map(e => e.name) // On ne renvoie pas tout pour économiser les tokens
+                employees: employees.slice(0, 5).map(e => ({ name: e.name, department: e.department || 'N/A' }))
             };
         }
-        return { error: "Fichier employés non trouvé" };
+        return { error: "Fichier employés non trouvé", hint: "Créez api/employees/all.json" };
     },
 
-    // Outil 2 : EXTERNE (Exemple API Météo/Finance)
-    // Nécessite une clé API externe
-    get_external_data: async (params) => {
+    // ========================================
+    // OUTIL 3: Recherche Web (Brave API ou Simulation)
+    // ========================================
+    web_search: async (params) => {
+        const query = params?.query || '';
+        if (!query) return { error: "Paramètre 'query' requis" };
+        
+        const braveApiKey = process.env.BRAVE_API_KEY;
+        console.log(`[MCP] Web Search: "${query}" (API: ${braveApiKey ? 'Brave' : 'Simulation'})`);
+        
+        // Si l'API Brave est configurée, utiliser la vraie recherche
+        if (braveApiKey) {
+            try {
+                const maxResults = params?.max_results || 5;
+                const searchUrl = `https://api.search.brave.com/res/v1/web/search?q=${encodeURIComponent(query)}&count=${maxResults}`;
+                const response = await axios.get(searchUrl, {
+                    headers: {
+                        'Accept': 'application/json',
+                        'X-Subscription-Token': braveApiKey
+                    },
+                    timeout: 10000
+                });
+                
+                const results = (response.data.web?.results || []).map(r => ({
+                    title: r.title,
+                    url: r.url,
+                    snippet: r.description || ''
+                }));
+                
+                return { query, results, source: 'Brave Search API', count: results.length };
+            } catch (error) {
+                console.error('[MCP] Brave Search error:', error.message);
+                return { query, error: error.message, source: 'Brave API Error' };
+            }
+        }
+        
+        // Mode simulation si pas d'API key
+        return {
+            query: query,
+            results: [
+                { title: `Résultat 1 pour "${query}"`, url: 'https://example.com/1', snippet: 'Description du premier résultat...' },
+                { title: `Résultat 2 pour "${query}"`, url: 'https://example.com/2', snippet: 'Description du second résultat...' }
+            ],
+            note: "Simulation - Ajoutez BRAVE_API_KEY dans .env pour résultats réels"
+        };
+    },
+
+    // ========================================
+    // OUTIL 4: Taux de change (API Réelle)
+    // ========================================
+    get_exchange_rate: async (params) => {
+        const from = (params?.from || 'USD').toUpperCase();
+        const to = (params?.to || 'EUR').toUpperCase();
+        
         try {
-            // Exemple: Appel à une API publique (ici placeholder)
-            // const response = await axios.get(`https://api.exchangerate-api.com/v4/latest/${params.currency}`);
-            // return response.data;
+            // API gratuite sans clé
+            const response = await axios.get(`https://api.exchangerate-api.com/v4/latest/${from}`, { timeout: 5000 });
+            const rate = response.data.rates[to];
             
-            return { 
-                source: "External World", 
-                type: "Simulation", 
-                message: `Connexion externe réussie pour ${params.query}` 
+            if (!rate) return { error: `Devise ${to} non trouvée` };
+            
+            return {
+                from: from,
+                to: to,
+                rate: rate,
+                timestamp: new Date().toISOString()
             };
         } catch (error) {
-            return { error: "Erreur de connexion externe", details: error.message };
+            return { error: "Erreur API taux de change", details: error.message };
         }
+    },
+
+    // ========================================
+    // OUTIL 5: Date et Heure actuelles
+    // ========================================
+    get_datetime: async (params) => {
+        const timezone = params?.timezone || 'Europe/Paris';
+        const now = new Date();
+        
+        return {
+            utc: now.toISOString(),
+            local: now.toLocaleString('fr-FR', { timeZone: timezone }),
+            timezone: timezone,
+            timestamp: now.getTime()
+        };
+    },
+
+    // ========================================
+    // OUTIL 6: Calculatrice
+    // ========================================
+    calculate: async (params) => {
+        const expression = params?.expression || '';
+        if (!expression) return { error: "Paramètre 'expression' requis" };
+        
+        try {
+            // Sécurité: On n'utilise que des opérations mathématiques de base
+            const sanitized = expression.replace(/[^0-9+\-*/().%\s]/g, '');
+            if (sanitized !== expression) {
+                return { error: "Expression invalide - caractères non autorisés" };
+            }
+            const result = Function('"use strict"; return (' + sanitized + ')')();
+            return { expression: expression, result: result };
+        } catch (e) {
+            return { error: "Erreur de calcul", details: e.message };
+        }
+    },
+
+    // ========================================
+    // OUTIL 7: Générateur UUID
+    // ========================================
+    generate_uuid: async (params) => {
+        const { v4: uuidv4 } = require('uuid');
+        return { uuid: uuidv4() };
+    },
+
+    // ========================================
+    // OUTIL 8: Données externes (placeholder)
+    // ========================================
+    get_external_data: async (params) => {
+        return { 
+            source: "External API", 
+            type: "Simulation", 
+            message: `Données pour: ${params?.query || 'N/A'}`,
+            note: "Configurez une vraie API externe"
+        };
     }
+};
+
+// Descriptions des outils (pour list_tools et documentation)
+const toolDescriptions = {
+    list_tools: "Liste tous les outils MCP disponibles",
+    get_employees: "Récupère la liste des employés RH",
+    web_search: "Recherche sur le web (simulation)",
+    get_exchange_rate: "Taux de change en temps réel (from, to)",
+    get_datetime: "Date et heure actuelles (timezone optionnel)",
+    calculate: "Calculatrice mathématique (expression)",
+    generate_uuid: "Génère un identifiant unique UUID",
+    get_external_data: "Accès API externe (simulation)"
 };
 
 // --- POINT D'ENTRÉE PRINCIPAL (ENDPOINT) ---
@@ -102,17 +235,29 @@ app.post('/mcp', authAndQuotaMiddleware, async (req, res) => {
     const { tool, params } = req.body;
 
     if (!tools[tool]) {
-        return res.status(404).json({ error: `Outil '${tool}' inconnu` });
+        return res.status(404).json({ 
+            error: `Outil '${tool}' inconnu`,
+            available_tools: Object.keys(tools)
+        });
     }
 
     try {
         // Exécution de l'outil
         const result = await tools[tool](params);
-        res.json({ status: 'success', data: result });
+        res.json({ status: 'success', tool: tool, data: result });
     } catch (error) {
         console.error(`[MCP] Erreur d'exécution:`, error);
-        res.status(500).json({ error: "Erreur interne de l'outil" });
+        res.status(500).json({ error: "Erreur interne de l'outil", details: error.message });
     }
+});
+
+// --- ENDPOINT: Liste des outils disponibles ---
+app.get('/mcp/tools', (req, res) => {
+    const toolList = Object.keys(tools).map(name => ({
+        name: name,
+        description: toolDescriptions[name] || 'Outil disponible'
+    }));
+    res.json({ tools: toolList });
 });
 
 // --- DÉMARRAGE ---

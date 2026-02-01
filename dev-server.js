@@ -47,6 +47,19 @@ app.use(express.urlencoded({ extended: true, limit: '20mb' }));
 
 // MCP Proxy Route
 const axios = require('axios');
+
+// GET /mcp/tools - Liste des outils disponibles
+app.get('/mcp/tools', async (req, res) => {
+    try {
+        const response = await axios.get('http://localhost:3001/mcp/tools');
+        res.json(response.data);
+    } catch (error) {
+        console.error('[Proxy] Error getting MCP tools:', error.message);
+        res.status(502).json({ error: "MCP Server Unreachable", tools: [] });
+    }
+});
+
+// POST /mcp - Exécution d'un outil
 app.post('/mcp', async (req, res) => {
     try {
         console.log(`[Proxy] Forwarding request to MCP server:`, req.body);
